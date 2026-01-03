@@ -11,3 +11,10 @@ nano .gitignore
 
 git add .
 git status
+git commit -m "Initial commit"
+
+
+git remote set-url origin git@github.com:MarcusPieska/turn-based-proto.git
+
+
+git push

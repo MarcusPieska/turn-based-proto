@@ -36,6 +36,7 @@ private:
     void __clearHighlights ();
     void __centerOnTile (MapTile *tile);
     void __toggleFullscreen ();
+    void __handleWndLimits ();
 
     SDL_Window *m_wnd;
     SDL_Renderer *m_rend;
@@ -49,10 +50,15 @@ private:
     MapTile *m_clicked_tile;
     std::vector<MapTile*> m_near_tiles;
     std::vector<MapTile*> m_diagonal_tiles;
+    int m_zoom_level;
     static const int SCROLL_SPEED = 10;
     static const int SCROLL_MAX = 100;
     static const int EDGE_SCROLL_MARGIN = 50;
     static const int EDGE_SCROLL_SPEED = 5;
+    static const int ZOOM_DEFAULT = 100;
+    static const int ZOOM_MAX = 200;
+    static const int ZOOM_MIN = 10;
+    static const int ZOOM_STEP = 10;
 };
 
 #endif // MAP_VIEW_H

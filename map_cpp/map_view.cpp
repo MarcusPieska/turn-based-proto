@@ -6,8 +6,8 @@
 #include "map_view.h"
 #include "map_tiler.h"
 
-#define ADJ_CX(x) (x - m_cx)
-#define ADJ_CY(y) (y - m_cy)
+#define ADJ_CX(x) ((x - m_cx) * m_zoom_level / 100)
+#define ADJ_CY(y) ((y - m_cy) * m_zoom_level / 100)
 
 //================================================================================================================================
 //=> - MapView public methods -
@@ -27,7 +27,8 @@ MapView::MapView (int wnd_width, int wnd_height, int map_width, int map_height, 
     m_cx (0),
     m_cy (0),
     m_scroll_add (0),
-    m_clicked_tile (nullptr) {
+    m_clicked_tile (nullptr),
+    m_zoom_level (ZOOM_DEFAULT) {
 }
 
 MapView::~MapView () {
@@ -76,30 +77,22 @@ void MapView::update () {
     int mouse_x, mouse_y;
     Uint32 buttons = SDL_GetMouseState (&mouse_x, &mouse_y);
     
+    int scroll_speed_x = EDGE_SCROLL_SPEED * 100 / m_zoom_level;
+    int scroll_speed_y = EDGE_SCROLL_SPEED * 100 / m_zoom_level;
+    
     if (mouse_x < EDGE_SCROLL_MARGIN) {
-        m_cx -= EDGE_SCROLL_SPEED + (EDGE_SCROLL_MARGIN - mouse_x) / 2;
+        m_cx -= scroll_speed_x + (EDGE_SCROLL_MARGIN - mouse_x) * 100 / m_zoom_level;
     } else if (mouse_x > m_wnd_w - EDGE_SCROLL_MARGIN) {
-        m_cx += EDGE_SCROLL_SPEED + (EDGE_SCROLL_MARGIN - (m_wnd_w - mouse_x)) / 2;
+        m_cx += scroll_speed_x + (EDGE_SCROLL_MARGIN - (m_wnd_w - mouse_x)) * 100 / m_zoom_level;
     }
     
     if (mouse_y < EDGE_SCROLL_MARGIN) {
-        m_cy -= EDGE_SCROLL_SPEED + (EDGE_SCROLL_MARGIN - mouse_y) / 2;
+        m_cy -= scroll_speed_y + (EDGE_SCROLL_MARGIN - mouse_y) * 100 / m_zoom_level;
     } else if (mouse_y > m_wnd_h - EDGE_SCROLL_MARGIN) {
-        m_cy += EDGE_SCROLL_SPEED + (EDGE_SCROLL_MARGIN - (m_wnd_h - mouse_y)) / 2;
+        m_cy += scroll_speed_y + (EDGE_SCROLL_MARGIN - (m_wnd_h - mouse_y)) * 100 / m_zoom_level;
     }
     
-    if (m_cx < 0) {
-        m_cx = 0;
-    }
-    if (m_cx > m_map_w - m_wnd_w) {
-        m_cx = m_map_w - m_wnd_w;
-    }
-    if (m_cy < 0) {
-        m_cy = 0;
-    }
-    if (m_cy > m_map_h - m_wnd_h) {
-        m_cy = m_map_h - m_wnd_h;
-    }
+    __handleWndLimits ();
 }
 
 void MapView::render_opt () {
@@ -174,21 +167,38 @@ void MapView::__handleEventsKeyDown (SDL_Event &e) {
         case SDLK_f:
             __toggleFullscreen ();
             break;
+        case SDLK_PLUS:
+        case SDLK_EQUALS:
+            if (m_zoom_level + ZOOM_STEP <= ZOOM_MAX) {
+                m_zoom_level += ZOOM_STEP;
+                __handleWndLimits ();
+            }
+            break;
+        case SDLK_MINUS:
+            if (m_zoom_level - ZOOM_STEP >= ZOOM_MIN) {
+                m_zoom_level -= ZOOM_STEP;
+                __handleWndLimits ();
+            }
+            break;
         case SDLK_LEFT:
             m_scroll_add = m_scroll_add < SCROLL_MAX ? m_scroll_add + 1 : SCROLL_MAX;
             m_cx -= SCROLL_SPEED + m_scroll_add;
+            __handleWndLimits ();
             break;
         case SDLK_RIGHT:
             m_scroll_add = m_scroll_add < SCROLL_MAX ? m_scroll_add + 1 : SCROLL_MAX;
             m_cx += SCROLL_SPEED + m_scroll_add;
+            __handleWndLimits ();
             break;
         case SDLK_UP:
             m_scroll_add = m_scroll_add < SCROLL_MAX ? m_scroll_add + 1 : SCROLL_MAX;
             m_cy -= SCROLL_SPEED + m_scroll_add;
+            __handleWndLimits ();
             break;
         case SDLK_DOWN:
             m_scroll_add = m_scroll_add < SCROLL_MAX ? m_scroll_add + 1 : SCROLL_MAX;
             m_cy += SCROLL_SPEED + m_scroll_add;
+            __handleWndLimits ();
             break;
         default: break;
     }
@@ -217,13 +227,14 @@ void MapView::__handleMouseClick (SDL_Event &e) {
         case SDL_BUTTON_LEFT: {
             int screen_x = e.button.x;
             int screen_y = e.button.y;
-            int map_x = screen_x + m_cx;
-            int map_y = screen_y + m_cy;
+            int map_x = (screen_x * 100 / m_zoom_level) + m_cx;
+            int map_y = (screen_y * 100 / m_zoom_level) + m_cy;
             if (m_model->m_tiler != nullptr) {
                 auto result = m_model->m_tiler->coordsToTile(map_x, map_y);
                 MapTile *tile = std::get<0>(result);
                 int row = std::get<1>(result);
                 int col = std::get<2>(result);
+                std::cout << "Clicked tile: " << row << ", " << col << std::endl;
                 if (tile != nullptr) {
                     __clearHighlights ();
                     m_clicked_tile = tile;
@@ -275,10 +286,11 @@ void MapView::__centerOnTile (MapTile *tile) {
     center_y /= 4;
     m_cx = center_x - m_wnd_w / 2;
     m_cy = center_y - m_wnd_h / 2;
-    if (m_cx < 0) m_cx = 0;
-    if (m_cx > m_map_w - m_wnd_w) m_cx = m_map_w - m_wnd_w;
-    if (m_cy < 0) m_cy = 0;
-    if (m_cy > m_map_h - m_wnd_h) m_cy = m_map_h - m_wnd_h;
+    
+    m_cx = m_cx < 0 ? 0 : m_cx;
+    m_cx = m_cx > m_map_w - m_wnd_w ? m_map_w - m_wnd_w : m_cx;
+    m_cy = m_cy < 0 ? 0 : m_cy;
+    m_cy = m_cy > m_map_h - m_wnd_h ? m_map_h - m_wnd_h : m_cy;
 }
 
 void MapView::__toggleFullscreen () {
@@ -291,6 +303,21 @@ void MapView::__toggleFullscreen () {
         SDL_SetWindowFullscreen (m_wnd, SDL_WINDOW_FULLSCREEN_DESKTOP);
         SDL_GetWindowSize (m_wnd, &m_wnd_w, &m_wnd_h);
     }
+}
+
+void MapView::__handleWndLimits () {
+    int visible_w = m_wnd_w * 100 / m_zoom_level;
+    int visible_h = m_wnd_h * 100 / m_zoom_level;
+    int max_cx = m_map_w - visible_w;
+    int max_cy = m_map_h - visible_h;
+    
+    max_cx = max_cx < 0 ? 0 : max_cx;
+    max_cy = max_cy < 0 ? 0 : max_cy;
+    
+    m_cx = m_cx < 0 ? 0 : m_cx;
+    m_cx = m_cx > max_cx ? max_cx : m_cx;
+    m_cy = m_cy < 0 ? 0 : m_cy;
+    m_cy = m_cy > max_cy ? max_cy : m_cy;
 }
 
 //================================================================================================================================
