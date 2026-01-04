@@ -35,6 +35,26 @@ class MountainGenerator:
             img[y, x] = fill_color
             stack.extend([(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)])
 
+    def __drawLine (m, img, pt1, pt2, color):
+        dx = abs(pt2[0] - pt1[0])
+        dy = abs(pt2[1] - pt1[1])
+        sx = 1 if pt1[0] < pt2[0] else -1
+        sy = 1 if pt1[1] < pt2[1] else -1
+        err = dx - dy
+        x, y = pt1[0], pt1[1]
+        while True:
+            if 0 <= x < img.shape[1] and 0 <= y < img.shape[0]:
+                img[y, x] = color
+            if x == pt2[0] and y == pt2[1]:
+                break
+            e2 = 2 * err
+            if e2 > -dy:
+                err -= dy
+                x += sx
+            if e2 < dx:
+                err += dx
+                y += sy
+
     def __init__ (m, width=100, height=100):
         m.width = width
         m.height = height
@@ -86,37 +106,22 @@ class MountainGenerator:
         alpha2 = np.zeros((m.height, m.width), dtype=np.uint8)
         peak_x, peak_y = m.mountain_peak_pt
         max_dist = m.base_length // 1.7
+        full_vis_dist_factor = 0.3
+        inner_dist = max_dist * full_vis_dist_factor
         for y in range(m.height):
             for x in range(m.width):
                 dist = math.sqrt((x - peak_x) ** 2 + (y - peak_y) ** 2)
-                if dist >= max_dist:
-                    alpha2[y, x] = 0
+                if dist <= inner_dist:
+                    alpha2[y, x] = 255
+                elif dist < max_dist:
+                    falloff_range = max_dist - inner_dist
+                    alpha2[y, x] = int(255 * (1.0 - (dist - inner_dist) / falloff_range))
                 else:
-                    alpha2[y, x] = int(255 - (255 * (dist / max_dist)))
+                    alpha2[y, x] = 0
         
         alpha = np.minimum(alpha1, alpha2)
         
-        return image_matrix, alpha
-
-    def __drawLine (m, img, pt1, pt2, color):
-        dx = abs(pt2[0] - pt1[0])
-        dy = abs(pt2[1] - pt1[1])
-        sx = 1 if pt1[0] < pt2[0] else -1
-        sy = 1 if pt1[1] < pt2[1] else -1
-        err = dx - dy
-        x, y = pt1[0], pt1[1]
-        while True:
-            if 0 <= x < img.shape[1] and 0 <= y < img.shape[0]:
-                img[y, x] = color
-            if x == pt2[0] and y == pt2[1]:
-                break
-            e2 = 2 * err
-            if e2 > -dy:
-                err -= dy
-                x += sx
-            if e2 < dx:
-                err += dx
-                y += sy
+        return image_matrix, alpha, [m.mountain_peak_pt] + m.end_pts
 
 #================================================================================================================================#
 #=> - End -
