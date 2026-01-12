@@ -1,5 +1,12 @@
 *.exe
 *.out
+*.so
 map_driver
 map_driver.exe
 tiles.dat
+
+tool_palette_maker
+tool_patch_texture
+
+img_mng.so
+map_overlays.so

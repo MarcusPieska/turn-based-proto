@@ -1,0 +1,8 @@
+#!/bin/bash
+g++ -O3 -std=c++11 tool_patch_texture.cpp -o tool_patch_texture -lm
+if [ $? -eq 0 ]; then
+    echo "Build successful"
+else
+    echo "Build failed"
+    exit 1
+fi

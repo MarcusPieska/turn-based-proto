@@ -22,6 +22,9 @@ class LineGenerator:
     def __init__ (m):
         pass
 
+    def setRandomSeed (m, seed):
+        random.seed(int(seed))
+
     def generateLine (m, line_length, angle, bend_factor=None, peak_position=None, width=800, height=600, zoom=4.0):
         if bend_factor is None:
             bend_factor = random.uniform(0.0, 1.0)

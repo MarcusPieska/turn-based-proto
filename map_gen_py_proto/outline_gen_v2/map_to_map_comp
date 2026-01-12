@@ -1,0 +1,4 @@
+#!/bin/bash
+g++ -c -fPIC map_to_map.cpp -o map_to_map.o
+g++ -shared -o map_to_map.so map_to_map.o
+rm map_to_map.o
