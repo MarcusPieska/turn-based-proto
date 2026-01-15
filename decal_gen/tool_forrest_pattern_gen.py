@@ -15,13 +15,13 @@ import random
 import math
 
 #================================================================================================================================#
-#=> - Class: TreePlacementPatternGenerator -
+#=> - Class: PineTreeMaker -
 #================================================================================================================================#
 
-class TreePlacementPatternGenerator:
+class PineTreeMaker:
 
-    TREE_COLOR1_RGB = (3, 31, 22)  # (9, 61, 45)
-    TREE_COLOR2_RGB = (9, 61, 45) # (0, 102, 51)
+    TREE_COLOR1_RGB = (3, 31, 22)
+    TREE_COLOR2_RGB = (9, 61, 45)
     TREE_PX_WIDTH = 5
     TREE_PX_HEIGHT = 10
     TREE_LEFT1_BRIGHTNESS_FACTOR = 1.3
@@ -35,7 +35,7 @@ class TreePlacementPatternGenerator:
     TIER_2_TREE_COUNT = 20
     TIER_3_TREE_COUNT = 10
 
-    def __getRandomTreeColor(m):
+    def getRandomTreeColor(m):
         t = random.uniform(0.0, 1.0)
         r1, g1, b1 = m.TREE_COLOR1_RGB
         r2, g2, b2 = m.TREE_COLOR2_RGB
@@ -48,8 +48,8 @@ class TreePlacementPatternGenerator:
         if b > 0 and g <= b:
             g = int(b * target_ratio)
         return (r, g, b)
-    
-    def __generateTreeDecal(m, color):
+   
+    def generateTreeDecal(m, color):
         width = m.TREE_PX_WIDTH + random.randint(-1, 1)
         height = m.TREE_PX_HEIGHT + random.randint(-1, 1)
         decal = Image.new('RGBA', (width, height), (0, 0, 0, 0))
@@ -112,7 +112,7 @@ class TreePlacementPatternGenerator:
         decal = decal.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
         return decal
     
-    def __generateTreeShadow(m, tree_height):
+    def generateTreeShadow(m, tree_height):
         angle_rad = math.radians(m.TREE_SHADOW_ANGLE)
         shadow_length = tree_height * 1.2
         shadow_width = max(1, tree_height * 0.6 - 2)
@@ -128,6 +128,122 @@ class TreePlacementPatternGenerator:
         draw.ellipse(bbox, fill=(0, 0, 0, m.TREE_SHADOW_ALPHA))
         shadow = shadow.rotate(m.TREE_SHADOW_ANGLE, expand=True, fillcolor=(0, 0, 0, 0))
         return shadow
+
+#================================================================================================================================#
+#=> - Class: BroadleafTreeMaker -
+#================================================================================================================================#
+
+class BroadleafTreeMaker:
+
+    TREE_COLOR1_RGB = (33, 74, 27) 
+    TREE_COLOR2_RGB = (39, 128, 27)
+    TREE_PX_WIDTH = 12
+    TREE_PX_HEIGHT = 12
+    TREE_LEFT1_BRIGHTNESS_FACTOR = 1.0
+    TREE_LEFT2_BRIGHTNESS_FACTOR = 1.1
+    TREE_RIGHT1_BRIGHTNESS_FACTOR = 0.4
+    TREE_RIGHT2_BRIGHTNESS_FACTOR = 0.1
+    TREE_SHADOW_ALPHA = 120
+    TREE_SHADOW_ANGLE = 30
+
+    MAIN_TREE_COUNT = 300
+    TIER_2_TREE_COUNT = 20
+    TIER_3_TREE_COUNT = 10
+
+    def getRandomTreeColor(m):
+        t = random.uniform(0.0, 1.0)
+        r1, g1, b1 = m.TREE_COLOR1_RGB
+        r2, g2, b2 = m.TREE_COLOR2_RGB
+        r = int(r1 + (r2 - r1) * t)
+        g = int(g1 + (g2 - g1) * t)
+        b = int(b1 + (b2 - b1) * t)
+        gb_ratio1 = float(g1) / float(b1) if b1 > 0 else 2.0
+        gb_ratio2 = float(g2) / float(b2) if b2 > 0 else 2.0
+        target_ratio = gb_ratio1 + (gb_ratio2 - gb_ratio1) * t
+        if b > 0 and g <= b:
+            g = int(b * target_ratio)
+        return (r, g, b)
+   
+    def generateTreeDecal(m, color):
+        width = m.TREE_PX_WIDTH + random.randint(-1, 1)
+        height = m.TREE_PX_HEIGHT + random.randint(-1, 1)
+        decal = Image.new('RGBA', (width, height), (0, 0, 0, 0))
+        pixels = decal.load()
+        center_x = (width - 1) / 2.0
+        center_y = (height - 1) / 2.0
+        radius = min(width, height) / 2.0
+        for y in range(height):
+            y_offset = y - center_y
+            max_y_offset = height / 2.0
+            arc_radius = max_y_offset
+            if abs(y_offset) <= arc_radius and arc_radius > 0:
+                t = math.asin(y_offset / arc_radius) if arc_radius > 0 else 0.0
+                arc_x = arc_radius * math.cos(t)
+                middle_x = center_x + arc_x * 0.5 - 1
+            else:
+                middle_x = center_x
+            for x in range(width):
+                dx = x - center_x
+                dy = y - center_y
+                dist_from_center = math.sqrt(dx * dx + dy * dy)
+                if dist_from_center > radius:
+                    pixels[x, y] = (0, 0, 0, 0)
+                    continue
+                alpha = 255
+                alpha += random.randint(-8, 8)
+                alpha = max(0, min(255, alpha))
+                r, g, b = color[0], color[1], color[2]
+                leftmost_x = int(center_x - radius)
+                rightmost_x = int(center_x + radius)
+                if x <= leftmost_x:
+                    factor = m.TREE_LEFT1_BRIGHTNESS_FACTOR
+                elif x >= rightmost_x:
+                    factor = m.TREE_RIGHT2_BRIGHTNESS_FACTOR
+                else:
+                    if x < middle_x:
+                        factor = m.TREE_LEFT2_BRIGHTNESS_FACTOR
+                    else:
+                        factor = m.TREE_RIGHT1_BRIGHTNESS_FACTOR
+                r = int(r * factor)
+                g = int(g * factor)
+                b = int(b * factor)
+                noise_base = 12
+                x_shift = float(x) / float(width - 1) if width > 1 else 0.0
+                noise_min = int(-noise_base - x_shift * 80)
+                noise_max = int(noise_base - x_shift * 40)
+                rand_noise = random.randint(noise_min, noise_max)
+                r += rand_noise
+                g += rand_noise
+                b += rand_noise
+                r = int(min(255, max(0, r)))
+                g = int(min(255, max(0, g)))
+                b = int(min(255, max(0, b)))
+                b = min(255, max(0, b))
+                pixels[x, y] = (r, g, b, alpha)
+        return decal
+    
+    def generateTreeShadow(m, tree_height):
+        angle_rad = math.radians(m.TREE_SHADOW_ANGLE)
+        shadow_length = tree_height * 1.2
+        shadow_width = max(1, tree_height * 0.6 - 2)
+        shadow_w = int(shadow_length + shadow_width * 2)
+        shadow_h = int(shadow_length + shadow_width * 2)
+        if shadow_w < 1 or shadow_h < 1:
+            return None
+        shadow = Image.new('RGBA', (shadow_w, shadow_h), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(shadow)
+        center_x = shadow_w / 2.0
+        center_y = shadow_h / 2.0
+        bbox = [center_x - shadow_length/2, center_y - shadow_width/2, center_x + shadow_length/2, center_y + shadow_width/2]
+        draw.ellipse(bbox, fill=(0, 0, 0, m.TREE_SHADOW_ALPHA))
+        shadow = shadow.rotate(m.TREE_SHADOW_ANGLE, expand=True, fillcolor=(0, 0, 0, 0))
+        return shadow
+
+#================================================================================================================================#
+#=> - Class: TreePlacementPatternGenerator -
+#================================================================================================================================#
+
+class TreePlacementPatternGenerator:
 
     def __generateTreeLocations(m, tree_count, height, width, center_x, center_y):
         inner_h = height
@@ -175,6 +291,7 @@ class TreePlacementPatternGenerator:
         if not m.output_path:
             print ("*** Error: No output path set")
             return
+        actual_output_path = m.__getAvailableFilename(m.output_path)
         if not hasattr(m, 'trees_list') or not hasattr(m, 'shadows_list'):
             print ("*** Error: No trees generated yet")
             return
@@ -229,8 +346,17 @@ class TreePlacementPatternGenerator:
         bbox = final_decal.getbbox()
         if bbox:
             final_decal = final_decal.crop(bbox)
-        final_decal.save(m.output_path)
-        print ("*** Saved decal to %s" %(m.output_path))
+        final_decal.save(actual_output_path)
+        print ("*** Saved decal to %s" %(actual_output_path))
+
+    def __getAvailableFilename(m, output_path):
+        base_path, ext = os.path.splitext(output_path)
+        counter = 1
+        while True:
+            numbered_path = "%s%02d%s" %(base_path, counter, ext)
+            if not os.path.exists(numbered_path):
+                return numbered_path
+            counter += 1
 
     def __init__(m, canvas_size=600, height=100, width=50, output_path=None):
         m.canvas_size = canvas_size
@@ -242,6 +368,10 @@ class TreePlacementPatternGenerator:
         m.output_path = output_path
         m.trees_list = []
         m.shadows_list = []
+        if output_path is None or "pine" in output_path:
+            m.tree_maker = PineTreeMaker()
+        else:
+            m.tree_maker = BroadleafTreeMaker()
         m.root = tk.Tk()
         m.root.title("Tree Placement Pattern Generator")
         button_frame = tk.Frame(m.root)
@@ -311,7 +441,7 @@ class TreePlacementPatternGenerator:
         center_x = m.canvas_size // 2
         center_y = m.canvas_size // 2
         all_locations = []
-        main_locations = m.__generateTreeLocations(m.MAIN_TREE_COUNT, m.height, m.width, center_x, center_y)
+        main_locations = m.__generateTreeLocations(m.tree_maker.MAIN_TREE_COUNT, m.height, m.width, center_x, center_y)
         all_locations.extend(main_locations)
         tier2_h = int(m.height * 0.6)
         tier2_w = int(m.width * 0.6)
@@ -322,16 +452,16 @@ class TreePlacementPatternGenerator:
             offset_y = offset_r_factor * (m.height / 2) * math.sin(offset_angle)
             tier2_center_x = int(center_x + offset_x)
             tier2_center_y = int(center_y + offset_y)
-            tier2_locations = m.__generateTreeLocations(m.TIER_2_TREE_COUNT, tier2_h, tier2_w, tier2_center_x, tier2_center_y)
+            tier2_locations = m.__generateTreeLocations(m.tree_maker.TIER_2_TREE_COUNT, tier2_h, tier2_w, tier2_center_x, tier2_center_y)
             all_locations.extend(tier2_locations)
         all_locations.sort(key=lambda loc: loc[1])
         shadows_list = []
         trees_list = []
         for x, y in all_locations:
             m.markTreeLocation(x, y)
-            color = m.__getRandomTreeColor()
-            decal = m.__generateTreeDecal(color)
-            shadow = m.__generateTreeShadow(decal.height)
+            color = m.tree_maker.getRandomTreeColor()
+            decal = m.tree_maker.generateTreeDecal(color)
+            shadow = m.tree_maker.generateTreeShadow(decal.height)
             if shadow:
                 shadows_list.append((shadow, x + 4, y))
             trees_list.append((decal, x, y))

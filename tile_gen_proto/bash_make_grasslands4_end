@@ -1,0 +1,6 @@
+#!/bin/bash
+
+./tool_patch_texture "/home/w/Projects/img-content/colors-grassland4_palette_patches.txt" 1600 800 1 20
+
+python3 tool_tile_noise.py "/home/w/Projects/img-content/colors-grassland4_palette_texture.ppm"
+python3 tool_tile_test.py "/home/w/Projects/img-content/colors-grassland4_palette_texture_blurred.png"

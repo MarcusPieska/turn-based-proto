@@ -382,13 +382,13 @@ public:
 //================================================================================================================================
 
 int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        printf("*** Error: Usage: %s <image_path>\n", argv[0]);
+    if (argc < 2 || argc > 3) {
+        printf("*** Error: Usage: %s <image_path> [num_colors]\n", argv[0]);
         return 1;
     }
-    
+    int num_colors = (argc == 3) ? atoi(argv[2]) : 8;
+    printf("*** Using %d colors\n", num_colors);
     std::string image_path = argv[1];
-    int num_colors = 8;
     PaletteMaker maker(image_path, num_colors);
     
     return 0;

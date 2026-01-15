@@ -1,0 +1,4 @@
+#!/bin/bash
+g++ -c -fPIC map_overlays.cpp -o map_overlays.o
+g++ -shared -o map_overlays.so map_overlays.o
+rm map_overlays.o

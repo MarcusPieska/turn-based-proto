@@ -12,6 +12,8 @@ sys.path.insert(0, os.getcwd())
 from PIL import Image, ImageTk
 import tkinter as tk
 
+import random
+
 #================================================================================================================================#
 #=> - Class: ForestDecalLoader -
 #================================================================================================================================#
@@ -44,26 +46,22 @@ class ForestDecalLoader:
         print ("*** Loaded texture: %s" %(texture_path))
         return True
     
-    def loadDecal(m, decal_path):
-        if not os.path.exists(decal_path):
-            print ("*** Error: Decal file not found: %s" %(decal_path))
-            return False
-        decal = Image.open(decal_path)
-        if decal.mode != 'RGBA':
-            decal = decal.convert('RGBA')
-        decal_width, decal_height = decal.size
-        center_x = m.canvas_size // 2
-        center_y = m.canvas_size // 2
-        paste_x = center_x - decal_width // 2
-        paste_y = center_y - decal_height // 2
+    def loadDecals(m, decal_paths, coords_list):
         composite = m.texture_image.copy()
-        composite.paste(decal, (paste_x, paste_y), decal)
+        for decal_path, (x, y) in zip(decal_paths, sorted(coords_list, key=lambda x: x[1], reverse=False)):
+            decal = Image.open(decal_path)
+            if decal.mode != 'RGBA':
+                decal = decal.convert('RGBA')
+            decal_width, decal_height = decal.size
+            paste_x = x - decal_width // 2
+            paste_y = y - decal_height // 2
+            composite.paste(decal, (paste_x, paste_y), decal)
+            print ("*** Loaded decal: %s" %(decal_path))
         photo = ImageTk.PhotoImage(composite.convert('RGB'))
-        m.canvas.delete(m.image_id)
+        if m.image_id:
+            m.canvas.delete(m.image_id)
         m.image_id = m.canvas.create_image(0, 0, anchor=tk.NW, image=photo)
         m.canvas.image = photo
-        print ("*** Loaded decal: %s" %(decal_path))
-        return True
     
     def run(m):
         m.root.mainloop()
@@ -74,10 +72,31 @@ class ForestDecalLoader:
 
 if __name__ == "__main__":
     texture_path = "/home/w/Projects/img-content/texture-grassland3/colors-grassland3_palette_texture_blurred.png"
-    decal_path = "/home/w/Projects/img-content/texture-grassland3-pine.png"
+    #texture_path = "/home/w/Projects/img-content/texture-grassland-lush1/colors-grassland-lush1_palette_texture_blurred.png"
+    #texture_path = "/home/w/Projects/img-content/texture-plains2/colors-plains2_palette_texture_blurred.png"
+    texture_path = "/home/w/Projects/img-content/texture-grassland4/colors-grassland4_palette_texture_blurred.png"
+    tag = "pine"
+    tag = "broadleaf"
+    decal_paths = [
+        "/home/w/Projects/img-content/texture-grassland3-%s01.png" %(tag),
+        "/home/w/Projects/img-content/texture-grassland3-%s02.png" %(tag),
+        "/home/w/Projects/img-content/texture-grassland3-%s03.png" %(tag),
+        "/home/w/Projects/img-content/texture-grassland3-%s04.png" %(tag),
+        "/home/w/Projects/img-content/texture-grassland3-%s05.png" %(tag)
+    ]
+    coords_list = [
+        (300, 200),
+        (400, 200),
+        (300, 300),
+        (400, 300),
+        (350, 250)
+    ]
+    
+    random.seed()
+    decal_paths = random.sample(decal_paths, len(decal_paths))
     loader = ForestDecalLoader(canvas_size=600)
     loader.loadTexture(texture_path)
-    loader.loadDecal(decal_path)
+    loader.loadDecals(decal_paths, coords_list)
     loader.run()
 
 #================================================================================================================================#

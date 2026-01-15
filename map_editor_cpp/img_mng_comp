@@ -1,0 +1,4 @@
+#!/bin/bash
+g++ -c -fPIC img_mng.cpp -o img_mng.o
+g++ -shared -o img_mng.so img_mng.o
+rm img_mng.o
