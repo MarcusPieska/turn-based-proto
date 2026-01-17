@@ -16,6 +16,7 @@ from PIL import Image, ImageTk
 from dialog_get_ints import DialogGetInts
 from dialog_new_cont import DialogNewCont
 from dialog_coastal_mtn import DialogCoastalMtn
+from dialog_climate import DialogClimate
 from multi_canvas import CycleSelectCanvas
 
 #================================================================================================================================#
@@ -186,6 +187,18 @@ class MapEditor:
             m.__update_current_image(new_img)
             m.__print("Coastal mountain added")
 
+    def __climate_cb (m):
+        current_img = m.cycle_canvas.get_current_image()
+        if current_img is None:
+            return
+        climate_colors = [m.COLOR_GRASSLAND, m.COLOR_PLAINS, m.COLOR_DESERT]
+        ignore_colors = [m.COLOR_OCEAN, m.COLOR_MOUNTAIN]
+        dialog = DialogClimate(m.root, current_img, m.COLOR_OCEAN, m.COLOR_MOUNTAIN, climate_colors, ignore_colors)
+        new_img = dialog.get_image()
+        if new_img is not None:
+            m.__update_current_image(new_img)
+            m.__print("Climate applied")
+
     def __setup_ui (m):
         m.frm_btn = tk.Frame(m.root)
         m.frm_btn.pack(pady=5, anchor='w')
@@ -201,6 +214,8 @@ class MapEditor:
         m.btn_new_cont.grid(row=1, column=1, padx=5, pady=5)
         m.btn_coastal_mtn = tk.Button(m.frm_btn, text="Coastal mtn.", width=m.btn_w, height=m.btn_h, command=m.__coastal_mtn_cb)
         m.btn_coastal_mtn.grid(row=1, column=2, padx=5, pady=5)
+        m.btn_climate = tk.Button(m.frm_btn, text="Climate", width=m.btn_w, height=m.btn_h, command=m.__climate_cb)
+        m.btn_climate.grid(row=1, column=3, padx=5, pady=5)
         
         m.cycle_canvas = CycleSelectCanvas(m.root, m.cnv_w, m.cnv_h, m.DEFAULT_COLOR_BG)
         m.cycle_canvas.get_widget().pack(pady=5)

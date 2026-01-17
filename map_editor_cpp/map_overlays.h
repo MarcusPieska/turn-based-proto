@@ -25,6 +25,7 @@ typedef struct margins {
 
 void distance_overlay_brute_force (u8* img, size img_size, int channels, u8* bg_color, int* dist_out);
 void distance_overlay (u8* img, size img_size, int channels, u8* bg_color, int* dist_out);
+void distance_overlay_block (u8* img, size img_size, int channels, u8* bg_color, u8* block_color, int* dist_out);
 void distance_mask (int* dist_in, size img_size, int lower_limit, int upper_limit, u8* mask_out);
 void wander_up (int* dist_in, size img_size, pt start, pt* end_out);
 void wander_down (int* dist_in, size img_size, pt start, int min_limit, pt* end_out);

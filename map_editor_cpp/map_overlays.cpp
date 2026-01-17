@@ -117,6 +117,59 @@ void distance_overlay (u8* img, size img_size, int channels, u8* bg_color, int* 
     }
 }
 
+void distance_overlay_block (u8* img, size img_size, int channels, u8* bg_color, u8* block_color, int* dist_out) {
+    for (int i = 0; i < img_size.width * img_size.height; i++) {
+        dist_out[i] = -1;
+    }
+    std::queue<std::pair<int, int> > q;
+    for (int y = 0; y < img_size.height; y++) {
+        for (int x = 0; x < img_size.width; x++) {
+            int pos = (y * img_size.width + x) * channels;
+            if (colors_match(&img[pos], bg_color, channels)) {
+                dist_out[y * img_size.width + x] = 0;
+                int dx[] = {-1, 1, 0, 0};
+                int dy[] = {0, 0, -1, 1};
+                for (int d = 0; d < 4; d++) {
+                    int nx = x + dx[d];
+                    int ny = y + dy[d];
+                    if (nx >= 0 && nx < img_size.width && ny >= 0 && ny < img_size.height) {
+                        int npos = (ny * img_size.width + nx) * channels;
+                        if (!colors_match(&img[npos], bg_color, channels) && dist_out[ny * img_size.width + nx] == -1) {
+                            dist_out[ny * img_size.width + nx] = 1;
+                            q.push(std::make_pair(nx, ny));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    while (!q.empty()) {
+        int x = q.front().first;
+        int y = q.front().second;
+        q.pop();
+        int curr_dist = dist_out[y * img_size.width + x];
+        int curr_pos = (y * img_size.width + x) * channels;
+        bool is_block_color = colors_match(&img[curr_pos], block_color, channels);
+        int dx[] = {-1, 1, 0, 0};
+        int dy[] = {0, 0, -1, 1};
+        for (int d = 0; d < 4; d++) {
+            int nx = x + dx[d];
+            int ny = y + dy[d];
+            if (nx >= 0 && nx < img_size.width && ny >= 0 && ny < img_size.height) {
+                int npos = (ny * img_size.width + nx) * channels;
+                if (!colors_match(&img[npos], bg_color, channels) && dist_out[ny * img_size.width + nx] == -1) {
+                    // If current pixel is block_color, only propagate to other block_color pixels
+                    if (is_block_color && !colors_match(&img[npos], block_color, channels)) {
+                        continue;
+                    }
+                    dist_out[ny * img_size.width + nx] = curr_dist + 1;
+                    q.push(std::make_pair(nx, ny));
+                }
+            }
+        }
+    }
+}
+
 void distance_mask (int* dist_in, size img_size, int lower_limit, int upper_limit, u8* mask_out) {
     for (int i = 0; i < img_size.width * img_size.height; i++) {
         if (dist_in[i] >= lower_limit && dist_in[i] <= upper_limit) {

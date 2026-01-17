@@ -324,9 +324,7 @@ class DialogCoastalMtn:
         m.dialog.wait_window()
 
     def get_image (m):
-        if m.result_image is None:
-            return None
-        return Image.fromarray(m.result_image, 'RGB')
+        return Image.fromarray(m.result_image, 'RGB') if m.result_image is not None else None
 
 #================================================================================================================================#
 #=> - Main -
