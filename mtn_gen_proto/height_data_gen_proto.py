@@ -213,7 +213,9 @@ class HeightDataDisplay:
 
 if __name__ == "__main__":
     save_path = "../../img-content"
-    display = HeightDataDisplay(width=800, height=600, tile_width=101, tile_height=100, save_path=save_path)
+    size = 100*8
+    filename = "raw_mtn_hd005.png"
+    display = HeightDataDisplay(width=800, height=600, tile_width=size, tile_height=size, save_path=save_path)
     display.run()
 
 #================================================================================================================================#

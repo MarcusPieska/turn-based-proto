@@ -1,0 +1,4 @@
+#!/bin/bash
+g++ -c -fPIC col_morph.cpp -o col_morph.o
+g++ -shared -o col_morph.so col_morph.o
+rm col_morph.o

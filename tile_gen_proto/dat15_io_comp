@@ -1,0 +1,4 @@
+#!/bin/bash
+g++ -c -fPIC dat15_io.cpp -o dat15_io.o
+g++ -shared -o dat15_io.so dat15_io.o
+rm dat15_io.o
