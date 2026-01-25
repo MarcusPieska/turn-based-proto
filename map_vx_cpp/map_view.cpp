@@ -13,6 +13,19 @@
 
 #include "map_view.h"
 #include "map_tiler.h"
+#include "dat15_io.h"
+
+// Types for col_morph
+typedef unsigned char u8;
+typedef struct pt {
+    int x, y;
+} pt;
+typedef struct deltas {
+    int top_dy, right_dy, bottom_dy, left_dy;
+} deltas;
+
+// Include col_morph.cpp directly
+#include "col_morph.cpp"
 
 #define ADJ_CX(x) ((x - m_cx) * m_zoom_level / 100)
 #define ADJ_CY(y) ((y - m_cy) * m_zoom_level / 100)
@@ -40,7 +53,10 @@ MapView::MapView (int wnd_width, int wnd_height, int map_width, int map_height, 
     m_cy (0),
     m_scroll_add (0),
     m_clicked_tile (nullptr),
-    m_zoom_level (ZOOM_DEFAULT) {
+    m_zoom_level (ZOOM_DEFAULT),
+    m_tex_read (nullptr),
+    m_tile_text_w (tile_width + 1),
+    m_tile_text_h (tile_height + 1) {
 }
 
 MapView::~MapView () {
@@ -66,6 +82,8 @@ bool MapView::initialize () {
         return false;
     }
     m_running = true;
+    const char* texture_path = "/home/w/Projects/img-content/texture-grassland3/colors-grassland3_palette_texture_blurred.dat15";
+    m_tex_read = new Dat15Reader(texture_path);
     return true;
 }
 
@@ -165,6 +183,7 @@ void MapView::render_opt () {
     SDL_SetRenderDrawColor (m_rend, U8_MAX, U8_MAX, U8_MAX, U8_MAX);
     SDL_RenderClear (m_rend);
     SDL_SetRenderDrawColor (m_rend, 0, 0, 0, U8_MAX);
+    SDL_SetRenderDrawBlendMode(m_rend, SDL_BLENDMODE_BLEND);
     std::vector<std::vector<MapTile>>& tiles = m_model->getTilesRef ();
     int visible_h = m_wnd_h * 100 / m_zoom_level + HEIGHT_COLOR_MAX * m_factor;
     int visible_w = m_wnd_w * 100 / m_zoom_level;
@@ -185,10 +204,50 @@ void MapView::render_opt () {
     for (size_t row_idx = min_row; row_idx <= max_row && row_idx < tiles.size(); row_idx++) {
         for (size_t col_idx = min_col; col_idx <= max_col && col_idx < tiles[row_idx].size(); col_idx++) {
             const MapTile& t = tiles[row_idx][col_idx];
+            
+            int size_out = 0;
+            const void* tile_data = m_tex_read->get_item(row_idx, col_idx, &size_out);
+            SDL_Surface* surface = SDL_CreateRGBSurface(0, m_tile_text_w, m_tile_text_h, 32, 0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
+            SDL_LockSurface(surface);
+            u8* dst = (u8*)surface->pixels;
+            const u8* src = (const u8*)tile_data;
+            int src_row_size = m_tile_text_w * 3;
+            for (int y = 0; y < m_tile_text_h; y++) {
+                for (int x = 0; x < m_tile_text_w; x++) {
+                    int src_idx = y * src_row_size + x * 3;
+                    int dst_idx = y * surface->pitch + x * 4;
+                    bool is_magenta = (src[src_idx] == 255 && src[src_idx+1] == 0 && src[src_idx+2] == 255);
+                    dst[dst_idx + 0] = src[src_idx + 0];     // R
+                    dst[dst_idx + 1] = src[src_idx + 1];     // G
+                    dst[dst_idx + 2] = src[src_idx + 2];     // B
+                    dst[dst_idx + 3] = is_magenta ? 0 : 255; // A
+                }
+            }
+            SDL_UnlockSurface(surface);
+            SDL_SetSurfaceBlendMode(surface, SDL_BLENDMODE_BLEND);
+            SDL_Texture* texture = SDL_CreateTextureFromSurface(m_rend, surface);
+            if (texture != nullptr) {
+                SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+            }
+            if (texture != nullptr) {
+                SDL_Rect dst_rect;
+                dst_rect.x = std::min({ADJ_CX(t.pts[0].x), ADJ_CX(t.pts[1].x), ADJ_CX(t.pts[2].x), ADJ_CX(t.pts[3].x)});
+                dst_rect.y = std::min({ADJ_CY(t.pts[0].y), ADJ_CY(t.pts[1].y), ADJ_CY(t.pts[2].y), ADJ_CY(t.pts[3].y)});
+                dst_rect.w = std::max({ADJ_CX(t.pts[0].x), ADJ_CX(t.pts[1].x), ADJ_CX(t.pts[2].x), ADJ_CX(t.pts[3].x)}) - dst_rect.x;
+                dst_rect.h = std::max({ADJ_CY(t.pts[0].y), ADJ_CY(t.pts[1].y), ADJ_CY(t.pts[2].y), ADJ_CY(t.pts[3].y)}) - dst_rect.y;
+                SDL_RenderCopy(m_rend, texture, nullptr, &dst_rect);
+                SDL_DestroyTexture(texture);
+            }
+            SDL_FreeSurface(surface);
+
+            
             SDL_RenderDrawLine (m_rend, ADJ_CX(t.pts[3].x), ADJ_CY(t.pts[3].y), ADJ_CX(t.pts[0].x), ADJ_CY(t.pts[0].y));
             SDL_RenderDrawLine (m_rend, ADJ_CX(t.pts[2].x), ADJ_CY(t.pts[2].y), ADJ_CX(t.pts[3].x), ADJ_CY(t.pts[3].y));
         }
     }
+
+
+
     if (min_row == 0) {
         for (size_t col_idx = 0; col_idx < tiles[0].size(); col_idx++) {
             const MapTile& t1 = tiles[0][col_idx];
@@ -247,6 +306,10 @@ bool MapView::isRunning () const {
 }
 
 void MapView::cleanup () {
+    if (m_tex_read != nullptr) {
+        delete m_tex_read;
+        m_tex_read = nullptr;
+    }
     if (m_rend != nullptr) {
         SDL_DestroyRenderer (m_rend);
         m_rend = nullptr;

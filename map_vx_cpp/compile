@@ -1,1 +1,10 @@
-g++ -std=c++11 -o map_driver map_driver.cpp map_model.cpp map_tiler.cpp map_view.cpp -lSDL2 -lSDL2_image -lSDL2_ttf
+
+
+g++ -std=c++11 \
+    dat15_io.cpp \
+    map_driver.cpp \
+    map_model.cpp \
+    map_tiler.cpp \
+    map_view.cpp \
+    -o map_driver \
+    -lSDL2 -lSDL2_image -lSDL2_ttf

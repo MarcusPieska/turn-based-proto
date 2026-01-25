@@ -9,6 +9,11 @@
 //=> - Header struct -
 //================================================================================================================================
 
+struct dat15_top_hdr {
+    unsigned int num_rows : 16;
+    unsigned int num_cols : 16;
+};
+
 struct dat15_hdr {
     unsigned int has_next : 1;
     unsigned int size : 15;
@@ -35,6 +40,13 @@ Dat15Reader::Dat15Reader (const char* path) {
         printf ("*** Error: Failed to open file: %s\n", path);
         return;
     }
+    dat15_top_hdr top_hdr;
+    if (fread (&top_hdr, sizeof (top_hdr), 1, m_ptr) != 1) {
+        printf ("*** Error: Failed to read top header: %s\n", path);
+        return;
+    }
+    m_num_rows = top_hdr.num_rows;
+    m_num_cols = top_hdr.num_cols;
     while (1) {
         dat15_hdr hdr;
         if (fread (&hdr, sizeof (hdr), 1, m_ptr) != 1) {
@@ -55,11 +67,10 @@ Dat15Reader::Dat15Reader (const char* path) {
 Dat15Reader::~Dat15Reader () {
 }
 
-int Dat15Reader::get_count () {
-    return m_items.size();
-}
-
-const void* Dat15Reader::get_item (int idx, int* size_out) {
+const void* Dat15Reader::get_item (int row, int col, int* size_out) {
+    row = row % m_num_rows;
+    col = col % m_num_cols;
+    int idx = row * m_num_cols + col;
     if (idx < 0 || idx >= (int)m_items.size()) {
         if (size_out) {
             *size_out = 0;
@@ -76,9 +87,13 @@ const void* Dat15Reader::get_item (int idx, int* size_out) {
 //=> - Write class -
 //================================================================================================================================
 
-Dat15Writer::Dat15Writer (const char* path) {
+Dat15Writer::Dat15Writer (const char* path, int num_rows, int num_cols) {
     m_ptr = fopen (path, "wb");
     m_pending.clear ();
+    dat15_top_hdr top_hdr;
+    top_hdr.num_rows = num_rows;
+    top_hdr.num_cols = num_cols;
+    fwrite(&top_hdr, sizeof(top_hdr), 1, m_ptr);
 }
 
 Dat15Writer::~Dat15Writer () {
@@ -120,11 +135,11 @@ static Dat15Reader* g_reader = nullptr;
 
 extern "C" {
 
-void dat15_start_writer (const char* path) {
+void dat15_start_writer (const char* path, int num_rows, int num_cols) {
     if (g_writer) {
         delete g_writer;
     }
-    g_writer = new Dat15Writer(path);
+    g_writer = new Dat15Writer(path, num_rows, num_cols);
 }
 
 void dat15_write_item (const void* data, int size) {
@@ -148,16 +163,9 @@ void dat15_start_reader (const char* path) {
     g_reader = new Dat15Reader(path);
 }
 
-int dat15_get_item_count () {
+const void* dat15_get_item (int row, int col, int* size_out) {
     if (g_reader) {
-        return g_reader->get_count();
-    }
-    return 0;
-}
-
-const void* dat15_get_item (int idx, int* size_out) {
-    if (g_reader) {
-        return g_reader->get_item(idx, size_out);
+        return g_reader->get_item(row, col, size_out);
     }
     if (size_out) {
         *size_out = 0;

@@ -16,15 +16,16 @@ class Dat15Reader {
 public:
     Dat15Reader (const char* path);
     ~Dat15Reader ();
-    int get_count ();
-    const void* get_item (int idx, int* size_out);
+    const void* get_item (int row, int col, int* size_out);
 private:
     std::vector<std::vector<unsigned char> > m_items;
+    int m_num_cols;
+    int m_num_rows;
 };
     
 class Dat15Writer {
 public:
-    Dat15Writer (const char* path);
+    Dat15Writer (const char* path, int num_rows, int num_cols);
     ~Dat15Writer ();
     void write (const void* data, int size);
     void finish ();
@@ -42,12 +43,11 @@ private:
 extern "C" {
 #endif
 
-void dat15_start_writer (const char* path);
+void dat15_start_writer (const char* path, int num_rows, int num_cols);
 void dat15_write_item (const void* data, int size);
 void dat15_finish ();
 void dat15_start_reader (const char* path);
-int dat15_get_item_count ();
-const void* dat15_get_item (int idx, int* size_out);
+const void* dat15_get_item (int row, int col, int* size_out);
 
 #ifdef __cplusplus
 }

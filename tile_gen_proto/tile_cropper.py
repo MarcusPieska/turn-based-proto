@@ -31,7 +31,7 @@ if not os.path.exists(lib_path):
 lib = ctypes.CDLL(lib_path)
 
 lib.dat15_start_writer.restype = None
-lib.dat15_start_writer.argtypes = [ctypes.c_char_p]
+lib.dat15_start_writer.argtypes = [ctypes.c_char_p, ctypes.c_int, ctypes.c_int]
 
 lib.dat15_write_item.restype = None
 lib.dat15_write_item.argtypes = [ctypes.c_void_p, ctypes.c_int]
@@ -42,14 +42,11 @@ lib.dat15_finish.argtypes = []
 lib.dat15_start_reader.restype = None
 lib.dat15_start_reader.argtypes = [ctypes.c_char_p]
 
-lib.dat15_get_item_count.restype = ctypes.c_int
-lib.dat15_get_item_count.argtypes = []
-
 lib.dat15_get_item.restype = ctypes.c_void_p
-lib.dat15_get_item.argtypes = [ctypes.c_int, ctypes.POINTER(ctypes.c_int)]
+lib.dat15_get_item.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.POINTER(ctypes.c_int)]
 
-def dat15_start_writer(path):
-    lib.dat15_start_writer(path.encode('utf-8'))
+def dat15_start_writer(path, num_cols, num_rows):
+    lib.dat15_start_writer(path.encode('utf-8'), num_cols, num_rows)
 
 def dat15_write_item(data, size):
     if isinstance(data, np.ndarray):
@@ -68,9 +65,9 @@ def dat15_start_reader(path):
 def dat15_get_item_count():
     return lib.dat15_get_item_count()
 
-def dat15_get_item(idx):
+def dat15_get_item(row, col):
     size_out = ctypes.c_int()
-    ptr = lib.dat15_get_item(idx, ctypes.byref(size_out))
+    ptr = lib.dat15_get_item(row, col, ctypes.byref(size_out))
     if ptr and size_out.value > 0:
         return ctypes.string_at(ptr, size_out.value)
     return None
@@ -99,10 +96,11 @@ class TileCropper:
         tex_bottom = m.min_y + m.img_height
         
         m.tile_polys = []
-        for ty in range(m.num_rows):
-            row_offset = 0 if ty % 2 == 0 else half_width
-            y_center = m.min_y + ty * half_height + half_height
-            for tx in range(m.num_cols):
+        print("*** Drawing grid: %d x %d" % (m.num_cols, m.num_rows))
+        for tx in range(m.num_cols):
+            for ty in range(m.num_rows):
+                row_offset = 0 if ty % 2 == 0 else half_width
+                y_center = m.min_y + ty * half_height + half_height
                 x_center = m.min_x + tx * tile_w + row_offset + half_width
                 top = (x_center, y_center - half_h)
                 right = (x_center + half_w, y_center)
@@ -119,11 +117,11 @@ class TileCropper:
         
         # Because the tiles are staggered, we need to dupicate parts of the texture without breaking the texture tiling
         if first_time:
-            half_w = m.tile_width // 2
+            half_w = m.tile_width // 2 + 1
             left_cols = m.tex_img[:, :half_w, :]
             tex_ext = np.concatenate([m.tex_img, left_cols], axis=1)
-            half_rows = m.tile_height // 2
-            top_rows = tex_ext[:half_rows, :, :]
+            half_h = m.tile_height // 2 + 1
+            top_rows = tex_ext[:half_h, :, :]
             tex_ext = np.concatenate([tex_ext, top_rows], axis=0)
             m.tex_img = tex_ext
 
@@ -144,8 +142,8 @@ class TileCropper:
             return
         output_img = np.zeros((m.canv_h, m.canv_w, 4), dtype=np.uint8)
         tex_h, tex_w = m.tex_img.shape[:2]
-
-        dat15_start_writer(m.dat15_path_out)
+        target_w, target_h = m.tile_width + 1, m.tile_height + 1
+        dat15_start_writer(m.dat15_path_out, m.num_cols, m.num_rows)
         for poly in m.tile_polys:
             img_poly = []
             for point in poly:
@@ -188,7 +186,11 @@ class TileCropper:
                 tile_rgb[:, :, 1] = 0   # Magenta G
                 tile_rgb[:, :, 2] = 255 # Magenta B
                 mask_3d_rgb = mask_region[:, :, np.newaxis] > 0
-                dat15_write_item(np.where(mask_3d_rgb, out_region[:, :, :3], tile_rgb), tile_rgb.nbytes)
+                tile_data = np.where(mask_3d_rgb, out_region[:, :, :3], tile_rgb)
+                assert tile_data.shape[1] == target_w and tile_data.shape[0] == target_h, "*** Error: bad tile size"
+                expected_nbytes = target_w * target_h * 3
+                print("*** Writing tile data: %dB (%d x %d)" % (expected_nbytes, tile_data.shape[1], tile_data.shape[0]))
+                dat15_write_item(tile_data, expected_nbytes)
 
         dat15_finish()
         output_pil = Image.fromarray(output_img, mode='RGBA')
@@ -209,7 +211,7 @@ class TileCropper:
         m.img_width, m.img_height = img.size
 
         m.tile_polys = []
-        m.canv_w = m.img_width + 3 * tile_width
+        m.canv_w = m.img_width + 5 * tile_width
         m.canv_h = m.img_height + 3 * tile_height
         m.img_x = tile_width
         m.img_y = tile_height
