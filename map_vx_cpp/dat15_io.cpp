@@ -6,6 +6,25 @@
 #include <iostream>
 #include "dat15_io.h"
 
+static SDL_Surface* create_surface_from_rgba(const unsigned char* rgba_data, int w, int h) {
+    SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32, SDL_PIXELFORMAT_ARGB8888);
+    SDL_LockSurface(surface);
+    unsigned char* dst = (unsigned char*)surface->pixels;
+    for (int y = 0; y < h; y++) {
+        for (int x = 0; x < w; x++) {
+            int src_idx = (y * w + x) * 4;
+            int dst_idx = y * surface->pitch + x * 4;
+            dst[dst_idx + 0] = rgba_data[src_idx + 2];
+            dst[dst_idx + 1] = rgba_data[src_idx + 1];
+            dst[dst_idx + 2] = rgba_data[src_idx + 0];
+            dst[dst_idx + 3] = rgba_data[src_idx + 3];
+        }
+    }
+    SDL_UnlockSurface(surface);
+    SDL_SetSurfaceBlendMode(surface, SDL_BLENDMODE_BLEND);
+    return surface;
+}
+
 //================================================================================================================================
 //=> - Header struct -
 //================================================================================================================================
@@ -35,7 +54,7 @@ static void write_header (FILE* f, int size, bool has_next) {
 //=> - Read class -
 //================================================================================================================================
 
-Dat15Reader::Dat15Reader (const char* path) {
+Dat15Reader::Dat15Reader (const char* path, int tile_w, int tile_h, SDL_Renderer* renderer) : m_tile_w(tile_w), m_tile_h(tile_h), m_renderer(renderer) {
     FILE* m_ptr = fopen (path, "rb");
     if (!m_ptr) { 
         std::cerr << "*** Error: Failed to open file: " << path << std::endl;
@@ -49,16 +68,36 @@ Dat15Reader::Dat15Reader (const char* path) {
     m_num_rows = top_hdr.num_rows;
     m_num_cols = top_hdr.num_cols;
     std::cout << "*** Dat15Reader: " << m_num_rows << " x " << m_num_cols << std::endl;
+    
+    int rgba_size = tile_w * tile_h * 4;
+    
     while (1) {
         dat15_hdr hdr;
         if (fread (&hdr, sizeof (hdr), 1, m_ptr) != 1) {
             break;
         }
-        std::vector<unsigned char> item (hdr.size);
-        if (fread (item.data (), 1, hdr.size, m_ptr) != hdr.size) {
+        std::vector<unsigned char> item_rgb (hdr.size);
+        if (fread (item_rgb.data (), 1, hdr.size, m_ptr) != hdr.size) {
             break;
         }
-        m_items.push_back (item);
+        
+        std::vector<unsigned char> item_rgba (rgba_size);
+        const unsigned char* rgb = item_rgb.data();
+        unsigned char* rgba = item_rgba.data();
+        for (int i = 0; i < tile_w * tile_h; i++) {
+            bool is_magenta = (rgb[i*3+0] == 255 && rgb[i*3+1] == 0 && rgb[i*3+2] == 255);
+            rgba[i*4+0] = rgb[i*3+0];
+            rgba[i*4+1] = rgb[i*3+1];
+            rgba[i*4+2] = rgb[i*3+2];
+            rgba[i*4+3] = is_magenta ? 0 : 255;
+        }
+        
+        SDL_Surface* surface = create_surface_from_rgba(item_rgba.data(), tile_w, tile_h);
+        SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+        SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+        SDL_FreeSurface(surface);
+        m_textures.push_back(texture);
+        
         if (!hdr.has_next) {
             break;
         }
@@ -67,14 +106,18 @@ Dat15Reader::Dat15Reader (const char* path) {
 }
 
 Dat15Reader::~Dat15Reader () {
+    for (SDL_Texture* tex : m_textures) {
+        if (tex != nullptr) {
+            SDL_DestroyTexture(tex);
+        }
+    }
 }
 
-const void* Dat15Reader::get_item (int row, int col, int* size_out) {
+SDL_Texture* Dat15Reader::get_item_rgba (int row, int col) {
     row = row % m_num_rows;
     col = col % m_num_cols;
     int idx = row * m_num_cols + col;
-    *size_out = m_items[idx].size();
-    return m_items[idx].data();
+    return m_textures[idx];
 }
 
 //================================================================================================================================

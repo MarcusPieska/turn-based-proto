@@ -83,7 +83,7 @@ bool MapView::initialize () {
     }
     m_running = true;
     const char* texture_path = "/home/w/Projects/img-content/texture-grassland3/colors-grassland3_palette_texture_blurred.dat15";
-    m_tex_read = new Dat15Reader(texture_path);
+    m_tex_read = new Dat15Reader(texture_path, m_tile_text_w, m_tile_text_h, m_rend);
     return true;
 }
 
@@ -205,40 +205,9 @@ void MapView::render_opt () {
         for (size_t col_idx = min_col; col_idx <= max_col && col_idx < tiles[row_idx].size(); col_idx++) {
             const MapTile& t = tiles[row_idx][col_idx];
             
-            int size_out = 0;
-            const void* tile_data = m_tex_read->get_item(row_idx, col_idx, &size_out);
-            SDL_Surface* surface = SDL_CreateRGBSurface(0, m_tile_text_w, m_tile_text_h, 32, 0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
-            SDL_LockSurface(surface);
-            u8* dst = (u8*)surface->pixels;
-            const u8* src = (const u8*)tile_data;
-            int src_row_size = m_tile_text_w * 3;
-            for (int y = 0; y < m_tile_text_h; y++) {
-                for (int x = 0; x < m_tile_text_w; x++) {
-                    int src_idx = y * src_row_size + x * 3;
-                    int dst_idx = y * surface->pitch + x * 4;
-                    bool is_magenta = (src[src_idx] == 255 && src[src_idx+1] == 0 && src[src_idx+2] == 255);
-                    dst[dst_idx + 0] = src[src_idx + 0];     // R
-                    dst[dst_idx + 1] = src[src_idx + 1];     // G
-                    dst[dst_idx + 2] = src[src_idx + 2];     // B
-                    dst[dst_idx + 3] = is_magenta ? 0 : 255; // A
-                }
-            }
-            SDL_UnlockSurface(surface);
-            SDL_SetSurfaceBlendMode(surface, SDL_BLENDMODE_BLEND);
-            SDL_Texture* texture = SDL_CreateTextureFromSurface(m_rend, surface);
-            if (texture != nullptr) {
-                SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
-            }
-            if (texture != nullptr) {
-                SDL_Rect dst_rect;
-                dst_rect.x = std::min({ADJ_CX(t.pts[0].x), ADJ_CX(t.pts[1].x), ADJ_CX(t.pts[2].x), ADJ_CX(t.pts[3].x)});
-                dst_rect.y = std::min({ADJ_CY(t.pts[0].y), ADJ_CY(t.pts[1].y), ADJ_CY(t.pts[2].y), ADJ_CY(t.pts[3].y)});
-                dst_rect.w = std::max({ADJ_CX(t.pts[0].x), ADJ_CX(t.pts[1].x), ADJ_CX(t.pts[2].x), ADJ_CX(t.pts[3].x)}) - dst_rect.x;
-                dst_rect.h = std::max({ADJ_CY(t.pts[0].y), ADJ_CY(t.pts[1].y), ADJ_CY(t.pts[2].y), ADJ_CY(t.pts[3].y)}) - dst_rect.y;
-                SDL_RenderCopy(m_rend, texture, nullptr, &dst_rect);
-                SDL_DestroyTexture(texture);
-            }
-            SDL_FreeSurface(surface);
+            SDL_Texture* texture = m_tex_read->get_item_rgba(row_idx, col_idx);
+            SDL_Rect dst_rect = {std::min({ADJ_CX(t.pts[0].x), ADJ_CX(t.pts[1].x), ADJ_CX(t.pts[2].x), ADJ_CX(t.pts[3].x)}), std::min({ADJ_CY(t.pts[0].y), ADJ_CY(t.pts[1].y), ADJ_CY(t.pts[2].y), ADJ_CY(t.pts[3].y)}), std::max({ADJ_CX(t.pts[0].x), ADJ_CX(t.pts[1].x), ADJ_CX(t.pts[2].x), ADJ_CX(t.pts[3].x)}) - std::min({ADJ_CX(t.pts[0].x), ADJ_CX(t.pts[1].x), ADJ_CX(t.pts[2].x), ADJ_CX(t.pts[3].x)}), std::max({ADJ_CY(t.pts[0].y), ADJ_CY(t.pts[1].y), ADJ_CY(t.pts[2].y), ADJ_CY(t.pts[3].y)}) - std::min({ADJ_CY(t.pts[0].y), ADJ_CY(t.pts[1].y), ADJ_CY(t.pts[2].y), ADJ_CY(t.pts[3].y)})};
+            SDL_RenderCopy(m_rend, texture, nullptr, &dst_rect);
 
             
             SDL_RenderDrawLine (m_rend, ADJ_CX(t.pts[3].x), ADJ_CY(t.pts[3].y), ADJ_CX(t.pts[0].x), ADJ_CY(t.pts[0].y));

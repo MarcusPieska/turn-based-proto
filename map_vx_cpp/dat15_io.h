@@ -7,6 +7,7 @@
 
 #include <cstdio>
 #include <vector>
+#include <SDL2/SDL.h>
 
 //================================================================================================================================
 //=> - Read class -
@@ -14,13 +15,18 @@
 
 class Dat15Reader {
     public:
-        Dat15Reader (const char* path);
+        Dat15Reader (const char* path, int tile_w, int tile_h, SDL_Renderer* renderer);
         ~Dat15Reader ();
-        const void* get_item (int row, int col, int* size_out);
+        SDL_Texture* get_item_rgba (int row, int col);
+        int get_tile_w () const { return m_tile_w; }
+        int get_tile_h () const { return m_tile_h; }
     private:
-        std::vector<std::vector<unsigned char> > m_items;
+        std::vector<SDL_Texture*> m_textures;
         int m_num_cols;
         int m_num_rows;
+        int m_tile_w;
+        int m_tile_h;
+        SDL_Renderer* m_renderer;
 };
         
 //================================================================================================================================
