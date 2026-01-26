@@ -38,11 +38,15 @@ int main () {
     int t_height = 50;
     int w_width = 1600;
     int w_height = 800;
+    int tile_cols = img_surface_terrain->w;
+    int tile_rows = img_surface_terrain->h;
 
+    int added_top_margin = 255 * height_factor; 
+    int added_bottom_margin = 100;
     int img_width = img_surface_terrain->w;
     int img_height = img_surface_terrain->h;
-    int m_width = img_width * t_width + 40; 
-    int m_height = (img_height + 1) * t_height / 2 + 40 + 255 * height_factor;
+    int m_width = img_width * t_width + t_width * 2; 
+    int m_height = (img_height + 1) * t_height / 2 + added_top_margin + added_bottom_margin;
 
     std::cout << "img_width: " << img_width << std::endl;
     std::cout << "img_height: " << img_height << std::endl;
@@ -50,7 +54,7 @@ int main () {
     std::cout << "m_height: " << m_height << std::endl;
 
     MapModel model;
-    MapTiler tiler (m_width, m_height, t_width, t_height, &model, 255 * height_factor);
+    MapTiler tiler (m_width, m_height, t_width, t_height, tile_cols, tile_rows, &model, added_top_margin);
     
     model.saveTilesToFile ("tiles.dat");
     

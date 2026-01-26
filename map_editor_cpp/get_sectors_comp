@@ -1,0 +1,4 @@
+#!/bin/bash
+g++ -c -fPIC get_sectors.cpp -o get_sectors.o
+g++ -shared -o get_sectors.so get_sectors.o
+rm get_sectors.o

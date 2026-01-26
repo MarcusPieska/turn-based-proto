@@ -27,27 +27,46 @@ typedef struct deltas {
 // Include col_morph.cpp directly
 #include "col_morph.cpp"
 
-#define ADJ_CX(x) ((x - m_cx) * m_zoom_level / 100)
-#define ADJ_CY(y) ((y - m_cy) * m_zoom_level / 100)
 #define HEIGHT_COLOR_MAX 255
 #define U8_MAX 255
+
+#define ADJ_CX(x) ((x - m_cx) * m_zoom_level / 100)
+#define ADJ_CY(y) ((y - m_cy) * m_zoom_level / 100)
+#define ADJ_CY_TOP(t) ((t.top.y - m_cy + t.deltas.top) * m_zoom_level / 100)
+#define ADJ_CY_RIGHT(t) ((t.right.y - m_cy + t.deltas.right) * m_zoom_level / 100)
+#define ADJ_CY_BOTTOM(t) ((t.bottom.y - m_cy + t.deltas.bottom) * m_zoom_level / 100)
+#define ADJ_CY_LEFT(t) ((t.left.y - m_cy + t.deltas.left) * m_zoom_level / 100)
+
+static inline int32_t get_zy_top (const MapTile& t) { return t.top.y + t.deltas.top; }
+static inline int32_t get_zy_right (const MapTile& t) { return t.right.y + t.deltas.right; }
+static inline int32_t get_zy_bottom (const MapTile& t) { return t.bottom.y + t.deltas.bottom; }
+static inline int32_t get_zy_left (const MapTile& t) { return t.left.y + t.deltas.left; }
+
+static inline SDL_Rect get_tile_rect (const MapTile& t, int cx, int cy, int zoom) {
+    SDL_Rect rect;
+    rect.x = (t.left.x - cx) * zoom / 100;
+    rect.y = (t.lowest - cy) * zoom / 100;
+    rect.w = (t.right.x - t.left.x) * zoom / 100;
+    rect.h = (t.highest - t.lowest) * zoom / 100;
+    return rect;
+}
 
 //================================================================================================================================
 //=> - MapView public methods -
 //================================================================================================================================
 
-MapView::MapView (int wnd_width, int wnd_height, int map_width, int map_height, int tile_width, int tile_height, MapModel *model) :
+MapView::MapView (int wnd_w, int wnd_h, int map_w, int map_h, int tile_w, int tile_h, MapModel *model) :
     m_wnd (nullptr),
     m_rend (nullptr),
     m_model (model),
-    m_wnd_w (wnd_width),
-    m_wnd_h (wnd_height),
-    m_wnd_w_orig (wnd_width),
-    m_wnd_h_orig (wnd_height),
-    m_map_w (map_width),
-    m_map_h (map_height),
-    m_tile_w (tile_width),
-    m_tile_h (tile_height),
+    m_wnd_w (wnd_w),
+    m_wnd_h (wnd_h),
+    m_wnd_w_orig (wnd_w),
+    m_wnd_h_orig (wnd_h),
+    m_map_w (map_w),
+    m_map_h (map_h),
+    m_tile_w (tile_w),
+    m_tile_h (tile_h),
     m_running (false),
     m_cx (0),
     m_cy (0),
@@ -55,8 +74,8 @@ MapView::MapView (int wnd_width, int wnd_height, int map_width, int map_height, 
     m_clicked_tile (nullptr),
     m_zoom_level (ZOOM_DEFAULT),
     m_tex_read (nullptr),
-    m_tile_text_w (tile_width + 1),
-    m_tile_text_h (tile_height + 1) {
+    m_tile_text_w (tile_w + 1),
+    m_tile_text_h (tile_h + 1) {
 }
 
 MapView::~MapView () {
@@ -87,49 +106,25 @@ bool MapView::initialize () {
     return true;
 }
 
-void MapView::render_old () {
-    SDL_SetRenderDrawColor (m_rend, U8_MAX, U8_MAX, U8_MAX, U8_MAX);
-    SDL_RenderClear (m_rend);
-    SDL_SetRenderDrawColor (m_rend, 0, 0, 0, U8_MAX);
-    std::vector<std::vector<MapTile>> tiles = m_model->getTiles ();
-    for (const auto &row : tiles) {
-        for (const auto &t : row) {
-            for (int i = 0; i < 4; i++) {
-                int j = (i + 1) % 4;
-                SDL_RenderDrawLine (m_rend, ADJ_CX(t.pts[i].x), ADJ_CY(t.pts[i].y), ADJ_CX(t.pts[j].x), ADJ_CY(t.pts[j].y));
-            }
-        }
-    }
-    SDL_RenderPresent (m_rend);
-}
-
 void MapView::update () {
     int mouse_x, mouse_y;
     Uint32 buttons = SDL_GetMouseState (&mouse_x, &mouse_y);
-    
     int scroll_speed_x = EDGE_SCROLL_SPEED * 100 / m_zoom_level;
     int scroll_speed_y = EDGE_SCROLL_SPEED * 100 / m_zoom_level;
-    
     if (mouse_x < EDGE_SCROLL_MARGIN) {
         m_cx -= scroll_speed_x + (EDGE_SCROLL_MARGIN - mouse_x) * 100 / m_zoom_level;
     } else if (mouse_x > m_wnd_w - EDGE_SCROLL_MARGIN) {
         m_cx += scroll_speed_x + (EDGE_SCROLL_MARGIN - (m_wnd_w - mouse_x)) * 100 / m_zoom_level;
     }
-    
     if (mouse_y < EDGE_SCROLL_MARGIN) {
         m_cy -= scroll_speed_y + (EDGE_SCROLL_MARGIN - mouse_y) * 100 / m_zoom_level;
     } else if (mouse_y > m_wnd_h - EDGE_SCROLL_MARGIN) {
         m_cy += scroll_speed_y + (EDGE_SCROLL_MARGIN - (m_wnd_h - mouse_y)) * 100 / m_zoom_level;
     }
-    
     __handleWndLimits ();
 }
 
 static float getHeightFromPixel (SDL_Surface* surface, int col, int row) {
-    if (surface == nullptr || col < 0 || row < 0 || col >= surface->w || row >= surface->h) {
-        return 0.0f;
-    }
-    
     SDL_LockSurface(surface);
     Uint8* pixels = (Uint8*)surface->pixels;
     int pitch = surface->pitch;
@@ -160,15 +155,15 @@ static float getHeightFromPixel (SDL_Surface* surface, int col, int row) {
     return gray;
 }
 
-void MapView::render_opt_pre (SDL_Surface* img_surface_height, float factor) {
+void MapView::render_opt_pre (SDL_Surface* img_surface_h, float factor) {
     m_factor = factor;
-    int num_rows = m_model->getWidth();
-    int num_cols = m_model->getHeight();
+    int num_rows = m_model->getWidth ();
+    int num_cols = m_model->getHeight ();
     int** z_values = new int*[num_rows];
     for (int row_idx = 0; row_idx < num_rows; row_idx++) {
         z_values[row_idx] = new int[num_cols];
         for (int col_idx = 0; col_idx < num_cols; col_idx++) {
-            float height = getHeightFromPixel(img_surface_height, col_idx, row_idx);
+            float height = getHeightFromPixel (img_surface_h, col_idx, row_idx);
             z_values[row_idx][col_idx] = static_cast<int>(height * factor);
         }
     }   
@@ -191,55 +186,47 @@ void MapView::render_opt () {
     int y_min = std::max(0, m_cy - 3 * half_h - int(HEIGHT_COLOR_MAX * m_factor));
     int y_max = std::min(m_map_h, m_cy + visible_h + 3 * half_h);
     
-    size_t min_col = (m_cx) / m_tile_w;
-    size_t max_col = (m_cx + visible_w) / m_tile_w;
+    int min_col = (m_cx) / m_tile_w - 2;
+    int max_col = (m_cx + visible_w) / m_tile_w;
     min_col = min_col < 0 ? 0 : min_col;
     max_col = max_col >= tiles[0].size() ? tiles[0].size() - 1 : max_col;
 
-    size_t min_row = y_min / (m_tile_h/2);
-    size_t max_row = y_max / (m_tile_h/2);
+    int min_row = y_min / (m_tile_h/2);
+    int max_row = y_max / (m_tile_h/2);
     min_row = min_row < 0 ? 0 : min_row;
     max_row = max_row >= tiles.size() ? tiles.size() - 1 : max_row;
 
-    for (size_t row_idx = min_row; row_idx <= max_row && row_idx < tiles.size(); row_idx++) {
-        for (size_t col_idx = min_col; col_idx <= max_col && col_idx < tiles[row_idx].size(); col_idx++) {
+    for (int row_idx = min_row; row_idx <= max_row && row_idx < tiles.size(); row_idx++) {
+        for (int col_idx = min_col; col_idx <= max_col && col_idx < tiles[row_idx].size(); col_idx++) {
             const MapTile& t = tiles[row_idx][col_idx];
-            
             SDL_Texture* texture = m_tex_read->get_item_rgba(row_idx, col_idx);
-            SDL_Rect dst_rect = {std::min({ADJ_CX(t.pts[0].x), ADJ_CX(t.pts[1].x), ADJ_CX(t.pts[2].x), ADJ_CX(t.pts[3].x)}), std::min({ADJ_CY(t.pts[0].y), ADJ_CY(t.pts[1].y), ADJ_CY(t.pts[2].y), ADJ_CY(t.pts[3].y)}), std::max({ADJ_CX(t.pts[0].x), ADJ_CX(t.pts[1].x), ADJ_CX(t.pts[2].x), ADJ_CX(t.pts[3].x)}) - std::min({ADJ_CX(t.pts[0].x), ADJ_CX(t.pts[1].x), ADJ_CX(t.pts[2].x), ADJ_CX(t.pts[3].x)}), std::max({ADJ_CY(t.pts[0].y), ADJ_CY(t.pts[1].y), ADJ_CY(t.pts[2].y), ADJ_CY(t.pts[3].y)}) - std::min({ADJ_CY(t.pts[0].y), ADJ_CY(t.pts[1].y), ADJ_CY(t.pts[2].y), ADJ_CY(t.pts[3].y)})};
+            SDL_Rect dst_rect = get_tile_rect(t, m_cx, m_cy, m_zoom_level);
             SDL_RenderCopy(m_rend, texture, nullptr, &dst_rect);
-
-            
-            SDL_RenderDrawLine (m_rend, ADJ_CX(t.pts[3].x), ADJ_CY(t.pts[3].y), ADJ_CX(t.pts[0].x), ADJ_CY(t.pts[0].y));
-            SDL_RenderDrawLine (m_rend, ADJ_CX(t.pts[2].x), ADJ_CY(t.pts[2].y), ADJ_CX(t.pts[3].x), ADJ_CY(t.pts[3].y));
+            SDL_RenderDrawLine (m_rend, ADJ_CX(t.left.x), ADJ_CY_LEFT(t), ADJ_CX(t.top.x), ADJ_CY_TOP(t));
+            SDL_RenderDrawLine (m_rend, ADJ_CX(t.bottom.x), ADJ_CY_BOTTOM(t), ADJ_CX(t.left.x), ADJ_CY_LEFT(t));
         }
     }
-
-
-
     if (min_row == 0) {
-        for (size_t col_idx = 0; col_idx < tiles[0].size(); col_idx++) {
+        for (int col_idx = 0; col_idx < tiles[0].size(); col_idx++) {
             const MapTile& t1 = tiles[0][col_idx];
-            SDL_RenderDrawLine (m_rend, ADJ_CX(t1.pts[0].x), ADJ_CY(t1.pts[0].y), ADJ_CX(t1.pts[1].x), ADJ_CY(t1.pts[1].y));
+            SDL_RenderDrawLine (m_rend, ADJ_CX(t1.top.x), ADJ_CY_TOP(t1), ADJ_CX(t1.right.x), ADJ_CY_RIGHT(t1));
         }
     }
     if (max_row == tiles.size() - 1) {
-        for (size_t col_idx = 0; col_idx < tiles[tiles.size() - 1].size(); col_idx++) {
+        for (int col_idx = 0; col_idx < tiles[tiles.size() - 1].size(); col_idx++) {
             const MapTile& t2 = tiles[tiles.size() - 1][col_idx];
-            SDL_RenderDrawLine (m_rend, ADJ_CX(t2.pts[1].x), ADJ_CY(t2.pts[1].y), ADJ_CX(t2.pts[2].x), ADJ_CY(t2.pts[2].y));
+            SDL_RenderDrawLine (m_rend, ADJ_CX(t2.right.x), ADJ_CY_RIGHT(t2), ADJ_CX(t2.bottom.x), ADJ_CY_BOTTOM(t2));
         }
     }
     if (max_col == tiles[0].size() - 1) {
-        for (size_t row_idx = min_row; row_idx <= max_row && row_idx < tiles.size(); row_idx++) {
-            if (max_col < tiles[row_idx].size()) {
+        for (int row_idx = min_row; row_idx <= max_row && row_idx < tiles.size(); row_idx++) {
+            if (max_col < tiles[row_idx].size() && row_idx > 0 && row_idx < static_cast<int>(tiles.size()) - 1) {
                 const MapTile& t = tiles[row_idx][max_col];
-                SDL_RenderDrawLine (m_rend, ADJ_CX(t.pts[0].x), ADJ_CY(t.pts[0].y), ADJ_CX(t.pts[1].x), ADJ_CY(t.pts[1].y));
-                SDL_RenderDrawLine (m_rend, ADJ_CX(t.pts[1].x), ADJ_CY(t.pts[1].y), ADJ_CX(t.pts[2].x), ADJ_CY(t.pts[2].y));
+                SDL_RenderDrawLine (m_rend, ADJ_CX(t.right.x), ADJ_CY_RIGHT(t), ADJ_CX(t.bottom.x), ADJ_CY_BOTTOM(t));
             }
         }
     }
     
-    // Draw highlights on top
     if (m_clicked_tile != nullptr) {
         __highlightCurrentTile(m_clicked_tile, 0, U8_MAX, 0);
         for (const auto &near_tile : m_near_tiles) {
@@ -360,19 +347,16 @@ void MapView::__handleEventsKeyUp (SDL_Event &e) {
     }
 }
 
-bool MapView::__inBounds (int x, int y, const MapTile &tile) {
-    bool all_negative = true, all_positive = true;
-    for (int i = 0; i < 4; i++) {
-        int j = (i + 1) % 4;
-        int edge_x = tile.pts[j].x - tile.pts[i].x;
-        int edge_y = tile.pts[j].y - tile.pts[i].y;
-        int to_point_x = x - tile.pts[i].x;
-        int to_point_y = y - tile.pts[i].y;
-        int cross = edge_x * to_point_y - edge_y * to_point_x;
-        all_negative = cross > 0 ? all_negative : false;
-        all_positive = cross < 0 ? all_positive : false;
-    }
-    return all_negative || all_positive;
+bool MapView::__inBounds (int x, int y, const MapTile &t) {
+    int zy_top = t.top.y + t.deltas.top;
+    int zy_right = t.right.y + t.deltas.right;
+    int zy_bottom = t.bottom.y + t.deltas.bottom;
+    int zy_left = t.left.y + t.deltas.left;
+    int cross1 = (t.right.x - t.top.x) * (y - zy_top) - (zy_right - zy_top) * (x - t.top.x);
+    int cross2 = (t.bottom.x - t.right.x) * (y - zy_right) - (zy_bottom - zy_right) * (x - t.right.x);
+    int cross3 = (t.left.x - t.bottom.x) * (y - zy_bottom) - (zy_left - zy_bottom) * (x - t.bottom.x);
+    int cross4 = (t.top.x - t.left.x) * (y - zy_left) - (zy_top - zy_left) * (x - t.left.x);
+    return (cross1 > 0 && cross2 > 0 && cross3 > 0 && cross4 > 0) || (cross1 < 0 && cross2 < 0 && cross3 < 0 && cross4 < 0);
 }
 
 std::tuple<MapTile*, size_t, size_t> MapView::__searchTileFromPt (int map_x, int map_y, size_t start_row, size_t start_col) {
@@ -386,9 +370,9 @@ std::tuple<MapTile*, size_t, size_t> MapView::__searchTileFromPt (int map_x, int
         search_queue.push(std::make_pair(start_row, start_col));
         visited.insert(std::make_pair(start_row, start_col));
     }
-    int iteration_budget = HEIGHT_COLOR_MAX * m_factor / m_tile_h * 4 + 1; // A tile could be of beacuse of the elevation factor
-    iteration_budget *= iteration_budget;
-    while (!search_queue.empty() && iteration_budget-- > 0) {
+    int iter_budget = HEIGHT_COLOR_MAX * m_factor / m_tile_h * 4 + 1; // A tile could be of beacuse of the elevation factor
+    iter_budget *= iter_budget;
+    while (!search_queue.empty() && iter_budget-- > 0) {
         size_t row = search_queue.front().first;
         size_t col = search_queue.front().second;
         search_queue.pop();
@@ -424,8 +408,8 @@ void MapView::__handleMouseClick (SDL_Event &e) {
             int map_y = (screen_y * 100 / m_zoom_level) + m_cy;
             std::vector<std::vector<MapTile>>& tiles = m_model->getTilesRef();
             if (tiles.size() > 0 && tiles[0].size() > 0) {
-                int first_row_y = tiles[0][0].pts[0].y;
-                int first_col_x = tiles[0][0].pts[3].x;
+                int first_row_y = tiles[0][0].top.y;
+                int first_col_x = tiles[0][0].left.x;
                 int half_h = m_tile_h / 2;
                 size_t start_row = std::max(0, (map_y - first_row_y) / half_h);
                 size_t start_col = std::max(0, (map_x - first_col_x) / m_tile_w);
@@ -451,14 +435,8 @@ void MapView::__highlightTile (MapTile *tile, Uint8 r, Uint8 g, Uint8 b) {
     if (tile == nullptr) {
         return;
     }
-    int center_x = 0;
-    int center_y = 0;
-    for (int i = 0; i < 4; i++) {
-        center_x += tile->pts[i].x;
-        center_y += tile->pts[i].y;
-    }
-    center_x /= 4;
-    center_y /= 4;
+    int center_x = (tile->top.x + tile->right.x + tile->bottom.x + tile->left.x) / 4;
+    int center_y = (get_zy_top(*tile) + get_zy_right(*tile) + get_zy_bottom(*tile) + get_zy_left(*tile)) / 4;
     SDL_SetRenderDrawColor (m_rend, r, g, b, U8_MAX);
     int dot_size = 5;
     for (int dy = -dot_size/2; dy <= dot_size/2; dy++) {
@@ -477,20 +455,53 @@ void MapView::__highlightCurrentTile (MapTile *tile, Uint8 r, Uint8 g, Uint8 b) 
     SDL_SetRenderDrawColor (m_rend, r, g, b, U8_MAX);
     int thickness = 3;
     for (int offset = -thickness/2; offset <= thickness/2; offset++) {
-        for (int i = 0; i < 4; i++) {
-            int j = (i + 1) % 4;
-            int x1 = ADJ_CX(tile->pts[i].x);
-            int y1 = ADJ_CY(tile->pts[i].y);
-            int x2 = ADJ_CX(tile->pts[j].x);
-            int y2 = ADJ_CY(tile->pts[j].y);
-            int dx = x2 - x1;
-            int dy = y2 - y1;
-            float len = sqrtf(dx*dx + dy*dy);
-            if (len > 0) {
-                int perp_x = -dy * offset / len;
-                int perp_y = dx * offset / len;
-                SDL_RenderDrawLine(m_rend, x1 + perp_x, y1 + perp_y, x2 + perp_x, y2 + perp_y);
-            }
+        int x1 = ADJ_CX(tile->top.x);
+        int y1 = ADJ_CY(get_zy_top(*tile));
+        int x2 = ADJ_CX(tile->right.x);
+        int y2 = ADJ_CY(get_zy_right(*tile));
+        int dx = x2 - x1;
+        int dy = y2 - y1;
+        float len = sqrtf(dx*dx + dy*dy);
+        if (len > 0) {
+            int perp_x = -dy * offset / len;
+            int perp_y = dx * offset / len;
+            SDL_RenderDrawLine(m_rend, x1 + perp_x, y1 + perp_y, x2 + perp_x, y2 + perp_y);
+        }
+        x1 = ADJ_CX(tile->right.x);
+        y1 = ADJ_CY(get_zy_right(*tile));
+        x2 = ADJ_CX(tile->bottom.x);
+        y2 = ADJ_CY(get_zy_bottom(*tile));
+        dx = x2 - x1;
+        dy = y2 - y1;
+        len = sqrtf(dx*dx + dy*dy);
+        if (len > 0) {
+            int perp_x = -dy * offset / len;
+            int perp_y = dx * offset / len;
+            SDL_RenderDrawLine(m_rend, x1 + perp_x, y1 + perp_y, x2 + perp_x, y2 + perp_y);
+        }
+        x1 = ADJ_CX(tile->bottom.x);
+        y1 = ADJ_CY(get_zy_bottom(*tile));
+        x2 = ADJ_CX(tile->left.x);
+        y2 = ADJ_CY(get_zy_left(*tile));
+        dx = x2 - x1;
+        dy = y2 - y1;
+        len = sqrtf(dx*dx + dy*dy);
+        if (len > 0) {
+            int perp_x = -dy * offset / len;
+            int perp_y = dx * offset / len;
+            SDL_RenderDrawLine(m_rend, x1 + perp_x, y1 + perp_y, x2 + perp_x, y2 + perp_y);
+        }
+        x1 = ADJ_CX(tile->left.x);
+        y1 = ADJ_CY(get_zy_left(*tile));
+        x2 = ADJ_CX(tile->top.x);
+        y2 = ADJ_CY(get_zy_top(*tile));
+        dx = x2 - x1;
+        dy = y2 - y1;
+        len = sqrtf(dx*dx + dy*dy);
+        if (len > 0) {
+            int perp_x = -dy * offset / len;
+            int perp_y = dx * offset / len;
+            SDL_RenderDrawLine(m_rend, x1 + perp_x, y1 + perp_y, x2 + perp_x, y2 + perp_y);
         }
     }
 }
@@ -505,14 +516,8 @@ void MapView::__centerOnTile (MapTile *tile) {
     if (tile == nullptr) {
         return;
     }
-    int center_x = 0;
-    int center_y = 0;
-    for (int i = 0; i < 4; i++) {
-        center_x += tile->pts[i].x;
-        center_y += tile->pts[i].y;
-    }
-    center_x /= 4;
-    center_y /= 4;
+    int center_x = (tile->top.x + tile->right.x + tile->bottom.x + tile->left.x) / 4;
+    int center_y = (tile->top.y + tile->right.y + tile->bottom.y + tile->left.y) / 4;
     m_cx = center_x - m_wnd_w / 2;
     m_cy = center_y - m_wnd_h / 2;
     
@@ -543,11 +548,15 @@ void MapView::__flipVertically () {
     // Find the min and max y values
     for (size_t row = 0; row < tiles.size(); row++) {
         for (size_t col = 0; col < tiles[row].size(); col++) {
-            for (int i = 0; i < 4; i++) {
-                int y = tiles[row][col].pts[i].y;
-                if (y < min_y) min_y = y;
-                if (y > max_y) max_y = y;
-            }
+            MapTile& t = tiles[row][col];
+            if (t.top.y < min_y) min_y = t.top.y;
+            if (t.top.y > max_y) max_y = t.top.y;
+            if (t.right.y < min_y) min_y = t.right.y;
+            if (t.right.y > max_y) max_y = t.right.y;
+            if (t.bottom.y < min_y) min_y = t.bottom.y;
+            if (t.bottom.y > max_y) max_y = t.bottom.y;
+            if (t.left.y < min_y) min_y = t.left.y;
+            if (t.left.y > max_y) max_y = t.left.y;
         }
     }
     
@@ -556,9 +565,11 @@ void MapView::__flipVertically () {
     // Flip all y coordinates around the center
     for (size_t row = 0; row < tiles.size(); row++) {
         for (size_t col = 0; col < tiles[row].size(); col++) {
-            for (int i = 0; i < 4; i++) {
-                tiles[row][col].pts[i].y = center_y - (tiles[row][col].pts[i].y - center_y);
-            }
+            MapTile& t = tiles[row][col];
+            t.top.y = center_y - (t.top.y - center_y);
+            t.right.y = center_y - (t.right.y - center_y);
+            t.bottom.y = center_y - (t.bottom.y - center_y);
+            t.left.y = center_y - (t.left.y - center_y);
         }
     }
 }
@@ -588,8 +599,8 @@ int MapView::testTileClickDetection () {
     for (size_t row = 0; row < tiles.size(); row++) {
         for (size_t col = 0; col < tiles[row].size(); col++) {
             MapTile& expected_tile = tiles[row][col];
-            int center_x = (expected_tile.pts[3].x + expected_tile.pts[1].x) / 2;
-            int center_y = (expected_tile.pts[0].y + expected_tile.pts[2].y) / 2;
+            int center_x = (expected_tile.left.x + expected_tile.right.x) / 2;
+            int center_y = (expected_tile.top.y + expected_tile.bottom.y) / 2;
             int screen_x = (center_x - m_cx) * m_zoom_level / 100;
             int screen_y = (center_y - m_cy) * m_zoom_level / 100;
             SDL_Event fake_event;
@@ -604,10 +615,10 @@ int MapView::testTileClickDetection () {
             if (m_clicked_tile == nullptr || m_clicked_tile != &expected_tile) {
                 std::cout << "Failure on row/col " << row << "/" << col << std::endl;
                 failures++;
-                std::cout << expected_tile.pts[0].x << " "<< expected_tile.pts[0].y << std::endl;
-                std::cout << expected_tile.pts[1].x << " "<< expected_tile.pts[1].y << std::endl;
-                std::cout << expected_tile.pts[2].x << " "<< expected_tile.pts[2].y << std::endl;
-                std::cout << expected_tile.pts[3].x << " "<< expected_tile.pts[3].y << std::endl;
+                std::cout << expected_tile.top.x << " "<< expected_tile.top.y << std::endl;
+                std::cout << expected_tile.right.x << " "<< expected_tile.right.y << std::endl;
+                std::cout << expected_tile.bottom.x << " "<< expected_tile.bottom.y << std::endl;
+                std::cout << expected_tile.left.x << " "<< expected_tile.left.y << std::endl;
 
                 if (failures > 10) {
                     break;

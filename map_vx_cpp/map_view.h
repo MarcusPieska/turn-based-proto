@@ -26,7 +26,6 @@ public:
     bool initialize ();
     void render_opt_pre (SDL_Surface* img_surface_height, float factor);
     void render_opt ();
-    void render_old ();
     void handleEvents ();
     void update ();
     bool isRunning () const;

@@ -13,7 +13,7 @@ class MapModel;
 
 class MapTiler {
 public:
-    MapTiler (int map_w, int map_h, int tile_w, int tile_h, MapModel *model, int added_top_margin);
+    MapTiler (int map_w, int map_h, int tile_w, int tile_h, int tile_cols, int tile_rows, MapModel *model, int top_margin);
     ~MapTiler ();
     
     std::tuple<MapTile*, int, int> coordsToTile (int x, int y, const std::vector<std::vector<MapTile>> *tiles = nullptr);
