@@ -1,0 +1,6 @@
+#!/bin/bash
+g++ -c -fPIC col_morph.cpp -o col_morph.o || exit 1
+g++ -c dat15_io.cpp -o dat15_io.o || exit 1
+g++ -c main.cpp -o main.o || exit 1
+g++ -o tile_morpher main.o col_morph.o dat15_io.o -lSDL2 || exit 1
+rm -f col_morph.o dat15_io.o main.o

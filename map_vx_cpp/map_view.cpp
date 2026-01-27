@@ -14,18 +14,7 @@
 #include "map_view.h"
 #include "map_tiler.h"
 #include "dat15_io.h"
-
-// Types for col_morph
-typedef unsigned char u8;
-typedef struct pt {
-    int x, y;
-} pt;
-typedef struct deltas {
-    int top_dy, right_dy, bottom_dy, left_dy;
-} deltas;
-
-// Include col_morph.cpp directly
-#include "col_morph.cpp"
+#include "col_morph.h"
 
 #define HEIGHT_COLOR_MAX 255
 #define U8_MAX 255
