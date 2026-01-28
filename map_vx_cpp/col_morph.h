@@ -25,7 +25,7 @@ typedef struct deltas {
     int top_dy, right_dy, bottom_dy, left_dy;
 } deltas;
 
-void morph_tile (SDL_Texture* src_tex, SDL_Texture* dst_tex, size src_size, int channels, tile_pts pts, deltas d);
+void morph_tile (SDL_Texture* src_tex, SDL_Texture* dst_tex, size src_size, int channels, tile_pts pts, deltas d, int morph_f);
 
 #endif
 

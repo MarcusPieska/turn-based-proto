@@ -12,8 +12,8 @@
 //=> - Shading macros -
 //================================================================================================================================
 
-#define SHADE_MULT_MIN 0.5f
-#define SHADE_MULT_MAX 1.5f
+#define SHADE_MULT_MIN 0.9f
+#define SHADE_MULT_MAX 1.1f
 #define SHADE_MAX_DIFF 31
 #define PLAIN_FACTOR_MAX_HEIGHT_DIFF 10
 
@@ -180,19 +180,18 @@ static inline void draw_line_thick (u8* img, size img_size, int ch, int pitch, p
 //=> - Functions -
 //================================================================================================================================
 
-void morph_tile (SDL_Texture* src_tex, SDL_Texture* dst_tex, size src_size, int ch, tile_pts pts, deltas d) {
+void morph_tile (SDL_Texture* src_tex, SDL_Texture* dst_tex, size src_size, int ch, tile_pts pts, deltas d, int morph_f) {
     void* src_pixels;
     void* dst_pixels;
     int src_pitch, dst_pitch;
-    
     SDL_LockTexture(src_tex, nullptr, &src_pixels, &src_pitch);
     SDL_LockTexture(dst_tex, nullptr, &dst_pixels, &dst_pitch);
-    
     u8* src_img = (u8*)src_pixels;
     u8* dst_img = (u8*)dst_pixels;
-    
-    for (int y = 0; y < src_size.height; y++) {
-        for (int x = 0; x < src_size.width; x++) {
+
+    size dst_size = {src_size.width, src_size.height * morph_f};
+    for (int y = 0; y < dst_size.height; y++) {
+        for (int x = 0; x < dst_size.width; x++) {
             int idx = y * dst_pitch + x * 4;
             dst_img[idx + 0] = 255;
             dst_img[idx + 1] = 0;
@@ -220,17 +219,17 @@ void morph_tile (SDL_Texture* src_tex, SDL_Texture* dst_tex, size src_size, int 
     shade = 1.0f + shade_effect * plain_factor;
     
     const int thickness = 1;
-    draw_line_thick(dst_img, src_size, ch, dst_pitch, new_top, new_right, thickness);
-    draw_line_thick(dst_img, src_size, ch, dst_pitch, new_right, new_bottom, thickness);
-    draw_line_thick(dst_img, src_size, ch, dst_pitch, new_bottom, new_left, thickness);
-    draw_line_thick(dst_img, src_size, ch, dst_pitch, new_left, new_top, thickness);
+    draw_line_thick(dst_img, dst_size, ch, dst_pitch, new_top, new_right, thickness);
+    draw_line_thick(dst_img, dst_size, ch, dst_pitch, new_right, new_bottom, thickness);
+    draw_line_thick(dst_img, dst_size, ch, dst_pitch, new_bottom, new_left, thickness);
+    draw_line_thick(dst_img, dst_size, ch, dst_pitch, new_left, new_top, thickness);
     
     int min_x = std::max(0, new_left.x);
-    int max_x = std::min(src_size.width - 1, new_right.x);
+    int max_x = std::min(dst_size.width - 1, new_right.x);
     y_vals yv;
     for (int x = min_x; x <= max_x; x++) {
         find_old_col_bounds(src_img, src_size, src_pitch, x, yv.old_y_low, yv.old_y_high);
-        find_new_col_bounds(dst_img, src_size, dst_pitch, x, yv.new_y_low, yv.new_y_high);
+        find_new_col_bounds(dst_img, dst_size, dst_pitch, x, yv.new_y_low, yv.new_y_high);
         fit_old_col_to_new_col(src_img, dst_img, ch, src_pitch, dst_pitch, x, yv, shade);
     }
     

@@ -31,12 +31,12 @@ static inline int32_t get_zy_right (const MapTile& t) { return t.right.y + t.del
 static inline int32_t get_zy_bottom (const MapTile& t) { return t.bottom.y + t.deltas.bottom; }
 static inline int32_t get_zy_left (const MapTile& t) { return t.left.y + t.deltas.left; }
 
-static inline SDL_Rect get_tile_rect (const MapTile& t, int cx, int cy, int zoom) {
+static inline SDL_Rect get_tile_rect (const MapTile& t, int cx, int cy, int zoom, int morph_f, int min_e, int tile_h) {
     SDL_Rect rect;
     rect.x = (t.left.x - cx) * zoom / 100;
-    rect.y = (t.lowest - cy) * zoom / 100;
-    rect.w = (t.right.x - t.left.x) * zoom / 100;
-    rect.h = (t.highest - t.lowest) * zoom / 100;
+    rect.y = (t.highest - (morph_f) * tile_h - cy) * zoom / 100;
+    rect.w = (t.right.x - t.left.x + 1) * zoom / 100;
+    rect.h = tile_h * zoom / 100 * morph_f;
     return rect;
 }
 
@@ -171,9 +171,8 @@ void MapView::render_opt () {
     std::vector<std::vector<MapTile>>& tiles = m_model->getTilesRef ();
     int visible_h = m_wnd_h * 100 / m_zoom_level + HEIGHT_COLOR_MAX * m_factor;
     int visible_w = m_wnd_w * 100 / m_zoom_level;
-    int half_h = m_tile_h / 2;
-    int y_min = std::max(0, m_cy - 3 * half_h - int(HEIGHT_COLOR_MAX * m_factor));
-    int y_max = std::min(m_map_h, m_cy + visible_h + 3 * half_h);
+    int y_min = std::max(0, m_cy - 3 * m_tile_h / 2 - int(HEIGHT_COLOR_MAX * m_factor));
+    int y_max = std::min(m_map_h, m_cy + visible_h + 3 * m_tile_h / 2);
     
     int min_col = (m_cx) / m_tile_w - 2;
     int max_col = (m_cx + visible_w) / m_tile_w;
@@ -185,12 +184,43 @@ void MapView::render_opt () {
     min_row = min_row < 0 ? 0 : min_row;
     max_row = max_row >= tiles.size() ? tiles.size() - 1 : max_row;
 
+
+    int in_w = 0, in_h = 0;
+    int out_w = 0, out_h = 0;
+    Uint32 format;
+    int access;
+
+    int morph_f = 6;
+    int tex_w = m_tex_read->get_tile_w ();
+    int tex_h = m_tex_read->get_tile_h ();
+    int morph_h = tex_h * morph_f;
+    int half_w = tex_w / 2;
+    int half_h = tex_h / 2;
+    int tile_center_y = morph_h - tex_h + half_h;
+    tile_pts pts = {
+        {tex_w / 2, tile_center_y - half_h},
+        {tex_w / 2 + half_w, tile_center_y},
+        {tex_w / 2, tile_center_y + half_h},
+        {tex_w / 2 - half_w, tile_center_y}
+    };
+    size src_size = {tex_w, tex_h};
+    SDL_Texture* src_tex;
+    SDL_Texture* dst_tex;
     for (int row_idx = min_row; row_idx <= max_row && row_idx < tiles.size(); row_idx++) {
         for (int col_idx = min_col; col_idx <= max_col && col_idx < tiles[row_idx].size(); col_idx++) {
             const MapTile& t = tiles[row_idx][col_idx];
-            SDL_Texture* texture = m_tex_read->get_item_rgba(row_idx, col_idx);
-            SDL_Rect dst_rect = get_tile_rect(t, m_cx, m_cy, m_zoom_level);
-            SDL_RenderCopy(m_rend, texture, nullptr, &dst_rect);
+            
+            src_tex = m_tex_read->get_item_rgba(row_idx, col_idx);
+            dst_tex = SDL_CreateTexture(m_rend, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, tex_w, morph_h);
+            SDL_SetTextureBlendMode(dst_tex, SDL_BLENDMODE_BLEND);
+            int min_e = t.deltas.bottom;
+            deltas d = { t.deltas.top - min_e, t.deltas.right - min_e, t.deltas.bottom - min_e, t.deltas.left - min_e };
+            morph_tile(src_tex, dst_tex, src_size, 4, pts, d, morph_f);
+            SDL_Rect dst_rect = get_tile_rect(t, m_cx, m_cy, m_zoom_level, morph_f, min_e, m_tile_text_h);
+            
+            SDL_RenderCopy(m_rend, dst_tex, nullptr, &dst_rect);
+            SDL_DestroyTexture(dst_tex);
+
             SDL_RenderDrawLine (m_rend, ADJ_CX(t.left.x), ADJ_CY_LEFT(t), ADJ_CX(t.top.x), ADJ_CY_TOP(t));
             SDL_RenderDrawLine (m_rend, ADJ_CX(t.bottom.x), ADJ_CY_BOTTOM(t), ADJ_CX(t.left.x), ADJ_CY_LEFT(t));
         }
@@ -215,7 +245,6 @@ void MapView::render_opt () {
             }
         }
     }
-    
     if (m_clicked_tile != nullptr) {
         __highlightCurrentTile(m_clicked_tile, 0, U8_MAX, 0);
         for (const auto &near_tile : m_near_tiles) {
@@ -225,7 +254,6 @@ void MapView::render_opt () {
             __highlightTile(diagonal_tile, 0, static_cast<Uint8>(U8_MAX / 2), 0);
         }
     }
-    
     SDL_RenderPresent (m_rend);
 }
 

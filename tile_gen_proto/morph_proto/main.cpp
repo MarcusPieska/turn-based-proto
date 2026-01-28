@@ -106,7 +106,7 @@ int main (int argc, char* argv[]) {
         SDL_PIXELFORMAT_RGBA32,
         SDL_TEXTUREACCESS_STREAMING,
         tile_w,
-        morph_h
+        tile_h
     );
     
     SDL_Texture* dst_tex = SDL_CreateTexture(
@@ -130,7 +130,18 @@ int main (int argc, char* argv[]) {
     SDL_SetTextureBlendMode(dst_tex, SDL_BLENDMODE_BLEND);
     
     const char* dat15_path = "/home/w/Projects/img-content/texture-grassland3/colors-grassland3_palette_texture_blurred.dat15";
-    load_tile_into_texture(src_tex, tile_w, morph_h, dat15_path, 0);
+    load_tile_into_texture(src_tex, tile_w, tile_h, dat15_path, 0);
+
+
+    int in_w = 0, in_h = 0;
+    int out_w = 0, out_h = 0;
+    Uint32 format;
+    int access;
+    SDL_QueryTexture(src_tex, &format, &access, &in_w, &in_h);
+    SDL_QueryTexture(dst_tex, &format, &access, &out_w, &out_h);
+    SDL_Log("morph_tile input size:  %d x %d", in_w, in_h);
+    SDL_Log("morph_tile output size: %d x %d", out_w, out_h);
+
     
     int half_w = tile_w / 2;
     int half_h = tile_h / 2;
@@ -145,7 +156,7 @@ int main (int argc, char* argv[]) {
     
     deltas d = {0, 0, 0, 0};
     
-    size src_size = {tile_w, morph_h};
+    size src_size = {tile_w, tile_h};
     morph_tile(src_tex, dst_tex, src_size, channels, pts, d);
     
     bool running = true;

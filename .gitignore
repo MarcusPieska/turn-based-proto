@@ -8,6 +8,7 @@ tiles.dat
 tool_palette_maker
 tool_patch_texture
 col_morph_tester
+tile_morpher
 
 img_mng.so
 map_overlays.so

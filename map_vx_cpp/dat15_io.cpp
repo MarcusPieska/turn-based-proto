@@ -92,10 +92,38 @@ Dat15Reader::Dat15Reader (const char* path, int tile_w, int tile_h, SDL_Renderer
             rgba[i*4+3] = is_magenta ? 0 : 255;
         }
         
-        SDL_Surface* surface = create_surface_from_rgba(item_rgba.data(), tile_w, tile_h);
-        SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+        SDL_Texture* texture = SDL_CreateTexture(
+            renderer,
+            SDL_PIXELFORMAT_RGBA32,
+            SDL_TEXTUREACCESS_STREAMING,
+            tile_w,
+            tile_h
+        );
+        if (!texture) {
+            continue;
+        }
+        
+        void* pixels = nullptr;
+        int pitch = 0;
+        if (SDL_LockTexture(texture, nullptr, &pixels, &pitch) != 0) {
+            SDL_DestroyTexture(texture);
+            continue;
+        }
+        
+        unsigned char* dst = static_cast<unsigned char*>(pixels);
+        for (int y = 0; y < tile_h; y++) {
+            for (int x = 0; x < tile_w; x++) {
+                int src_idx = (y * tile_w + x) * 4;
+                int dst_idx = y * pitch + x * 4;
+                dst[dst_idx + 0] = rgba[src_idx + 0]; // R
+                dst[dst_idx + 1] = rgba[src_idx + 1]; // G
+                dst[dst_idx + 2] = rgba[src_idx + 2]; // B
+                dst[dst_idx + 3] = rgba[src_idx + 3]; // A
+            }
+        }
+        
+        SDL_UnlockTexture(texture);
         SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
-        SDL_FreeSurface(surface);
         m_textures.push_back(texture);
         
         if (!hdr.has_next) {
