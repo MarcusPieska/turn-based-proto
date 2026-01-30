@@ -11,10 +11,13 @@
 #include <cmath>
 #include <climits>
 
-#include "map_view.h"
 #include "map_tiler.h"
 #include "dat15_io.h"
 #include "col_morph.h"
+#include "hlp_canvas/map_mini.h"
+#include "map_types.h"
+
+#include "map_view.h"
 
 #define HEIGHT_COLOR_MAX 255
 #define U8_MAX 255
@@ -30,15 +33,6 @@ static inline int32_t get_zy_top (const MapTile& t) { return t.top.y + t.deltas.
 static inline int32_t get_zy_right (const MapTile& t) { return t.right.y + t.deltas.right; }
 static inline int32_t get_zy_bottom (const MapTile& t) { return t.bottom.y + t.deltas.bottom; }
 static inline int32_t get_zy_left (const MapTile& t) { return t.left.y + t.deltas.left; }
-
-static inline SDL_Rect get_tile_rect (const MapTile& t, int cx, int cy, int zoom, int morph_f, int min_e, int tile_h) {
-    SDL_Rect rect;
-    rect.x = (t.left.x - cx) * zoom / 100;
-    rect.y = (t.highest - (morph_f) * tile_h - cy) * zoom / 100;
-    rect.w = (t.right.x - t.left.x + 1) * zoom / 100;
-    rect.h = tile_h * zoom / 100 * morph_f;
-    return rect;
-}
 
 //================================================================================================================================
 //=> - MapView public methods -
@@ -64,7 +58,8 @@ MapView::MapView (int wnd_w, int wnd_h, int map_w, int map_h, int tile_w, int ti
     m_zoom_level (ZOOM_DEFAULT),
     m_tex_read (nullptr),
     m_tile_text_w (tile_w + 1),
-    m_tile_text_h (tile_h + 1) {
+    m_tile_text_h (tile_h + 1),
+    m_mini (nullptr) {
 }
 
 MapView::~MapView () {
@@ -92,6 +87,11 @@ bool MapView::initialize () {
     m_running = true;
     const char* texture_path = "/home/w/Projects/img-content/texture-grassland3/colors-grassland3_palette_texture_blurred.dat15";
     m_tex_read = new Dat15Reader(texture_path, m_tile_text_w, m_tile_text_h, m_rend);
+    const char* mini_img_path = "/home/w/Projects/rts-proto-map/first-test/cont001.png";
+    Size mini_size(200, 200);
+    Size canvas_size(m_wnd_w, m_wnd_h);
+    Size map_size(400, 400);
+    m_mini = new MapMini(m_rend, mini_img_path, mini_size, canvas_size, map_size);
     return true;
 }
 
@@ -184,43 +184,26 @@ void MapView::render_opt () {
     min_row = min_row < 0 ? 0 : min_row;
     max_row = max_row >= tiles.size() ? tiles.size() - 1 : max_row;
 
-
     int in_w = 0, in_h = 0;
     int out_w = 0, out_h = 0;
     Uint32 format;
     int access;
 
-    int morph_f = 6;
     int tex_w = m_tex_read->get_tile_w ();
     int tex_h = m_tex_read->get_tile_h ();
-    int morph_h = tex_h * morph_f;
     int half_w = tex_w / 2;
     int half_h = tex_h / 2;
-    int tile_center_y = morph_h - tex_h + half_h;
-    tile_pts pts = {
-        {tex_w / 2, tile_center_y - half_h},
-        {tex_w / 2 + half_w, tile_center_y},
-        {tex_w / 2, tile_center_y + half_h},
-        {tex_w / 2 - half_w, tile_center_y}
-    };
+    int new_h = 0;
+    tile_pts pts = {{half_w, 0}, {tex_w, half_h}, {half_w, tex_h}, {0, half_h}};
     size src_size = {tex_w, tex_h};
-    SDL_Texture* src_tex;
-    SDL_Texture* dst_tex;
     for (int row_idx = min_row; row_idx <= max_row && row_idx < tiles.size(); row_idx++) {
         for (int col_idx = min_col; col_idx <= max_col && col_idx < tiles[row_idx].size(); col_idx++) {
             const MapTile& t = tiles[row_idx][col_idx];
-            
-            src_tex = m_tex_read->get_item_rgba(row_idx, col_idx);
-            dst_tex = SDL_CreateTexture(m_rend, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, tex_w, morph_h);
-            SDL_SetTextureBlendMode(dst_tex, SDL_BLENDMODE_BLEND);
-            int min_e = t.deltas.bottom;
-            deltas d = { t.deltas.top - min_e, t.deltas.right - min_e, t.deltas.bottom - min_e, t.deltas.left - min_e };
-            morph_tile(src_tex, dst_tex, src_size, 4, pts, d, morph_f);
-            SDL_Rect dst_rect = get_tile_rect(t, m_cx, m_cy, m_zoom_level, morph_f, min_e, m_tile_text_h);
-            
+            deltas d = { t.deltas.top, t.deltas.right, t.deltas.bottom, t.deltas.left };
+            SDL_Texture* dst_tex = morph_tile(m_rend, m_tex_read->get_item_rgba(row_idx, col_idx), src_size, 4, pts, d, new_h);
+            SDL_Rect dst_rect = {ADJ_CX(t.left.x), ADJ_CY(t.lowest), tex_w, new_h};
             SDL_RenderCopy(m_rend, dst_tex, nullptr, &dst_rect);
             SDL_DestroyTexture(dst_tex);
-
             SDL_RenderDrawLine (m_rend, ADJ_CX(t.left.x), ADJ_CY_LEFT(t), ADJ_CX(t.top.x), ADJ_CY_TOP(t));
             SDL_RenderDrawLine (m_rend, ADJ_CX(t.bottom.x), ADJ_CY_BOTTOM(t), ADJ_CX(t.left.x), ADJ_CY_LEFT(t));
         }
@@ -254,6 +237,11 @@ void MapView::render_opt () {
             __highlightTile(diagonal_tile, 0, static_cast<Uint8>(U8_MAX / 2), 0);
         }
     }
+    if (m_mini) {
+        int vis_w = m_wnd_w * 100 / m_zoom_level;
+        int vis_h = m_wnd_h * 100 / m_zoom_level;
+        m_mini->renderFast(m_cx, m_cy, vis_w, vis_h);
+    }
     SDL_RenderPresent (m_rend);
 }
 
@@ -279,6 +267,10 @@ bool MapView::isRunning () const {
 }
 
 void MapView::cleanup () {
+    if (m_mini != nullptr) {
+        delete m_mini;
+        m_mini = nullptr;
+    }
     if (m_tex_read != nullptr) {
         delete m_tex_read;
         m_tex_read = nullptr;
@@ -421,6 +413,19 @@ void MapView::__handleMouseClick (SDL_Event &e) {
         case SDL_BUTTON_LEFT: {
             int screen_x = e.button.x;
             int screen_y = e.button.y;
+            Point scr_pt(screen_x, screen_y);
+            if (m_mini && m_mini->isPointOnMinimap(scr_pt)) {
+                Point map_pt;
+                m_mini->minimapToMap(scr_pt, map_pt);
+                int vis_w = m_wnd_w * 100 / m_zoom_level;
+                int vis_h = m_wnd_h * 100 / m_zoom_level;
+                map_pt.x = int(map_pt.x * m_tile_w * 100 / m_zoom_level);
+                map_pt.y = int(map_pt.y * m_tile_h / 2 * 100 / m_zoom_level);
+                m_cx = std::max(0, std::min(m_map_w - vis_w, map_pt.x - vis_w / 2));
+                m_cy = std::max(0, std::min(m_map_h - vis_h, map_pt.y - vis_h / 2));
+                __handleWndLimits();
+                return;
+            }
             int map_x = (screen_x * 100 / m_zoom_level) + m_cx;
             int map_y = (screen_y * 100 / m_zoom_level) + m_cy;
             std::vector<std::vector<MapTile>>& tiles = m_model->getTilesRef();

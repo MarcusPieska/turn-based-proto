@@ -4,8 +4,10 @@
 
 #include <cstring>
 #include <cmath>
+#include <iostream>
 #include <algorithm>
 #include <SDL2/SDL.h>
+
 #include "col_morph.h"
 
 //================================================================================================================================
@@ -57,8 +59,8 @@ static inline void find_old_col_bounds (u8* img, size img_size, int pitch, int x
 }
 
 static inline void find_new_col_bounds (u8* img, size img_size, int pitch, int x, int& y_low, int& y_high) {
-    y_low = -1;
-    y_high = -1;
+    y_low = 0;
+    y_high = img_size.height - 1;
     for (int y = img_size.height - 1; y >= 0; y--) {
         if (is_black(img, pitch, x, y)) {
             y_low = y; 
@@ -176,11 +178,32 @@ static inline void draw_line_thick (u8* img, size img_size, int ch, int pitch, p
     }
 }
 
+static inline void adjust_pts_to_bottom (pt &top, pt &right, pt &bottom, pt &left, int &height) {
+    int min_y = std::min(right.y, std::min(left.y, std::min(top.y, bottom.y)));
+    int max_y = std::max(right.y, std::max(left.y, std::max(top.y, bottom.y)));
+    top.y = top.y - min_y;
+    right.y = right.y - min_y;
+    bottom.y = bottom.y - min_y;
+    left.y = left.y - min_y;
+    height = max_y - min_y;
+}
+
 //================================================================================================================================
 //=> - Functions -
 //================================================================================================================================
 
-void morph_tile (SDL_Texture* src_tex, SDL_Texture* dst_tex, size src_size, int ch, tile_pts pts, deltas d, int morph_f) {
+SDL_Texture* morph_tile (SDL_Renderer* rend, SDL_Texture* src_tex, size src_size, int ch, tile_pts pts, deltas d, int& new_h) {
+    SDL_Texture* dst_tex;
+    pt new_top = {pts.top.x, pts.top.y + d.top_dy};
+    pt new_right = {pts.right.x, pts.right.y + d.right_dy};
+    pt new_bottom = {pts.bottom.x, pts.bottom.y + d.bottom_dy};
+    pt new_left = {pts.left.x, pts.left.y + d.left_dy};
+    size dst_size = {pts.right.x - pts.left.x, 0};
+    adjust_pts_to_bottom(new_top, new_right, new_bottom, new_left, dst_size.height);
+    new_h = dst_size.height;
+    dst_tex = SDL_CreateTexture(rend, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, dst_size.width, dst_size.height);
+    SDL_SetTextureBlendMode(dst_tex, SDL_BLENDMODE_BLEND);
+
     void* src_pixels;
     void* dst_pixels;
     int src_pitch, dst_pitch;
@@ -188,8 +211,6 @@ void morph_tile (SDL_Texture* src_tex, SDL_Texture* dst_tex, size src_size, int 
     SDL_LockTexture(dst_tex, nullptr, &dst_pixels, &dst_pitch);
     u8* src_img = (u8*)src_pixels;
     u8* dst_img = (u8*)dst_pixels;
-
-    size dst_size = {src_size.width, src_size.height * morph_f};
     for (int y = 0; y < dst_size.height; y++) {
         for (int x = 0; x < dst_size.width; x++) {
             int idx = y * dst_pitch + x * 4;
@@ -199,11 +220,6 @@ void morph_tile (SDL_Texture* src_tex, SDL_Texture* dst_tex, size src_size, int 
             dst_img[idx + 3] = 0;
         }
     }
-    
-    pt new_top = {pts.top.x, pts.top.y + d.top_dy};
-    pt new_right = {pts.right.x, pts.right.y + d.right_dy};
-    pt new_bottom = {pts.bottom.x, pts.bottom.y + d.bottom_dy};
-    pt new_left = {pts.left.x, pts.left.y + d.left_dy};
     
     float y_diff = (float)(new_left.y - new_right.y);
     float max_diff = (float)SHADE_MAX_DIFF;
@@ -218,12 +234,12 @@ void morph_tile (SDL_Texture* src_tex, SDL_Texture* dst_tex, size src_size, int 
     float plain_factor = std::min(1.0f, (float)height_delta / (float)PLAIN_FACTOR_MAX_HEIGHT_DIFF);
     shade = 1.0f + shade_effect * plain_factor;
     
-    const int thickness = 1;
+    const int thickness = 3;
     draw_line_thick(dst_img, dst_size, ch, dst_pitch, new_top, new_right, thickness);
     draw_line_thick(dst_img, dst_size, ch, dst_pitch, new_right, new_bottom, thickness);
     draw_line_thick(dst_img, dst_size, ch, dst_pitch, new_bottom, new_left, thickness);
     draw_line_thick(dst_img, dst_size, ch, dst_pitch, new_left, new_top, thickness);
-    
+
     int min_x = std::max(0, new_left.x);
     int max_x = std::min(dst_size.width - 1, new_right.x);
     y_vals yv;
@@ -235,6 +251,7 @@ void morph_tile (SDL_Texture* src_tex, SDL_Texture* dst_tex, size src_size, int 
     
     SDL_UnlockTexture(src_tex);
     SDL_UnlockTexture(dst_tex);
+    return dst_tex;
 }
 
 //================================================================================================================================

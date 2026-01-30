@@ -65,6 +65,8 @@ int main () {
     
     view.render_opt_pre (img_surface_height, height_factor);
     //view.testTileClickDetection ();
+    //model.validateCornerElevations ();
+    //return 0;
     while (view.isRunning ()) {
         view.handleEvents ();
         view.update ();

@@ -1,0 +1,5 @@
+#!/bin/bash
+g++ -c map_mini.cpp -o map_mini.o -std=c++11 || exit 1
+g++ -c map_mini_driver.cpp -o map_mini_driver.o -std=c++11 || exit 1
+g++ -o map_mini_test map_mini_driver.o map_mini.o -lSDL2 -lSDL2_image || exit 1
+rm -f map_mini.o map_mini_driver.o

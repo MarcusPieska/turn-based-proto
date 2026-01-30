@@ -9,10 +9,12 @@
 #include <SDL2/SDL_image.h>
 #include <vector>
 #include <map>
+
 #include "map_model.h"
 #include "map_tile.h"
 
 class Dat15Reader;
+class MapMini;
 
 //================================================================================================================================
 //=> - Class: MapView -
@@ -66,6 +68,7 @@ private:
     Dat15Reader* m_tex_read;
     int m_tile_text_w;
     int m_tile_text_h;
+    MapMini* m_mini;
     static const int SCROLL_SPEED = 10;
     static const int SCROLL_MAX = 100;
     static const int EDGE_SCROLL_MARGIN = 50;

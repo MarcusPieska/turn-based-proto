@@ -9,6 +9,7 @@ tool_palette_maker
 tool_patch_texture
 col_morph_tester
 tile_morpher
+map_mini_test
 
 img_mng.so
 map_overlays.so

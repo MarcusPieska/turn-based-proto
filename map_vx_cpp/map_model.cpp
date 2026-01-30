@@ -4,7 +4,9 @@
 
 #include <fstream>
 #include <sstream>
+#include <iostream>
 #include <map>
+#include <set>
 #include <algorithm>
 #include "map_model.h"
 
@@ -116,6 +118,52 @@ void MapModel::saveTilesToFile (const std::string &filename) const {
         }
     }
     file.close();
+}
+
+void MapModel::validateCornerElevations () const {
+    std::map<std::pair<int32_t, int32_t>, std::vector<int32_t>> corner_elevations;
+    for (size_t row_idx = 0; row_idx < m_tiles.size(); row_idx++) {
+        for (size_t col_idx = 0; col_idx < m_tiles[row_idx].size(); col_idx++) {
+            const MapTile& tile = m_tiles[row_idx][col_idx];
+            std::pair<int32_t, int32_t> top_key = std::make_pair(tile.top.x, tile.top.y);
+            std::pair<int32_t, int32_t> right_key = std::make_pair(tile.right.x, tile.right.y);
+            std::pair<int32_t, int32_t> bottom_key = std::make_pair(tile.bottom.x, tile.bottom.y);
+            std::pair<int32_t, int32_t> left_key = std::make_pair(tile.left.x, tile.left.y);
+            corner_elevations[top_key].push_back(tile.top.y + tile.deltas.top);
+            corner_elevations[right_key].push_back(tile.right.y + tile.deltas.right);
+            corner_elevations[bottom_key].push_back(tile.bottom.y + tile.deltas.bottom);
+            corner_elevations[left_key].push_back(tile.left.y + tile.deltas.left);
+        }
+    }
+    int total_checks = 0;
+    int failures = 0;
+    int count_4_corners = 0;
+    for (const auto& pair : corner_elevations) {
+        const std::vector<int32_t>& elevations = pair.second;
+        int co_located_count = elevations.size();
+        if (co_located_count == 4) {
+            count_4_corners++;
+        }
+        if (co_located_count > 0) {
+            int32_t first_elevation = elevations[0];
+            bool all_match = true;
+            for (size_t i = 1; i < elevations.size(); i++) {
+                if (elevations[i] != first_elevation) {
+                    all_match = false;
+                    break;
+                }
+            }
+            total_checks++;
+            if (!all_match) {
+                failures++;
+            }
+        }
+    }
+    double percent_4_corners = corner_elevations.size() > 0 ? (100.0 * count_4_corners / corner_elevations.size()) : 0.0;
+    std::cout << "*** Corner elevation validation results:" << std::endl;
+    std::cout << "    Total checks: " << total_checks << std::endl;
+    std::cout << "    Failures: " << failures << std::endl;
+    std::cout << "    Percentage with 4 co-located corners: " << percent_4_corners << "%" << std::endl;
 }
 
 //================================================================================================================================

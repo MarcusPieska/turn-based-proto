@@ -8,6 +8,7 @@
 #include <vector>
 #include <string>
 #include <map>
+
 #include "map_tile.h"
 
 class MapTiler;
@@ -33,6 +34,7 @@ public:
     std::vector<std::vector<MapTile>> &getTilesRef ();
     std::vector<Line> getLines () const;
     void saveTilesToFile (const std::string &filename) const;
+    void validateCornerElevations () const;
     
     MapTiler *m_tiler;
 
