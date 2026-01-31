@@ -238,7 +238,8 @@ class TileCropper:
 #================================================================================================================================#
 
 if __name__ == "__main__":
-    tex_path = "/home/w/Projects/img-content/texture-grassland3/colors-grassland3_palette_texture_blurred.png"
+    tag = "ocean1"
+    tex_path = "/home/w/Projects/img-content/texture-%s/colors-%s_palette_texture_blurred.png" % (tag, tag)
     root = tk.Tk()
     root.title("Tile Cropper")
     tile_width = 100

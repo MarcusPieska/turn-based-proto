@@ -11,7 +11,7 @@
 #include <map>
 
 #include "map_model.h"
-#include "map_tile.h"
+#include "map_view_tile.h"
 
 class Dat15Reader;
 class MapMini;
@@ -26,8 +26,8 @@ public:
     ~MapView ();
     
     bool initialize ();
-    void render_opt_pre (SDL_Surface* img_surface_height, float factor);
-    void render_opt ();
+    void preRenderSetup (SDL_Surface* img_surface_height, float factor);
+    void renderOpt ();
     void handleEvents ();
     void update ();
     bool isRunning () const;
@@ -39,15 +39,15 @@ private:
     void __handleEventsKeyDown (SDL_Event &e);
     void __handleEventsKeyUp (SDL_Event &e);
     void __handleMouseClick (SDL_Event &e);
-    void __highlightTile (MapTile *tile, Uint8 r, Uint8 g, Uint8 b);
-    void __highlightCurrentTile (MapTile *tile, Uint8 r, Uint8 g, Uint8 b);
+    void __highlightTile (MapModelTile *tile, Uint8 r, Uint8 g, Uint8 b);
+    void __highlightCurrentTile (MapModelTile *tile, Uint8 r, Uint8 g, Uint8 b);
     void __clearHighlights ();
-    void __centerOnTile (MapTile *tile);
+    void __centerOnTile (MapModelTile *tile);
     void __toggleFullscreen ();
     void __flipVertically ();
     void __handleWndLimits ();
-    bool __inBounds (int x, int y, const MapTile &tile);
-    std::tuple<MapTile*, size_t, size_t> __searchTileFromPt (int map_x, int map_y, size_t start_row, size_t start_col);
+    bool __inBounds (int x, int y, const MapModelTile &tile, int row, int col);
+    std::tuple<MapModelTile*, int, int> __searchTileFromPt (int map_x, int map_y, int start_row, int start_col);
 
     SDL_Window *m_wnd;
     SDL_Renderer *m_rend;
@@ -60,15 +60,22 @@ private:
     float m_factor;
     int m_cx, m_cy;
     int m_scroll_add;
-    MapTile *m_clicked_tile;
-    std::vector<MapTile*> m_near_tiles;
-    std::vector<MapTile*> m_diagonal_tiles;
+    MapModelTile *m_clicked_tile;
+    NearTiles m_near_tiles;
     int m_zoom_level;
     std::map<std::pair<int, int>, float> m_corner_elevations;
-    Dat15Reader* m_tex_read;
+    Dat15Reader* m_tex_read_ocean;
+    Dat15Reader* m_tex_read_desert;
+    Dat15Reader* m_tex_read_plains;
+    Dat15Reader* m_tex_read_grassland;
+    Dat15Reader* m_tex_read_tundra;
     int m_tile_text_w;
     int m_tile_text_h;
     MapMini* m_mini;
+    SDL_Surface* m_terrain_map;
+    MapViewTile** m_view_tiles;
+    int m_num_rows;
+    int m_num_cols;
     static const int SCROLL_SPEED = 10;
     static const int SCROLL_MAX = 100;
     static const int EDGE_SCROLL_MARGIN = 50;

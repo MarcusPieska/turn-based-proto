@@ -2,37 +2,30 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef MAP_TILE_H
-#define MAP_TILE_H
+#ifndef MAP_VIEW_TILE_H
+#define MAP_VIEW_TILE_H
 
 #include <cstdint>
 
 #include "map_types.h"
+#include "dat15_io.h"
 
-struct MapTile {
-    Point top;
-    Point right;
-    Point bottom;
-    Point left;
-    int32_t z;
+struct MapViewTile {
     int32_t lowest;
     int32_t highest;
     Deltas deltas;
+    Dat15Reader* tex_read;
     
-    MapTile () : z(0), lowest(0), highest(0) {}
-    MapTile (Point top_pt, Point right_pt, Point bottom_pt, Point left_pt) : 
-        top(top_pt), 
-        right(right_pt), 
-        bottom(bottom_pt), 
-        left(left_pt), 
-        z(0), 
-        lowest(0), 
-        highest(0),
-        deltas(Deltas()) {
+    MapViewTile () : lowest(0), highest(0), deltas(), tex_read(nullptr) {}
+    MapViewTile (int32_t lowest_val, int32_t highest_val) : 
+        lowest(lowest_val), 
+        highest(highest_val),
+        deltas(),
+        tex_read(nullptr) {  
     }
 };
 
-#endif // MAP_TILE_H
+#endif // MAP_VIEW_TILE_H
 
 //================================================================================================================================
 //=> - End of file -

@@ -5,9 +5,9 @@
 #ifndef MAP_TILER_H
 #define MAP_TILER_H
 
-#include <vector>
-#include <tuple>
-#include "map_tile.h"
+#include "map_model_tile.h"
+#include "map_view_tile.h"
+#include "map_types.h"
 
 class MapModel;
 
@@ -16,15 +16,11 @@ public:
     MapTiler (int map_w, int map_h, int tile_w, int tile_h, int tile_cols, int tile_rows, MapModel *model, int top_margin);
     ~MapTiler ();
     
-    std::tuple<MapTile*, int, int> coordsToTile (int x, int y, const std::vector<std::vector<MapTile>> *tiles = nullptr);
-    std::vector<MapTile*> coordsToNearTiles (int x, int y);
-    std::vector<MapTile*> coordsToDiagonalTiles (int x, int y);
-    std::vector<MapTile*> tileIdxToNearTiles (int row, int col);
-    std::vector<MapTile*> tileIdxToDiagonalTiles (int row, int col);
+    NearTiles getNearTiles (int row, int col);
 
 private:
-    std::tuple<int, int> coordsToIndices (int x, int y, const std::vector<std::vector<MapTile>> &tiles);
-    
+    NearTiles m_odd_row_offsets;
+    NearTiles m_even_row_offsets;
     int m_tile_w;
     int m_tile_h;
     int m_half_w;

@@ -5,9 +5,13 @@
 #include <cmath>
 #include <algorithm>
 #include <limits>
+#include <cstdlib>
 
 #include "map_tiler.h"
 #include "map_model.h"
+
+#define VAL_X(x) (x >= 0 && x < m_num_cols)
+#define VAL_Y(y) (y >= 0 && y < m_num_rows)
 
 //================================================================================================================================
 //=> - MapTiler implementation -
@@ -24,206 +28,79 @@ MapTiler::MapTiler (int map_w, int map_h, int tile_w, int tile_h, int tile_cols,
     m_y_min (top_margin),
     m_model (model) {
     
-    std::vector<std::vector<MapTile>> tiles;
+    m_even_row_offsets.n = Point(0, -2);
+    m_even_row_offsets.e = Point(1, 0);
+    m_even_row_offsets.s = Point(0, 2);
+    m_even_row_offsets.w = Point(-1, 0);
+
+    m_even_row_offsets.ne = Point(0, -1);
+    m_even_row_offsets.se = Point(0, 1);
+    m_even_row_offsets.sw = Point(-1, 1);
+    m_even_row_offsets.nw = Point(-1, -1);
+    
+    m_odd_row_offsets.n = Point(0, -2);
+    m_odd_row_offsets.e = Point(1, 0);
+    m_odd_row_offsets.s = Point(0, 2);
+    m_odd_row_offsets.w = Point(-1, 0);
+
+    m_odd_row_offsets.ne = Point(1, -1);
+    m_odd_row_offsets.se = Point(1, 1);
+    m_odd_row_offsets.sw = Point(0, 1);
+    m_odd_row_offsets.nw = Point(0, -1);
+    
+    m_model->allocateTiles(m_num_rows, m_num_cols);
+    MapModelTile** tiles = m_model->getTiles();
+    
     int y = m_y_min + m_half_h;
     for (int row = 0; row < m_num_rows; row++) {
         int x_offset = (row % 2 == 1) ? m_half_w : 0;
         int x = m_x_min + x_offset + m_half_w;
-        std::vector<MapTile> tile_row;
         for (int col = 0; col < m_num_cols; col++) {
             Point top (x, y - m_half_h);
             Point right (x + m_half_w, y);
             Point bottom (x, y + m_half_h);
             Point left (x - m_half_w, y);
-            tile_row.push_back(MapTile(top, right, bottom, left));
+            tiles[row][col] = MapModelTile(top, right, bottom, left);
             x += tile_w;
         }
-        tiles.push_back(tile_row);
         y += m_half_h;
     }
-    m_model->setTiles(tiles);
     m_model->m_tiler = this;
+    
 }
 
 MapTiler::~MapTiler () {
 }
 
-std::tuple<int, int> MapTiler::coordsToIndices (int x, int y, const std::vector<std::vector<MapTile>> &tiles) {
-    auto result = coordsToTile(x, y, &tiles);
-    int row = std::get<1>(result);
-    int col = std::get<2>(result);
-    return std::make_tuple(row, col);
-}
+NearTiles MapTiler::getNearTiles (int row, int col) {
+    NearTiles result;
+    const NearTiles& offsets = (row % 2 == 0) ? m_even_row_offsets : m_odd_row_offsets;
 
-std::tuple<MapTile*, int, int> MapTiler::coordsToTile (int x, int y, const std::vector<std::vector<MapTile>> *tiles_ptr) {
-    std::vector<std::vector<MapTile>> model_tiles = m_model->getTilesRef();
-    bool use_model = (tiles_ptr == nullptr);
-    const std::vector<std::vector<MapTile>> &tiles = use_model ? model_tiles : *tiles_ptr;
+    result.n.x = VAL_X(col + offsets.n.x) ? col + offsets.n.x : -1;
+    result.n.y = VAL_Y(row + offsets.n.y) ? row + offsets.n.y : -1;
     
-    if (tiles.empty()) {
-        return std::make_tuple(nullptr, -1, -1);
-    }
+    result.ne.x = VAL_X(col + offsets.ne.x) ? col + offsets.ne.x : -1;
+    result.ne.y = VAL_Y(row + offsets.ne.y) ? row + offsets.ne.y : -1;
+ 
+    result.e.x = VAL_X(col + offsets.e.x) ? col + offsets.e.x : -1;
+    result.e.y = VAL_Y(row + offsets.e.y) ? row + offsets.e.y : -1;
     
-    MapTile *best_tile = nullptr;
-    int best_row = -1;
-    int best_col = -1;
-    double best_dist = std::numeric_limits<double>::infinity();
+    result.se.x = VAL_X(col + offsets.se.x) ? col + offsets.se.x : -1;
+    result.se.y = VAL_Y(row + offsets.se.y) ? row + offsets.se.y : -1;
     
-    for (size_t row = 0; row < tiles.size(); row++) {
-        int row_y = m_y_min + m_half_h + row * m_half_h;
-        for (size_t col = 0; col < tiles[row].size(); col++) {
-            const MapTile &tile = tiles[row][col];
-            int cx = tile.top.x;
-            int cy = row_y;
-            int dx = std::abs(x - cx);
-            int dy = std::abs(y - cy);
-            if (dx * m_half_h + dy * m_half_w <= m_half_w * m_half_h) {
-                double dist = dx * dx + dy * dy;
-                if (dist < best_dist) {
-                    best_dist = dist;
-                    best_row = row;
-                    best_col = col;
-                    if (use_model) {
-                        best_tile = &model_tiles[row][col];
-                    } else {
-                        best_tile = const_cast<MapTile*>(&tile);
-                    }
-                }
-            }
-        }
-    }
+    result.s.x = VAL_X(col + offsets.s.x) ? col + offsets.s.x : -1;
+    result.s.y = VAL_Y(row + offsets.s.y) ? row + offsets.s.y : -1;
     
-    return std::make_tuple(best_tile, best_row, best_col);
-}
-
-std::vector<MapTile*> MapTiler::tileIdxToNearTiles (int row, int col) {
-    std::vector<std::vector<MapTile>> &tiles = m_model->getTilesRef();
-    std::vector<MapTile*> selected;
+    result.sw.x = VAL_X(col + offsets.sw.x) ? col + offsets.sw.x : -1;
+    result.sw.y = VAL_Y(row + offsets.sw.y) ? row + offsets.sw.y : -1;
     
-    if (row < 0 || col < 0 || row >= static_cast<int>(tiles.size()) || col >= static_cast<int>(tiles[row].size())) {
-        selected.resize(4, nullptr);
-        return selected;
-    }
+    result.w.x = VAL_X(col + offsets.w.x) ? col + offsets.w.x : -1;
+    result.w.y = VAL_Y(row + offsets.w.y) ? row + offsets.w.y : -1;
     
-    int row_offset = (row % 2 == 0) ? -1 : 0;
+    result.nw.x = VAL_X(col + offsets.nw.x) ? col + offsets.nw.x : -1;
+    result.nw.y = VAL_Y(row + offsets.nw.y) ? row + offsets.nw.y : -1;
     
-    int target_col = col + row_offset;
-    int target_row = row - 1;
-    if (target_row >= 0) {
-        if (target_col >= 0 && target_col < static_cast<int>(tiles[target_row].size())) {
-            selected.push_back(&tiles[target_row][target_col]);
-        } else {
-            selected.push_back(nullptr);
-        }
-        target_col++;
-        if (target_col >= 0 && target_col < static_cast<int>(tiles[target_row].size())) {
-            selected.push_back(&tiles[target_row][target_col]);
-        } else {
-            selected.push_back(nullptr);
-        }
-    } else {
-        selected.push_back(nullptr);
-        selected.push_back(nullptr);
-    }
-    
-    target_col = col + row_offset;
-    target_row = row + 1;
-    if (target_row < static_cast<int>(tiles.size())) {
-        if (target_col >= 0 && target_col < static_cast<int>(tiles[target_row].size())) {
-            selected.push_back(&tiles[target_row][target_col]);
-        } else {
-            selected.push_back(nullptr);
-        }
-        target_col++;
-        if (target_col >= 0 && target_col < static_cast<int>(tiles[target_row].size())) {
-            selected.push_back(&tiles[target_row][target_col]);
-        } else {
-            selected.push_back(nullptr);
-        }
-    } else {
-        selected.push_back(nullptr);
-        selected.push_back(nullptr);
-    }
-    
-    return selected;
-}
-
-std::vector<MapTile*> MapTiler::coordsToNearTiles (int x, int y) {
-    std::vector<std::vector<MapTile>> &tiles = m_model->getTilesRef();
-    auto indices = coordsToIndices(x, y, tiles);
-    int row = std::get<0>(indices);
-    int col = std::get<1>(indices);
-    
-    if (row == -1 || col == -1) {
-        std::vector<MapTile*> selected;
-        selected.resize(4, nullptr);
-        return selected;
-    }
-    
-    return tileIdxToNearTiles(row, col);
-}
-
-std::vector<MapTile*> MapTiler::tileIdxToDiagonalTiles (int row, int col) {
-    std::vector<std::vector<MapTile>> &tiles = m_model->getTilesRef();
-    std::vector<MapTile*> selected;
-    
-    if (row < 0 || col < 0 || row >= static_cast<int>(tiles.size()) || col >= static_cast<int>(tiles[row].size())) {
-        selected.resize(4, nullptr);
-        return selected;
-    }
-    
-    int target_col = col - 1;
-    if (target_col >= 0 && target_col < static_cast<int>(tiles[row].size())) {
-        selected.push_back(&tiles[row][target_col]);
-    } else {
-        selected.push_back(nullptr);
-    }
-    
-    target_col = col + 1;
-    if (target_col >= 0 && target_col < static_cast<int>(tiles[row].size())) {
-        selected.push_back(&tiles[row][target_col]);
-    } else {
-        selected.push_back(nullptr);
-    }
-    
-    if (row >= 2) {
-        int target_row = row - 2;
-        if (col >= 0 && col < static_cast<int>(tiles[target_row].size())) {
-            selected.push_back(&tiles[target_row][col]);
-        } else {
-            selected.push_back(nullptr);
-        }
-    } else {
-        selected.push_back(nullptr);
-    }
-    
-    if (row < static_cast<int>(tiles.size()) - 2) {
-        int target_row = row + 2;
-        if (col >= 0 && col < static_cast<int>(tiles[target_row].size())) {
-            selected.push_back(&tiles[target_row][col]);
-        } else {
-            selected.push_back(nullptr);
-        }
-    } else {
-        selected.push_back(nullptr);
-    }
-    
-    return selected;
-}
-
-std::vector<MapTile*> MapTiler::coordsToDiagonalTiles (int x, int y) {
-    std::vector<std::vector<MapTile>> &tiles = m_model->getTilesRef();
-    auto indices = coordsToIndices(x, y, tiles);
-    int row = std::get<0>(indices);
-    int col = std::get<1>(indices);
-    
-    if (row == -1 || col == -1) {
-        std::vector<MapTile*> selected;
-        selected.resize(4, nullptr);
-        return selected;
-    }
-    
-    return tileIdxToDiagonalTiles(row, col);
+    return result;
 }
 
 //================================================================================================================================

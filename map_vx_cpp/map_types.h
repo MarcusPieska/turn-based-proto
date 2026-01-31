@@ -38,8 +38,22 @@ typedef struct Deltas {
     int16_t right;
     int16_t bottom;
     int16_t left;
+
     Deltas () : top(0), right(0), bottom(0), left(0) {}
 } Deltas;
+
+typedef struct NearTiles {
+    Point n;
+    Point ne;
+    Point e;
+    Point se;
+    Point s;
+    Point sw;
+    Point w;
+    Point nw;
+
+    NearTiles () : n(-1, -1), ne(-1, -1), e(-1, -1), se(-1, -1), s(-1, -1), sw(-1, -1), w(-1, -1), nw(-1, -1) {}
+} NearTiles;
 
 #endif // MAP_TYPES_H
 

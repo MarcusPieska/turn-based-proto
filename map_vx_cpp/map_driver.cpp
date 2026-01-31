@@ -33,7 +33,7 @@ int main () {
     const char* img_path_map_height = "/home/w/Projects/rts-proto-map/first-test/cont001_hm.png";
     SDL_Surface* img_surface_terrain = load_image (img_path_map_terrain);
     SDL_Surface* img_surface_height = load_image (img_path_map_height);
-    float height_factor = 1.0f;
+    float height_factor = 1.00f;
     int t_width = 100;
     int t_height = 50;
     int w_width = 1600;
@@ -63,14 +63,14 @@ int main () {
         return 1;
     }
     
-    view.render_opt_pre (img_surface_height, height_factor);
+    view.preRenderSetup (img_surface_height, height_factor);
     //view.testTileClickDetection ();
     //model.validateCornerElevations ();
     //return 0;
     while (view.isRunning ()) {
         view.handleEvents ();
         view.update ();
-        view.render_opt ();
+        view.renderOpt ();
         SDL_Delay (16);
     }
     

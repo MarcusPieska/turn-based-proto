@@ -202,7 +202,7 @@ SDL_Texture* morph_tile (SDL_Renderer* rend, SDL_Texture* src_tex, size src_size
     adjust_pts_to_bottom(new_top, new_right, new_bottom, new_left, dst_size.height);
     new_h = dst_size.height;
     dst_tex = SDL_CreateTexture(rend, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, dst_size.width, dst_size.height);
-    SDL_SetTextureBlendMode(dst_tex, SDL_BLENDMODE_BLEND);
+    SDL_SetTextureBlendMode(dst_tex, SDL_BLENDMODE_BLEND); // SDL_BLENDMODE_BLEND or SDL_BLENDMODE_NONE
 
     void* src_pixels;
     void* dst_pixels;

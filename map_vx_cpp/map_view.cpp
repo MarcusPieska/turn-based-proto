@@ -10,9 +10,10 @@
 #include <tuple>
 #include <cmath>
 #include <climits>
+#include <cstdlib>
+#include <cstring>
 
 #include "map_tiler.h"
-#include "dat15_io.h"
 #include "col_morph.h"
 #include "hlp_canvas/map_mini.h"
 #include "map_types.h"
@@ -29,10 +30,10 @@
 #define ADJ_CY_BOTTOM(t) ((t.bottom.y - m_cy + t.deltas.bottom) * m_zoom_level / 100)
 #define ADJ_CY_LEFT(t) ((t.left.y - m_cy + t.deltas.left) * m_zoom_level / 100)
 
-static inline int32_t get_zy_top (const MapTile& t) { return t.top.y + t.deltas.top; }
-static inline int32_t get_zy_right (const MapTile& t) { return t.right.y + t.deltas.right; }
-static inline int32_t get_zy_bottom (const MapTile& t) { return t.bottom.y + t.deltas.bottom; }
-static inline int32_t get_zy_left (const MapTile& t) { return t.left.y + t.deltas.left; }
+static inline int32_t get_zy_top (const MapModelTile& t, const MapViewTile& v) { return t.top.y + v.deltas.top; }
+static inline int32_t get_zy_right (const MapModelTile& t, const MapViewTile& v) { return t.right.y + v.deltas.right; }
+static inline int32_t get_zy_bottom (const MapModelTile& t, const MapViewTile& v) { return t.bottom.y + v.deltas.bottom; }
+static inline int32_t get_zy_left (const MapModelTile& t, const MapViewTile& v) { return t.left.y + v.deltas.left; }
 
 //================================================================================================================================
 //=> - MapView public methods -
@@ -56,10 +57,18 @@ MapView::MapView (int wnd_w, int wnd_h, int map_w, int map_h, int tile_w, int ti
     m_scroll_add (0),
     m_clicked_tile (nullptr),
     m_zoom_level (ZOOM_DEFAULT),
-    m_tex_read (nullptr),
+    m_tex_read_ocean (nullptr),
+    m_tex_read_desert (nullptr),
+    m_tex_read_plains (nullptr),
+    m_tex_read_grassland (nullptr),
+    m_tex_read_tundra (nullptr),
     m_tile_text_w (tile_w + 1),
     m_tile_text_h (tile_h + 1),
-    m_mini (nullptr) {
+    m_mini (nullptr),
+    m_terrain_map (nullptr),
+    m_view_tiles (nullptr),
+    m_num_rows (0),
+    m_num_cols (0) {
 }
 
 MapView::~MapView () {
@@ -85,9 +94,17 @@ bool MapView::initialize () {
         return false;
     }
     m_running = true;
-    const char* texture_path = "/home/w/Projects/img-content/texture-grassland3/colors-grassland3_palette_texture_blurred.dat15";
-    m_tex_read = new Dat15Reader(texture_path, m_tile_text_w, m_tile_text_h, m_rend);
+    m_tex_read_ocean = new Dat15Reader("tile_ocean.dat15", m_tile_text_w, m_tile_text_h, m_rend);
+    m_tex_read_desert = new Dat15Reader("tile_desert.dat15", m_tile_text_w, m_tile_text_h, m_rend);
+    m_tex_read_plains = new Dat15Reader("tile_plains.dat15", m_tile_text_w, m_tile_text_h, m_rend);
+    m_tex_read_grassland = new Dat15Reader("tile_grassland.dat15", m_tile_text_w, m_tile_text_h, m_rend);
+    m_tex_read_tundra = new Dat15Reader("tile_tundra.dat15", m_tile_text_w, m_tile_text_h, m_rend);
     const char* mini_img_path = "/home/w/Projects/rts-proto-map/first-test/cont001.png";
+    SDL_Surface* loaded_surface = IMG_Load(mini_img_path);
+    if (loaded_surface) {
+        m_terrain_map = SDL_ConvertSurfaceFormat(loaded_surface, SDL_PIXELFORMAT_RGBA32, 0);
+        SDL_FreeSurface(loaded_surface);
+    }
     Size mini_size(200, 200);
     Size canvas_size(m_wnd_w, m_wnd_h);
     Size map_size(400, 400);
@@ -144,10 +161,22 @@ static float getHeightFromPixel (SDL_Surface* surface, int col, int row) {
     return gray;
 }
 
-void MapView::render_opt_pre (SDL_Surface* img_surface_h, float factor) {
+void MapView::preRenderSetup (SDL_Surface* img_surface_h, float factor) {
     m_factor = factor;
     int num_rows = m_model->getWidth ();
     int num_cols = m_model->getHeight ();
+    m_num_rows = num_rows;
+    m_num_cols = num_cols;
+    
+    m_view_tiles = (MapViewTile**)malloc(num_rows * sizeof(MapViewTile*));
+    MapViewTile* data = (MapViewTile*)malloc(num_rows * num_cols * sizeof(MapViewTile));
+    for (int i = 0; i < num_rows; i++) {
+        m_view_tiles[i] = data + i * num_cols;
+        for (int j = 0; j < num_cols; j++) {
+            m_view_tiles[i][j] = MapViewTile();
+        }
+    }
+    
     int** z_values = new int*[num_rows];
     for (int row_idx = 0; row_idx < num_rows; row_idx++) {
         z_values[row_idx] = new int[num_cols];
@@ -157,18 +186,105 @@ void MapView::render_opt_pre (SDL_Surface* img_surface_h, float factor) {
         }
     }   
     m_model->setTileElevations(z_values);
+    
+    MapModelTile** model_tiles = m_model->getTiles();
+    
+    std::map<std::pair<int32_t, int32_t>, std::pair<float, int>> corner_z_sums;
+    for (int row_idx = 0; row_idx < num_rows; row_idx++) {
+        for (int col_idx = 0; col_idx < num_cols; col_idx++) {
+            const MapModelTile& t = model_tiles[row_idx][col_idx];
+            int32_t z = z_values[row_idx][col_idx];
+            corner_z_sums[std::make_pair(t.top.x, t.top.y)].first += z;
+            corner_z_sums[std::make_pair(t.top.x, t.top.y)].second += 1;
+            corner_z_sums[std::make_pair(t.right.x, t.right.y)].first += z;
+            corner_z_sums[std::make_pair(t.right.x, t.right.y)].second += 1;
+            corner_z_sums[std::make_pair(t.bottom.x, t.bottom.y)].first += z;
+            corner_z_sums[std::make_pair(t.bottom.x, t.bottom.y)].second += 1;
+            corner_z_sums[std::make_pair(t.left.x, t.left.y)].first += z;
+            corner_z_sums[std::make_pair(t.left.x, t.left.y)].second += 1;
+        }
+    }
+    
+    std::map<std::pair<int32_t, int32_t>, float> corner_elevations;
+    for (auto& pair : corner_z_sums) {
+        if (pair.second.second > 0) {
+            corner_elevations[pair.first] = pair.second.first / pair.second.second;
+        }
+    }
+    
+    SDL_LockSurface(m_terrain_map);
+    Uint8* pixels = (Uint8*)m_terrain_map->pixels;
+    int pitch = m_terrain_map->pitch;
+    
+    for (int row_idx = 0; row_idx < num_rows; row_idx++) {
+        for (int col_idx = 0; col_idx < num_cols; col_idx++) {
+            MapModelTile& t = model_tiles[row_idx][col_idx];
+            MapViewTile& v = m_view_tiles[row_idx][col_idx];
+            
+            auto it_top = corner_elevations.find(std::make_pair(t.top.x, t.top.y));
+            if (it_top != corner_elevations.end()) {
+                v.deltas.top = static_cast<int16_t>(-it_top->second);
+            }
+            auto it_right = corner_elevations.find(std::make_pair(t.right.x, t.right.y));
+            if (it_right != corner_elevations.end()) {
+                v.deltas.right = static_cast<int16_t>(-it_right->second);
+            }
+            auto it_bottom = corner_elevations.find(std::make_pair(t.bottom.x, t.bottom.y));
+            if (it_bottom != corner_elevations.end()) {
+                v.deltas.bottom = static_cast<int16_t>(-it_bottom->second);
+            }
+            auto it_left = corner_elevations.find(std::make_pair(t.left.x, t.left.y));
+            if (it_left != corner_elevations.end()) {
+                v.deltas.left = static_cast<int16_t>(-it_left->second);
+            }
+            
+            int32_t y0 = t.top.y + v.deltas.top;
+            int32_t y1 = t.right.y + v.deltas.right;
+            int32_t y2 = t.bottom.y + v.deltas.bottom;
+            int32_t y3 = t.left.y + v.deltas.left;
+            v.lowest = std::min({y0, y1, y2, y3});
+            v.highest = std::max({y0, y1, y2, y3});
+            
+            int img_y = row_idx;
+            Uint8* pixel = pixels + img_y * pitch + col_idx * 4;
+            Uint8 r = pixel[0];
+            switch (r) {
+                case 32:
+                    v.tex_read = m_tex_read_ocean;
+                    break;
+                case 121:
+                    v.tex_read = m_tex_read_grassland;
+                    break;
+                case 222:
+                    v.tex_read = m_tex_read_plains;
+                    break;
+                case 244:
+                    v.tex_read = m_tex_read_desert;
+                    break;
+                case 248:
+                    v.tex_read = m_tex_read_tundra;
+                    break;
+                default:
+                    v.tex_read = m_tex_read_grassland;
+                    break;
+            }
+        }
+    }
+    
+    SDL_UnlockSurface(m_terrain_map);
+    
     for (int row_idx = 0; row_idx < num_rows; row_idx++) {
         delete[] z_values[row_idx];
     }
     delete[] z_values;
 }
 
-void MapView::render_opt () {
+void MapView::renderOpt () {
     SDL_SetRenderDrawColor (m_rend, U8_MAX, U8_MAX, U8_MAX, U8_MAX);
     SDL_RenderClear (m_rend);
     SDL_SetRenderDrawColor (m_rend, 0, 0, 0, U8_MAX);
     SDL_SetRenderDrawBlendMode(m_rend, SDL_BLENDMODE_BLEND);
-    std::vector<std::vector<MapTile>>& tiles = m_model->getTilesRef ();
+    MapModelTile** model_tiles = m_model->getTiles();
     int visible_h = m_wnd_h * 100 / m_zoom_level + HEIGHT_COLOR_MAX * m_factor;
     int visible_w = m_wnd_w * 100 / m_zoom_level;
     int y_min = std::max(0, m_cy - 3 * m_tile_h / 2 - int(HEIGHT_COLOR_MAX * m_factor));
@@ -177,64 +293,68 @@ void MapView::render_opt () {
     int min_col = (m_cx) / m_tile_w - 2;
     int max_col = (m_cx + visible_w) / m_tile_w;
     min_col = min_col < 0 ? 0 : min_col;
-    max_col = max_col >= tiles[0].size() ? tiles[0].size() - 1 : max_col;
+    max_col = max_col >= m_num_cols ? m_num_cols - 1 : max_col;
 
     int min_row = y_min / (m_tile_h/2);
     int max_row = y_max / (m_tile_h/2);
     min_row = min_row < 0 ? 0 : min_row;
-    max_row = max_row >= tiles.size() ? tiles.size() - 1 : max_row;
+    max_row = max_row >= m_num_rows ? m_num_rows - 1 : max_row;
 
-    int in_w = 0, in_h = 0;
-    int out_w = 0, out_h = 0;
-    Uint32 format;
-    int access;
-
-    int tex_w = m_tex_read->get_tile_w ();
-    int tex_h = m_tex_read->get_tile_h ();
+    int tex_w = m_tex_read_grassland->get_tile_w ();
+    int tex_h = m_tex_read_grassland->get_tile_h ();
     int half_w = tex_w / 2;
     int half_h = tex_h / 2;
     int new_h = 0;
     tile_pts pts = {{half_w, 0}, {tex_w, half_h}, {half_w, tex_h}, {0, half_h}};
     size src_size = {tex_w, tex_h};
-    for (int row_idx = min_row; row_idx <= max_row && row_idx < tiles.size(); row_idx++) {
-        for (int col_idx = min_col; col_idx <= max_col && col_idx < tiles[row_idx].size(); col_idx++) {
-            const MapTile& t = tiles[row_idx][col_idx];
-            deltas d = { t.deltas.top, t.deltas.right, t.deltas.bottom, t.deltas.left };
-            SDL_Texture* dst_tex = morph_tile(m_rend, m_tex_read->get_item_rgba(row_idx, col_idx), src_size, 4, pts, d, new_h);
-            SDL_Rect dst_rect = {ADJ_CX(t.left.x), ADJ_CY(t.lowest), tex_w, new_h};
+    pt top, right, bottom, left;
+    for (int row_idx = min_row; row_idx <= max_row && row_idx < m_num_rows; row_idx++) {
+        for (int col_idx = min_col; col_idx <= max_col && col_idx < m_num_cols; col_idx++) {
+            const MapModelTile& t = model_tiles[row_idx][col_idx];
+            const MapViewTile& v = m_view_tiles[row_idx][col_idx];
+            deltas d = { v.deltas.top, v.deltas.right, v.deltas.bottom, v.deltas.left };
+            SDL_Texture* dst_tex = morph_tile(m_rend, v.tex_read->get_item_rgba(row_idx, col_idx), src_size, 4, pts, d, new_h);
+            SDL_Rect dst_rect = {ADJ_CX(t.left.x), ADJ_CY(v.lowest), tex_w, new_h};
             SDL_RenderCopy(m_rend, dst_tex, nullptr, &dst_rect);
             SDL_DestroyTexture(dst_tex);
-            SDL_RenderDrawLine (m_rend, ADJ_CX(t.left.x), ADJ_CY_LEFT(t), ADJ_CX(t.top.x), ADJ_CY_TOP(t));
-            SDL_RenderDrawLine (m_rend, ADJ_CX(t.bottom.x), ADJ_CY_BOTTOM(t), ADJ_CX(t.left.x), ADJ_CY_LEFT(t));
-        }
-    }
-    if (min_row == 0) {
-        for (int col_idx = 0; col_idx < tiles[0].size(); col_idx++) {
-            const MapTile& t1 = tiles[0][col_idx];
-            SDL_RenderDrawLine (m_rend, ADJ_CX(t1.top.x), ADJ_CY_TOP(t1), ADJ_CX(t1.right.x), ADJ_CY_RIGHT(t1));
-        }
-    }
-    if (max_row == tiles.size() - 1) {
-        for (int col_idx = 0; col_idx < tiles[tiles.size() - 1].size(); col_idx++) {
-            const MapTile& t2 = tiles[tiles.size() - 1][col_idx];
-            SDL_RenderDrawLine (m_rend, ADJ_CX(t2.right.x), ADJ_CY_RIGHT(t2), ADJ_CX(t2.bottom.x), ADJ_CY_BOTTOM(t2));
-        }
-    }
-    if (max_col == tiles[0].size() - 1) {
-        for (int row_idx = min_row; row_idx <= max_row && row_idx < tiles.size(); row_idx++) {
-            if (max_col < tiles[row_idx].size() && row_idx > 0 && row_idx < static_cast<int>(tiles.size()) - 1) {
-                const MapTile& t = tiles[row_idx][max_col];
-                SDL_RenderDrawLine (m_rend, ADJ_CX(t.right.x), ADJ_CY_RIGHT(t), ADJ_CX(t.bottom.x), ADJ_CY_BOTTOM(t));
-            }
+            top = {t.top.x, t.top.y + v.deltas.top};
+            right = {t.right.x, t.right.y + v.deltas.right};
+            bottom = {t.bottom.x, t.bottom.y + v.deltas.bottom};
+            left = {t.left.x, t.left.y + v.deltas.left};
+            SDL_RenderDrawLine (m_rend, ADJ_CX(left.x), ADJ_CY(left.y), ADJ_CX(top.x), ADJ_CY(top.y));
+            SDL_RenderDrawLine (m_rend, ADJ_CX(left.x), ADJ_CY(left.y), ADJ_CX(bottom.x), ADJ_CY(bottom.y));
+            SDL_RenderDrawLine (m_rend, ADJ_CX(right.x), ADJ_CY(right.y), ADJ_CX(bottom.x), ADJ_CY(bottom.y));
+            SDL_RenderDrawLine (m_rend, ADJ_CX(right.x), ADJ_CY(right.y), ADJ_CX(top.x), ADJ_CY(top.y));
         }
     }
     if (m_clicked_tile != nullptr) {
         __highlightCurrentTile(m_clicked_tile, 0, U8_MAX, 0);
-        for (const auto &near_tile : m_near_tiles) {
-            __highlightTile(near_tile, 0, U8_MAX, 0);
+        MapModelTile** tiles = m_model->getTiles();
+        
+        if (m_near_tiles.n.x >= 0 && m_near_tiles.n.y >= 0) {
+            __highlightTile(&tiles[m_near_tiles.n.y][m_near_tiles.n.x], 0, U8_MAX, 0);
         }
-        for (const auto &diagonal_tile : m_diagonal_tiles) {
-            __highlightTile(diagonal_tile, 0, static_cast<Uint8>(U8_MAX / 2), 0);
+        if (m_near_tiles.s.x >= 0 && m_near_tiles.s.y >= 0) {
+            __highlightTile(&tiles[m_near_tiles.s.y][m_near_tiles.s.x], 0, U8_MAX, 0);
+        }
+        if (m_near_tiles.e.x >= 0 && m_near_tiles.e.y >= 0) {
+            __highlightTile(&tiles[m_near_tiles.e.y][m_near_tiles.e.x], 0, U8_MAX, 0);
+        }
+        if (m_near_tiles.w.x >= 0 && m_near_tiles.w.y >= 0) {
+            __highlightTile(&tiles[m_near_tiles.w.y][m_near_tiles.w.x], 0, U8_MAX, 0);
+        }
+        
+        if (m_near_tiles.ne.x >= 0 && m_near_tiles.ne.y >= 0) {
+            __highlightTile(&tiles[m_near_tiles.ne.y][m_near_tiles.ne.x], 0, static_cast<Uint8>(U8_MAX / 2), 0);
+        }
+        if (m_near_tiles.se.x >= 0 && m_near_tiles.se.y >= 0) {
+            __highlightTile(&tiles[m_near_tiles.se.y][m_near_tiles.se.x], 0, static_cast<Uint8>(U8_MAX / 2), 0);
+        }
+        if (m_near_tiles.sw.x >= 0 && m_near_tiles.sw.y >= 0) {
+            __highlightTile(&tiles[m_near_tiles.sw.y][m_near_tiles.sw.x], 0, static_cast<Uint8>(U8_MAX / 2), 0);
+        }
+        if (m_near_tiles.nw.x >= 0 && m_near_tiles.nw.y >= 0) {
+            __highlightTile(&tiles[m_near_tiles.nw.y][m_near_tiles.nw.x], 0, static_cast<Uint8>(U8_MAX / 2), 0);
         }
     }
     if (m_mini) {
@@ -267,13 +387,40 @@ bool MapView::isRunning () const {
 }
 
 void MapView::cleanup () {
+    if (m_view_tiles) {
+        if (m_num_rows > 0) {
+            free(m_view_tiles[0]);
+        }
+        free(m_view_tiles);
+        m_view_tiles = nullptr;
+    }
+    if (m_terrain_map != nullptr) {
+        SDL_FreeSurface(m_terrain_map);
+        m_terrain_map = nullptr;
+    }
     if (m_mini != nullptr) {
         delete m_mini;
         m_mini = nullptr;
     }
-    if (m_tex_read != nullptr) {
-        delete m_tex_read;
-        m_tex_read = nullptr;
+    if (m_tex_read_ocean != nullptr) {
+        delete m_tex_read_ocean;
+        m_tex_read_ocean = nullptr;
+    }
+    if (m_tex_read_desert != nullptr) {
+        delete m_tex_read_desert;
+        m_tex_read_desert = nullptr;
+    }
+    if (m_tex_read_plains != nullptr) {
+        delete m_tex_read_plains;
+        m_tex_read_plains = nullptr;
+    }
+    if (m_tex_read_grassland != nullptr) {
+        delete m_tex_read_grassland;
+        m_tex_read_grassland = nullptr;
+    }
+    if (m_tex_read_tundra != nullptr) {
+        delete m_tex_read_tundra;
+        m_tex_read_tundra = nullptr;
     }
     if (m_rend != nullptr) {
         SDL_DestroyRenderer (m_rend);
@@ -356,11 +503,12 @@ void MapView::__handleEventsKeyUp (SDL_Event &e) {
     }
 }
 
-bool MapView::__inBounds (int x, int y, const MapTile &t) {
-    int zy_top = t.top.y + t.deltas.top;
-    int zy_right = t.right.y + t.deltas.right;
-    int zy_bottom = t.bottom.y + t.deltas.bottom;
-    int zy_left = t.left.y + t.deltas.left;
+bool MapView::__inBounds (int x, int y, const MapModelTile &t, int row, int col) {
+    const MapViewTile& v = m_view_tiles[row][col];
+    int zy_top = t.top.y + v.deltas.top;
+    int zy_right = t.right.y + v.deltas.right;
+    int zy_bottom = t.bottom.y + v.deltas.bottom;
+    int zy_left = t.left.y + v.deltas.left;
     int cross1 = (t.right.x - t.top.x) * (y - zy_top) - (zy_right - zy_top) * (x - t.top.x);
     int cross2 = (t.bottom.x - t.right.x) * (y - zy_right) - (zy_bottom - zy_right) * (x - t.right.x);
     int cross3 = (t.left.x - t.bottom.x) * (y - zy_bottom) - (zy_left - zy_bottom) * (x - t.bottom.x);
@@ -368,44 +516,41 @@ bool MapView::__inBounds (int x, int y, const MapTile &t) {
     return (cross1 > 0 && cross2 > 0 && cross3 > 0 && cross4 > 0) || (cross1 < 0 && cross2 < 0 && cross3 < 0 && cross4 < 0);
 }
 
-std::tuple<MapTile*, size_t, size_t> MapView::__searchTileFromPt (int map_x, int map_y, size_t start_row, size_t start_col) {
-    std::vector<std::vector<MapTile>>& tiles = m_model->getTilesRef();
-    if (tiles.size() == 0 || tiles[0].size() == 0) {
-        return std::make_tuple(nullptr, 0, 0);
-    }
-    std::queue<std::pair<size_t, size_t>> search_queue;
-    std::set<std::pair<size_t, size_t>> visited;
-    if (start_row < tiles.size() && start_col < tiles[start_row].size()) {
+std::tuple<MapModelTile*, int, int> MapView::__searchTileFromPt (int map_x, int map_y, int start_row, int start_col) {
+    MapModelTile** tiles = m_model->getTiles();
+    std::queue<std::pair<int, int>> search_queue;
+    std::set<std::pair<int, int>> visited;
+    if (start_row >= 0 && start_row < m_num_rows && start_col >= 0 && start_col < m_num_cols) {
         search_queue.push(std::make_pair(start_row, start_col));
         visited.insert(std::make_pair(start_row, start_col));
     }
-    int iter_budget = HEIGHT_COLOR_MAX * m_factor / m_tile_h * 4 + 1; // A tile could be of beacuse of the elevation factor
+    int iter_budget = HEIGHT_COLOR_MAX * m_factor / m_tile_h * 4 + 1;
     iter_budget *= iter_budget;
     while (!search_queue.empty() && iter_budget-- > 0) {
-        size_t row = search_queue.front().first;
-        size_t col = search_queue.front().second;
+        int row = search_queue.front().first;
+        int col = search_queue.front().second;
         search_queue.pop();
-        if (row >= tiles.size() || col >= tiles[row].size()) {
+        if (row < 0 || row >= m_num_rows || col < 0 || col >= m_num_cols) {
             continue;
         }
-        const MapTile& tile = tiles[row][col];
-        if (__inBounds(map_x, map_y, tile)) {
+        const MapModelTile& tile = tiles[row][col];
+        if (__inBounds(map_x, map_y, tile, row, col)) {
             return std::make_tuple(&tiles[row][col], row, col);
         }
         int offsets[][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
         for (int i = 0; i < 8; i++) {
-            size_t new_row = row + offsets[i][0];
-            size_t new_col = col + offsets[i][1];
-            std::pair<size_t, size_t> key = std::make_pair(new_row, new_col);
-            if (visited.find(key) == visited.end() && 
-                new_row < tiles.size() && 
-                new_col < tiles[new_row].size()) {
-                search_queue.push(key);
-                visited.insert(key);
+            int new_row = row + offsets[i][0];
+            int new_col = col + offsets[i][1];
+            if (new_row >= 0 && new_row < m_num_rows && new_col >= 0 && new_col < m_num_cols) {
+                std::pair<int, int> key = std::make_pair(new_row, new_col);
+                if (visited.find(key) == visited.end()) {
+                    search_queue.push(key);
+                    visited.insert(key);
+                }
             }
         }
     }
-    return std::make_tuple(nullptr, 0, 0);
+    return std::make_tuple(nullptr, -1, -1);
 }
 
 void MapView::__handleMouseClick (SDL_Event &e) {
@@ -428,24 +573,21 @@ void MapView::__handleMouseClick (SDL_Event &e) {
             }
             int map_x = (screen_x * 100 / m_zoom_level) + m_cx;
             int map_y = (screen_y * 100 / m_zoom_level) + m_cy;
-            std::vector<std::vector<MapTile>>& tiles = m_model->getTilesRef();
-            if (tiles.size() > 0 && tiles[0].size() > 0) {
-                int first_row_y = tiles[0][0].top.y;
-                int first_col_x = tiles[0][0].left.x;
-                int half_h = m_tile_h / 2;
-                size_t start_row = std::max(0, (map_y - first_row_y) / half_h);
-                size_t start_col = std::max(0, (map_x - first_col_x) / m_tile_w);
-                
-                auto result = __searchTileFromPt(map_x, map_y, start_row, start_col);
-                MapTile *tile = std::get<0>(result);
-                size_t row = std::get<1>(result);
-                size_t col = std::get<2>(result);
-                if (tile != nullptr) {
-                    __clearHighlights ();
-                    m_clicked_tile = tile;
-                    m_near_tiles = m_model->m_tiler->tileIdxToNearTiles(row, col);
-                    m_diagonal_tiles = m_model->m_tiler->tileIdxToDiagonalTiles(row, col);
-                }
+            MapModelTile** tiles = m_model->getTiles();
+            int first_row_y = tiles[0][0].top.y;
+            int first_col_x = tiles[0][0].left.x;
+            int half_h = m_tile_h / 2;
+            int start_row = std::max(0, (map_y - first_row_y) / half_h);
+            int start_col = std::max(0, (map_x - first_col_x) / m_tile_w);
+            
+            auto result = __searchTileFromPt(map_x, map_y, start_row, start_col);
+            MapModelTile *tile = std::get<0>(result);
+            int row = std::get<1>(result);
+            int col = std::get<2>(result);
+            if (tile != nullptr) {
+                __clearHighlights ();
+                m_clicked_tile = tile;
+                m_near_tiles = m_model->m_tiler->getNearTiles(row, col);
             }
             break;
         }
@@ -453,12 +595,21 @@ void MapView::__handleMouseClick (SDL_Event &e) {
     }
 }
 
-void MapView::__highlightTile (MapTile *tile, Uint8 r, Uint8 g, Uint8 b) {
-    if (tile == nullptr) {
-        return;
+void MapView::__highlightTile (MapModelTile *tile, Uint8 r, Uint8 g, Uint8 b) {
+    MapModelTile** model_tiles = m_model->getTiles();
+    int tile_row = -1, tile_col = -1;
+    for (int i = 0; i < m_num_rows && tile_row == -1; i++) {
+        for (int j = 0; j < m_num_cols; j++) {
+            if (&model_tiles[i][j] == tile) {
+                tile_row = i;
+                tile_col = j;
+                break;
+            }
+        }
     }
+    const MapViewTile& v = m_view_tiles[tile_row][tile_col];
     int center_x = (tile->top.x + tile->right.x + tile->bottom.x + tile->left.x) / 4;
-    int center_y = (get_zy_top(*tile) + get_zy_right(*tile) + get_zy_bottom(*tile) + get_zy_left(*tile)) / 4;
+    int center_y = (get_zy_top(*tile, v) + get_zy_right(*tile, v) + get_zy_bottom(*tile, v) + get_zy_left(*tile, v)) / 4;
     SDL_SetRenderDrawColor (m_rend, r, g, b, U8_MAX);
     int dot_size = 5;
     for (int dy = -dot_size/2; dy <= dot_size/2; dy++) {
@@ -470,17 +621,26 @@ void MapView::__highlightTile (MapTile *tile, Uint8 r, Uint8 g, Uint8 b) {
     }
 }
 
-void MapView::__highlightCurrentTile (MapTile *tile, Uint8 r, Uint8 g, Uint8 b) {
-    if (tile == nullptr) {
-        return;
+void MapView::__highlightCurrentTile (MapModelTile *tile, Uint8 r, Uint8 g, Uint8 b) {
+    MapModelTile** model_tiles = m_model->getTiles();
+    int tile_row = -1, tile_col = -1;
+    for (int i = 0; i < m_num_rows && tile_row == -1; i++) {
+        for (int j = 0; j < m_num_cols; j++) {
+            if (&model_tiles[i][j] == tile) {
+                tile_row = i;
+                tile_col = j;
+                break;
+            }
+        }
     }
+    const MapViewTile& v = m_view_tiles[tile_row][tile_col];
     SDL_SetRenderDrawColor (m_rend, r, g, b, U8_MAX);
     int thickness = 3;
     for (int offset = -thickness/2; offset <= thickness/2; offset++) {
         int x1 = ADJ_CX(tile->top.x);
-        int y1 = ADJ_CY(get_zy_top(*tile));
+        int y1 = ADJ_CY(get_zy_top(*tile, v));
         int x2 = ADJ_CX(tile->right.x);
-        int y2 = ADJ_CY(get_zy_right(*tile));
+        int y2 = ADJ_CY(get_zy_right(*tile, v));
         int dx = x2 - x1;
         int dy = y2 - y1;
         float len = sqrtf(dx*dx + dy*dy);
@@ -490,9 +650,9 @@ void MapView::__highlightCurrentTile (MapTile *tile, Uint8 r, Uint8 g, Uint8 b) 
             SDL_RenderDrawLine(m_rend, x1 + perp_x, y1 + perp_y, x2 + perp_x, y2 + perp_y);
         }
         x1 = ADJ_CX(tile->right.x);
-        y1 = ADJ_CY(get_zy_right(*tile));
+        y1 = ADJ_CY(get_zy_right(*tile, v));
         x2 = ADJ_CX(tile->bottom.x);
-        y2 = ADJ_CY(get_zy_bottom(*tile));
+        y2 = ADJ_CY(get_zy_bottom(*tile, v));
         dx = x2 - x1;
         dy = y2 - y1;
         len = sqrtf(dx*dx + dy*dy);
@@ -502,9 +662,9 @@ void MapView::__highlightCurrentTile (MapTile *tile, Uint8 r, Uint8 g, Uint8 b) 
             SDL_RenderDrawLine(m_rend, x1 + perp_x, y1 + perp_y, x2 + perp_x, y2 + perp_y);
         }
         x1 = ADJ_CX(tile->bottom.x);
-        y1 = ADJ_CY(get_zy_bottom(*tile));
+        y1 = ADJ_CY(get_zy_bottom(*tile, v));
         x2 = ADJ_CX(tile->left.x);
-        y2 = ADJ_CY(get_zy_left(*tile));
+        y2 = ADJ_CY(get_zy_left(*tile, v));
         dx = x2 - x1;
         dy = y2 - y1;
         len = sqrtf(dx*dx + dy*dy);
@@ -514,9 +674,9 @@ void MapView::__highlightCurrentTile (MapTile *tile, Uint8 r, Uint8 g, Uint8 b) 
             SDL_RenderDrawLine(m_rend, x1 + perp_x, y1 + perp_y, x2 + perp_x, y2 + perp_y);
         }
         x1 = ADJ_CX(tile->left.x);
-        y1 = ADJ_CY(get_zy_left(*tile));
+        y1 = ADJ_CY(get_zy_left(*tile, v));
         x2 = ADJ_CX(tile->top.x);
-        y2 = ADJ_CY(get_zy_top(*tile));
+        y2 = ADJ_CY(get_zy_top(*tile, v));
         dx = x2 - x1;
         dy = y2 - y1;
         len = sqrtf(dx*dx + dy*dy);
@@ -530,14 +690,10 @@ void MapView::__highlightCurrentTile (MapTile *tile, Uint8 r, Uint8 g, Uint8 b) 
 
 void MapView::__clearHighlights () {
     m_clicked_tile = nullptr;
-    m_near_tiles.clear ();
-    m_diagonal_tiles.clear ();
+    m_near_tiles = NearTiles();
 }
 
-void MapView::__centerOnTile (MapTile *tile) {
-    if (tile == nullptr) {
-        return;
-    }
+void MapView::__centerOnTile (MapModelTile *tile) {
     int center_x = (tile->top.x + tile->right.x + tile->bottom.x + tile->left.x) / 4;
     int center_y = (tile->top.y + tile->right.y + tile->bottom.y + tile->left.y) / 4;
     m_cx = center_x - m_wnd_w / 2;
@@ -563,14 +719,14 @@ void MapView::__toggleFullscreen () {
 
 void MapView::__flipVertically () {
     return; // Short circuit for now
-    std::vector<std::vector<MapTile>>& tiles = m_model->getTilesRef();
+    MapModelTile** tiles = m_model->getTiles();
     int min_y = INT_MAX;
     int max_y = INT_MIN;
      
     // Find the min and max y values
-    for (size_t row = 0; row < tiles.size(); row++) {
-        for (size_t col = 0; col < tiles[row].size(); col++) {
-            MapTile& t = tiles[row][col];
+    for (int row = 0; row < m_num_rows; row++) {
+        for (int col = 0; col < m_num_cols; col++) {
+            MapModelTile& t = tiles[row][col];
             if (t.top.y < min_y) min_y = t.top.y;
             if (t.top.y > max_y) max_y = t.top.y;
             if (t.right.y < min_y) min_y = t.right.y;
@@ -585,9 +741,9 @@ void MapView::__flipVertically () {
     int center_y = (min_y + max_y) / 2;
     
     // Flip all y coordinates around the center
-    for (size_t row = 0; row < tiles.size(); row++) {
-        for (size_t col = 0; col < tiles[row].size(); col++) {
-            MapTile& t = tiles[row][col];
+    for (int row = 0; row < m_num_rows; row++) {
+        for (int col = 0; col < m_num_cols; col++) {
+            MapModelTile& t = tiles[row][col];
             t.top.y = center_y - (t.top.y - center_y);
             t.right.y = center_y - (t.right.y - center_y);
             t.bottom.y = center_y - (t.bottom.y - center_y);
@@ -611,16 +767,17 @@ void MapView::__handleWndLimits () {
     m_cy = m_cy > max_cy ? max_cy : m_cy;
 }
 
+
 //================================================================================================================================
 //=> - MapView test functions -
 //================================================================================================================================
 
 int MapView::testTileClickDetection () {
-    std::vector<std::vector<MapTile>>& tiles = m_model->getTilesRef();
+    MapModelTile** tiles = m_model->getTiles();
     int tests_run = 0, failures = 0;
-    for (size_t row = 0; row < tiles.size(); row++) {
-        for (size_t col = 0; col < tiles[row].size(); col++) {
-            MapTile& expected_tile = tiles[row][col];
+    for (int row = 0; row < m_num_rows; row++) {
+        for (int col = 0; col < m_num_cols; col++) {
+            MapModelTile& expected_tile = tiles[row][col];
             int center_x = (expected_tile.left.x + expected_tile.right.x) / 2;
             int center_y = (expected_tile.top.y + expected_tile.bottom.y) / 2;
             int screen_x = (center_x - m_cx) * m_zoom_level / 100;

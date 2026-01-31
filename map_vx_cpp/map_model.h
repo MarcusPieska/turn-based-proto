@@ -9,7 +9,7 @@
 #include <string>
 #include <map>
 
-#include "map_tile.h"
+#include "map_model_tile.h"
 
 class MapTiler;
 
@@ -25,13 +25,13 @@ public:
     MapModel ();
     ~MapModel ();
     
-    void setTiles (const std::vector<std::vector<MapTile>> &tiles);
+    void allocateTiles (int num_rows, int num_cols);
     void setLines (const std::vector<Line> &lines);
     void setTileElevations (int **z_values);
     int getWidth () const;
     int getHeight () const;
-    std::vector<std::vector<MapTile>> getTiles () const;
-    std::vector<std::vector<MapTile>> &getTilesRef ();
+    MapModelTile** getTiles ();
+    MapModelTile* getTile (int row, int col);
     std::vector<Line> getLines () const;
     void saveTilesToFile (const std::string &filename) const;
     void validateCornerElevations () const;
@@ -39,7 +39,9 @@ public:
     MapTiler *m_tiler;
 
 private:
-    std::vector<std::vector<MapTile>> m_tiles;
+    MapModelTile** m_tiles;
+    int m_num_rows;
+    int m_num_cols;
     std::vector<Line> m_lines;
 };
 
