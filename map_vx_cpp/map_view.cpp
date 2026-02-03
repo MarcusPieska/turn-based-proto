@@ -15,6 +15,8 @@
 
 #include "map_tiler.h"
 #include "col_morph.h"
+#include "dat15_io.h"
+#include "dat31_io.h"
 #include "hlp_canvas/map_mini.h"
 #include "map_types.h"
 
@@ -29,6 +31,17 @@
 #define ADJ_CY_RIGHT(t) ((t.right.y - m_cy + t.deltas.right) * m_zoom_level / 100)
 #define ADJ_CY_BOTTOM(t) ((t.bottom.y - m_cy + t.deltas.bottom) * m_zoom_level / 100)
 #define ADJ_CY_LEFT(t) ((t.left.y - m_cy + t.deltas.left) * m_zoom_level / 100)
+
+const Uint8 COLOR_OCEAN[] = {32, 26, 120};
+const Uint8 COLOR_GRASSLAND[] = {121, 189, 36};
+const Uint8 COLOR_PLAINS[] = {222, 199, 89};
+const Uint8 COLOR_DESERT[] = {244, 203, 141};
+const Uint8 COLOR_TUNDRA[] = {248, 251, 252};
+const Uint8 COLOR_MOUNTAIN[] = {100, 50, 25};
+
+static bool colorsMatch(const Uint8* color1, const Uint8* color2) {
+    return (color1[0] == color2[0] && color1[1] == color2[1] && color1[2] == color2[2]);
+}
 
 static inline int32_t get_zy_top (const MapModelTile& t, const MapViewTile& v) { return t.top.y + v.deltas.top; }
 static inline int32_t get_zy_right (const MapModelTile& t, const MapViewTile& v) { return t.right.y + v.deltas.right; }
@@ -51,6 +64,8 @@ MapView::MapView (int wnd_w, int wnd_h, int map_w, int map_h, int tile_w, int ti
     m_map_h (map_h),
     m_tile_w (tile_w),
     m_tile_h (tile_h),
+    m_mtn_decal_w (200),
+    m_mtn_decal_h (200),
     m_running (false),
     m_cx (0),
     m_cy (0),
@@ -99,6 +114,7 @@ bool MapView::initialize () {
     m_tex_read_plains = new Dat15Reader("tile_plains.dat15", m_tile_text_w, m_tile_text_h, m_rend);
     m_tex_read_grassland = new Dat15Reader("tile_grassland.dat15", m_tile_text_w, m_tile_text_h, m_rend);
     m_tex_read_tundra = new Dat15Reader("tile_tundra.dat15", m_tile_text_w, m_tile_text_h, m_rend);
+    m_decal_read_mtn = new Dat31Reader("decal_mtn2.dat31", m_mtn_decal_w, m_mtn_decal_h, m_rend);
     const char* mini_img_path = "/home/w/Projects/rts-proto-map/first-test/cont001.png";
     SDL_Surface* loaded_surface = IMG_Load(mini_img_path);
     if (loaded_surface) {
@@ -248,25 +264,26 @@ void MapView::preRenderSetup (SDL_Surface* img_surface_h, float factor) {
             int img_y = row_idx;
             Uint8* pixel = pixels + img_y * pitch + col_idx * 4;
             Uint8 r = pixel[0];
-            switch (r) {
-                case 32:
-                    v.tex_read = m_tex_read_ocean;
-                    break;
-                case 121:
-                    v.tex_read = m_tex_read_grassland;
-                    break;
-                case 222:
-                    v.tex_read = m_tex_read_plains;
-                    break;
-                case 244:
-                    v.tex_read = m_tex_read_desert;
-                    break;
-                case 248:
-                    v.tex_read = m_tex_read_tundra;
-                    break;
-                default:
-                    v.tex_read = m_tex_read_grassland;
-                    break;
+            Uint8 g = pixel[1];
+            Uint8 b = pixel[2];
+            const Uint8 pixel_color[] = {r, g, b};
+            
+            v.flags.mountain = 0;
+            if (colorsMatch(pixel_color, COLOR_MOUNTAIN)) {
+                v.flags.mountain = 1;
+                v.tex_read = m_tex_read_grassland;
+            } else if (colorsMatch(pixel_color, COLOR_OCEAN)) {
+                v.tex_read = m_tex_read_ocean;
+            } else if (colorsMatch(pixel_color, COLOR_GRASSLAND)) {
+                v.tex_read = m_tex_read_grassland;
+            } else if (colorsMatch(pixel_color, COLOR_PLAINS)) {
+                v.tex_read = m_tex_read_plains;
+            } else if (colorsMatch(pixel_color, COLOR_DESERT)) {
+                v.tex_read = m_tex_read_desert;
+            } else if (colorsMatch(pixel_color, COLOR_TUNDRA)) {
+                v.tex_read = m_tex_read_tundra;
+            } else {
+                v.tex_read = m_tex_read_grassland;
             }
         }
     }
@@ -327,6 +344,23 @@ void MapView::renderOpt () {
             SDL_RenderDrawLine (m_rend, ADJ_CX(right.x), ADJ_CY(right.y), ADJ_CX(top.x), ADJ_CY(top.y));
         }
     }
+    
+    int decal_size = 100;
+    int decal_offset = (decal_size - m_tile_w) / 2;
+    for (int row_idx = min_row; row_idx <= max_row && row_idx < m_num_rows; row_idx++) {
+        for (int col_idx = min_col; col_idx <= max_col && col_idx < m_num_cols; col_idx++) {
+            const MapViewTile& v = m_view_tiles[row_idx][col_idx];
+            const MapModelTile& t = model_tiles[row_idx][col_idx];
+            if (v.flags.mountain) {
+                int left_x = ADJ_CX((t.left.x - decal_offset));
+                int top_y = ADJ_CY((t.bottom.y - t.z - decal_size));
+                SDL_Rect decal_rect = {left_x, top_y, decal_size, decal_size};
+                SDL_Texture* decal_tex = m_decal_read_mtn->get_item_rgba(row_idx + col_idx * 10);
+                SDL_RenderCopy(m_rend, decal_tex, nullptr, &decal_rect);
+            }
+        }
+    }
+    
     if (m_clicked_tile != nullptr) {
         __highlightCurrentTile(m_clicked_tile, 0, U8_MAX, 0);
         MapModelTile** tiles = m_model->getTiles();

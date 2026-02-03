@@ -33,7 +33,6 @@ public:
     MapModelTile** getTiles ();
     MapModelTile* getTile (int row, int col);
     std::vector<Line> getLines () const;
-    void saveTilesToFile (const std::string &filename) const;
     void validateCornerElevations () const;
     
     MapTiler *m_tiler;

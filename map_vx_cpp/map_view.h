@@ -14,6 +14,7 @@
 #include "map_view_tile.h"
 
 class Dat15Reader;
+class Dat31Reader;
 class MapMini;
 
 //================================================================================================================================
@@ -57,6 +58,7 @@ private:
     int m_wnd_w_orig, m_wnd_h_orig;
     int m_map_w, m_map_h;
     int m_tile_w, m_tile_h;
+    int m_mtn_decal_w, m_mtn_decal_h;
     float m_factor;
     int m_cx, m_cy;
     int m_scroll_add;
@@ -69,6 +71,7 @@ private:
     Dat15Reader* m_tex_read_plains;
     Dat15Reader* m_tex_read_grassland;
     Dat15Reader* m_tex_read_tundra;
+    Dat31Reader* m_decal_read_mtn;
     int m_tile_text_w;
     int m_tile_text_h;
     MapMini* m_mini;

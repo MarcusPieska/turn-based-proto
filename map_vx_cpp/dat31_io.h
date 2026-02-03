@@ -2,8 +2,8 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef DAT15_IO_H
-#define DAT15_IO_H
+#ifndef DAT31_IO_H
+#define DAT31_IO_H
 
 #include <cstdio>
 #include <vector>
@@ -13,25 +13,22 @@
 //=> - Read class -
 //================================================================================================================================
 
-class Dat15Reader {
+class Dat31Reader {
     public:
-        Dat15Reader (const char* path, int tile_w, int tile_h, SDL_Renderer* renderer);
-        ~Dat15Reader ();
-        SDL_Texture* get_item_rgba (int row, int col);
+        Dat31Reader (const char* path, int tile_w, int tile_h, SDL_Renderer* renderer);
+        ~Dat31Reader ();
+        SDL_Texture* get_item_rgba (int index);
         int get_tile_w () const { return m_tile_w; }
         int get_tile_h () const { return m_tile_h; }
     private:
         std::vector<SDL_Texture*> m_textures;
-        int m_num_cols;
-        int m_num_rows;
         int m_tile_w;
         int m_tile_h;
         SDL_Renderer* m_renderer;
 };
      
 #endif
-
+ 
 //================================================================================================================================
 //=> - End -
 //================================================================================================================================
-

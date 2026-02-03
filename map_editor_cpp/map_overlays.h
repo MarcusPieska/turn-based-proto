@@ -31,6 +31,8 @@ void wander_up (int* dist_in, size img_size, pt start, pt* end_out);
 void wander_down (int* dist_in, size img_size, pt start, int min_limit, pt* end_out);
 bool wander_up_radius (int* dist_in, size img_size, pt start, int radius, pt* end_out);
 bool wander_down_radius (int* dist_in, size img_size, pt start, int radius, int min_limit, pt* end_out);
+void depth_overlay (u8* img, size img_size, int channels, u8* target_color, int* dist_out);
+void min_depth_map (int* dist_in, size img_size, int min_val, u8* mask_out, int* count_out);
 
 #ifdef __cplusplus
 }

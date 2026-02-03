@@ -4,6 +4,7 @@ g++ -std=c++11 \
     hlp_canvas/map_mini.cpp \
     col_morph.cpp \
     dat15_io.cpp \
+    dat31_io.cpp \
     map_driver.cpp \
     map_model.cpp \
     map_tiler.cpp \

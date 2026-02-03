@@ -1,0 +1,4 @@
+#!/bin/bash
+g++ -c sliding_matrix_driver.cpp -o sliding_matrix_driver.o -std=c++11 || exit 1
+g++ -o sliding_matrix_test sliding_matrix_driver.o -lSDL2 -lSDL2_image || exit 1
+rm -f sliding_matrix_driver.o

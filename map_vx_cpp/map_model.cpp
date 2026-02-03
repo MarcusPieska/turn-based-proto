@@ -104,20 +104,6 @@ std::vector<Line> MapModel::getLines () const {
     return m_lines;
 }
 
-void MapModel::saveTilesToFile (const std::string &filename) const {
-    std::ofstream file (filename);
-    for (int i = 0; i < m_num_rows; i++) {
-        for (int j = 0; j < m_num_cols; j++) {
-            const MapModelTile& tile = m_tiles[i][j];
-            file << tile.top.x << "," << tile.top.y << ";";
-            file << tile.right.x << "," << tile.right.y << ";";
-            file << tile.bottom.x << "," << tile.bottom.y << ";";
-            file << tile.left.x << "," << tile.left.y << "\n";
-        }
-    }
-    file.close();
-}
-
 void MapModel::validateCornerElevations () const {
     std::map<std::pair<int32_t, int32_t>, std::vector<int32_t>> corner_elevations;
     for (int row_idx = 0; row_idx < m_num_rows; row_idx++) {

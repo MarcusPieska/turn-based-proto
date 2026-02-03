@@ -306,6 +306,79 @@ bool wander_down_radius (int* dist_in, size img_size, pt start, int radius, int 
     return (best_x != sx || best_y != sy);
 }
 
+void depth_overlay (u8* img, size img_size, int channels, u8* target_color, int* dist_out) {
+    for (int i = 0; i < img_size.width * img_size.height; i++) {
+        dist_out[i] = -1;
+    }
+    std::queue<std::pair<int, int> > q;
+    int dx[] = {-1, -1, -1, 0, 0, 1, 1, 1};
+    int dy[] = {-1, 0, 1, -1, 1, -1, 0, 1};
+    for (int y = 0; y < img_size.height; y++) {
+        for (int x = 0; x < img_size.width; x++) {
+            int pos = (y * img_size.width + x) * channels;
+            if (!colors_match(&img[pos], target_color, channels)) {
+                dist_out[y * img_size.width + x] = 0;
+            } else {
+                bool is_boundary = false;
+                for (int d = 0; d < 8; d++) {
+                    int nx = x + dx[d];
+                    int ny = y + dy[d];
+                    if (nx >= 0 && nx < img_size.width && ny >= 0 && ny < img_size.height) {
+                        int npos = (ny * img_size.width + nx) * channels;
+                        if (!colors_match(&img[npos], target_color, channels)) {
+                            is_boundary = true;
+                            break;
+                        }
+                    } else {
+                        is_boundary = true;
+                        break;
+                    }
+                }
+                if (is_boundary) {
+                    dist_out[y * img_size.width + x] = 1;
+                    q.push(std::make_pair(x, y));
+                }
+            }
+        }
+    }
+    while (!q.empty()) {
+        int x = q.front().first;
+        int y = q.front().second;
+        q.pop();
+        int curr_dist = dist_out[y * img_size.width + x];
+        for (int d = 0; d < 8; d++) {
+            int nx = x + dx[d];
+            int ny = y + dy[d];
+            if (nx >= 0 && nx < img_size.width && ny >= 0 && ny < img_size.height) {
+                int npos = (ny * img_size.width + nx) * channels;
+                int nidx = ny * img_size.width + nx;
+                if (colors_match(&img[npos], target_color, channels) && dist_out[nidx] == -1) {
+                    dist_out[nidx] = curr_dist + 1;
+                    q.push(std::make_pair(nx, ny));
+                }
+            }
+        }
+    }
+    for (int i = 0; i < img_size.width * img_size.height; i++) {
+        if (dist_out[i] == -1) {
+            dist_out[i] = 0;
+        }
+    }
+}
+
+void min_depth_map (int* dist_in, size img_size, int min_val, u8* mask_out, int* count_out) {
+    int count = 0;
+    for (int i = 0; i < img_size.width * img_size.height; i++) {
+        if (dist_in[i] >= min_val) {
+            mask_out[i] = 255;
+            count++;
+        } else {
+            mask_out[i] = 0;
+        }
+    }
+    *count_out = count;
+}
+
 }
 
 //================================================================================================================================

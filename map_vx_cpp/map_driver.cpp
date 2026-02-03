@@ -55,9 +55,7 @@ int main () {
 
     MapModel model;
     MapTiler tiler (m_width, m_height, t_width, t_height, tile_cols, tile_rows, &model, added_top_margin);
-    
-    model.saveTilesToFile ("tiles.dat");
-    
+
     MapView view (w_width, w_height, m_width, m_height, t_width, t_height, &model);
     if (!view.initialize ()) {
         return 1;

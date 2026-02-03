@@ -4,59 +4,24 @@
 
 #include <cstring>
 #include <iostream>
-#include "dat15_io.h"
-
-static SDL_Surface* create_surface_from_rgba(const unsigned char* rgba_data, int w, int h) {
-    SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32, SDL_PIXELFORMAT_ARGB8888);
-    SDL_LockSurface(surface);
-    unsigned char* dst = (unsigned char*)surface->pixels;
-    for (int y = 0; y < h; y++) {
-        for (int x = 0; x < w; x++) {
-            int src_idx = (y * w + x) * 4;
-            int dst_idx = y * surface->pitch + x * 4;
-            dst[dst_idx + 0] = rgba_data[src_idx + 2];
-            dst[dst_idx + 1] = rgba_data[src_idx + 1];
-            dst[dst_idx + 2] = rgba_data[src_idx + 0];
-            dst[dst_idx + 3] = rgba_data[src_idx + 3];
-        }
-    }
-    SDL_UnlockSurface(surface);
-    SDL_SetSurfaceBlendMode(surface, SDL_BLENDMODE_BLEND);
-    return surface;
-}
+#include "dat31_io.h"
 
 //================================================================================================================================
 //=> - Header struct -
 //================================================================================================================================
 
-struct dat15_top_hdr {
-    unsigned int num_rows : 16;
-    unsigned int num_cols : 16;
-};
-
-struct dat15_hdr {
+struct dat31_hdr {
     unsigned int has_next : 1;
-    unsigned int size : 15;
+    unsigned int size : 31;
 };
-
-//================================================================================================================================
-//=> - Helper functions -
-//================================================================================================================================
-
-static void write_header (FILE* f, int size, bool has_next) {
-    dat15_hdr hdr;
-    hdr.size = size;
-    hdr.has_next = has_next ? 1 : 0;
-    fwrite(&hdr, sizeof(hdr), 1, f);
-}
 
 //================================================================================================================================
 //=> - Read class -
 //================================================================================================================================
 
-Dat15Reader::Dat15Reader (const char* path, int tile_w, int tile_h, SDL_Renderer* renderer) : 
+Dat31Reader::Dat31Reader (const char* path, int tile_w, int tile_h, SDL_Renderer* renderer) : 
     m_tile_w(tile_w), 
-    m_tile_h(tile_h), 
+    m_tile_h(tile_h),
     m_renderer(renderer) {
         
     FILE* m_ptr = fopen (path, "rb");
@@ -64,19 +29,11 @@ Dat15Reader::Dat15Reader (const char* path, int tile_w, int tile_h, SDL_Renderer
         std::cerr << "*** Error: Failed to open file: " << path << std::endl;
         return;
     }
-    dat15_top_hdr top_hdr;
-    if (fread (&top_hdr, sizeof (top_hdr), 1, m_ptr) != 1) {
-        std::cerr << "*** Error: Failed to read top header: " << path << std::endl;
-        return;
-    }
-    m_num_rows = top_hdr.num_rows;
-    m_num_cols = top_hdr.num_cols;
-    std::cout << "*** Dat15Reader: " << m_num_rows << " x " << m_num_cols << std::endl;
     
     int rgba_size = tile_w * tile_h * 4;
     
     while (1) {
-        dat15_hdr hdr;
+        dat31_hdr hdr;
         if (fread (&hdr, sizeof (hdr), 1, m_ptr) != 1) {
             break;
         }
@@ -137,7 +94,7 @@ Dat15Reader::Dat15Reader (const char* path, int tile_w, int tile_h, SDL_Renderer
     fclose(m_ptr);
 }
 
-Dat15Reader::~Dat15Reader () {
+Dat31Reader::~Dat31Reader () {
     for (SDL_Texture* tex : m_textures) {
         if (tex != nullptr) {
             SDL_DestroyTexture(tex);
@@ -145,10 +102,14 @@ Dat15Reader::~Dat15Reader () {
     }
 }
 
-SDL_Texture* Dat15Reader::get_item_rgba (int row, int col) {
-    row = row % m_num_rows;
-    col = col % m_num_cols;
-    int idx = row * m_num_cols + col;
+SDL_Texture* Dat31Reader::get_item_rgba (int index) {
+    if (m_textures.empty()) {
+        return nullptr;
+    }
+    int idx = index % (int)m_textures.size();
+    if (idx < 0) {
+        idx += m_textures.size();
+    }
     return m_textures[idx];
 }
 

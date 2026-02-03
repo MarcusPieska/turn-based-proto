@@ -149,7 +149,7 @@ class HeightDataDisplay:
         m.cnv_sel.delete("all")
         m.cnv_sel.create_image(0, 0, image=m.noise_photo, anchor=tk.NW)
         x, y = m.click_x, m.click_y
-        xr, yr = m.tile_width // 2, m.tile_height // 2
+        xr, yr = m.curr_tile_width // 2, m.curr_tile_height // 2
         m.cnv_sel.create_oval(x - xr, y - yr, x + xr, y + yr, outline="red", width=2)
 
     def __show_selection_page (m):
@@ -177,6 +177,7 @@ class HeightDataDisplay:
         m.btn_back.pack(side=tk.LEFT, padx=5, pady=5)
         m.btn_save_tile.config(state=tk.DISABLED)
         m.btn_save_tile.pack(side=tk.LEFT, padx=5, pady=5)
+        m.size_frame.pack(side=tk.LEFT, padx=5, pady=5)
         m.__insert_cropped_noise()
 
     def __on_r_change (m, value):
@@ -185,6 +186,30 @@ class HeightDataDisplay:
     def __on_delect_new_noise (m):
         m.curr_page = "selection"
         m.__show_selection_page()
+
+    def __change_tile_size (m, delta):
+        new_size = m.curr_tile_width + delta
+        new_size = max(50, min(500, new_size))
+        if new_size != m.curr_tile_width:
+            m.curr_tile_width = new_size
+            m.curr_tile_height = new_size
+            m.gen.tile_width = new_size
+            m.gen.tile_height = new_size
+            cx, cy = m.gen.tile_width / 2.0, m.gen.tile_height / 2.0
+            hw, hh = m.gen.tile_width / 2.0, m.gen.tile_height / 2.0
+            m.gen.outer_r = min(hw, hh)
+            m.gen.inner_r = m.gen.outer_r * 0.5
+            m.gen.alpha = np.zeros((m.gen.tile_height, m.gen.tile_width), dtype=np.uint8)
+            for y in range(m.gen.tile_height):
+                for x in range(m.gen.tile_width):
+                    dx = abs(x - cx) / hw
+                    dy = abs(y - cy) / hh
+                    dist_to_boundary = 1.0 - (dx + dy)
+                    if dist_to_boundary > 0:
+                        m.gen.alpha[y, x] = 255
+            m.size_label.config(text=f"Size: {m.curr_tile_width}x{m.curr_tile_height}")
+            m.cnv_tile.config(width=m.curr_tile_width * 4, height=m.curr_tile_height * 4)
+            m.__insert_cropped_noise()
 
     def __insert_cropped_noise (m):
         radius = m.r_slider_val.get()
@@ -255,6 +280,8 @@ class HeightDataDisplay:
         m.tile_photo = None
         m.r_horisontal, m.r_vertical = tile_width // 2, tile_height // 2
         m.curr_page = None
+        m.curr_tile_width = tile_width
+        m.curr_tile_height = tile_height
         
         m.btn_frame = tk.Frame(m.root)
         m.btn_frame.pack(side=tk.TOP, fill=tk.X)
@@ -281,10 +308,21 @@ class HeightDataDisplay:
         m.btn_back.pack(side=tk.LEFT, padx=5, pady=5)
         m.btn_save_tile = tk.Button(m.btn_frame, text="Save", command=m.__save_tile_height_data, state=tk.DISABLED)
         m.btn_save_tile.pack(side=tk.LEFT, padx=5, pady=5)
-        m.slider = tk.Scale(m.btn_frame, from_=0, to=100, orient=tk.HORIZONTAL, variable=m.r_slider_val)
+        m.slider = tk.Scale(m.btn_frame, from_=10, to=100, orient=tk.HORIZONTAL, variable=m.r_slider_val)
         m.slider.configure(command=m.__on_r_change)
+        m.size_frame = tk.Frame(m.btn_frame)
+        m.btn_size_dec100 = tk.Button(m.size_frame, text="<<", command=lambda: m.__change_tile_size(-100))
+        m.btn_size_dec10 = tk.Button(m.size_frame, text="<", command=lambda: m.__change_tile_size(-10))
+        m.btn_size_inc10 = tk.Button(m.size_frame, text=">", command=lambda: m.__change_tile_size(10))
+        m.btn_size_inc100 = tk.Button(m.size_frame, text=">>", command=lambda: m.__change_tile_size(100))
+        m.size_label = tk.Label(m.size_frame, text=f"Size: {m.curr_tile_width}x{m.curr_tile_height}")
+        m.btn_size_dec100.pack(side=tk.LEFT, padx=2)
+        m.btn_size_dec10.pack(side=tk.LEFT, padx=2)
+        m.btn_size_inc10.pack(side=tk.LEFT, padx=2)
+        m.btn_size_inc100.pack(side=tk.LEFT, padx=2)
+        m.size_label.pack(side=tk.LEFT, padx=5)
         m.cnv_tile = tk.Canvas(m.root, width=m.tile_width * 4, height=m.tile_height * 4, bg="darkgray")
-        m.widgets.extend([m.btn_back, m.btn_save_tile, m.slider, m.cnv_tile])
+        m.widgets.extend([m.btn_back, m.btn_save_tile, m.slider, m.size_frame, m.cnv_tile])
 
         if not os.path.exists(noise_image_path):
             m.curr_page = "noise_gen"
