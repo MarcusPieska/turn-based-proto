@@ -17,8 +17,8 @@
 #include "col_morph.h"
 #include "dat15_io.h"
 #include "dat31_io.h"
-#include "hlp_canvas/map_mini.h"
 #include "map_types.h"
+#include "hlp_canvas/map_mini.h"
 
 #include "map_view.h"
 
@@ -83,7 +83,11 @@ MapView::MapView (int wnd_w, int wnd_h, int map_w, int map_h, int tile_w, int ti
     m_terrain_map (nullptr),
     m_view_tiles (nullptr),
     m_num_rows (0),
-    m_num_cols (0) {
+    m_num_cols (0),
+    m_prev_min_row (-1),
+    m_prev_min_col (-1),
+    m_prev_max_row (-1),
+    m_prev_max_col (-1) {
 }
 
 MapView::~MapView () {
@@ -302,20 +306,14 @@ void MapView::renderOpt () {
     SDL_SetRenderDrawColor (m_rend, 0, 0, 0, U8_MAX);
     SDL_SetRenderDrawBlendMode(m_rend, SDL_BLENDMODE_BLEND);
     MapModelTile** model_tiles = m_model->getTiles();
-    int visible_h = m_wnd_h * 100 / m_zoom_level + HEIGHT_COLOR_MAX * m_factor;
-    int visible_w = m_wnd_w * 100 / m_zoom_level;
-    int y_min = std::max(0, m_cy - 3 * m_tile_h / 2 - int(HEIGHT_COLOR_MAX * m_factor));
-    int y_max = std::min(m_map_h, m_cy + visible_h + 3 * m_tile_h / 2);
-    
-    int min_col = (m_cx) / m_tile_w - 2;
-    int max_col = (m_cx + visible_w) / m_tile_w;
-    min_col = min_col < 0 ? 0 : min_col;
-    max_col = max_col >= m_num_cols ? m_num_cols - 1 : max_col;
+    VisMeta meta = __getVisibilityMeta();
 
-    int min_row = y_min / (m_tile_h/2);
-    int max_row = y_max / (m_tile_h/2);
-    min_row = min_row < 0 ? 0 : min_row;
-    max_row = max_row >= m_num_rows ? m_num_rows - 1 : max_row;
+
+    __clearOldTextures(meta);
+    m_prev_min_row = meta.min_row;
+    m_prev_min_col = meta.min_col;
+    m_prev_max_row = meta.max_row;
+    m_prev_max_col = meta.max_col;
 
     int tex_w = m_tex_read_grassland->get_tile_w ();
     int tex_h = m_tex_read_grassland->get_tile_h ();
@@ -325,15 +323,25 @@ void MapView::renderOpt () {
     tile_pts pts = {{half_w, 0}, {tex_w, half_h}, {half_w, tex_h}, {0, half_h}};
     size src_size = {tex_w, tex_h};
     pt top, right, bottom, left;
-    for (int row_idx = min_row; row_idx <= max_row && row_idx < m_num_rows; row_idx++) {
-        for (int col_idx = min_col; col_idx <= max_col && col_idx < m_num_cols; col_idx++) {
+    SDL_Texture* tex = nullptr;
+    for (int row_idx = meta.min_row; row_idx <= meta.max_row && row_idx < m_num_rows; row_idx++) {
+        for (int col_idx = meta.min_col; col_idx <= meta.max_col && col_idx < m_num_cols; col_idx++) {
             const MapModelTile& t = model_tiles[row_idx][col_idx];
             const MapViewTile& v = m_view_tiles[row_idx][col_idx];
             deltas d = { v.deltas.top, v.deltas.right, v.deltas.bottom, v.deltas.left };
-            SDL_Texture* dst_tex = morph_tile(m_rend, v.tex_read->get_item_rgba(row_idx, col_idx), src_size, 4, pts, d, new_h);
+            
+            if (v.tex == nullptr) {
+                tex = morph_tile(m_rend, v.tex_read->get_item_rgba(row_idx, col_idx), src_size, 4, pts, d, new_h);
+                m_view_tiles[row_idx][col_idx].tex = tex;
+                m_view_tiles[row_idx][col_idx].prev_morph_tile_h = new_h;
+            } else {
+                tex = v.tex;
+                new_h = v.prev_morph_tile_h;
+            }
+            
             SDL_Rect dst_rect = {ADJ_CX(t.left.x), ADJ_CY(v.lowest), tex_w, new_h};
-            SDL_RenderCopy(m_rend, dst_tex, nullptr, &dst_rect);
-            SDL_DestroyTexture(dst_tex);
+            SDL_RenderCopy(m_rend, tex, nullptr, &dst_rect);
+            //SDL_DestroyTexture(tex);
             top = {t.top.x, t.top.y + v.deltas.top};
             right = {t.right.x, t.right.y + v.deltas.right};
             bottom = {t.bottom.x, t.bottom.y + v.deltas.bottom};
@@ -347,8 +355,8 @@ void MapView::renderOpt () {
     
     int decal_size = 100;
     int decal_offset = (decal_size - m_tile_w) / 2;
-    for (int row_idx = min_row; row_idx <= max_row && row_idx < m_num_rows; row_idx++) {
-        for (int col_idx = min_col; col_idx <= max_col && col_idx < m_num_cols; col_idx++) {
+    for (int row_idx = meta.min_row; row_idx <= meta.max_row && row_idx < m_num_rows; row_idx++) {
+        for (int col_idx = meta.min_col; col_idx <= meta.max_col && col_idx < m_num_cols; col_idx++) {
             const MapViewTile& v = m_view_tiles[row_idx][col_idx];
             const MapModelTile& t = model_tiles[row_idx][col_idx];
             if (v.flags.mountain) {
@@ -470,6 +478,64 @@ void MapView::cleanup () {
 //================================================================================================================================
 //=> - MapView private methods -
 //================================================================================================================================
+
+void MapView::__clearOldTextures (const VisMeta &meta) {
+    // Check if previous bounds are initialized (first frame check)
+    if (m_prev_min_row < 0 || m_prev_max_row < 0 || 
+        m_prev_min_row > m_prev_max_row ||
+        m_prev_min_row >= m_num_rows || m_prev_max_row >= m_num_rows) {
+        return; // First frame or invalid previous bounds, nothing to clear
+    }
+    for (int row = m_prev_min_row; row < meta.min_row && row < m_num_rows; row++) {
+        for (int col = m_prev_min_col; col <= m_prev_max_col && col < m_num_cols; col++) {
+            if (m_view_tiles[row][col].tex != nullptr) {
+                SDL_DestroyTexture(m_view_tiles[row][col].tex);
+                m_view_tiles[row][col].tex = nullptr;
+            }
+        }
+    }
+    for (int row = meta.max_row + 1; row <= m_prev_max_row && row < m_num_rows; row++) {
+        for (int col = m_prev_min_col; col <= m_prev_max_col && col < m_num_cols; col++) {
+            if (m_view_tiles[row][col].tex != nullptr) {
+                SDL_DestroyTexture(m_view_tiles[row][col].tex);
+                m_view_tiles[row][col].tex = nullptr;
+            }
+        }
+    }
+    for (int col = m_prev_min_col; col < meta.min_col && col < m_num_cols; col++) {
+        for (int row = m_prev_min_row; row <= m_prev_max_row && row < m_num_rows; row++) {
+            if (m_view_tiles[row][col].tex != nullptr) {
+                SDL_DestroyTexture(m_view_tiles[row][col].tex);
+                m_view_tiles[row][col].tex = nullptr;
+            }
+        }
+    }
+    for (int col = meta.max_col + 1; col <= m_prev_max_col && col < m_num_cols; col++) {
+        for (int row = m_prev_min_row; row <= m_prev_max_row && row < m_num_rows; row++) {
+            if (m_view_tiles[row][col].tex != nullptr) {
+                SDL_DestroyTexture(m_view_tiles[row][col].tex);
+                m_view_tiles[row][col].tex = nullptr;
+            }
+        }
+    }
+}
+
+MapView::VisMeta MapView::__getVisibilityMeta () {
+    VisMeta meta;
+    meta.visible_h = m_wnd_h * 100 / m_zoom_level + HEIGHT_COLOR_MAX * m_factor;
+    meta.visible_w = m_wnd_w * 100 / m_zoom_level;
+    meta.y_min = std::max(0, m_cy - 3 * m_tile_h / 2 - int(HEIGHT_COLOR_MAX * m_factor));
+    meta.y_max = std::min(m_map_h, m_cy + meta.visible_h + 3 * m_tile_h / 2);
+    meta.min_col = (m_cx) / m_tile_w - 2;
+    meta.max_col = (m_cx + meta.visible_w) / m_tile_w;
+    meta.min_col = meta.min_col < 0 ? 0 : meta.min_col;
+    meta.max_col = meta.max_col >= m_num_cols ? m_num_cols - 1 : meta.max_col;
+    meta.min_row = meta.y_min / (m_tile_h/2);
+    meta.max_row = meta.y_max / (m_tile_h/2);
+    meta.min_row = meta.min_row < 0 ? 0 : meta.min_row;
+    meta.max_row = meta.max_row >= m_num_rows ? m_num_rows - 1 : meta.max_row;
+    return meta;
+}
 
 void MapView::__handleEventMouseMotion (SDL_Event &e) {
 }

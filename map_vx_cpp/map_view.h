@@ -36,6 +36,19 @@ public:
     int testTileClickDetection ();
 
 private:
+    typedef struct VisMeta {
+        int32_t visible_h;
+        int32_t visible_w;
+        int32_t y_min;
+        int32_t y_max;
+        int32_t min_col;
+        int32_t max_col;
+        int32_t min_row;
+        int32_t max_row;
+    } VisMeta;
+
+    VisMeta __getVisibilityMeta ();
+
     void __handleEventMouseMotion (SDL_Event &e);
     void __handleEventsKeyDown (SDL_Event &e);
     void __handleEventsKeyUp (SDL_Event &e);
@@ -47,6 +60,7 @@ private:
     void __toggleFullscreen ();
     void __flipVertically ();
     void __handleWndLimits ();
+    void __clearOldTextures (const VisMeta &meta);
     bool __inBounds (int x, int y, const MapModelTile &tile, int row, int col);
     std::tuple<MapModelTile*, int, int> __searchTileFromPt (int map_x, int map_y, int start_row, int start_col);
 
@@ -79,6 +93,12 @@ private:
     MapViewTile** m_view_tiles;
     int m_num_rows;
     int m_num_cols;
+
+    int m_prev_min_row;
+    int m_prev_min_col;
+    int m_prev_max_row;
+    int m_prev_max_col;
+    
     static const int SCROLL_SPEED = 10;
     static const int SCROLL_MAX = 100;
     static const int EDGE_SCROLL_MARGIN = 50;

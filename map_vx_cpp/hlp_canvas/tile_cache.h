@@ -16,6 +16,8 @@
 
 typedef struct VisibleTile {
     SDL_Texture* tex;
+    SDL_Rect dst_rect;
+
     VisibleTile ();
 } VisibleTile;
 
@@ -25,11 +27,16 @@ typedef struct VisibleTile {
 
 class TileCache : public SlidingMatrix<VisibleTile> {
 public:
+    TileCache ();
     TileCache (int rows, int cols, int row_limit, int col_lim, int left_col, int top_row);
+    void reconstructCache (int left_col, int top_row);
     void shiftWindow (int left_col, int top_row);
 
     SDL_Texture* getTexture (int row, int col);
     void setTexture (int row, int col, SDL_Texture* tex);
+
+    SDL_Rect getDstRect (int row, int col);
+    void setDstRect (int row, int col, SDL_Rect dst_rect);
     
 private:
     void __deallocRowHead ();

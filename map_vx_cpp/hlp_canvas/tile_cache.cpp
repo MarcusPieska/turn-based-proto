@@ -2,11 +2,29 @@
 //=> - Includes -
 //================================================================================================================================
 
+#include <iostream>
+
 #include "tile_cache.h"
+
+//================================================================================================================================
+//=> - VisibleTile implementation -
+//================================================================================================================================
+
+VisibleTile::VisibleTile () : tex(nullptr), dst_rect({0, 0, 0, 0}) {
+}
 
 //================================================================================================================================
 //=> - TileCache public methods -
 //================================================================================================================================
+
+TileCache::TileCache () :
+    m_leftCol(0),
+    m_topRow(0),
+    m_rows(0),
+    m_cols(0),
+    m_rowLimit(0),
+    m_colLim(0) {
+}
 
 TileCache::TileCache (int rows, int cols, int row_limit, int col_lim, int left_col, int top_row) :
     m_leftCol(left_col),
@@ -21,6 +39,23 @@ TileCache::TileCache (int rows, int cols, int row_limit, int col_lim, int left_c
     for (int c = 0; c < m_cols; c++) {
         addColumnTail();
     }
+}
+
+void TileCache::reconstructCache (int left_col, int top_row) {
+    std::cout << "---> " << m_data.size() << std::endl;
+    for (int r = 0; r < getRows(); r++) {
+        std::cout << m_data[r].size() << std::endl;
+        for (int c = 0; c < getCols(); c++) {
+            VisibleTile tile = get(r, c);
+            SDL_DestroyTexture(tile.tex);
+        }
+    }
+
+    left_col = left_col >= 0 ? left_col : 0;
+    m_leftCol = left_col < m_colLim ? left_col : m_colLim - 1;
+
+    top_row = top_row >= 0 ? top_row : 0;
+    m_topRow = top_row < m_rowLimit ? top_row : m_rowLimit - 1;
 }
 
 void TileCache::shiftWindow (int left_col, int top_row) {
@@ -85,7 +120,15 @@ SDL_Texture* TileCache::getTexture (int row, int col) {
 }
 
 void TileCache::setTexture (int row, int col, SDL_Texture* tex) {
-    get(row, col).tex = tex;
+    m_data[row][col].tex = tex;
+}
+
+SDL_Rect TileCache::getDstRect (int row, int col) {
+    return get(row, col).dst_rect;
+}
+
+void TileCache::setDstRect (int row, int col, SDL_Rect dst_rect) {
+    m_data[row][col].dst_rect = dst_rect;
 }
 
 //================================================================================================================================
