@@ -58,6 +58,7 @@ private:
     void __clearHighlights ();
     void __centerOnTile (MapModelTile *tile);
     void __toggleFullscreen ();
+    void __toggleGrid ();
     void __flipVertically ();
     void __handleWndLimits ();
     void __clearOldTextures (const VisMeta &meta);
@@ -68,6 +69,7 @@ private:
     SDL_Renderer *m_rend;
     MapModel *m_model;
     bool m_running;
+    bool m_draw_grid;
     int m_wnd_w, m_wnd_h;
     int m_wnd_w_orig, m_wnd_h_orig;
     int m_map_w, m_map_h;

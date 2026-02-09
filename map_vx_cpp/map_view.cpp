@@ -49,6 +49,17 @@ static inline int32_t get_zy_bottom (const MapModelTile& t, const MapViewTile& v
 static inline int32_t get_zy_left (const MapModelTile& t, const MapViewTile& v) { return t.left.y + v.deltas.left; }
 
 //================================================================================================================================
+//=> - Memory usage-
+//================================================================================================================================
+//
+// Command: ps -o rss= -p <pid>
+// Results over time: 
+//  - 07.02.2026: 208.504 MB
+//
+// Other commands not used:
+// grep VmPeak /proc/<PID>/status
+//
+//================================================================================================================================
 //=> - MapView public methods -
 //================================================================================================================================
 
@@ -67,6 +78,7 @@ MapView::MapView (int wnd_w, int wnd_h, int map_w, int map_h, int tile_w, int ti
     m_mtn_decal_w (200),
     m_mtn_decal_h (200),
     m_running (false),
+    m_draw_grid (true),
     m_cx (0),
     m_cy (0),
     m_scroll_add (0),
@@ -341,15 +353,16 @@ void MapView::renderOpt () {
             
             SDL_Rect dst_rect = {ADJ_CX(t.left.x), ADJ_CY(v.lowest), tex_w, new_h};
             SDL_RenderCopy(m_rend, tex, nullptr, &dst_rect);
-            //SDL_DestroyTexture(tex);
             top = {t.top.x, t.top.y + v.deltas.top};
             right = {t.right.x, t.right.y + v.deltas.right};
             bottom = {t.bottom.x, t.bottom.y + v.deltas.bottom};
             left = {t.left.x, t.left.y + v.deltas.left};
-            SDL_RenderDrawLine (m_rend, ADJ_CX(left.x), ADJ_CY(left.y), ADJ_CX(top.x), ADJ_CY(top.y));
-            SDL_RenderDrawLine (m_rend, ADJ_CX(left.x), ADJ_CY(left.y), ADJ_CX(bottom.x), ADJ_CY(bottom.y));
-            SDL_RenderDrawLine (m_rend, ADJ_CX(right.x), ADJ_CY(right.y), ADJ_CX(bottom.x), ADJ_CY(bottom.y));
-            SDL_RenderDrawLine (m_rend, ADJ_CX(right.x), ADJ_CY(right.y), ADJ_CX(top.x), ADJ_CY(top.y));
+            if (m_draw_grid) {
+                SDL_RenderDrawLine (m_rend, ADJ_CX(left.x), ADJ_CY(left.y), ADJ_CX(top.x), ADJ_CY(top.y));
+                SDL_RenderDrawLine (m_rend, ADJ_CX(left.x), ADJ_CY(left.y), ADJ_CX(bottom.x), ADJ_CY(bottom.y));
+                SDL_RenderDrawLine (m_rend, ADJ_CX(right.x), ADJ_CY(right.y), ADJ_CX(bottom.x), ADJ_CY(bottom.y));
+                SDL_RenderDrawLine (m_rend, ADJ_CX(right.x), ADJ_CY(right.y), ADJ_CX(top.x), ADJ_CY(top.y));
+            }
         }
     }
     
@@ -546,7 +559,10 @@ void MapView::__handleEventsKeyDown (SDL_Event &e) {
             __centerOnTile (m_clicked_tile);
             break;
         case SDLK_f:
-            __flipVertically ();
+            __toggleFullscreen ();
+            break;
+        case SDLK_g:
+            __toggleGrid ();
             break;
         case SDLK_PLUS:
         case SDLK_EQUALS:
@@ -817,6 +833,10 @@ void MapView::__toggleFullscreen () {
     }
 }
 
+void MapView::__toggleGrid () {
+    m_draw_grid = !m_draw_grid;
+}
+
 void MapView::__flipVertically () {
     return; // Short circuit for now
     MapModelTile** tiles = m_model->getTiles();
@@ -866,7 +886,6 @@ void MapView::__handleWndLimits () {
     m_cy = m_cy < 0 ? 0 : m_cy;
     m_cy = m_cy > max_cy ? max_cy : m_cy;
 }
-
 
 //================================================================================================================================
 //=> - MapView test functions -

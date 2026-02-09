@@ -3,6 +3,7 @@
 *.so
 *.dat15
 *.dat31
+*.png
 
 map_driver
 map_driver.exe
