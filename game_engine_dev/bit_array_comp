@@ -1,0 +1,5 @@
+#!/bin/bash
+g++ -c bit_array.cpp -o bit_array.o
+g++ -c bit_array_tester.cpp -o bit_array_tester.o
+g++ -o bit_array_tester bit_array.o bit_array_tester.o
+rm bit_array.o bit_array_tester.o

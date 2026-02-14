@@ -60,9 +60,9 @@ def get_line_pixels (x0, y0, x1, y1, ang0_deg, ang1_deg):
     return pixels
 
 def draw_road (cnv, pixels, outer_r=3, inner_r=2, outer_color="silver", inner_color="sandybrown", tag="line"):
-    for (x, y) in pixels:
-        cnv.create_oval(x - outer_r, y - outer_r, x + outer_r, y + outer_r, outline=outer_color, fill=outer_color, tags=tag)
     for (x, y) in pixels[1:-1]:
+        cnv.create_oval(x - outer_r, y - outer_r, x + outer_r, y + outer_r, outline=outer_color, fill=outer_color, tags=tag)
+    for (x, y) in pixels:
         cnv.create_oval(x - inner_r, y - inner_r, x + inner_r, y + inner_r, outline=inner_color, fill=inner_color, tags=tag)
 
 #================================================================================================================================#

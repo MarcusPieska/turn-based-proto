@@ -4,6 +4,8 @@
 *.dat15
 *.dat31
 *.png
+*.cl
+*.temp
 
 map_driver
 map_driver.exe

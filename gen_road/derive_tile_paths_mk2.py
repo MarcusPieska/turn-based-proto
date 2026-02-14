@@ -224,8 +224,8 @@ class TileCropper:
         for off in m.offsets:
             flat_offsets.extend([off] * count_per_offset)
         for i in range(len(flat_offsets)):
-            rand_xo = random.randint(-10, 10)
-            rand_yo = random.randint(-10, 10)
+            rand_xo = random.randint(-5, 5)
+            rand_yo = random.randint(-5, 5)
             flat_offsets[i] = (flat_offsets[i][0] + rand_xo, flat_offsets[i][1] + rand_yo)
         random.shuffle(flat_offsets)
 
