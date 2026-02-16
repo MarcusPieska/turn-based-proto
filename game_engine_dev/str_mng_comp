@@ -1,0 +1,5 @@
+#!/bin/bash
+g++ -c str_mng.cpp -o str_mng.o
+g++ -c str_mng_tester.cpp -o str_mng_tester.o
+g++ -o str_mng_tester str_mng.o str_mng_tester.o
+rm str_mng.o str_mng_tester.o

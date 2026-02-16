@@ -1,0 +1,7 @@
+#!/bin/bash
+g++ -fPIC -c str_mng.cpp -o str_mng.o
+g++ -fPIC -c bit_array.cpp -o bit_array.o
+g++ -fPIC -c building_vector.cpp -o building_vector.o
+g++ -fPIC -c building_vector_extern.cpp -o building_vector_extern.o
+g++ -shared -o libbuilding_vector.so str_mng.o bit_array.o building_vector.o building_vector_extern.o
+rm str_mng.o bit_array.o building_vector.o building_vector_extern.o
