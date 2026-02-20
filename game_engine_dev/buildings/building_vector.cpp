@@ -136,14 +136,14 @@ void BuildingIO::parse_and_allocate () const {
 //=> - BuildingVector implementation -
 //================================================================================================================================
 
-BuildingVector::BuildingVector (uint32_t num_buildings) : num_buildings(num_buildings) {
-    built_flags = new BitArrayCL(num_buildings);
-    buildings_available = new BitArrayCL(num_buildings);
+BuildingVector::BuildingVector (uint32_t num_buildings, BitArrayCL* buildings_unlocked) : 
+    m_num_buildings (num_buildings), 
+    m_buildings_unlocked (buildings_unlocked) {
+    m_built_flags = new BitArrayCL(m_num_buildings);
 }
 
 BuildingVector::~BuildingVector () {
-    delete built_flags;
-    delete buildings_available;
+    delete m_built_flags;
 }
 
 BuildingData BuildingVector::get_building (int index) const {
@@ -158,18 +158,18 @@ BuildingData BuildingVector::get_building (int index) const {
     result.name = building_data_array[index].name;
     result.cost = building_data_array[index].cost;
     result.effect = building_data_array[index].effect;
-    result.exists = (built_flags->get_bit(index) == 1);
+    result.exists = (m_built_flags->get_bit(index) == 1);
     return result;
 }
 
 int BuildingVector::get_count () const {
-    return static_cast<int>(num_buildings);
+    return static_cast<int>(m_num_buildings);
 }
 
 void BuildingVector::save (const std::string& filename) const {
     std::ofstream file(filename, std::ios::binary);
     if (file.is_open()) {
-        built_flags->serialize(file);
+        m_built_flags->serialize(file);
         file.close();
     }
 }
@@ -177,30 +177,59 @@ void BuildingVector::save (const std::string& filename) const {
 void BuildingVector::load (const std::string& filename) {
     std::ifstream file(filename, std::ios::binary);
     if (file.is_open()) {
-        delete built_flags;
-        built_flags = BitArrayCL::deserialize(file);
+        delete m_built_flags;
+        m_built_flags = BitArrayCL::deserialize(file);
         file.close();
     }
 }
 
 void BuildingVector::toggle_built (int index) {
-    if (index < 0 || static_cast<uint32_t>(index) >= num_buildings) {
+    if (index < 0 || static_cast<uint32_t>(index) >= m_num_buildings) {
         return;
     }
-    if (buildings_available->get_bit(index) == 1) {
-        if (built_flags->get_bit(index) == 1) {
-            built_flags->clear_bit(index);
+    if (m_buildings_unlocked->get_bit(index) == 1) {
+        if (m_built_flags->get_bit(index) == 1) {
+            m_built_flags->clear_bit(index);
         } else {
-            built_flags->set_bit(index);
+            m_built_flags->set_bit(index);
         }
     }
 }
 
 void BuildingVector::set_available (int index) {
-    if (index < 0 || static_cast<uint32_t>(index) >= num_buildings) {
+    if (index < 0 || static_cast<uint32_t>(index) >= m_num_buildings) {
         return;
     }
-    buildings_available->set_bit(index);
+    m_buildings_unlocked->set_bit(index);
+}
+
+//================================================================================================================================
+//=> - BuildableVector implementation -
+//================================================================================================================================
+
+BuildableVector::BuildableVector (uint32_t num_buildings, const BuildingVector* researched_buildings) {
+    m_researched_buildings = researched_buildings;
+    m_buildable_buildings = new BuildingVector(num_buildings);
+}
+
+BuildableVector::~BuildableVector () {
+    delete m_buildable_buildings;
+}
+
+bool BuildableVector::is_buildable (int index) const {
+    return m_researched_buildings->is_available(index) && m_buildable_buildings->is_available(index);
+}
+
+BuildingData BuildableVector::get_building (int index) const {
+    return m_researched_buildings->get_building(index);
+}
+
+int BuildableVector::get_count () const {
+    return m_researched_buildings->get_count();
+}
+
+void BuildableVector::set_buildable (int index) {
+    m_buildable_buildings->set_available(index);
 }
 
 //================================================================================================================================

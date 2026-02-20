@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Define the include path for the compiler
+INC="-I../misc -I../units -I../resources -I../city"
+
+# Compile objects (Adding the path to files in misc)
+g++ $INC -c ../misc/str_mng.cpp -o str_mng.o
+g++ $INC -c ../misc/bit_array.cpp -o bit_array.o
+g++ $INC -c ../units/unit_vector.cpp -o unit_vector.o
+g++ $INC -c ../resources/resources_vector.cpp -o resources_vector.o
+g++ $INC -c trainable_assessor.cpp -o trainable_assessor.o
+g++ $INC -c trainable_assessor_tester.cpp -o trainable_assessor_tester.o
+
+# Link everything into the final tester
+g++ -o trainable_assessor_tester str_mng.o bit_array.o unit_vector.o resources_vector.o trainable_assessor.o trainable_assessor_tester.o
+
+# Clean up
+rm str_mng.o bit_array.o unit_vector.o resources_vector.o trainable_assessor.o trainable_assessor_tester.o

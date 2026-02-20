@@ -8,6 +8,7 @@
 #include <sstream>
 
 #include "building_vector.h"
+#include "bit_array.h"
 
 //================================================================================================================================
 //=> - Globals -
@@ -58,7 +59,7 @@ void summarize_test_results () {
 //================================================================================================================================
 
 void test_building_io () {
-    BuildingIO io("buildings.temp");
+    BuildingIO io("../game_config.buildings");
     int count = io.validate_and_count();
     note_test_result (count > 0, "BuildingIO validate and count");
     io.parse_and_allocate();
@@ -67,7 +68,7 @@ void test_building_io () {
 }
 
 void test_building_vector () {
-    BuildingIO io("buildings.temp");
+    BuildingIO io("../game_config.buildings");
     io.parse_and_allocate();
     int count = io.validate_and_count();
     if (count == 0) {
@@ -75,18 +76,20 @@ void test_building_vector () {
         summarize_test_results();
         return;
     }
-    BuildingVector bv(static_cast<uint32_t>(count));
+    BitArrayCL* buildings_unlocked = new BitArrayCL(static_cast<uint32_t>(count));
+    BuildingVector bv(static_cast<uint32_t>(count), buildings_unlocked);
     note_test_result (bv.get_count() == count, "BuildingVector get_count");
     BuildingData data = bv.get_building(0);
     note_test_result (!data.name.empty(), "BuildingVector get_building name");
     note_test_result (data.cost > 0, "BuildingVector get_building cost");
     note_test_result (!data.effect.empty(), "BuildingVector get_building effect");
     note_test_result (data.exists == false, "BuildingVector get_building exists (initial)");
+    delete buildings_unlocked;
     summarize_test_results();
 }
 
 void test_building_vector_save_load () {
-    BuildingIO io("buildings.temp");
+    BuildingIO io("../game_config.buildings");
     io.parse_and_allocate();
     int count = io.validate_and_count();
     if (count == 0) {
@@ -94,15 +97,19 @@ void test_building_vector_save_load () {
         summarize_test_results();
         return;
     }
-    BuildingVector bv1(static_cast<uint32_t>(count));
+    BitArrayCL* buildings_unlocked1 = new BitArrayCL(static_cast<uint32_t>(count));
+    BuildingVector bv1(static_cast<uint32_t>(count), buildings_unlocked1);
     bv1.get_building(0);
     string filename = "building_vector_test.temp";
     bv1.save(filename);
-    BuildingVector bv2(static_cast<uint32_t>(count));
+    BitArrayCL* buildings_unlocked2 = new BitArrayCL(static_cast<uint32_t>(count));
+    BuildingVector bv2(static_cast<uint32_t>(count), buildings_unlocked2);
     bv2.load(filename);
     BuildingData data1 = bv1.get_building(0);
     BuildingData data2 = bv2.get_building(0);
     note_test_result (data1.exists == data2.exists, "BuildingVector save/load consistency");
+    delete buildings_unlocked1;
+    delete buildings_unlocked2;
     summarize_test_results();
 }
 

@@ -15,9 +15,10 @@
 class BitArray32 {
 public:
 
-    BitArray32 () : bits(0x00000000) {}
-    BitArray32 (uint32_t bits) : bits(bits) {}
+    BitArray32 () : m_num_bits(0x00000000) {}
+    BitArray32 (uint32_t num_bits) : m_num_bits(num_bits) {}
 
+    int get_count () const;
     int get_bit (int index) const;
     void set_bit (int index);
     void clear_bit (int index);
@@ -30,7 +31,7 @@ public:
 private:
     static const uint32_t masks[32];
     
-    uint32_t bits;
+    uint32_t m_num_bits;
 };
 
 //================================================================================================================================
@@ -43,6 +44,7 @@ public:
     BitArrayCL (uint32_t num_bits);
     ~BitArrayCL ();
 
+    int get_count () const;
     int get_bit (int index) const;
     void set_bit (int index);
     void clear_bit (int index);
@@ -51,9 +53,9 @@ public:
     static BitArrayCL* deserialize (std::istream& is);
 
 private:
-    BitArray32* arrays;
-    uint32_t num_bits;
-    uint32_t num_arrays;
+    BitArray32* m_arrays;
+    uint32_t m_num_bits;
+    uint32_t m_num_arrays;
 };
 
 #endif // BIT_ARRAY_H

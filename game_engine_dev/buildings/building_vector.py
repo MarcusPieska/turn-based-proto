@@ -93,7 +93,7 @@ def print_bit_array(built_flags, available_flags, count):
 class BuildingVectorGUI:
 
     def __load_building_data(m):
-        filename = "buildings.temp"
+        filename = "../game_config.buildings"
         lib.InitBuildingData(filename.encode('utf-8'))
         m.refresh_buildings()
 

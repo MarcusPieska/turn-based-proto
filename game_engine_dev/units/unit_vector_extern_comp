@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Define the Include path so your headers find each other
+INC="-I../misc"
+
+# Compile objects (Adding the path to files in misc)
+g++ -fPIC $INC -c ../misc/str_mng.cpp -o str_mng.o
+g++ -fPIC $INC -c ../misc/bit_array.cpp -o bit_array.o
+g++ -fPIC $INC -c unit_vector.cpp -o unit_vector.o
+g++ -fPIC $INC -c unit_vector_extern.cpp -o unit_vector_extern.o
+
+# Link all local .o files into the final .so library
+g++ -shared -o libunit_vector.so str_mng.o bit_array.o unit_vector.o unit_vector_extern.o
+
+# Cleanup local objects
+rm str_mng.o bit_array.o unit_vector.o unit_vector_extern.o

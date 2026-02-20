@@ -1,7 +1,0 @@
-#!/bin/bash
-g++ -c str_mng.cpp -o str_mng.o
-g++ -c bit_array.cpp -o bit_array.o
-g++ -c building_vector.cpp -o building_vector.o
-g++ -c building_vector_tester.cpp -o building_vector_tester.o
-g++ -o building_vector_tester str_mng.o bit_array.o building_vector.o building_vector_tester.o
-rm str_mng.o bit_array.o building_vector.o building_vector_tester.o

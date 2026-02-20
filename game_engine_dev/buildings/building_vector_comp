@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Define the include path for the compiler
+INC="-I../misc"
+
+# Compile objects (Adding the path to files in misc)
+g++ $INC -c ../misc/str_mng.cpp -o str_mng.o
+g++ $INC -c ../misc/bit_array.cpp -o bit_array.o
+g++ $INC -c building_vector.cpp -o building_vector.o
+g++ $INC -c building_vector_tester.cpp -o building_vector_tester.o
+
+# Link everything into the final tester
+g++ -o building_vector_tester str_mng.o bit_array.o building_vector.o building_vector_tester.o
+
+# Clean up
+rm str_mng.o bit_array.o building_vector.o building_vector_tester.o

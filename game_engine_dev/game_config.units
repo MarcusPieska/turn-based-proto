@@ -1,0 +1,66 @@
+Settler                      :   30 :    0 :    0 :    1
+Worker                       :   40 :    0 :    0 :    1
+Scout                        :   10 :    0 :    0 :    2
+Explorer                     :   30 :    0 :    0 :    2
+Warrior                      :   10 :    1 :    1 :    1
+Spearman                     :   20 :    1 :    2 :    1
+Swordsman                    :   40 :    3 :    2 :    1
+Pikeman                      :   40 :    2 :    3 :    1
+Musketman                    :   70 :    4 :    4 :    1
+Rifleman                     :   90 :    6 :    6 :    1
+Infantry                     :  100 :    6 :   10 :    1
+Mech Infantry                :  120 :   18 :   20 :    2
+Archer                       :   20 :    2 :    1 :    1
+Longbowman                   :   40 :    4 :    2 :    1
+Chariot                      :   30 :    2 :    1 :    2
+Horseman                     :   40 :    3 :    2 :    2
+Knight                       :   70 :    4 :    3 :    2
+Cavalry                      :   80 :    6 :    3 :    3
+Tank                         :  120 :   16 :    8 :    3
+Modern Armor                 :  150 :   24 :   16 :    4
+Catapult                     :   40 :    4 :    1 :    1
+Cannon                       :   60 :    8 :    1 :    1
+Artillery                    :   80 :   12 :    2 :    1
+Trebuchet                    :   50 :    6 :    1 :    1
+Radar Artillery              :   80 :   12 :    2 :    1
+Galley                       :   30 :    1 :    2 :    3
+Caravel                      :   50 :    2 :    2 :    4
+Frigate                      :   60 :    4 :    2 :    4
+Ironclad                     :   80 :    6 :    4 :    4
+Destroyer                    :  100 :    8 :    4 :    5
+Battleship                   :  160 :   18 :   12 :    4
+Submarine                    :   60 :    8 :    2 :    3
+Transport                    :   50 :    0 :    3 :    4
+Carrier                      :  120 :    0 :   12 :    5
+Cruiser                      :  120 :   12 :    8 :    5
+AEGIS Cruiser                :  140 :   12 :   10 :    5
+Nuclear Submarine            :  100 :   18 :    4 :    4
+Fighter                      :   60 :    4 :    2 :    8
+Bomber                       :  100 :    8 :    2 :    6
+Stealth Bomber               :  160 :   12 :    1 :    8
+Stealth Fighter              :  120 :    8 :    4 :    8
+Helicopter                   :  100 :   18 :    6 :    6
+Marine                       :  100 :    8 :   12 :    1
+Paratrooper                  :  100 :    6 :    8 :    1
+Mobile SAM                   :  100 :    0 :    8 :    2
+Guided Missile               :   60 :   16 :    0 :    2
+Tactical Nuke                :  120 :   50 :    0 :    1
+Nuclear Missile              :  200 :   99 :    0 :    1
+Legion                       :   40 :    4 :    2 :    1
+Impi                         :   20 :    2 :    1 :    2
+Numidian Mercenary           :   20 :    1 :    3 :    1
+Immortal                     :   30 :    3 :    1 :    1
+Hoplite                      :   20 :    1 :    3 :    1
+Bowman                       :   20 :    2 :    1 :    1
+War Elephant                 :   50 :    4 :    1 :    2
+Ansar Warrior                :   50 :    4 :    2 :    3
+Sipahi                       :   80 :    6 :    4 :    3
+Conquistador                 :   70 :    4 :    3 :    2
+Rider                        :   40 :    3 :    2 :    2
+Samurai                      :   40 :    4 :    3 :    1
+Musketeer                    :   70 :    4 :    4 :    1
+Cossack                      :   80 :    6 :    3 :    3
+Panzer                       :  120 :   16 :    8 :    3
+Man-O-War                    :   60 :    4 :    2 :    4
+F-15                         :   60 :    4 :    2 :    8
+Privateer                    :   50 :    2 :    2 :    4

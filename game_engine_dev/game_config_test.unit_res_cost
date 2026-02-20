@@ -1,0 +1,35 @@
+Swordsman                    : Iron
+Legion                       : Iron
+Immortal                     : Iron
+Chariot                      : Horses
+Horseman                     : Horses
+Knight                       : Horses : Iron
+Cavalry                      : Horses
+Ansar Warrior                : Horses
+Conquistador                 : Horses
+Rider                        : Horses
+Cossack                      : Horses
+War Elephant                 : Horses
+Musketman                    : Saltpeter
+Rifleman                     : Saltpeter
+Musketeer                    : Saltpeter
+Cannon                       : Saltpeter
+Artillery                    : Saltpeter
+Radar Artillery              : Saltpeter
+Tank                         : Oil
+Modern Armor                 : Oil : Aluminum
+Panzer                       : Oil
+Destroyer                    : Oil
+Battleship                   : Oil
+Cruiser                      : Oil
+AEGIS Cruiser                : Oil
+Fighter                      : Oil : Rubber : Aluminum
+Bomber                       : Oil : Rubber
+Stealth Bomber               : Oil : Rubber
+Stealth Fighter              : Oil : Rubber : Aluminum
+F-15                         : Oil : Rubber : Aluminum
+Helicopter                   : Oil : Rubber
+Mech Infantry                : Oil : Rubber
+Nuclear Submarine            : Uranium
+Tactical Nuke                : Uranium
+Nuclear Missile              : Uranium

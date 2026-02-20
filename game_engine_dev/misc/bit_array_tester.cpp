@@ -109,7 +109,7 @@ public:
         bool outcome = true;
         for (int i = 0; i < 32; i++) {
             for (int j = i + 1; j < 32; j++) {
-                if (instances[i].bits == instances[j].bits) {
+                if (instances[i].m_num_bits == instances[j].m_num_bits) {
                     outcome = false;
                 }
             }
@@ -959,8 +959,8 @@ void test_suite_BitArrayCL96 () {
 
 int main () {
     
-    //test_suite_BitArray32();
-    //test_suite_BitArrayCL32();
+    test_suite_BitArray32();
+    test_suite_BitArrayCL32();
     test_suite_BitArrayCL96();
     return 0;
 }
