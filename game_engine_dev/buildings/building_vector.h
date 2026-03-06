@@ -9,38 +9,13 @@
 #include <iosfwd>
 #include <cstdint>
 
+#include "game_primitives.h"
+
 //================================================================================================================================
-//=> - BuildingData struct -
+//=> - BuildingTypeStats struct -
 //================================================================================================================================
 
 class BitArrayCL;
-
-struct BuildingData {
-    std::string name;
-    int cost;
-    std::string effect;
-    bool exists;
-};
-
-//================================================================================================================================
-//=> - BuildingIO class -
-//================================================================================================================================
-
-class BuildingIO {
-public:
-
-    BuildingIO (const std::string& filename) : filename(filename) {}
-
-    int validate_and_count () const;
-    void print_content () const;
-    void parse_and_allocate () const;
-
-private:
-    BuildingIO (const BuildingIO& other) = delete;
-    BuildingIO (BuildingIO&& other) = delete;
-
-    std::string filename;
-};
 
 //================================================================================================================================
 //=> - BuildingVector class -
@@ -48,52 +23,37 @@ private:
 
 class BuildingVector {
 public:
+    friend class BuildableAssessor;
 
-    BuildingVector (uint32_t num_buildings, BitArrayCL* buildings_unlocked);
+    BuildingVector (const BitArrayCL* researched_buildings);
     ~BuildingVector ();
 
-    BuildingData get_building (int index) const;
-    int get_count () const;
+    const BuildingTypeStats& get_building_stats (u32 index) const;
+    bool is_buildable (u32 index) const;
+    bool is_built (u32 index) const;
+    u32 get_count () const;
     
     void save (const std::string& filename) const;
     void load (const std::string& filename);
     
-    void toggle_built (int index);
-    void set_available (int index);
+    void toggle_built (u32 index);
+    void set_built (u32 index);
+    void clear_built (u32 index);
+
+    static u32 get_building_data_count ();
+    static const BuildingTypeStats* get_building_data_array ();
+
+protected:
+    void set_buildable (u32 index);
 
 private:
     BuildingVector (const BuildingVector& other) = delete;
     BuildingVector (BuildingVector&& other) = delete;
+    BuildingVector () = delete;
 
-    BitArrayCL* m_built_flags;
-    BitArrayCL* m_buildings_unlocked;
-    uint32_t m_num_buildings;
-};
-
-//================================================================================================================================
-//=> - BuildableBuildingVector class -
-//================================================================================================================================
-
-class BuildableVector {
-public:
-    friend class BuildableAssessor;
-
-    BuildableVector (uint32_t num_buildings, const BuildingVector* researched_buildings);
-    ~BuildableVector ();
-
-    bool is_buildable (int index) const;
-    BuildingData get_building (int index) const;
-    int get_count () const;
-
-protected:
-    void set_buildable (int index);
-
-private:
-    BuildableVector (const BuildableVector& other) = delete;
-    BuildableVector (BuildableVector&& other) = delete;
-
-    const BuildingVector* m_researched_buildings;
-    BuildingVector* m_buildable_buildings;
+    const BitArrayCL* m_bld_researched;
+    BitArrayCL* m_bld_unlocked;
+    BitArrayCL* m_bld_built;
 };
 
 #endif // BUILDING_VECTOR_H

@@ -3,6 +3,7 @@
 //================================================================================================================================
 
 #include <cstdio>
+#include <cstdlib>
 #include <string>
 #include <stdexcept>
 #include <sstream>
@@ -20,7 +21,9 @@ using std::vector;
 
 int test_count = 0;
 int test_pass = 0;
-bool verbose = true;
+int total_test_fails = 0;
+int total_tests_run = 0;
+int print_level = 0;
 
 //================================================================================================================================
 //=> - Helper functions -
@@ -28,12 +31,14 @@ bool verbose = true;
 
 void note_test_result (bool cond, cstr msg) {
     test_count++;
+    total_tests_run++;
     if (cond) {
         test_pass++;
-        if (verbose) {
+        if (print_level > 1) {
             printf("*** TEST PASSED: %s\n", msg);
         }
-    } else {
+    } else if (print_level > 0) {
+        total_test_fails++;
         printf("*** TEST FAILED: %s\n", msg);
     }
 }
@@ -68,12 +73,13 @@ void confirm_read_result (const string& result, const string& expected, cstr msg
 }
 
 void summarize_test_results () {
-    printf("--------------------------------\n");
-    printf(" Test count: %d\n", test_count);
-    printf(" Test pass: %d\n", test_pass);
-    printf(" Test fail: %d\n", test_count - test_pass);
-    printf("--------------------------------\n\n\n");
-
+    if (print_level > 0) {
+        printf("--------------------------------\n");
+        printf(" Test count: %d\n", test_count);
+        printf(" Test pass: %d\n", test_pass);
+        printf(" Test fail: %d\n", test_count - test_pass);
+        printf("--------------------------------\n\n\n");
+    }
     test_count = 0;
     test_pass = 0;
 }
@@ -251,11 +257,20 @@ void test_string_io_operations () {
 //=> - Main driver -
 //================================================================================================================================
 
-int main () {
-    //test_string_splitter();
-    //test_string_splitter_failures();
+int main (int argc, char* argv[]) {
+    if (argc > 1) {
+        print_level = std::atoi(argv[1]);
+    }
+    
+    test_string_splitter();
+    test_string_splitter_failures();
     test_string_io_operations();
-    return 0;
+    
+    printf("=======================================================\n");
+    printf(" TESTING STRING MANAGEMENT: TOTAL FAILURES: %d/%d\n", total_test_fails, total_tests_run);
+    printf("=======================================================\n");
+    
+    return total_test_fails;
 }
 
 //================================================================================================================================

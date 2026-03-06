@@ -1,60 +1,60 @@
-City                          :  1 :  1 :  1
-Tin                           :  0 :  1 :  0
-Copper                        :  0 :  1 :  0
-Iron                          :  0 :  2 :  0
-Lead                          :  0 :  1 :  0
-Coal                          :  0 :  2 :  0
-Aluminum                      :  0 :  2 :  0
-Titanium                      :  0 :  2 :  0
-Uranium                       :  0 :  2 :  0
-Gold                          :  0 :  0 :  2
-Silver                        :  0 :  0 :  2
-Oil                           :  0 :  1 :  0
-Horses                        :  0 :  1 :  0
-Rubber                        :  0 :  1 :  0
-Saltpeter                     :  0 :  1 :  0
-Nitrates                      :  0 :  1 :  0
-Wheat                         :  2 :  0 :  0
-Rice                          :  2 :  0 :  0
-Corn                          :  2 :  0 :  0
-Barley                        :  1 :  0 :  0
-Potatoes                      :  2 :  0 :  0
-Sugar                         :  1 :  0 :  0
-Bananas                       :  1 :  0 :  0
-Citrus                        :  1 :  0 :  0
-Olives                        :  1 :  0 :  0
-Cattle                        :  2 :  0 :  0
-Sheep                         :  1 :  0 :  0
-Pigs                          :  1 :  0 :  0
-Fish                          :  2 :  0 :  0
-Game                          :  1 :  0 :  0
-Deer                          :  1 :  0 :  0
-Whales                        :  1 :  0 :  0
-Clams                         :  1 :  0 :  0
-Crabs                         :  1 :  0 :  0
-Oysters                       :  1 :  0 :  0
-Stone                         :  0 :  1 :  0
-Marble                        :  0 :  2 :  0
-Salt                          :  0 :  0 :  1
-Wine                          :  0 :  0 :  1
-Coffee                        :  0 :  0 :  1
-Tea                           :  0 :  0 :  1
-Cocoa                         :  0 :  0 :  1
-Tobacco                       :  0 :  0 :  1
-Furs                          :  0 :  0 :  1
-Ivory                         :  0 :  0 :  1
-Pearls                        :  0 :  0 :  1
-Spices                        :  0 :  0 :  1
-Incense                       :  0 :  0 :  1
-Dyes                          :  0 :  0 :  1
-Pepper                        :  0 :  0 :  1
-Cinnamon                      :  0 :  0 :  1
-Silk                          :  0 :  0 :  1
-Cotton                        :  0 :  0 :  1
-Wool                          :  0 :  0 :  1
-Gems                          :  0 :  0 :  2
-Diamonds                      :  0 :  0 :  2
-Jade                          :  0 :  0 :  1
-Amber                         :  0 :  0 :  1
-Truffles                      :  0 :  0 :  1
-Honey                         :  0 :  0 :  1
+City                          :  1 :  1 :  1 : Foundation
+Tin                           :  0 :  1 :  0 : Bronze Working
+Copper                        :  0 :  1 :  0 : Bronze Working
+Iron                          :  0 :  2 :  0 : Iron Working
+Lead                          :  0 :  1 :  0 : Bronze Working
+Coal                          :  0 :  2 :  0 : Steam Power
+Aluminum                      :  0 :  2 :  0 : Industrialization
+Titanium                      :  0 :  2 :  0 : Metallurgy
+Uranium                       :  0 :  2 :  0 : Nuclear Power
+Gold                          :  0 :  0 :  2 : Currency
+Silver                        :  0 :  0 :  2 : Currency
+Oil                           :  0 :  1 :  0 : Refining
+Horses                        :  0 :  1 :  0 : The Wheel
+Rubber                        :  0 :  1 :  0 : Motorized Transportation
+Saltpeter                     :  0 :  1 :  0 : Gunpowder
+Nitrates                      :  0 :  1 :  0 : Chemistry
+Wheat                         :  2 :  0 :  0 : Pottery
+Rice                          :  2 :  0 :  0 : Pottery
+Corn                          :  2 :  0 :  0 : Pottery
+Barley                        :  1 :  0 :  0 : Pottery
+Potatoes                      :  2 :  0 :  0 : Pottery
+Sugar                         :  1 :  0 :  0 : Pottery
+Bananas                       :  1 :  0 :  0 : Pottery
+Citrus                        :  1 :  0 :  0 : Pottery
+Olives                        :  1 :  0 :  0 : Pottery
+Cattle                        :  2 :  0 :  0 : Warrior Code
+Sheep                         :  1 :  0 :  0 : Warrior Code
+Pigs                          :  1 :  0 :  0 : Warrior Code
+Fish                          :  2 :  0 :  0 : Pottery
+Game                          :  1 :  0 :  0 : Warrior Code
+Deer                          :  1 :  0 :  0 : Warrior Code
+Whales                        :  1 :  0 :  0 : Navigation
+Clams                         :  1 :  0 :  0 : Pottery
+Crabs                         :  1 :  0 :  0 : Pottery
+Oysters                       :  1 :  0 :  0 : Pottery
+Stone                         :  0 :  1 :  0 : Masonry
+Marble                        :  0 :  2 :  0 : Masonry
+Salt                          :  0 :  0 :  1 : Masonry
+Wine                          :  0 :  0 :  1 : Pottery
+Coffee                        :  0 :  0 :  1 : Education
+Tea                           :  0 :  0 :  1 : Education
+Cocoa                         :  0 :  0 :  1 : Currency
+Tobacco                       :  0 :  0 :  1 : Economics
+Furs                          :  0 :  0 :  1 : Warrior Code
+Ivory                         :  0 :  0 :  1 : Warrior Code
+Pearls                        :  0 :  0 :  1 : Navigation
+Spices                        :  0 :  0 :  1 : Currency
+Incense                       :  0 :  0 :  1 : Polytheism
+Dyes                          :  0 :  0 :  1 : Currency
+Pepper                        :  0 :  0 :  1 : Currency
+Cinnamon                      :  0 :  0 :  1 : Currency
+Silk                          :  0 :  0 :  1 : Currency
+Cotton                        :  0 :  0 :  1 : Currency
+Wool                          :  0 :  0 :  1 : Warrior Code
+Gems                          :  0 :  0 :  2 : Currency
+Diamonds                      :  0 :  0 :  2 : Currency
+Jade                          :  0 :  0 :  1 : Currency
+Amber                         :  0 :  0 :  1 : Currency
+Truffles                      :  0 :  0 :  1 : Pottery
+Honey                         :  0 :  0 :  1 : Pottery

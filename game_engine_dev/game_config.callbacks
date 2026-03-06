@@ -1,0 +1,5 @@
+booster TARGET i32 SCOPE bool
+build cstr SCOPE bool bool
+enable TOGGLE SCOPE
+researchTech i32
+train cstr i32

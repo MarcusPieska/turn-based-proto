@@ -38,9 +38,11 @@ void note_test_result (bool cond, cstr msg) {
         if (print_level > 1) {
             printf("*** TEST PASSED: %s\n", msg);
         }
-    } else if (print_level > 0) {
+    } else {
         total_test_fails++;
-        printf("*** TEST FAILED: %s\n", msg);
+        if (print_level > 0) {
+            printf("*** TEST FAILED: %s\n", msg);
+        }
     }
 }
 
@@ -1385,9 +1387,9 @@ int main (int argc, char* argv[]) {
     test_determine_trainable_units_idempotent();
     test_all_resources_all_units();
 
-    printf("\n=======================================================\n");
+    printf("=======================================================\n");
     printf(" TESTING TRAINABLE ASSESSOR: TOTAL FAILURES: %d/%d\n", total_test_fails, total_tests_run);
-    printf("======================================================\n\n");
+    printf("=======================================================\n");
 
     return total_test_fails;
 }

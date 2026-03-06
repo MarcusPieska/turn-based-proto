@@ -4,6 +4,7 @@
 
 #include <cstdio>
 #include <cstdint>
+#include <cstdlib>
 #include <string>
 #include <stdexcept>
 #include <sstream>
@@ -22,7 +23,8 @@ typedef std::string str;
 int test_count = 0;
 int test_pass = 0;
 int total_test_fails = 0;
-bool verbose = true;
+int total_tests_run = 0;
+int print_level = 0;
 
 //================================================================================================================================
 //=> - Helper functions -
@@ -30,12 +32,13 @@ bool verbose = true;
 
 void note_test_result (bool cond, cstr msg) {
     test_count++;
+    total_tests_run++;
     if (cond) {
         test_pass++;
-        if (verbose) {
+        if (print_level > 1) {
             printf("*** TEST PASSED: %s\n", msg);
         }
-    } else {
+    } else if (print_level > 0) {
         total_test_fails++;
         printf("*** TEST FAILED: %s\n", msg);
     }
@@ -47,12 +50,13 @@ void note_test_result (bool cond, cstr msg1, cstr msg2) {
 }
 
 void summarize_test_results () {
-    printf("--------------------------------\n");
-    printf(" Test count: %d\n", test_count);
-    printf(" Test pass: %d\n", test_pass);
-    printf(" Test fail: %d\n", test_count - test_pass);
-    printf("--------------------------------\n\n\n");
-
+    if (print_level > 0) {
+        printf("--------------------------------\n");
+        printf(" Test count: %d\n", test_count);
+        printf(" Test pass: %d\n", test_pass);
+        printf(" Test fail: %d\n", test_count - test_pass);
+        printf("--------------------------------\n\n\n");
+    }
     test_count = 0;
     test_pass = 0;
 }
@@ -246,7 +250,9 @@ void test_resource_io () {
     int count = io.validate_and_count();
     note_test_result (count > 0, "ResourceIO validate and count");
     io.parse_and_allocate();
-    io.print_content();
+    if (print_level > 1) {
+        io.print_content();
+    }
     summarize_test_results();
 }
 
@@ -342,7 +348,11 @@ void test_resource_vector_stats_variety () {
 //=> - Main driver -
 //================================================================================================================================
 
-int main () {
+int main (int argc, char* argv[]) {
+    if (argc > 1) {
+        print_level = std::atoi(argv[1]);
+    }
+    
     test_resource_io();
     test_resource_io_idempotency();
     test_resource_vector();
@@ -353,9 +363,9 @@ int main () {
     test_resource_vector_get_count_consistency();
     test_resource_vector_stats_variety();
 
-    printf("\n================================\n");
-    printf(" TOTAL FAILURES: %d\n", total_test_fails);
-    printf("================================\n\n");
+    printf("=======================================================\n");
+    printf(" TESTING RESOURCES: TOTAL FAILURES: %d/%d\n", total_test_fails, total_tests_run);
+    printf("=======================================================\n");
 
     return total_test_fails;
 }

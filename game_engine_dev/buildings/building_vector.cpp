@@ -10,166 +10,46 @@
 
 #include "str_mng.h"
 #include "bit_array.h"
+#include "building_data.h"
 
 #include "building_vector.h"
-
-//================================================================================================================================
-//=> - Private structures and globals -
-//================================================================================================================================
-
-struct __BuildingData {
-    std::string name;
-    int cost;
-    std::string effect;
-};
-
-static __BuildingData* building_data_array = nullptr;
-static uint32_t building_data_count = 0;
-
-//================================================================================================================================
-//=> - BuildingIO implementation -
-//================================================================================================================================
-
-int BuildingIO::validate_and_count () const {
-    StringReader reader(filename);
-    std::string content = reader.read();
-    if (content.empty()) {
-        return 0;
-    }
-    StringSplitter line_splitter("\n");
-    std::vector<std::string> lines = line_splitter.split(content);
-    StringTrimmer trimmer(" \t\r\n");
-    StringSplitter colon_splitter(":");
-    int count = 0;
-    for (size_t i = 0; i < lines.size(); i++) {
-        std::string line = trimmer.trim(lines[i]);
-        if (line.empty()) {
-            continue;
-        }
-        std::vector<std::string> parts = colon_splitter.split(line);
-        if (parts.size() == 3) {
-            bool valid = true;
-            for (size_t j = 0; j < parts.size(); j++) {
-                std::string part = trimmer.trim(parts[j]);
-                if (part.empty()) {
-                    valid = false;
-                    break;
-                }
-            }
-            if (valid) {
-                count++;
-            }
-        }
-    }
-    return count;
-}
-
-void BuildingIO::print_content () const {
-    StringReader reader(filename);
-    std::string content = reader.read();
-    if (content.empty()) {
-        printf("File is empty or could not be read.\n");
-        return;
-    }
-    StringSplitter line_splitter("\n");
-    std::vector<std::string> lines = line_splitter.split(content);
-    StringTrimmer trimmer(" \t\r\n");
-    StringSplitter colon_splitter(":");
-    for (size_t i = 0; i < lines.size(); i++) {
-        std::string line = trimmer.trim(lines[i]);
-        if (line.empty()) {
-            continue;
-        }
-        std::vector<std::string> parts = colon_splitter.split(line);
-        if (parts.size() == 3) {
-            std::string name = trimmer.trim(parts[0]);
-            std::string cost = trimmer.trim(parts[1]);
-            std::string effect = trimmer.trim(parts[2]);
-            if (!name.empty() && !cost.empty() && !effect.empty()) {
-                printf("Building: %s, Cost: %s, Effect: %s\n", name.c_str(), cost.c_str(), effect.c_str());
-            }
-        }
-    }
-}
-
-void BuildingIO::parse_and_allocate () const {
-    if (building_data_array != nullptr) {
-        return;
-    }
-    int count = validate_and_count();
-    if (count == 0) {
-        return;
-    }
-    building_data_count = static_cast<uint32_t>(count);
-    building_data_array = new __BuildingData[building_data_count];
-    StringReader reader(filename);
-    std::string content = reader.read();
-    if (content.empty()) {
-        return;
-    }
-    StringSplitter line_splitter("\n");
-    std::vector<std::string> lines = line_splitter.split(content);
-    StringTrimmer trimmer(" \t\r\n");
-    StringSplitter colon_splitter(":");
-    uint32_t index = 0;
-    for (size_t i = 0; i < lines.size() && index < building_data_count; i++) {
-        std::string line = trimmer.trim(lines[i]);
-        if (line.empty()) {
-            continue;
-        }
-        std::vector<std::string> parts = colon_splitter.split(line);
-        if (parts.size() == 3) {
-            std::string name = trimmer.trim(parts[0]);
-            std::string cost_str = trimmer.trim(parts[1]);
-            std::string effect = trimmer.trim(parts[2]);
-            if (!name.empty() && !cost_str.empty() && !effect.empty()) {
-                building_data_array[index].name = name;
-                building_data_array[index].cost = std::atoi(cost_str.c_str());
-                building_data_array[index].effect = effect;
-                index++;
-            }
-        }
-    }
-}
 
 //================================================================================================================================
 //=> - BuildingVector implementation -
 //================================================================================================================================
 
-BuildingVector::BuildingVector (uint32_t num_buildings, BitArrayCL* buildings_unlocked) : 
-    m_num_buildings (num_buildings), 
-    m_buildings_unlocked (buildings_unlocked) {
-    m_built_flags = new BitArrayCL(m_num_buildings);
+BuildingVector::BuildingVector (const BitArrayCL* researched_buildings) : 
+    m_bld_researched (researched_buildings), 
+    m_bld_unlocked (new BitArrayCL(researched_buildings->get_count())),
+    m_bld_built (new BitArrayCL(researched_buildings->get_count())) {
 }
 
 BuildingVector::~BuildingVector () {
-    delete m_built_flags;
+    delete m_bld_built;
+    delete m_bld_unlocked;
 }
 
-BuildingData BuildingVector::get_building (int index) const {
-    BuildingData result;
-    if (building_data_array == nullptr || index < 0 || static_cast<uint32_t>(index) >= building_data_count) {
-        result.name = "";
-        result.cost = 0;
-        result.effect = "";
-        result.exists = false;
-        return result;
-    }
-    result.name = building_data_array[index].name;
-    result.cost = building_data_array[index].cost;
-    result.effect = building_data_array[index].effect;
-    result.exists = (m_built_flags->get_bit(index) == 1);
-    return result;
+const BuildingTypeStats& BuildingVector::get_building_stats (u32 idx) const {
+    const BuildingTypeStats* data = BuildingData::get_building_data_array();
+    return data[idx];
 }
 
-int BuildingVector::get_count () const {
-    return static_cast<int>(m_num_buildings);
+bool BuildingVector::is_buildable (u32 idx) const {
+    return m_bld_researched->get_bit(idx) == 1 && m_bld_unlocked->get_bit(idx) == 1 &&  m_bld_built->get_bit(idx) == 0;
+}
+
+bool BuildingVector::is_built (u32 idx) const {
+    return m_bld_built->get_bit(idx) == 1;
+}
+
+u32 BuildingVector::get_count () const {
+    return m_bld_unlocked->get_count();
 }
 
 void BuildingVector::save (const std::string& filename) const {
     std::ofstream file(filename, std::ios::binary);
     if (file.is_open()) {
-        m_built_flags->serialize(file);
+        m_bld_built->serialize(file);
         file.close();
     }
 }
@@ -177,59 +57,42 @@ void BuildingVector::save (const std::string& filename) const {
 void BuildingVector::load (const std::string& filename) {
     std::ifstream file(filename, std::ios::binary);
     if (file.is_open()) {
-        delete m_built_flags;
-        m_built_flags = BitArrayCL::deserialize(file);
+        delete m_bld_built;
+        m_bld_built = BitArrayCL::deserialize(file);
         file.close();
     }
 }
 
-void BuildingVector::toggle_built (int index) {
-    if (index < 0 || static_cast<uint32_t>(index) >= m_num_buildings) {
-        return;
-    }
-    if (m_buildings_unlocked->get_bit(index) == 1) {
-        if (m_built_flags->get_bit(index) == 1) {
-            m_built_flags->clear_bit(index);
-        } else {
-            m_built_flags->set_bit(index);
-        }
+void BuildingVector::toggle_built (u32 idx) {
+    if (m_bld_built->get_bit(idx) == 1) {
+        m_bld_built->clear_bit(idx);
+    } else {
+        m_bld_built->set_bit(idx);
     }
 }
 
-void BuildingVector::set_available (int index) {
-    if (index < 0 || static_cast<uint32_t>(index) >= m_num_buildings) {
-        return;
-    }
-    m_buildings_unlocked->set_bit(index);
+void BuildingVector::set_built (u32 idx) {
+    m_bld_built->set_bit(idx);
+}
+
+void BuildingVector::clear_built (u32 idx) {
+    m_bld_built->clear_bit(idx);
+}
+
+void BuildingVector::set_buildable (u32 idx) {
+    m_bld_unlocked->set_bit(idx);
 }
 
 //================================================================================================================================
-//=> - BuildableVector implementation -
+//=> - Static data accessors -
 //================================================================================================================================
 
-BuildableVector::BuildableVector (uint32_t num_buildings, const BuildingVector* researched_buildings) {
-    m_researched_buildings = researched_buildings;
-    m_buildable_buildings = new BuildingVector(num_buildings);
+const BuildingTypeStats* BuildingVector::get_building_data_array () {
+    return BuildingData::get_building_data_array();
 }
 
-BuildableVector::~BuildableVector () {
-    delete m_buildable_buildings;
-}
-
-bool BuildableVector::is_buildable (int index) const {
-    return m_researched_buildings->is_available(index) && m_buildable_buildings->is_available(index);
-}
-
-BuildingData BuildableVector::get_building (int index) const {
-    return m_researched_buildings->get_building(index);
-}
-
-int BuildableVector::get_count () const {
-    return m_researched_buildings->get_count();
-}
-
-void BuildableVector::set_buildable (int index) {
-    m_buildable_buildings->set_available(index);
+u32 BuildingVector::get_building_data_count () {
+    return static_cast<u32>(BuildingData::get_building_data_count());
 }
 
 //================================================================================================================================

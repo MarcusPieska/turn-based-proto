@@ -1,16 +1,19 @@
 #!/bin/bash
 
 # Define the include path for the compiler
-INC="-I../misc"
+INC="-I../ -I../misc -I../data_io"
 
 # Compile objects (Adding the path to files in misc)
 g++ $INC -c ../misc/str_mng.cpp -o str_mng.o
 g++ $INC -c ../misc/bit_array.cpp -o bit_array.o
+g++ $INC -c ../data_io/tech_data.cpp -o tech_data.o
+g++ $INC -c ../data_io/resource_data.cpp -o resource_data.o
+g++ $INC -c ../data_io/unit_data.cpp -o unit_data.o
 g++ $INC -c unit_vector.cpp -o unit_vector.o
 g++ $INC -c unit_vector_tester.cpp -o unit_vector_tester.o
 
 # Link everything into the final tester
-g++ -o unit_vector_tester str_mng.o bit_array.o unit_vector.o unit_vector_tester.o
+g++ -o unit_vector_tester str_mng.o bit_array.o tech_data.o resource_data.o unit_data.o unit_vector.o unit_vector_tester.o
 
 # Clean up
-rm str_mng.o bit_array.o unit_vector.o unit_vector_tester.o
+rm str_mng.o bit_array.o tech_data.o resource_data.o unit_data.o unit_vector.o unit_vector_tester.o

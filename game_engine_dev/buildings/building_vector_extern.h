@@ -11,6 +11,42 @@
 #include "bit_array.h"
 
 //================================================================================================================================
+//=> - Mock BuildableAssessor class -
+//================================================================================================================================
+
+class BuildableAssessor {
+public:
+    void set_buildable (BuildingVector* bv, uint32_t index) {
+        if (bv) {
+            bv->set_buildable(index);
+        }
+    }
+    
+    void clear_buildable (BuildingVector* bv, uint32_t index) {
+        if (bv && index < bv->m_bld_unlocked->get_count()) {
+            bv->m_bld_unlocked->clear_bit(index);
+        }
+    }
+    
+    void toggle_buildable (BuildingVector* bv, uint32_t index) {
+        if (bv && index < bv->m_bld_unlocked->get_count()) {
+            if (bv->m_bld_unlocked->get_bit(index) == 1) {
+                bv->m_bld_unlocked->clear_bit(index);
+            } else {
+                bv->m_bld_unlocked->set_bit(index);
+            }
+        }
+    }
+    
+    int is_unlocked (BuildingVector* bv, uint32_t index) {
+        if (bv && index < bv->m_bld_unlocked->get_count()) {
+            return bv->m_bld_unlocked->get_bit(index);
+        }
+        return 0;
+    }
+};
+
+//================================================================================================================================
 //=> - C-compatible BuildingData struct -
 //================================================================================================================================
 
@@ -26,7 +62,8 @@ struct BuildingDataC {
 //================================================================================================================================
 
 inline BuildingVector* g_BuildingVectorInstance = nullptr;
-inline BitArrayCL* g_BuildingsUnlocked = nullptr;
+inline BitArrayCL* g_ResearchedBuildings = nullptr;
+inline BuildableAssessor* g_MockAssessor = nullptr;
 
 //================================================================================================================================
 //=> - C interface -
@@ -40,17 +77,20 @@ void InitBuildingData (const char* filename) {
         io.parse_and_allocate();
         int count = io.validate_and_count();
         if (count > 0) {
-            g_BuildingsUnlocked = new BitArrayCL(static_cast<uint32_t>(count));
-            g_BuildingVectorInstance = new BuildingVector(static_cast<uint32_t>(count), g_BuildingsUnlocked);
+            g_ResearchedBuildings = new BitArrayCL(static_cast<uint32_t>(count));
+            g_BuildingVectorInstance = new BuildingVector(g_ResearchedBuildings);
+            g_MockAssessor = new BuildableAssessor();
         }
     }
 }
 
 void DestroyBuildingVector () {
+    delete g_MockAssessor;
     delete g_BuildingVectorInstance;
-    delete g_BuildingsUnlocked;
+    delete g_ResearchedBuildings;
+    g_MockAssessor = nullptr;
     g_BuildingVectorInstance = nullptr;
-    g_BuildingsUnlocked = nullptr;
+    g_ResearchedBuildings = nullptr;
 }
 
 int GetBuildingCount () {
@@ -62,13 +102,13 @@ int GetBuildingCount () {
 
 void GetBuilding (int index, BuildingDataC* out_data) {
     if (g_BuildingVectorInstance && out_data) {
-        BuildingData data = g_BuildingVectorInstance->get_building(index);
-        strncpy(out_data->name, data.name.c_str(), sizeof(out_data->name) - 1);
+        const BuildingTypeStats& stats = g_BuildingVectorInstance->get_building_stats(index);
+        strncpy(out_data->name, stats.name.c_str(), sizeof(out_data->name) - 1);
         out_data->name[sizeof(out_data->name) - 1] = '\0';
-        out_data->cost = data.cost;
-        strncpy(out_data->effect, data.effect.c_str(), sizeof(out_data->effect) - 1);
+        out_data->cost = stats.cost;
+        strncpy(out_data->effect, stats.effect.c_str(), sizeof(out_data->effect) - 1);
         out_data->effect[sizeof(out_data->effect) - 1] = '\0';
-        out_data->exists = data.exists ? 1 : 0;
+        out_data->exists = g_BuildingVectorInstance->is_built(index) ? 1 : 0;
     } else {
         if (out_data) {
             out_data->name[0] = '\0';
@@ -97,10 +137,84 @@ void ToggleBuilt (int index) {
     }
 }
 
-void SetAvailable (int index) {
+void SetBuilt (int index) {
     if (g_BuildingVectorInstance) {
-        g_BuildingVectorInstance->set_available(index);
+        g_BuildingVectorInstance->set_built(index);
     }
+}
+
+void ClearBuilt (int index) {
+    if (g_BuildingVectorInstance) {
+        g_BuildingVectorInstance->clear_built(index);
+    }
+}
+
+void ToggleResearched (int index) {
+    if (g_ResearchedBuildings) {
+        if (g_ResearchedBuildings->get_bit(index) == 1) {
+            g_ResearchedBuildings->clear_bit(index);
+        } else {
+            g_ResearchedBuildings->set_bit(index);
+        }
+    }
+}
+
+void SetResearched (int index) {
+    if (g_ResearchedBuildings) {
+        g_ResearchedBuildings->set_bit(index);
+    }
+}
+
+void ClearResearched (int index) {
+    if (g_ResearchedBuildings) {
+        g_ResearchedBuildings->clear_bit(index);
+    }
+}
+
+void ToggleUnlocked (int index) {
+    if (g_MockAssessor && g_BuildingVectorInstance) {
+        g_MockAssessor->toggle_buildable(g_BuildingVectorInstance, static_cast<uint32_t>(index));
+    }
+}
+
+void SetUnlocked (int index) {
+    if (g_MockAssessor && g_BuildingVectorInstance) {
+        g_MockAssessor->set_buildable(g_BuildingVectorInstance, static_cast<uint32_t>(index));
+    }
+}
+
+void ClearUnlocked (int index) {
+    if (g_MockAssessor && g_BuildingVectorInstance) {
+        g_MockAssessor->clear_buildable(g_BuildingVectorInstance, static_cast<uint32_t>(index));
+    }
+}
+
+int IsUnlocked (int index) {
+    if (g_MockAssessor && g_BuildingVectorInstance) {
+        return g_MockAssessor->is_unlocked(g_BuildingVectorInstance, static_cast<uint32_t>(index));
+    }
+    return 0;
+}
+
+int IsBuilt (int index) {
+    if (g_BuildingVectorInstance) {
+        return g_BuildingVectorInstance->is_built(static_cast<uint32_t>(index)) ? 1 : 0;
+    }
+    return 0;
+}
+
+int IsBuildable (int index) {
+    if (g_BuildingVectorInstance) {
+        return g_BuildingVectorInstance->is_buildable(static_cast<uint32_t>(index)) ? 1 : 0;
+    }
+    return 0;
+}
+
+int IsResearched (int index) {
+    if (g_ResearchedBuildings) {
+        return g_ResearchedBuildings->get_bit(index);
+    }
+    return 0;
 }
 
 int ValidateAndCount (const char* filename) {

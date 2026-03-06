@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# Define the include path for the compiler
+INC="-I../ -I../data_io -I../misc"
+
+# Compile objects (Adding the path to files in misc)
+g++ $INC -c ../misc/str_mng.cpp -o str_mng.o
+g++ $INC -c ../misc/bit_array.cpp -o bit_array.o
+g++ $INC -c ../data_io/tech_data.cpp -o tech_data.o
+g++ $INC -c ../data_io/resource_data.cpp -o resource_data.o
+g++ $INC -c ../data_io/city_flags.cpp -o city_flags.o
+g++ $INC -c ../data_io/building_data.cpp -o building_data.o
+g++ $INC -c ../data_io/wonder_data.cpp -o wonder_data.o
+g++ $INC -c wonder_vector.cpp -o wonder_vector.o
+g++ $INC -c wonder_vector_tester.cpp -o wonder_vector_tester.o
+
+# Link everything into the final tester
+g++ -o \
+    wonder_vector_tester \
+    str_mng.o \
+    bit_array.o \
+    tech_data.o \
+    resource_data.o \
+    city_flags.o \
+    building_data.o \
+    wonder_data.o \
+    wonder_vector.o \
+    wonder_vector_tester.o
+
+# Clean up
+rm \
+    str_mng.o \
+    bit_array.o \
+    tech_data.o \
+    resource_data.o \
+    city_flags.o \
+    building_data.o \
+    wonder_data.o \
+    wonder_vector.o \
+    wonder_vector_tester.o

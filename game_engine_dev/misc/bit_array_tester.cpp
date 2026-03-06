@@ -3,6 +3,7 @@
 //================================================================================================================================
 
 #include <cstdio>
+#include <cstdlib>
 #include <string>
 #include <stdexcept>
 #include <sstream>
@@ -13,8 +14,13 @@
 //=> - GLOBALS -
 //================================================================================================================================
 
-#define TEST_FILED "*** TEST FAILED: "
-#define TEST_PASSED "*** TEST PASSED: "
+typedef const char* cstr;
+
+int test_count = 0;
+int test_pass = 0;
+int total_test_fails = 0;
+int total_tests_run = 0;
+int print_level = 0;
 
 //================================================================================================================================
 //=> - Tester_BitArray32 class -
@@ -255,7 +261,15 @@ public:
     }
 
     void print_test_result () {
-        printf("*** SUMMARY: %d tests, %d passed\n", test_count, test_success);
+        if (::print_level > 0) {
+            printf("--------------------------------\n");
+            printf(" Test count: %d\n", test_count);
+            printf(" Test pass: %d\n", test_success);
+            printf(" Test fail: %d\n", test_count - test_success);
+            printf("--------------------------------\n\n\n");
+        }
+        test_count = 0;
+        test_success = 0;
     }
 
 private:
@@ -265,13 +279,19 @@ private:
     }
 
     void test_result (bool outcome, const char *test_name) {
+        ::test_count++;
+        ::total_tests_run++;
         if (outcome) {
             test_success++;
-            if (verbose) {
-                printf(TEST_PASSED "%s\n", test_name);
+            ::test_pass++;
+            if (::print_level > 1) {
+                printf("*** TEST PASSED: %s\n", test_name);
             }
         } else {
-            printf(TEST_FILED "%s\n", test_name);
+            ::total_test_fails++;
+            if (::print_level > 0) {
+                printf("*** TEST FAILED: %s\n", test_name);
+            }
         }
         test_count++;
     }
@@ -292,7 +312,6 @@ private:
 
     int test_count = 0;
     int test_success = 0;
-    bool verbose = true;
 };
 
 //================================================================================================================================
@@ -521,7 +540,15 @@ public:
     }
 
     void print_test_result () {
-        printf("*** SUMMARY: %d tests, %d passed\n", test_count, test_success);
+        if (::print_level > 0) {
+            printf("--------------------------------\n");
+            printf(" Test count: %d\n", test_count);
+            printf(" Test pass: %d\n", test_success);
+            printf(" Test fail: %d\n", test_count - test_success);
+            printf("--------------------------------\n\n\n");
+        }
+        test_count = 0;
+        test_success = 0;
     }
 
 private:
@@ -531,20 +558,25 @@ private:
     }
 
     void test_result (bool outcome, const char *test_name) {
+        ::test_count++;
+        ::total_tests_run++;
         if (outcome) {
             test_success++;
-            if (verbose) {
-                printf(TEST_PASSED "%s\n", test_name);
+            ::test_pass++;
+            if (::print_level > 1) {
+                printf("*** TEST PASSED: %s\n", test_name);
             }
         } else {
-            printf(TEST_FILED "%s\n", test_name);
+            ::total_test_fails++;
+            if (::print_level > 0) {
+                printf("*** TEST FAILED: %s\n", test_name);
+            }
         }
         test_count++;
     }
 
     int test_count = 0;
     int test_success = 0;
-    bool verbose = true;
 };
 
 //================================================================================================================================
@@ -855,7 +887,15 @@ public:
     }
 
     void print_test_result () {
-        printf("*** SUMMARY: %d tests, %d passed\n", test_count, test_success);
+        if (::print_level > 0) {
+            printf("--------------------------------\n");
+            printf(" Test count: %d\n", test_count);
+            printf(" Test pass: %d\n", test_success);
+            printf(" Test fail: %d\n", test_count - test_success);
+            printf("--------------------------------\n\n\n");
+        }
+        test_count = 0;
+        test_success = 0;
     }
 
 private:
@@ -865,13 +905,19 @@ private:
     }
 
     void test_result (bool outcome, const char *test_name) {
+        ::test_count++;
+        ::total_tests_run++;
         if (outcome) {
             test_success++;
-            if (verbose) {
-                printf(TEST_PASSED "%s\n", test_name);
+            ::test_pass++;
+            if (::print_level > 1) {
+                printf("*** TEST PASSED: %s\n", test_name);
             }
         } else {
-            printf(TEST_FILED "%s\n", test_name);
+            ::total_test_fails++;
+            if (::print_level > 0) {
+                printf("*** TEST FAILED: %s\n", test_name);
+            }
         }
         test_count++;
     }
@@ -893,7 +939,6 @@ private:
 
     int test_count = 0;
     int test_success = 0;
-    bool verbose = true;
 };
 
 //================================================================================================================================
@@ -957,12 +1002,20 @@ void test_suite_BitArrayCL96 () {
 //=> - Main driver -
 //================================================================================================================================
 
-int main () {
+int main (int argc, char* argv[]) {
+    if (argc > 1) {
+        print_level = std::atoi(argv[1]);
+    }
     
     test_suite_BitArray32();
     test_suite_BitArrayCL32();
     test_suite_BitArrayCL96();
-    return 0;
+    
+    printf("=======================================================\n");
+    printf(" TESTING BIT ARRAYS: TOTAL FAILURES: %d/%d\n", total_test_fails, total_tests_run);
+    printf("=======================================================\n");
+    
+    return total_test_fails;
 }
 
 //================================================================================================================================

@@ -6,6 +6,7 @@
 *.png
 *.cl
 *.temp
+*_tester
 
 map_driver
 map_driver.exe

@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# Define the include path for the compiler
+INC="-I../ -I../misc -I../data_io -I../wonders -I../city"
+
+# Link everything into the final tester
+g++ $INC -c ../misc/str_mng.cpp -o str_mng.o
+g++ $INC -c ../misc/bit_array.cpp -o bit_array.o
+g++ $INC -c ../data_io/tech_data.cpp -o tech_data.o
+g++ $INC -c ../data_io/resource_data.cpp -o resource_data.o
+g++ $INC -c ../data_io/building_data.cpp -o building_data.o
+g++ $INC -c ../data_io/city_flags.cpp -o city_flags.o
+g++ $INC -c ../data_io/wonder_data.cpp -o wonder_data.o
+g++ $INC -c ../wonders/wonder_vector.cpp -o wonder_vector.o
+g++ $INC -c wonder_assessor.cpp -o wonder_assessor.o
+g++ $INC -c wonder_assessor_tester.cpp -o wonder_assessor_tester.o
+
+# Link everything into the final tester
+g++ -o \
+    wonder_assessor_tester \
+    str_mng.o \
+    bit_array.o \
+    tech_data.o \
+    resource_data.o \
+    building_data.o \
+    city_flags.o \
+    wonder_data.o \
+    wonder_vector.o \
+    wonder_assessor.o \
+    wonder_assessor_tester.o
+
+# Clean up
+rm \
+    str_mng.o \
+    bit_array.o \
+    tech_data.o \
+    resource_data.o \
+    building_data.o \
+    city_flags.o \
+    wonder_data.o \
+    wonder_vector.o \
+    wonder_assessor.o \
+    wonder_assessor_tester.o

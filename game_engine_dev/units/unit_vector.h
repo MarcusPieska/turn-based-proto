@@ -9,44 +9,18 @@
 #include <iosfwd>
 #include <cstdint>
 
+#include "unit_data.h"  
+
 //================================================================================================================================
-//=> - UnitData struct -
+//=> - Forward declarations -
 //================================================================================================================================
 
 class BitArrayCL;
 
-typedef struct UnitTypeStats {
-    std::string name;
-    uint16_t cost;
-    uint16_t attack;
-    uint16_t defense;
-    uint16_t moves;
-} UnitTypeStats;
-
-typedef struct UnitData {
+typedef struct UnitInstance {
     const UnitTypeStats& stats;
     uint16_t strength;
-} UnitData;
-
-//================================================================================================================================
-//=> - UnitIO class -
-//================================================================================================================================
-
-class UnitIO {
-public:
-
-    UnitIO (const std::string& filename) : m_filename(filename) {}
-
-    int validate_and_count () const;
-    void print_content () const;
-    void parse_and_allocate () const;
-
-private:
-    UnitIO (const UnitIO& other) = delete;
-    UnitIO (UnitIO&& other) = delete;
-
-    std::string m_filename;
-};
+} UnitInstance;
 
 //================================================================================================================================
 //=> - UnitVector class -
@@ -59,7 +33,7 @@ public:
     UnitVector (const BitArrayCL* researched_units);
     ~UnitVector ();
 
-    UnitData get_unit (uint32_t index) const;
+    UnitInstance get_unit (uint32_t index) const;
     bool is_trainable (uint32_t index) const;
     uint32_t get_count () const;
 

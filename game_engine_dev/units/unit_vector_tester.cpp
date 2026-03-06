@@ -10,6 +10,9 @@
 #include <sstream>
 
 #include "bit_array.h"
+#include "tech_data.h"
+#include "resource_data.h"
+#include "unit_data.h"
 #include "unit_vector.h"
 
 //================================================================================================================================
@@ -32,7 +35,7 @@ static const uint16_t UNLOCKED_STRENGTH = 1000;
 //=> - Helper functions -
 //================================================================================================================================
 
-void note_test_result (bool cond, cstr msg) {
+void note_result (bool cond, cstr msg) {
     test_count++;
     total_tests_run++;
     if (cond) {
@@ -46,9 +49,9 @@ void note_test_result (bool cond, cstr msg) {
     }
 }
 
-void note_test_result (bool cond, cstr msg1, cstr msg2) {
+void note_result (bool cond, cstr msg1, cstr msg2) {
     str msg = str(msg1) + str(msg2);
-    note_test_result (cond, msg.c_str());
+    note_result (cond, msg.c_str());
 }
 
 void summarize_test_results () {
@@ -91,25 +94,21 @@ private:
 };
 
 struct UnitVectorTestSetup {
-    UnitIO* io;
     UnitVector* uv;
     BitArrayCL* techs;
     u32 count;
     
-    UnitVectorTestSetup () : io(nullptr), uv(nullptr), techs(nullptr), count(0) {}
+    UnitVectorTestSetup () : uv(nullptr), techs(nullptr), count(0) {}
     
     ~UnitVectorTestSetup () {
         delete uv;
         delete techs;
-        delete io;
     }
 };
 
-UnitVectorTestSetup setup_unit_vector_test (cstr filename) {
+UnitVectorTestSetup setup_unit_vector_test () {
     UnitVectorTestSetup setup;
-    setup.io = new UnitIO(filename);
-    setup.io->parse_and_allocate();
-    setup.count = static_cast<u32>(setup.io->validate_and_count());
+    setup.count = static_cast<u32>(UnitData::get_unit_data_count ());
     if (setup.count > 0) {
         setup.techs = new BitArrayCL(setup.count);
         setup.uv = new UnitVector(setup.techs);
@@ -117,26 +116,26 @@ UnitVectorTestSetup setup_unit_vector_test (cstr filename) {
     return setup;
 }
 
-void verify_unit_data (const UnitData& data, cstr test_name) {
-    note_test_result (!data.stats.name.empty(), test_name, " - name not empty");
-    note_test_result (data.stats.cost > 0, test_name, " - cost > 0");
-    note_test_result (data.stats.attack >= 0, test_name, " - attack >= 0");
-    note_test_result (data.stats.defense >= 0, test_name, " - defense >= 0");
-    note_test_result (data.stats.moves > 0, test_name, " - moves > 0");
+void verify_unit_data (const UnitInstance& data, cstr test_name) {
+    note_result (!data.stats.name.empty(), test_name, " - name not empty");
+    note_result (data.stats.cost > 0, test_name, " - cost > 0");
+    note_result (data.stats.attack >= 0, test_name, " - attack >= 0");
+    note_result (data.stats.defense >= 0, test_name, " - defense >= 0");
+    note_result (data.stats.movement_speed > 0, test_name, " - movement_speed > 0");
 }
 
-void verify_unit_strength (const UnitData& data, bool should_be_unlocked, cstr test_name) {
+void verify_unit_strength (const UnitInstance& data, bool should_be_unlocked, cstr test_name) {
     uint16_t expected_strength = should_be_unlocked ? UNLOCKED_STRENGTH : 0;
     str msg = str(test_name) + " - strength " + (should_be_unlocked ? "unlocked" : "locked");
-    note_test_result (data.strength == expected_strength, msg.c_str());
+    note_result (data.strength == expected_strength, msg.c_str());
 }
 
 void test_unit_at_idx (UnitVector* uv, u32 idx, cstr prefix) {
     if (uv == nullptr) {
-        note_test_result (false, prefix, " - UnitVector is null");
+        note_result (false, prefix, " - UnitVector is null");
         return;
     }
-    UnitData data = uv->get_unit(idx);
+    UnitInstance data = uv->get_unit(idx);
     str test_name = str(prefix) + " - idx " + std::to_string(idx);
     verify_unit_data(data, test_name.c_str());
     verify_unit_strength(data, false, test_name.c_str());
@@ -151,9 +150,9 @@ void test_bounds_get_unit (UnitVector* uv, u32 count, cstr prefix) {
         test_unit_at_idx(uv, count / 2, prefix);
         test_unit_at_idx(uv, count - 1, prefix);
     }
-    UnitData data_oob = uv->get_unit(count);
+    UnitInstance data_oob = uv->get_unit(count);
     str msg = str(prefix) + " - get_unit out of bounds (idx " + std::to_string(count) + ")";
-    note_test_result (true, msg.c_str(), " - no crash");
+    note_result (true, msg.c_str(), " - no crash");
 }
 
 void test_bounds_set_trainable (TrainableAssessor& assessor, u32 count, cstr prefix) {
@@ -162,17 +161,17 @@ void test_bounds_set_trainable (TrainableAssessor& assessor, u32 count, cstr pre
     }
     assessor.set_trainable(0);
     str msg1 = str(prefix) + " - set_trainable valid idx 0";
-    note_test_result (true, msg1.c_str());
+    note_result (true, msg1.c_str());
     
     if (count > 1) {
         assessor.set_trainable(count - 1);
         str msg2 = str(prefix) + " - set_trainable valid idx (last)";
-        note_test_result (true, msg2.c_str());
+        note_result (true, msg2.c_str());
     }
     
     assessor.set_trainable(count);
     str msg3 = str(prefix) + " - set_trainable out of bounds (idx " + std::to_string(count) + ")";
-    note_test_result (true, msg3.c_str(), " - no crash");
+    note_result (true, msg3.c_str(), " - no crash");
 }
 
 void test_multiple_unlocks (UnitVector* uv, TrainableAssessor& assessor, BitArrayCL* tech, u32 count, cstr prefix) {
@@ -181,41 +180,41 @@ void test_multiple_unlocks (UnitVector* uv, TrainableAssessor& assessor, BitArra
     }
     tech->set_bit(0);
     assessor.set_trainable(0);
-    UnitData data0 = uv->get_unit(0);
+    UnitInstance data0 = uv->get_unit(0);
     verify_unit_strength(data0, true, (str(prefix) + " - unlock idx 0").c_str());
     
     if (count > 2) {
         u32 mid = count / 2;
         tech->set_bit(mid);
         assessor.set_trainable(mid);
-        UnitData data_mid = uv->get_unit(mid);
+        UnitInstance data_mid = uv->get_unit(mid);
         verify_unit_strength(data_mid, true, (str(prefix) + " - unlock idx " + std::to_string(mid)).c_str());
     }
     
     if (count > 1) {
         tech->set_bit(count - 1);
         assessor.set_trainable(count - 1);
-        UnitData data_last = uv->get_unit(count - 1);
+        UnitInstance data_last = uv->get_unit(count - 1);
         verify_unit_strength(data_last, true, (str(prefix) + " - unlock idx " + std::to_string(count - 1)).c_str());
     }
     
-    UnitData data0_check = uv->get_unit(0);
+    UnitInstance data0_check = uv->get_unit(0);
     str msg = str(prefix) + " - multiple unlocks verify idx 0";
-    note_test_result (data0_check.strength > 0, msg.c_str());
+    note_result (data0_check.strength > 0, msg.c_str());
 }
 
 void test_strength_calc (UnitVector* uv, TrainableAssessor& assessor, BitArrayCL* tech, u32 idx, cstr prefix) {
     if (uv == nullptr || tech == nullptr) {
         return;
     }
-    UnitData data_locked = uv->get_unit(idx);
+    UnitInstance data_locked = uv->get_unit(idx);
     verify_unit_strength(data_locked, false, (str(prefix) + " - locked").c_str());
     
     tech->set_bit(idx);
     assessor.set_trainable(idx);
-    UnitData data_unlocked = uv->get_unit(idx);
+    UnitInstance data_unlocked = uv->get_unit(idx);
     str msg = str(prefix) + " - strength = 1000 when unlocked";
-    note_test_result (data_unlocked.strength == UNLOCKED_STRENGTH, msg.c_str());
+    note_result (data_unlocked.strength == UNLOCKED_STRENGTH, msg.c_str());
 }
 
 void test_repeated_set_trainable (UnitVector* uv, TrainableAssessor& assessor, BitArrayCL* tech, u32 idx, cstr prefix) {
@@ -224,42 +223,19 @@ void test_repeated_set_trainable (UnitVector* uv, TrainableAssessor& assessor, B
     }
     tech->set_bit(idx);
     assessor.set_trainable(idx);
-    UnitData data1 = uv->get_unit(idx);
+    UnitInstance data1 = uv->get_unit(idx);
     verify_unit_strength(data1, true, (str(prefix) + " - first set").c_str());
     
     assessor.set_trainable(idx);
-    UnitData data2 = uv->get_unit(idx);
+    UnitInstance data2 = uv->get_unit(idx);
     verify_unit_strength(data2, true, (str(prefix) + " - second set").c_str());
     
     assessor.set_trainable(idx);
-    UnitData data3 = uv->get_unit(idx);
+    UnitInstance data3 = uv->get_unit(idx);
     verify_unit_strength(data3, true, (str(prefix) + " - third set").c_str());
     
     str msg = str(prefix) + " - repeated calls consistent";
-    note_test_result (data1.strength == data2.strength && data2.strength == data3.strength, msg.c_str());
-}
-
-void test_get_count_consistency (UnitIO* io, UnitVector* uv, cstr prefix) {
-    if (io == nullptr || uv == nullptr) {
-        return;
-    }
-    int io_count = io->validate_and_count();
-    u32 uv_count = uv->get_count();
-    str msg = str(prefix) + " - get_count matches validate_and_count";
-    note_test_result (static_cast<int>(uv_count) == io_count, msg.c_str());
-}
-
-void test_unitio_idempotency (cstr filename, cstr prefix) {
-    UnitIO io1(filename);
-    int count1 = io1.validate_and_count();
-    io1.parse_and_allocate();
-    
-    UnitIO io2(filename);
-    int count2 = io2.validate_and_count();
-    io2.parse_and_allocate();
-    
-    str msg = str(prefix) + " - parse_and_allocate idempotent";
-    note_test_result (count1 == count2, msg.c_str());
+    note_result (data1.strength == data2.strength && data2.strength == data3.strength, msg.c_str());
 }
 
 void test_multiple_indices (UnitVector* uv, u32 count, cstr prefix) {
@@ -281,57 +257,41 @@ void test_multiple_indices (UnitVector* uv, u32 count, cstr prefix) {
 //=> - Test functions -
 //================================================================================================================================
 
-void test_unit_io () {
-    UnitIO io("../game_config.units");
-    int count = io.validate_and_count();
-    note_test_result (count > 0, "UnitIO validate and count");
-    io.parse_and_allocate();
-    if (print_level > 1) {
-        io.print_content();
-    }
-    summarize_test_results();
-}
-
-void test_unit_io_idempotency () {
-    test_unitio_idempotency("../game_config.units", "UnitIO idempotency");
-    summarize_test_results();
-}
-
 void test_unit_vector () {
-    UnitVectorTestSetup setup = setup_unit_vector_test("../game_config.units");
+    UnitVectorTestSetup setup = setup_unit_vector_test();
     if (setup.count == 0) {
-        note_test_result (false, "UnitVec test: no units found");
+        note_result (false, "UnitVec test: no units found");
         summarize_test_results();
         return;
     }
-    note_test_result (setup.uv->get_count() == setup.count, "UnitVec get_count");
-    UnitData data = setup.uv->get_unit(0);
+    note_result (setup.uv->get_count() == setup.count, "UnitVec get_count");
+    UnitInstance data = setup.uv->get_unit(0);
     verify_unit_data(data, "UnitVec basic");
-    note_test_result (data.strength == 0, "UnitVec get_unit strength (initial, not unlocked)");
+    note_result (data.strength == 0, "UnitVec get_unit strength (initial, not unlocked)");
     summarize_test_results();
 }
 
 void test_unit_vector_unlocked () {
-    UnitVectorTestSetup setup = setup_unit_vector_test("../game_config.units");
+    UnitVectorTestSetup setup = setup_unit_vector_test();
     if (setup.count == 0) {
-        note_test_result (false, "UnitVec unlocked test: no units found");
+        note_result (false, "UnitVec unlocked test: no units found");
         summarize_test_results();
         return;
     }
     TrainableAssessor assessor(setup.uv);
-    UnitData data1 = setup.uv->get_unit(0);
-    note_test_result (data1.strength == 0, "UnitVec get_unit strength (not unlocked)");
+    UnitInstance data1 = setup.uv->get_unit(0);
+    note_result (data1.strength == 0, "UnitVec get_unit strength (not unlocked)");
     setup.techs->set_bit(0);
     assessor.set_trainable(0);
-    UnitData data2 = setup.uv->get_unit(0);
-    note_test_result (data2.strength == UNLOCKED_STRENGTH, "UnitVec get_unit strength (unlocked)");
+    UnitInstance data2 = setup.uv->get_unit(0);
+    note_result (data2.strength == UNLOCKED_STRENGTH, "UnitVec get_unit strength (unlocked)");
     summarize_test_results();
 }
 
 void test_unit_vector_bounds () {
-    UnitVectorTestSetup setup = setup_unit_vector_test("../game_config.units");
+    UnitVectorTestSetup setup = setup_unit_vector_test();
     if (setup.count == 0) {
-        note_test_result (false, "UnitVec bounds test: no units found");
+        note_result (false, "UnitVec bounds test: no units found");
         summarize_test_results();
         return;
     }
@@ -342,9 +302,9 @@ void test_unit_vector_bounds () {
 }
 
 void test_unit_vector_multiple_indices () {
-    UnitVectorTestSetup setup = setup_unit_vector_test("../game_config.units");
+    UnitVectorTestSetup setup = setup_unit_vector_test();
     if (setup.count == 0) {
-        note_test_result (false, "UnitVec multiple indices test: no units found");
+        note_result (false, "UnitVec multiple indices test: no units found");
         summarize_test_results();
         return;
     }
@@ -353,9 +313,9 @@ void test_unit_vector_multiple_indices () {
 }
 
 void test_unit_vector_multiple_unlocks () {
-    UnitVectorTestSetup setup = setup_unit_vector_test("../game_config.units");
+    UnitVectorTestSetup setup = setup_unit_vector_test();
     if (setup.count == 0) {
-        note_test_result (false, "UnitVec multiple unlocks test: no units found");
+        note_result (false, "UnitVec multiple unlocks test: no units found");
         summarize_test_results();
         return;
     }
@@ -365,9 +325,9 @@ void test_unit_vector_multiple_unlocks () {
 }
 
 void test_unit_vector_strength_calc () {
-    UnitVectorTestSetup setup = setup_unit_vector_test("../game_config.units");
+    UnitVectorTestSetup setup = setup_unit_vector_test();
     if (setup.count == 0) {
-        note_test_result (false, "UnitVec strength calc test: no units found");
+        note_result (false, "UnitVec strength calc test: no units found");
         summarize_test_results();
         return;
     }
@@ -383,9 +343,9 @@ void test_unit_vector_strength_calc () {
 }
 
 void test_unit_vector_repeated_set_available () {
-    UnitVectorTestSetup setup = setup_unit_vector_test("../game_config.units");
+    UnitVectorTestSetup setup = setup_unit_vector_test();
     if (setup.count == 0) {
-        note_test_result (false, "UnitVec repeated set_trainable test: no units found");
+        note_result (false, "UnitVec repeated set_trainable test: no units found");
         summarize_test_results();
         return;
     }
@@ -398,59 +358,62 @@ void test_unit_vector_repeated_set_available () {
 }
 
 void test_unit_vector_get_count_consistency () {
-    UnitVectorTestSetup setup = setup_unit_vector_test("../game_config.units");
+    UnitVectorTestSetup setup = setup_unit_vector_test();
     if (setup.count == 0) {
-        note_test_result (false, "UnitVec get_count consistency test: no units found");
+        note_result (false, "UnitVec get_count consistency test: no units found");
         summarize_test_results();
         return;
     }
-    test_get_count_consistency(setup.io, setup.uv, "UnitVec get_count consistency");
+    u32 uv_count = setup.uv ? setup.uv->get_count() : 0;
+    u32 data_count = setup.count;
+    str msg = "UnitVec get_count consistency - matches UnitData count";
+    note_result (uv_count == data_count, msg.c_str());
     summarize_test_results();
 }
 
 void test_unit_vector_strength_with_different_units () {
-    UnitVectorTestSetup setup = setup_unit_vector_test("../game_config.units");
+    UnitVectorTestSetup setup = setup_unit_vector_test();
     if (setup.count == 0) {
-        note_test_result (false, "UnitVec strength different units test: no units found");
+        note_result (false, "UnitVec strength different units test: no units found");
         summarize_test_results();
         return;
     }
     TrainableAssessor assessor(setup.uv);
     for (u32 i = 0; i < setup.count && i < 5; i++) {
-        UnitData data_locked = setup.uv->get_unit(i);
-        cstr test_name = ("UnitVec strength different units idx " + std::to_string(i) + " locked").c_str();
-        verify_unit_strength(data_locked, false, test_name);
+        UnitInstance data_locked = setup.uv->get_unit(i);
+        str test_name_locked = "UnitVec strength different units idx " + std::to_string(i) + " locked";
+        verify_unit_strength(data_locked, false, test_name_locked.c_str());
         
         setup.techs->set_bit(i);
         assessor.set_trainable(i);
-        UnitData data_unlocked = setup.uv->get_unit(i);
+        UnitInstance data_unlocked = setup.uv->get_unit(i);
         str msg = "UnitVec strength different units idx " + std::to_string(i) + " unlocked";
-        note_test_result (data_unlocked.strength == UNLOCKED_STRENGTH, msg.c_str());
+        note_result (data_unlocked.strength == UNLOCKED_STRENGTH, msg.c_str());
     }
     summarize_test_results();
 }
 
 void test_unit_vector_all_locked_initially () {
-    UnitVectorTestSetup setup = setup_unit_vector_test("../game_config.units");
+    UnitVectorTestSetup setup = setup_unit_vector_test();
     if (setup.count == 0) {
-        note_test_result (false, "UnitVec all locked initially test: no units found");
+        note_result (false, "UnitVec all locked initially test: no units found");
         summarize_test_results();
         return;
     }
     u32 checked = 0;
     for (u32 i = 0; i < setup.count && checked < 10; i++) {
-        UnitData data = setup.uv->get_unit(i);
+        UnitInstance data = setup.uv->get_unit(i);
         str msg = "UnitVec all locked initially idx " + std::to_string(i);
-        note_test_result (data.strength == 0, msg.c_str());
+        note_result (data.strength == 0, msg.c_str());
         checked++;
     }
     summarize_test_results();
 }
 
 void test_unit_vector_strength_independent () {
-    UnitVectorTestSetup setup = setup_unit_vector_test("../game_config.units");
+    UnitVectorTestSetup setup = setup_unit_vector_test();
     if (setup.count < 3) {
-        note_test_result (false, "UnitVec strength independent test: need at least 3 units");
+        note_result (false, "UnitVec strength independent test: need at least 3 units");
         summarize_test_results();
         return;
     }
@@ -464,18 +427,18 @@ void test_unit_vector_strength_independent () {
     assessor.set_trainable(idx_a);
     assessor.set_trainable(idx_b);
     assessor.set_trainable(idx_c);
-    UnitData data_a = setup.uv->get_unit(idx_a);
-    UnitData data_b = setup.uv->get_unit(idx_b);
-    UnitData data_c = setup.uv->get_unit(idx_c);
-    note_test_result (data_a.strength == UNLOCKED_STRENGTH, "UnitVec strength independent - unit A");
-    note_test_result (data_b.strength == UNLOCKED_STRENGTH, "UnitVec strength independent - unit B");
-    note_test_result (data_c.strength == UNLOCKED_STRENGTH, "UnitVec strength independent - unit C");
+    UnitInstance data_a = setup.uv->get_unit(idx_a);
+    UnitInstance data_b = setup.uv->get_unit(idx_b);
+    UnitInstance data_c = setup.uv->get_unit(idx_c);
+    note_result (data_a.strength == UNLOCKED_STRENGTH, "UnitVec strength independent - unit A");
+    note_result (data_b.strength == UNLOCKED_STRENGTH, "UnitVec strength independent - unit B");
+    note_result (data_c.strength == UNLOCKED_STRENGTH, "UnitVec strength independent - unit C");
     uint16_t sum_a = data_a.stats.attack + data_a.stats.defense;
     uint16_t sum_b = data_b.stats.attack + data_b.stats.defense;
     uint16_t sum_c = data_c.stats.attack + data_c.stats.defense;
     bool different_stats = (sum_a != sum_b) || (sum_b != sum_c) || (sum_a != sum_c);
-    note_test_result (different_stats, "UnitVec strength independent - units have different attack+defense");
-    note_test_result (data_a.strength == data_b.strength && data_b.strength == data_c.strength,
+    note_result (different_stats, "UnitVec strength independent - units have different attack+defense");
+    note_result (data_a.strength == data_b.strength && data_b.strength == data_c.strength,
                       "UnitVec strength independent - all unlocked units same strength");
     summarize_test_results();
 }
@@ -488,9 +451,11 @@ int main (int argc, char* argv[]) {
     if (argc > 1) {
         print_level = std::atoi(argv[1]);
     }
-    
-    test_unit_io();
-    test_unit_io_idempotency();
+
+    TechData::load_static_data ("../game_config.techs");
+    ResourceData::load_static_data ("../game_config.resources");
+    UnitData::load_static_data ("../game_config.units");
+
     test_unit_vector();
     test_unit_vector_unlocked();
     test_unit_vector_bounds();
@@ -503,9 +468,9 @@ int main (int argc, char* argv[]) {
     test_unit_vector_all_locked_initially();
     test_unit_vector_strength_independent();
 
-    printf("\n=======================================================\n");
+    printf("=======================================================\n");
     printf(" TESTING UNITS: TOTAL FAILURES: %d/%d\n", total_test_fails, total_tests_run);
-    printf("======================================================\n\n");
+    printf("=======================================================\n");
 
     return total_test_fails;
 }
