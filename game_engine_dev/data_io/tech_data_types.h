@@ -2,36 +2,51 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef TRAINABLE_ASSESSOR_H
-#define TRAINABLE_ASSESSOR_H
+#ifndef TECH_DATA_TYPES_H
+#define TECH_DATA_TYPES_H
 
-#include <string>
+#include <cstdint>
 
-class UnitVector;
-class ResourceVector;
+#include "game_primitives.h"
 
 //================================================================================================================================
-//=> - TrainableAssessor class -
+//=> - Tech data types -
 //================================================================================================================================
 
-class TrainableAssessor {
-public:
+class TechIdx {
+    friend class TechData;
+    public:
+        TechIdx(const TechIdx&) = default;
+        TechIdx& operator=(const TechIdx&) = default;
+        ~TechIdx() = default;
 
-    TrainableAssessor ();
-    ~TrainableAssessor ();
+        TechIdx() : m_idx(0) {
+        }
 
-    void load_unit_resource_costs (const std::string& filename);
-    void determine_trainable_units (UnitVector* units, const ResourceVector& resources);
+        u32 get_idx() const { 
+            return m_idx; 
+        }
+        
+        bool operator==(const TechIdx& other) const { 
+            return m_idx == other.m_idx; 
+        }
+    
+    private:
+        TechIdx(u16 idx) : m_idx(idx) {
+        }
 
-    void print_unit_resource_costs ();
-
-private:
-    TrainableAssessor (const TrainableAssessor& other) = delete;
-    TrainableAssessor (TrainableAssessor&& other) = delete;
+        u16 m_idx;
 };
 
-#endif // TRAINABLE_ASSESSOR_H
+#define MAX_TECHS_PER_ENTITY 4
+
+typedef struct TechIndices {
+    TechIdx indices[MAX_TECHS_PER_ENTITY];
+} TechIndices;
+
+#endif // TECH_DATA_TYPES_H
 
 //================================================================================================================================
 //=> - End of file -
 //================================================================================================================================
+

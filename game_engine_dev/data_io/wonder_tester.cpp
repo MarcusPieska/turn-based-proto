@@ -40,13 +40,13 @@ void print_wonder_data () {
         const WonderTypeStats& wonder = wonders[i];
         
         printf("%s\n", wonder.name.c_str());
-        printf("  Cost: %u\n", static_cast<u32>(wonder.cost));
+        printf("  Cost: %u\n", wonder.cost);
         
-        if (wonder.tech_prereq_idx < tech_count) {
-            u16 idx = wonder.tech_prereq_idx;
-            printf("  Tech Prerequisite: %s (idx=%u)\n", techs[idx].name.c_str(), static_cast<u32>(idx));
+        u16 idx = wonder.tech_prereq_idx.get_idx();
+        if (idx < tech_count) {
+            printf("  Tech Prerequisite: %s (idx=%u)\n", techs[idx].name.c_str(), idx);
         } else {
-            printf("  Tech Prerequisite: <invalid index %u>\n", static_cast<u32>(wonder.tech_prereq_idx));
+            printf("  Tech Prerequisite: <invalid index %u>\n", idx);
         }
         
         bool has_reqs = false;
@@ -63,7 +63,7 @@ void print_wonder_data () {
             
             switch (req.type) {
                 case WONDER_REQ_FLAG: {
-                    u32 idx = static_cast<u32>(req.data.flag_req.flag_idx);
+                    u16 idx = req.data.flag_req.flag_idx;
                     if (idx < flag_count) {
                         printf("    - Flag (%s)\n", flags[idx].name.c_str());
                     } else {
@@ -72,7 +72,7 @@ void print_wonder_data () {
                     break;
                 }
                 case WONDER_REQ_RESOURCE: {
-                    u32 idx = static_cast<u32>(req.data.resource_req.resource_idx);
+                    u16 idx = req.data.resource_req.resource_idx;
                     if (idx < resource_count) {
                         printf("    - Resource (%s)\n", resources[idx].name.c_str());
                     } else {
@@ -81,8 +81,8 @@ void print_wonder_data () {
                     break;
                 }
                 case WONDER_REQ_BUILDING: {
-                    u32 idx = static_cast<u32>(req.data.building_req.building_idx);
-                    u32 ct = static_cast<u32>(req.data.building_req.count_required);
+                    u16 idx = req.data.building_req.building_idx;
+                    u16 ct = req.data.building_req.count_required;
                     if (idx < building_count) {
                         printf("    - Building (%s, count=%u)\n", buildings[idx].name.c_str(), ct);
                     } else {
@@ -91,7 +91,7 @@ void print_wonder_data () {
                     break;
                 }
                 default:
-                    printf("    - <unknown requirement type %u>\n", static_cast<u32>(req.type));
+                    printf("    - <unknown requirement type %u>\n", req.type);
                     break;
             }
         }
@@ -110,9 +110,9 @@ void print_wonder_data () {
 
 int main (int argc, char* argv[]) {
     TechData::load_static_data("../game_config.techs");
+    CityFlagData::load_static_data("../game_config.city_flags");
     ResourceData::load_static_data("../game_config.resources");
     BuildingData::load_static_data("../game_config.buildings");
-    CityFlagData::load_static_data("../game_config.city_flags");
     WonderData::load_static_data("../game_config.wonders");
 
     print_wonder_data();

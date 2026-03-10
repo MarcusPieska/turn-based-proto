@@ -6,13 +6,28 @@ INC="-I../ -I../misc"
 # Compile objects (Adding the path to files in misc)
 g++ $INC -c ../misc/str_mng.cpp -o str_mng.o
 g++ $INC -c ../misc/bit_array.cpp -o bit_array.o
+g++ $INC -c city_flags.cpp -o city_flags.o
 g++ $INC -c tech_data.cpp -o tech_data.o
 g++ $INC -c resource_data.cpp -o resource_data.o
 g++ $INC -c building_data.cpp -o building_data.o
 g++ $INC -c building_tester.cpp -o building_tester.o
 
 # Link everything into the final tester
-g++ -o building_tester str_mng.o bit_array.o tech_data.o resource_data.o building_data.o building_tester.o
+g++ -o building_tester \
+    str_mng.o \
+    bit_array.o \
+    city_flags.o \
+    tech_data.o \
+    resource_data.o \
+    building_data.o \
+    building_tester.o
 
 # Clean up
-rm str_mng.o bit_array.o tech_data.o resource_data.o building_data.o building_tester.o
+rm \
+    str_mng.o \
+    bit_array.o \
+    city_flags.o \
+    tech_data.o \
+    resource_data.o \
+    building_data.o \
+    building_tester.o

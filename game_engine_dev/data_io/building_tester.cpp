@@ -9,6 +9,7 @@
 #include "tech_data.h"
 #include "building_data.h"
 #include "resource_data.h"
+#include "city_flags.h"
 
 //================================================================================================================================
 //=> - Print functions -
@@ -24,6 +25,9 @@ void print_building_data () {
     u16 resource_count = ResourceData::get_resource_data_count();
     const ResourceTypeStats* resources = ResourceData::get_resource_data_array();
 
+    u16 flag_count = CityFlagData::get_flag_count();
+    const CityFlagStats* flags = CityFlagData::get_flag_data_array();
+
     printf("\n=======================================================\n");
     printf("BUILDINGS\n");
     printf("=======================================================\n\n");
@@ -34,35 +38,62 @@ void print_building_data () {
         printf("%s\n", b.name.c_str());
         printf("  Cost: %u\n", static_cast<u32>(b.cost));
 
-        if (b.tech_prereq_index < tech_count) {
-            u16 idx = b.tech_prereq_index;
-            printf("  Tech Prerequisite: %s (idx=%u)\n", techs[idx].name.c_str(), static_cast<u32>(idx));
+        u16 tech_idx = b.tech_prereq_idx.get_idx();
+        if (tech_idx < tech_count) {
+            printf("  Tech Prerequisite: %s (idx=%u)\n", techs[tech_idx].name.c_str(), tech_idx);
         } else {
-            printf("  Tech Prerequisite: <invalid index %u>\n", static_cast<u32>(b.tech_prereq_index));
+            printf("  Tech Prerequisite: <invalid index %u>\n", tech_idx);
         }
 
-        bool has_res = false;
-        for (u32 r = 0; r < MAX_RESOURCES_PER_ENTITY; ++r) {
-            u16 res_idx = b.resource_indices.indices[r];
-            if (res_idx == 0) {
+        bool has_reqs = false;
+        for (u32 r = 0; r < MAX_BUILDING_REQS; ++r) {
+            const BuildingRequirement& req = b.requirements[r];
+            if (req.type == BUILDING_REQ_NONE) {
                 continue;
             }
 
-            if (!has_res) {
-                printf("  Resources:\n");
-                has_res = true;
+            if (!has_reqs) {
+                printf("  Requirements:\n");
+                has_reqs = true;
             }
 
-            u32 idx = static_cast<u32>(res_idx);
-            if (idx < resource_count) {
-                printf("    - %s (idx=%u)\n", resources[idx].name.c_str(), idx);
-            } else {
-                printf("    - <invalid resource index %u>\n", idx);
+            switch (req.type) {
+                case BUILDING_REQ_FLAG: {
+                    u32 idx = static_cast<u32>(req.data.flag_req.flag_idx);
+                    if (idx < flag_count) {
+                        printf("    - Flag (%s)\n", flags[idx].name.c_str());
+                    } else {
+                        printf("    - Flag (<invalid index %u>)\n", idx);
+                    }
+                    break;
+                }
+                case BUILDING_REQ_RESOURCE: {
+                    u32 idx = static_cast<u32>(req.data.resource_req.resource_idx);
+                    if (idx < resource_count) {
+                        printf("    - Resource (%s)\n", resources[idx].name.c_str());
+                    } else {
+                        printf("    - Resource (<invalid index %u>)\n", idx);
+                    }
+                    break;
+                }
+                case BUILDING_REQ_BUILDING: {
+                    u32 idx = static_cast<u32>(req.data.building_req.building_idx);
+                    u32 ct = static_cast<u32>(req.data.building_req.count_required);
+                    if (idx < building_count) {
+                        printf("    - Building (%s, count=%u)\n", buildings[idx].name.c_str(), ct);
+                    } else {
+                        printf("    - Building (<invalid index %u>, count=%u)\n", idx, ct);
+                    }
+                    break;
+                }
+                default:
+                    printf("    - <unknown requirement type %u>\n", static_cast<u32>(req.type));
+                    break;
             }
         }
 
-        if (!has_res) {
-            printf("  Resources: None\n");
+        if (!has_reqs) {
+            printf("  Requirements: None\n");
         }
 
         printf("\n");
@@ -76,6 +107,7 @@ void print_building_data () {
 int main (int argc, char* argv[]) {
     TechData::load_static_data("../game_config.techs");
     ResourceData::load_static_data("../game_config.resources");
+    CityFlagData::load_static_data("../game_config.city_flags");
     BuildingData::load_static_data("../game_config.buildings");
 
     print_building_data();

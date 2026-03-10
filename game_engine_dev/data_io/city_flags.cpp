@@ -18,7 +18,7 @@
 //================================================================================================================================
 
 static CityFlagStats* flag_data_array = nullptr;
-static u32 flag_count = 0;
+static u16 flag_count = 0;
 
 //================================================================================================================================
 //=> - Public functions -
@@ -32,30 +32,26 @@ void CityFlagData::load_static_data (const std::string& filename) {
 }
 
 void CityFlagData::print_content () {
-    if (flag_data_array == nullptr || flag_count == 0) {
-        printf("City flag data not loaded.\n");
-        return;
-    }
-
-    for (u32 i = 0; i < flag_count; ++i) {
-        printf("Flag[%u]: %s\n", static_cast<u32>(i), flag_data_array[i].name.c_str());
+    printf("City flag data count: (total=%u)\n", flag_count);
+    for (u16 i = 0; i < flag_count; ++i) {
+        printf("Flag[%u]: %s\n", i, flag_data_array[i].name.c_str());
     }
 }
 
 u16 CityFlagData::find_flag_index (const std::string& flag_name) {
-    for (u32 i = 0; i < flag_count; ++i) {
+    for (u16 i = 0; i < flag_count; ++i) {
         if (flag_data_array[i].name == flag_name) {
-            return static_cast<u16>(i);
+            return i;
         }
     }
-
-    printf("CRITICAL ERROR: Flag %s not found\n", flag_name.c_str());
+    printf("ERROR: Flag %s not found\n", flag_name.c_str());
+    print_content();
     exit(1);
     return 0; // To make the compiler happy
 }
 
 u16 CityFlagData::get_flag_count () {
-    return static_cast<u16>(flag_count);
+    return flag_count;
 }
 
 const CityFlagStats* CityFlagData::get_flag_data_array () {
@@ -67,35 +63,31 @@ const CityFlagStats* CityFlagData::get_flag_data_array () {
 //================================================================================================================================
 
 void CityFlagData::parse_and_allocate (const std::string& filename) {
-    if (flag_data_array != nullptr) {
-        return;
-    }
-
     StringReader reader(filename);
     std::string content = reader.read();
     if (content.empty()) {
-        return;
+        printf("ERROR: No content found in file '%s'\n", filename.c_str());
+        exit(1);
     }
-
     StringSplitter line_splitter("\n");
     std::vector<std::string> lines = line_splitter.split(content);
     StringTrimmer trimmer(" \t\r\n");
 
-    u32 count = 0;
     for (size_t i = 0; i < lines.size(); ++i) {
         std::string line = trimmer.trim(lines[i]);
         if (!line.empty()) {
-            ++count;
+            ++flag_count;
         }
     }
-
-    if (count == 0) {
-        return;
+    if (flag_count == 0) {
+        printf("ERROR: No flags found in data file '%s'\n", filename.c_str());
+        exit(1);
     }
-
-    flag_count = count;
     flag_data_array = new CityFlagStats[flag_count];
-
+    if (flag_data_array == nullptr) {
+        printf("ERROR: Failed to allocate memory for %u flags\n", flag_count);
+        exit(1);
+    }
     u32 idx = 0;
     for (size_t i = 0; i < lines.size() && idx < flag_count; ++i) {
         std::string line = trimmer.trim(lines[i]);
@@ -103,6 +95,10 @@ void CityFlagData::parse_and_allocate (const std::string& filename) {
             continue;
         }
         flag_data_array[idx++].name = line;
+    }
+    if (idx != flag_count) {
+        printf("ERROR: Did not parse %u flags from data file '%s'\n", flag_count, filename.c_str());
+        exit(1);
     }
 }
 

@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <sstream>
 
+#include "city_flags.h"
 #include "resource_data.h"
 #include "tech_data.h"
 #include "building_data.h"
@@ -23,6 +24,7 @@
 
 typedef std::string str;
 
+cstr city_flag_path = "../game_config.city_flags";
 cstr res_path = "../game_config.resources";
 cstr tech_path = "../game_config.techs";
 cstr bld_path = "../game_config.buildings";
@@ -75,15 +77,15 @@ void summarize_test_results () {
 //================================================================================================================================
 
 struct BuildingVectorTestSetup {
-    BuildingVector* bv;
-    BitArrayCL* researched;
+    BuiltBuildings* built;
+    BuildableBuildings* buildable;
     u32 count;
     
-    BuildingVectorTestSetup () : bv(nullptr), researched(nullptr), count(0) {}
+    BuildingVectorTestSetup () : built(nullptr), buildable(nullptr), count(0) {}
     
     ~BuildingVectorTestSetup () {
-        delete bv;
-        delete researched;
+        delete built;
+        delete buildable;
     }
 };
 
@@ -91,8 +93,8 @@ BuildingVectorTestSetup setup_building_vector_test () {
     BuildingVectorTestSetup setup;
     setup.count = static_cast<u32>(BuildingData::get_building_data_count());
     if (setup.count > 0) {
-        setup.researched = new BitArrayCL(setup.count);
-        setup.bv = new BuildingVector(setup.researched);
+        setup.built = new BuiltBuildings();
+        setup.buildable = new BuildableBuildings();
     }
     return setup;
 }
@@ -102,140 +104,150 @@ void verify_building_stats (const BuildingTypeStats& stats, cstr test_name) {
     note_result (stats.cost > 0, test_name, " - cost > 0");
 }
 
-void verify_building_built_status (BuildingVector* bv, u32 idx, bool should_be_built, cstr test_name) {
-    bool is_built = bv->is_built(idx);
-    str msg = str(test_name) + " - is_built " + (should_be_built ? "true" : "false");
+void verify_building_built_status (BuiltBuildings* built, u32 idx, bool should_be_built, cstr test_name) {
+    bool is_built = built->has_been_built(idx);
+    str msg = str(test_name) + " - has_been_built " + (should_be_built ? "true" : "false");
     note_result (is_built == should_be_built, msg.c_str());
 }
 
-void verify_building_buildable_status (BuildingVector* bv, u32 idx, bool should_be_buildable, cstr test_name) {
-    bool is_buildable = bv->is_buildable(idx);
-    str msg = str(test_name) + " - is_buildable " + (should_be_buildable ? "true" : "false");
-    note_result (is_buildable == should_be_buildable, msg.c_str());
+void verify_building_buildable_status (BuildableBuildings* buildable, u32 idx, bool should_be_buildable, cstr test_name) {
+    bool can_build = buildable->can_build(idx);
+    str msg = str(test_name) + " - can_build " + (should_be_buildable ? "true" : "false");
+    note_result (can_build == should_be_buildable, msg.c_str());
 }
 
-void test_building_at_idx (BuildingVector* bv, u32 idx, cstr prefix) {
-    const BuildingTypeStats& stats = bv->get_building_stats(idx);
+void test_building_at_idx (BuiltBuildings* built, u32 idx, cstr prefix) {
+    const BuildingTypeStats* data = BuildingData::get_building_data_array();
+    const BuildingTypeStats& stats = data[idx];
     str test_name = str(prefix) + " - idx " + std::to_string(idx);
     verify_building_stats(stats, test_name.c_str());
-    verify_building_built_status(bv, idx, false, test_name.c_str());
+    verify_building_built_status(built, idx, false, test_name.c_str());
 }
 
-void test_bounds_get_building_stats (BuildingVector* bv, u32 count, cstr prefix) {
-    test_building_at_idx(bv, 0, prefix);
+void test_bounds_get_building_stats (BuiltBuildings* built, u32 count, cstr prefix) {
+    test_building_at_idx(built, 0, prefix);
     if (count > 1) {
-        test_building_at_idx(bv, count / 2, prefix);
-        test_building_at_idx(bv, count - 1, prefix);
+        test_building_at_idx(built, count / 2, prefix);
+        test_building_at_idx(built, count - 1, prefix);
     }
 }
 
-void test_bounds_set_built (BuildingVector* bv, u32 count, cstr prefix) {
-    bv->set_built(0);
+void test_bounds_set_built (BuiltBuildings* built, u32 count, cstr prefix) {
+    built->set_built(0);
     str msg1 = str(prefix) + " - set_built valid idx 0";
-    note_result (bv->is_built(0) == true, msg1.c_str());
+    note_result (built->has_been_built(0) == true, msg1.c_str());
     
     if (count > 1) {
-        bv->set_built(count - 1);
+        built->set_built(count - 1);
         str msg2 = str(prefix) + " - set_built valid idx (last)";
-        note_result (bv->is_built(count - 1) == true, msg2.c_str());
+        note_result (built->has_been_built(count - 1) == true, msg2.c_str());
     }
     
-    bv->set_built(count);
+    built->set_built(count);
     str msg3 = str(prefix) + " - set_built out of bounds (idx " + std::to_string(count) + ")";
     note_result (true, msg3.c_str(), " - no crash");
 }
 
-void test_bounds_clear_built (BuildingVector* bv, u32 count, cstr prefix) {
-    bv->set_built(0);
-    bv->clear_built(0);
+void test_bounds_clear_built (BuiltBuildings* built, u32 count, cstr prefix) {
+    built->set_built(0);
+    built->clear_built(0);
     str msg1 = str(prefix) + " - clear_built valid idx 0";
-    note_result (bv->is_built(0) == false, msg1.c_str());
+    note_result (built->has_been_built(0) == false, msg1.c_str());
     
     if (count > 1) {
-        bv->set_built(count - 1);
-        bv->clear_built(count - 1);
+        built->set_built(count - 1);
+        built->clear_built(count - 1);
         str msg2 = str(prefix) + " - clear_built valid idx (last)";
-        note_result (bv->is_built(count - 1) == false, msg2.c_str());
+        note_result (built->has_been_built(count - 1) == false, msg2.c_str());
     }
     
-    bv->clear_built(count);
+    built->clear_built(count);
     str msg3 = str(prefix) + " - clear_built out of bounds (idx " + std::to_string(count) + ")";
     note_result (true, msg3.c_str(), " - no crash");
 }
 
-void test_bounds_toggle_built (BuildingVector* bv, u32 count, cstr prefix) {
-    bool initial = bv->is_built(0);
-    bv->toggle_built(0);
+void test_bounds_toggle_built (BuiltBuildings* built, u32 count, cstr prefix) {
+    bool initial = built->has_been_built(0);
+    if (initial) {
+        built->clear_built(0);
+    } else {
+        built->set_built(0);
+    }
     str msg1 = str(prefix) + " - toggle_built valid idx 0";
-    note_result (bv->is_built(0) != initial, msg1.c_str());
+    note_result (built->has_been_built(0) != initial, msg1.c_str());
     
     if (count > 1) {
-        bool initial_last = bv->is_built(count - 1);
-        bv->toggle_built(count - 1);
+        bool initial_last = built->has_been_built(count - 1);
+        if (initial_last) {
+            built->clear_built(count - 1);
+        } else {
+            built->set_built(count - 1);
+        }
         str msg2 = str(prefix) + " - toggle_built valid idx (last)";
-        note_result (bv->is_built(count - 1) != initial_last, msg2.c_str());
+        note_result (built->has_been_built(count - 1) != initial_last, msg2.c_str());
     }
     
-    bv->toggle_built(count);
+    bool initial_oob = built->has_been_built(count);
+    if (initial_oob) {
+        built->clear_built(count);
+    } else {
+        built->set_built(count);
+    }
     str msg3 = str(prefix) + " - toggle_built out of bounds (idx " + std::to_string(count) + ")";
     note_result (true, msg3.c_str(), " - no crash");
 }
 
-void test_multiple_buildings (BuildingVector* bv, BitArrayCL* researched, u32 count, cstr prefix) {
-    researched->set_bit(0);
-    test_building_at_idx(bv, 0, (str(prefix) + " - building idx 0").c_str());
+void test_multiple_buildings (BuiltBuildings* built, u32 count, cstr prefix) {
+    test_building_at_idx(built, 0, (str(prefix) + " - building idx 0").c_str());
     
     if (count > 2) {
         u32 mid = count / 2;
-        researched->set_bit(mid);
-        test_building_at_idx(bv, mid, (str(prefix) + " - building idx " + std::to_string(mid)).c_str());
+        test_building_at_idx(built, mid, (str(prefix) + " - building idx " + std::to_string(mid)).c_str());
     }
     
     if (count > 1) {
-        researched->set_bit(count - 1);
-        test_building_at_idx(bv, count - 1, (str(prefix) + " - building idx " + std::to_string(count - 1)).c_str());
+        test_building_at_idx(built, count - 1, (str(prefix) + " - building idx " + std::to_string(count - 1)).c_str());
     }
 }
 
-void test_built_status_calc (BuildingVector* bv, u32 idx, cstr prefix) {
-    verify_building_built_status(bv, idx, false, (str(prefix) + " - not built initially").c_str());
+void test_built_status_calc (BuiltBuildings* built, u32 idx, cstr prefix) {
+    verify_building_built_status(built, idx, false, (str(prefix) + " - not built initially").c_str());
     
-    bv->set_built(idx);
-    verify_building_built_status(bv, idx, true, (str(prefix) + " - built after set_built").c_str());
+    built->set_built(idx);
+    verify_building_built_status(built, idx, true, (str(prefix) + " - built after set_built").c_str());
     
-    bv->clear_built(idx);
-    verify_building_built_status(bv, idx, false, (str(prefix) + " - not built after clear_built").c_str());
+    built->clear_built(idx);
+    verify_building_built_status(built, idx, false, (str(prefix) + " - not built after clear_built").c_str());
 }
 
-void test_repeated_set_built (BuildingVector* bv, u32 idx, cstr prefix) {
-    bv->set_built(idx);
-    bool status1 = bv->is_built(idx);
-    verify_building_built_status(bv, idx, true, (str(prefix) + " - first set_built").c_str());
+void test_repeated_set_built (BuiltBuildings* built, u32 idx, cstr prefix) {
+    built->set_built(idx);
+    bool status1 = built->has_been_built(idx);
+    verify_building_built_status(built, idx, true, (str(prefix) + " - first set_built").c_str());
     
-    bv->set_built(idx);
-    bool status2 = bv->is_built(idx);
-    verify_building_built_status(bv, idx, true, (str(prefix) + " - second set_built").c_str());
+    built->set_built(idx);
+    bool status2 = built->has_been_built(idx);
+    verify_building_built_status(built, idx, true, (str(prefix) + " - second set_built").c_str());
     
-    bv->set_built(idx);
-    bool status3 = bv->is_built(idx);
-    verify_building_built_status(bv, idx, true, (str(prefix) + " - third set_built").c_str());
+    built->set_built(idx);
+    bool status3 = built->has_been_built(idx);
+    verify_building_built_status(built, idx, true, (str(prefix) + " - third set_built").c_str());
     
     str msg = str(prefix) + " - repeated calls consistent";
     note_result (status1 == status2 && status2 == status3, msg.c_str());
 }
 
-void test_get_count_consistency (u32 data_count, BuildingVector* bv, cstr prefix) {
+void test_get_count_consistency (u32 data_count, u32 actual_count, cstr prefix) {
     i32 io_count = static_cast<i32>(data_count);
-    u32 bv_count = bv->get_count();
+    i32 actual = static_cast<i32>(actual_count);
     str msg = str(prefix) + " - get_count matches validate_and_count";
-    note_result (static_cast<i32>(bv_count) == io_count, msg.c_str());
+    note_result (actual == io_count, msg.c_str());
 }
 
 void test_buildingio_idempotency (cstr filename, cstr prefix) {
     BuildingData::load_static_data(filename);
     u16 count1 = BuildingData::get_building_data_count();
     
-    // Loading again should not change the count or corrupt data
     BuildingData::load_static_data(filename);
     u16 count2 = BuildingData::get_building_data_count();
     
@@ -243,70 +255,99 @@ void test_buildingio_idempotency (cstr filename, cstr prefix) {
     note_result (count1 == count2, msg.c_str());
 }
 
-void test_multiple_indices (BuildingVector* bv, u32 count, cstr prefix) {
-    test_building_at_idx(bv, 0, (str(prefix) + " - first").c_str());
+void test_multiple_indices (BuiltBuildings* built, u32 count, cstr prefix) {
+    test_building_at_idx(built, 0, (str(prefix) + " - first").c_str());
     
     if (count > 2) {
-        test_building_at_idx(bv, count / 2, (str(prefix) + " - middle").c_str());
+        test_building_at_idx(built, count / 2, (str(prefix) + " - middle").c_str());
     }
     
     if (count > 1) {
-        test_building_at_idx(bv, count - 1, (str(prefix) + " - last").c_str());
+        test_building_at_idx(built, count - 1, (str(prefix) + " - last").c_str());
     }
 }
 
-void test_buildable_logic (BuildingVector* bv, BitArrayCL* researched, u32 idx, cstr prefix) {
-    verify_building_buildable_status(bv, idx, false, (str(prefix) + " - initial state").c_str());
-    researched->set_bit(idx);
-    verify_building_buildable_status(bv, idx, false, (str(prefix) + " - researched but not unlocked").c_str());
+void test_buildable_logic (BuildableBuildings* buildable, u32 idx, cstr prefix) {
+    verify_building_buildable_status(buildable, idx, false, (str(prefix) + " - initial state").c_str());
+    verify_building_buildable_status(buildable, idx, false, (str(prefix) + " - not set buildable").c_str());
 }
 
-void test_built_independent (BuildingVector* bv, u32 count, cstr prefix) {
+void test_built_independent (BuiltBuildings* built, u32 count, cstr prefix) {
     u32 idx_a = 0;
     u32 idx_b = count / 2;
     u32 idx_c = count - 1;
     
-    bv->set_built(idx_a);
-    bv->set_built(idx_b);
-    bv->set_built(idx_c);
+    built->set_built(idx_a);
+    built->set_built(idx_b);
+    built->set_built(idx_c);
     
-    verify_building_built_status(bv, idx_a, true, (str(prefix) + " - building A").c_str());
-    verify_building_built_status(bv, idx_b, true, (str(prefix) + " - building B").c_str());
-    verify_building_built_status(bv, idx_c, true, (str(prefix) + " - building C").c_str());
+    verify_building_built_status(built, idx_a, true, (str(prefix) + " - building A").c_str());
+    verify_building_built_status(built, idx_b, true, (str(prefix) + " - building B").c_str());
+    verify_building_built_status(built, idx_c, true, (str(prefix) + " - building C").c_str());
     
-    bv->clear_built(idx_b);
-    verify_building_built_status(bv, idx_a, true, (str(prefix) + " - building A still built").c_str());
-    verify_building_built_status(bv, idx_b, false, (str(prefix) + " - building B cleared").c_str());
-    verify_building_built_status(bv, idx_c, true, (str(prefix) + " - building C still built").c_str());
+    built->clear_built(idx_b);
+    verify_building_built_status(built, idx_a, true, (str(prefix) + " - building A still built").c_str());
+    verify_building_built_status(built, idx_b, false, (str(prefix) + " - building B cleared").c_str());
+    verify_building_built_status(built, idx_c, true, (str(prefix) + " - building C still built").c_str());
 }
 
-void test_all_not_built_initially (BuildingVector* bv, u32 count, cstr prefix) {
+void test_all_not_built_initially (BuiltBuildings* built, u32 count, cstr prefix) {
     u32 checked = 0;
     for (u32 i = 0; i < count && checked < 10; i++) {
         str msg = str(prefix) + " - idx " + std::to_string(i);
-        verify_building_built_status(bv, i, false, msg.c_str());
+        verify_building_built_status(built, i, false, msg.c_str());
         checked++;
     }
 }
 
-void test_toggle_built_consistency (BuildingVector* bv, u32 idx, cstr prefix) {
-    bool initial = bv->is_built(idx);
-    bv->toggle_built(idx);
-    bool after_first = bv->is_built(idx);
+void test_toggle_built_consistency (BuiltBuildings* built, u32 idx, cstr prefix) {
+    bool initial = built->has_been_built(idx);
+    if (initial) {
+        built->clear_built(idx);
+    } else {
+        built->set_built(idx);
+    }
+    bool after_first = built->has_been_built(idx);
     note_result (after_first != initial, (str(prefix) + " - first toggle changes state").c_str());
     
-    bv->toggle_built(idx);
-    bool after_second = bv->is_built(idx);
+    if (after_first) {
+        built->clear_built(idx);
+    } else {
+        built->set_built(idx);
+    }
+    bool after_second = built->has_been_built(idx);
     note_result (after_second == initial, (str(prefix) + " - second toggle restores state").c_str());
     
-    bv->toggle_built(idx);
-    bool after_third = bv->is_built(idx);
+    if (after_second) {
+        built->clear_built(idx);
+    } else {
+        built->set_built(idx);
+    }
+    bool after_third = built->has_been_built(idx);
     note_result (after_third != initial, (str(prefix) + " - third toggle changes state again").c_str());
 }
 
 //================================================================================================================================
 //=> - Test functions -
 //================================================================================================================================
+
+void test_static_data_loaded_resource_data () {
+    u16 count = ResourceData::get_resource_data_count();
+    note_result (count > 2, "Static data validation: ResourceData count > 2");
+    summarize_test_results();
+}
+
+void test_static_data_loaded_tech_data () {
+    u16 count = TechData::get_tech_data_count();
+    note_result (count > 2, "Static data validation: TechData count > 2");
+    summarize_test_results();
+}
+
+void test_static_data_loaded_building_data () {
+    u16 count = BuildingData::get_building_data_count();
+    note_result (count > 2, "Static data validation: BuildingData count > 2");
+    summarize_test_results();
+}
 
 void test_building_io () {
     BuildingData::load_static_data(bld_path);
@@ -325,59 +366,61 @@ void test_building_io_idempotency () {
 
 void test_building_vector () {
     BuildingVectorTestSetup setup = setup_building_vector_test();
-    note_result (setup.bv->get_count() == setup.count, "BuildingVec get_count");
-    const BuildingTypeStats& stats = setup.bv->get_building_stats(0);
+    u32 data_count = static_cast<u32>(BuildingData::get_building_data_count());
+    note_result (data_count == setup.count, "BuildingVec count");
+    const BuildingTypeStats* data = BuildingData::get_building_data_array();
+    const BuildingTypeStats& stats = data[0];
     verify_building_stats(stats, "BuildingVec basic");
-    verify_building_built_status(setup.bv, 0, false, "BuildingVec is_built (initial, not built)");
+    verify_building_built_status(setup.built, 0, false, "BuildingVec has_been_built (initial, not built)");
     summarize_test_results();
 }
 
 void test_building_vector_built () {
     BuildingVectorTestSetup setup = setup_building_vector_test();
-    verify_building_built_status(setup.bv, 0, false, "BuildingVec is_built (not built)");
-    setup.bv->set_built(0);
-    verify_building_built_status(setup.bv, 0, true, "BuildingVec is_built (built)");
+    verify_building_built_status(setup.built, 0, false, "BuildingVec has_been_built (not built)");
+    setup.built->set_built(0);
+    verify_building_built_status(setup.built, 0, true, "BuildingVec has_been_built (built)");
     summarize_test_results();
 }
 
 void test_building_vector_bounds () {
     BuildingVectorTestSetup setup = setup_building_vector_test();
-    test_bounds_get_building_stats(setup.bv, setup.count, "BuildingVec bounds get_building_stats");
-    test_bounds_set_built(setup.bv, setup.count, "BuildingVec bounds set_built");
-    test_bounds_clear_built(setup.bv, setup.count, "BuildingVec bounds clear_built");
-    test_bounds_toggle_built(setup.bv, setup.count, "BuildingVec bounds toggle_built");
+    test_bounds_get_building_stats(setup.built, setup.count, "BuildingVec bounds get_building_stats");
+    test_bounds_set_built(setup.built, setup.count, "BuildingVec bounds set_built");
+    test_bounds_clear_built(setup.built, setup.count, "BuildingVec bounds clear_built");
+    test_bounds_toggle_built(setup.built, setup.count, "BuildingVec bounds toggle_built");
     summarize_test_results();
 }
 
 void test_building_vector_multiple_indices () {
     BuildingVectorTestSetup setup = setup_building_vector_test();
-    test_multiple_indices(setup.bv, setup.count, "BuildingVec multiple indices");
+    test_multiple_indices(setup.built, setup.count, "BuildingVec multiple indices");
     summarize_test_results();
 }
 
 void test_building_vector_multiple_buildings () {
     BuildingVectorTestSetup setup = setup_building_vector_test();
-    test_multiple_buildings(setup.bv, setup.researched, setup.count, "BuildingVec multiple buildings");
+    test_multiple_buildings(setup.built, setup.count, "BuildingVec multiple buildings");
     summarize_test_results();
 }
 
 void test_building_vector_built_status_calc () {
     BuildingVectorTestSetup setup = setup_building_vector_test();
-    test_built_status_calc(setup.bv, 0, "BuildingVec built status calc idx 0");
+    test_built_status_calc(setup.built, 0, "BuildingVec built status calc idx 0");
     if (setup.count > 1) {
-        test_built_status_calc(setup.bv, setup.count - 1, "BuildingVec built status calc idx last");
+        test_built_status_calc(setup.built, setup.count - 1, "BuildingVec built status calc idx last");
     }
     if (setup.count > 2) {
-        test_built_status_calc(setup.bv, setup.count / 2, "BuildingVec built status calc idx middle");
+        test_built_status_calc(setup.built, setup.count / 2, "BuildingVec built status calc idx middle");
     }
     summarize_test_results();
 }
 
 void test_building_vector_repeated_set_built () {
     BuildingVectorTestSetup setup = setup_building_vector_test();
-    test_repeated_set_built(setup.bv, 0, "BuildingVec repeated set_built idx 0");
+    test_repeated_set_built(setup.built, 0, "BuildingVec repeated set_built idx 0");
     if (setup.count > 1) {
-        test_repeated_set_built(setup.bv, setup.count - 1, "BuildingVec repeated set_built idx last");
+        test_repeated_set_built(setup.built, setup.count - 1, "BuildingVec repeated set_built idx last");
     }
     summarize_test_results();
 }
@@ -385,25 +428,25 @@ void test_building_vector_repeated_set_built () {
 void test_building_vector_get_count_consistency () {
     BuildingVectorTestSetup setup = setup_building_vector_test();
     u32 data_count = static_cast<u32>(BuildingData::get_building_data_count());
-    test_get_count_consistency(data_count, setup.bv, "BuildingVec get_count consistency");
+    test_get_count_consistency(data_count, setup.count, "BuildingVec get_count consistency");
     summarize_test_results();
 }
 
 void test_building_vector_built_with_different_buildings () {
     BuildingVectorTestSetup setup = setup_building_vector_test();
     for (u32 i = 0; i < setup.count && i < 5; i++) {
-        verify_building_built_status(setup.bv, i, false, ("BuildingVec locked idx " + std::to_string(i)).c_str());
+        verify_building_built_status(setup.built, i, false, ("BuildingVec locked idx " + std::to_string(i)).c_str());
         
-        setup.bv->set_built(i);
+        setup.built->set_built(i);
         str msg = "BuildingVec built different buildings idx " + std::to_string(i) + " built";
-        verify_building_built_status(setup.bv, i, true, msg.c_str());
+        verify_building_built_status(setup.built, i, true, msg.c_str());
     }
     summarize_test_results();
 }
 
 void test_building_vector_all_not_built_initially () {
     BuildingVectorTestSetup setup = setup_building_vector_test();
-    test_all_not_built_initially(setup.bv, setup.count, "BuildingVec all not built initially");
+    test_all_not_built_initially(setup.built, setup.count, "BuildingVec all not built initially");
     summarize_test_results();
 }
 
@@ -414,47 +457,44 @@ void test_building_vector_built_independent () {
         summarize_test_results();
         return;
     }
-    test_built_independent(setup.bv, setup.count, "BuildingVec built independent");
+    test_built_independent(setup.built, setup.count, "BuildingVec built independent");
     summarize_test_results();
 }
 
 void test_building_vector_toggle_consistency () {
     BuildingVectorTestSetup setup = setup_building_vector_test();
-    test_toggle_built_consistency(setup.bv, 0, "BuildingVec toggle consistency idx 0");
+    test_toggle_built_consistency(setup.built, 0, "BuildingVec toggle consistency idx 0");
     if (setup.count > 1) {
-        test_toggle_built_consistency(setup.bv, setup.count - 1, "BuildingVec toggle consistency idx last");
+        test_toggle_built_consistency(setup.built, setup.count - 1, "BuildingVec toggle consistency idx last");
     }
     summarize_test_results();
 }
 
 void test_building_vector_save_load () {
     BuildingVectorTestSetup setup = setup_building_vector_test();
-    setup.bv->set_built(0);
+    setup.built->set_built(0);
     if (setup.count > 1) {
-        setup.bv->set_built(setup.count - 1);
+        setup.built->set_built(setup.count - 1);
     }
     str filename = "building_vector_test.temp";
-    setup.bv->save(filename);
+    setup.built->save(filename);
     
-    BitArrayCL* researched2 = new BitArrayCL(setup.count);
-    BuildingVector bv2(researched2);
-    bv2.load(filename);
+    BuiltBuildings built2;
+    built2.load(filename);
     
-    note_result (bv2.is_built(0) == setup.bv->is_built(0), "BuildingVec save/load consistency idx 0");
+    note_result (built2.has_been_built(0) == setup.built->has_been_built(0), "BuildingVec save/load consistency idx 0");
     if (setup.count > 1) {
-        note_result (bv2.is_built(setup.count - 1) == setup.bv->is_built(setup.count - 1), "BuildingVec save/load consistency");
+        note_result (built2.has_been_built(setup.count - 1) == setup.built->has_been_built(setup.count - 1), "BuildingVec save/load consistency");
     }
     
-    delete researched2;
     summarize_test_results();
 }
 
 void test_building_vector_buildable_logic () {
     BuildingVectorTestSetup setup = setup_building_vector_test();
     u32 idx = 0;
-    verify_building_buildable_status(setup.bv, idx, false, "BuildingVec buildable logic - initial");
-    setup.researched->set_bit(idx);
-    verify_building_buildable_status(setup.bv, idx, false, "BuildingVec buildable logic - researched but not unlocked");
+    verify_building_buildable_status(setup.buildable, idx, false, "BuildingVec buildable logic - initial");
+    verify_building_buildable_status(setup.buildable, idx, false, "BuildingVec buildable logic - not set buildable");
     summarize_test_results();
 }
 
@@ -467,10 +507,14 @@ int main (int argc, char* argv[]) {
         print_level = std::atoi(argv[1]);
     }
     
-    ResourceData::load_static_data(res_path);
+    CityFlagData::load_static_data(city_flag_path);
     TechData::load_static_data(tech_path);
+    ResourceData::load_static_data(res_path);
     BuildingData::load_static_data(bld_path);
 
+    test_static_data_loaded_resource_data();
+    test_static_data_loaded_tech_data();
+    test_static_data_loaded_building_data();
     test_building_io();
     test_building_io_idempotency();
     test_building_vector();

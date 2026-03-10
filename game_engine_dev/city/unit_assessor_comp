@@ -1,0 +1,71 @@
+#!/bin/bash
+
+# Define the include path for the compiler
+INC="-I../ \
+     -I../misc \
+     -I../data_io \
+     -I../resources \
+     -I../buildings \
+     -I../units \
+     -I../city"
+
+# Compile objects (Adding the path to files in misc)
+g++ $INC -c ../misc/str_mng.cpp -o str_mng.o
+g++ $INC -c ../misc/bit_array.cpp -o bit_array.o
+g++ $INC -c ../data_io/city_flags.cpp -o city_flags.o
+g++ $INC -c ../data_io/tech_data.cpp -o tech_data.o
+g++ $INC -c ../data_io/resource_data.cpp -o resource_data.o
+g++ $INC -c ../data_io/building_data.cpp -o building_data.o
+g++ $INC -c ../data_io/unit_data.cpp -o unit_data.o
+g++ $INC -c ../resources/resources_vector.cpp -o resources_vector.o
+g++ $INC -c ../buildings/building_vector.cpp -o building_vector.o
+g++ $INC -c ../units/unit_vector.cpp -o unit_vector.o
+g++ $INC -c unit_assessor.cpp -o unit_assessor.o
+g++ $INC -c unit_assessor_tester.cpp -o unit_assessor_tester.o
+g++ $INC -c unit_assessor_tester_brute_rev.cpp -o unit_assessor_tester_brute_rev.o
+
+# Link everything into the final tester
+g++ -o unit_assessor_tester \
+    str_mng.o \
+    bit_array.o \
+    city_flags.o \
+    tech_data.o \
+    resource_data.o \
+    building_data.o \
+    unit_data.o \
+    unit_vector.o \
+    resources_vector.o \
+    building_vector.o \
+    unit_assessor.o \
+    unit_assessor_tester.o
+
+# Link everything into the final tester
+g++ -o unit_assessor_tester_brute_rev \
+    str_mng.o \
+    bit_array.o \
+    city_flags.o \
+    tech_data.o \
+    resource_data.o \
+    building_data.o \
+    unit_data.o \
+    unit_vector.o \
+    resources_vector.o \
+    building_vector.o \
+    unit_assessor.o \
+    unit_assessor_tester_brute_rev.o
+
+# Clean up
+rm \
+    str_mng.o \
+    bit_array.o \
+    city_flags.o \
+    tech_data.o \
+    resource_data.o \
+    building_data.o \
+    unit_data.o \
+    unit_vector.o \
+    resources_vector.o \
+    building_vector.o \
+    unit_assessor.o \
+    unit_assessor_tester.o \
+    unit_assessor_tester_brute_rev.o

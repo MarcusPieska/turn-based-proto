@@ -10,6 +10,7 @@
 #include <cstdint>
 
 #include "game_primitives.h"
+#include "tech_data_types.h"
 
 //================================================================================================================================
 //=> - BuildingTypeStats struct -
@@ -31,7 +32,7 @@ class TechData {
 public:
     static void load_static_data (const std::string& filename);
     static void print_content ();
-    static u16 find_tech_index (const std::string& tech_name);
+    static TechIdx find_tech_index (const std::string& tech_name);
     static u16 get_tech_data_count ();
     static const TechTypeStats* get_tech_data_array ();
 

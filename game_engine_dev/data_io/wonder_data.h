@@ -9,6 +9,9 @@
 #include <iosfwd>
 #include <cstdint>
 
+#include "tech_data_types.h"
+#include "wonder_data_types.h"
+
 #include "game_primitives.h"
 
 //================================================================================================================================
@@ -29,7 +32,6 @@ enum WonderReqType : u16 {
     WONDER_REQ_RESOURCE = 2,
     WONDER_REQ_BUILDING = 3
 };
-
 
 struct WonderReqFlag {
     u16 flag_idx;
@@ -59,8 +61,8 @@ struct WonderRequirement {
 
 struct WonderTypeStats {
     std::string name;
-    u32 cost;
-    u16 tech_prereq_idx;
+    u16 cost;
+    TechIdx tech_prereq_idx;
     WonderRequirement requirements[MAX_WONDER_REQS];
 };
 
@@ -72,6 +74,7 @@ class WonderData {
 public:
     static void load_static_data (const std::string& filename);
     static void print_content ();
+    static u16 find_wonder_index (const std::string& wonder_name);
     static u16 get_wonder_data_count ();
     static const WonderTypeStats* get_wonder_data_array ();
 

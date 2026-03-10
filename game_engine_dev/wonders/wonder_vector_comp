@@ -15,8 +15,7 @@ g++ $INC -c wonder_vector.cpp -o wonder_vector.o
 g++ $INC -c wonder_vector_tester.cpp -o wonder_vector_tester.o
 
 # Link everything into the final tester
-g++ -o \
-    wonder_vector_tester \
+g++ -o wonder_vector_tester \
     str_mng.o \
     bit_array.o \
     tech_data.o \

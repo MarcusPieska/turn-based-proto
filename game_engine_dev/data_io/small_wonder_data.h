@@ -10,6 +10,7 @@
 #include <cstdint>
 
 #include "game_primitives.h"
+#include "tech_data_types.h"
 
 //================================================================================================================================
 //=> - Forward declarations and constants -
@@ -24,10 +25,10 @@ static const u32 MAX_WONDER_SMALL_REQS = 4;
 //================================================================================================================================
 
 enum SmallWonderReqType : u16 {
-    WONDER_REQ_NONE = 0,
-    WONDER_REQ_FLAG = 1,
-    WONDER_REQ_RESOURCE = 2,
-    WONDER_REQ_BUILDING = 3
+    SMALL_WONDER_REQ_NONE = 0,
+    SMALL_WONDER_REQ_FLAG = 1,
+    SMALL_WONDER_REQ_RESOURCE = 2,
+    SMALL_WONDER_REQ_BUILDING = 3
 };
 
 
@@ -60,7 +61,7 @@ struct SmallWonderRequirement {
 struct SmallWonderTypeStats {
     std::string name;
     u32 cost;
-    u16 tech_prereq_idx;
+    TechIdx tech_prereq_idx;
     SmallWonderRequirement requirements[MAX_WONDER_SMALL_REQS];
 };
 
@@ -72,8 +73,9 @@ class SmallWonderData {
 public:
     static void load_static_data (const std::string& filename);
     static void print_content ();
-    static u16 get_wonder_data_count ();
-    static const SmallWonderTypeStats* get_wonder_data_array ();
+    static u16 find_wonder_index (const std::string& wonder_name);
+    static u16 get_small_wonder_data_count ();
+    static const SmallWonderTypeStats* get_small_wonder_data_array ();
 
 private:
     static u16 validate_and_count (const std::string& filename);

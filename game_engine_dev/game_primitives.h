@@ -24,16 +24,6 @@ typedef struct EffectIndices {
     u16 indices[MAX_EFFECTS_PER_ENTITY];
 } EffectIndices;
 
-#define MAX_RESOURCES_PER_ENTITY 4
-typedef struct ResourceIndices {
-    u16 indices[MAX_RESOURCES_PER_ENTITY];
-} ResourceIndices;
-
-#define MAX_TECHS_PER_ENTITY 4
-typedef struct TechIndices {
-    u16 indices[MAX_TECHS_PER_ENTITY];
-} TechIndices;
-
 #endif // GAME_PRIMITIVES_H
 
 //================================================================================================================================

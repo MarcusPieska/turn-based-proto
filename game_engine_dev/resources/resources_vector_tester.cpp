@@ -9,8 +9,10 @@
 #include <stdexcept>
 #include <sstream>
 
-#include "resources_vector.h"
 #include "bit_array.h"
+#include "tech_data.h"
+#include "resource_data.h"
+#include "resources_vector.h"
 
 //================================================================================================================================
 //=> - Globals -
@@ -38,7 +40,7 @@ void note_test_result (bool cond, cstr msg) {
         if (print_level > 1) {
             printf("*** TEST PASSED: %s\n", msg);
         }
-    } else if (print_level > 0) {
+    } else  {
         total_test_fails++;
         printf("*** TEST FAILED: %s\n", msg);
     }
@@ -66,25 +68,21 @@ void summarize_test_results () {
 //================================================================================================================================
 
 struct ResourceVectorTestSetup {
-    ResourceIO* io;
     BitArrayCL* resources_available;
     ResourceVector* rv;
     uint32_t count;
     
-    ResourceVectorTestSetup () : io(nullptr), resources_available(nullptr), rv(nullptr), count(0) {}
+    ResourceVectorTestSetup () : resources_available(nullptr), rv(nullptr), count(0) {}
     
     ~ResourceVectorTestSetup () {
         delete rv;
         delete resources_available;
-        delete io;
     }
 };
 
-ResourceVectorTestSetup setup_resource_vector_test (const char* filename) {
+ResourceVectorTestSetup setup_resource_vector_test () {
     ResourceVectorTestSetup setup;
-    setup.io = new ResourceIO(filename);
-    setup.io->parse_and_allocate();
-    setup.count = static_cast<uint32_t>(setup.io->validate_and_count());
+    setup.count = static_cast<uint32_t>(ResourceData::get_resource_data_count());
     if (setup.count > 0) {
         setup.resources_available = new BitArrayCL(setup.count);
         setup.rv = new ResourceVector(setup.count, setup.resources_available);
@@ -92,41 +90,28 @@ ResourceVectorTestSetup setup_resource_vector_test (const char* filename) {
     return setup;
 }
 
-void verify_resource_data (const ResourceData& data, const char* test_name) {
-    note_test_result (!data.stats.name.empty(), test_name, " - name not empty");
-    note_test_result (data.stats.food >= 0, test_name, " - food >= 0");
-    note_test_result (data.stats.shields >= 0, test_name, " - shields >= 0");
-    note_test_result (data.stats.income >= 0, test_name, " - income >= 0");
+void verify_resource_data (const ResourceTypeStats& stats, const char* test_name) {
+    note_test_result (!stats.name.empty(), test_name, " - name not empty");
+    note_test_result (stats.bonus_food >= 0, test_name, " - bonus_food >= 0");
+    note_test_result (stats.bonus_shields >= 0, test_name, " - bonus_shields >= 0");
+    note_test_result (stats.bonus_commerce >= 0, test_name, " - bonus_commerce >= 0");
 }
 
 void test_resource_at_index (ResourceVector* rv, uint32_t index, const char* test_prefix) {
-    if (rv == nullptr) {
-        note_test_result (false, test_prefix, " - ResourceVector is null");
-        return;
-    }
-    ResourceData data = rv->get_resource(index);
+    ResourceTypeStats stats = rv->get_resource(index);
     str test_name = str(test_prefix) + " - index " + std::to_string(index);
-    verify_resource_data(data, test_name.c_str());
+    verify_resource_data(stats, test_name.c_str());
 }
 
-void test_bounds_get_resource (ResourceVector* rv, uint32_t count, const char* test_prefix) {
-    if (rv == nullptr || count == 0) {
-        return;
-    }
+void test_get_resource_valid_indices (ResourceVector* rv, uint32_t count, const char* test_prefix) {
     test_resource_at_index(rv, 0, test_prefix);
     if (count > 1) {
         test_resource_at_index(rv, count / 2, test_prefix);
         test_resource_at_index(rv, count - 1, test_prefix);
     }
-    ResourceData data_oob = rv->get_resource(count);
-    str msg = str(test_prefix) + " - get_resource out of bounds (index " + std::to_string(count) + ")";
-    note_test_result (true, msg.c_str(), " - no crash");
 }
 
 void test_bounds_set_available (ResourceVector* rv, uint32_t count, const char* test_prefix) {
-    if (rv == nullptr || count == 0) {
-        return;
-    }
     rv->set_available(0);
     str msg1 = str(test_prefix) + " - set_available valid index 0";
     note_test_result (true, msg1.c_str());
@@ -143,74 +128,49 @@ void test_bounds_set_available (ResourceVector* rv, uint32_t count, const char* 
 }
 
 void test_multiple_available (ResourceVector* rv, uint32_t count, const char* test_prefix) {
-    if (rv == nullptr || count == 0) {
-        return;
-    }
     rv->set_available(0);
-    ResourceData data0 = rv->get_resource(0);
-    verify_resource_data(data0, (str(test_prefix) + " - available index 0").c_str());
+    ResourceTypeStats stats0 = rv->get_resource(0);
+    verify_resource_data(stats0, (str(test_prefix) + " - available index 0").c_str());
     
     if (count > 2) {
         uint32_t mid = count / 2;
         rv->set_available(mid);
-        ResourceData data_mid = rv->get_resource(mid);
-        verify_resource_data(data_mid, (str(test_prefix) + " - available index " + std::to_string(mid)).c_str());
+        ResourceTypeStats stats_mid = rv->get_resource(mid);
+        verify_resource_data(stats_mid, (str(test_prefix) + " - available index " + std::to_string(mid)).c_str());
     }
     
     if (count > 1) {
         rv->set_available(count - 1);
-        ResourceData data_last = rv->get_resource(count - 1);
-        verify_resource_data(data_last, (str(test_prefix) + " - available index " + std::to_string(count - 1)).c_str());
+        ResourceTypeStats stats_last = rv->get_resource(count - 1);
+        verify_resource_data(stats_last, (str(test_prefix) + " - available index " + std::to_string(count - 1)).c_str());
     }
 }
 
 void test_repeated_set_available (ResourceVector* rv, uint32_t index, const char* test_prefix) {
-    if (rv == nullptr) {
-        return;
-    }
     rv->set_available(index);
-    ResourceData data1 = rv->get_resource(index);
-    verify_resource_data(data1, (str(test_prefix) + " - first set").c_str());
+    ResourceTypeStats stats1 = rv->get_resource(index);
+    verify_resource_data(stats1, (str(test_prefix) + " - first set").c_str());
     
     rv->set_available(index);
-    ResourceData data2 = rv->get_resource(index);
-    verify_resource_data(data2, (str(test_prefix) + " - second set").c_str());
+    ResourceTypeStats stats2 = rv->get_resource(index);
+    verify_resource_data(stats2, (str(test_prefix) + " - second set").c_str());
     
     rv->set_available(index);
-    ResourceData data3 = rv->get_resource(index);
-    verify_resource_data(data3, (str(test_prefix) + " - third set").c_str());
+    ResourceTypeStats stats3 = rv->get_resource(index);
+    verify_resource_data(stats3, (str(test_prefix) + " - third set").c_str());
     
     str msg = str(test_prefix) + " - repeated calls consistent";
-    note_test_result (data1.stats.name == data2.stats.name && data2.stats.name == data3.stats.name, msg.c_str());
+    note_test_result (stats1.name == stats2.name && stats2.name == stats3.name, msg.c_str());
 }
 
-void test_get_count_consistency (ResourceIO* io, ResourceVector* rv, const char* test_prefix) {
-    if (io == nullptr || rv == nullptr) {
-        return;
-    }
-    int io_count = io->validate_and_count();
+void test_get_count_consistency (ResourceVector* rv, const char* test_prefix) {
+    u16 data_count = ResourceData::get_resource_data_count();
     uint32_t rv_count = rv->get_count();
-    str msg = str(test_prefix) + " - get_count matches validate_and_count";
-    note_test_result (static_cast<int>(rv_count) == io_count, msg.c_str());
-}
-
-void test_resourceio_idempotency (const char* filename, const char* test_prefix) {
-    ResourceIO io1(filename);
-    int count1 = io1.validate_and_count();
-    io1.parse_and_allocate();
-    
-    ResourceIO io2(filename);
-    int count2 = io2.validate_and_count();
-    io2.parse_and_allocate();
-    
-    str msg = str(test_prefix) + " - parse_and_allocate idempotent";
-    note_test_result (count1 == count2, msg.c_str());
+    str msg = str(test_prefix) + " - get_count matches ResourceData::get_resource_data_count";
+    note_test_result (static_cast<u16>(rv_count) == data_count, msg.c_str());
 }
 
 void test_multiple_indices (ResourceVector* rv, uint32_t count, const char* test_prefix) {
-    if (rv == nullptr || count == 0) {
-        return;
-    }
     test_resource_at_index(rv, 0, (str(test_prefix) + " - first").c_str());
     
     if (count > 2) {
@@ -223,124 +183,170 @@ void test_multiple_indices (ResourceVector* rv, uint32_t count, const char* test
 }
 
 void test_resource_stats_variety (ResourceVector* rv, uint32_t count, const char* test_prefix) {
-    if (rv == nullptr || count < 3) {
-        return;
-    }
     uint32_t idx_a = 0;
     uint32_t idx_b = count / 2;
     uint32_t idx_c = count - 1;
-    ResourceData data_a = rv->get_resource(idx_a);
-    ResourceData data_b = rv->get_resource(idx_b);
-    ResourceData data_c = rv->get_resource(idx_c);
+    ResourceTypeStats r1 = rv->get_resource(idx_a);
+    ResourceTypeStats r2 = rv->get_resource(idx_b);
+    ResourceTypeStats r3 = rv->get_resource(idx_c);
     
-    bool different_food = (data_a.stats.food != data_b.stats.food) || (data_b.stats.food != data_c.stats.food) || (data_a.stats.food != data_c.stats.food);
-    bool different_shields = (data_a.stats.shields != data_b.stats.shields) || (data_b.stats.shields != data_c.stats.shields) || (data_a.stats.shields != data_c.stats.shields);
-    bool different_income = (data_a.stats.income != data_b.stats.income) || (data_b.stats.income != data_c.stats.income) || (data_a.stats.income != data_c.stats.income);
+    bool diff_food = (r1.bonus_food != r2.bonus_food) || 
+                     (r2.bonus_food != r3.bonus_food) || 
+                     (r1.bonus_food != r3.bonus_food);
+
+    bool diff_shields = (r1.bonus_shields != r2.bonus_shields) || 
+                        (r2.bonus_shields != r3.bonus_shields) || 
+                        (r1.bonus_shields != r3.bonus_shields);
+
+    bool diff_comm = (r1.bonus_commerce != r2.bonus_commerce) || 
+                     (r2.bonus_commerce != r3.bonus_commerce) || 
+                     (r1.bonus_commerce != r3.bonus_commerce);
     
-    note_test_result (different_food || different_shields || different_income, 
-                      (str(test_prefix) + " - resources have varied stats").c_str());
+    note_test_result (diff_food || diff_shields || diff_comm, (str(test_prefix) + " - resources have varied stats").c_str());
+}
+
+void test_is_available_initial_state (ResourceVector* rv, uint32_t count, const char* test_prefix) {
+    bool available_0 = rv->is_available(0);
+    note_test_result (!available_0, test_prefix, " - index 0 initially unavailable");
+    
+    if (count > 1) {
+        bool available_last = rv->is_available(count - 1);
+        note_test_result (!available_last, test_prefix, " - last index initially unavailable");
+    }
+    
+    if (count > 2) {
+        bool available_mid = rv->is_available(count / 2);
+        note_test_result (!available_mid, test_prefix, " - middle index initially unavailable");
+    }
+}
+
+void test_is_available_after_set (ResourceVector* rv, uint32_t count, const char* test_prefix) {
+    rv->set_available(0);
+    bool available_0 = rv->is_available(0);
+    note_test_result (available_0, test_prefix, " - index 0 available after set_available");
+    
+    if (count > 1) {
+        rv->set_available(count - 1);
+        bool available_last = rv->is_available(count - 1);
+        note_test_result (available_last, test_prefix, " - last index available after set_available");
+    }
+    
+    if (count > 2) {
+        uint32_t mid = count / 2;
+        rv->set_available(mid);
+        bool available_mid = rv->is_available(mid);
+        note_test_result (available_mid, test_prefix, " - middle index available after set_available");
+    }
+}
+
+void test_is_available_independence (ResourceVector* rv, uint32_t count, const char* test_prefix) {
+    rv->set_available(0);
+    bool available_0 = rv->is_available(0);
+    note_test_result (available_0, test_prefix, " - index 0 available");
+    
+    if (count > 1) {
+        bool available_1 = rv->is_available(1);
+        note_test_result (!available_1, test_prefix, " - index 1 still unavailable when 0 is set");
+    }
+    
+    if (count > 2) {
+        uint32_t mid = count / 2;
+        rv->set_available(mid);
+        bool available_mid = rv->is_available(mid);
+        bool available_0_still = rv->is_available(0);
+        note_test_result (available_mid, test_prefix, " - middle index available");
+        note_test_result (available_0_still, test_prefix, " - index 0 still available after setting middle");
+    }
 }
 
 //================================================================================================================================
 //=> - Test functions -
 //================================================================================================================================
 
-void test_resource_io () {
-    ResourceIO io("../game_config.resources");
-    int count = io.validate_and_count();
-    note_test_result (count > 0, "ResourceIO validate and count");
-    io.parse_and_allocate();
-    if (print_level > 1) {
-        io.print_content();
-    }
+void test_static_data_loaded_tech_data () {
+    u16 count = TechData::get_tech_data_count();
+    note_test_result (count > 2, "Static data validation: TechData count > 2");
     summarize_test_results();
 }
 
-void test_resource_io_idempotency () {
-    test_resourceio_idempotency("../game_config.resources", "ResourceIO idempotency");
+void test_static_data_loaded_resource_data () {
+    u16 count = ResourceData::get_resource_data_count();
+    note_test_result (count > 2, "Static data validation: ResourceData count > 2");
+    summarize_test_results();
+}
+
+void test_resource_data () {
+    u16 count = ResourceData::get_resource_data_count();
+    note_test_result (count > 0, "ResourceData get_resource_data_count");
+    if (print_level > 1) {
+        ResourceData::print_content();
+    }
     summarize_test_results();
 }
 
 void test_resource_vector () {
-    ResourceVectorTestSetup setup = setup_resource_vector_test("../game_config.resources");
-    if (setup.count == 0) {
-        note_test_result (false, "ResourceVector test: no resources found");
-        summarize_test_results();
-        return;
-    }
-    note_test_result (setup.rv->get_count() == setup.count, "ResourceVector get_count");
-    ResourceData data = setup.rv->get_resource(0);
-    verify_resource_data(data, "ResourceVector basic");
+    ResourceVectorTestSetup setup = setup_resource_vector_test();
+    note_test_result (setup.rv->get_count() == setup.count, "ResourceVec get_count");
+    ResourceTypeStats stats = setup.rv->get_resource(0);
+    verify_resource_data(stats, "ResourceVec basic");
     summarize_test_results();
 }
 
 void test_resource_vector_bounds () {
-    ResourceVectorTestSetup setup = setup_resource_vector_test("../game_config.resources");
-    if (setup.count == 0) {
-        note_test_result (false, "ResourceVector bounds test: no resources found");
-        summarize_test_results();
-        return;
-    }
-    test_bounds_get_resource(setup.rv, setup.count, "ResourceVector bounds get_resource");
-    test_bounds_set_available(setup.rv, setup.count, "ResourceVector bounds set_available");
+    ResourceVectorTestSetup setup = setup_resource_vector_test();
+    test_get_resource_valid_indices(setup.rv, setup.count, "ResourceVec get_resource valid indices");
+    test_bounds_set_available(setup.rv, setup.count, "ResourceVec bounds set_available");
     summarize_test_results();
 }
 
 void test_resource_vector_multiple_indices () {
-    ResourceVectorTestSetup setup = setup_resource_vector_test("../game_config.resources");
-    if (setup.count == 0) {
-        note_test_result (false, "ResourceVector multiple indices test: no resources found");
-        summarize_test_results();
-        return;
-    }
-    test_multiple_indices(setup.rv, setup.count, "ResourceVector multiple indices");
+    ResourceVectorTestSetup setup = setup_resource_vector_test();
+    test_multiple_indices(setup.rv, setup.count, "ResourceVec multiple indices");
     summarize_test_results();
 }
 
 void test_resource_vector_multiple_available () {
-    ResourceVectorTestSetup setup = setup_resource_vector_test("../game_config.resources");
-    if (setup.count == 0) {
-        note_test_result (false, "ResourceVector multiple available test: no resources found");
-        summarize_test_results();
-        return;
-    }
-    test_multiple_available(setup.rv, setup.count, "ResourceVector multiple available");
+    ResourceVectorTestSetup setup = setup_resource_vector_test();
+    test_multiple_available(setup.rv, setup.count, "ResourceVec multiple available");
     summarize_test_results();
 }
 
 void test_resource_vector_repeated_set_available () {
-    ResourceVectorTestSetup setup = setup_resource_vector_test("../game_config.resources");
-    if (setup.count == 0) {
-        note_test_result (false, "ResourceVector repeated set_available test: no resources found");
-        summarize_test_results();
-        return;
-    }
-    test_repeated_set_available(setup.rv, 0, "ResourceVector repeated set_available index 0");
+    ResourceVectorTestSetup setup = setup_resource_vector_test();
+    test_repeated_set_available(setup.rv, 0, "ResourceVec repeated set_available index 0");
     if (setup.count > 1) {
-        test_repeated_set_available(setup.rv, setup.count - 1, "ResourceVector repeated set_available index last");
+        test_repeated_set_available(setup.rv, setup.count - 1, "ResourceVec repeated set_available index last");
     }
     summarize_test_results();
 }
 
 void test_resource_vector_get_count_consistency () {
-    ResourceVectorTestSetup setup = setup_resource_vector_test("../game_config.resources");
-    if (setup.count == 0) {
-        note_test_result (false, "ResourceVector get_count consistency test: no resources found");
-        summarize_test_results();
-        return;
-    }
-    test_get_count_consistency(setup.io, setup.rv, "ResourceVector get_count consistency");
+    ResourceVectorTestSetup setup = setup_resource_vector_test();
+    test_get_count_consistency(setup.rv, "ResourceVec get_count consistency");
     summarize_test_results();
 }
 
 void test_resource_vector_stats_variety () {
-    ResourceVectorTestSetup setup = setup_resource_vector_test("../game_config.resources");
-    if (setup.count < 3) {
-        note_test_result (false, "ResourceVector stats variety test: need at least 3 resources");
-        summarize_test_results();
-        return;
-    }
-    test_resource_stats_variety(setup.rv, setup.count, "ResourceVector stats variety");
+    ResourceVectorTestSetup setup = setup_resource_vector_test();
+    test_resource_stats_variety(setup.rv, setup.count, "ResourceVec stats variety");
+    summarize_test_results();
+}
+
+void test_resource_vector_is_available () {
+    ResourceVectorTestSetup setup = setup_resource_vector_test();
+    test_is_available_initial_state(setup.rv, setup.count, "ResourceVec is_available initial state");
+    summarize_test_results();
+}
+
+void test_resource_vector_is_available_after_set () {
+    ResourceVectorTestSetup setup = setup_resource_vector_test();
+    test_is_available_after_set(setup.rv, setup.count, "ResourceVec is_available after set");
+    summarize_test_results();
+}
+
+void test_resource_vector_is_available_independence () {
+    ResourceVectorTestSetup setup = setup_resource_vector_test();
+    test_is_available_independence(setup.rv, setup.count, "ResourceVec is_available independence");
     summarize_test_results();
 }
 
@@ -352,9 +358,13 @@ int main (int argc, char* argv[]) {
     if (argc > 1) {
         print_level = std::atoi(argv[1]);
     }
+
+    TechData::load_static_data("../game_config.techs");
+    ResourceData::load_static_data("../game_config.resources");
     
-    test_resource_io();
-    test_resource_io_idempotency();
+    test_static_data_loaded_tech_data();
+    test_static_data_loaded_resource_data();
+    test_resource_data();
     test_resource_vector();
     test_resource_vector_bounds();
     test_resource_vector_multiple_indices();
@@ -362,6 +372,9 @@ int main (int argc, char* argv[]) {
     test_resource_vector_repeated_set_available();
     test_resource_vector_get_count_consistency();
     test_resource_vector_stats_variety();
+    test_resource_vector_is_available();
+    test_resource_vector_is_available_after_set();
+    test_resource_vector_is_available_independence();
 
     printf("=======================================================\n");
     printf(" TESTING RESOURCES: TOTAL FAILURES: %d/%d\n", total_test_fails, total_tests_run);

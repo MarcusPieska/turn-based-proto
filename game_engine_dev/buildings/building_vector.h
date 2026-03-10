@@ -10,50 +10,59 @@
 #include <cstdint>
 
 #include "game_primitives.h"
+#include "bit_array.h"
+#include "building_data.h"
 
 //================================================================================================================================
-//=> - BuildingTypeStats struct -
+//=> - Forward declarations -
 //================================================================================================================================
 
 class BitArrayCL;
 
 //================================================================================================================================
-//=> - BuildingVector class -
+//=> - BuiltBuildings class -
 //================================================================================================================================
 
-class BuildingVector {
+class BuiltBuildings {
 public:
-    friend class BuildableAssessor;
+    BuiltBuildings ();
+    ~BuiltBuildings ();
 
-    BuildingVector (const BitArrayCL* researched_buildings);
-    ~BuildingVector ();
-
-    const BuildingTypeStats& get_building_stats (u32 index) const;
-    bool is_buildable (u32 index) const;
-    bool is_built (u32 index) const;
-    u32 get_count () const;
+    void set_built (u32 idx);
+    void clear_built (u32 idx);
+    bool has_been_built (u32 idx) const;
     
     void save (const std::string& filename) const;
     void load (const std::string& filename);
-    
-    void toggle_built (u32 index);
-    void set_built (u32 index);
-    void clear_built (u32 index);
-
-    static u32 get_building_data_count ();
-    static const BuildingTypeStats* get_building_data_array ();
-
-protected:
-    void set_buildable (u32 index);
 
 private:
-    BuildingVector (const BuildingVector& other) = delete;
-    BuildingVector (BuildingVector&& other) = delete;
-    BuildingVector () = delete;
+    BuiltBuildings (const BuiltBuildings& other) = delete;
+    BuiltBuildings (BuiltBuildings&& other) = delete;
 
-    const BitArrayCL* m_bld_researched;
-    BitArrayCL* m_bld_unlocked;
-    BitArrayCL* m_bld_built;
+    BitArrayCL m_built;
+};
+
+//================================================================================================================================
+//=> - BuildableBuildings class -
+//================================================================================================================================
+
+class BuildableBuildings {
+public:
+    friend class BuildingAssessor;
+
+    BuildableBuildings ();
+    ~BuildableBuildings ();
+
+    bool can_build (u32 idx) const;
+
+protected:
+    void set_buildable (u32 idx);
+
+private:
+    BuildableBuildings (const BuildableBuildings& other) = delete;
+    BuildableBuildings (BuildableBuildings&& other) = delete;
+
+    BitArrayCL m_buildable;
 };
 
 #endif // BUILDING_VECTOR_H

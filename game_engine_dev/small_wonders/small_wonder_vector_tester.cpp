@@ -1,0 +1,581 @@
+//================================================================================================================================
+//=> - Includes and globals -
+//================================================================================================================================
+
+#include <cstdio>
+#include <cstdint>
+#include <cstdlib>
+#include <climits>
+#include <cstring>
+#include <fstream>
+#include <string>
+#include <stdexcept>
+#include <sstream>
+
+#include "bit_array.h"
+#include "small_wonder_data.h"
+#include "tech_data.h"
+#include "resource_data.h"
+#include "building_data.h"
+#include "city_flags.h"
+#include "small_wonder_vector.h"
+
+//================================================================================================================================
+//=> - Globals -
+//================================================================================================================================
+
+typedef const char* cstr;
+typedef std::string str;
+typedef uint32_t u32;
+
+int test_count = 0;
+int test_pass = 0;
+int total_test_fails = 0;
+int total_tests_run = 0;
+int print_level = 0;
+
+//================================================================================================================================
+//=> - Helper functions -
+//================================================================================================================================
+
+void note_result (bool cond, cstr msg) {
+    test_count++;
+    total_tests_run++;
+    if (cond) {
+        test_pass++;
+        if (print_level > 1) {
+            printf("*** TEST PASSED: %s\n", msg);
+        }
+    } else {
+        total_test_fails++;
+        printf("*** TEST FAILED: %s\n", msg);
+    }
+}
+
+void note_result (bool cond, cstr msg1, cstr msg2) {
+    str msg = str(msg1) + str(msg2);
+    note_result (cond, msg.c_str());
+}
+
+void summarize_test_results () {
+    if (print_level > 0) {
+        printf("--------------------------------\n");
+        printf(" Test count: %d\n", test_count);
+        printf(" Test pass: %d\n", test_pass);
+        printf(" Test fail: %d\n", test_count - test_pass);
+        printf("--------------------------------\n\n\n");
+    }
+    test_count = 0;
+    test_pass = 0;
+}
+
+//================================================================================================================================
+//=> - Test helper functions -
+//================================================================================================================================
+
+class SmallWonderAssessor {
+public:
+    SmallWonderAssessor (BuildableSmallWonders* buildable_vector) : m_buildable_vector(buildable_vector) {
+        u16 wonder_count = SmallWonderData::get_small_wonder_data_count();
+        for (u16 i = 0; i < wonder_count; i++) {
+            set_buildable(m_buildable_vector, i);
+        }
+    }
+    
+    static void set_buildable (BuildableSmallWonders* vec, u16 idx) {
+        vec->set_buildable(idx);
+    }
+    
+    void set_buildable (u16 idx) {
+        set_buildable(m_buildable_vector, idx);
+    }
+    
+    void set_buildable_all () {
+        u16 wonder_count = SmallWonderData::get_small_wonder_data_count();
+        for (u16 i = 0; i < wonder_count; i++) {
+            set_buildable(m_buildable_vector, i);
+        }
+    }
+
+private:
+    BuildableSmallWonders* m_buildable_vector;
+};
+
+struct TestSetup {
+    BuiltSmallWonders* built;
+    BuildableSmallWonders* buildable;
+    u32 count;
+    
+    TestSetup () : built(nullptr), buildable(nullptr), count(0) {}
+    
+    ~TestSetup () {
+        delete buildable;
+        delete built;
+    }
+};
+
+TestSetup setup_wonder_test () {
+    TestSetup setup;
+    setup.count = static_cast<u32>(SmallWonderData::get_small_wonder_data_count());
+    setup.built = new BuiltSmallWonders();
+    setup.buildable = new BuildableSmallWonders();
+    return setup;
+}
+
+void verify_wonder_stats (const SmallWonderTypeStats& stats, cstr test_name) {
+    note_result (!stats.name.empty(), test_name, " - name not empty");
+    note_result (stats.cost >= 0, test_name, " - cost >= 0");
+    note_result (stats.tech_prereq_idx.get_idx() < TechData::get_tech_data_count(), test_name, " - tech_prereq_idx valid");
+}
+
+void verify_built (BuiltSmallWonders* built, u16 idx, bool should_be_built, cstr test_name) {
+    bool is_built = built->has_been_built(idx);
+    str msg = str(test_name) + " - has_been_built " + (should_be_built ? "true" : "false");
+    note_result (is_built == should_be_built, msg.c_str());
+}
+
+void verify_wonder_buildable_status (BuildableSmallWonders* buildable, u16 idx, bool should_be_buildable, cstr test_name) {
+    bool is_buildable = buildable->can_build(idx);
+    str msg = str(test_name) + " - can_build " + (should_be_buildable ? "true" : "false");
+    note_result (is_buildable == should_be_buildable, msg.c_str());
+}
+
+void test_wonder_at_idx (BuiltSmallWonders* built, u16 idx, cstr prefix) {
+    const SmallWonderTypeStats* wonder_array = SmallWonderData::get_small_wonder_data_array();
+    const SmallWonderTypeStats& stats = wonder_array[idx];
+    str test_name = str(prefix) + " - idx " + std::to_string(idx);
+    verify_wonder_stats(stats, test_name.c_str());
+    verify_built(built, idx, false, test_name.c_str());
+}
+
+void test_bounds_get_small_wonder_stats (BuiltSmallWonders* built, u32 count, cstr prefix) {
+    test_wonder_at_idx(built, 0, prefix);
+    test_wonder_at_idx(built, count / 2, prefix);
+    test_wonder_at_idx(built, count - 1, prefix);
+}
+
+void test_bounds_set_built (BuiltSmallWonders* built, u32 count, cstr prefix) {
+    built->set_owning_city(0, 1);
+    str msg1 = str(prefix) + " - set_owning_city valid idx 0";
+    note_result (built->has_been_built(0) == true, msg1.c_str());
+    
+    built->set_owning_city(static_cast<u16>(count - 1), 1);
+    str msg2 = str(prefix) + " - set_owning_city valid idx (last)";
+    note_result (built->has_been_built(static_cast<u16>(count - 1)) == true, msg2.c_str());
+}
+
+void test_built_status_calc (BuiltSmallWonders* built, u16 idx, cstr prefix) {
+    verify_built(built, idx, false, (str(prefix) + " - not built initially").c_str());
+    
+    built->set_owning_city(idx, 1);
+    verify_built(built, idx, true, (str(prefix) + " - built after set_owning_city").c_str());
+    
+    built->set_owning_city(idx, 0);
+    verify_built(built, idx, false, (str(prefix) + " - not built after clear").c_str());
+}
+
+void test_repeated_set_built (BuiltSmallWonders* built, u16 idx, cstr prefix) {
+    built->set_owning_city(idx, 1);
+    bool status1 = built->has_been_built(idx);
+    verify_built(built, idx, true, (str(prefix) + " - first set_owning_city").c_str());
+    
+    built->set_owning_city(idx, 1);
+    bool status2 = built->has_been_built(idx);
+    verify_built(built, idx, true, (str(prefix) + " - second set_owning_city").c_str());
+    
+    built->set_owning_city(idx, 1);
+    bool status3 = built->has_been_built(idx);
+    verify_built(built, idx, true, (str(prefix) + " - third set_owning_city").c_str());
+    
+    str msg = str(prefix) + " - repeated calls consistent";
+    note_result (status1 == status2 && status2 == status3, msg.c_str());
+}
+
+void test_get_count_consistency (cstr prefix) {
+    u16 data_count = SmallWonderData::get_small_wonder_data_count();
+    str msg = str(prefix) + " - SmallWonderData count > 0";
+    note_result (data_count > 0, msg.c_str());
+}
+
+void test_wonderdata_idempotency (cstr prefix) {
+    u16 count1 = SmallWonderData::get_small_wonder_data_count();
+    
+    SmallWonderData::load_static_data("../game_config.wonders_small");
+    u16 count2 = SmallWonderData::get_small_wonder_data_count();
+    
+    str msg = str(prefix) + " - load_static_data idempotent";
+    note_result (count1 == count2, msg.c_str());
+}
+
+void test_multiple_indices (BuiltSmallWonders* built, u32 count, cstr prefix) {
+    test_wonder_at_idx(built, 0, (str(prefix) + " - first").c_str());
+    test_wonder_at_idx(built, count / 2, (str(prefix) + " - middle").c_str());
+    test_wonder_at_idx(built, count - 1, (str(prefix) + " - last").c_str());
+}
+
+void test_wonder_independent (BuiltSmallWonders* built, u32 count, cstr prefix) {
+    u16 idx_a = 0;
+    u16 idx_b = static_cast<u16>(count / 2);
+    u16 idx_c = static_cast<u16>(count - 1);
+    
+    built->set_owning_city(idx_a, 1);
+    built->set_owning_city(idx_b, 1);
+    built->set_owning_city(idx_c, 1);
+    
+    verify_built(built, idx_a, true, (str(prefix) + " - wonder A").c_str());
+    verify_built(built, idx_b, true, (str(prefix) + " - wonder B").c_str());
+    verify_built(built, idx_c, true, (str(prefix) + " - wonder C").c_str());
+    
+    built->set_owning_city(idx_b, 0);
+    verify_built(built, idx_a, true, (str(prefix) + " - wonder A still built").c_str());
+    verify_built(built, idx_b, false, (str(prefix) + " - wonder B cleared").c_str());
+    verify_built(built, idx_c, true, (str(prefix) + " - wonder C still built").c_str());
+}
+
+void test_all_not_built_initially (BuiltSmallWonders* built, u32 count, cstr prefix) {
+    u32 checked = 0;
+    for (u32 i = 0; i < count && checked < 10; i++) {
+        str msg = str(prefix) + " - idx " + std::to_string(i);
+        verify_built(built, static_cast<u16>(i), false, msg.c_str());
+        checked++;
+    }
+}
+
+void test_wonder_stats_variety (u32 count, cstr prefix) {
+    u16 idx_a = 0;
+    u16 idx_b = static_cast<u16>(count / 2);
+    u16 idx_c = static_cast<u16>(count - 1);
+    const SmallWonderTypeStats* wonder_array = SmallWonderData::get_small_wonder_data_array();
+    const SmallWonderTypeStats& stats_a = wonder_array[idx_a];
+    const SmallWonderTypeStats& stats_b = wonder_array[idx_b];
+    const SmallWonderTypeStats& stats_c = wonder_array[idx_c];
+    
+    bool different_costs = (stats_a.cost != stats_b.cost) || (stats_b.cost != stats_c.cost) || (stats_a.cost != stats_c.cost);
+    bool different_names = (stats_a.name != stats_b.name) && (stats_b.name != stats_c.name) && (stats_a.name != stats_c.name);
+    
+    note_result (different_costs || different_names, (str(prefix) + " - wonders have varied stats").c_str());
+}
+
+void test_wonder_cost_range (u32 count, cstr prefix) {
+    const SmallWonderTypeStats* wonder_array = SmallWonderData::get_small_wonder_data_array();
+    int min_cost = INT_MAX;
+    int max_cost = 0;
+    for (u32 i = 0; i < count && i < 10; i++) {
+        const SmallWonderTypeStats& stats = wonder_array[i];
+        if (stats.cost < min_cost) {
+            min_cost = stats.cost;
+        }
+        if (stats.cost > max_cost) {
+            max_cost = stats.cost;
+        }
+    }
+    note_result (min_cost >= 0, (str(prefix) + " - min cost >= 0").c_str());
+    note_result (max_cost > 0, (str(prefix) + " - max cost > 0").c_str());
+    note_result (max_cost >= min_cost, (str(prefix) + " - max cost >= min cost").c_str());
+}
+
+void test_wonder_name_uniqueness (u32 count, cstr prefix) {
+    const SmallWonderTypeStats* wonder_array = SmallWonderData::get_small_wonder_data_array();
+    bool all_unique = true;
+    for (u32 i = 0; i < count && i < 10; i++) {
+        const SmallWonderTypeStats& stats_i = wonder_array[i];
+        for (u32 j = i + 1; j < count && j < 10; j++) {
+            const SmallWonderTypeStats& stats_j = wonder_array[j];
+            if (stats_i.name == stats_j.name) {
+                all_unique = false;
+                break;
+            }
+        }
+        if (!all_unique) {
+            break;
+        }
+    }
+    note_result (all_unique, (str(prefix) + " - wonder names unique").c_str());
+}
+
+void test_wonder_stats_consistency (u16 idx, cstr prefix) {
+    const SmallWonderTypeStats* wonder_array = SmallWonderData::get_small_wonder_data_array();
+    const SmallWonderTypeStats& stats1 = wonder_array[idx];
+    const SmallWonderTypeStats& stats2 = wonder_array[idx];
+    note_result (stats1.name == stats2.name, (str(prefix) + " - name consistent").c_str());
+    note_result (stats1.cost == stats2.cost, (str(prefix) + " - cost consistent").c_str());
+    note_result (stats1.tech_prereq_idx == stats2.tech_prereq_idx, (str(prefix) + " - tech_prereq_idx consistent").c_str());
+}
+
+void test_wonder_built_with_different_wonders (BuiltSmallWonders* built, u32 count, cstr prefix) {
+    for (u32 i = 0; i < count && i < 5; i++) {
+        verify_built(built, static_cast<u16>(i), false, (str(prefix) + " - idx " + std::to_string(i) + " not built").c_str());
+        built->set_owning_city(static_cast<u16>(i), 1);
+        str msg = str(prefix) + " - idx " + std::to_string(i) + " built";
+        verify_built(built, static_cast<u16>(i), true, msg.c_str());
+    }
+}
+
+void test_buildable_vec_default_state (BuildableSmallWonders* buildable, u32 count, cstr prefix) {
+    for (u32 i = 0; i < count && i < 5; i++) {
+        verify_wonder_buildable_status(buildable, static_cast<u16>(i), false, 
+            (str(prefix) + " - idx " + std::to_string(i) + " not buildable initially").c_str());
+    }
+}
+
+void test_buildable_vec_after_assessor (BuildableSmallWonders* buildable, u32 count, cstr prefix) {
+    SmallWonderAssessor assessor(buildable);
+    for (u32 i = 0; i < count && i < 5; i++) {
+        verify_wonder_buildable_status(buildable, static_cast<u16>(i), true, 
+            (str(prefix) + " - idx " + std::to_string(i) + " buildable after assessor").c_str());
+    }
+}
+
+void test_buildable_vec_set_individual (BuildableSmallWonders* buildable, u16 idx, cstr prefix) {
+    BuildableSmallWonders* fresh = new BuildableSmallWonders();
+    
+    verify_wonder_buildable_status(fresh, idx, false, (str(prefix) + " - not buildable initially").c_str());
+    SmallWonderAssessor::set_buildable(fresh, idx);
+    verify_wonder_buildable_status(fresh, idx, true, (str(prefix) + " - buildable after set").c_str());
+    
+    delete fresh;
+}
+
+void test_owning_city_different_ids (BuiltSmallWonders* built, u16 idx, cstr prefix) {
+    built->set_owning_city(idx, 0);
+    verify_built(built, idx, false, (str(prefix) + " - city_id 0 not built").c_str());
+    
+    built->set_owning_city(idx, 1);
+    verify_built(built, idx, true, (str(prefix) + " - city_id 1 built").c_str());
+    
+    built->set_owning_city(idx, 5);
+    verify_built(built, idx, true, (str(prefix) + " - city_id 5 built").c_str());
+    
+    built->set_owning_city(idx, 100);
+    verify_built(built, idx, true, (str(prefix) + " - city_id 100 built").c_str());
+    
+    built->set_owning_city(idx, 0);
+    verify_built(built, idx, false, (str(prefix) + " - city_id 0 clears built").c_str());
+}
+
+void test_buildable_vec_multiple_indices (BuildableSmallWonders* buildable, u32 count, cstr prefix) {
+    BuildableSmallWonders* fresh = new BuildableSmallWonders();
+    
+    u16 idx_a = 0;
+    u16 idx_b = static_cast<u16>(count / 2);
+    u16 idx_c = static_cast<u16>(count - 1);
+    
+    SmallWonderAssessor::set_buildable(fresh, idx_a);
+    SmallWonderAssessor::set_buildable(fresh, idx_b);
+    SmallWonderAssessor::set_buildable(fresh, idx_c);
+    
+    verify_wonder_buildable_status(fresh, idx_a, true, (str(prefix) + " - idx A buildable").c_str());
+    verify_wonder_buildable_status(fresh, idx_b, true, (str(prefix) + " - idx B buildable").c_str());
+    verify_wonder_buildable_status(fresh, idx_c, true, (str(prefix) + " - idx C buildable").c_str());
+    
+    if (count > 3) {
+        verify_wonder_buildable_status(fresh, 1, false, (str(prefix) + " - idx 1 not buildable").c_str());
+    }
+    
+    delete fresh;
+}
+
+//================================================================================================================================
+//=> - Test functions -
+//================================================================================================================================
+
+void test_wonder_data () {
+    u16 count = SmallWonderData::get_small_wonder_data_count();
+    note_result (count > 0, "SmallWonderData load and count");
+    if (print_level > 1) {
+        SmallWonderData::print_content();
+    }
+    summarize_test_results();
+}
+
+void test_static_data_loaded () {
+    u16 count = SmallWonderData::get_small_wonder_data_count();
+    note_result (count > 0, "Static data loaded - small wonders count > 0");
+    const SmallWonderTypeStats* data = SmallWonderData::get_small_wonder_data_array();
+    note_result (data != nullptr, "Static data loaded - data array not null");
+    if (count > 0) {
+        note_result (!data[0].name.empty(), "Static data loaded - first wonder has name");
+        note_result (data[0].cost >= 0, "Static data loaded - first wonder has cost >= 0");
+    }
+    summarize_test_results();
+}
+
+void test_wonder_data_idempotency () {
+    test_wonderdata_idempotency("WonderData idempotency");
+    summarize_test_results();
+}
+
+void test_wonder_built () {
+    BuiltSmallWonders built;
+    verify_built(&built, 0, false, "Wonder built - not built initially");
+    built.set_owning_city(0, 1);
+    verify_built(&built, 0, true, "Wonder built - built after set_owning_city");
+    summarize_test_results();
+}
+
+void test_wonder_bounds () {
+    TestSetup setup = setup_wonder_test();
+    u32 count = static_cast<u32>(SmallWonderData::get_small_wonder_data_count());
+    test_bounds_get_small_wonder_stats(setup.built, count, "Wonder bounds get_small_wonder_stats");
+    test_bounds_set_built(setup.built, count, "Wonder bounds set_owning_city");
+    summarize_test_results();
+}
+
+void test_wonder_multiple_indices () {
+    TestSetup setup = setup_wonder_test();
+    u32 count = static_cast<u32>(SmallWonderData::get_small_wonder_data_count());
+    test_multiple_indices(setup.built, count, "Wonder multiple indices");
+    summarize_test_results();
+}
+
+void test_wonder_built_status_calc () {
+    TestSetup setup = setup_wonder_test();
+    u32 count = static_cast<u32>(SmallWonderData::get_small_wonder_data_count());
+    test_built_status_calc(setup.built, 0, "Wonder built status calc idx 0");
+    test_built_status_calc(setup.built, static_cast<u16>(count - 1), "Wonder built status calc idx last");
+    test_built_status_calc(setup.built, static_cast<u16>(count / 2), "Wonder built status calc idx middle");
+    summarize_test_results();
+}
+
+void test_wonder_repeated_set_built () {
+    TestSetup setup = setup_wonder_test();
+    u32 count = static_cast<u32>(SmallWonderData::get_small_wonder_data_count());
+    test_repeated_set_built(setup.built, 0, "Wonder repeated set_owning_city idx 0");
+    test_repeated_set_built(setup.built, static_cast<u16>(count - 1), "Wonder repeated set_owning_city idx last");
+    summarize_test_results();
+}
+
+void test_wonder_get_count_consistency () {
+    test_get_count_consistency("Wonder get_count consistency");
+    summarize_test_results();
+}
+
+void test_wonder_built_with_different_wonders () {
+    TestSetup setup = setup_wonder_test();
+    u32 count = static_cast<u32>(SmallWonderData::get_small_wonder_data_count());
+    test_wonder_built_with_different_wonders(setup.built, count, "Wonder built different wonders");
+    summarize_test_results();
+}
+
+void test_wonder_all_not_built_initially () {
+    TestSetup setup = setup_wonder_test();
+    u32 count = static_cast<u32>(SmallWonderData::get_small_wonder_data_count());
+    test_all_not_built_initially(setup.built, count, "Wonder all not built initially");
+    summarize_test_results();
+}
+
+void test_wonder_built_independent () {
+    TestSetup setup = setup_wonder_test();
+    u32 count = static_cast<u32>(SmallWonderData::get_small_wonder_data_count());
+    test_wonder_independent(setup.built, count, "Wonder built independent");
+    summarize_test_results();
+}
+
+void test_wonder_stats_consistency () {
+    u32 count = static_cast<u32>(SmallWonderData::get_small_wonder_data_count());
+    test_wonder_stats_consistency(0, "Wonder stats consistency idx 0");
+    test_wonder_stats_consistency(static_cast<u16>(count - 1), "Wonder stats consistency idx last");
+    summarize_test_results();
+}
+
+void test_wonder_stats_variety () {
+    u32 count = static_cast<u32>(SmallWonderData::get_small_wonder_data_count());
+    test_wonder_stats_variety(count, "Wonder stats variety");
+    summarize_test_results();
+}
+
+void test_wonder_cost_range () {
+    u32 count = static_cast<u32>(SmallWonderData::get_small_wonder_data_count());
+    test_wonder_cost_range(count, "Wonder cost range");
+    summarize_test_results();
+}
+
+void test_wonder_name_uniqueness () {
+    u32 count = static_cast<u32>(SmallWonderData::get_small_wonder_data_count());
+    test_wonder_name_uniqueness(count, "Wonder name uniqueness");
+    summarize_test_results();
+}
+
+void test_buildable_vec_default () {
+    TestSetup setup = setup_wonder_test();
+    test_buildable_vec_default_state(setup.buildable, setup.count, "BuildableVec default state");
+    summarize_test_results();
+}
+
+void test_buildable_vec_after_assessor () {
+    TestSetup setup = setup_wonder_test();
+    test_buildable_vec_after_assessor(setup.buildable, setup.count, "BuildableVec after assessor");
+    summarize_test_results();
+}
+
+void test_buildable_vec_set_individual () {
+    TestSetup setup = setup_wonder_test();
+    u32 count = static_cast<u32>(SmallWonderData::get_small_wonder_data_count());
+    test_buildable_vec_set_individual(setup.buildable, 0, "BuildableVec set individual idx 0");
+    test_buildable_vec_set_individual(setup.buildable, static_cast<u16>(count - 1), "BuildableVec set individual idx last");
+    summarize_test_results();
+}
+
+void test_owning_city_different_ids () {
+    TestSetup setup = setup_wonder_test();
+    u32 count = static_cast<u32>(SmallWonderData::get_small_wonder_data_count());
+    test_owning_city_different_ids(setup.built, 0, "OwningCity different city IDs idx 0");
+    if (count > 1) {
+        test_owning_city_different_ids(setup.built, static_cast<u16>(count / 2), "OwningCity different city IDs idx middle");
+    }
+    summarize_test_results();
+}
+
+void test_buildable_vec_multiple_indices () {
+    TestSetup setup = setup_wonder_test();
+    test_buildable_vec_multiple_indices(setup.buildable, setup.count, "BuildableVec multiple indices");
+    summarize_test_results();
+}
+
+//================================================================================================================================
+//=> - Main driver -
+//================================================================================================================================
+
+int main (int argc, char* argv[]) {
+    if (argc > 1) {
+        print_level = std::atoi(argv[1]);
+    }
+    
+    TechData::load_static_data("../game_config.techs");
+    ResourceData::load_static_data("../game_config.resources");
+    CityFlagData::load_static_data("../game_config.city_flags");
+    BuildingData::load_static_data("../game_config.buildings");
+    SmallWonderData::load_static_data("../game_config.wonders_small");
+    
+    test_static_data_loaded();
+    test_wonder_data();
+    test_wonder_data_idempotency();
+    test_wonder_built();
+    test_wonder_bounds();
+    test_wonder_multiple_indices();
+    test_wonder_built_status_calc();
+    test_wonder_repeated_set_built();
+    test_wonder_get_count_consistency();
+    test_wonder_built_with_different_wonders();
+    test_wonder_all_not_built_initially();
+    test_wonder_built_independent();
+    test_wonder_stats_consistency();
+    test_wonder_stats_variety();
+    test_wonder_cost_range();
+    test_wonder_name_uniqueness();
+    test_buildable_vec_default();
+    test_buildable_vec_after_assessor();
+    test_buildable_vec_set_individual();
+    test_owning_city_different_ids();
+    test_buildable_vec_multiple_indices();
+
+    printf("=======================================================\n");
+    printf(" TESTING WONDERS: TOTAL FAILURES: %d/%d\n", total_test_fails, total_tests_run);
+    printf("=======================================================\n");
+
+    return total_test_fails;
+}
+
+//================================================================================================================================
+//=> - End -
+//================================================================================================================================

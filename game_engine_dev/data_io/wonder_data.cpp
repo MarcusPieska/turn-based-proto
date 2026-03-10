@@ -36,17 +36,13 @@ void WonderData::load_static_data (const std::string& filename) {
 }
 
 void WonderData::print_content () {
-    if (wonder_data_array == nullptr || wonder_data_count == 0) {
-        printf("Wonder data not loaded.\n");
-        return;
-    }
-
+    printf("Wonder data count: (total=%u)\n", wonder_data_count);
     for (u32 i = 0; i < wonder_data_count; ++i) {
         const WonderTypeStats& stats = wonder_data_array[i];
         printf("Wonder: %s, Cost: %u, Tech prerequisite idx: %u",
                stats.name.c_str(),
-               static_cast<u32>(stats.cost),
-               static_cast<u32>(stats.tech_prereq_idx));
+               stats.cost,
+               stats.tech_prereq_idx.get_idx());
 
         bool first_req = true;
         for (u32 r = 0; r < MAX_WONDER_REQS; ++r) {
@@ -88,6 +84,17 @@ void WonderData::print_content () {
     }
 }
 
+u16 WonderData::find_wonder_index (const std::string& wonder_name) {
+    for (u32 i = 0; i < wonder_data_count; ++i) {
+        if (wonder_data_array[i].name == wonder_name) {
+            return static_cast<u16>(i);
+        }
+    }
+    printf("ERROR: Wonder '%s' not found in WonderData\n", wonder_name.c_str());
+    exit(1);
+    return 0; // To make the compiler happy
+}
+
 u16 WonderData::get_wonder_data_count () {
     return static_cast<u16>(wonder_data_count);
 }
@@ -104,7 +111,8 @@ u16 WonderData::validate_and_count (const std::string& filename) {
     StringReader reader(filename);
     std::string content = reader.read();
     if (content.empty()) {
-        return 0;
+        printf("ERROR: Wonder data file '%s' is empty\n", filename.c_str());
+        exit(1);
     }
     StringSplitter line_splitter("\n");
     std::vector<std::string> lines = line_splitter.split(content);
@@ -132,7 +140,6 @@ u16 WonderData::validate_and_count (const std::string& filename) {
             }
         }
     }
-
     return count;
 }
 
@@ -183,11 +190,9 @@ static bool parse_resource_requirement (const std::string& token, WonderRequirem
     if (inside.empty()) {
         return false;
     }
-
-    // Convert resource name to a static index in ResourceData.
-    u16 res_idx = ResourceData::find_resource_index(inside);
+    ResourceIdx res_idx = ResourceData::find_resource_index(inside);
     out_req.type = WONDER_REQ_RESOURCE;
-    out_req.data.resource_req.resource_idx = res_idx;
+    out_req.data.resource_req.resource_idx = res_idx.get_idx();
     return true;
 }
 
@@ -239,22 +244,22 @@ static bool parse_building_requirement (const std::string& token, WonderRequirem
 }
 
 void WonderData::parse_and_allocate (const std::string& filename) {
-    if (wonder_data_array != nullptr) {
-        return;
+    wonder_data_count = WonderData::validate_and_count(filename);
+    if (wonder_data_count == 0) {
+        printf("ERROR: No wonders found in data file '%s'\n", filename.c_str());
+        exit(1);
     }
-
-    int count = WonderData::validate_and_count(filename);
-    if (count == 0) {
-        return;
-    }
-
-    wonder_data_count = static_cast<u32>(count);
     wonder_data_array = new WonderTypeStats[wonder_data_count];
+    if (wonder_data_array == nullptr) {
+        printf("ERROR: Failed to allocate memory for %u wonders\n", wonder_data_count);
+        exit(1);
+    }
 
     StringReader reader(filename);
     std::string content = reader.read();
     if (content.empty()) {
-        return;
+        printf("ERROR: Wonder data file '%s' is empty\n", filename.c_str());
+        exit(1);
     }
 
     StringSplitter line_splitter("\n");
@@ -309,6 +314,10 @@ void WonderData::parse_and_allocate (const std::string& filename) {
         }
 
         ++idx;
+    }
+    if (idx != wonder_data_count) {
+        printf("ERROR: Did not parse %u wonders from data file '%s'\n", wonder_data_count, filename.c_str());
+        exit(1);
     }
 }
 

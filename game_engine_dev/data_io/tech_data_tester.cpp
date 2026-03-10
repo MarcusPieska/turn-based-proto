@@ -36,8 +36,8 @@ void print_tech_tree () {
             const TechTypeStats& tech = techs[i];
             bool can_research = true;
             for (u32 p = 0; p < MAX_TECHS_PER_ENTITY; ++p) {
-                u16 prereq_idx = tech.tech_indices.indices[p];
-                if (prev_researched[prereq_idx] == 0) {
+                TechIdx prereq_idx = tech.tech_indices.indices[p];
+                if (prev_researched[prereq_idx.get_idx()] == 0) {
                     can_research = false;
                     break;
                 }

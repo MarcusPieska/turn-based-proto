@@ -6,7 +6,8 @@
 #define WONDER_ASSESSOR_H
 
 class BitArrayCL;
-class WonderBuildableVector;
+class BuiltBuildings;
+class BuildableWonders;
 
 //================================================================================================================================
 //=> - BuildableAssessor class -
@@ -14,9 +15,9 @@ class WonderBuildableVector;
 
 class WonderAssessor {
     public:
-        static WonderBuildableVector* assess (
+        static BuildableWonders* assess (
             const BitArrayCL* techs, 
-            const BitArrayCL* buildings, 
+            const BuiltBuildings* buildings, 
             const BitArrayCL* resources, 
             const BitArrayCL* flags
         );

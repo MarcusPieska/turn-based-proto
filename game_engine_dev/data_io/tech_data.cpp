@@ -34,20 +34,21 @@ void TechData::load_static_data (const std::string& filename) {
 }
 
 void TechData::print_content () {
+    printf("Tech Data (total=%u):\n", tech_data_count);
     for (u32 i = 0; i < tech_data_count; ++i) {
         const TechTypeStats& stats = tech_data_array[i];
         printf("Tech: %s, Cost: %u", stats.name.c_str(), stats.cost);
         bool first = true;
         for (u32 t = 0; t < MAX_TECHS_PER_ENTITY; ++t) {
-            u16 idx = stats.tech_indices.indices[t];
-            if (idx != 0) {
+            TechIdx idx = stats.tech_indices.indices[t];
+            if (idx.get_idx() != 0) {
                 if (first) {
                     printf(", Prereqs: ");
                     first = false;
                 } else {
                     printf(" : ");
                 }
-                printf("%u", idx);
+                printf("%u", idx.get_idx());
             } else {
                 break;
             }
@@ -56,16 +57,16 @@ void TechData::print_content () {
     }
 }
 
-u16 TechData::find_tech_index (const std::string& tech_name) {
+TechIdx TechData::find_tech_index (const std::string& tech_name) {
     for (u32 i = 0; i < tech_data_count; ++i) {
         if (tech_data_array[i].name == tech_name) {
-            return static_cast<u16>(i);
+            return TechIdx(static_cast<u16>(i));
         }
     }
-
-    printf("CRITICAL ERROR: Tech %s not found\n", tech_name.c_str());
+    printf("ERROR: Tech %s not found\n", tech_name.c_str());
+    print_content();
     exit(1);
-    return 0; // To make the compiler happy
+    return TechIdx(0); // To make the compiler happy
 }
 
 u16 TechData::get_tech_data_count () {
@@ -84,7 +85,8 @@ u16 TechData::validate_and_count (const std::string& filename) {
     StringReader reader(filename);
     std::string content = reader.read();
     if (content.empty()) {
-        return 0;
+        printf("ERROR: No content found in %s\n", filename.c_str());
+        exit(1);
     }
     StringSplitter line_splitter("\n");
     std::vector<std::string> lines = line_splitter.split(content);
@@ -115,18 +117,23 @@ u16 TechData::validate_and_count (const std::string& filename) {
 }
 
 void TechData::parse_and_allocate (const std::string& filename) {
-    int count = TechData::validate_and_count(filename);
-    if (count == 0) {
-        printf("No tech data found in %s\n", filename.c_str());
-        return;
+    tech_data_count = TechData::validate_and_count(filename);
+    if (tech_data_count == 0) {
+        printf("ERROR: No tech data found in %s\n", filename.c_str());
+        exit(1);
     }
-    tech_data_count = static_cast<u32>(count);
     tech_data_array = new TechTypeStats[tech_data_count];
+    if (tech_data_array == nullptr) {
+        printf("ERROR: Failed to allocate memory for %u tech data\n", tech_data_count);
+        exit(1);
+    }
     StringReader reader(filename);
     std::string content = reader.read();
     if (content.empty()) {
-        return;
+        printf("ERROR: No content found in %s\n", filename.c_str());
+        exit(1);
     }
+
     StringSplitter line_splitter("\n");
     std::vector<std::string> lines = line_splitter.split(content);
     StringTrimmer trimmer(" \t\r\n");
@@ -168,7 +175,7 @@ void TechData::parse_and_allocate (const std::string& filename) {
                 for (size_t j = 2; j < parts.size() && prereq_count < MAX_TECHS_PER_ENTITY; j++) {
                     std::string prereq_name = trimmer.trim(parts[j]);
                     if (!prereq_name.empty()) {
-                        u16 prereq_idx = TechData::find_tech_index(prereq_name);
+                        TechIdx prereq_idx = TechData::find_tech_index(prereq_name);
                         tech_data_array[idx].tech_indices.indices[prereq_count++] = prereq_idx;
                     }
                 }
@@ -176,6 +183,10 @@ void TechData::parse_and_allocate (const std::string& filename) {
                 idx++;
             }
         }
+    }
+    if (idx != tech_data_count) {
+        printf("ERROR: Expected %u tech data, got %u\n", tech_data_count, idx);
+        exit(1);
     }
 }
 

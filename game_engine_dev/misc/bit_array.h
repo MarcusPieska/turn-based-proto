@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <iosfwd>
 
+#include "game_primitives.h"
+
 //================================================================================================================================
 //=> - BitArray32 class -
 //================================================================================================================================
@@ -16,12 +18,12 @@ class BitArray32 {
 public:
 
     BitArray32 () : m_num_bits(0x00000000) {}
-    BitArray32 (uint32_t num_bits) : m_num_bits(num_bits) {}
+    BitArray32 (u32 num_bits) : m_num_bits(num_bits) {}
 
-    int get_count () const;
-    int get_bit (int index) const;
-    void set_bit (int index);
-    void clear_bit (int index);
+    u32 get_count () const;
+    u32 get_bit (u32 index) const;
+    void set_bit (u32 index);
+    void clear_bit (u32 index);
     
     void serialize (std::ostream& os) const;
     static BitArray32 deserialize (std::istream& is);
@@ -29,9 +31,9 @@ public:
     friend class Tester_BitArray32;
 
 private:
-    static const uint32_t masks[32];
+    static const u32 masks[32];
     
-    uint32_t m_num_bits;
+    u32 m_num_bits;
 };
 
 //================================================================================================================================
@@ -41,21 +43,21 @@ private:
 class BitArrayCL {
 public:
 
-    BitArrayCL (uint32_t num_bits);
+    BitArrayCL (u32 num_bits);
     ~BitArrayCL ();
 
-    int get_count () const;
-    int get_bit (int index) const;
-    void set_bit (int index);
-    void clear_bit (int index);
+    u32 get_count () const;
+    u32 get_bit (u32 index) const;
+    void set_bit (u32 index);
+    void clear_bit (u32 index);
 
     void serialize (std::ostream& os) const;
     static BitArrayCL* deserialize (std::istream& is);
 
 private:
     BitArray32* m_arrays;
-    uint32_t m_num_bits;
-    uint32_t m_num_arrays;
+    u32 m_num_bits;
+    u32 m_num_arrays;
 };
 
 #endif // BIT_ARRAY_H

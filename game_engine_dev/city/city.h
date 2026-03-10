@@ -8,9 +8,18 @@
 #include <cstdint>
 
 #include "game_primitives.h"
+#include "building_vector.h"
 
 class BitArrayCL;
-class WonderBuildableVector;
+
+class BuildableWonders;
+class BuiltWonders;
+
+class BuildableSmallWonders;
+class BuiltSmallWonders;
+
+class BuildableUnits;
+class BuiltUnits;
 
 //================================================================================================================================
 //=> - City class -
@@ -21,10 +30,10 @@ public:
     City ();
     ~City ();
 
-    BitArrayCL* get_buildable_buildings (BitArrayCL* techs);
-    WonderBuildableVector* get_buildable_wonders (BitArrayCL* techs);
-    BitArrayCL* get_buildable_small_wonders (BitArrayCL* techs);
-    BitArrayCL* get_trainable_units (BitArrayCL* techs);
+    BuildableBuildings* get_buildable_buildings (BitArrayCL* techs);
+    BuildableWonders* get_buildable_wonders (BitArrayCL* techs);
+    BuildableSmallWonders* get_buildable_small_wonders (BitArrayCL* techs, BuiltSmallWonders* built);
+    BuildableUnits* get_trainable_units (BitArrayCL* techs);
 
     void build_building (u16 building_idx);
     void build_wonder (u16 wonder_idx);
@@ -41,10 +50,10 @@ private:
     u16 m_accumulated_food;
     u16 m_accumulated_shields;
     u8 m_build_type;
-    u16 m_build_index;
+    u16 m_bld_idx;
 
     BitArrayCL m_flags;
-    BitArrayCL m_buildings;
+    BuiltBuildings m_buildings;
     BitArrayCL m_resources;
 };
 

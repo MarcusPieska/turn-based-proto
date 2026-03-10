@@ -9,7 +9,9 @@
 #include <iosfwd>
 #include <cstdint>
 
-#include "unit_data.h"  
+#include "game_primitives.h"
+#include "bit_array.h"
+#include "unit_data.h"
 
 //================================================================================================================================
 //=> - Forward declarations -
@@ -17,39 +19,36 @@
 
 class BitArrayCL;
 
-typedef struct UnitInstance {
+//================================================================================================================================
+//=> - UnitInstance wrapper -
+//================================================================================================================================
+//
+struct UnitInstance {
     const UnitTypeStats& stats;
-    uint16_t strength;
-} UnitInstance;
+    u16 strength;
+};
 
 //================================================================================================================================
-//=> - UnitVector class -
+//=> - BuildableUnits class -
 //================================================================================================================================
 
-class UnitVector {
+class BuildableUnits {
 public:
-    friend class TrainableAssessor;
+    friend class UnitAssessor;
 
-    UnitVector (const BitArrayCL* researched_units);
-    ~UnitVector ();
+    BuildableUnits();
+    ~BuildableUnits();
 
-    UnitInstance get_unit (uint32_t index) const;
-    bool is_trainable (uint32_t index) const;
-    uint32_t get_count () const;
-
-    static uint32_t get_unit_data_count ();
-    static const UnitTypeStats* get_unit_data_array ();
+    bool can_build(u16 idx) const;
 
 protected:
-    void set_trainable (uint32_t index);
+    void set_buildable(u16 idx);
 
 private:
-    UnitVector (const UnitVector& other) = delete;
-    UnitVector (UnitVector&& other) = delete;
-    UnitVector () = delete;
+    BuildableUnits(const BuildableUnits& other) = delete;
+    BuildableUnits(BuildableUnits&& other) = delete;
 
-    const BitArrayCL* m_researched_units;
-    BitArrayCL* m_units_unlocked;
+    BitArrayCL m_buildable;
 };
 
 #endif // UNIT_VECTOR_H

@@ -2,36 +2,41 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef BUILDABLE_ASSESSOR_H
-#define BUILDABLE_ASSESSOR_H
+#ifndef WONDER_DATA_TYPES_H
+#define WONDER_DATA_TYPES_H
 
-#include <string>
+#include <cstdint>
 
-class BuildingVector;
-class ResourceVector;
+#include "game_primitives.h"
 
 //================================================================================================================================
-//=> - BuildableAssessor class -
+//=> - Wonder data types -
 //================================================================================================================================
 
-class BuildableAssessor {
-public:
+class WonderIdx {
+    friend class WonderData;
+    public:
+        WonderIdx(const WonderIdx&) = default;
+        WonderIdx& operator=(const WonderIdx&) = default;
+        ~WonderIdx() = default;
 
-    BuildableAssessor ();
-    ~BuildableAssessor ();
+        bool operator==(const WonderIdx& other) const { 
+            return m_idx == other.m_idx; 
+        }
+    
+    private:
+        WonderIdx(u16 idx) : m_idx(idx) {
 
-    void load_building_resource_costs (const std::string& filename);
-    void determine_buildable_buildings (BuildingVector* buildings, const ResourceVector& resources);
+        }
 
-    void print_building_resource_costs ();
+        WonderIdx () = delete;
 
-private:
-    BuildableAssessor (const BuildableAssessor& other) = delete;
-    BuildableAssessor (BuildableAssessor&& other) = delete;
+        u16 m_idx;
 };
 
-#endif // BUILDABLE_ASSESSOR_H
+#endif // WONDER_DATA_TYPES_H
 
 //================================================================================================================================
 //=> - End of file -
 //================================================================================================================================
+

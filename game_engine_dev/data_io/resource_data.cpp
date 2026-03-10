@@ -20,7 +20,7 @@
 //================================================================================================================================
 
 static ResourceTypeStats* resource_data_array = nullptr;
-static u32 resource_data_count = 0;
+static u16 resource_data_count = 0;
 
 //================================================================================================================================
 //=> - Public functions -
@@ -35,11 +35,7 @@ void ResourceData::load_static_data (const std::string& filename) {
 }
 
 void ResourceData::print_content () {
-    if (resource_data_array == nullptr || resource_data_count == 0) {
-        printf("Resource data not loaded.\n");
-        return;
-    }
-
+    printf("Resource Data (total=%u):\n", resource_data_count);
     for (u32 i = 0; i < resource_data_count; ++i) {
         const ResourceTypeStats& stats = resource_data_array[i];
         printf("Resource: %s, Food: %u, Shields: %u, Commerce: %u, Tech prerequisite idx: %u\n",
@@ -47,29 +43,24 @@ void ResourceData::print_content () {
                static_cast<u32>(stats.bonus_food),
                static_cast<u32>(stats.bonus_shields),
                static_cast<u32>(stats.bonus_commerce),
-               static_cast<u32>(stats.tech_prereq_index));
+               stats.tech_prereq_idx.get_idx());
     }
 }
 
-u16 ResourceData::find_resource_index (const std::string& resource_name) {
-    if (resource_data_array == nullptr || resource_data_count == 0) {
-        printf("ERROR: ResourceData not loaded when searching for resource '%s'\n", resource_name.c_str());
-        exit(1);
-    }
-    
+ResourceIdx ResourceData::find_resource_index (const std::string& resource_name) {
     for (u32 i = 0; i < resource_data_count; ++i) {
         if (resource_data_array[i].name == resource_name) {
-            return static_cast<u16>(i);
+            return ResourceIdx(static_cast<u16>(i));
         }
     }
-    
     printf("ERROR: Resource '%s' not in ResourceData\n", resource_name.c_str());
+    print_content();
     exit(1);
-    return 0; // To make the compiler happy
+    return ResourceIdx(); // To make the compiler happy
 }
 
 u16 ResourceData::get_resource_data_count () {
-    return static_cast<u16>(resource_data_count);
+    return resource_data_count;
 }
 
 const ResourceTypeStats* ResourceData::get_resource_data_array () {
@@ -80,7 +71,7 @@ const ResourceTypeStats* ResourceData::get_resource_data_array () {
 //=> - Private helper functions -
 //================================================================================================================================
 
-u16 ResourceData::validate_and_count (const std::string& filename) {
+u32 ResourceData::validate_and_count (const std::string& filename) {
     StringReader reader(filename);
     std::string content = reader.read();
     if (content.empty()) {
@@ -116,15 +107,14 @@ u16 ResourceData::validate_and_count (const std::string& filename) {
 }
 
 void ResourceData::parse_and_allocate (const std::string& filename) {
-    int count = ResourceData::validate_and_count(filename);
-    if (count == 0) {
+    resource_data_count = ResourceData::validate_and_count(filename);
+    if (resource_data_count == 0) {
         printf("ERROR: No resources found in data file '%s'\n", filename.c_str());
         exit(1);
     }
-    resource_data_count = static_cast<u32>(count);
     resource_data_array = new ResourceTypeStats[resource_data_count];
     if (resource_data_array == nullptr) {
-        printf("ERROR: Failed to allocate memory for %u resources\n", static_cast<u32>(count));
+        printf("ERROR: Failed to allocate memory for %u resources\n", resource_data_count);
         exit(1);
     }
     StringReader reader(filename);
@@ -133,6 +123,7 @@ void ResourceData::parse_and_allocate (const std::string& filename) {
         printf("ERROR: Resource data file '%s' is empty\n", filename.c_str());
         exit(1);
     }
+
     StringSplitter line_splitter("\n");
     std::vector<std::string> lines = line_splitter.split(content);
     StringTrimmer trimmer(" \t\r\n");
@@ -161,9 +152,9 @@ void ResourceData::parse_and_allocate (const std::string& filename) {
                 resource_data_array[idx].bonus_shields = static_cast<u16>(std::atoi(shields_str.c_str()));
                 resource_data_array[idx].bonus_commerce = static_cast<u16>(std::atoi(comm_str.c_str()));
                 if (!prereq_str.empty()) {
-                    resource_data_array[idx].tech_prereq_index = TechData::find_tech_index(prereq_str);
+                    resource_data_array[idx].tech_prereq_idx = TechData::find_tech_index(prereq_str);
                 } else {
-                    resource_data_array[idx].tech_prereq_index = 0;
+                    resource_data_array[idx].tech_prereq_idx = TechIdx();
                 }
 
                 idx++;

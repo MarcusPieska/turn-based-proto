@@ -7,92 +7,75 @@
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
-
-#include "str_mng.h"
-#include "bit_array.h"
-#include "building_data.h"
+#include <string>
 
 #include "building_vector.h"
 
 //================================================================================================================================
-//=> - BuildingVector implementation -
+//=> - BuiltBuildings implementation -
 //================================================================================================================================
 
-BuildingVector::BuildingVector (const BitArrayCL* researched_buildings) : 
-    m_bld_researched (researched_buildings), 
-    m_bld_unlocked (new BitArrayCL(researched_buildings->get_count())),
-    m_bld_built (new BitArrayCL(researched_buildings->get_count())) {
+BuiltBuildings::BuiltBuildings () : 
+    m_built(static_cast<u32>(BuildingData::get_building_data_count())) {
 }
 
-BuildingVector::~BuildingVector () {
-    delete m_bld_built;
-    delete m_bld_unlocked;
+BuiltBuildings::~BuiltBuildings () {
 }
 
-const BuildingTypeStats& BuildingVector::get_building_stats (u32 idx) const {
-    const BuildingTypeStats* data = BuildingData::get_building_data_array();
-    return data[idx];
+void BuiltBuildings::set_built (u32 idx) {
+    m_built.set_bit(idx);
 }
 
-bool BuildingVector::is_buildable (u32 idx) const {
-    return m_bld_researched->get_bit(idx) == 1 && m_bld_unlocked->get_bit(idx) == 1 &&  m_bld_built->get_bit(idx) == 0;
+void BuiltBuildings::clear_built (u32 idx) {
+    m_built.clear_bit(idx);
 }
 
-bool BuildingVector::is_built (u32 idx) const {
-    return m_bld_built->get_bit(idx) == 1;
+bool BuiltBuildings::has_been_built (u32 idx) const {
+    return m_built.get_bit(idx) == 1;
 }
 
-u32 BuildingVector::get_count () const {
-    return m_bld_unlocked->get_count();
-}
-
-void BuildingVector::save (const std::string& filename) const {
+void BuiltBuildings::save (const std::string& filename) const {
     std::ofstream file(filename, std::ios::binary);
     if (file.is_open()) {
-        m_bld_built->serialize(file);
+        m_built.serialize(file);
         file.close();
     }
 }
 
-void BuildingVector::load (const std::string& filename) {
+void BuiltBuildings::load (const std::string& filename) {
     std::ifstream file(filename, std::ios::binary);
     if (file.is_open()) {
-        delete m_bld_built;
-        m_bld_built = BitArrayCL::deserialize(file);
+        BitArrayCL* temp = BitArrayCL::deserialize(file);
+        u32 count = temp->get_count();
+        for (u32 i = 0; i < count; i++) {
+            if (temp->get_bit(i) == 1) {
+                m_built.set_bit(i);
+            } else {
+                m_built.clear_bit(i);
+            }
+        }
+        delete temp;
         file.close();
     }
 }
 
-void BuildingVector::toggle_built (u32 idx) {
-    if (m_bld_built->get_bit(idx) == 1) {
-        m_bld_built->clear_bit(idx);
-    } else {
-        m_bld_built->set_bit(idx);
-    }
-}
-
-void BuildingVector::set_built (u32 idx) {
-    m_bld_built->set_bit(idx);
-}
-
-void BuildingVector::clear_built (u32 idx) {
-    m_bld_built->clear_bit(idx);
-}
-
-void BuildingVector::set_buildable (u32 idx) {
-    m_bld_unlocked->set_bit(idx);
-}
-
 //================================================================================================================================
-//=> - Static data accessors -
+//=> - BuildableBuildings implementation -
 //================================================================================================================================
 
-const BuildingTypeStats* BuildingVector::get_building_data_array () {
-    return BuildingData::get_building_data_array();
+BuildableBuildings::BuildableBuildings () : 
+    m_buildable(static_cast<u32>(BuildingData::get_building_data_count())) {
 }
 
-u32 BuildingVector::get_building_data_count () {
-    return static_cast<u32>(BuildingData::get_building_data_count());
+BuildableBuildings::~BuildableBuildings () {
+}
+
+void BuildableBuildings::set_buildable (u32 idx) {
+    m_buildable.set_bit(idx);
+}
+
+bool BuildableBuildings::can_build (u32 idx) const {
+    return m_buildable.get_bit(idx) == 1;
 }
 
 //================================================================================================================================

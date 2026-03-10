@@ -14,6 +14,7 @@
 #include "city_flags.h"
 #include "wonder_data.h"
 #include "wonder_vector.h"
+#include "small_wonder_vector.h"
 #include "city.h"
 
 typedef const char* cstr;
@@ -41,9 +42,7 @@ void note_result (bool cond, cstr msg) {
         }
     } else {
         total_test_fails++;
-        if (print_level > 0) {
-            std::printf("*** TEST FAILED: %s\n", msg);
-        }
+        std::printf("*** TEST FAILED: %s\n", msg);
     }
 }
 
@@ -170,7 +169,7 @@ static WonderTestSetup create_wonder_test_setup () {
 static void clear_all_built_wonders () {
     u16 wonder_count = WonderData::get_wonder_data_count();
     for (u16 i = 0; i < wonder_count; ++i) {
-        WondersBuiltVector::set_owning_city(i, 0);
+        BuiltWonders::set_owning_city(i, 0);
     }
 }
 
@@ -221,18 +220,45 @@ void test_city_build_functions () {
     summarize_test_results();
 }
 
-void test_city_get_functions () {
+void test_city_get_buildable_buildings () {
     City city;
     BitArrayCL* techs = new BitArrayCL(TechData::get_tech_data_count());
-    BitArrayCL* buildings = city.get_buildable_buildings(techs);
-    WonderBuildableVector* wonders = city.get_buildable_wonders(techs);
-    BitArrayCL* small_wonders = city.get_buildable_small_wonders(techs);
-    BitArrayCL* units = city.get_trainable_units(techs);
+    BuildableBuildings* buildings = city.get_buildable_buildings(techs);
     
-    note_result(buildings == nullptr, "City get_buildable_buildings returns nullptr (not yet implemented)");
-    note_result(wonders == nullptr, "City get_buildable_wonders returns nullptr (not yet implemented)");
-    note_result(small_wonders == nullptr, "City get_buildable_small_wonders returns nullptr (not yet implemented)");
-    note_result(units == nullptr, "City get_trainable_units returns nullptr (not yet implemented)");
+    note_result(buildings != nullptr, "City get_buildable_buildings returns nullptr");
+    delete techs;
+    summarize_test_results();
+}
+
+void test_city_get_buildable_wonders () {
+    City city;
+    BitArrayCL* techs = new BitArrayCL(TechData::get_tech_data_count());
+    BuildableWonders* wonders = city.get_buildable_wonders(techs);
+    
+    note_result(wonders != nullptr, "City get_buildable_wonders returns nullptr");
+    delete techs;
+    summarize_test_results();
+}
+
+void test_city_get_buildable_small_wonders () {
+    City city;
+    BuiltSmallWonders* built_small_wonders = new BuiltSmallWonders();
+    BitArrayCL* techs = new BitArrayCL(TechData::get_tech_data_count());
+    BuildableSmallWonders* small_wonders = city.get_buildable_small_wonders(techs, built_small_wonders);
+    
+    note_result(small_wonders != nullptr, "City get_buildable_small_wonders returns nullptr");
+    delete techs;
+    delete built_small_wonders;
+    summarize_test_results();
+}
+
+void test_city_get_trainable_units () {
+    City city;
+    BitArrayCL* techs = new BitArrayCL(TechData::get_tech_data_count());
+    BuildableUnits* units = city.get_trainable_units(techs);
+    
+    note_result(units != nullptr, "City get_trainable_units returns nullptr");
+    delete techs;
     summarize_test_results();
 }
 
@@ -250,13 +276,16 @@ int main (int argc, char* argv[]) {
     CityFlagData::load_static_data("../game_config.city_flags");
     BuildingData::load_static_data("../game_config.buildings");
     WonderData::load_static_data("../game_config.wonders");
-    WondersBuiltVector::allocate_static_array();
+    BuiltWonders::allocate_static_array();
 
     test_city_constructor();
     test_city_add_food();
     test_city_add_shields();
     test_city_build_functions();
-    test_city_get_functions();
+    test_city_get_buildable_buildings();
+    test_city_get_buildable_wonders();
+    test_city_get_buildable_small_wonders();
+    test_city_get_trainable_units();
 
     std::printf("=======================================================\n");
     std::printf(" TESTING CITY: TOTAL FAILURES: %d/%d\n", total_test_fails, total_tests_run);

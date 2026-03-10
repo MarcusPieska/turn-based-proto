@@ -33,13 +33,13 @@ void print_resource_data () {
                static_cast<u32>(r.bonus_shields),
                static_cast<u32>(r.bonus_commerce));
 
-        if (r.tech_prereq_index < tech_count) {
-            u16 idx = r.tech_prereq_index;
+        u16 idx = r.tech_prereq_idx.get_idx();
+        if (idx < tech_count) {
             printf("  Tech Prerequisite: %s (idx=%u)\n", techs[idx].name.c_str(), static_cast<u32>(idx));
-        } else if (r.tech_prereq_index == 0) {
+        } else if (idx == 0) {
             printf("  Tech Prerequisite: None\n");
         } else {
-            printf("  Tech Prerequisite: <invalid index %u>\n", static_cast<u32>(r.tech_prereq_index));
+            printf("  Tech Prerequisite: <invalid index %u>\n", idx);
         }
 
         printf("\n");

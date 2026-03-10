@@ -14,7 +14,23 @@ g++ $INC -c small_wonder_data.cpp -o small_wonder_data.o
 g++ $INC -c small_wonder_tester.cpp -o small_wonder_tester.o
 
 # Link everything into the final tester
-g++ -o small_wonder_tester str_mng.o bit_array.o city_flags.o tech_data.o resource_data.o building_data.o small_wonder_data.o small_wonder_tester.o
+g++ -o small_wonder_tester \
+    str_mng.o \
+    bit_array.o \
+    city_flags.o \
+    tech_data.o \
+    resource_data.o \
+    building_data.o \
+    small_wonder_data.o \
+    small_wonder_tester.o
 
 # Clean up
-rm str_mng.o bit_array.o city_flags.o tech_data.o resource_data.o building_data.o small_wonder_data.o small_wonder_tester.o
+rm \
+    str_mng.o \
+    bit_array.o \
+    city_flags.o \
+    tech_data.o \
+    resource_data.o \
+    building_data.o \
+    small_wonder_data.o \
+    small_wonder_tester.o

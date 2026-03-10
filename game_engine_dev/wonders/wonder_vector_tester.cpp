@@ -75,15 +75,15 @@ void summarize_test_results () {
 
 class WonderAssessor {
 public:
-    WonderAssessor (WonderBuildableVector* buildable_vector) : m_buildable_vector(buildable_vector) {
+    WonderAssessor (BuildableWonders* buildable_vector) : m_buildable_vector(buildable_vector) {
         u16 wonder_count = WonderData::get_wonder_data_count();
         for (u16 i = 0; i < wonder_count; i++) {
             set_buildable(m_buildable_vector, i);
         }
     }
     
-    static void set_buildable (WonderBuildableVector* vec, u16 idx) {
-        vec->m_buildable->set_bit(static_cast<int>(idx));
+    static void set_buildable (BuildableWonders* vec, u16 idx) {
+        vec->m_buildable.set_bit(idx);
     }
     
     void set_buildable (u16 idx) {
@@ -98,11 +98,11 @@ public:
     }
 
 private:
-    WonderBuildableVector* m_buildable_vector;
+    BuildableWonders* m_buildable_vector;
 };
 
 struct TestSetup {
-    WonderBuildableVector* buildable;
+    BuildableWonders* buildable;
     u32 count;
     
     TestSetup () : buildable(nullptr), count(0) {}
@@ -114,24 +114,24 @@ struct TestSetup {
 
 TestSetup setup_wonder_test () {
     TestSetup setup;
-    setup.count = static_cast<u32>(WonderData::get_wonder_data_count());
-    setup.buildable = new WonderBuildableVector();
+    setup.count = WonderData::get_wonder_data_count();
+    setup.buildable = new BuildableWonders();
     return setup;
 }
 
 void verify_wonder_stats (const WonderTypeStats& stats, cstr test_name) {
     note_result (!stats.name.empty(), test_name, " - name not empty");
     note_result (stats.cost > 0, test_name, " - cost > 0");
-    note_result (stats.tech_prereq_idx < TechData::get_tech_data_count(), test_name, " - tech_prereq_idx valid");
+    note_result (stats.tech_prereq_idx.get_idx() < TechData::get_tech_data_count(), test_name, " - tech_prereq_idx valid");
 }
 
 void verify_built (u16 idx, bool should_be_built, cstr test_name) {
-    bool is_built = WondersBuiltVector::has_been_built(idx);
+    bool is_built = BuiltWonders::has_been_built(idx);
     str msg = str(test_name) + " - has_been_built " + (should_be_built ? "true" : "false");
     note_result (is_built == should_be_built, msg.c_str());
 }
 
-void verify_wonder_buildable_status (WonderBuildableVector* buildable, u16 idx, bool should_be_buildable, cstr test_name) {
+void verify_wonder_buildable_status (BuildableWonders* buildable, u16 idx, bool should_be_buildable, cstr test_name) {
     bool is_buildable = buildable->can_build(idx);
     str msg = str(test_name) + " - can_build " + (should_be_buildable ? "true" : "false");
     note_result (is_buildable == should_be_buildable, msg.c_str());
@@ -152,36 +152,36 @@ void test_bounds_get_wonder_stats (u32 count, cstr prefix) {
 }
 
 void test_bounds_set_built (u32 count, cstr prefix) {
-    WondersBuiltVector::set_owning_city(0, 1);
+    BuiltWonders::set_owning_city(0, 1);
     str msg1 = str(prefix) + " - set_owning_city valid idx 0";
-    note_result (WondersBuiltVector::has_been_built(0) == true, msg1.c_str());
+    note_result (BuiltWonders::has_been_built(0) == true, msg1.c_str());
     
-    WondersBuiltVector::set_owning_city(static_cast<u16>(count - 1), 1);
+    BuiltWonders::set_owning_city(count - 1, 1);
     str msg2 = str(prefix) + " - set_owning_city valid idx (last)";
-    note_result (WondersBuiltVector::has_been_built(static_cast<u16>(count - 1)) == true, msg2.c_str());
+    note_result (BuiltWonders::has_been_built(count - 1) == true, msg2.c_str());
 }
 
 void test_built_status_calc (u16 idx, cstr prefix) {
     verify_built(idx, false, (str(prefix) + " - not built initially").c_str());
     
-    WondersBuiltVector::set_owning_city(idx, 1);
+    BuiltWonders::set_owning_city(idx, 1);
     verify_built(idx, true, (str(prefix) + " - built after set_owning_city").c_str());
     
-    WondersBuiltVector::set_owning_city(idx, 0);
+    BuiltWonders::set_owning_city(idx, 0);
     verify_built(idx, false, (str(prefix) + " - not built after clear").c_str());
 }
 
 void test_repeated_set_built (u16 idx, cstr prefix) {
-    WondersBuiltVector::set_owning_city(idx, 1);
-    bool status1 = WondersBuiltVector::has_been_built(idx);
+    BuiltWonders::set_owning_city(idx, 1);
+    bool status1 = BuiltWonders::has_been_built(idx);
     verify_built(idx, true, (str(prefix) + " - first set_owning_city").c_str());
     
-    WondersBuiltVector::set_owning_city(idx, 1);
-    bool status2 = WondersBuiltVector::has_been_built(idx);
+    BuiltWonders::set_owning_city(idx, 1);
+    bool status2 = BuiltWonders::has_been_built(idx);
     verify_built(idx, true, (str(prefix) + " - second set_owning_city").c_str());
     
-    WondersBuiltVector::set_owning_city(idx, 1);
-    bool status3 = WondersBuiltVector::has_been_built(idx);
+    BuiltWonders::set_owning_city(idx, 1);
+    bool status3 = BuiltWonders::has_been_built(idx);
     verify_built(idx, true, (str(prefix) + " - third set_owning_city").c_str());
     
     str msg = str(prefix) + " - repeated calls consistent";
@@ -215,15 +215,15 @@ void test_wonder_independent (u32 count, cstr prefix) {
     u16 idx_b = static_cast<u16>(count / 2);
     u16 idx_c = static_cast<u16>(count - 1);
     
-    WondersBuiltVector::set_owning_city(idx_a, 1);
-    WondersBuiltVector::set_owning_city(idx_b, 1);
-    WondersBuiltVector::set_owning_city(idx_c, 1);
+    BuiltWonders::set_owning_city(idx_a, 1);
+    BuiltWonders::set_owning_city(idx_b, 1);
+    BuiltWonders::set_owning_city(idx_c, 1);
     
     verify_built(idx_a, true, (str(prefix) + " - wonder A").c_str());
     verify_built(idx_b, true, (str(prefix) + " - wonder B").c_str());
     verify_built(idx_c, true, (str(prefix) + " - wonder C").c_str());
     
-    WondersBuiltVector::set_owning_city(idx_b, 0);
+    BuiltWonders::set_owning_city(idx_b, 0);
     verify_built(idx_a, true, (str(prefix) + " - wonder A still built").c_str());
     verify_built(idx_b, false, (str(prefix) + " - wonder B cleared").c_str());
     verify_built(idx_c, true, (str(prefix) + " - wonder C still built").c_str());
@@ -302,20 +302,20 @@ void test_wonder_stats_consistency (u16 idx, cstr prefix) {
 void test_wonder_built_with_different_wonders (u32 count, cstr prefix) {
     for (u32 i = 0; i < count && i < 5; i++) {
         verify_built(static_cast<u16>(i), false, (str(prefix) + " - idx " + std::to_string(i) + " not built").c_str());
-        WondersBuiltVector::set_owning_city(static_cast<u16>(i), 1);
+        BuiltWonders::set_owning_city(static_cast<u16>(i), 1);
         str msg = str(prefix) + " - idx " + std::to_string(i) + " built";
         verify_built(static_cast<u16>(i), true, msg.c_str());
     }
 }
 
-void test_buildable_vec_default_state (WonderBuildableVector* buildable, u32 count, cstr prefix) {
+void test_buildable_vec_default_state (BuildableWonders* buildable, u32 count, cstr prefix) {
     for (u32 i = 0; i < count && i < 5; i++) {
         verify_wonder_buildable_status(buildable, static_cast<u16>(i), false, 
             (str(prefix) + " - idx " + std::to_string(i) + " not buildable initially").c_str());
     }
 }
 
-void test_buildable_vec_after_assessor (WonderBuildableVector* buildable, u32 count, cstr prefix) {
+void test_buildable_vec_after_assessor (BuildableWonders* buildable, u32 count, cstr prefix) {
     WonderAssessor assessor(buildable);
     for (u32 i = 0; i < count && i < 5; i++) {
         verify_wonder_buildable_status(buildable, static_cast<u16>(i), true, 
@@ -323,8 +323,8 @@ void test_buildable_vec_after_assessor (WonderBuildableVector* buildable, u32 co
     }
 }
 
-void test_buildable_vec_set_individual (WonderBuildableVector* buildable, u16 idx, cstr prefix) {
-    WonderBuildableVector* fresh = new WonderBuildableVector();
+void test_buildable_vec_set_individual (BuildableWonders* buildable, u16 idx, cstr prefix) {
+    BuildableWonders* fresh = new BuildableWonders();
     
     verify_wonder_buildable_status(fresh, idx, false, (str(prefix) + " - not buildable initially").c_str());
     WonderAssessor::set_buildable(fresh, idx);
@@ -334,24 +334,24 @@ void test_buildable_vec_set_individual (WonderBuildableVector* buildable, u16 id
 }
 
 void test_owning_city_different_ids (u16 idx, cstr prefix) {
-    WondersBuiltVector::set_owning_city(idx, 0);
+    BuiltWonders::set_owning_city(idx, 0);
     verify_built(idx, false, (str(prefix) + " - city_id 0 not built").c_str());
     
-    WondersBuiltVector::set_owning_city(idx, 1);
+    BuiltWonders::set_owning_city(idx, 1);
     verify_built(idx, true, (str(prefix) + " - city_id 1 built").c_str());
     
-    WondersBuiltVector::set_owning_city(idx, 5);
+    BuiltWonders::set_owning_city(idx, 5);
     verify_built(idx, true, (str(prefix) + " - city_id 5 built").c_str());
     
-    WondersBuiltVector::set_owning_city(idx, 100);
+    BuiltWonders::set_owning_city(idx, 100);
     verify_built(idx, true, (str(prefix) + " - city_id 100 built").c_str());
     
-    WondersBuiltVector::set_owning_city(idx, 0);
+    BuiltWonders::set_owning_city(idx, 0);
     verify_built(idx, false, (str(prefix) + " - city_id 0 clears built").c_str());
 }
 
-void test_buildable_vec_multiple_indices (WonderBuildableVector* buildable, u32 count, cstr prefix) {
-    WonderBuildableVector* fresh = new WonderBuildableVector();
+void test_buildable_vec_multiple_indices (BuildableWonders* buildable, u32 count, cstr prefix) {
+    BuildableWonders* fresh = new BuildableWonders();
     
     u16 idx_a = 0;
     u16 idx_b = static_cast<u16>(count / 2);
@@ -403,15 +403,15 @@ void test_wonder_data_idempotency () {
 }
 
 void test_wonder_built () {
-    WondersBuiltVector::allocate_static_array();
+    BuiltWonders::allocate_static_array();
     verify_built(0, false, "Wonder built - not built initially");
-    WondersBuiltVector::set_owning_city(0, 1);
+    BuiltWonders::set_owning_city(0, 1);
     verify_built(0, true, "Wonder built - built after set_owning_city");
     summarize_test_results();
 }
 
 void test_wonder_bounds () {
-    WondersBuiltVector::allocate_static_array();
+    BuiltWonders::allocate_static_array();
     u32 count = static_cast<u32>(WonderData::get_wonder_data_count());
     test_bounds_get_wonder_stats(count, "Wonder bounds get_wonder_stats");
     test_bounds_set_built(count, "Wonder bounds set_owning_city");
@@ -419,14 +419,14 @@ void test_wonder_bounds () {
 }
 
 void test_wonder_multiple_indices () {
-    WondersBuiltVector::allocate_static_array();
+    BuiltWonders::allocate_static_array();
     u32 count = static_cast<u32>(WonderData::get_wonder_data_count());
     test_multiple_indices(count, "Wonder multiple indices");
     summarize_test_results();
 }
 
 void test_wonder_built_status_calc () {
-    WondersBuiltVector::allocate_static_array();
+    BuiltWonders::allocate_static_array();
     u32 count = static_cast<u32>(WonderData::get_wonder_data_count());
     test_built_status_calc(0, "Wonder built status calc idx 0");
     test_built_status_calc(static_cast<u16>(count - 1), "Wonder built status calc idx last");
@@ -435,7 +435,7 @@ void test_wonder_built_status_calc () {
 }
 
 void test_wonder_repeated_set_built () {
-    WondersBuiltVector::allocate_static_array();
+    BuiltWonders::allocate_static_array();
     u32 count = static_cast<u32>(WonderData::get_wonder_data_count());
     test_repeated_set_built(0, "Wonder repeated set_owning_city idx 0");
     test_repeated_set_built(static_cast<u16>(count - 1), "Wonder repeated set_owning_city idx last");
@@ -448,21 +448,21 @@ void test_wonder_get_count_consistency () {
 }
 
 void test_wonder_built_with_different_wonders () {
-    WondersBuiltVector::allocate_static_array();
+    BuiltWonders::allocate_static_array();
     u32 count = static_cast<u32>(WonderData::get_wonder_data_count());
     test_wonder_built_with_different_wonders(count, "Wonder built different wonders");
     summarize_test_results();
 }
 
 void test_wonder_all_not_built_initially () {
-    WondersBuiltVector::allocate_static_array();
+    BuiltWonders::allocate_static_array();
     u32 count = static_cast<u32>(WonderData::get_wonder_data_count());
     test_all_not_built_initially(count, "Wonder all not built initially");
     summarize_test_results();
 }
 
 void test_wonder_built_independent () {
-    WondersBuiltVector::allocate_static_array();
+    BuiltWonders::allocate_static_array();
     u32 count = static_cast<u32>(WonderData::get_wonder_data_count());
     test_wonder_independent(count, "Wonder built independent");
     summarize_test_results();
@@ -514,7 +514,7 @@ void test_buildable_vec_set_individual () {
 }
 
 void test_owning_city_different_ids () {
-    WondersBuiltVector::allocate_static_array();
+    BuiltWonders::allocate_static_array();
     u32 count = static_cast<u32>(WonderData::get_wonder_data_count());
     test_owning_city_different_ids(0, "OwningCity different city IDs idx 0");
     if (count > 1) {
@@ -544,7 +544,7 @@ int main (int argc, char* argv[]) {
     BuildingData::load_static_data("../game_config.buildings");
     WonderData::load_static_data("../game_config.wonders");
 
-    WondersBuiltVector::allocate_static_array();
+    BuiltWonders::allocate_static_array();
     
     test_static_data_loaded();
     test_wonder_data();
