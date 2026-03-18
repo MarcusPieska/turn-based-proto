@@ -14,9 +14,9 @@
 #include "tech_data.h"
 #include "resource_data.h"
 #include "building_data.h"
-#include "unit_types.h"
-#include "unit_data.h"
-#include "unit_vector.h"
+#include "civ_trait_data.h"
+#include "civ_data.h"
+#include "civ_vector.h"
 
 //================================================================================================================================
 //=> - Globals -
@@ -73,160 +73,184 @@ void summarize_test_results () {
 //=> - Test helper types -
 //================================================================================================================================
 
-class UnitAssessor {
+class GameStarter {
 public:
-    explicit UnitAssessor(BuildableUnits* buildable)
-        : m_buildable(buildable) {}
+    explicit GameStarter(CivVector* civs)
+        : m_civs(civs) {}
 
-    void set_buildable(u16 idx) {
-        if (m_buildable) {
-            m_buildable->set_buildable(idx);
+    void add_to_game(u16 idx) {
+        if (m_civs) {
+            m_civs->add_to_game(idx);
         }
     }
 
 private:
-    BuildableUnits* m_buildable;
+    CivVector* m_civs;
 };
 
-struct BuildableUnitsTestSetup {
-    BuildableUnits* bu;
-    u32             count;
+struct CivVectorTestSetup {
+    CivVector* cv;
+    u32        count;
 
-    BuildableUnitsTestSetup() : bu(nullptr), count(0) {}
-    ~BuildableUnitsTestSetup() { delete bu; }
+    CivVectorTestSetup() : cv(nullptr), count(0) {}
+    ~CivVectorTestSetup() { delete cv; }
 };
 
-BuildableUnitsTestSetup setup_buildable_units_test () {
-    BuildableUnitsTestSetup setup;
-    setup.count = static_cast<u32>(UnitData::get_unit_data_count());
+CivVectorTestSetup setup_civ_vector_test () {
+    CivVectorTestSetup setup;
+    setup.count = static_cast<u32>(CivData::get_civ_data_count());
     if (setup.count > 0) {
-        setup.bu = new BuildableUnits();
+        setup.cv = new CivVector();
     }
     return setup;
 }
 
 //================================================================================================================================
-//=> - Static unit-data validation -
+//=> - Static civ-data validation -
 //================================================================================================================================
 
-void verify_unit_type (const UnitTypeStats& stats, cstr test_name) {
+void verify_civ_stats (const CivStats& stats, cstr test_name) {
     note_result(!stats.name.empty(), test_name, " - name not empty");
-    note_result(stats.cost > 0, test_name, " - cost > 0");
-    note_result(stats.movement_speed > 0, test_name, " - movement_speed > 0");
-    (void)stats.attack;
-    (void)stats.defense;
 }
 
-void test_unit_data_basic () {
-    u32 count = static_cast<u32>(UnitData::get_unit_data_count());
-    const UnitTypeStats* units = UnitData::get_unit_data_array();
+void test_civ_data_basic () {
+    u32 count = static_cast<u32>(CivData::get_civ_data_count());
+    const CivStats* civs = CivData::get_civ_data_array();
 
-    if (count == 0 || !units) {
-        note_result(false, "UnitData basic: no units found");
+    if (count == 0 || !civs) {
+        note_result(false, "CivData basic: no civs found");
         summarize_test_results();
         return;
     }
 
-    note_result(true, "UnitData basic: units present");
+    note_result(true, "CivData basic: civs present");
 
     u32 checked = 0;
     for (u32 i = 0; i < count && checked < 10; ++i) {
-        str name = "UnitData basic idx " + std::to_string(i);
-        verify_unit_type(units[i], name.c_str());
+        str name = "CivData basic idx " + std::to_string(i);
+        verify_civ_stats(civs[i], name.c_str());
         ++checked;
     }
 
     summarize_test_results();
 }
 
+void test_civ_none_placeholders () {
+    u16 civ_count = CivData::get_civ_data_count();
+    const CivStats* civs = CivData::get_civ_data_array();
+    u16 trait_count = CivTraitData::get_civ_trait_count();
+    const CivTraitStats* traits = CivTraitData::get_civ_trait_data_array();
+
+    bool civ_ok = civ_count > 0 && civs && civs[0].name == "CIV_NONE";
+    note_result(civ_ok, "CivData none placeholder: civ[0] is CIV_NONE");
+
+    bool traits_clear = true;
+    if (civ_ok) {
+        for (u16 t = 0; t < MAX_TRAITS_PER_CIV; ++t) {
+            if (civs[0].trait_indices.indices[t] != 0) {
+                traits_clear = false;
+                break;
+            }
+        }
+    } else {
+        traits_clear = false;
+    }
+    note_result(traits_clear, "CivData none placeholder: civ[0] traits all zero");
+
+    bool trait_ok = trait_count > 0 && traits && traits[0].name == "CIV_TRAIT_NONE";
+    note_result(trait_ok, "CivTraitData none placeholder: trait[0] is CIV_TRAIT_NONE");
+
+    summarize_test_results();
+}
+
 //================================================================================================================================
-//=> - BuildableUnits tests -
+//=> - CivVector tests -
 //================================================================================================================================
 
-void test_buildable_units_initial_state () {
-    BuildableUnitsTestSetup setup = setup_buildable_units_test();
-    if (setup.count == 0 || !setup.bu) {
-        note_result(false, "BuildableUnits initial: no units found");
+void test_civ_vector_initial_state () {
+    CivVectorTestSetup setup = setup_civ_vector_test();
+    if (setup.count == 0 || !setup.cv) {
+        note_result(false, "CivVector initial: no civs found");
         summarize_test_results();
         return;
     }
 
-    bool all_locked = true;
+    bool all_not_in_game = true;
     for (u32 i = 0; i < setup.count && i < 64; ++i) { 
-        bool can = setup.bu->can_build(static_cast<u16>(i));
-        if (can) {
-            all_locked = false;
+        bool in_game = setup.cv->is_in_game(static_cast<u16>(i));
+        if (in_game) {
+            all_not_in_game = false;
             break;
         }
     }
 
-    note_result(all_locked, "BuildableUnits initial: all units not buildable");
+    note_result(all_not_in_game, "CivVector initial: all civs not in game");
     summarize_test_results();
 }
 
-void test_buildable_units_single_set () {
-    BuildableUnitsTestSetup setup = setup_buildable_units_test();
-    if (setup.count == 0 || !setup.bu) {
-        note_result(false, "BuildableUnits single set: no units found");
+void test_civ_vector_single_set () {
+    CivVectorTestSetup setup = setup_civ_vector_test();
+    if (setup.count == 0 || !setup.cv) {
+        note_result(false, "CivVector single set: no civs found");
         summarize_test_results();
         return;
     }
-    UnitAssessor assessor(setup.bu);
+    GameStarter starter(setup.cv);
     u16 idx = 0;
-    assessor.set_buildable(idx);
-    bool can = setup.bu->can_build(idx);
-    note_result(can, "BuildableUnits single set: idx 0 becomes buildable");
+    starter.add_to_game(idx);
+    bool in_game = setup.cv->is_in_game(idx);
+    note_result(in_game, "CivVector single set: idx 0 becomes in game");
     if (setup.count > 1) {
-        bool other_can = setup.bu->can_build(static_cast<u16>(setup.count - 1));
-        note_result(!other_can, "BuildableUnits single set: last idx still not buildable");
+        bool other_in_game = setup.cv->is_in_game(static_cast<u16>(setup.count - 1));
+        note_result(!other_in_game, "CivVector single set: last idx still not in game");
     }
 
     summarize_test_results();
 }
 
-void test_buildable_units_multiple_indices () {
-    BuildableUnitsTestSetup setup = setup_buildable_units_test();
-    if (setup.count < 3 || !setup.bu) {
-        note_result(false, "BuildableUnits multiple indices: need at least 3 units");
+void test_civ_vector_multiple_indices () {
+    CivVectorTestSetup setup = setup_civ_vector_test();
+    if (setup.count < 3 || !setup.cv) {
+        note_result(false, "CivVector multiple indices: need at least 3 civs");
         summarize_test_results();
         return;
     }
 
-    UnitAssessor assessor(setup.bu);
+    GameStarter starter(setup.cv);
     u16 idx_a = 0;
     u16 idx_b = static_cast<u16>(setup.count / 2);
     u16 idx_c = static_cast<u16>(setup.count - 1);
 
-    assessor.set_buildable(idx_a);
-    assessor.set_buildable(idx_b);
-    assessor.set_buildable(idx_c);
+    starter.add_to_game(idx_a);
+    starter.add_to_game(idx_b);
+    starter.add_to_game(idx_c);
 
-    note_result(setup.bu->can_build(idx_a), "BuildableUnits multiple: idx A buildable");
-    note_result(setup.bu->can_build(idx_b), "BuildableUnits multiple: idx B buildable");
-    note_result(setup.bu->can_build(idx_c), "BuildableUnits multiple: idx C buildable");
+    note_result(setup.cv->is_in_game(idx_a), "CivVector multiple: idx A in game");
+    note_result(setup.cv->is_in_game(idx_b), "CivVector multiple: idx B in game");
+    note_result(setup.cv->is_in_game(idx_c), "CivVector multiple: idx C in game");
 
     summarize_test_results();
 }
 
-void test_buildable_units_bounds () {
-    BuildableUnitsTestSetup setup = setup_buildable_units_test();
-    if (setup.count == 0 || !setup.bu) {
-        note_result(false, "BuildableUnits bounds: no units found");
+void test_civ_vector_bounds () {
+    CivVectorTestSetup setup = setup_civ_vector_test();
+    if (setup.count == 0 || !setup.cv) {
+        note_result(false, "CivVector bounds: no civs found");
         summarize_test_results();
         return;
     }
-    UnitAssessor assessor(setup.bu);
-    assessor.set_buildable(0);
-    note_result(setup.bu->can_build(0), "BuildableUnits bounds: idx 0 buildable");
+    GameStarter starter(setup.cv);
+    starter.add_to_game(0);
+    note_result(setup.cv->is_in_game(0), "CivVector bounds: idx 0 in game");
     if (setup.count > 1) {
         u16 last = static_cast<u16>(setup.count - 1);
-        assessor.set_buildable(last);
-        note_result(setup.bu->can_build(last), "BuildableUnits bounds: last idx buildable");
+        starter.add_to_game(last);
+        note_result(setup.cv->is_in_game(last), "CivVector bounds: last idx in game");
     }
     u16 oob = static_cast<u16>(setup.count);
-    assessor.set_buildable(oob);
-    bool can_oob = setup.bu->can_build(oob);
-    note_result(!can_oob, "BuildableUnits bounds: out-of-bounds idx not buildable");
+    starter.add_to_game(oob);
+    bool in_game_oob = setup.cv->is_in_game(oob);
+    note_result(!in_game_oob, "CivVector bounds: out-of-bounds idx not in game");
 
     summarize_test_results();
 }
@@ -244,17 +268,18 @@ int main (int argc, char* argv[]) {
     TechData::load_static_data("../game_config.techs");
     ResourceData::load_static_data("../game_config.resources");
     BuildingData::load_static_data("../game_config.buildings");
-    UnitTypeData::load_static_data("../game_config.unit_types");
-    UnitData::load_static_data("../game_config.units");
+    CivTraitData::load_static_data("../game_config.civ_traits");
+    CivData::load_static_data("../game_config.civs");
 
-    test_unit_data_basic();
-    test_buildable_units_initial_state();
-    test_buildable_units_single_set();
-    test_buildable_units_multiple_indices();
-    test_buildable_units_bounds();
+    test_civ_data_basic();
+    test_civ_none_placeholders();
+    test_civ_vector_initial_state();
+    test_civ_vector_single_set();
+    test_civ_vector_multiple_indices();
+    test_civ_vector_bounds();
 
     std::printf("=======================================================\n");
-    std::printf(" TESTING UNITS: TOTAL FAILURES: %d/%d\n", total_test_fails, total_tests_run);
+    std::printf(" TESTING CIVS: TOTAL FAILURES: %d/%d\n", total_test_fails, total_tests_run);
     std::printf("=======================================================\n");
 
     return total_test_fails;

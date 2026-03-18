@@ -19,6 +19,7 @@ g++ $INC -c ../buildings/building_vector.cpp -o building_vector.o
 g++ $INC -c ../resources/resources_vector.cpp -o resources_vector.o
 g++ $INC -c building_assessor.cpp -o building_assessor.o
 g++ $INC -c building_assessor_tester.cpp -o building_assessor_tester.o
+g++ $INC -c building_assessor_tester_brute_rev.cpp -o building_assessor_tester_brute_rev.o
 
 # Link everything into the final tester
 g++ -o building_assessor_tester \
@@ -33,6 +34,19 @@ g++ -o building_assessor_tester \
     building_assessor.o \
     building_assessor_tester.o
 
+# Link everything into the final tester
+g++ -o building_assessor_tester_brute_rev \
+    str_mng.o \
+    bit_array.o \
+    city_flags.o \
+    tech_data.o \
+    building_data.o \
+    resource_data.o \
+    building_vector.o \
+    resources_vector.o \
+    building_assessor.o \
+    building_assessor_tester_brute_rev.o
+
 # Clean up
 rm \
     str_mng.o \
@@ -44,4 +58,5 @@ rm \
     building_vector.o \
     resources_vector.o \
     building_assessor.o \
-    building_assessor_tester.o
+    building_assessor_tester.o \
+    building_assessor_tester_brute_rev.o

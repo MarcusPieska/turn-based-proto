@@ -5,6 +5,7 @@
 *.dat31
 *.png
 *.cl
+*.gch
 *.temp
 *_tester
 

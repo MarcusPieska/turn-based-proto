@@ -2,53 +2,47 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef TECH_DATA_H
-#define TECH_DATA_H
+#ifndef CIV_VECTOR_H
+#define CIV_VECTOR_H
 
 #include <string>
 #include <iosfwd>
 #include <cstdint>
 
 #include "game_primitives.h"
-#include "tech_data_types.h"
+#include "bit_array.h"
+#include "civ_data.h"
 
 //================================================================================================================================
-//=> - BuildingTypeStats struct -
+//=> - Forward declarations -
 //================================================================================================================================
 
 class BitArrayCL;
 
-typedef struct TechTypeStats {
-    std::string name;
-    u32 cost;
-    u16 tech_tier;
-    TechIndices tech_indices;
-} TechTypeStats;
-
 //================================================================================================================================
-//=> - TechData class -
+//=> - CivVector class -
 //================================================================================================================================
 
-class TechData {
+class CivVector {
 public:
-    static void load_static_data (const std::string& filename);
-    static void print_content ();
-    static void print_content_with_tier ();
-    static TechIdx find_tech_index (const std::string& tech_name);
-    static u16 get_tech_data_count ();
-    static const TechTypeStats* get_tech_data_array ();
+    friend class GameStarter;
+
+    CivVector();
+    ~CivVector();
+
+    bool is_in_game(u16 civ_idx) const;
+
+protected:
+    void add_to_game(u16 civ_idx);
 
 private:
-    static u16 validate_and_count (const std::string& filename);
-    static void parse_and_allocate (const std::string& filename);
-    static void parse_tech_tier ();
+    CivVector(const CivVector& other) = delete;
+    CivVector(CivVector&& other) = delete;
 
-    TechData () = delete;
-    TechData (const TechData& other) = delete;
-    TechData (TechData&& other) = delete;
+    BitArrayCL m_civs;
 };
 
-#endif // TECH_DATA_H
+#endif // CIV_VECTOR_H
 
 //================================================================================================================================
 //=> - End of file -

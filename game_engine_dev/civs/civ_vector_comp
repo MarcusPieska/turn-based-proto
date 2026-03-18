@@ -10,25 +10,23 @@ g++ $INC -c ../data_io/city_flags.cpp -o city_flags.o
 g++ $INC -c ../data_io/tech_data.cpp -o tech_data.o
 g++ $INC -c ../data_io/resource_data.cpp -o resource_data.o
 g++ $INC -c ../data_io/building_data.cpp -o building_data.o
-g++ $INC -c ../data_io/unit_types.cpp -o unit_types.o
-g++ $INC -c ../data_io/unit_data.cpp -o unit_data.o
+g++ $INC -c ../data_io/civ_trait_data.cpp -o civ_trait_data.o
 g++ $INC -c ../data_io/civ_data.cpp -o civ_data.o
-g++ $INC -c unit_vector.cpp -o unit_vector.o
-g++ $INC -c unit_vector_tester.cpp -o unit_vector_tester.o
+g++ $INC -c civ_vector.cpp -o civ_vector.o
+g++ $INC -c civ_vector_tester.cpp -o civ_vector_tester.o
 
 # Link everything into the final tester
-g++ -o unit_vector_tester \
+g++ -o civ_vector_tester \
     str_mng.o \
     bit_array.o \
     city_flags.o \
     tech_data.o \
     resource_data.o \
     building_data.o \
-    unit_types.o \
-    unit_data.o \
+    civ_trait_data.o \
     civ_data.o \
-    unit_vector.o \
-    unit_vector_tester.o
+    civ_vector.o \
+    civ_vector_tester.o
 
 # Clean up
 rm \
@@ -38,8 +36,7 @@ rm \
     tech_data.o \
     resource_data.o \
     building_data.o \
-    unit_types.o \
-    unit_data.o \
+    civ_trait_data.o \
     civ_data.o \
-    unit_vector.o \
-    unit_vector_tester.o
+    civ_vector.o \
+    civ_vector_tester.o

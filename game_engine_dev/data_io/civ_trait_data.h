@@ -2,94 +2,52 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef UNIT_DATA_H
-#define UNIT_DATA_H
+#ifndef CIV_TRAIT_DATA_H
+#define CIV_TRAIT_DATA_H
 
 #include <string>
 #include <iosfwd>
 #include <cstdint>
 
 #include "game_primitives.h"
-#include "tech_data_types.h"
-#include "resource_data_types.h"
+#include "bit_array.h"
 
 //================================================================================================================================
-//=> - UnitTypeStats struct -
+//=> - Forward declarations -
 //================================================================================================================================
 
 class BitArrayCL;
 
-static const u32 MAX_UNIT_REQS = MAX_RESOURCES_PER_ENTITY;
+//================================================================================================================================
+//=> - CivTraitStats struct -
+//================================================================================================================================
 
-enum UnitReqType : u16 {
-    UNIT_REQ_NONE = 0,
-    UNIT_REQ_RESOURCE = 1,
-    UNIT_REQ_BUILDING = 2,
-    UNIT_REQ_CIV = 3, 
-    UNIT_REQ_FLAG = 4
-};
-
-struct UnitReqResource {
-    u16 resource_idx;
-};
-
-struct UnitReqBuilding {
-    u16 building_idx;
-    u16 count_required;
-};
-
-struct UnitReqCiv {
-    u16 civ_idx;
-};
-
-struct UnitReqFlag {
-    u16 flag_idx;
-};
-
-struct UnitRequirement {
-    UnitReqType type;
-    union {
-        UnitReqResource resource_req;
-        UnitReqBuilding building_req;
-        UnitReqCiv civ_req;
-        UnitReqFlag flag_req;
-    } data;
-};
-
-struct UnitTypeStats {
+typedef struct CivTraitStats {
     std::string name;
-    u16 unit_type;
-    u32 cost;
-    u16 attack;
-    u16 defense;
-    u16 movement_speed;
-    TechIdx tech_prereq_idx;
-    UnitRequirement requirements[MAX_UNIT_REQS];
-};
+    BitArrayCL buildings;
+} CivTraitStats;
 
 //================================================================================================================================
-//=> - UnitData class -
+//=> - CivTraitData class -
 //================================================================================================================================
 
-class UnitData {
+class CivTraitData {
 public:
     static void load_static_data (const std::string& filename);
     static void print_content ();
-    static void print_content_by_unit_type ();
-    static u16 find_unit_index (const std::string& unit_name);
-    static u16 get_unit_data_count ();
-    static const UnitTypeStats* get_unit_data_array ();
+    static u16 find_civ_trait_index (const std::string& trait_name);
+    static u16 get_civ_trait_count ();
+    static const CivTraitStats* get_civ_trait_data_array ();
 
 private:
-    static u16 validate_and_count (const std::string& filename);
     static void parse_and_allocate (const std::string& filename);
 
-    UnitData () = delete;
-    UnitData (const UnitData& other) = delete;
-    UnitData (UnitData&& other) = delete;
+    CivTraitData () = delete;
+    CivTraitData (const CivTraitData& other) = delete;
+    CivTraitData (CivTraitData&& other) = delete;
 };
 
-#endif // UNIT_DATA_H
+#endif // CIV_TRAIT_DATA_H
 
 //================================================================================================================================
 //=> - End of file -

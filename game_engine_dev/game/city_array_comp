@@ -1,0 +1,89 @@
+#!/bin/bash
+
+# Define the include path for the compiler
+INC="-I../ \
+     -I../misc \
+     -I../data_io \
+     -I../wonders \
+     -I../city \
+     -I../small_wonders \
+     -I../units \
+     -I../buildings"
+
+# Compile dependencies
+g++ $INC -c ../misc/str_mng.cpp -o str_mng.o
+g++ $INC -c ../misc/bit_array.cpp -o bit_array.o
+g++ $INC -c ../data_io/tech_data.cpp -o tech_data.o
+g++ $INC -c ../data_io/resource_data.cpp -o resource_data.o
+g++ $INC -c ../data_io/building_data.cpp -o building_data.o
+g++ $INC -c ../data_io/city_flags.cpp -o city_flags.o
+g++ $INC -c ../data_io/wonder_data.cpp -o wonder_data.o
+g++ $INC -c ../data_io/small_wonder_data.cpp -o small_wonder_data.o
+g++ $INC -c ../data_io/unit_data.cpp -o unit_data.o
+g++ $INC -c ../data_io/unit_types.cpp -o unit_types.o
+g++ $INC -c ../data_io/civ_trait_data.cpp -o civ_trait_data.o
+g++ $INC -c ../data_io/civ_data.cpp -o civ_data.o
+g++ $INC -c ../buildings/building_vector.cpp -o building_vector.o
+g++ $INC -c ../wonders/wonder_vector.cpp -o wonder_vector.o
+g++ $INC -c ../small_wonders/small_wonder_vector.cpp -o small_wonder_vector.o
+g++ $INC -c ../units/unit_vector.cpp -o unit_vector.o
+g++ $INC -c ../city/building_assessor.cpp -o building_assessor.o
+g++ $INC -c ../city/wonder_assessor.cpp -o wonder_assessor.o
+g++ $INC -c ../city/small_wonder_assessor.cpp -o small_wonder_assessor.o
+g++ $INC -c ../city/unit_assessor.cpp -o unit_assessor.o
+g++ $INC -c ../city/city.cpp -o city.o
+g++ $INC -c city_array.cpp -o city_array.o
+g++ $INC -c city_array_tester.cpp -o city_array_tester.o
+
+# Link everything into the final tester
+g++ -o \
+    city_array_tester \
+    str_mng.o \
+    bit_array.o \
+    tech_data.o \
+    resource_data.o \
+    building_data.o \
+    city_flags.o \
+    wonder_data.o \
+    small_wonder_data.o \
+    unit_data.o \
+    unit_types.o \
+    civ_trait_data.o \
+    civ_data.o \
+    building_vector.o \
+    wonder_vector.o \
+    small_wonder_vector.o \
+    unit_vector.o \
+    building_assessor.o \
+    wonder_assessor.o \
+    small_wonder_assessor.o \
+    unit_assessor.o \
+    city.o \
+    city_array.o \
+    city_array_tester.o
+
+# Clean up
+rm \
+    str_mng.o \
+    bit_array.o \
+    tech_data.o \
+    resource_data.o \
+    building_data.o \
+    city_flags.o \
+    wonder_data.o \
+    small_wonder_data.o \
+    unit_data.o \
+    unit_types.o \
+    civ_trait_data.o \
+    civ_data.o \
+    building_vector.o \
+    wonder_vector.o \
+    small_wonder_vector.o \
+    unit_vector.o \
+    building_assessor.o \
+    wonder_assessor.o \
+    small_wonder_assessor.o \
+    unit_assessor.o \
+    city.o \
+    city_array.o \
+    city_array_tester.o

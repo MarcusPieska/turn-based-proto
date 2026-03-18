@@ -14,7 +14,9 @@
 #include "resource_data.h"
 #include "tech_data.h"
 #include "city_flags.h"
+#include "civ_data.h"
 #include "building_data.h"
+#include "unit_types.h"
 
 #include "unit_data.h"
 
@@ -72,6 +74,26 @@ void UnitData::print_content () {
         }
 
         printf("\n");
+    }
+}
+
+void UnitData::print_content_by_unit_type () {
+    printf("Unit Data (total=%u):\n", unit_data_count);
+    for (u32 t = 0; t < UnitTypeData::get_unit_type_count(); ++t) {
+        printf("Unit Type: %s\n", UnitTypeData::get_unit_type_name_array()[t].name.c_str());
+        for (u32 i = 0; i < unit_data_count; ++i) {
+            if (unit_data_array[i].unit_type != t) {
+                continue;
+            }
+            const UnitTypeStats& stats = unit_data_array[i];
+            printf("  Unit: %s, Cost: %u, A/D/M: %u/%u/%u, Tech prerequisite idx: %u\n",
+                   stats.name.c_str(),
+                   static_cast<u32>(stats.cost),
+                   static_cast<u32>(stats.attack),
+                   static_cast<u32>(stats.defense),
+                   static_cast<u32>(stats.movement_speed),
+                   stats.tech_prereq_idx.get_idx());
+        }
     }
 }
 
@@ -144,34 +166,12 @@ u16 UnitData::validate_and_count (const std::string& filename) {
 static void init_requirements (UnitTypeStats& stats) {
     for (u32 r = 0; r < MAX_UNIT_REQS; ++r) {
         stats.requirements[r].type = UNIT_REQ_NONE;
-        stats.requirements[r].data.flag_req.flag_idx = 0;
         stats.requirements[r].data.resource_req.resource_idx = 0;
         stats.requirements[r].data.building_req.building_idx = 0;
         stats.requirements[r].data.building_req.count_required = 0;
+        stats.requirements[r].data.civ_req.civ_idx = 0;
+        stats.requirements[r].data.flag_req.flag_idx = 0;
     }
-}
-
-static bool parse_flag_requirement (const std::string& token, UnitRequirement& out_req) {
-    const char* prefix = "flag(";
-    const size_t prefix_len = std::strlen(prefix);
-    if (token.compare(0, prefix_len, prefix) != 0) {
-        return false;
-    }
-    if (token.size() < prefix_len + 2 || token.back() != ')') {
-        return false;
-    }
-
-    std::string inside = token.substr(prefix_len, token.size() - prefix_len - 1);
-    StringTrimmer trimmer(" \t\r\n");
-    inside = trimmer.trim(inside);
-    if (inside.empty()) {
-        return false;
-    }
-
-    u16 idx = CityFlagData::find_flag_index(inside);
-    out_req.type = UNIT_REQ_FLAG;
-    out_req.data.flag_req.flag_idx = idx;
-    return true;
 }
 
 static bool parse_resource_requirement (const std::string& token, UnitRequirement& out_req) {
@@ -244,6 +244,52 @@ static bool parse_building_requirement (const std::string& token, UnitRequiremen
     return true;
 }
 
+static bool parse_flag_requirement (const std::string& token, UnitRequirement& out_req) {
+    const char* prefix = "flag(";
+    const size_t prefix_len = std::strlen(prefix);
+    if (token.compare(0, prefix_len, prefix) != 0) {
+        return false;
+    }
+    if (token.size() < prefix_len + 2 || token.back() != ')') {
+        return false;
+    }
+
+    std::string inside = token.substr(prefix_len, token.size() - prefix_len - 1);
+    StringTrimmer trimmer(" \t\r\n");
+    inside = trimmer.trim(inside);
+    if (inside.empty()) {
+        return false;
+    }
+
+    u16 idx = CityFlagData::find_flag_index(inside);
+    out_req.type = UNIT_REQ_FLAG;
+    out_req.data.flag_req.flag_idx = idx;
+    return true;
+}
+
+static bool parse_civ_requirement (const std::string& token, UnitRequirement& out_req) {
+    const char* prefix = "civ(";
+    const size_t prefix_len = std::strlen(prefix);
+    if (token.compare(0, prefix_len, prefix) != 0) {
+        return false;
+    }
+    if (token.size() < prefix_len + 2 || token.back() != ')') {
+        return false;
+    }
+
+    std::string inside = token.substr(prefix_len, token.size() - prefix_len - 1);
+    StringTrimmer trimmer(" \t\r\n");
+    inside = trimmer.trim(inside);
+    if (inside.empty()) {
+        return false;
+    }
+
+    u16 idx = CivData::find_civ_index(inside);
+    out_req.type = UNIT_REQ_CIV;
+    out_req.data.civ_req.civ_idx = idx;
+    return true;
+}
+
 void UnitData::parse_and_allocate (const std::string& filename) {
     unit_data_count = UnitData::validate_and_count(filename);
     if (unit_data_count == 0) {
@@ -273,25 +319,21 @@ void UnitData::parse_and_allocate (const std::string& filename) {
             continue;
         }
         std::vector<std::string> parts = colon_splitter.split(line);
-        if (parts.size() < 6) {
+        if (parts.size() < 7) {
             continue;
         }
-
-        std::string name = trimmer.trim(parts[0]);
-        std::string cost_str = trimmer.trim(parts[1]);
-        std::string atk_str = trimmer.trim(parts[2]);
-        std::string def_str = trimmer.trim(parts[3]);
-        std::string move_str = trimmer.trim(parts[4]);
-        std::string tech_name  = trimmer.trim(parts[5]);
-
-        if (name.empty() || cost_str.empty() ||
-            atk_str.empty() || def_str.empty() ||
-            move_str.empty() || tech_name.empty()) {
-            continue;
-        }
+        u16 part_idx = 0;
+        std::string name = trimmer.trim(parts[part_idx++]);
+        std::string unit_type = trimmer.trim(parts[part_idx++]);
+        std::string cost_str = trimmer.trim(parts[part_idx++]);
+        std::string atk_str = trimmer.trim(parts[part_idx++]);
+        std::string def_str = trimmer.trim(parts[part_idx++]);
+        std::string move_str = trimmer.trim(parts[part_idx++]);
+        std::string tech_name  = trimmer.trim(parts[part_idx++]);
 
         UnitTypeStats& stats = unit_data_array[idx];
         stats.name = name;
+        stats.unit_type = UnitTypeData::find_unit_type_index(unit_type);
         stats.cost = static_cast<u32>(std::atoi(cost_str.c_str()));
         stats.attack = static_cast<u16>(std::atoi(atk_str.c_str()));
         stats.defense = static_cast<u16>(std::atoi(def_str.c_str()));
@@ -300,7 +342,7 @@ void UnitData::parse_and_allocate (const std::string& filename) {
         init_requirements(stats);
 
         u32 req_idx = 0;
-        for (size_t j = 6; j < parts.size() && req_idx < MAX_UNIT_REQS; ++j) {
+        for (size_t j = part_idx; j < parts.size() && req_idx < MAX_UNIT_REQS; ++j) {
             std::string token = trimmer.trim(parts[j]);
             if (token.empty()) {
                 continue;
@@ -310,9 +352,10 @@ void UnitData::parse_and_allocate (const std::string& filename) {
             req.type = UNIT_REQ_NONE;
 
             bool parsed = false;
-            if (!parsed) parsed = parse_flag_requirement(token, req);
             if (!parsed) parsed = parse_resource_requirement(token, req);
             if (!parsed) parsed = parse_building_requirement(token, req);
+            if (!parsed) parsed = parse_civ_requirement(token, req);
+            if (!parsed) parsed = parse_flag_requirement(token, req);
 
             if (parsed && req.type != UNIT_REQ_NONE) {
                 stats.requirements[req_idx++] = req;

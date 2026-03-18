@@ -19,11 +19,12 @@ g++ $INC -c ../data_io/wonder_data.cpp -o wonder_data.o
 g++ $INC -c ../buildings/building_vector.cpp -o building_vector.o
 g++ $INC -c ../wonders/wonder_vector.cpp -o wonder_vector.o
 g++ $INC -c wonder_assessor.cpp -o wonder_assessor.o
-g++ $INC -c wonder_tester.cpp -o wonder_tester.o
+g++ $INC -c wonder_assessor_tester.cpp -o wonder_assessor_tester.o
+g++ $INC -c wonder_assessor_tester_brute_rev.cpp -o wonder_assessor_tester_brute_rev.o
 
 # Link everything into the final tester
 g++ -o \
-    wonder_tester \
+    wonder_assessor_tester \
     str_mng.o \
     bit_array.o \
     tech_data.o \
@@ -34,7 +35,22 @@ g++ -o \
     wonder_data.o \
     wonder_vector.o \
     wonder_assessor.o \
-    wonder_tester.o
+    wonder_assessor_tester.o
+
+# Link everything into the final tester
+g++ -o \
+    wonder_assessor_tester_brute_rev \
+    str_mng.o \
+    bit_array.o \
+    tech_data.o \
+    resource_data.o \
+    building_data.o \
+    city_flags.o \
+    building_vector.o \
+    wonder_data.o \
+    wonder_vector.o \
+    wonder_assessor.o \
+    wonder_assessor_tester_brute_rev.o
 
 # Clean up
 rm \
@@ -48,4 +64,5 @@ rm \
     wonder_data.o \
     wonder_vector.o \
     wonder_assessor.o \
-    wonder_tester.o
+    wonder_assessor_tester.o \
+    wonder_assessor_tester_brute_rev.o

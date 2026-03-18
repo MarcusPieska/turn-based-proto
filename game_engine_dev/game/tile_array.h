@@ -2,53 +2,58 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef TECH_DATA_H
-#define TECH_DATA_H
-
-#include <string>
-#include <iosfwd>
-#include <cstdint>
+#ifndef TILE_ARRAY_H
+#define TILE_ARRAY_H
 
 #include "game_primitives.h"
-#include "tech_data_types.h"
 
 //================================================================================================================================
-//=> - BuildingTypeStats struct -
+//=> - Addendum struct -
 //================================================================================================================================
 
-class BitArrayCL;
-
-typedef struct TechTypeStats {
-    std::string name;
-    u32 cost;
-    u16 tech_tier;
-    TechIndices tech_indices;
-} TechTypeStats;
-
-//================================================================================================================================
-//=> - TechData class -
-//================================================================================================================================
-
-class TechData {
-public:
-    static void load_static_data (const std::string& filename);
-    static void print_content ();
-    static void print_content_with_tier ();
-    static TechIdx find_tech_index (const std::string& tech_name);
-    static u16 get_tech_data_count ();
-    static const TechTypeStats* get_tech_data_array ();
-
-private:
-    static u16 validate_and_count (const std::string& filename);
-    static void parse_and_allocate (const std::string& filename);
-    static void parse_tech_tier ();
-
-    TechData () = delete;
-    TechData (const TechData& other) = delete;
-    TechData (TechData&& other) = delete;
+struct Addendum {
+    uint16_t type : 6;
+    uint16_t feature : 9;
+    uint16_t exists : 1;
 };
 
-#endif // TECH_DATA_H
+//================================================================================================================================
+//=> - Tile struct -
+//================================================================================================================================
+
+struct Tile {
+    uint16_t terrain_type : 6;
+    uint16_t terrain_feature : 9;
+    uint16_t adds_exists : 1;
+};
+
+//================================================================================================================================
+//=> - TileArray class -
+//================================================================================================================================
+
+class TileArray {
+public:
+    TileArray();
+    ~TileArray();
+
+    City* get_city(u16 city_idx);
+    const City* get_city(u16 city_idx) const;
+    u16 get_next_new_city_idx();
+    u16 get_page_count() const;
+    u16 get_city_count() const;
+    City* get_page(u16 page_idx);
+    const City* get_page(u16 page_idx) const;
+
+    static const u16 MAX_PAGES = 256;
+    static const u16 CITIES_PER_PAGE = 256;
+
+private:
+    City* m_pages[MAX_PAGES];
+    u16 m_city_count;
+    u16 m_page_count;
+};
+
+#endif // TILE_ARRAY_H
 
 //================================================================================================================================
 //=> - End of file -

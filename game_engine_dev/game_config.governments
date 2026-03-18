@@ -1,0 +1,8 @@
+Despotism      : booster(TILE_PENALTY, -1, CITY, COUNT)      : hurry(POP)  : corruption(5) : support(4, 4, 4)
+Anarchy        : booster(PRODUCTION, -100, CITY, PERCENTAGE) : hurry(NONE) : corruption(5) : support(0, 0, 0)
+Monarchy       : enable(MILITARY_POLICE, 3, CITY)            : hurry(GOLD) : corruption(3) : support(2, 4, 8)
+Republic       : booster(COMMERCE, 1, TILE_TRADE, COUNT)     : hurry(GOLD) : corruption(2) : support(1, 3, 4) : unit_cost(2)
+Democracy      : booster(COMMERCE, 1, TILE_TRADE, COUNT)     : hurry(GOLD) : corruption(1) : booster(WORKER_SPEED, 100, CIV, PERCENTAGE) : booster(WAR_WEAR, 100, CIV, PERCENTAGE)
+Communism      : enable(COMMUNAL_CORRUPTION, CIV)            : hurry(POP)  : corruption(2) : support(6, 6, 6) : booster(SPY_EFFICIENCY, 1, CIV, COUNT)
+Fascism        : booster(WORKER_SPEED, 100, CIV, PERCENTAGE) : hurry(POP)  : corruption(2) : support(4, 7, 10) : booster(CULTURE, -100, CITY, PERCENTAGE)
+Feudalism      : booster(UNIT_COST, 3, CIV, GOLD)            : hurry(POP)  : corruption(3) : support(5, 2, 1)

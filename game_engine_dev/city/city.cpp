@@ -103,6 +103,14 @@ void City::add_shields (u16 amount) {
     m_accumulated_shields += amount;
 }
 
+u16 City::get_current_food_store () const {
+    return m_accumulated_food;
+}
+
+u16 City::get_current_shields_store () const {
+    return m_accumulated_shields;
+}
+
 bool City::is_build_done () const {
     switch (m_build_type) {
         case BUILD_TYPE_WONDER: {

@@ -57,6 +57,27 @@ void TechData::print_content () {
     }
 }
 
+void TechData::print_content_with_tier () {
+    u16 current_tier = 0;
+    printf("Tech Data (total=%u):\n", tech_data_count);
+    while (true) {
+        bool found_any_tech = false;
+        printf("Tier %u:\n", current_tier);
+        for (u32 i = 0; i < tech_data_count; ++i) {
+            if (tech_data_array[i].tech_tier != current_tier) {
+                continue;
+            }
+            found_any_tech = true;
+            const TechTypeStats& stats = tech_data_array[i];
+            printf("Tech: %s, Cost: %u, Tier: %u\n", stats.name.c_str(), stats.cost, stats.tech_tier);
+        }
+        if (!found_any_tech) {
+            break;
+        }
+        current_tier++;
+    }
+}
+
 TechIdx TechData::find_tech_index (const std::string& tech_name) {
     for (u32 i = 0; i < tech_data_count; ++i) {
         if (tech_data_array[i].name == tech_name) {
@@ -186,6 +207,57 @@ void TechData::parse_and_allocate (const std::string& filename) {
     }
     if (idx != tech_data_count) {
         printf("ERROR: Expected %u tech data, got %u\n", tech_data_count, idx);
+        exit(1);
+    }
+    TechData::parse_tech_tier();
+}
+
+void TechData::parse_tech_tier () {
+    u8* researched = new u8[tech_data_count];
+    for (u32 i = 0; i < tech_data_count; ++i) {
+        researched[i] = 0;
+    }
+    researched[0] = 1;
+    tech_data_array[0].tech_tier = 0;
+    u16 tier_count = 1;
+    u16 total_flip_count = 1;
+    while (true) {
+        for (u32 i = 0; i < tech_data_count; ++i) {
+            if (researched[i] == 2) {
+                researched[i] = 1;
+            }
+        }
+        bool any_flipped = false;
+        for (u32 i = 0; i < tech_data_count; ++i) {
+            if (researched[i] == 0) {
+                bool all_prereqs_researched = true;
+                for (u32 t = 0; t < MAX_TECHS_PER_ENTITY; ++t) {
+                    TechIdx prereq_idx = tech_data_array[i].tech_indices.indices[t];
+                    if (prereq_idx.get_idx() == 0) {
+                        break;
+                    }
+                    if (researched[prereq_idx.get_idx()] != 1) {
+                        all_prereqs_researched = false;
+                        break;
+                    }
+                }
+                if (all_prereqs_researched) {
+                    researched[i] = 2;
+                    total_flip_count++;
+                    tech_data_array[i].tech_tier = tier_count;
+                    any_flipped = true;
+                }
+            }
+        }
+        if (!any_flipped) {
+            break;
+        }
+        tier_count++;
+    }
+    delete[] researched;
+    if (total_flip_count != tech_data_count) {
+        printf("ERROR: Expected %u tech data to be flipped, actually flipped %u\n", tech_data_count, total_flip_count);
+        print_content_with_tier();
         exit(1);
     }
 }

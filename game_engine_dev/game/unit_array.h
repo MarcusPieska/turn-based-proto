@@ -2,53 +2,63 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef TECH_DATA_H
-#define TECH_DATA_H
-
-#include <string>
-#include <iosfwd>
-#include <cstdint>
+#ifndef UNIT_ARRAY_H
+#define UNIT_ARRAY_H
 
 #include "game_primitives.h"
-#include "tech_data_types.h"
 
 //================================================================================================================================
-//=> - BuildingTypeStats struct -
+//=> - Temp unit stuct until real is hooked up -
 //================================================================================================================================
 
-class BitArrayCL;
+class Unit {
+    friend class UnitArray;
 
-typedef struct TechTypeStats {
-    std::string name;
-    u32 cost;
-    u16 tech_tier;
-    TechIndices tech_indices;
-} TechTypeStats;
-
-//================================================================================================================================
-//=> - TechData class -
-//================================================================================================================================
-
-class TechData {
 public:
-    static void load_static_data (const std::string& filename);
-    static void print_content ();
-    static void print_content_with_tier ();
-    static TechIdx find_tech_index (const std::string& tech_name);
-    static u16 get_tech_data_count ();
-    static const TechTypeStats* get_tech_data_array ();
+    bool do_exist() const { return exists != 0; }
+    u32 id;
 
 private:
-    static u16 validate_and_count (const std::string& filename);
-    static void parse_and_allocate (const std::string& filename);
-    static void parse_tech_tier ();
-
-    TechData () = delete;
-    TechData (const TechData& other) = delete;
-    TechData (TechData&& other) = delete;
+    u8 exists;
+    u16 idx;
 };
 
-#endif // TECH_DATA_H
+//================================================================================================================================
+//=> - UnitArray class -
+//================================================================================================================================
+
+class UnitArray {
+public:
+    UnitArray();
+    ~UnitArray();
+
+    Unit* get_unit(u16 unit_idx);
+    const Unit* get_unit(u16 unit_idx) const;
+    u16 get_next_new_unit_idx();
+    u16 get_page_count() const;
+    u16 get_unit_count() const;
+    u16 get_head_unit_count() const;
+    void return_unit(Unit* unit);
+    Unit* get_page(u16 page_idx);
+    const Unit* get_page(u16 page_idx) const;
+
+    static const u16 MAX_PAGES = 256;
+    static const u16 UNITS_PER_PAGE = 256;
+
+private:
+    friend class UnitArrayTester;
+
+    Unit* m_pages[MAX_PAGES];
+    u16 m_unit_count;
+    u16 m_head_unit_idx;
+    u16 m_page_count;
+
+    u16* m_recycled_pages[MAX_PAGES];
+    u16 m_recycled_unit_count;
+    u16 m_recycled_page_count;
+};
+
+#endif // UNIT_ARRAY_H
 
 //================================================================================================================================
 //=> - End of file -

@@ -16,6 +16,7 @@ g++ $INC -c ../data_io/city_flags.cpp -o city_flags.o
 g++ $INC -c ../data_io/tech_data.cpp -o tech_data.o
 g++ $INC -c ../data_io/resource_data.cpp -o resource_data.o
 g++ $INC -c ../data_io/building_data.cpp -o building_data.o
+g++ $INC -c ../data_io/unit_types.cpp -o unit_types.o
 g++ $INC -c ../data_io/unit_data.cpp -o unit_data.o
 g++ $INC -c ../resources/resources_vector.cpp -o resources_vector.o
 g++ $INC -c ../buildings/building_vector.cpp -o building_vector.o
@@ -32,6 +33,7 @@ g++ -o unit_assessor_tester \
     tech_data.o \
     resource_data.o \
     building_data.o \
+    unit_types.o \
     unit_data.o \
     unit_vector.o \
     resources_vector.o \
@@ -47,6 +49,7 @@ g++ -o unit_assessor_tester_brute_rev \
     tech_data.o \
     resource_data.o \
     building_data.o \
+    unit_types.o \
     unit_data.o \
     unit_vector.o \
     resources_vector.o \
@@ -62,6 +65,7 @@ rm \
     tech_data.o \
     resource_data.o \
     building_data.o \
+    unit_types.o \
     unit_data.o \
     unit_vector.o \
     resources_vector.o \

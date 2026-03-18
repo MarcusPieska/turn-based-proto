@@ -25,7 +25,7 @@ class BuiltUnits;
 //=> - City class -
 //================================================================================================================================
 
-class City {
+class alignas(8) City {
 public:
     City ();
     ~City ();
@@ -42,6 +42,8 @@ public:
 
     void add_food (u16 amount);
     void add_shields (u16 amount);
+    u16 get_current_food_store () const;
+    u16 get_current_shields_store () const;
 
     bool is_build_done () const;
     bool is_ready_to_grow () const;
