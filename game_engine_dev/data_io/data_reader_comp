@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Define the include path for the compiler
+INC="-I../ -I../misc"
+
+# Compile objects
+g++ $INC -c ../misc/str_mng.cpp -o str_mng.o
+g++ $INC -c path_mng.cpp -o path_mng.o
+g++ $INC -c data_reader.cpp -o data_reader.o
+g++ $INC -c data_reader_tester.cpp -o data_reader_tester.o
+
+# Link everything into the final tester
+g++ -o data_reader_tester \
+    str_mng.o \
+    path_mng.o \
+    data_reader.o \
+    data_reader_tester.o
+
+# Clean up
+rm \
+    str_mng.o \
+    path_mng.o \
+    data_reader.o \
+    data_reader_tester.o

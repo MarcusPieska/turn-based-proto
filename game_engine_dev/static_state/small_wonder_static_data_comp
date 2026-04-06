@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Define the include path for the compiler
+INC="-I.."
+
+# Compile objects
+g++ $INC -c small_wonder_static_data.cpp -o small_wonder_static_data.o
+g++ $INC -c small_wonder_static_data_tester.cpp -o small_wonder_static_data_tester.o
+
+# Link everything into the final tester
+g++ -o small_wonder_static_data_tester small_wonder_static_data.o small_wonder_static_data_tester.o
+
+# Clean up
+rm small_wonder_static_data.o small_wonder_static_data_tester.o

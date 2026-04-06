@@ -1,34 +1,34 @@
-Barracks                    :  120 : Warrior Code
-Granary                     :  200 : Pottery
-Library                     :  200 : Writing
-Temple                      :  200 : Polytheism
-Marketplace                 :  300 : Currency
-Aqueduct                    :  300 : Engineering
-Courthouse                  :  300 : Code of Laws
-Harbor                      :  300 : Navigation                 : flag(isCoastal)
-Bank                        :  400 : Banking                    : building(Marketplace, 1)
-Cathedral                   :  400 : Monotheism                 : building(Temple, 1)
-University                  :  400 : Education                  : building(Library, 1)
-Colosseum                   :  400 : Engineering
-Factory                     :  500 : Industrialization          : resource(Iron) : resource(Coal)
-Police Station              :  500 : Democracy
-Coastal Fortress            :  500 : Gunpowder                  : resource(Saltpeter) : resource(Iron) : flag(isCoastal)
-Airport                     :  600 : Flight                     : resource(Oil) : resource(Rubber)
-Commercial Dock             :  600 : Navigation                 : building(Harbor, 1)
-Mass Transit                :  600 : Motorized Transportation   : resource(Oil) : resource(Rubber)
-Hospital                    :  600 : Medicine                   : building(Aqueduct, 1)
-Coal Plant                  :  700 : Steam Power                : resource(Coal)
-Hydro Plant                 :  700 : Electricity
-Nuclear Plant               :  800 : Nuclear Power              : resource(Uranium)
-Research Lab                :  800 : Electronics                : building(University, 1)
-Manufacturing Plant         :  800 : Mass Production            : resource(Iron) : building(Factory, 1)
-Stock Exchange              :  800 : The Corporation            : building(Bank, 1)
-Superhighways               :  800 : Motorized Transportation   : resource(Oil) : resource(Rubber)
-SAM Missile Battery         :  800 : Rocketry                   : resource(Aluminum)
-Recycling Center            :  900 : Ecology
-Offshore Platform           :  900 : Refining                   : resource(Oil) : flag(isCoastal)
-Civil Defense               :  900 : Atomic Theory
-Wall                        :  100 : Masonry                    : resource(Stone)
-Intelligence Agency         : 1000 : Computers                  : building(Police Station, 1)
-Solar Plant                 : 1000 : Superconductor             : resource(Aluminum)
-Capitalization              : 1200 : The Corporation            : building(Stock Exchange, 1)
+Barracks                    :  120 : tech(Warrior Code)
+Granary                     :  200 : tech(Pottery)
+Library                     :  200 : tech(Writing)
+Temple                      :  200 : tech(Polytheism)
+Marketplace                 :  300 : tech(Currency)
+Aqueduct                    :  300 : tech(Engineering)
+Courthouse                  :  300 : tech(Code of Laws)
+Harbor                      :  300 : tech(Navigation)                 : flag(isCoastal)
+Bank                        :  400 : tech(Banking)                    : building(Marketplace, 1)
+Cathedral                   :  400 : tech(Monotheism)                 : building(Temple, 1)
+University                  :  400 : tech(Education)                  : building(Library, 1)
+Colosseum                   :  400 : tech(Engineering)
+Factory                     :  500 : tech(Industrialization)          : resource(Iron) : resource(Coal)
+Police Station              :  500 : tech(Democracy)
+Coastal Fortress            :  500 : tech(Gunpowder)                  : resource(Saltpeter) : resource(Iron) : flag(isCoastal)
+Airport                     :  600 : tech(Flight)                     : resource(Oil) : resource(Rubber)
+Commercial Dock             :  600 : tech(Navigation)                 : building(Harbor, 1)
+Mass Transit                :  600 : tech(Motorized Transportation)   : resource(Oil) : resource(Rubber)
+Hospital                    :  600 : tech(Medicine)                   : building(Aqueduct, 1)
+Coal Plant                  :  700 : tech(Steam Power)                : resource(Coal)
+Hydro Plant                 :  700 : tech(Electricity)
+Nuclear Plant               :  800 : tech(Nuclear Power)              : resource(Uranium)
+Research Lab                :  800 : tech(Electronics)                : building(University, 1)
+Manufacturing Plant         :  800 : tech(Mass Production)            : resource(Iron) : building(Factory, 1)
+Stock Exchange              :  800 : tech(The Corporation)            : building(Bank, 1)
+Superhighways               :  800 : tech(Motorized Transportation)   : resource(Oil) : resource(Rubber)
+SAM Missile Battery         :  800 : tech(Rocketry)                   : resource(Aluminum)
+Recycling Center            :  900 : tech(Ecology)
+Offshore Platform           :  900 : tech(Refining)                   : resource(Oil) : flag(isCoastal)
+Civil Defense               :  900 : tech(Atomic Theory)
+Wall                        :  100 : tech(Masonry)                    : resource(Stone)
+Intelligence Agency         : 1000 : tech(Computers)                  : building(Police Station, 1)
+Solar Plant                 : 1000 : tech(Superconductor)             : resource(Aluminum)
+Capitalization              : 1200 : tech(The Corporation)            : building(Stock Exchange, 1)

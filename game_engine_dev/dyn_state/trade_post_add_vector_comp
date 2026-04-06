@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Define the include path for the compiler
+INC="-I.."
+
+# Compile dependencies
+g++ $INC -c trade_post_add_vector.cpp -o trade_post_add_vector.o
+g++ $INC -c trade_post_add_vector_tester.cpp -o trade_post_add_vector_tester.o
+g++ $INC -c trade_post_add_vector_tester_visual.cpp -o trade_post_add_vector_tester_visual.o
+
+# Link everything into the final tester
+g++ -o \
+    trade_post_add_vector_tester \
+    trade_post_add_vector.o \
+    trade_post_add_vector_tester.o
+
+
+# Link everything into the final tester
+g++ -o \
+    trade_post_add_vector_tester_visual \
+    trade_post_add_vector.o \
+    trade_post_add_vector_tester_visual.o
+
+# Clean up
+rm \
+    trade_post_add_vector.o \
+    trade_post_add_vector_tester.o \
+    trade_post_add_vector_tester_visual.o

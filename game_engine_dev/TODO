@@ -3,11 +3,14 @@ Data and parsing for citizens
 Particular requirements for buildings, wonders, and minor wonders
 
 
-The building vector will need a local bit array that tracks which buildings have been built. 
-
-
-Our City class needs an interface for getting bit arrays (BitArrayCL*) for buildable buildings, buildable wonders, buildable small wonders, trainable units. We will eventually have wrapper classes for all arrays, but for now we only have WonderBuildableVector. We should also have functions for building and training the aforementioned types. Let's use the prefix get_ and build_. In terms of state we need u32 for accumulated_food, and u32 for accumulated_shields. We also need add_ functions for these 2 resources. We need is_build_done to return a bool when we have accumulated enough shields to finish production, and similar for is_ready_to_grow for food. We need a u16 that indicates the type we are building (wonder, unit, etc), and another u16 for the index of the thing being built. Use the prefix m_ for all members.   
-
+Agricultural  : Plantations and similar
+Industrious   : Mines and quarries
+Expansionist  : Outpost (city founded by military units)
+Religious     : Monasteries
+Militaristic  : Forts and similar
+Scientific    : 
+Commercial    : Trading posts
+Seafaring     : Shipyard
 
 
 Where our state ends up: 
@@ -17,14 +20,8 @@ Global for all civilizations:
 
 Per-civilization:
  - Tech array
- - Minor-wonder array (researched)
- - Building array (researched)
- - Unit array (researched)
- - Wonder array (researched)
- 
-For all researched arrays; use index into tech array instead, and remove 4 full arrays 
- 
+ - Minor-wonder array (built)
+
 Per city:
- - Building array (buildable, based on local conditions)
- - Building array (built, I don't think one building array is enough)
- - Unit array (trainable, based on local conditions)
+ - Building array (built)
+ - Unit array (trainable)

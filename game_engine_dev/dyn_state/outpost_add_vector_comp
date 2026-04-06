@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Define the include path for the compiler
+INC="-I.."
+
+# Compile dependencies
+g++ $INC -c outpost_add_vector.cpp -o outpost_add_vector.o
+g++ $INC -c outpost_add_vector_tester.cpp -o outpost_add_vector_tester.o
+g++ $INC -c outpost_add_vector_tester_visual.cpp -o outpost_add_vector_tester_visual.o
+
+# Link everything into the final tester
+g++ -o \
+    outpost_add_vector_tester \
+    outpost_add_vector.o \
+    outpost_add_vector_tester.o
+
+
+# Link everything into the final tester
+g++ -o \
+    outpost_add_vector_tester_visual \
+    outpost_add_vector.o \
+    outpost_add_vector_tester_visual.o
+
+# Clean up
+rm \
+    outpost_add_vector.o \
+    outpost_add_vector_tester.o \
+    outpost_add_vector_tester_visual.o

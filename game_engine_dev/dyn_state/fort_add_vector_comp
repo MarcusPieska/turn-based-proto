@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Define the include path for the compiler
+INC="-I.."
+
+# Compile dependencies
+g++ $INC -c fort_add_vector.cpp -o fort_add_vector.o
+g++ $INC -c fort_add_vector_tester.cpp -o fort_add_vector_tester.o
+g++ $INC -c fort_add_vector_tester_visual.cpp -o fort_add_vector_tester_visual.o
+
+# Link everything into the final tester
+g++ -o \
+    fort_add_vector_tester \
+    fort_add_vector.o \
+    fort_add_vector_tester.o
+
+
+# Link everything into the final tester
+g++ -o \
+    fort_add_vector_tester_visual \
+    fort_add_vector.o \
+    fort_add_vector_tester_visual.o
+
+# Clean up
+rm \
+    fort_add_vector.o \
+    fort_add_vector_tester.o \
+    fort_add_vector_tester_visual.o

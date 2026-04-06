@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Define the include path for the compiler
+INC="-I.."
+
+# Compile dependencies
+g++ $INC -c monastery_add_vector.cpp -o monastery_add_vector.o
+g++ $INC -c monastery_add_vector_tester.cpp -o monastery_add_vector_tester.o
+g++ $INC -c monastery_add_vector_tester_visual.cpp -o monastery_add_vector_tester_visual.o
+
+# Link everything into the final tester
+g++ -o \
+    monastery_add_vector_tester \
+    monastery_add_vector.o \
+    monastery_add_vector_tester.o
+
+
+# Link everything into the final tester
+g++ -o \
+    monastery_add_vector_tester_visual \
+    monastery_add_vector.o \
+    monastery_add_vector_tester_visual.o
+
+# Clean up
+rm \
+    monastery_add_vector.o \
+    monastery_add_vector_tester.o \
+    monastery_add_vector_tester_visual.o

@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Define the include path for the compiler
+INC="-I.."
+
+# Compile dependencies
+g++ $INC -c plantation_add_vector.cpp -o plantation_add_vector.o
+g++ $INC -c plantation_add_vector_tester.cpp -o plantation_add_vector_tester.o
+g++ $INC -c plantation_add_vector_tester_visual.cpp -o plantation_add_vector_tester_visual.o
+
+# Link everything into the final tester
+g++ -o \
+    plantation_add_vector_tester \
+    plantation_add_vector.o \
+    plantation_add_vector_tester.o
+
+
+# Link everything into the final tester
+g++ -o \
+    plantation_add_vector_tester_visual \
+    plantation_add_vector.o \
+    plantation_add_vector_tester_visual.o
+
+# Clean up
+rm \
+    plantation_add_vector.o \
+    plantation_add_vector_tester.o \
+    plantation_add_vector_tester_visual.o

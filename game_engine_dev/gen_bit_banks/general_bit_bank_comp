@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Define the include path for the compiler
+INC="-I.."
+
+# Compile objects
+g++ $INC -c general_bit_bank.cpp -o general_bit_bank.o
+g++ $INC -c general_bit_bank_tester.cpp -o general_bit_bank_tester.o
+g++ $INC -c general_bit_bank_major1_tester.cpp -o general_bit_bank_major1_tester.o
+g++ $INC -c general_bit_bank_major2_tester.cpp -o general_bit_bank_major2_tester.o
+g++ $INC -c general_bit_bank_visual1_tester.cpp -o general_bit_bank_visual1_tester.o
+
+# Link everything into the final tester
+g++ -o general_bit_bank_tester general_bit_bank.o general_bit_bank_tester.o
+g++ -o general_bit_bank_major1_tester general_bit_bank.o general_bit_bank_major1_tester.o
+g++ -o general_bit_bank_major2_tester general_bit_bank.o general_bit_bank_major2_tester.o
+g++ -o general_bit_bank_visual1_tester general_bit_bank.o general_bit_bank_visual1_tester.o
+
+# Clean up
+rm \
+    general_bit_bank.o \
+    general_bit_bank_tester.o \
+    general_bit_bank_major1_tester.o \
+    general_bit_bank_major2_tester.o \
+    general_bit_bank_visual1_tester.o

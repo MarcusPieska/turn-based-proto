@@ -1,0 +1,63 @@
+#!/bin/bash
+
+# Define the include path for the compiler
+INC="-I.. \
+     -I../misc \
+     -I../gen_bit_banks \
+     -I../data_io \
+     -I../static_state \
+     -I../dyn_state"
+
+# Compile dependencies
+g++ $INC -c ../misc/bit_array.cpp -o bit_array.o
+g++ $INC -c ../misc/str_mng.cpp -o str_mng.o
+g++ $INC -c ../gen_bit_banks/general_bit_bank.cpp -o general_bit_bank.o
+g++ $INC -c ../data_io/wonder_data.cpp -o wonder_data.o
+g++ $INC -c ../static_state/wonder_vector.cpp -o wonder_vector.o
+g++ $INC -c ../dyn_state/fort_add_vector.cpp -o fort_add_vector.o
+g++ $INC -c ../dyn_state/mine_add_vector.cpp -o mine_add_vector.o
+g++ $INC -c ../dyn_state/monastery_add_vector.cpp -o monastery_add_vector.o
+g++ $INC -c ../dyn_state/outpost_add_vector.cpp -o outpost_add_vector.o
+g++ $INC -c ../dyn_state/plantation_add_vector.cpp -o plantation_add_vector.o
+g++ $INC -c ../dyn_state/shipyard_add_vector.cpp -o shipyard_add_vector.o
+g++ $INC -c ../dyn_state/trade_post_add_vector.cpp -o trade_post_add_vector.o
+g++ $INC -c ../dyn_state/unit_add_vector.cpp -o unit_add_vector.o
+g++ $INC -c game_state.cpp -o game_state.o
+g++ $INC -c game_state_tester.cpp -o game_state_tester.o
+
+# Link everything into the final tester
+g++ -o \
+    game_state_tester \
+    bit_array.o \
+    str_mng.o \
+    general_bit_bank.o \
+    wonder_data.o \
+    wonder_vector.o \
+    fort_add_vector.o \
+    mine_add_vector.o \
+    monastery_add_vector.o \
+    outpost_add_vector.o \
+    plantation_add_vector.o \
+    shipyard_add_vector.o \
+    trade_post_add_vector.o \
+    unit_add_vector.o \
+    game_state.o \
+    game_state_tester.o
+
+# Clean up
+rm \
+    bit_array.o \
+    str_mng.o \
+    general_bit_bank.o \
+    wonder_data.o \
+    wonder_vector.o \
+    fort_add_vector.o \
+    mine_add_vector.o \
+    monastery_add_vector.o \
+    outpost_add_vector.o \
+    plantation_add_vector.o \
+    shipyard_add_vector.o \
+    trade_post_add_vector.o \
+    unit_add_vector.o \
+    game_state.o \
+    game_state_tester.o

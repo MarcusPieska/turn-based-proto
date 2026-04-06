@@ -70,7 +70,7 @@ Gallic Swordsman        : LAND_ATTACK     :   30 :    3 :    2 :    1 : Iron Wor
 War Chariot             : LAND_MOBILE     :   30 :    2 :    1 :    2 : The Wheel                 : resource(Horses) : civ(Egypt)
 Three-Man Chariot       : LAND_MOBILE     :   30 :    3 :    1 :    2 : The Wheel                 : resource(Horses) : civ(Hittites)
 Chasqui Scout           : LAND_SCOUT      :   20 :    0 :    0 :    3 : Alphabet                  : civ(Inca)
-Mounted Warrior         : LAND_MOBILE     :   40 :    3 :    2 :    3 : Horseback Riding         : resource(Horses) : civ(Iroquois)
+Mounted Warrior         : LAND_MOBILE     :   40 :    3 :    2 :    3 : Horseback Riding          : resource(Horses) : civ(Iroquois)
 Hwach'a                 : LAND_ARTILLERY  :   50 :    6 :    1 :    1 : Engineering               : civ(Korea)
 Javelin Thrower         : LAND_ATTACK     :   20 :    2 :    1 :    1 : Warrior Code              : civ(Maya)
 Keshik                  : LAND_MOBILE     :   50 :    4 :    2 :    3 : Chivalry                  : resource(Horses) : civ(Mongols)

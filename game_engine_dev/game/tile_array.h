@@ -5,26 +5,17 @@
 #ifndef TILE_ARRAY_H
 #define TILE_ARRAY_H
 
+#include "build_adds_array.h"
 #include "game_primitives.h"
-
-//================================================================================================================================
-//=> - Addendum struct -
-//================================================================================================================================
-
-struct Addendum {
-    uint16_t type : 6;
-    uint16_t feature : 9;
-    uint16_t exists : 1;
-};
 
 //================================================================================================================================
 //=> - Tile struct -
 //================================================================================================================================
 
 struct Tile {
-    uint16_t terrain_type : 6;
-    uint16_t terrain_feature : 9;
-    uint16_t adds_exists : 1;
+    u16 terrain_type : 6;
+    u16 terrain_feature : 9;
+    u16 adds_exists : 1;
 };
 
 //================================================================================================================================
@@ -33,24 +24,19 @@ struct Tile {
 
 class TileArray {
 public:
-    TileArray();
-    ~TileArray();
+    static bool init(u16 width, u16 height);
+    static Tile* get_tile(u16 x, u16 y);
+    static BuildAddItem get_build_adds(u16 x, u16 y);
+    static u16 get_width();
+    static u16 get_height();
+    static u32 get_tile_count();
 
-    City* get_city(u16 city_idx);
-    const City* get_city(u16 city_idx) const;
-    u16 get_next_new_city_idx();
-    u16 get_page_count() const;
-    u16 get_city_count() const;
-    City* get_page(u16 page_idx);
-    const City* get_page(u16 page_idx) const;
+    static void add_resource(u16 x, u16 y, u16 resource_idx);
+    static void add_city(u16 x, u16 y, u16 city_idx);
+    static void add_fort(u16 x, u16 y, u16 fort_idx);
 
-    static const u16 MAX_PAGES = 256;
-    static const u16 CITIES_PER_PAGE = 256;
-
-private:
-    City* m_pages[MAX_PAGES];
-    u16 m_city_count;
-    u16 m_page_count;
+    static const u16 ALLOCATION_BLOCK_SIZE = 5;
+    static const u16 ADDS_BLOCK_SIZE = 10;
 };
 
 #endif // TILE_ARRAY_H

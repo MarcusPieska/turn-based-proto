@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Define the include path for the compiler
+INC="-I../"
+
+# Compile objects
+g++ $INC -c path_mng.cpp -o path_mng.o
+g++ $INC -c path_mng_tester.cpp -o path_mng_tester.o
+
+# Link everything into the final tester
+g++ -o path_mng_tester \
+    path_mng.o \
+    path_mng_tester.o
+
+# Clean up
+rm \
+    path_mng.o \
+    path_mng_tester.o

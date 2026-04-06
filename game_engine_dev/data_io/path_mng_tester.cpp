@@ -1,0 +1,128 @@
+//================================================================================================================================
+//=> - Includes and globals -
+//================================================================================================================================
+
+#include <cstdio>
+#include <cstdlib>
+#include <fstream>
+#include <string>
+
+#include "path_mng.h"
+
+//================================================================================================================================
+//=> - Globals -
+//================================================================================================================================
+
+typedef const char* cstr;
+typedef std::string str;
+
+int test_count = 0;
+int test_pass = 0;
+int total_test_fails = 0;
+int total_tests_run = 0;
+int print_level = 0;
+
+//================================================================================================================================
+//=> - Helper functions -
+//================================================================================================================================
+
+void note_result (bool cond, cstr msg) {
+    test_count++;
+    total_tests_run++;
+    if (cond) {
+        test_pass++;
+        if (print_level > 1) {
+            printf("*** TEST PASSED: %s\n", msg);
+        }
+    } else {
+        total_test_fails++;
+        if (print_level > 0) {
+            printf("*** TEST FAILED: %s\n", msg);
+        }
+    }
+}
+
+void note_result (bool cond, cstr msg1, cstr msg2) {
+    str msg = str(msg1) + str(msg2);
+    note_result(cond, msg.c_str());
+}
+
+void summarize_test_results () {
+    if (print_level > 0) {
+        printf("--------------------------------\n");
+        printf(" Test count: %d\n", test_count);
+        printf(" Test pass: %d\n", test_pass);
+        printf(" Test fail: %d\n", test_count - test_pass);
+        printf("--------------------------------\n\n");
+    }
+    test_count = 0;
+    test_pass = 0;
+}
+
+//================================================================================================================================
+//=> - Test functions -
+//================================================================================================================================
+
+static bool does_file_exist (const std::string& path) {
+    std::ifstream f(path.c_str());
+    return f.good();
+}
+
+void note_all_paths_exist (const PathMng& paths, cstr tag) {
+    note_result(does_file_exist(paths.get_path_to_techs()), (str(tag) + " techs exists").c_str());
+    note_result(does_file_exist(paths.get_path_to_resources()), (str(tag) + " resources exists").c_str());
+    note_result(does_file_exist(paths.get_path_to_wonders_small()), (str(tag) + " wonders_small exists").c_str());
+    note_result(does_file_exist(paths.get_path_to_city_flags()), (str(tag) + " city_flags exists").c_str());
+    note_result(does_file_exist(paths.get_path_to_unit_types()), (str(tag) + " unit_types exists").c_str());
+    note_result(does_file_exist(paths.get_path_to_wonders()), (str(tag) + " wonders exists").c_str());
+    note_result(does_file_exist(paths.get_path_to_governments()), (str(tag) + " governments exists").c_str());
+    note_result(does_file_exist(paths.get_path_to_callbacks()), (str(tag) + " callbacks exists").c_str());
+    note_result(does_file_exist(paths.get_path_to_civ_traits()), (str(tag) + " civ_traits exists").c_str());
+    note_result(does_file_exist(paths.get_path_to_units()), (str(tag) + " units exists").c_str());
+    note_result(does_file_exist(paths.get_path_to_civs()), (str(tag) + " civs exists").c_str());
+    note_result(does_file_exist(paths.get_path_to_buildings()), (str(tag) + " buildings exists").c_str());
+    note_result(does_file_exist(paths.get_path_to_effects()), (str(tag) + " effects exists").c_str());
+}
+
+void test_construct_with_parent_offset_with_trailing_slash () {
+    PathMng paths("../");
+    note_all_paths_exist(paths, "[../]");
+}
+
+void test_construct_with_parent_offset_without_trailing_slash () {
+    PathMng paths("..");
+    note_all_paths_exist(paths, "[..]");
+}
+
+void test_slash_variants_resolve_to_existing_targets () {
+    PathMng with_slash("../");
+    PathMng without_slash("..");
+
+    note_result(does_file_exist(with_slash.get_path_to_techs()), "with slash path resolves");
+    note_result(does_file_exist(without_slash.get_path_to_techs()), "without slash path resolves");
+}
+
+//================================================================================================================================
+//=> - Main -
+//================================================================================================================================
+
+int main (int argc, char* argv[]) {
+    if (argc > 1) {
+        print_level = std::atoi(argv[1]);
+    }
+
+    test_construct_with_parent_offset_with_trailing_slash();
+    test_construct_with_parent_offset_without_trailing_slash();
+    test_slash_variants_resolve_to_existing_targets();
+    summarize_test_results();
+
+    printf("=======================================================\n");
+    printf(" TESTING PATH MNG: TOTAL FAILURES: %d/%d\n", total_test_fails, total_tests_run);
+    printf("=======================================================\n");
+
+    return total_test_fails;
+}
+
+//================================================================================================================================
+//=> - End -
+//================================================================================================================================

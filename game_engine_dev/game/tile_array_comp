@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Define the include path for the compiler
+INC="-I.."
+
+# Compile dependencies
+g++ $INC -c build_adds_array.cpp -o build_adds_array.o
+g++ $INC -c tile_array.cpp -o tile_array.o
+g++ $INC -c tile_array_tester.cpp -o tile_array_tester.o
+
+# Link everything into the final tester
+g++ -o \
+    tile_array_tester \
+    build_adds_array.o \
+    tile_array.o \
+    tile_array_tester.o
+
+# Clean up
+rm \
+    build_adds_array.o \
+    tile_array.o \
+    tile_array_tester.o

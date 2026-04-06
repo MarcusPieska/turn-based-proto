@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Define the include path for the compiler
+INC="-I.."
+
+# Compile objects
+g++ $INC -c wonder_static_data.cpp -o wonder_static_data.o
+g++ $INC -c wonder_static_data_tester.cpp -o wonder_static_data_tester.o
+
+# Link everything into the final tester
+g++ -o wonder_static_data_tester wonder_static_data.o wonder_static_data_tester.o
+
+# Clean up
+rm wonder_static_data.o wonder_static_data_tester.o

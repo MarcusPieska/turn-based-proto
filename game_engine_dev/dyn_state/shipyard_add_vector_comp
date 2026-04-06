@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Define the include path for the compiler
+INC="-I.."
+
+# Compile dependencies
+g++ $INC -c shipyard_add_vector.cpp -o shipyard_add_vector.o
+g++ $INC -c shipyard_add_vector_tester.cpp -o shipyard_add_vector_tester.o
+g++ $INC -c shipyard_add_vector_tester_visual.cpp -o shipyard_add_vector_tester_visual.o
+
+# Link everything into the final tester
+g++ -o \
+    shipyard_add_vector_tester \
+    shipyard_add_vector.o \
+    shipyard_add_vector_tester.o
+
+
+# Link everything into the final tester
+g++ -o \
+    shipyard_add_vector_tester_visual \
+    shipyard_add_vector.o \
+    shipyard_add_vector_tester_visual.o
+
+# Clean up
+rm \
+    shipyard_add_vector.o \
+    shipyard_add_vector_tester.o \
+    shipyard_add_vector_tester_visual.o

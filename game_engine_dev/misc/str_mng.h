@@ -16,12 +16,34 @@
 class StringSplitter {
 public:
 
-    StringSplitter (const std::string& delimiter) : delimiter(delimiter) {}
+    StringSplitter (const std::string& delimiter) : 
+        delimiter(delimiter) {
+        }
 
     std::vector<std::string> split (const std::string& str) const;
 
 private:
     std::string delimiter;
+};
+
+//================================================================================================================================
+//=> - StringExtractor class -
+//================================================================================================================================
+
+class StringExtractor {
+public:
+
+    StringExtractor (const std::string& start_marker, const std::string& end_marker) : 
+        start_marker(start_marker), 
+        end_marker(end_marker) {
+        }
+
+    bool can_extract (const std::string& str) const;
+    std::string extract (const std::string& str) const;
+
+private:
+    std::string start_marker;
+    std::string end_marker;
 };
 
 //================================================================================================================================
@@ -31,7 +53,9 @@ private:
 class StringTrimmer {
 public:
 
-    StringTrimmer (const std::string& trim_chars) : trim_chars(trim_chars) {}
+    StringTrimmer (const std::string& trim_chars) : 
+        trim_chars(trim_chars) {
+        }
 
     std::string trim (const std::string& str) const;
 
@@ -46,7 +70,9 @@ private:
 class StringReader {
 public:
 
-    StringReader (const std::string& filename) : filename(filename) {}
+    StringReader (const std::string& filename) : 
+        filename(filename) {
+        }
 
     std::string read () const;
 
@@ -61,7 +87,9 @@ private:
 class StringWriter {
 public:
 
-    StringWriter (const std::string& filename) : filename(filename) {}
+    StringWriter (const std::string& filename) : 
+        filename(filename) {
+        }
 
     void append (const std::string& str);
     void write () const;

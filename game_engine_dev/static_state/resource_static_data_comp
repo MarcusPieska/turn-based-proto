@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Define the include path for the compiler
+INC="-I.."
+
+# Compile objects
+g++ $INC -c resource_static_data.cpp -o resource_static_data.o
+g++ $INC -c resource_static_data_tester.cpp -o resource_static_data_tester.o
+
+# Link everything into the final tester
+g++ -o resource_static_data_tester resource_static_data.o resource_static_data_tester.o
+
+# Clean up
+rm resource_static_data.o resource_static_data_tester.o

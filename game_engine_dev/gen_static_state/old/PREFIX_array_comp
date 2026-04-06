@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Define the include path for the compiler
+INC="-I.. -I../misc"
+
+# Compile objects
+g++ $INC -c ../misc/bit_array.cpp -o bit_array.o
+g++ $INC -c [MEMBER_TAG]_array.cpp -o [MEMBER_TAG]_array.o
+g++ $INC -c [MEMBER_TAG]_array_tester.cpp -o [MEMBER_TAG]_array_tester.o
+
+# Link everything into the final tester
+g++ -o [MEMBER_TAG]_array_tester bit_array.o [MEMBER_TAG]_array.o [MEMBER_TAG]_array_tester.o
+
+# Clean up
+rm bit_array.o [MEMBER_TAG]_array.o [MEMBER_TAG]_array_tester.o

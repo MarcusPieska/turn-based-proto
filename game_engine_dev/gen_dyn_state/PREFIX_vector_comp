@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Define the include path for the compiler
+INC="-I.."
+
+# Compile dependencies
+g++ $INC -c [MEMBER_TAG]_vector.cpp -o [MEMBER_TAG]_vector.o
+g++ $INC -c [MEMBER_TAG]_vector_tester.cpp -o [MEMBER_TAG]_vector_tester.o
+g++ $INC -c [MEMBER_TAG]_vector_tester_visual.cpp -o [MEMBER_TAG]_vector_tester_visual.o
+
+# Link everything into the final tester
+g++ -o \
+    [MEMBER_TAG]_vector_tester \
+    [MEMBER_TAG]_vector.o \
+    [MEMBER_TAG]_vector_tester.o
+
+
+# Link everything into the final tester
+g++ -o \
+    [MEMBER_TAG]_vector_tester_visual \
+    [MEMBER_TAG]_vector.o \
+    [MEMBER_TAG]_vector_tester_visual.o
+
+# Clean up
+rm \
+    [MEMBER_TAG]_vector.o \
+    [MEMBER_TAG]_vector_tester.o \
+    [MEMBER_TAG]_vector_tester_visual.o

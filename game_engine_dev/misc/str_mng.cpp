@@ -30,6 +30,36 @@ std::vector<std::string> StringSplitter::split (const std::string& str) const {
 }
 
 //================================================================================================================================
+//=> - StringExtractor implementation -
+//================================================================================================================================
+
+bool StringExtractor::can_extract (const std::string& str) const {
+    if (start_marker.empty() || end_marker.empty()) {
+        return false;
+    }
+    size_t start_pos = str.find(start_marker);
+    if (start_pos == std::string::npos) {
+        return false;
+    }
+    size_t value_start_pos = start_pos + start_marker.size();
+    size_t end_pos = str.find(end_marker, value_start_pos);
+    if (end_pos == std::string::npos) {
+        return false;
+    }
+    return value_start_pos <= end_pos;
+}
+
+std::string StringExtractor::extract (const std::string& str) const {
+    if (!can_extract(str)) {
+        return "";
+    }
+    size_t start_pos = str.find(start_marker);
+    size_t value_start_pos = start_pos + start_marker.size();
+    size_t end_pos = str.find(end_marker, value_start_pos);
+    return str.substr(value_start_pos, end_pos - value_start_pos);
+}
+
+//================================================================================================================================
 //=> - StringTrimmer implementation -
 //================================================================================================================================
 

@@ -1,0 +1,8 @@
+python3 generate.py mine_add MineAdd
+python3 generate.py fort_add FortAdd
+python3 generate.py plantation_add PlantationAdd
+python3 generate.py shipyard_add ShipyardAdd
+python3 generate.py outpost_add OutpostAdd
+python3 generate.py trade_post_add TradePostAdd
+python3 generate.py monastery_add MonasteryAdd
+

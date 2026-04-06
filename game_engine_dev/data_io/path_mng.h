@@ -1,0 +1,64 @@
+//================================================================================================================================
+//=> - Include guards -
+//================================================================================================================================
+
+#ifndef PATH_MNG_H
+#define PATH_MNG_H
+
+#include <string>
+
+#include "game_primitives.h"
+
+//================================================================================================================================
+//=> - PathMng class -
+//================================================================================================================================
+
+class PathMng {
+public:
+    explicit PathMng (const std::string& path_offset);
+
+    const std::string& get_path_to_techs () const;
+    const std::string& get_path_to_resources () const;
+    const std::string& get_path_to_wonders_small () const;
+    const std::string& get_path_to_city_flags () const;
+    const std::string& get_path_to_unit_types () const;
+    const std::string& get_path_to_wonders () const;
+    const std::string& get_path_to_governments () const;
+    const std::string& get_path_to_callbacks () const;
+    const std::string& get_path_to_civ_traits () const;
+    const std::string& get_path_to_units () const;
+    const std::string& get_path_to_civs () const;
+    const std::string& get_path_to_buildings () const;
+    const std::string& get_path_to_effects () const;
+
+private:
+    PathMng () = delete;
+    PathMng (const PathMng& other) = delete;
+    PathMng (PathMng&& other) = delete;
+
+    void build_paths ();
+    void validate_paths_or_exit () const;
+
+    std::string m_path_offset;
+
+    std::string m_path_techs;
+    std::string m_path_resources;
+    std::string m_path_wonders_small;
+    std::string m_path_city_flags;
+    std::string m_path_unit_types;
+    std::string m_path_wonders;
+    std::string m_path_governments;
+    std::string m_path_callbacks;
+    std::string m_path_civ_traits;
+    std::string m_path_units;
+    std::string m_path_civs;
+    std::string m_path_buildings;
+    std::string m_path_effects;
+};
+
+#endif // PATH_MNG_H
+
+//================================================================================================================================
+//=> - End of file -
+//================================================================================================================================
+
