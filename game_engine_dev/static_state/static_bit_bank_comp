@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Define the include path for the compiler
+INC="-I.."
+
+# Compile objects
+g++ $INC -c static_bit_bank.cpp -o static_bit_bank.o
+g++ $INC -c static_bit_bank_tester.cpp -o static_bit_bank_tester.o
+g++ $INC -c static_bit_bank_major1_tester.cpp -o static_bit_bank_major1_tester.o
+g++ $INC -c static_bit_bank_major2_tester.cpp -o static_bit_bank_major2_tester.o
+g++ $INC -c static_bit_bank_visual1_tester.cpp -o static_bit_bank_visual1_tester.o
+
+# Link everything into the final tester
+g++ -o static_bit_bank_tester static_bit_bank.o static_bit_bank_tester.o
+g++ -o static_bit_bank_major1_tester static_bit_bank.o static_bit_bank_major1_tester.o
+g++ -o static_bit_bank_major2_tester static_bit_bank.o static_bit_bank_major2_tester.o
+g++ -o static_bit_bank_visual1_tester static_bit_bank.o static_bit_bank_visual1_tester.o
+
+# Clean up
+rm \
+    static_bit_bank.o \
+    static_bit_bank_tester.o \
+    static_bit_bank_major1_tester.o \
+    static_bit_bank_major2_tester.o \
+    static_bit_bank_visual1_tester.o

@@ -1,60 +1,60 @@
-City                          :  1 :  1 :  1 : Foundation
-Tin                           :  0 :  1 :  0 : Bronze Working
-Copper                        :  0 :  1 :  0 : Bronze Working
-Iron                          :  0 :  2 :  0 : Iron Working
-Lead                          :  0 :  1 :  0 : Bronze Working
-Coal                          :  0 :  2 :  0 : Steam Power
-Aluminum                      :  0 :  2 :  0 : Industrialization
-Titanium                      :  0 :  2 :  0 : Metallurgy
-Uranium                       :  0 :  2 :  0 : Nuclear Power
-Gold                          :  0 :  0 :  2 : Currency
-Silver                        :  0 :  0 :  2 : Currency
-Oil                           :  0 :  1 :  0 : Refining
-Horses                        :  0 :  1 :  0 : The Wheel
-Rubber                        :  0 :  1 :  0 : Motorized Transportation
-Saltpeter                     :  0 :  1 :  0 : Gunpowder
-Nitrates                      :  0 :  1 :  0 : Chemistry
-Wheat                         :  2 :  0 :  0 : Pottery
-Rice                          :  2 :  0 :  0 : Pottery
-Corn                          :  2 :  0 :  0 : Pottery
-Barley                        :  1 :  0 :  0 : Pottery
-Potatoes                      :  2 :  0 :  0 : Pottery
-Sugar                         :  1 :  0 :  0 : Pottery
-Bananas                       :  1 :  0 :  0 : Pottery
-Citrus                        :  1 :  0 :  0 : Pottery
-Olives                        :  1 :  0 :  0 : Pottery
-Cattle                        :  2 :  0 :  0 : Warrior Code
-Sheep                         :  1 :  0 :  0 : Warrior Code
-Pigs                          :  1 :  0 :  0 : Warrior Code
-Fish                          :  2 :  0 :  0 : Pottery
-Game                          :  1 :  0 :  0 : Warrior Code
-Deer                          :  1 :  0 :  0 : Warrior Code
-Whales                        :  1 :  0 :  0 : Navigation
-Clams                         :  1 :  0 :  0 : Pottery
-Crabs                         :  1 :  0 :  0 : Pottery
-Oysters                       :  1 :  0 :  0 : Pottery
-Stone                         :  0 :  1 :  0 : Masonry
-Marble                        :  0 :  2 :  0 : Masonry
-Salt                          :  0 :  0 :  1 : Masonry
-Wine                          :  0 :  0 :  1 : Pottery
-Coffee                        :  0 :  0 :  1 : Education
-Tea                           :  0 :  0 :  1 : Education
-Cocoa                         :  0 :  0 :  1 : Currency
-Tobacco                       :  0 :  0 :  1 : Economics
-Furs                          :  0 :  0 :  1 : Warrior Code
-Ivory                         :  0 :  0 :  1 : Warrior Code
-Pearls                        :  0 :  0 :  1 : Navigation
-Spices                        :  0 :  0 :  1 : Currency
-Incense                       :  0 :  0 :  1 : Polytheism
-Dyes                          :  0 :  0 :  1 : Currency
-Pepper                        :  0 :  0 :  1 : Currency
-Cinnamon                      :  0 :  0 :  1 : Currency
-Silk                          :  0 :  0 :  1 : Currency
-Cotton                        :  0 :  0 :  1 : Currency
-Wool                          :  0 :  0 :  1 : Warrior Code
-Gems                          :  0 :  0 :  2 : Currency
-Diamonds                      :  0 :  0 :  2 : Currency
-Jade                          :  0 :  0 :  1 : Currency
-Amber                         :  0 :  0 :  1 : Currency
-Truffles                      :  0 :  0 :  1 : Pottery
-Honey                         :  0 :  0 :  1 : Pottery
+City                          :  1 :  1 :  1 : tech(Foundation)
+Tin                           :  0 :  1 :  0 : tech(Bronze Working)
+Copper                        :  0 :  1 :  0 : tech(Bronze Working)
+Iron                          :  0 :  2 :  0 : tech(Iron Working)
+Lead                          :  0 :  1 :  0 : tech(Bronze Working)
+Coal                          :  0 :  2 :  0 : tech(Steam Power)
+Aluminum                      :  0 :  2 :  0 : tech(Industrialization)
+Titanium                      :  0 :  2 :  0 : tech(Metallurgy)
+Uranium                       :  0 :  2 :  0 : tech(Nuclear Power)
+Gold                          :  0 :  0 :  2 : tech(Currency)
+Silver                        :  0 :  0 :  2 : tech(Currency)
+Oil                           :  0 :  1 :  0 : tech(Refining)
+Horses                        :  0 :  1 :  0 : tech(The Wheel)
+Rubber                        :  0 :  1 :  0 : tech(Motorized Transportation)
+Saltpeter                     :  0 :  1 :  0 : tech(Gunpowder)
+Nitrates                      :  0 :  1 :  0 : tech(Chemistry)
+Wheat                         :  2 :  0 :  0 : tech(Pottery)
+Rice                          :  2 :  0 :  0 : tech(Pottery)
+Corn                          :  2 :  0 :  0 : tech(Pottery)
+Barley                        :  1 :  0 :  0 : tech(Pottery)
+Potatoes                      :  2 :  0 :  0 : tech(Pottery)
+Sugar                         :  1 :  0 :  0 : tech(Pottery)
+Bananas                       :  1 :  0 :  0 : tech(Pottery)
+Citrus                        :  1 :  0 :  0 : tech(Pottery)
+Olives                        :  1 :  0 :  0 : tech(Pottery)
+Cattle                        :  2 :  0 :  0 : tech(Warrior Code)
+Sheep                         :  1 :  0 :  0 : tech(Warrior Code)
+Pigs                          :  1 :  0 :  0 : tech(Warrior Code)
+Fish                          :  2 :  0 :  0 : tech(Pottery)
+Game                          :  1 :  0 :  0 : tech(Warrior Code)
+Deer                          :  1 :  0 :  0 : tech(Warrior Code)
+Whales                        :  1 :  0 :  0 : tech(Navigation)
+Clams                         :  1 :  0 :  0 : tech(Pottery)
+Crabs                         :  1 :  0 :  0 : tech(Pottery)
+Oysters                       :  1 :  0 :  0 : tech(Pottery)
+Stone                         :  0 :  1 :  0 : tech(Masonry)
+Marble                        :  0 :  2 :  0 : tech(Masonry)
+Salt                          :  0 :  0 :  1 : tech(Masonry)
+Wine                          :  0 :  0 :  1 : tech(Pottery)
+Coffee                        :  0 :  0 :  1 : tech(Education)
+Tea                           :  0 :  0 :  1 : tech(Education)
+Cocoa                         :  0 :  0 :  1 : tech(Currency)
+Tobacco                       :  0 :  0 :  1 : tech(Economics)
+Furs                          :  0 :  0 :  1 : tech(Warrior Code)
+Ivory                         :  0 :  0 :  1 : tech(Warrior Code)
+Pearls                        :  0 :  0 :  1 : tech(Navigation)
+Spices                        :  0 :  0 :  1 : tech(Currency)
+Incense                       :  0 :  0 :  1 : tech(Polytheism)
+Dyes                          :  0 :  0 :  1 : tech(Currency)
+Pepper                        :  0 :  0 :  1 : tech(Currency)
+Cinnamon                      :  0 :  0 :  1 : tech(Currency)
+Silk                          :  0 :  0 :  1 : tech(Currency)
+Cotton                        :  0 :  0 :  1 : tech(Currency)
+Wool                          :  0 :  0 :  1 : tech(Warrior Code)
+Gems                          :  0 :  0 :  2 : tech(Currency)
+Diamonds                      :  0 :  0 :  2 : tech(Currency)
+Jade                          :  0 :  0 :  1 : tech(Currency)
+Amber                         :  0 :  0 :  1 : tech(Currency)
+Truffles                      :  0 :  0 :  1 : tech(Pottery)
+Honey                         :  0 :  0 :  1 : tech(Pottery)

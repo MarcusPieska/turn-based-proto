@@ -8,6 +8,7 @@
 #include <string>
 #include "tech_static_key.h"
 #include "item_reqs.h"
+#include "item_effects.h"
 #include "game_primitives.h"
 
 //================================================================================================================================
@@ -17,6 +18,7 @@
 typedef struct TechStaticDataStruct {
     std::string name;
     ItemReqsStruct reqs;
+    ItemEffectsStruct effects;
     u32 cost;
     u16 tier;
 } TechStaticDataStruct;

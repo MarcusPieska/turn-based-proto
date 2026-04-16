@@ -21,15 +21,12 @@ def parse_effects_file(filename):
                 for i in range(1, len(parts)):
                     effect_pair = parts[i].strip()
                     if effect_pair:
-                        # Check if it's a booster call with parentheses
                         if '(' in effect_pair:
-                            # Extract callback name before '('
                             paren_idx = effect_pair.find('(')
                             effect_name = effect_pair[:paren_idx].strip()
                             if effect_name:
                                 effects.add(effect_name)
                         else:
-                            # Regular effect=value format
                             equal_split = effect_pair.split('=')
                             if len(equal_split) >= 1:
                                 effect_name = equal_split[0].strip()

@@ -74,19 +74,19 @@ void test_read_all_game_config_files_min_items () {
     PathMng paths("../");
     const u32 min_items = 5;
 
-    note_reader_has_min_items(paths.get_path_to_techs(), "techs", min_items);
-    note_reader_has_min_items(paths.get_path_to_resources(), "resources", min_items);
-    note_reader_has_min_items(paths.get_path_to_wonders_small(), "wonders_small", min_items);
-    note_reader_has_min_items(paths.get_path_to_city_flags(), "city_flags", min_items);
-    note_reader_has_min_items(paths.get_path_to_unit_types(), "unit_types", min_items);
-    note_reader_has_min_items(paths.get_path_to_wonders(), "wonders", min_items);
-    note_reader_has_min_items(paths.get_path_to_governments(), "governments", min_items);
-    note_reader_has_min_items(paths.get_path_to_callbacks(), "callbacks", min_items);
-    note_reader_has_min_items(paths.get_path_to_civ_traits(), "civ_traits", min_items);
-    note_reader_has_min_items(paths.get_path_to_units(), "units", min_items);
-    note_reader_has_min_items(paths.get_path_to_civs(), "civs", min_items);
     note_reader_has_min_items(paths.get_path_to_buildings(), "buildings", min_items);
+    note_reader_has_min_items(paths.get_path_to_city_flags(), "city_flags", min_items);
+    note_reader_has_min_items(paths.get_path_to_civ_traits(), "civ_traits", min_items);
+    note_reader_has_min_items(paths.get_path_to_civs(), "civs", min_items);
     note_reader_has_min_items(paths.get_path_to_effects(), "effects", min_items);
+    note_reader_has_min_items(paths.get_path_to_governments(), "governments", min_items);
+    note_reader_has_min_items(paths.get_path_to_resources(), "resources", min_items);
+    note_reader_has_min_items(paths.get_path_to_small_wonders(), "small_wonders", min_items);
+    note_reader_has_min_items(paths.get_path_to_techs(), "techs", min_items);
+    note_reader_has_min_items(paths.get_path_to_unit_abilities(), "unit_abilities", min_items);
+    note_reader_has_min_items(paths.get_path_to_unit_types(), "unit_types", min_items);
+    note_reader_has_min_items(paths.get_path_to_units(), "units", min_items);
+    note_reader_has_min_items(paths.get_path_to_wonders(), "wonders", min_items);
 }
 
 //================================================================================================================================

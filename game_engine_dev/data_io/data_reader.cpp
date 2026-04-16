@@ -43,6 +43,7 @@ void DataReader::read_and_parse () {
 
     std::vector<std::string> lines = line_splitter.split(content);
     m_raw_items.clear();
+    m_raw_items.push_back(RawItem());
 
     for (size_t i = 0; i < lines.size(); ++i) {
         std::string line = trimmer.trim(lines[i]);

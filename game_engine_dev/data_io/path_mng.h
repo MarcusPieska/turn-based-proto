@@ -17,19 +17,19 @@ class PathMng {
 public:
     explicit PathMng (const std::string& path_offset);
 
-    const std::string& get_path_to_techs () const;
-    const std::string& get_path_to_resources () const;
-    const std::string& get_path_to_wonders_small () const;
-    const std::string& get_path_to_city_flags () const;
-    const std::string& get_path_to_unit_types () const;
-    const std::string& get_path_to_wonders () const;
-    const std::string& get_path_to_governments () const;
-    const std::string& get_path_to_callbacks () const;
-    const std::string& get_path_to_civ_traits () const;
-    const std::string& get_path_to_units () const;
-    const std::string& get_path_to_civs () const;
     const std::string& get_path_to_buildings () const;
+    const std::string& get_path_to_city_flags () const;
+    const std::string& get_path_to_civ_traits () const;
+    const std::string& get_path_to_civs () const;
     const std::string& get_path_to_effects () const;
+    const std::string& get_path_to_governments () const;
+    const std::string& get_path_to_resources () const;
+    const std::string& get_path_to_small_wonders () const;
+    const std::string& get_path_to_techs () const;
+    const std::string& get_path_to_unit_abilities () const;
+    const std::string& get_path_to_unit_types () const;
+    const std::string& get_path_to_units () const;
+    const std::string& get_path_to_wonders () const;
 
 private:
     PathMng () = delete;
@@ -41,19 +41,19 @@ private:
 
     std::string m_path_offset;
 
-    std::string m_path_techs;
-    std::string m_path_resources;
-    std::string m_path_wonders_small;
-    std::string m_path_city_flags;
-    std::string m_path_unit_types;
-    std::string m_path_wonders;
-    std::string m_path_governments;
-    std::string m_path_callbacks;
-    std::string m_path_civ_traits;
-    std::string m_path_units;
-    std::string m_path_civs;
     std::string m_path_buildings;
+    std::string m_path_city_flags;
+    std::string m_path_civ_traits;
+    std::string m_path_civs;
     std::string m_path_effects;
+    std::string m_path_governments;
+    std::string m_path_resources;
+    std::string m_path_small_wonders;
+    std::string m_path_techs;
+    std::string m_path_unit_abilities;
+    std::string m_path_unit_types;
+    std::string m_path_units;
+    std::string m_path_wonders;
 };
 
 #endif // PATH_MNG_H

@@ -7,7 +7,9 @@ INC="-I../ -I../misc -I../data_io -I../static_state"
 g++ $INC -c ../misc/str_mng.cpp -o str_mng.o
 g++ $INC -c ../data_io/path_mng.cpp -o path_mng.o
 g++ $INC -c ../data_io/data_reader.cpp -o data_reader.o
-g++ $INC -c data_parser_base.cpp -o data_parser_base.o
+g++ $INC -c ../data_io/data_parser_base.cpp -o data_parser_base.o
+g++ $INC -c ../data_io/item_effect_handler.cpp -o item_effect_handler.o
+g++ $INC -c ../data_io/item_effect_helpers.cpp -o item_effect_helpers.o
 g++ $INC -c [FILE_TAG]_parser.cpp -o [FILE_TAG]_parser.o
 g++ $INC -c [FILE_TAG]_parser_tester.cpp -o [FILE_TAG]_parser_tester.o
 
@@ -16,6 +18,8 @@ g++ -o [FILE_TAG]_parser_tester \
     str_mng.o \
     path_mng.o \
     data_reader.o \
+    item_effect_handler.o \
+    item_effect_helpers.o \
     data_parser_base.o \
     [FILE_TAG]_parser.o \
     [FILE_TAG]_parser_tester.o
@@ -25,6 +29,8 @@ rm \
     str_mng.o \
     path_mng.o \
     data_reader.o \
+    item_effect_handler.o \
+    item_effect_helpers.o \
     data_parser_base.o \
     [FILE_TAG]_parser.o \
     [FILE_TAG]_parser_tester.o

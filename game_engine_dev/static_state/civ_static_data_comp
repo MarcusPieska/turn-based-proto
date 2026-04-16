@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Define the include path for the compiler
+INC="-I.. -I../static_state"
+
+# Compile objects
+g++ $INC -c civ_static_data.cpp -o civ_static_data.o
+g++ $INC -c civ_static_data_tester.cpp -o civ_static_data_tester.o
+
+# Link everything into the final tester
+g++ -o civ_static_data_tester civ_static_data.o civ_static_data_tester.o
+
+# Clean up
+rm civ_static_data.o civ_static_data_tester.o

@@ -1,72 +1,72 @@
 Foundation                    :    0
-Alphabet                      :   40 : Foundation
-Bronze Working                :   40 : Foundation
-Pottery                       :   40 : Foundation
-Warrior Code                  :   40 : Foundation
-Masonry                       :   40 : Foundation
-The Wheel                     :   40 : Foundation
-Horseback Riding              :   60 : Warrior Code : The Wheel
-Iron Working                  :   60 : Bronze Working
-Writing                       :   60 : Alphabet
-Map Making                    :   60 : Writing : Pottery
-Mathematics                   :   60 : Alphabet : Writing
-Philosophy                    :   60 : Writing
-Code of Laws                  :   80 : Writing
-Currency                      :   80 : Code of Laws
-Republic                      :   80 : Code of Laws : Philosophy
-Literature                    :   80 : Writing
-Polytheism                    :   80 : Alphabet
-Monotheism                    :  100 : Polytheism
-Chivalry                      :  100 : Monotheism
-Engineering                   :  100 : Mathematics : Masonry
-Feudalism                     :  100 : Monotheism
-Theology                      :  100 : Monotheism
-Invention                     :  100 : Engineering
-Gunpowder                     :  100 : Invention
-Education                     :  120 : Philosophy : Theology
-Printing Press                :  129 : Education
-Banking                       :  120 : Currency
-Chemistry                     :  120 : Education
-Metallurgy                    :  120 : Chemistry
-Navigation                    :  120 : Astronomy : Magnetism
-Astronomy                     :  140 : Mathematics
-Physics                       :  140 : Mathematics
-Magnetism                     :  140 : Physics
-Theory of Gravity             :  140 : Physics : Astronomy
-Music Theory                  :  140 : Education
-Military Tradition            :  160 : Chivalry : Gunpowder
-Nationalism                   :  160 : Military Tradition 
-Espionage                     :  160 : Nationalism
-Democracy                     :  160 : Printing Press : Navigation
-Economics                     :  160 : Banking
-Scientific Method             :  160 : Printing Press
-Steam Power                   :  160 : Physics : Metallurgy
-Industrialization             :  180 : Steam Power
-Medicine                      :  180 : Theory of Gravity
-Electricity                   :  180 : Magnetism
-Sanitation                    :  180 : Medicine
-The Corporation               :  200 : Industrialization : Economics
-Refining                      :  200 : Industrialization
-Steel                         :  200 : Industrialization : Metallurgy
-Replaceable Parts             :  200 : Industrialization
-Combustion                    :  220 : Refining
-Flight                        :  220 : Combustion : Physics
-Mass Production               :  220 : Industrialization
-Amphibious War                :  220 : Mass Production 
-Electronics                   :  240 : Electricity : Replaceable Parts
-Atomic Theory                 :  240 : Scientific Method : Physics
-Motorized Transportation      :  240 : Combustion
-Radio                         :  260 : Electronics : Mass Production
-Advanced Flight               :  260 : Flight : Radio
-Rocketry                      :  280 : Advanced Flight : Motorized Transportation
-Computers                     :  280 : Electronics : Mathematics
-Nuclear Power                 :  300 : Atomic Theory
-Miniaturization               :  300 : Computers
-Robotics                      :  320 : Computers : Replaceable Parts
-Space Flight                  :  320 : Rocketry : Computers
-Fusion Power                  :  340 : Nuclear Power : Superconductor
-Genetics                      :  340 : Computers : Medicine
-Ecology                       :  360 : Genetics
-Superconductor                :  360 : Miniaturization
-Stealth                       :  380 : Flight : Computers
-Future Tech                   :  400 : Space Flight : Fusion Power : Genetics : Stealth
+Alphabet                      :   40 : tech(Foundation)
+Bronze Working                :   40 : tech(Foundation)
+Pottery                       :   40 : tech(Foundation)
+Warrior Code                  :   40 : tech(Foundation)
+Masonry                       :   40 : tech(Foundation)
+The Wheel                     :   40 : tech(Foundation)
+Horseback Riding              :   60 : tech(Warrior Code) : tech(The Wheel)
+Iron Working                  :   60 : tech(Bronze Working)
+Writing                       :   60 : tech(Alphabet)
+Map Making                    :   60 : tech(Writing) : tech(Pottery)
+Mathematics                   :   60 : tech(Alphabet) : tech(Writing)
+Philosophy                    :   60 : tech(Writing)
+Code of Laws                  :   80 : tech(Writing)
+Currency                      :   80 : tech(Code of Laws)
+Republic                      :   80 : tech(Code of Laws) : tech(Philosophy)
+Literature                    :   80 : tech(Writing)
+Polytheism                    :   80 : tech(Alphabet)
+Monotheism                    :  100 : tech(Polytheism)
+Chivalry                      :  100 : tech(Monotheism)
+Engineering                   :  100 : tech(Mathematics) : tech(Masonry)
+Feudalism                     :  100 : tech(Monotheism)
+Theology                      :  100 : tech(Monotheism)
+Invention                     :  100 : tech(Engineering)
+Gunpowder                     :  100 : tech(Invention)
+Education                     :  120 : tech(Philosophy) : tech(Theology)
+Printing Press                :  129 : tech(Education)
+Banking                       :  120 : tech(Currency)
+Chemistry                     :  120 : tech(Education)
+Metallurgy                    :  120 : tech(Chemistry)
+Navigation                    :  120 : tech(Astronomy) : tech(Magnetism)
+Astronomy                     :  140 : tech(Mathematics)
+Physics                       :  140 : tech(Mathematics)
+Magnetism                     :  140 : tech(Physics)
+Theory of Gravity             :  140 : tech(Physics) : tech(Astronomy)
+Music Theory                  :  140 : tech(Education)
+Military Tradition            :  160 : tech(Chivalry) : tech(Gunpowder)
+Nationalism                   :  160 : tech(Military Tradition)
+Espionage                     :  160 : tech(Nationalism)
+Democracy                     :  160 : tech(Printing Press) : tech(Navigation)
+Economics                     :  160 : tech(Banking)
+Scientific Method             :  160 : tech(Printing Press)
+Steam Power                   :  160 : tech(Physics) : tech(Metallurgy)
+Industrialization             :  180 : tech(Steam Power)
+Medicine                      :  180 : tech(Theory of Gravity)
+Electricity                   :  180 : tech(Magnetism)
+Sanitation                    :  180 : tech(Medicine)
+The Corporation               :  200 : tech(Industrialization) : tech(Economics)
+Refining                      :  200 : tech(Industrialization)
+Steel                         :  200 : tech(Industrialization) : tech(Metallurgy)
+Replaceable Parts             :  200 : tech(Industrialization)
+Combustion                    :  220 : tech(Refining)
+Flight                        :  220 : tech(Combustion) : tech(Physics)
+Mass Production               :  220 : tech(Industrialization)
+Amphibious War                :  220 : tech(Mass Production)
+Electronics                   :  240 : tech(Electricity) : tech(Replaceable Parts)
+Atomic Theory                 :  240 : tech(Scientific Method) : tech(Physics)
+Motorized Transportation      :  240 : tech(Combustion)
+Radio                         :  260 : tech(Electronics) : tech(Mass Production)
+Advanced Flight               :  260 : tech(Flight) : tech(Radio)
+Rocketry                      :  280 : tech(Advanced Flight) : tech(Motorized Transportation)
+Computers                     :  280 : tech(Electronics) : tech(Mathematics)
+Nuclear Power                 :  300 : tech(Atomic Theory)
+Miniaturization               :  300 : tech(Computers)
+Robotics                      :  320 : tech(Computers) : tech(Replaceable Parts)
+Space Flight                  :  320 : tech(Rocketry) : tech(Computers)
+Fusion Power                  :  340 : tech(Nuclear Power) : tech(Superconductor)
+Genetics                      :  340 : tech(Computers) : tech(Medicine)
+Ecology                       :  360 : tech(Genetics)
+Superconductor                :  360 : tech(Miniaturization)
+Stealth                       :  380 : tech(Flight) : tech(Computers)
+Future Tech                   :  400 : tech(Space Flight) : tech(Fusion Power) : tech(Genetics) : tech(Stealth)

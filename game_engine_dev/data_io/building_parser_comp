@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Define the include path for the compiler
+INC="-I../ -I../misc -I../data_io -I../static_state"
+
+# Compile objects
+g++ $INC -c ../misc/str_mng.cpp -o str_mng.o
+g++ $INC -c ../data_io/path_mng.cpp -o path_mng.o
+g++ $INC -c ../data_io/data_reader.cpp -o data_reader.o
+g++ $INC -c ../data_io/data_parser_base.cpp -o data_parser_base.o
+g++ $INC -c ../data_io/item_effect_handler.cpp -o item_effect_handler.o
+g++ $INC -c ../data_io/item_effect_helpers.cpp -o item_effect_helpers.o
+g++ $INC -c building_parser.cpp -o building_parser.o
+g++ $INC -c building_parser_tester.cpp -o building_parser_tester.o
+
+# Link everything into the final tester
+g++ -o building_parser_tester \
+    str_mng.o \
+    path_mng.o \
+    data_reader.o \
+    item_effect_handler.o \
+    item_effect_helpers.o \
+    data_parser_base.o \
+    building_parser.o \
+    building_parser_tester.o
+
+# Clean up
+rm \
+    str_mng.o \
+    path_mng.o \
+    data_reader.o \
+    item_effect_handler.o \
+    item_effect_helpers.o \
+    data_parser_base.o \
+    building_parser.o \
+    building_parser_tester.o

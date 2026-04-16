@@ -28,25 +28,11 @@ typedef struct ItemReqsStruct {
     u8 added_args[MAX_PREREQ_COUNT];
 } ItemReqsStruct;
 
+#define MAX_CIV_TRAIT_COUNT 4
 
-#define MAX_EFFECT_COUNT 5 
-
-typedef enum ItemReqTechType {
-    ITEM_EFFECT_TYPE_NONE = 0
-} ItemReqTechType;
-
-typedef enum ItemReqTechScope {
-    ITEM_EFFECT_SCOPE_NONE = 0,
-    ITEM_EFFECT_SCOPE_LOCAL = 1,
-    ITEM_EFFECT_SCOPE_CITY = 2,
-    ITEM_EFFECT_SCOPE_GLOBAL = 3
-} ItemReqTechScope;
-
-typedef struct ItemEffectsStruct {
-    u16 indices[MAX_EFFECT_COUNT];
-    u8 types[MAX_EFFECT_COUNT];
-    u8 scopes[MAX_EFFECT_COUNT];
-} ItemEffectsStruct;
+typedef struct CivTraitStruct {
+    u8 indices[MAX_CIV_TRAIT_COUNT];
+} CivTraitStruct;
 
 
 #endif // ITEM_REQS_H

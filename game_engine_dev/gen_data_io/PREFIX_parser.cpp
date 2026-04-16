@@ -12,8 +12,9 @@
 }
 
 [STRUCT_TAG]* [CLASS_TAG]Parser::parse_data_dependencies () {
-    [STRUCT_TAG]* parsed_data = new [STRUCT_TAG][m_item_count];
-    for (u32 i = 0; i < m_item_count; ++i) {
+    [STRUCT_TAG]* parsed_data = new [STRUCT_TAG][m_item_count]();
+    parsed_data[0].name = "NONE";
+    for (u32 i = 1; i < m_item_count; ++i) {
         const std::vector<std::string> line_items = get_line_items(m_raw_items[i].raw_line);
         parsed_data[i].name = m_raw_items[i].name;
         [PARSE_TAG]

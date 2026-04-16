@@ -1,27 +1,27 @@
-Pyramids                       :  200 : Masonry
-Great Library                  :  300 : Literature          : building(Library, 5)
-Hanging Gardens                :  300 : Mathematics         : building(Temple, 3)
-Colossus                       :  200 : Bronze Working      : resource(Iron)
-Great Lighthouse               :  200 : Navigation          : building(Harbor, 3) : flag(isCoastal)
-Oracle                         :  300 : Philosophy
-Great Wall                     :  300 : Masonry
-Statue of Zeus                 :  300 : Mathematics         : resource(Ivory)
-Sun Tzu's Art of War           :  400 : Feudalism
-Leonardo's Workshop            :  400 : Invention
-Knights Templar                :  400 : Chivalry
-Magellan's Voyage              :  400 : Navigation          : flag(isCoastal)
-Copernicus' Observatory        :  400 : Astronomy           
-Shakespeare's Theatre          :  400 : Literature
-Newton's University            :  400 : Theory of Gravity
-J.S. Bach's Cathedral          :  400 : Theology            : building(Cathedral, 3)
-Adam Smith's Trading Company   :  400 : Economics           : building(Bank, 5)
-Darwin's Voyage                :  400 : Medicine            : flag(isCoastal)
-Statue of Liberty              :  600 : Democracy
-Eiffel Tower                   :  600 : Steel
-Hoover Dam                     :  600 : Electronics         : building(Factory, 5)
-United Nations                 :  600 : Mass Production
-SETI Program                   :  600 : Computers           : building(Research Lab, 5)
-Cure for Cancer                :  600 : Genetics            : building(Hospital, 5)
-Longevity                      :  600 : Genetics            : building(Hospital, 8)
-Manhattan Project              :  600 : Nuclear Power       : resource(Uranium) : building(Nuclear Plant, 1)
-Apollo Program                 :  600 : Space Flight        : resource(Aluminum) : building(Research Lab, 3)
+Pyramids                       :  200 : tech(Masonry)
+Great Library                  :  300 : tech(Literature)          : building(Library, 5)
+Hanging Gardens                :  300 : tech(Mathematics)         : building(Temple, 3)
+Colossus                       :  200 : tech(Bronze Working)      : resource(Iron)
+Great Lighthouse               :  200 : tech(Navigation)          : building(Harbor, 3) : flag(isCoastal)
+Oracle                         :  300 : tech(Philosophy)
+Great Wall                     :  300 : tech(Masonry)
+Statue of Zeus                 :  300 : tech(Mathematics)         : resource(Ivory)
+Sun Tzu's Art of War           :  400 : tech(Feudalism)
+Leonardo's Workshop            :  400 : tech(Invention)
+Knights Templar                :  400 : tech(Chivalry)
+Magellan's Voyage              :  400 : tech(Navigation)          : flag(isCoastal)
+Copernicus' Observatory        :  400 : tech(Astronomy)           
+Shakespeare's Theatre          :  400 : tech(Literature)
+Newton's University            :  400 : tech(Theory of Gravity)
+J.S. Bach's Cathedral          :  400 : tech(Theology)            : building(Cathedral, 3)
+Adam Smith's Trading Company   :  400 : tech(Economics)           : building(Bank, 5)
+Darwin's Voyage                :  400 : tech(Medicine)            : flag(isCoastal)
+Statue of Liberty              :  600 : tech(Democracy)
+Eiffel Tower                   :  600 : tech(Steel)
+Hoover Dam                     :  600 : tech(Electronics)         : building(Factory, 5)
+United Nations                 :  600 : tech(Mass Production)
+SETI Program                   :  600 : tech(Computers)           : building(Research Lab, 5)
+Cure for Cancer                :  600 : tech(Genetics)            : building(Hospital, 5)
+Longevity                      :  600 : tech(Genetics)            : building(Hospital, 8)
+Manhattan Project              :  600 : tech(Nuclear Power)       : resource(Uranium) : building(Nuclear Plant, 1)
+Apollo Program                 :  600 : tech(Space Flight)        : resource(Aluminum) : building(Research Lab, 3)

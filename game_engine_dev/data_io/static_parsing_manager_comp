@@ -1,0 +1,73 @@
+#!/bin/bash
+
+# Define the include path for the compiler
+INC="-I../ -I../misc -I../static_state"
+
+# Compile objects
+g++ $INC -c ../misc/str_mng.cpp -o str_mng.o
+g++ $INC -c path_mng.cpp -o path_mng.o
+g++ $INC -c data_reader.cpp -o data_reader.o
+g++ $INC -c data_parser_base.cpp -o data_parser_base.o
+g++ $INC -c item_effect_handler.cpp -o item_effect_handler.o
+g++ $INC -c item_effect_helpers.cpp -o item_effect_helpers.o
+g++ $INC -c building_parser.cpp -o building_parser.o
+g++ $INC -c city_flag_parser.cpp -o city_flag_parser.o
+g++ $INC -c civ_parser.cpp -o civ_parser.o
+g++ $INC -c civ_trait_parser.cpp -o civ_trait_parser.o
+g++ $INC -c effect_parser.cpp -o effect_parser.o
+g++ $INC -c government_parser.cpp -o government_parser.o
+g++ $INC -c resource_parser.cpp -o resource_parser.o
+g++ $INC -c small_wonder_parser.cpp -o small_wonder_parser.o
+g++ $INC -c tech_parser.cpp -o tech_parser.o
+g++ $INC -c unit_parser.cpp -o unit_parser.o
+g++ $INC -c unit_type_parser.cpp -o unit_type_parser.o
+g++ $INC -c wonder_parser.cpp -o wonder_parser.o
+g++ $INC -c static_parsing_manager.cpp -o static_parsing_manager.o
+g++ $INC -c static_parsing_manager_tester.cpp -o static_parsing_manager_tester.o
+
+# Link: 12 parser .o slots (alphabetical); $(: name.o) is a no-op until you add compile+object.
+# Link everything into the final tester
+g++ -o static_parsing_manager_tester \
+    str_mng.o \
+    path_mng.o \
+    data_reader.o \
+    item_effect_handler.o \
+    item_effect_helpers.o \
+    data_parser_base.o \
+    building_parser.o \
+    city_flag_parser.o \
+    civ_parser.o \
+    civ_trait_parser.o \
+    effect_parser.o \
+    government_parser.o \
+    resource_parser.o \
+    small_wonder_parser.o \
+    tech_parser.o \
+    unit_parser.o \
+    unit_type_parser.o \
+    wonder_parser.o \
+    static_parsing_manager.o \
+    static_parsing_manager_tester.o
+
+# Clean up
+rm \
+    str_mng.o \
+    path_mng.o \
+    data_reader.o \
+    item_effect_handler.o \
+    item_effect_helpers.o \
+    data_parser_base.o \
+    building_parser.o \
+    city_flag_parser.o \
+    civ_parser.o \
+    civ_trait_parser.o \
+    effect_parser.o \
+    government_parser.o \
+    resource_parser.o \
+    small_wonder_parser.o \
+    tech_parser.o \
+    unit_parser.o \
+    unit_type_parser.o \
+    wonder_parser.o \
+    static_parsing_manager.o \
+    static_parsing_manager_tester.o

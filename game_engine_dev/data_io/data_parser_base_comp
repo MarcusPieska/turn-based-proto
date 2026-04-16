@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# Define the include path for the compiler
+INC="-I../ -I../misc -I../static_state"
+
+# Compile objects
+g++ $INC -c ../misc/str_mng.cpp -o str_mng.o
+g++ $INC -c path_mng.cpp -o path_mng.o
+g++ $INC -c data_reader.cpp -o data_reader.o
+g++ $INC -c data_parser_base.cpp -o data_parser_base.o
+g++ $INC -c item_effect_handler.cpp -o item_effect_handler.o
+g++ $INC -c item_effect_helpers.cpp -o item_effect_helpers.o
+g++ $INC -c data_parser_base_req_tester.cpp -o data_parser_base_req_tester.o
+
+# Link everything into the final tester
+g++ -o data_parser_base_tester \
+    str_mng.o \
+    path_mng.o \
+    data_reader.o \
+    item_effect_handler.o \
+    item_effect_helpers.o \
+    data_parser_base.o \
+    data_parser_base_req_tester.o
+
+# Clean up
+rm \
+    str_mng.o \
+    path_mng.o \
+    data_reader.o \
+    item_effect_handler.o \
+    item_effect_helpers.o \
+    data_parser_base.o \
+    data_parser_base_req_tester.o

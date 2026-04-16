@@ -115,11 +115,11 @@ void test_set_items_can_replace_array_and_count () {
     items_a[0].[STRUCT_MEMBER1] = 21; items_a[0].[STRUCT_MEMBER2] = 210;
     items_a[1].[STRUCT_MEMBER1] = 22; items_a[1].[STRUCT_MEMBER2] = 220;
     static [DATA_STRUCT] items_b[5];
-    items_b[0].[STRUCT_MEMBER1] = 31; items_b[0].[STRUCT_MEMBER2] = 310;
-    items_b[1].[STRUCT_MEMBER1] = 32; items_b[1].[STRUCT_MEMBER2] = 320;
-    items_b[2].[STRUCT_MEMBER1] = 33; items_b[2].[STRUCT_MEMBER2] = 330;
-    items_b[3].[STRUCT_MEMBER1] = 34; items_b[3].[STRUCT_MEMBER2] = 340;
-    items_b[4].[STRUCT_MEMBER1] = 35; items_b[4].[STRUCT_MEMBER2] = 350;
+    items_b[0].[STRUCT_MEMBER1] = 31; items_b[0].[STRUCT_MEMBER2] = 131;
+    items_b[1].[STRUCT_MEMBER1] = 32; items_b[1].[STRUCT_MEMBER2] = 132;
+    items_b[2].[STRUCT_MEMBER1] = 33; items_b[2].[STRUCT_MEMBER2] = 133;
+    items_b[3].[STRUCT_MEMBER1] = 34; items_b[3].[STRUCT_MEMBER2] = 134;
+    items_b[4].[STRUCT_MEMBER1] = 35; items_b[4].[STRUCT_MEMBER2] = 135;
 
     [CLASS_NAME]::set_items(items_a, 2);
     note_result([CLASS_NAME]::get_item_count() == 2, "initial array count set");
@@ -134,7 +134,7 @@ void test_set_items_can_replace_array_and_count () {
 
 void test_zero_count_is_allowed () {
     static [DATA_STRUCT] items[1];
-    items[0].[STRUCT_MEMBER1] = 41; items[0].[STRUCT_MEMBER2] = 410;
+    items[0].[STRUCT_MEMBER1] = 41; items[0].[STRUCT_MEMBER2] = 141;
     [CLASS_NAME]::set_items(items, 0);
     note_result([CLASS_NAME]::get_item_count() == 0, "zero item count can be stored");
     summarize_test_results();

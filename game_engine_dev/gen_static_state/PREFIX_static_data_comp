@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define the include path for the compiler
-INC="-I.."
+INC="-I.. -I../static_state"
 
 # Compile objects
 g++ $INC -c [MEMBER_TAG]_static_data.cpp -o [MEMBER_TAG]_static_data.o

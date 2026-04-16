@@ -50,8 +50,9 @@ if __name__ == "__main__":
     template_files.append("PREFIX_static_data.cpp")
     template_files.append("PREFIX_static_data.h")
     template_files.append("PREFIX_static_key.h")
-    template_files.append("PREFIX_static_data_tester.cpp")
-    template_files.append("PREFIX_static_data_comp")
+    if struct_member1 != "None" and struct_member2 != "None":
+        template_files.append("PREFIX_static_data_tester.cpp")
+        template_files.append("PREFIX_static_data_comp")
 
     output_files = []
     for template_file in template_files:
