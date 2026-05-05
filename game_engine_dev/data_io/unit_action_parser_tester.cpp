@@ -7,8 +7,8 @@
 #include <string>
 #include <vector>
 
-#include "unit_abilities_parser.h"
-#include "unit_abilities_static_data.h"
+#include "unit_action_parser.h"
+#include "unit_action_static_data.h"
 #include "data_reader.h"
 #include "path_mng.h"
 #include "name_to_idx_callbacks.h"
@@ -264,7 +264,7 @@ void print_civ_traits_member (cstr label, const CivTraitStruct& traits) {
     }
 }
 
-void print_item (const UnitAbilitiesStaticDataStruct& item) {
+void print_item (const UnitActionStaticDataStruct& item) {
     printf("name: %s\n", item.name.c_str());
     // No parsing instructions provided
 }
@@ -312,11 +312,11 @@ int run_parse_driver () {
     g_unit_types_parser = &unit_types_parser;
     g_civ_traits_parser = &civ_traits_parser;
 
-    DataReader reader("../game_config.unit_abilitiess");
+    DataReader reader("../game_config.unit_actions");
     const std::vector<RawItem>& raw_items = reader.get_raw_items();
 
-    UnitAbilitiesParser parser(raw_items, cbs);
-    UnitAbilitiesStaticDataStruct* parsed_data = parser.parse_data_dependencies();
+    UnitActionParser parser(raw_items, cbs);
+    UnitActionStaticDataStruct* parsed_data = parser.parse_data_dependencies();
 
     if (print_level >= 2) {
         for (u32 i = 0; i < raw_items.size(); ++i) {

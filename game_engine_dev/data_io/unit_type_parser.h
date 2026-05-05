@@ -2,8 +2,8 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef unit_type_PARSER_H
-#define unit_type_PARSER_H
+#ifndef UNIT_TYPE_PARSER_H
+#define UNIT_TYPE_PARSER_H
 
 #include "unit_type_static_data.h"
 #include "data_parser_base.h"
@@ -19,7 +19,7 @@ public:
     UnitTypeStaticDataStruct* parse_data_dependencies ();
 };
 
-#endif // unit_type_PARSER_H
+#endif // UNIT_TYPE_PARSER_H
 
 //================================================================================================================================
 //=> - End of file -

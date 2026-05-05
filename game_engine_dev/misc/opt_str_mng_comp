@@ -1,0 +1,6 @@
+#!/bin/bash
+g++ -I.. -c opt_str_mng.cpp -o opt_str_mng.o
+g++ -I.. -c opt_str_mng_tester.cpp -o opt_str_mng_tester.o
+g++ -o opt_str_mng_tester opt_str_mng.o opt_str_mng_tester.o
+rm opt_str_mng.o opt_str_mng_tester.o
+

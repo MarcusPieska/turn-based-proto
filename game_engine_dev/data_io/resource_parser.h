@@ -2,8 +2,8 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef resource_PARSER_H
-#define resource_PARSER_H
+#ifndef RESOURCE_PARSER_H
+#define RESOURCE_PARSER_H
 
 #include "resource_static_data.h"
 #include "data_parser_base.h"
@@ -19,7 +19,7 @@ public:
     ResourceStaticDataStruct* parse_data_dependencies ();
 };
 
-#endif // resource_PARSER_H
+#endif // RESOURCE_PARSER_H
 
 //================================================================================================================================
 //=> - End of file -

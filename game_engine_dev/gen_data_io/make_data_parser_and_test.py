@@ -14,17 +14,20 @@ import os
 
 if __name__ == "__main__":
     specs = []
-    #specs.append(("building", "Building", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStruct"))
-    #specs.append(("city_flag", "CityFlag", ""))
-    #specs.append(("civ", "Civ", "traits,1,CivTraitStruct"))
-    #specs.append(("civ_trait", "CivTrait", ""))
-    #specs.append(("resource", "Resource", "food,1,u16:shields,2,u16:commerce,3,u16:reqs,4,ItemReqsStruct"))
-    #specs.append(("small_wonder", "SmallWonder", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStruct"))
-    #specs.append(("tech", "Tech", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStruct"))
-    #specs.append(("unit", "Unit", "type,1,UnitType:cost,2,u32:attack,3,u16:defense,4,u16:mvt_pts,5,u16:reqs,6,ItemReqsStruct"))
-    #specs.append(("unit_type", "UnitType", ""))
-    specs.append(("unit_abilities", "UnitAbilities", ""))
-    #specs.append(("wonder", "Wonder", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStruct"))
+
+    specs.append(("building", "Building", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStruct"))
+    specs.append(("city_flag", "CityFlag", ""))
+    specs.append(("civ", "Civ", "traits,1,CivTraitStruct"))
+    specs.append(("civ_trait", "CivTrait", ""))
+    specs.append(("resource", "Resource", "food,1,u16:shields,2,u16:commerce,3,u16:reqs,4,ItemReqsStruct"))
+    
+    specs.append(("small_wonder", "SmallWonder", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStruct"))
+    specs.append(("tech", "Tech", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStruct"))
+    specs.append(("unit", "Unit", "type,1,UnitType:cost,2,u32:attack,3,u16:defense,4,u16:mvt_pts,5,u16:reqs,6,ItemReqsStruct"))
+    specs.append(("unit_action", "UnitAction", ""))
+    specs.append(("unit_type", "UnitType", ""))
+    
+    specs.append(("wonder", "Wonder", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStruct"))
 
     total_failures = 0
 

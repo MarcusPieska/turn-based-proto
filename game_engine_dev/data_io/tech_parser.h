@@ -2,8 +2,8 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef tech_PARSER_H
-#define tech_PARSER_H
+#ifndef TECH_PARSER_H
+#define TECH_PARSER_H
 
 #include "tech_static_data.h"
 #include "data_parser_base.h"
@@ -19,7 +19,7 @@ public:
     TechStaticDataStruct* parse_data_dependencies ();
 };
 
-#endif // tech_PARSER_H
+#endif // TECH_PARSER_H
 
 //================================================================================================================================
 //=> - End of file -

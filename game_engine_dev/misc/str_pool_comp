@@ -1,0 +1,7 @@
+#!/bin/bash
+g++ -I.. -c opt_str_mng.cpp -o opt_str_mng.o
+g++ -I.. -c str_pool.cpp -o str_pool.o
+g++ -I.. -c str_pool_tester.cpp -o str_pool_tester.o
+g++ -o str_pool_tester opt_str_mng.o str_pool.o str_pool_tester.o
+rm opt_str_mng.o str_pool.o str_pool_tester.o
+

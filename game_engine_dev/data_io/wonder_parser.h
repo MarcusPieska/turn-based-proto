@@ -2,8 +2,8 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef wonder_PARSER_H
-#define wonder_PARSER_H
+#ifndef WONDER_PARSER_H
+#define WONDER_PARSER_H
 
 #include "wonder_static_data.h"
 #include "data_parser_base.h"
@@ -19,7 +19,7 @@ public:
     WonderStaticDataStruct* parse_data_dependencies ();
 };
 
-#endif // wonder_PARSER_H
+#endif // WONDER_PARSER_H
 
 //================================================================================================================================
 //=> - End of file -

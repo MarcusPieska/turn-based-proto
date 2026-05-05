@@ -2,8 +2,8 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef civ_PARSER_H
-#define civ_PARSER_H
+#ifndef CIV_PARSER_H
+#define CIV_PARSER_H
 
 #include "civ_static_data.h"
 #include "data_parser_base.h"
@@ -19,7 +19,7 @@ public:
     CivStaticDataStruct* parse_data_dependencies ();
 };
 
-#endif // civ_PARSER_H
+#endif // CIV_PARSER_H
 
 //================================================================================================================================
 //=> - End of file -

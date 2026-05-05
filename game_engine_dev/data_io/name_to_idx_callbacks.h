@@ -22,6 +22,7 @@ typedef struct NameToIdxCbs {
     u16 (*small_wonder_name_to_idx)(cstr);
     u16 (*tech_name_to_idx)(cstr);
     u16 (*unit_name_to_idx)(cstr);
+    u16 (*unit_action_name_to_idx)(cstr);
     u16 (*unit_type_name_to_idx)(cstr);
     u16 (*wonder_name_to_idx)(cstr);
 } NameToIdxCbs;

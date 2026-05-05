@@ -2,26 +2,40 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef [MACRO_TAG]_PARSER_H
-#define [MACRO_TAG]_PARSER_H
+#ifndef OPT_STR_MNG_H
+#define OPT_STR_MNG_H
 
-#include "[FILE_TAG]_static_data.h"
-#include "data_parser_base.h"
+#include "game_primitives.h"
 
 //================================================================================================================================
-//=> - [CLASS_TAG]Parser class -
+//=> - StringManager class -
 //================================================================================================================================
 
-class [CLASS_TAG]Parser : public DataParserBase {
+class StringManager {
 public:
-    [CLASS_TAG]Parser (const std::vector<RawItem>& items, const NameToIdxCbs& map);
+    StringManager();
+    ~StringManager();
+    StringManager(const StringManager&) = delete;
+    StringManager& operator=(const StringManager&) = delete;
+    bool load_file_content(cstr file_path);
+    bool load_cstr_content(cstr content);
+    void split_string_by_char(u32 string_index, char split_char);
+    void trim_head_char(u32 string_index, char trim_char);
+    void trim_tail_char(u32 string_index, char trim_char);
+    void cull_empty_strings();
+    cstr get_string_content(u32 string_index) const;
+    u32 get_string_count() const;
 
-    [STRUCT_TAG]* parse_data_dependencies ();
+private:
+    void rst();
+    char* m_buf;
+    u32 m_buf_sz;
+    u32* m_idx;
+    u32 m_idx_n;
 };
 
-#endif // [MACRO_TAG]_PARSER_H
+#endif // OPT_STR_MNG_H
 
 //================================================================================================================================
 //=> - End of file -
 //================================================================================================================================
-

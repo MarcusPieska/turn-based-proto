@@ -80,6 +80,7 @@ if __name__ == "__main__":
     substitution_pairs = []
     substitution_pairs.append(("[CLASS_TAG]", class_name))
     substitution_pairs.append(("[FILE_TAG]", output_prefix.lower()))
+    substitution_pairs.append(("[MACRO_TAG]", output_prefix.upper()))
     substitution_pairs.append(("[STRUCT_TAG]", struct_name))
     substitution_pairs.append(("[PARSE_TAG]", "\n        ".join(derive_parsing_lines(parsing_instructions))))
     substitution_pairs.append(("[MEMBER_PRINT_TAG]", "\n    ".join(derive_member_print_lines(parsing_instructions))))

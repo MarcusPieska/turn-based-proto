@@ -2,26 +2,35 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef [MACRO_TAG]_PARSER_H
-#define [MACRO_TAG]_PARSER_H
+#ifndef CIV_BLD_DISCOUNT_MAP_H
+#define CIV_BLD_DISCOUNT_MAP_H
 
-#include "[FILE_TAG]_static_data.h"
-#include "data_parser_base.h"
+#include "static_bit_bank.h"
+#include "game_primitives.h"
 
 //================================================================================================================================
-//=> - [CLASS_TAG]Parser class -
+//=> - CivBldDiscountMap class -
 //================================================================================================================================
 
-class [CLASS_TAG]Parser : public DataParserBase {
+class CivBldDiscountMap {
 public:
-    [CLASS_TAG]Parser (const std::vector<RawItem>& items, const NameToIdxCbs& map);
+    static void set_map (StaticBitBank* bit_bank, u16 civ_trait_count, u16 building_count);
+    static bool civ_trait_has_discount_for_bld (u16 civ_trait_idx, u16 building_idx);
+    static u16 get_civ_trait_count ();
+    static u16 get_building_count ();
 
-    [STRUCT_TAG]* parse_data_dependencies ();
+private:
+    CivBldDiscountMap () = delete;
+    CivBldDiscountMap (const CivBldDiscountMap& other) = delete;
+    CivBldDiscountMap (CivBldDiscountMap&& other) = delete;
+
+    static StaticBitBank* m_bit_bank;
+    static u16 m_civ_trait_count;
+    static u16 m_building_count;
 };
 
-#endif // [MACRO_TAG]_PARSER_H
+#endif // CIV_BLD_DISCOUNT_MAP_H
 
 //================================================================================================================================
 //=> - End of file -
 //================================================================================================================================
-

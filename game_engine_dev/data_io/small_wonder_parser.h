@@ -2,8 +2,8 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef small_wonder_PARSER_H
-#define small_wonder_PARSER_H
+#ifndef SMALL_WONDER_PARSER_H
+#define SMALL_WONDER_PARSER_H
 
 #include "small_wonder_static_data.h"
 #include "data_parser_base.h"
@@ -19,7 +19,7 @@ public:
     SmallWonderStaticDataStruct* parse_data_dependencies ();
 };
 
-#endif // small_wonder_PARSER_H
+#endif // SMALL_WONDER_PARSER_H
 
 //================================================================================================================================
 //=> - End of file -

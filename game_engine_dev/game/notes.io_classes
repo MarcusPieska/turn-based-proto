@@ -1,0 +1,7 @@
+Design a C++ Paged Array container optimized for a Civ-clone city system. The container must manage a collection of [CITY_CLASS] instances with the following constraints:
+Storage Architecture: Use a master array of 256 pointers. Each pointer optionally points to a heap-allocated 'page' containing exactly 256 [CITY_CLASS] objects.
+Memory Footprint: The structure must be memory-optimal for instances around 24 bytes, ensuring each page is roughly 6KB to 8KB to maintain cache-line friendliness.
+Indexing: Implement random access using a uint16_t ID. Use bit-shifting (>> 8) to find the page and masking (& 0xFF) to find the slot within that page.
+Stability: Objects must never be moved in memory once allocated (no std::vector resizing) to ensure that map tiles holding a city index remain valid.
+Iteration: Provide a high-performance iterator or loop method for the 'Next Turn' phase that skips empty pages but treats 'Active Cities' and 'Ruins' as valid data states.
+Integration: Include a method to retrieve a pointer/reference to a city given a payload extracted from a [MAP_TILE_STRUCT] bit-field.

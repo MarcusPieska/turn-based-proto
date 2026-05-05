@@ -2,8 +2,8 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef city_flag_PARSER_H
-#define city_flag_PARSER_H
+#ifndef CITY_FLAG_PARSER_H
+#define CITY_FLAG_PARSER_H
 
 #include "city_flag_static_data.h"
 #include "data_parser_base.h"
@@ -19,7 +19,7 @@ public:
     CityFlagStaticDataStruct* parse_data_dependencies ();
 };
 
-#endif // city_flag_PARSER_H
+#endif // CITY_FLAG_PARSER_H
 
 //================================================================================================================================
 //=> - End of file -

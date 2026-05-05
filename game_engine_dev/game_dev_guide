@@ -1,0 +1,10 @@
+
+//================================================================================================================================
+//=> - Code generation steps -
+//================================================================================================================================
+
+ 01. Generate path manager in data_io; most likely include paths to all game_config files. 
+ 02. Generate effect header and helper classes in data_io; redo whenever new effects are added.
+ 03. Generate static data structs gen_static_data; most likely one per game_cofig file.
+ 04. Generate static data parsing in gen_data_io. 
+ 

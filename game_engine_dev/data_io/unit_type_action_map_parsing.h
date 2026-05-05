@@ -2,26 +2,36 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef [MACRO_TAG]_PARSER_H
-#define [MACRO_TAG]_PARSER_H
+#ifndef UNIT_TYPE_ACTION_MAP_PARSING_H
+#define UNIT_TYPE_ACTION_MAP_PARSING_H
 
-#include "[FILE_TAG]_static_data.h"
-#include "data_parser_base.h"
+#include "data_reader.h"
+#include "game_primitives.h"
+#include "static_bit_bank.h"
+#include "unit_action_parser.h"
+#include "unit_type_parser.h"
 
 //================================================================================================================================
-//=> - [CLASS_TAG]Parser class -
+//=> - UnitTypeActionMapParsing class -
 //================================================================================================================================
 
-class [CLASS_TAG]Parser : public DataParserBase {
+class UnitTypeActionMapParsing {
 public:
-    [CLASS_TAG]Parser (const std::vector<RawItem>& items, const NameToIdxCbs& map);
+    static void load_cfg_map (
+        StaticBitBank& bank,
+        const DataReader& mapping_reader,
+        const UnitTypeParser& unit_type_parser,
+        const UnitActionParser& unit_action_parser
+    );
 
-    [STRUCT_TAG]* parse_data_dependencies ();
+private:
+    UnitTypeActionMapParsing () = delete;
+    UnitTypeActionMapParsing (const UnitTypeActionMapParsing& other) = delete;
+    UnitTypeActionMapParsing (UnitTypeActionMapParsing&& other) = delete;
 };
 
-#endif // [MACRO_TAG]_PARSER_H
+#endif // UNIT_TYPE_ACTION_MAP_PARSING_H
 
 //================================================================================================================================
 //=> - End of file -
 //================================================================================================================================
-

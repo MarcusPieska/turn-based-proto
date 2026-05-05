@@ -2,24 +2,24 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef [MACRO_TAG]_PARSER_H
-#define [MACRO_TAG]_PARSER_H
+#ifndef UNIT_ACTION_PARSER_H
+#define UNIT_ACTION_PARSER_H
 
-#include "[FILE_TAG]_static_data.h"
+#include "unit_action_static_data.h"
 #include "data_parser_base.h"
 
 //================================================================================================================================
-//=> - [CLASS_TAG]Parser class -
+//=> - UnitActionParser class -
 //================================================================================================================================
 
-class [CLASS_TAG]Parser : public DataParserBase {
+class UnitActionParser : public DataParserBase {
 public:
-    [CLASS_TAG]Parser (const std::vector<RawItem>& items, const NameToIdxCbs& map);
+    UnitActionParser (const std::vector<RawItem>& items, const NameToIdxCbs& map);
 
-    [STRUCT_TAG]* parse_data_dependencies ();
+    UnitActionStaticDataStruct* parse_data_dependencies ();
 };
 
-#endif // [MACRO_TAG]_PARSER_H
+#endif // UNIT_ACTION_PARSER_H
 
 //================================================================================================================================
 //=> - End of file -

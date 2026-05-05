@@ -2,8 +2,8 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef building_PARSER_H
-#define building_PARSER_H
+#ifndef BUILDING_PARSER_H
+#define BUILDING_PARSER_H
 
 #include "building_static_data.h"
 #include "data_parser_base.h"
@@ -19,7 +19,7 @@ public:
     BuildingStaticDataStruct* parse_data_dependencies ();
 };
 
-#endif // building_PARSER_H
+#endif // BUILDING_PARSER_H
 
 //================================================================================================================================
 //=> - End of file -

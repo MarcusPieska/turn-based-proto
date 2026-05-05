@@ -2,26 +2,36 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef [MACRO_TAG]_PARSER_H
-#define [MACRO_TAG]_PARSER_H
+#ifndef CIV_BLD_DISCOUNT_MAP_PARSING_H
+#define CIV_BLD_DISCOUNT_MAP_PARSING_H
 
-#include "[FILE_TAG]_static_data.h"
-#include "data_parser_base.h"
+#include "building_parser.h"
+#include "civ_trait_parser.h"
+#include "data_reader.h"
+#include "game_primitives.h"
+#include "static_bit_bank.h"
 
 //================================================================================================================================
-//=> - [CLASS_TAG]Parser class -
+//=> - CivBldDiscountMapParsing class -
 //================================================================================================================================
 
-class [CLASS_TAG]Parser : public DataParserBase {
+class CivBldDiscountMapParsing {
 public:
-    [CLASS_TAG]Parser (const std::vector<RawItem>& items, const NameToIdxCbs& map);
+    static void load_cfg_map (
+        StaticBitBank& bank,
+        const DataReader& mapping_reader,
+        const CivTraitParser& civ_trait_parser,
+        const BuildingParser& building_parser
+    );
 
-    [STRUCT_TAG]* parse_data_dependencies ();
+private:
+    CivBldDiscountMapParsing () = delete;
+    CivBldDiscountMapParsing (const CivBldDiscountMapParsing& other) = delete;
+    CivBldDiscountMapParsing (CivBldDiscountMapParsing&& other) = delete;
 };
 
-#endif // [MACRO_TAG]_PARSER_H
+#endif // CIV_BLD_DISCOUNT_MAP_PARSING_H
 
 //================================================================================================================================
 //=> - End of file -
 //================================================================================================================================
-

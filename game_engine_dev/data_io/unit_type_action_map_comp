@@ -1,0 +1,44 @@
+#!/bin/bash
+
+INC="-I. -I.. -I../misc -I../static_state"
+
+g++ $INC -c ../static_state/static_bit_bank.cpp -o static_bit_bank.o
+g++ $INC -c ../static_state/unit_type_action_map.cpp -o unit_type_action_map.o
+g++ $INC -c ../misc/str_mng.cpp -o str_mng.o
+g++ $INC -c path_mng.cpp -o path_mng.o
+g++ $INC -c data_reader.cpp -o data_reader.o
+g++ $INC -c item_effect_handler.cpp -o item_effect_handler.o
+g++ $INC -c item_effect_helpers.cpp -o item_effect_helpers.o
+g++ $INC -c data_parser_base.cpp -o data_parser_base.o
+g++ $INC -c unit_action_parser.cpp -o unit_action_parser.o
+g++ $INC -c unit_type_parser.cpp -o unit_type_parser.o
+g++ $INC -c unit_type_action_map_parsing.cpp -o unit_type_action_map_parsing.o
+g++ $INC -c unit_type_action_map_tester.cpp -o unit_type_action_map_tester.o
+
+g++ -o unit_type_action_map_tester \
+    static_bit_bank.o \
+    unit_type_action_map.o \
+    str_mng.o \
+    path_mng.o \
+    data_reader.o \
+    item_effect_handler.o \
+    item_effect_helpers.o \
+    data_parser_base.o \
+    unit_action_parser.o \
+    unit_type_parser.o \
+    unit_type_action_map_parsing.o \
+    unit_type_action_map_tester.o
+
+rm \
+    static_bit_bank.o \
+    unit_type_action_map.o \
+    str_mng.o \
+    path_mng.o \
+    data_reader.o \
+    item_effect_handler.o \
+    item_effect_helpers.o \
+    data_parser_base.o \
+    unit_action_parser.o \
+    unit_type_parser.o \
+    unit_type_action_map_parsing.o \
+    unit_type_action_map_tester.o

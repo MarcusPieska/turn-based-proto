@@ -65,17 +65,7 @@ void print_u16_member (cstr label, u16 value) {
 void print_item_counts (const StaticParsingManager& parser) {
     printf("-----------------------------------------------------------\n");
     printf("STATIC PARSING MANAGER COUNTS\n");
-    print_u16_member("building", parser.get_building_count());
-    print_u16_member("city_flag", parser.get_city_flag_count());
-    print_u16_member("civ", parser.get_civ_count());
-    print_u16_member("civ_trait", parser.get_civ_trait_count());
-    print_u16_member("resource", parser.get_resource_count());
-    print_u16_member("small_wonder", parser.get_small_wonder_count());
-    print_u16_member("tech", parser.get_tech_count());
-    print_u16_member("unit", parser.get_unit_count());
-    print_u16_member("unit_action", parser.get_unit_action_count());
-    print_u16_member("unit_type", parser.get_unit_type_count());
-    print_u16_member("wonder", parser.get_wonder_count());
+    [STATIC_PARSE_TESTER_PRINT_COUNTS_TAG]
     print_u16_member("callback", parser.get_callback_count());
 }
 
@@ -128,26 +118,7 @@ bool test_dataset_req_bounds (const StaticParsingManager& parser, const T* data,
 }
 
 void run_req_bounds_tests (const StaticParsingManager& parser) {
-    bool result = test_dataset_req_bounds(parser, parser.get_tech_data(), parser.get_tech_count(), "tech");
-    note_result(result, "TechStaticDataStruct req indices in bounds");
-    
-    result = test_dataset_req_bounds(parser, parser.get_resource_data(), parser.get_resource_count(), "resource");
-    note_result(result, "ResourceStaticDataStruct req indices in bounds");
-    
-    result = test_dataset_req_bounds(parser, parser.get_city_flag_data(), parser.get_city_flag_count(), "city_flag");
-    note_result(result, "CityFlagStaticDataStruct req indices in bounds");
-    
-    result = test_dataset_req_bounds(parser, parser.get_building_data(), parser.get_building_count(), "building");
-    note_result(result, "BuildingStaticDataStruct req indices in bounds");
-    
-    result = test_dataset_req_bounds(parser, parser.get_unit_data(), parser.get_unit_count(), "unit");
-    note_result(result, "UnitStaticDataStruct req indices in bounds");
-    
-    result = test_dataset_req_bounds(parser, parser.get_wonder_data(), parser.get_wonder_count(), "wonder");
-    note_result(result, "WonderStaticDataStruct req indices in bounds");
-    
-    result = test_dataset_req_bounds(parser, parser.get_small_wonder_data(), parser.get_small_wonder_count(), "small_wonder");
-    note_result(result, "SmallWonderStaticDataStruct req indices in bounds");
+    [STATIC_PARSE_TESTER_REQ_TESTS_TAG]
 }
 
 int run_parse_driver () {
