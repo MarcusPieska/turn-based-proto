@@ -1,0 +1,10 @@
+#!/bin/bash
+
+INC="-I.."
+
+g++ -std=c++11 $INC -c perlin_noise.cpp -o perlin_noise.o
+g++ -std=c++11 $INC -c perlin_noise_tester.cpp -o perlin_noise_tester.o
+
+g++ -std=c++11 -o perlin_noise_tester perlin_noise.o perlin_noise_tester.o -lm
+
+rm perlin_noise.o perlin_noise_tester.o

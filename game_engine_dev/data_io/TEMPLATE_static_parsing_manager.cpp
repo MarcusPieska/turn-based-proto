@@ -13,6 +13,8 @@
 
 #include "static_parsing_manager.h"
 
+[STATIC_PARSE_CPP_MAP_INCLUDES_TAG]
+
 //================================================================================================================================
 //=> - Private callback glue -
 //================================================================================================================================
@@ -32,7 +34,7 @@ namespace {
 StaticParsingManager::StaticParsingManager (const std::string& path_offset) :
     m_paths(path_offset),
 
-    m_effect_reader(m_paths.get_path_to_effects()),
+    m_effect_items(),
     [STATIC_PARSE_CPP_READER_INITS_TAG]
 
     [STATIC_PARSE_CPP_NAME_PARSER_INITS_TAG]
@@ -40,17 +42,25 @@ StaticParsingManager::StaticParsingManager (const std::string& path_offset) :
     m_name_to_idx_cbs(),
     m_callback_count(0),
 
+    [STATIC_PARSE_CPP_MAP_BANK_INITS_TAG]
+
     [STATIC_PARSE_CPP_DATA_PTR_INITS_TAG]
 {
+    m_effect_items.load_file_content(m_paths.get_path_to_effects().c_str());
+    [STATIC_PARSE_CPP_LOAD_ITEMS_TAG]
+    [STATIC_PARSE_CPP_INIT_NAME_PARSERS_TAG]
     build_name_to_idx_callbacks();
     parse_supported_data();
 }
 
 StaticParsingManager::~StaticParsingManager () {
+    [STATIC_PARSE_CPP_DELETE_MAP_BANKS_TAG]
+    [STATIC_PARSE_CPP_DELETE_NAME_PARSERS_TAG]
 }
 
 [STATIC_PARSE_CPP_TYPED_GETTERS_TAG]
 [STATIC_PARSE_CPP_RAW_GETTERS_TAG]
+[STATIC_PARSE_CPP_MAP_GETTERS_TAG]
 u16 StaticParsingManager::get_callback_count () const {
     return m_callback_count;
 }
@@ -61,13 +71,14 @@ void StaticParsingManager::build_name_to_idx_callbacks () {
     [STATIC_PARSE_CPP_CALLBACK_ASSIGN_CBS_TAG]
 
     m_callback_count = [STATIC_PARSE_CPP_CALLBACK_COUNT_TAG];
-    DataParserBase::set_item_effect_handler(&m_name_to_idx_cbs, &m_effect_reader.get_raw_items());
+    DataParserBase::set_item_effect_handler(&m_name_to_idx_cbs, &m_effect_items);
 }
 
 void StaticParsingManager::parse_supported_data () {
     [STATIC_PARSE_CPP_LOCAL_PARSERS_TAG]
 
     [STATIC_PARSE_CPP_PARSE_ASSIGNMENTS_TAG]
+    [STATIC_PARSE_CPP_BUILD_MAPS_TAG]
 }
 
 u16 StaticParsingManager::safe_size_to_u16 (size_t value) {

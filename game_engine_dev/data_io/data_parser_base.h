@@ -6,13 +6,12 @@
 #define DATA_PARSER_BASE_H
 
 #include <string>
-#include <vector>
 
-#include "data_reader.h"
 #include "game_primitives.h"
 #include "item_effects.h"
 #include "item_reqs.h"
 #include "name_to_idx_callbacks.h"
+#include "opt_str_mng.h"
 
 class ItemEffectHandler;
 
@@ -22,31 +21,34 @@ class ItemEffectHandler;
 
 class DataParserBase {
 public:
-    DataParserBase (const std::vector<RawItem>& raw_items, const NameToIdxCbs& name_to_idx_cbs);
+    DataParserBase (const StringManager& raw_lines, const NameToIdxCbs& name_to_idx_cbs);
     virtual ~DataParserBase () = default;
 
-    static void set_item_effect_handler (const NameToIdxCbs* name_to_idx_cbs, const std::vector<RawItem>* effect_defs);
+    static void set_item_effect_handler (const NameToIdxCbs* name_to_idx_cbs, const StringManager* effect_defs);
     static void clear_item_effect_handler ();
 
-    u16 name_to_idx (const std::string& name) const;
+    u16 name_to_idx (cstr name) const;
     std::string idx_to_name (u16 idx) const;
     static void check_errors ();
 
 protected:
-    const std::vector<RawItem>& get_raw_items () const;
-    const std::vector<std::string> get_line_items (const std::string& line) const;
+    const StringManager& get_raw_lines () const;
+    const StringManager& get_names () const;
+    void get_line_items (cstr line, StringManager& out_items) const;
+    void derive_names_from_raw_lines (const StringManager& raw_lines, StringManager& out_names) const;
 
-    u16 parse_u16 (const std::vector<std::string>& line_items, u16 start_idx) const;
-    u32 parse_u32 (const std::vector<std::string>& line_items, u16 start_idx) const;
-    u16 parse_unit_type (const std::vector<std::string>& line_items, u16 start_idx) const;
-    ItemReqsStruct parse_item_reqs (const std::vector<std::string>& line_items, u16 start_idx) const;
-    ItemEffectsStruct parse_item_effects (const std::vector<std::string>& line_items, u16 start_idx) const;
-    CivTraitStruct parse_civ_traits (const std::vector<std::string>& line_items, u16 start_idx) const;
+    u16 parse_u16 (const StringManager& line_items, u16 start_idx) const;
+    u32 parse_u32 (const StringManager& line_items, u16 start_idx) const;
+    u16 parse_unit_type (const StringManager& line_items, u16 start_idx) const;
+    ItemReqsStruct parse_item_reqs (const StringManager& line_items, u16 start_idx) const;
+    ItemEffectsStruct parse_item_effects (const StringManager& line_items, u16 start_idx) const;
+    CivTraitStruct parse_civ_traits (const StringManager& line_items, u16 start_idx) const;
     
     static u32 get_error_count_for_tests ();
     static void reset_error_count_for_tests ();
 
-    const std::vector<RawItem>& m_raw_items;
+    StringManager m_raw_lines;
+    StringManager m_names;
     NameToIdxCbs m_name_to_idx_cbs;
     u16 m_item_count; 
 
@@ -57,7 +59,7 @@ private:
 
     static u32 m_error_count;
     static ItemEffectHandler* s_item_effect_handler;
-    static const std::vector<RawItem>* s_effect_definition_items;
+    static const StringManager* s_effect_definition_items;
 
 };
 

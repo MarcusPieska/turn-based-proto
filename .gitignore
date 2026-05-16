@@ -4,6 +4,8 @@
 *.dat15
 *.dat31
 *.png
+*.ppm
+*.pgm
 *.cl
 *.gch
 *.temp

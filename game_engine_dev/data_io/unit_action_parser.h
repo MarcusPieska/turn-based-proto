@@ -14,7 +14,7 @@
 
 class UnitActionParser : public DataParserBase {
 public:
-    UnitActionParser (const std::vector<RawItem>& items, const NameToIdxCbs& map);
+    UnitActionParser (const StringManager& items, const NameToIdxCbs& map);
 
     UnitActionStaticDataStruct* parse_data_dependencies ();
 };

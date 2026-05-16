@@ -14,7 +14,7 @@
 
 class CivTraitParser : public DataParserBase {
 public:
-    CivTraitParser (const std::vector<RawItem>& items, const NameToIdxCbs& map);
+    CivTraitParser (const StringManager& items, const NameToIdxCbs& map);
 
     CivTraitStaticDataStruct* parse_data_dependencies ();
 };

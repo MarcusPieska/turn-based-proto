@@ -7,12 +7,16 @@ INC="-I../ -I../misc -I../static_state"
 OPT="-O3 -DNDEBUG"
 
 # Compile objects
-g++ $INC -c ../misc/str_mng.cpp -o str_mng.o
+g++ $INC -c ../misc/opt_str_mng.cpp -o opt_str_mng.o
 g++ $INC -c path_mng.cpp -o path_mng.o
-g++ $INC -c data_reader.cpp -o data_reader.o
 g++ $INC -c data_parser_base.cpp -o data_parser_base.o
 g++ $INC -c item_effect_handler.cpp -o item_effect_handler.o
 g++ $INC -c item_effect_helpers.cpp -o item_effect_helpers.o
+g++ $INC -c ../static_state/static_bit_bank.cpp -o static_bit_bank.o
+g++ $INC -c ../static_state/unit_type_action_map.cpp -o unit_type_action_map.o
+g++ $INC -c unit_type_action_map_parsing.cpp -o unit_type_action_map_parsing.o
+g++ $INC -c ../static_state/civ_bld_discount_map.cpp -o civ_bld_discount_map.o
+g++ $INC -c civ_bld_discount_map_parsing.cpp -o civ_bld_discount_map_parsing.o
 g++ $INC -c building_parser.cpp -o building_parser.o
 g++ $INC -c city_flag_parser.cpp -o city_flag_parser.o
 g++ $INC -c civ_parser.cpp -o civ_parser.o
@@ -29,12 +33,16 @@ g++ $INC -c static_parsing_manager_tester.cpp -o static_parsing_manager_tester.o
 
 # Link everything into the final tester
 g++ -o static_parsing_manager_tester \
-    str_mng.o \
+    opt_str_mng.o \
     path_mng.o \
-    data_reader.o \
     item_effect_handler.o \
     item_effect_helpers.o \
     data_parser_base.o \
+    static_bit_bank.o \
+    unit_type_action_map.o \
+    unit_type_action_map_parsing.o \
+    civ_bld_discount_map.o \
+    civ_bld_discount_map_parsing.o \
     building_parser.o \
     city_flag_parser.o \
     civ_parser.o \
@@ -50,12 +58,16 @@ g++ -o static_parsing_manager_tester \
     static_parsing_manager_tester.o
 
 # Rebuild objects with optimization flags
-g++ $INC $OPT -c ../misc/str_mng.cpp -o str_mng.o
+g++ $INC $OPT -c ../misc/opt_str_mng.cpp -o opt_str_mng.o
 g++ $INC $OPT -c path_mng.cpp -o path_mng.o
-g++ $INC $OPT -c data_reader.cpp -o data_reader.o
 g++ $INC $OPT -c data_parser_base.cpp -o data_parser_base.o
 g++ $INC $OPT -c item_effect_handler.cpp -o item_effect_handler.o
 g++ $INC $OPT -c item_effect_helpers.cpp -o item_effect_helpers.o
+g++ $INC $OPT -c ../static_state/static_bit_bank.cpp -o static_bit_bank.o
+g++ $INC -c ../static_state/unit_type_action_map.cpp -o unit_type_action_map.o
+g++ $INC -c unit_type_action_map_parsing.cpp -o unit_type_action_map_parsing.o
+g++ $INC -c ../static_state/civ_bld_discount_map.cpp -o civ_bld_discount_map.o
+g++ $INC -c civ_bld_discount_map_parsing.cpp -o civ_bld_discount_map_parsing.o
 g++ $INC -c building_parser.cpp -o building_parser.o
 g++ $INC -c city_flag_parser.cpp -o city_flag_parser.o
 g++ $INC -c civ_parser.cpp -o civ_parser.o
@@ -72,12 +84,16 @@ g++ $INC $OPT -c static_parsing_manager_tester.cpp -o static_parsing_manager_tes
 
 # Link everything into the optimized tester
 g++ -o static_parsing_manager_opt_tester \
-    str_mng.o \
+    opt_str_mng.o \
     path_mng.o \
-    data_reader.o \
     item_effect_handler.o \
     item_effect_helpers.o \
     data_parser_base.o \
+    static_bit_bank.o \
+    unit_type_action_map.o \
+    unit_type_action_map_parsing.o \
+    civ_bld_discount_map.o \
+    civ_bld_discount_map_parsing.o \
     building_parser.o \
     city_flag_parser.o \
     civ_parser.o \
@@ -94,12 +110,16 @@ g++ -o static_parsing_manager_opt_tester \
 
 # Clean up
 rm \
-    str_mng.o \
+    opt_str_mng.o \
     path_mng.o \
-    data_reader.o \
     item_effect_handler.o \
     item_effect_helpers.o \
     data_parser_base.o \
+    static_bit_bank.o \
+    unit_type_action_map.o \
+    unit_type_action_map_parsing.o \
+    civ_bld_discount_map.o \
+    civ_bld_discount_map_parsing.o \
     building_parser.o \
     city_flag_parser.o \
     civ_parser.o \

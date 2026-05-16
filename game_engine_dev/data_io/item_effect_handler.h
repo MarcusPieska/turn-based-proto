@@ -8,6 +8,7 @@
 #include <string>
 
 #include "item_effects.h"
+#include "opt_str_mng.h"
 
 struct NameToIdxCbs;
 
@@ -19,6 +20,8 @@ class ItemEffectHandler {
 public:
     explicit ItemEffectHandler (const NameToIdxCbs* name_to_idx_cbs);
 
+    ItemEffectsStruct parse_effects_line (const StringManager& line_items) const;
+    ItemEffectsStruct parse_effects_line (cstr line) const;
     ItemEffectsStruct parse_effects_line (const std::string& line) const;
 
     u32 get_error_count () const;

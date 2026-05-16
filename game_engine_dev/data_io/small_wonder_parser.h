@@ -14,7 +14,7 @@
 
 class SmallWonderParser : public DataParserBase {
 public:
-    SmallWonderParser (const std::vector<RawItem>& items, const NameToIdxCbs& map);
+    SmallWonderParser (const StringManager& items, const NameToIdxCbs& map);
 
     SmallWonderStaticDataStruct* parse_data_dependencies ();
 };

@@ -14,7 +14,7 @@
 
 class WonderParser : public DataParserBase {
 public:
-    WonderParser (const std::vector<RawItem>& items, const NameToIdxCbs& map);
+    WonderParser (const StringManager& items, const NameToIdxCbs& map);
 
     WonderStaticDataStruct* parse_data_dependencies ();
 };

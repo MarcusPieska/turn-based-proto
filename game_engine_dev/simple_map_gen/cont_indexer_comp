@@ -1,0 +1,14 @@
+#!/bin/bash
+
+INC="-I.."
+
+g++ -std=c++11 $INC -c perlin_noise.cpp -o perlin_noise.o
+g++ -std=c++11 $INC -c generator_constants.cpp -o generator_constants.o
+g++ -std=c++11 $INC -c generate_terrain_cont_pn.cpp -o generate_terrain_cont_pn.o
+g++ -std=c++11 $INC -c water_land_overlay.cpp -o water_land_overlay.o
+g++ -std=c++11 $INC -c cont_indexer.cpp -o cont_indexer.o
+g++ -std=c++11 $INC -c cont_indexer_tester.cpp -o cont_indexer_tester.o
+
+g++ -std=c++11 -o cont_indexer_tester perlin_noise.o generator_constants.o generate_terrain_cont_pn.o water_land_overlay.o cont_indexer.o cont_indexer_tester.o -lm
+
+rm perlin_noise.o generator_constants.o generate_terrain_cont_pn.o water_land_overlay.o cont_indexer.o cont_indexer_tester.o

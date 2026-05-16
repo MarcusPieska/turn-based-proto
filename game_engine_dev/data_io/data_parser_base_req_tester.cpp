@@ -4,14 +4,12 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <string>
 #include <unistd.h>
-#include <vector>
 
 #include "data_parser_base.h"
-#include "data_reader.h"
 #include "path_mng.h"
-#include "str_mng.h"
 
 //================================================================================================================================
 //=> - Globals -
@@ -36,6 +34,16 @@ const DataParserBase* g_civ_parser = NULL;
 //=> - Helper functions -
 //================================================================================================================================
 
+static str trim_copy(cstr in) {
+    if (!in) return "";
+    str s(in);
+    std::size_t b = 0;
+    std::size_t e = s.size();
+    while (b < e && (s[b] == ' ' || s[b] == '\t' || s[b] == '\r' || s[b] == '\n')) ++b;
+    while (e > b && (s[e - 1] == ' ' || s[e - 1] == '\t' || s[e - 1] == '\r' || s[e - 1] == '\n')) --e;
+    return s.substr(b, e - b);
+}
+
 void note_result (bool cond, cstr msg) {
     test_count++;
     total_tests_run++;
@@ -50,11 +58,6 @@ void note_result (bool cond, cstr msg) {
             printf("*** TEST FAILED: %s\n", msg);
         }
     }
-}
-
-void note_result (bool cond, cstr msg1, cstr msg2) {
-    str msg = str(msg1) + str(msg2);
-    note_result(cond, msg.c_str());
 }
 
 void summarize_test_results () {
@@ -75,15 +78,15 @@ void summarize_test_results () {
 
 class DataParserBaseHarness : public DataParserBase {
 public:
-    DataParserBaseHarness (const std::vector<RawItem>& raw_items, const NameToIdxCbs& cbs) :
-        DataParserBase(raw_items, cbs) {}
+    DataParserBaseHarness (const StringManager& raw_lines, const NameToIdxCbs& cbs) :
+        DataParserBase(raw_lines, cbs) {}
 
-    void parse_reqs (ItemReqsStruct* out_reqs, const std::vector<std::string>& line_items, u16 start_idx) const {
+    void parse_reqs (ItemReqsStruct* out_reqs, const StringManager& line_items, u16 start_idx) const {
         *out_reqs = parse_item_reqs(line_items, start_idx);
     }
 
-    const std::vector<std::string> split_line (const std::string& line) const {
-        return get_line_items(line);
+    void split_line (cstr line, StringManager& out_items) const {
+        get_line_items(line, out_items);
     }
 
     static u32 get_error_count_for_harness () {
@@ -116,22 +119,24 @@ u16 cb_civ_name_to_idx (cstr name) {
 }
 
 void run_item_reqs_parse_file_tests (const DataParserBaseHarness& parser, cstr filepath, cstr tag, bool expect_valid) {
-    StringReader reader(filepath);
-    StringSplitter line_splitter("\n");
-    StringTrimmer trimmer(" \t\r\n");
-
-    const std::string content = reader.read();
-    const std::vector<std::string> lines = line_splitter.split(content);
+    StringManager lines;
+    if (!lines.load_file_content(filepath)) {
+        note_result(false, "failed to load req test file");
+        return;
+    }
+    lines.split_string_by_char(0, '\n');
+    lines.cull_empty_strings();
 
     u32 line_count = 0;
-    for (size_t i = 0; i < lines.size(); ++i) {
-        const std::string line = trimmer.trim(lines[i]);
+    for (u32 i = 0; i < lines.get_string_count(); ++i) {
+        const str line = trim_copy(lines.get_string_content(i));
         if (line.empty()) {
             continue;
         }
 
         ++line_count;
-        const std::vector<std::string> line_items = parser.split_line(line);
+        StringManager line_items;
+        parser.split_line(line.c_str(), line_items);
         ItemReqsStruct reqs;
 
         const u32 err_before = DataParserBaseHarness::get_error_count_for_harness();
@@ -162,7 +167,7 @@ void run_item_reqs_parse_file_tests (const DataParserBaseHarness& parser, cstr f
 
         const u32 err_after = DataParserBaseHarness::get_error_count_for_harness();
         const bool got_valid_parse = (err_after == err_before);
-        std::string msg = std::string(tag) + " line " + std::to_string(line_count) + ": " + line;
+        str msg = str(tag) + " line " + std::to_string(line_count) + ": " + line;
         note_result(got_valid_parse == expect_valid, msg.c_str());
     }
 }
@@ -176,20 +181,44 @@ void run_item_reqs_parse_tests () {
     cbs.civ_name_to_idx = cb_civ_name_to_idx;
 
     PathMng paths("../");
-    DataReader tech_reader(paths.get_path_to_techs());
-    DataReader resource_reader(paths.get_path_to_resources());
-    DataReader city_flag_reader(paths.get_path_to_city_flags());
-    DataReader building_reader(paths.get_path_to_buildings());
-    DataReader civ_reader(paths.get_path_to_civs());
-    DataReader unit_reader(paths.get_path_to_units());
+    StringManager tech_items;
+    StringManager resource_items;
+    StringManager city_flag_items;
+    StringManager building_items;
+    StringManager civ_items;
+    StringManager unit_items;
 
-    DataParserBaseHarness tech_parser(tech_reader.get_raw_items(), cbs);
-    DataParserBaseHarness resource_parser(resource_reader.get_raw_items(), cbs);
-    DataParserBaseHarness city_flag_parser(city_flag_reader.get_raw_items(), cbs);
-    DataParserBaseHarness building_parser(building_reader.get_raw_items(), cbs);
-    DataParserBaseHarness civ_parser(civ_reader.get_raw_items(), cbs);
+    tech_items.load_file_content(paths.get_path_to_techs().c_str());
+    tech_items.split_string_by_char(0, '\n');
+    tech_items.cull_empty_strings();
 
-    DataParserBaseHarness unit_parser(unit_reader.get_raw_items(), cbs);
+    resource_items.load_file_content(paths.get_path_to_resources().c_str());
+    resource_items.split_string_by_char(0, '\n');
+    resource_items.cull_empty_strings();
+
+    city_flag_items.load_file_content(paths.get_path_to_city_flags().c_str());
+    city_flag_items.split_string_by_char(0, '\n');
+    city_flag_items.cull_empty_strings();
+
+    building_items.load_file_content(paths.get_path_to_buildings().c_str());
+    building_items.split_string_by_char(0, '\n');
+    building_items.cull_empty_strings();
+
+    civ_items.load_file_content(paths.get_path_to_civs().c_str());
+    civ_items.split_string_by_char(0, '\n');
+    civ_items.cull_empty_strings();
+
+    unit_items.load_file_content(paths.get_path_to_units().c_str());
+    unit_items.split_string_by_char(0, '\n');
+    unit_items.cull_empty_strings();
+
+    DataParserBaseHarness tech_parser(tech_items, cbs);
+    DataParserBaseHarness resource_parser(resource_items, cbs);
+    DataParserBaseHarness city_flag_parser(city_flag_items, cbs);
+    DataParserBaseHarness building_parser(building_items, cbs);
+    DataParserBaseHarness civ_parser(civ_items, cbs);
+    DataParserBaseHarness unit_parser(unit_items, cbs);
+
     g_tech_parser = &tech_parser;
     g_resource_parser = &resource_parser;
     g_city_flag_parser = &city_flag_parser;

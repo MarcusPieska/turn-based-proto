@@ -7,8 +7,8 @@
 
 #include "building_parser.h"
 #include "civ_trait_parser.h"
-#include "data_reader.h"
 #include "game_primitives.h"
+#include "opt_str_mng.h"
 #include "static_bit_bank.h"
 
 //================================================================================================================================
@@ -19,7 +19,7 @@ class CivBldDiscountMapParsing {
 public:
     static void load_cfg_map (
         StaticBitBank& bank,
-        const DataReader& mapping_reader,
+        const StringManager& mapping_items,
         const CivTraitParser& civ_trait_parser,
         const BuildingParser& building_parser
     );

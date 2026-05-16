@@ -4,12 +4,9 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include <string>
-#include <vector>
 
 #include "wonder_parser.h"
 #include "wonder_static_data.h"
-#include "data_reader.h"
 #include "path_mng.h"
 #include "name_to_idx_callbacks.h"
 #include "item_effects.h"
@@ -66,25 +63,6 @@ u16 cb_civ_trait_name_to_idx (cstr name) {
     return g_civ_traits_parser->name_to_idx(name);
 }
 
-std::string req_idx_to_name (u8 req_type, u16 idx) {
-    if (req_type == ITEM_REQ_TYPE_TECH && g_tech_parser != NULL) {
-        return g_tech_parser->idx_to_name(idx);
-    }
-    if (req_type == ITEM_REQ_TYPE_RESOURCE && g_resource_parser != NULL) {
-        return g_resource_parser->idx_to_name(idx);
-    }
-    if (req_type == ITEM_REQ_TYPE_FLAG && g_city_flag_parser != NULL) {
-        return g_city_flag_parser->idx_to_name(idx);
-    }
-    if (req_type == ITEM_REQ_TYPE_CIV && g_civ_parser != NULL) {
-        return g_civ_parser->idx_to_name(idx);
-    }
-    if (req_type == ITEM_REQ_TYPE_BUILDING && g_building_parser != NULL) {
-        return g_building_parser->idx_to_name(idx);
-    }
-    return "<unknown>";
-}
-
 void print_u16_member (cstr label, u16 value) {
     printf("  %s: %u\n", label, value);
 }
@@ -104,8 +82,19 @@ void print_reqs_member (cstr label, const ItemReqsStruct& reqs) {
             continue;
         }
         const u8 type = reqs.types[j];
-        const std::string req_name = req_idx_to_name(type, idx);
-        printf("    [%u] type=%u %s (%u)", j, type, req_name.c_str(), idx);
+        if (type == ITEM_REQ_TYPE_TECH && g_tech_parser != NULL) {
+            printf("    [%u] type=%u %s (%u)", j, type, g_tech_parser->idx_to_name(idx).c_str(), idx);
+        } else if (type == ITEM_REQ_TYPE_RESOURCE && g_resource_parser != NULL) {
+            printf("    [%u] type=%u %s (%u)", j, type, g_resource_parser->idx_to_name(idx).c_str(), idx);
+        } else if (type == ITEM_REQ_TYPE_FLAG && g_city_flag_parser != NULL) {
+            printf("    [%u] type=%u %s (%u)", j, type, g_city_flag_parser->idx_to_name(idx).c_str(), idx);
+        } else if (type == ITEM_REQ_TYPE_CIV && g_civ_parser != NULL) {
+            printf("    [%u] type=%u %s (%u)", j, type, g_civ_parser->idx_to_name(idx).c_str(), idx);
+        } else if (type == ITEM_REQ_TYPE_BUILDING && g_building_parser != NULL) {
+            printf("    [%u] type=%u %s (%u)", j, type, g_building_parser->idx_to_name(idx).c_str(), idx);
+        } else {
+            printf("    [%u] type=%u <unknown> (%u)", j, type, idx);
+        }
         if (reqs.added_args[j] != 0) {
             printf(" arg=%u", reqs.added_args[j]);
         }
@@ -191,8 +180,7 @@ void print_effects_member (cstr label, const ItemEffectsStruct& e) {
             if (b.building_id == 0) {
                 printf(" build");
             } else {
-                const std::string bname = g_building_parser->idx_to_name(b.building_id);
-                printf(" build %s (%u)", bname.c_str(), static_cast<u32>(b.building_id));
+                printf(" build %s (%u)", g_building_parser->idx_to_name(b.building_id).c_str(), static_cast<u32>(b.building_id));
             }
             printf(" scope=%s", sc);
             printf(" build_mode=%s upkeep=%s", bm, um);
@@ -232,9 +220,11 @@ void print_effects_member (cstr label, const ItemEffectsStruct& e) {
             if (tr.unit_id == 0) {
                 printf(" train");
             } else {
-                const std::string uname =
-                    (g_unit_parser != NULL) ? g_unit_parser->idx_to_name(tr.unit_id) : std::string("<unknown>");
-                printf(" train %s (%u)", uname.c_str(), static_cast<u32>(tr.unit_id));
+                if (g_unit_parser != NULL) {
+                    printf(" train %s (%u)", g_unit_parser->idx_to_name(tr.unit_id).c_str(), static_cast<u32>(tr.unit_id));
+                } else {
+                    printf(" train <unknown> (%u)", static_cast<u32>(tr.unit_id));
+                }
             }
             if (tr.turns_interval != 0) {
                 printf(" interval=%u", static_cast<u32>(tr.turns_interval));
@@ -259,8 +249,7 @@ void print_civ_traits_member (cstr label, const CivTraitStruct& traits) {
         if (tix == 0) {
             continue;
         }
-        const std::string trait_name = g_civ_traits_parser->idx_to_name(tix);
-        printf("    [%u] %s (%u)\n", j, trait_name.c_str(), tix);
+        printf("    [%u] %s (%u)\n", j, g_civ_traits_parser->idx_to_name(tix).c_str(), tix);
     }
 }
 
@@ -283,27 +272,54 @@ int run_parse_driver () {
     cbs.civ_trait_name_to_idx = cb_civ_trait_name_to_idx;
 
     PathMng paths("../");
-    DataReader tech_reader(paths.get_path_to_techs());
-    DataReader resource_reader(paths.get_path_to_resources());
-    DataReader city_flag_reader(paths.get_path_to_city_flags());
-    DataReader building_reader(paths.get_path_to_buildings());
-    DataReader civ_reader(paths.get_path_to_civs());
-    DataReader unit_reader(paths.get_path_to_units());
-    DataReader unit_types_reader(paths.get_path_to_unit_types());
-    DataReader civ_traits_reader(paths.get_path_to_civ_traits());
+    StringManager tech_items;
+    StringManager resource_items;
+    StringManager city_flag_items;
+    StringManager building_items;
+    StringManager civ_items;
+    StringManager unit_items;
+    StringManager unit_types_items;
+    StringManager civ_traits_items;
+    StringManager effect_items;
 
-    DataReader effect_reader(paths.get_path_to_effects());
-    const std::vector<RawItem>& effect_items = effect_reader.get_raw_items();
+    tech_items.load_file_content(paths.get_path_to_techs().c_str());
+    tech_items.split_string_by_char(0, '\n');
+    tech_items.cull_empty_strings();
+    resource_items.load_file_content(paths.get_path_to_resources().c_str());
+    resource_items.split_string_by_char(0, '\n');
+    resource_items.cull_empty_strings();
+    city_flag_items.load_file_content(paths.get_path_to_city_flags().c_str());
+    city_flag_items.split_string_by_char(0, '\n');
+    city_flag_items.cull_empty_strings();
+    building_items.load_file_content(paths.get_path_to_buildings().c_str());
+    building_items.split_string_by_char(0, '\n');
+    building_items.cull_empty_strings();
+    civ_items.load_file_content(paths.get_path_to_civs().c_str());
+    civ_items.split_string_by_char(0, '\n');
+    civ_items.cull_empty_strings();
+    unit_items.load_file_content(paths.get_path_to_units().c_str());
+    unit_items.split_string_by_char(0, '\n');
+    unit_items.cull_empty_strings();
+    unit_types_items.load_file_content(paths.get_path_to_unit_types().c_str());
+    unit_types_items.split_string_by_char(0, '\n');
+    unit_types_items.cull_empty_strings();
+    civ_traits_items.load_file_content(paths.get_path_to_civ_traits().c_str());
+    civ_traits_items.split_string_by_char(0, '\n');
+    civ_traits_items.cull_empty_strings();
+    effect_items.load_file_content(paths.get_path_to_effects().c_str());
+    effect_items.split_string_by_char(0, '\n');
+    effect_items.cull_empty_strings();
+
     DataParserBase::set_item_effect_handler(&cbs, &effect_items);
 
-    DataParserBase tech_parser(tech_reader.get_raw_items(), cbs);
-    DataParserBase resource_parser(resource_reader.get_raw_items(), cbs);
-    DataParserBase city_flag_parser(city_flag_reader.get_raw_items(), cbs);
-    DataParserBase building_parser(building_reader.get_raw_items(), cbs);
-    DataParserBase civ_parser(civ_reader.get_raw_items(), cbs);
-    DataParserBase unit_parser(unit_reader.get_raw_items(), cbs);
-    DataParserBase unit_types_parser(unit_types_reader.get_raw_items(), cbs);
-    DataParserBase civ_traits_parser(civ_traits_reader.get_raw_items(), cbs);
+    DataParserBase tech_parser(tech_items, cbs);
+    DataParserBase resource_parser(resource_items, cbs);
+    DataParserBase city_flag_parser(city_flag_items, cbs);
+    DataParserBase building_parser(building_items, cbs);
+    DataParserBase civ_parser(civ_items, cbs);
+    DataParserBase unit_parser(unit_items, cbs);
+    DataParserBase unit_types_parser(unit_types_items, cbs);
+    DataParserBase civ_traits_parser(civ_traits_items, cbs);
 
     g_tech_parser = &tech_parser;
     g_resource_parser = &resource_parser;
@@ -314,14 +330,15 @@ int run_parse_driver () {
     g_unit_types_parser = &unit_types_parser;
     g_civ_traits_parser = &civ_traits_parser;
 
-    DataReader reader("../game_config.wonders");
-    const std::vector<RawItem>& raw_items = reader.get_raw_items();
-
+    StringManager raw_items;
+    raw_items.load_file_content("../game_config.wonders");
+    raw_items.split_string_by_char(0, '\n');
+    raw_items.cull_empty_strings();
     WonderParser parser(raw_items, cbs);
     WonderStaticDataStruct* parsed_data = parser.parse_data_dependencies();
 
     if (print_level >= 2) {
-        for (u32 i = 0; i < raw_items.size(); ++i) {
+        for (u32 i = 0; i < raw_items.get_string_count(); ++i) {
             print_item(parsed_data[i]);
             printf("-----------------------------------------------------------\n");
         }

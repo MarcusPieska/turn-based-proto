@@ -12,11 +12,11 @@
 #ifndef STATIC_PARSING_MANAGER_H
 #define STATIC_PARSING_MANAGER_H
 
-#include <vector>
-
 #include "path_mng.h"
-#include "data_reader.h"
 #include "data_parser_base.h"
+#include "opt_str_mng.h"
+
+class StaticBitBank;
 
 [STATIC_PARSE_HEADER_PARSER_INCLUDES_TAG]
 
@@ -33,6 +33,7 @@ public:
 
     [STATIC_PARSE_HEADER_TYPED_GETTERS_TAG]
     [STATIC_PARSE_HEADER_RAW_GETTERS_TAG]
+    [STATIC_PARSE_HEADER_MAP_GETTERS_TAG]
     u16 get_callback_count () const;
 
 private:
@@ -47,13 +48,15 @@ private:
 
     PathMng m_paths;
 
-    DataReader m_effect_reader;
+    StringManager m_effect_items;
     [STATIC_PARSE_HEADER_READERS_TAG]
 
     [STATIC_PARSE_HEADER_NAME_PARSERS_TAG]
 
     NameToIdxCbs m_name_to_idx_cbs;
     u16 m_callback_count;
+
+    [STATIC_PARSE_HEADER_MAP_BANK_PTRS_TAG]
 
     [STATIC_PARSE_HEADER_DATA_PTRS_TAG]
 };

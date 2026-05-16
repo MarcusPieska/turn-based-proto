@@ -14,7 +14,7 @@
 
 class CityFlagParser : public DataParserBase {
 public:
-    CityFlagParser (const std::vector<RawItem>& items, const NameToIdxCbs& map);
+    CityFlagParser (const StringManager& items, const NameToIdxCbs& map);
 
     CityFlagStaticDataStruct* parse_data_dependencies ();
 };

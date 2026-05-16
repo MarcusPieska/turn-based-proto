@@ -60,6 +60,14 @@ void StaticBitBank::clear_flag (u16 array_idx, u16 flag_idx) {
     m_bits[byte_offset] = static_cast<u8>(m_bits[byte_offset] & static_cast<u8>(~static_masks[bit_idx]));
 }
 
+u16 StaticBitBank::get_array_count () const {
+    return m_array_count;
+}
+
+u16 StaticBitBank::get_array_size () const {
+    return m_array_size;
+}
+
 //================================================================================================================================
 //=> - End -
 //================================================================================================================================

@@ -19,6 +19,12 @@ typedef int32_t i32;
 typedef int16_t i16;
 typedef int8_t i8;
 
+typedef float f32;
+typedef double f64;
+
+#define U16_KEY_NULL 0xFFFF
+#define U16_KEY_INVALID 0xFFFF - 1
+
 #define MAX_EFFECTS_PER_ENTITY 4
 typedef struct EffectIndices {
     u16 indices[MAX_EFFECTS_PER_ENTITY];

@@ -1,0 +1,13 @@
+#!/bin/bash
+
+INC="-I.."
+
+g++ -std=c++11 $INC -c generate_[FILE_PREFIX_TAG].cpp -o generate_[FILE_PREFIX_TAG].o
+g++ -std=c++11 $INC -c generate_[FILE_PREFIX_TAG]_tester.cpp -o generate_[FILE_PREFIX_TAG]_tester.o
+
+g++ -std=c++11 -o generate_[FILE_PREFIX_TAG]_tester \
+    generate_[FILE_PREFIX_TAG].o \
+    generate_[FILE_PREFIX_TAG]_tester.o -lm
+
+rm generate_[FILE_PREFIX_TAG].o \
+    generate_[FILE_PREFIX_TAG]_tester.o

@@ -14,7 +14,7 @@
 
 class [CLASS_TAG]Parser : public DataParserBase {
 public:
-    [CLASS_TAG]Parser (const std::vector<RawItem>& items, const NameToIdxCbs& map);
+    [CLASS_TAG]Parser (const StringManager& items, const NameToIdxCbs& map);
 
     [STRUCT_TAG]* parse_data_dependencies ();
 };

@@ -14,7 +14,7 @@
 
 class BuildingParser : public DataParserBase {
 public:
-    BuildingParser (const std::vector<RawItem>& items, const NameToIdxCbs& map);
+    BuildingParser (const StringManager& items, const NameToIdxCbs& map);
 
     BuildingStaticDataStruct* parse_data_dependencies ();
 };

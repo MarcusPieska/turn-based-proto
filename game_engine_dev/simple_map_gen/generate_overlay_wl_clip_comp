@@ -1,0 +1,26 @@
+#!/bin/bash
+
+INC="-I.."
+
+g++ -std=c++11 $INC -c perlin_noise.cpp -o perlin_noise.o
+g++ -std=c++11 $INC -c generator_constants.cpp -o generator_constants.o
+g++ -std=c++11 $INC -c generate_terrain_cont_pn.cpp -o generate_terrain_cont_pn.o
+g++ -std=c++11 $INC -c generate_overlay_water_land.cpp -o generate_overlay_water_land.o
+g++ -std=c++11 $INC -c generate_overlay_wl_clip.cpp -o generate_overlay_wl_clip.o
+g++ -std=c++11 $INC -c generate_overlay_wl_clip_tester.cpp -o generate_overlay_wl_clip_tester.o
+
+g++ -std=c++11 -o generate_overlay_wl_clip_tester \
+    perlin_noise.o \
+    generator_constants.o \
+    generate_terrain_cont_pn.o \
+    generate_overlay_water_land.o \
+    generate_overlay_wl_clip.o \
+    generate_overlay_wl_clip_tester.o \
+    -lm
+
+rm perlin_noise.o \
+    generator_constants.o \
+    generate_terrain_cont_pn.o \
+    generate_overlay_water_land.o \
+    generate_overlay_wl_clip.o \
+    generate_overlay_wl_clip_tester.o

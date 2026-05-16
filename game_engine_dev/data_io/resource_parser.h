@@ -14,7 +14,7 @@
 
 class ResourceParser : public DataParserBase {
 public:
-    ResourceParser (const std::vector<RawItem>& items, const NameToIdxCbs& map);
+    ResourceParser (const StringManager& items, const NameToIdxCbs& map);
 
     ResourceStaticDataStruct* parse_data_dependencies ();
 };

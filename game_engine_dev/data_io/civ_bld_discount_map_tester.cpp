@@ -3,16 +3,14 @@
 //================================================================================================================================
 
 #include <cstdio>
-#include <string>
-
-typedef std::string str;
+#include <cstring>
 
 #include "building_parser.h"
 #include "civ_bld_discount_map.h"
 #include "civ_bld_discount_map_parsing.h"
 #include "civ_trait_parser.h"
-#include "data_reader.h"
 #include "name_to_idx_callbacks.h"
+#include "opt_str_mng.h"
 #include "static_bit_bank.h"
 
 //================================================================================================================================
@@ -21,26 +19,45 @@ typedef std::string str;
 
 class CivBldDiscountMapTester {
 public:
+    static cstr get_name (const StringManager& items, u16 idx, StringManager& out_parts) {
+        out_parts.load_cstr_content(items.get_string_content(idx));
+        out_parts.split_string_by_char(0, ':');
+        if (out_parts.get_string_count() == 0) {
+            return "";
+        }
+        out_parts.trim_head_char(0, ' ');
+        out_parts.trim_head_char(0, '\t');
+        out_parts.trim_head_char(0, '\r');
+        out_parts.trim_head_char(0, '\n');
+        out_parts.trim_tail_char(0, ' ');
+        out_parts.trim_tail_char(0, '\t');
+        out_parts.trim_tail_char(0, '\r');
+        out_parts.trim_tail_char(0, '\n');
+        return out_parts.get_string_content(0);
+    }
+
     static void print_mapping (
-        const CivTraitParser& civ_trait_parser, 
-        const BuildingParser& building_parser, 
+        const StringManager& civ_trait_items,
+        const StringManager& building_items,
         u16 civ_trait_count,
         u16 building_count) {
 
+        StringManager civ_name_parts;
+        StringManager bld_name_parts;
         printf("CivBldDiscountMap (%u civ traits x %u buildings)\n", civ_trait_count, building_count);
         for (u16 c = 0; c < civ_trait_count; ++c) {
-            str nm = civ_trait_parser.idx_to_name(c);
-            if (nm == "NONE") {
+            cstr nm = get_name(civ_trait_items, c, civ_name_parts);
+            if (std::strcmp(nm, "NONE") == 0) {
                 continue;
             }
-            printf("%s:\n", nm.c_str());
+            printf("%s:\n", nm);
             for (u16 b = 0; b < building_count; ++b) {
                 if (CivBldDiscountMap::civ_trait_has_discount_for_bld(c, b)) {
-                    str bnm = building_parser.idx_to_name(b);
-                    if (bnm == "NONE") {
+                    cstr bnm = get_name(building_items, b, bld_name_parts);
+                    if (std::strcmp(bnm, "NONE") == 0) {
                         continue;
                     }
-                    printf("  - %s\n", bnm.c_str());
+                    printf("  - %s\n", bnm);
                 }
             }
         }
@@ -53,16 +70,22 @@ public:
 
 int main () {
     NameToIdxCbs empty_cbs{};
-    DataReader buildings_reader("../game_config.buildings");
-    DataReader civ_traits_reader("../game_config.civ_traits");
-    BuildingParser building_parser(buildings_reader.get_raw_items(), empty_cbs);
-    CivTraitParser civ_trait_parser(civ_traits_reader.get_raw_items(), empty_cbs);
-    const u16 civ_trait_count = static_cast<u16>(civ_traits_reader.get_raw_items().size());
-    const u16 building_count = static_cast<u16>(buildings_reader.get_raw_items().size());
+    StringManager building_items;
+    StringManager civ_trait_items;
+    building_items.load_file_content("../game_config.buildings");
+    building_items.split_string_by_char(0, '\n');
+    building_items.cull_empty_strings();
+    civ_trait_items.load_file_content("../game_config.civ_traits");
+    civ_trait_items.split_string_by_char(0, '\n');
+    civ_trait_items.cull_empty_strings();
+    BuildingParser building_parser(building_items, empty_cbs);
+    CivTraitParser civ_trait_parser(civ_trait_items, empty_cbs);
+    const u16 civ_trait_count = static_cast<u16>(civ_trait_items.get_string_count());
+    const u16 building_count = static_cast<u16>(building_items.get_string_count());
     StaticBitBank bank(civ_trait_count, building_count);
-    CivBldDiscountMapParsing::load_cfg_map(bank, civ_traits_reader, civ_trait_parser, building_parser);
+    CivBldDiscountMapParsing::load_cfg_map(bank, civ_trait_items, civ_trait_parser, building_parser);
     CivBldDiscountMap::set_map(&bank, civ_trait_count, building_count);
-    CivBldDiscountMapTester::print_mapping(civ_trait_parser, building_parser, civ_trait_count, building_count);
+    CivBldDiscountMapTester::print_mapping(civ_trait_items, building_items, civ_trait_count, building_count);
     return 0;
 }
 

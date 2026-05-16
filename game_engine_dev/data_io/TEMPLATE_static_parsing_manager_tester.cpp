@@ -11,8 +11,10 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include <string>
 #include "static_parsing_manager.h"
+#include "static_bit_bank.h"
+
+[STATIC_PARSE_TESTER_MAP_INCLUDES_TAG]
 
 //================================================================================================================================
 //=> - Globals -
@@ -121,9 +123,14 @@ void run_req_bounds_tests (const StaticParsingManager& parser) {
     [STATIC_PARSE_TESTER_REQ_TESTS_TAG]
 }
 
+void run_map_tests (const StaticParsingManager& parser) {
+    [STATIC_PARSE_TESTER_MAP_TESTS_TAG]
+}
+
 int run_parse_driver () {
     StaticParsingManager parser("../");
     run_req_bounds_tests(parser);
+    run_map_tests(parser);
     if (print_level >= 1) {
         print_item_counts(parser);
     }

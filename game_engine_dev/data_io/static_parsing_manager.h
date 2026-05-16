@@ -12,11 +12,11 @@
 #ifndef STATIC_PARSING_MANAGER_H
 #define STATIC_PARSING_MANAGER_H
 
-#include <vector>
-
 #include "path_mng.h"
-#include "data_reader.h"
 #include "data_parser_base.h"
+#include "opt_str_mng.h"
+
+class StaticBitBank;
 
 #include "building_parser.h"
 #include "city_flag_parser.h"
@@ -52,38 +52,52 @@ public:
     ~StaticParsingManager ();
 
     const BuildingStaticDataStruct* get_building_data () const;
+
     u16 get_building_count () const;
 
     const CityFlagStaticDataStruct* get_city_flag_data () const;
+
     u16 get_city_flag_count () const;
 
     const CivStaticDataStruct* get_civ_data () const;
+
     u16 get_civ_count () const;
 
     const CivTraitStaticDataStruct* get_civ_trait_data () const;
+
     u16 get_civ_trait_count () const;
 
     const ResourceStaticDataStruct* get_resource_data () const;
+
     u16 get_resource_count () const;
 
     const SmallWonderStaticDataStruct* get_small_wonder_data () const;
+
     u16 get_small_wonder_count () const;
 
     const TechStaticDataStruct* get_tech_data () const;
+
     u16 get_tech_count () const;
 
     const UnitStaticDataStruct* get_unit_data () const;
+
     u16 get_unit_count () const;
 
     const UnitActionStaticDataStruct* get_unit_action_data () const;
+
     u16 get_unit_action_count () const;
 
     const UnitTypeStaticDataStruct* get_unit_type_data () const;
+
     u16 get_unit_type_count () const;
 
     const WonderStaticDataStruct* get_wonder_data () const;
+
     u16 get_wonder_count () const;
     
+    StaticBitBank* get_unit_type_action_map_bank () const;
+
+    StaticBitBank* get_civ_bld_discount_map_bank () const;
     u16 get_callback_count () const;
 
 private:
@@ -98,33 +112,36 @@ private:
 
     PathMng m_paths;
 
-    DataReader m_effect_reader;
-    DataReader m_building_reader;
-    DataReader m_city_flag_reader;
-    DataReader m_civ_reader;
-    DataReader m_civ_trait_reader;
-    DataReader m_resource_reader;
-    DataReader m_small_wonder_reader;
-    DataReader m_tech_reader;
-    DataReader m_unit_reader;
-    DataReader m_unit_action_reader;
-    DataReader m_unit_type_reader;
-    DataReader m_wonder_reader;
+    StringManager m_effect_items;
+    StringManager m_building_items;
+    StringManager m_city_flag_items;
+    StringManager m_civ_items;
+    StringManager m_civ_trait_items;
+    StringManager m_resource_items;
+    StringManager m_small_wonder_items;
+    StringManager m_tech_items;
+    StringManager m_unit_items;
+    StringManager m_unit_action_items;
+    StringManager m_unit_type_items;
+    StringManager m_wonder_items;
 
-    DataParserBase m_building_name_parser;
-    DataParserBase m_city_flag_name_parser;
-    DataParserBase m_civ_name_parser;
-    DataParserBase m_civ_trait_name_parser;
-    DataParserBase m_resource_name_parser;
-    DataParserBase m_small_wonder_name_parser;
-    DataParserBase m_tech_name_parser;
-    DataParserBase m_unit_name_parser;
-    DataParserBase m_unit_action_name_parser;
-    DataParserBase m_unit_type_name_parser;
-    DataParserBase m_wonder_name_parser;
+    DataParserBase* m_building_name_parser;
+    DataParserBase* m_city_flag_name_parser;
+    DataParserBase* m_civ_name_parser;
+    DataParserBase* m_civ_trait_name_parser;
+    DataParserBase* m_resource_name_parser;
+    DataParserBase* m_small_wonder_name_parser;
+    DataParserBase* m_tech_name_parser;
+    DataParserBase* m_unit_name_parser;
+    DataParserBase* m_unit_action_name_parser;
+    DataParserBase* m_unit_type_name_parser;
+    DataParserBase* m_wonder_name_parser;
 
     NameToIdxCbs m_name_to_idx_cbs;
     u16 m_callback_count;
+
+    StaticBitBank* m_unit_type_action_map_bank;
+    StaticBitBank* m_civ_bld_discount_map_bank;
 
     BuildingStaticDataStruct* m_building_data;
     CityFlagStaticDataStruct* m_city_flag_data;

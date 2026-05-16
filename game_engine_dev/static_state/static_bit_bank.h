@@ -20,6 +20,9 @@ public:
     void set_flag (u16 array_idx, u16 flag_idx);
     void clear_flag (u16 array_idx, u16 flag_idx);
 
+    u16 get_array_count () const;
+    u16 get_array_size () const;
+
 private:
     StaticBitBank (const StaticBitBank& other) = delete;
     StaticBitBank (StaticBitBank&& other) = delete;

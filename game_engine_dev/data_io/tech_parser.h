@@ -14,7 +14,7 @@
 
 class TechParser : public DataParserBase {
 public:
-    TechParser (const std::vector<RawItem>& items, const NameToIdxCbs& map);
+    TechParser (const StringManager& items, const NameToIdxCbs& map);
 
     TechStaticDataStruct* parse_data_dependencies ();
 };

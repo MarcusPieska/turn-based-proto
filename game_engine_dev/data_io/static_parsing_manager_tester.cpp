@@ -11,8 +11,11 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include <string>
 #include "static_parsing_manager.h"
+#include "static_bit_bank.h"
+
+#include "unit_type_action_map.h"
+#include "civ_bld_discount_map.h"
 
 //================================================================================================================================
 //=> - Globals -
@@ -150,9 +153,25 @@ void run_req_bounds_tests (const StaticParsingManager& parser) {
     note_result(result, "SmallWonderStaticDataStruct req indices in bounds");
 }
 
+void run_map_tests (const StaticParsingManager& parser) {
+    note_result(UnitTypeActionMap::get_unit_type_count() == parser.get_unit_type_count(), "unit_type_action_map map row count");
+    note_result(UnitTypeActionMap::get_action_count() == parser.get_unit_action_count(), "unit_type_action_map map col count");
+    note_result(parser.get_unit_type_action_map_bank()->get_array_count() == parser.get_unit_type_count(), "unit_type_action_map bank array_count");
+    note_result(parser.get_unit_type_action_map_bank()->get_array_size() == parser.get_unit_action_count(), "unit_type_action_map bank array_size");
+    note_result(CivBldDiscountMap::get_civ_trait_count() == parser.get_civ_trait_count(), "civ_bld_discount_map map row count");
+    note_result(CivBldDiscountMap::get_building_count() == parser.get_building_count(), "civ_bld_discount_map map col count");
+    note_result(parser.get_civ_bld_discount_map_bank()->get_array_count() == parser.get_civ_trait_count(), "civ_bld_discount_map bank array_count");
+    note_result(parser.get_civ_bld_discount_map_bank()->get_array_size() == parser.get_building_count(), "civ_bld_discount_map bank array_size");
+    if (print_level >= 1) {
+        printf(" unit_type_action_map bank: array_count=%u array_size=%u\n", parser.get_unit_type_action_map_bank()->get_array_count(), parser.get_unit_type_action_map_bank()->get_array_size());
+        printf(" civ_bld_discount_map bank: array_count=%u array_size=%u\n", parser.get_civ_bld_discount_map_bank()->get_array_count(), parser.get_civ_bld_discount_map_bank()->get_array_size());
+    }
+}
+
 int run_parse_driver () {
     StaticParsingManager parser("../");
     run_req_bounds_tests(parser);
+    run_map_tests(parser);
     if (print_level >= 1) {
         print_item_counts(parser);
     }

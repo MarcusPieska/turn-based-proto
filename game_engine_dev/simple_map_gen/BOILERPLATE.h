@@ -1,0 +1,35 @@
+//================================================================================================================================
+//=> - Include guards -
+//================================================================================================================================
+
+#ifndef GENERATE_[MACRO_TAG]_H
+#define GENERATE_[MACRO_TAG]_H
+
+#include "generator_constants.h"
+#include "game_primitives.h"
+
+//================================================================================================================================
+//=> - [MAIN_CLASS_TAG] -
+//================================================================================================================================
+
+class Generate_[MAIN_CLASS_TAG] {
+public:
+    explicit Generate_[MAIN_CLASS_TAG] (u32 seed);
+
+    bool generate ();
+    bool is_valid () const;
+    void save_output (cstr path) const;
+
+private:
+    Generate_[MAIN_CLASS_TAG] (const Generate_[MAIN_CLASS_TAG]& other) = delete;
+    Generate_[MAIN_CLASS_TAG] (Generate_[MAIN_CLASS_TAG]&& other) = delete;
+
+    u32 m_seed;
+    bool m_valid_generation;
+};
+
+#endif // GENERATE_[MACRO_TAG]_H
+
+//================================================================================================================================
+//=> - End of file -
+//================================================================================================================================
