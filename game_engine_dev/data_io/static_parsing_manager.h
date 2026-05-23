@@ -98,6 +98,8 @@ public:
     StaticBitBank* get_unit_type_action_map_bank () const;
 
     StaticBitBank* get_civ_bld_discount_map_bank () const;
+
+    void release_map_banks ();
     u16 get_callback_count () const;
 
 private:

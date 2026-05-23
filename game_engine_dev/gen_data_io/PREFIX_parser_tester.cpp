@@ -1,97 +1,66 @@
 //================================================================================================================================
-//=> - Includes and globals -
+//=> - Includes -
 //================================================================================================================================
 
 #include <cstdio>
-#include <cstdlib>
 
-#include "[FILE_TAG]_parser.h"
-#include "[FILE_TAG]_static_data.h"
-#include "path_mng.h"
-#include "name_to_idx_callbacks.h"
-#include "item_effects.h"
+#include "[FILE_TAG]_parser_tester.h"
 
 //================================================================================================================================
-//=> - Globals -
+//=> - Static members -
 //================================================================================================================================
 
-typedef const char* cstr;
-int print_level = 0;
-
-const DataParserBase* g_tech_parser = NULL;
-const DataParserBase* g_resource_parser = NULL;
-const DataParserBase* g_city_flag_parser = NULL;
-const DataParserBase* g_building_parser = NULL;
-const DataParserBase* g_civ_parser = NULL;
-const DataParserBase* g_unit_parser = NULL;
-const DataParserBase* g_unit_types_parser = NULL;
-const DataParserBase* g_civ_traits_parser = NULL;
+[CLASS_TAG]ParserTester* [CLASS_TAG]ParserTester::s_inst = NULL;
 
 //================================================================================================================================
-//=> - Helper functions -
+//=> - [CLASS_TAG]ParserTester implementation -
 //================================================================================================================================
 
-u16 cb_tech_name_to_idx (cstr name) {
-    return g_tech_parser->name_to_idx(name);
+[CLASS_TAG]ParserTester::[CLASS_TAG]ParserTester () : 
+    m_plvl(0), 
+    [DEP_INIT_TAG] 
+{
 }
 
-u16 cb_resource_name_to_idx (cstr name) {
-    return g_resource_parser->name_to_idx(name);
+void [CLASS_TAG]ParserTester::set_plvl (int lvl) {
+    m_plvl = lvl;
 }
 
-u16 cb_city_flag_name_to_idx (cstr name) {
-    return g_city_flag_parser->name_to_idx(name);
+bool [CLASS_TAG]ParserTester::ld_sm (StringManager& sm, cstr path) {
+    if (sm.load_file_content(path)) {
+        sm.split_string_by_char(0, '\n');
+        sm.cull_empty_strings();
+        return true;
+    }
+    sm.load_cstr_content("NONE");
+    sm.split_string_by_char(0, '\n');
+    sm.cull_empty_strings();
+    return false;
 }
 
-u16 cb_building_name_to_idx (cstr name) {
-    return g_building_parser->name_to_idx(name);
-}
-
-u16 cb_civ_name_to_idx (cstr name) {
-    return g_civ_parser->name_to_idx(name);
-}
-
-u16 cb_unit_name_to_idx (cstr name) {
-    return g_unit_parser->name_to_idx(name);
-}
-
-u16 cb_unit_types_name_to_idx (cstr name) {
-    return g_unit_types_parser->name_to_idx(name);
-}
-
-u16 cb_civ_trait_name_to_idx (cstr name) {
-    return g_civ_traits_parser->name_to_idx(name);
-}
-
-void print_u16_member (cstr label, u16 value) {
+[DEP_N2I_IMPL_TAG]
+void [CLASS_TAG]ParserTester::pr_u16 (cstr label, u16 value) {
     printf("  %s: %u\n", label, value);
 }
 
-void print_u32_member (cstr label, u32 value) {
+void [CLASS_TAG]ParserTester::pr_u32 (cstr label, u32 value) {
     printf("  %s: %u\n", label, value);
 }
 
-void print_reqs_member (cstr label, const ItemReqsStruct& reqs) {
+void [CLASS_TAG]ParserTester::pr_reqs (cstr label, const ItemReqsStruct& reqs) {
     printf("  %s:\n", label);
     for (u32 j = 0; j < MAX_PREREQ_COUNT; ++j) {
         if (reqs.types[j] == ITEM_REQ_TYPE_NONE) {
             continue;
         }
         const u16 idx = reqs.indices[j];
-        if (idx == 0) {
+        if (idx == U16_KEY_NULL) {
             continue;
         }
         const u8 type = reqs.types[j];
-        if (type == ITEM_REQ_TYPE_TECH && g_tech_parser != NULL) {
-            printf("    [%u] type=%u %s (%u)", j, type, g_tech_parser->idx_to_name(idx).c_str(), idx);
-        } else if (type == ITEM_REQ_TYPE_RESOURCE && g_resource_parser != NULL) {
-            printf("    [%u] type=%u %s (%u)", j, type, g_resource_parser->idx_to_name(idx).c_str(), idx);
-        } else if (type == ITEM_REQ_TYPE_FLAG && g_city_flag_parser != NULL) {
-            printf("    [%u] type=%u %s (%u)", j, type, g_city_flag_parser->idx_to_name(idx).c_str(), idx);
-        } else if (type == ITEM_REQ_TYPE_CIV && g_civ_parser != NULL) {
-            printf("    [%u] type=%u %s (%u)", j, type, g_civ_parser->idx_to_name(idx).c_str(), idx);
-        } else if (type == ITEM_REQ_TYPE_BUILDING && g_building_parser != NULL) {
-            printf("    [%u] type=%u %s (%u)", j, type, g_building_parser->idx_to_name(idx).c_str(), idx);
+
+        [DEP_REQS_PRINT_TAG]
+
         } else {
             printf("    [%u] type=%u <unknown> (%u)", j, type, idx);
         }
@@ -102,7 +71,7 @@ void print_reqs_member (cstr label, const ItemReqsStruct& reqs) {
     }
 }
 
-void print_effects_member (cstr label, const ItemEffectsStruct& e) {
+void [CLASS_TAG]ParserTester::pr_fx (cstr label, const ItemEffectsStruct& e) {
     printf("  %s:\n", label);
     for (u32 j = 0; j < MAX_EFFECT_COUNT; ++j) {
         const ItemEffectStruct& slot = e.items[j];
@@ -177,10 +146,12 @@ void print_effects_member (cstr label, const ItemEffectsStruct& e) {
                 case ItemEffectUpkeepMode::NO_UPKEEP: um = "NO_UPKEEP"; break;
                 default: break;
             }
-            if (b.building_id == 0) {
+            if (b.building_id == U16_KEY_NULL) {
                 printf(" build");
+            } else if (m_building_psr != NULL) {
+                printf(" build %s (%u)", m_building_psr->idx_to_name(b.building_id).c_str(), static_cast<u32>(b.building_id));
             } else {
-                printf(" build %s (%u)", g_building_parser->idx_to_name(b.building_id).c_str(), static_cast<u32>(b.building_id));
+                printf(" build <unknown> (%u)", static_cast<u32>(b.building_id));
             }
             printf(" scope=%s", sc);
             printf(" build_mode=%s upkeep=%s", bm, um);
@@ -217,11 +188,11 @@ void print_effects_member (cstr label, const ItemEffectsStruct& e) {
         }
         case ItemEffectType::TRAIN: {
             const ItemEffectTrain& tr = slot.effect.train;
-            if (tr.unit_id == 0) {
+            if (tr.unit_id == U16_KEY_NULL) {
                 printf(" train");
             } else {
-                if (g_unit_parser != NULL) {
-                    printf(" train %s (%u)", g_unit_parser->idx_to_name(tr.unit_id).c_str(), static_cast<u32>(tr.unit_id));
+                if (m_unit_psr != NULL) {
+                    printf(" train %s (%u)", m_unit_psr->idx_to_name(tr.unit_id).c_str(), static_cast<u32>(tr.unit_id));
                 } else {
                     printf(" train <unknown> (%u)", static_cast<u32>(tr.unit_id));
                 }
@@ -242,119 +213,71 @@ void print_effects_member (cstr label, const ItemEffectsStruct& e) {
     }
 }
 
-void print_civ_traits_member (cstr label, const CivTraitStruct& traits) {
+void [CLASS_TAG]ParserTester::pr_traits (cstr label, const CivTraitStruct& traits) {
     printf("  %s:\n", label);
     for (u32 j = 0; j < MAX_CIV_TRAIT_COUNT; ++j) {
         const u16 tix = traits.indices[j];
-        if (tix == 0) {
+        if (tix == U16_KEY_NULL) {
             continue;
         }
-        printf("    [%u] %s (%u)\n", j, g_civ_traits_parser->idx_to_name(tix).c_str(), tix);
+        if (m_civ_trait_psr != NULL) {
+            printf("    [%u] %s (%u)\n", j, m_civ_trait_psr->idx_to_name(tix).c_str(), tix);
+        } else {
+            printf("    [%u] <unknown> (%u)\n", j, tix);
+        }
     }
 }
 
-void print_item (const [STRUCT_TAG]& item) {
+void [CLASS_TAG]ParserTester::pr_item (const [STRUCT_TAG]& item) {
     printf("name: %s\n", item.name.c_str());
     [MEMBER_PRINT_TAG]
 }
 
-int run_parse_driver () {
+int [CLASS_TAG]ParserTester::run () {
+    s_inst = this;
     NameToIdxCbs cbs = {};
-    cbs.tech_name_to_idx = cb_tech_name_to_idx;
-    cbs.resource_name_to_idx = cb_resource_name_to_idx;
-    cbs.city_flag_name_to_idx = cb_city_flag_name_to_idx;
-    cbs.building_name_to_idx = cb_building_name_to_idx;
-    cbs.civ_name_to_idx = cb_civ_name_to_idx;
-    cbs.unit_name_to_idx = cb_unit_name_to_idx;
-    cbs.unit_type_name_to_idx = cb_unit_types_name_to_idx;
-    cbs.civ_trait_name_to_idx = cb_civ_trait_name_to_idx;
+
+    [DEP_CBS_WIRE_TAG]
 
     PathMng paths("../");
-    StringManager tech_items;
-    StringManager resource_items;
-    StringManager city_flag_items;
-    StringManager building_items;
-    StringManager civ_items;
-    StringManager unit_items;
-    StringManager unit_types_items;
-    StringManager civ_traits_items;
+
+    [DEP_ITEMS_DECL_TAG]
+
     StringManager effect_items;
 
-    tech_items.load_file_content(paths.get_path_to_techs().c_str());
-    tech_items.split_string_by_char(0, '\n');
-    tech_items.cull_empty_strings();
-    resource_items.load_file_content(paths.get_path_to_resources().c_str());
-    resource_items.split_string_by_char(0, '\n');
-    resource_items.cull_empty_strings();
-    city_flag_items.load_file_content(paths.get_path_to_city_flags().c_str());
-    city_flag_items.split_string_by_char(0, '\n');
-    city_flag_items.cull_empty_strings();
-    building_items.load_file_content(paths.get_path_to_buildings().c_str());
-    building_items.split_string_by_char(0, '\n');
-    building_items.cull_empty_strings();
-    civ_items.load_file_content(paths.get_path_to_civs().c_str());
-    civ_items.split_string_by_char(0, '\n');
-    civ_items.cull_empty_strings();
-    unit_items.load_file_content(paths.get_path_to_units().c_str());
-    unit_items.split_string_by_char(0, '\n');
-    unit_items.cull_empty_strings();
-    unit_types_items.load_file_content(paths.get_path_to_unit_types().c_str());
-    unit_types_items.split_string_by_char(0, '\n');
-    unit_types_items.cull_empty_strings();
-    civ_traits_items.load_file_content(paths.get_path_to_civ_traits().c_str());
-    civ_traits_items.split_string_by_char(0, '\n');
-    civ_traits_items.cull_empty_strings();
-    effect_items.load_file_content(paths.get_path_to_effects().c_str());
-    effect_items.split_string_by_char(0, '\n');
-    effect_items.cull_empty_strings();
+    [DEP_LD_TAG]
 
-    DataParserBase::set_item_effect_handler(&cbs, &effect_items);
+    const bool fx_ok = ld_sm(effect_items, paths.get_path_to_effects().c_str());
+    if (fx_ok) {
+        DataParserBase::set_item_effect_handler(&cbs, &effect_items);
+    }
 
-    DataParserBase tech_parser(tech_items, cbs);
-    DataParserBase resource_parser(resource_items, cbs);
-    DataParserBase city_flag_parser(city_flag_items, cbs);
-    DataParserBase building_parser(building_items, cbs);
-    DataParserBase civ_parser(civ_items, cbs);
-    DataParserBase unit_parser(unit_items, cbs);
-    DataParserBase unit_types_parser(unit_types_items, cbs);
-    DataParserBase civ_traits_parser(civ_traits_items, cbs);
+    [DEP_PARSER_DECL_TAG]
 
-    g_tech_parser = &tech_parser;
-    g_resource_parser = &resource_parser;
-    g_city_flag_parser = &city_flag_parser;
-    g_building_parser = &building_parser;
-    g_civ_parser = &civ_parser;
-    g_unit_parser = &unit_parser;
-    g_unit_types_parser = &unit_types_parser;
-    g_civ_traits_parser = &civ_traits_parser;
+    [DEP_PSR_ASSIGN_TAG]
 
     StringManager raw_items;
-    raw_items.load_file_content("../game_config.[FILE_TAG]s");
+    if (!raw_items.load_file_content("../game_config.[FILE_TAG]s")) {
+        s_inst = NULL;
+        return 0;
+    }
     raw_items.split_string_by_char(0, '\n');
     raw_items.cull_empty_strings();
+    if (raw_items.get_string_count() == 0) {
+        s_inst = NULL;
+        return 0;
+    }
     [CLASS_TAG]Parser parser(raw_items, cbs);
     [STRUCT_TAG]* parsed_data = parser.parse_data_dependencies();
-
-    if (print_level >= 2) {
+    if (m_plvl >= 2) {
         for (u32 i = 0; i < raw_items.get_string_count(); ++i) {
-            print_item(parsed_data[i]);
+            pr_item(parsed_data[i]);
             printf("-----------------------------------------------------------\n");
         }
     }
-
     delete[] parsed_data;
+    s_inst = NULL;
     return 0;
-}
-
-//================================================================================================================================
-//=> - Main -
-//================================================================================================================================
-
-int main (int argc, char* argv[]) {
-    if (argc > 1) {
-        print_level = std::atoi(argv[1]);
-    }
-    return run_parse_driver();
 }
 
 //================================================================================================================================

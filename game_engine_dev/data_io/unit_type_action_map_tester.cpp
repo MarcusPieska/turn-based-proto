@@ -40,7 +40,8 @@ public:
         const StringManager& unit_type_items,
         const StringManager& unit_action_items,
         u16 unit_type_count,
-        u16 action_count) {
+        u16 action_count,
+        const UnitTypeActionMap& map) {
 
         StringManager unit_type_name_parts;
         StringManager action_name_parts;
@@ -52,7 +53,7 @@ public:
             }
             printf("%s:\n", unm);
             for (u16 a = 0; a < action_count; ++a) {
-                if (UnitTypeActionMap::unit_type_can_do(u, a)) {
+                if (map.unit_type_can_do(u, a)) {
                     cstr anm = get_name(unit_action_items, a, action_name_parts);
                     if (std::strcmp(anm, "NONE") == 0) {
                         continue;
@@ -82,10 +83,12 @@ int main () {
     UnitActionParser unit_action_parser(unit_action_items, empty_cbs);
     const u16 unit_type_count = static_cast<u16>(unit_type_items.get_string_count());
     const u16 action_count = static_cast<u16>(unit_action_items.get_string_count());
-    StaticBitBank bank(unit_type_count, action_count);
-    UnitTypeActionMapParsing::load_cfg_map(bank, unit_type_items, unit_type_parser, unit_action_parser);
-    UnitTypeActionMap::set_map(&bank, unit_type_count, action_count);
-    UnitTypeActionMapTester::print_mapping(unit_type_items, unit_action_items, unit_type_count, action_count);
+    StaticBitBank* bank = new StaticBitBank(unit_type_count, action_count);
+    UnitTypeActionMapParsing::load_cfg_map(*bank, unit_type_items, unit_type_parser, unit_action_parser);
+    UnitTypeActionMap map;
+    map.set_map(bank, unit_type_count, action_count);
+    map.take_ownership();
+    UnitTypeActionMapTester::print_mapping(unit_type_items, unit_action_items, unit_type_count, action_count, map);
     return 0;
 }
 

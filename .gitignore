@@ -10,6 +10,7 @@
 *.gch
 *.temp
 *_tester
+*.pyc
 
 map_driver
 map_driver.exe

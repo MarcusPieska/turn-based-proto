@@ -31,7 +31,7 @@ typedef struct ItemReqsStruct {
 #define MAX_CIV_TRAIT_COUNT 4
 
 typedef struct CivTraitStruct {
-    u8 indices[MAX_CIV_TRAIT_COUNT];
+    u16 indices[MAX_CIV_TRAIT_COUNT];
 } CivTraitStruct;
 
 

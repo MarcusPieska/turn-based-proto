@@ -1,97 +1,161 @@
 //================================================================================================================================
-//=> - Includes and globals -
+//=> - Includes -
 //================================================================================================================================
 
 #include <cstdio>
-#include <cstdlib>
 
-#include "resource_parser.h"
-#include "resource_static_data.h"
-#include "path_mng.h"
-#include "name_to_idx_callbacks.h"
-#include "item_effects.h"
+#include "resource_parser_tester.h"
 
 //================================================================================================================================
-//=> - Globals -
+//=> - Static members -
 //================================================================================================================================
 
-typedef const char* cstr;
-int print_level = 0;
-
-const DataParserBase* g_tech_parser = NULL;
-const DataParserBase* g_resource_parser = NULL;
-const DataParserBase* g_city_flag_parser = NULL;
-const DataParserBase* g_building_parser = NULL;
-const DataParserBase* g_civ_parser = NULL;
-const DataParserBase* g_unit_parser = NULL;
-const DataParserBase* g_unit_types_parser = NULL;
-const DataParserBase* g_civ_traits_parser = NULL;
+ResourceParserTester* ResourceParserTester::s_inst = NULL;
 
 //================================================================================================================================
-//=> - Helper functions -
+//=> - ResourceParserTester implementation -
 //================================================================================================================================
 
-u16 cb_tech_name_to_idx (cstr name) {
-    return g_tech_parser->name_to_idx(name);
+ResourceParserTester::ResourceParserTester () : 
+    m_plvl(0), 
+    m_building_psr(NULL),
+    m_city_flag_psr(NULL),
+    m_civ_psr(NULL),
+    m_civ_trait_psr(NULL),
+    m_resource_psr(NULL),
+    m_small_wonder_psr(NULL),
+    m_tech_psr(NULL),
+    m_unit_psr(NULL),
+    m_unit_action_psr(NULL),
+    m_unit_type_psr(NULL),
+    m_wonder_psr(NULL) 
+{
 }
 
-u16 cb_resource_name_to_idx (cstr name) {
-    return g_resource_parser->name_to_idx(name);
+void ResourceParserTester::set_plvl (int lvl) {
+    m_plvl = lvl;
 }
 
-u16 cb_city_flag_name_to_idx (cstr name) {
-    return g_city_flag_parser->name_to_idx(name);
+bool ResourceParserTester::ld_sm (StringManager& sm, cstr path) {
+    if (sm.load_file_content(path)) {
+        sm.split_string_by_char(0, '\n');
+        sm.cull_empty_strings();
+        return true;
+    }
+    sm.load_cstr_content("NONE");
+    sm.split_string_by_char(0, '\n');
+    sm.cull_empty_strings();
+    return false;
 }
 
-u16 cb_building_name_to_idx (cstr name) {
-    return g_building_parser->name_to_idx(name);
+u16 ResourceParserTester::st_building_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_building_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_building_psr->name_to_idx(name);
 }
 
-u16 cb_civ_name_to_idx (cstr name) {
-    return g_civ_parser->name_to_idx(name);
+u16 ResourceParserTester::st_city_flag_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_city_flag_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_city_flag_psr->name_to_idx(name);
 }
 
-u16 cb_unit_name_to_idx (cstr name) {
-    return g_unit_parser->name_to_idx(name);
+u16 ResourceParserTester::st_civ_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_civ_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_civ_psr->name_to_idx(name);
 }
 
-u16 cb_unit_types_name_to_idx (cstr name) {
-    return g_unit_types_parser->name_to_idx(name);
+u16 ResourceParserTester::st_civ_trait_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_civ_trait_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_civ_trait_psr->name_to_idx(name);
 }
 
-u16 cb_civ_trait_name_to_idx (cstr name) {
-    return g_civ_traits_parser->name_to_idx(name);
+u16 ResourceParserTester::st_resource_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_resource_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_resource_psr->name_to_idx(name);
 }
 
-void print_u16_member (cstr label, u16 value) {
+u16 ResourceParserTester::st_small_wonder_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_small_wonder_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_small_wonder_psr->name_to_idx(name);
+}
+
+u16 ResourceParserTester::st_tech_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_tech_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_tech_psr->name_to_idx(name);
+}
+
+u16 ResourceParserTester::st_unit_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_unit_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_unit_psr->name_to_idx(name);
+}
+
+u16 ResourceParserTester::st_unit_action_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_unit_action_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_unit_action_psr->name_to_idx(name);
+}
+
+u16 ResourceParserTester::st_unit_type_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_unit_type_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_unit_type_psr->name_to_idx(name);
+}
+
+u16 ResourceParserTester::st_wonder_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_wonder_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_wonder_psr->name_to_idx(name);
+}
+
+void ResourceParserTester::pr_u16 (cstr label, u16 value) {
     printf("  %s: %u\n", label, value);
 }
 
-void print_u32_member (cstr label, u32 value) {
+void ResourceParserTester::pr_u32 (cstr label, u32 value) {
     printf("  %s: %u\n", label, value);
 }
 
-void print_reqs_member (cstr label, const ItemReqsStruct& reqs) {
+void ResourceParserTester::pr_reqs (cstr label, const ItemReqsStruct& reqs) {
     printf("  %s:\n", label);
     for (u32 j = 0; j < MAX_PREREQ_COUNT; ++j) {
         if (reqs.types[j] == ITEM_REQ_TYPE_NONE) {
             continue;
         }
         const u16 idx = reqs.indices[j];
-        if (idx == 0) {
+        if (idx == U16_KEY_NULL) {
             continue;
         }
         const u8 type = reqs.types[j];
-        if (type == ITEM_REQ_TYPE_TECH && g_tech_parser != NULL) {
-            printf("    [%u] type=%u %s (%u)", j, type, g_tech_parser->idx_to_name(idx).c_str(), idx);
-        } else if (type == ITEM_REQ_TYPE_RESOURCE && g_resource_parser != NULL) {
-            printf("    [%u] type=%u %s (%u)", j, type, g_resource_parser->idx_to_name(idx).c_str(), idx);
-        } else if (type == ITEM_REQ_TYPE_FLAG && g_city_flag_parser != NULL) {
-            printf("    [%u] type=%u %s (%u)", j, type, g_city_flag_parser->idx_to_name(idx).c_str(), idx);
-        } else if (type == ITEM_REQ_TYPE_CIV && g_civ_parser != NULL) {
-            printf("    [%u] type=%u %s (%u)", j, type, g_civ_parser->idx_to_name(idx).c_str(), idx);
-        } else if (type == ITEM_REQ_TYPE_BUILDING && g_building_parser != NULL) {
-            printf("    [%u] type=%u %s (%u)", j, type, g_building_parser->idx_to_name(idx).c_str(), idx);
+
+        if (type == ITEM_REQ_TYPE_BUILDING && m_building_psr != NULL) {
+            printf("    [%u] type=%u %s (%u)", j, type, m_building_psr->idx_to_name(idx).c_str(), idx);
+        } else if (type == ITEM_REQ_TYPE_FLAG && m_city_flag_psr != NULL) {
+            printf("    [%u] type=%u %s (%u)", j, type, m_city_flag_psr->idx_to_name(idx).c_str(), idx);
+        } else if (type == ITEM_REQ_TYPE_CIV && m_civ_psr != NULL) {
+            printf("    [%u] type=%u %s (%u)", j, type, m_civ_psr->idx_to_name(idx).c_str(), idx);
+        } else if (type == ITEM_REQ_TYPE_RESOURCE && m_resource_psr != NULL) {
+            printf("    [%u] type=%u %s (%u)", j, type, m_resource_psr->idx_to_name(idx).c_str(), idx);
+        } else if (type == ITEM_REQ_TYPE_TECH && m_tech_psr != NULL) {
+            printf("    [%u] type=%u %s (%u)", j, type, m_tech_psr->idx_to_name(idx).c_str(), idx);
+
         } else {
             printf("    [%u] type=%u <unknown> (%u)", j, type, idx);
         }
@@ -102,7 +166,7 @@ void print_reqs_member (cstr label, const ItemReqsStruct& reqs) {
     }
 }
 
-void print_effects_member (cstr label, const ItemEffectsStruct& e) {
+void ResourceParserTester::pr_fx (cstr label, const ItemEffectsStruct& e) {
     printf("  %s:\n", label);
     for (u32 j = 0; j < MAX_EFFECT_COUNT; ++j) {
         const ItemEffectStruct& slot = e.items[j];
@@ -177,10 +241,12 @@ void print_effects_member (cstr label, const ItemEffectsStruct& e) {
                 case ItemEffectUpkeepMode::NO_UPKEEP: um = "NO_UPKEEP"; break;
                 default: break;
             }
-            if (b.building_id == 0) {
+            if (b.building_id == U16_KEY_NULL) {
                 printf(" build");
+            } else if (m_building_psr != NULL) {
+                printf(" build %s (%u)", m_building_psr->idx_to_name(b.building_id).c_str(), static_cast<u32>(b.building_id));
             } else {
-                printf(" build %s (%u)", g_building_parser->idx_to_name(b.building_id).c_str(), static_cast<u32>(b.building_id));
+                printf(" build <unknown> (%u)", static_cast<u32>(b.building_id));
             }
             printf(" scope=%s", sc);
             printf(" build_mode=%s upkeep=%s", bm, um);
@@ -217,11 +283,11 @@ void print_effects_member (cstr label, const ItemEffectsStruct& e) {
         }
         case ItemEffectType::TRAIN: {
             const ItemEffectTrain& tr = slot.effect.train;
-            if (tr.unit_id == 0) {
+            if (tr.unit_id == U16_KEY_NULL) {
                 printf(" train");
             } else {
-                if (g_unit_parser != NULL) {
-                    printf(" train %s (%u)", g_unit_parser->idx_to_name(tr.unit_id).c_str(), static_cast<u32>(tr.unit_id));
+                if (m_unit_psr != NULL) {
+                    printf(" train %s (%u)", m_unit_psr->idx_to_name(tr.unit_id).c_str(), static_cast<u32>(tr.unit_id));
                 } else {
                     printf(" train <unknown> (%u)", static_cast<u32>(tr.unit_id));
                 }
@@ -242,122 +308,124 @@ void print_effects_member (cstr label, const ItemEffectsStruct& e) {
     }
 }
 
-void print_civ_traits_member (cstr label, const CivTraitStruct& traits) {
+void ResourceParserTester::pr_traits (cstr label, const CivTraitStruct& traits) {
     printf("  %s:\n", label);
     for (u32 j = 0; j < MAX_CIV_TRAIT_COUNT; ++j) {
         const u16 tix = traits.indices[j];
-        if (tix == 0) {
+        if (tix == U16_KEY_NULL) {
             continue;
         }
-        printf("    [%u] %s (%u)\n", j, g_civ_traits_parser->idx_to_name(tix).c_str(), tix);
+        if (m_civ_trait_psr != NULL) {
+            printf("    [%u] %s (%u)\n", j, m_civ_trait_psr->idx_to_name(tix).c_str(), tix);
+        } else {
+            printf("    [%u] <unknown> (%u)\n", j, tix);
+        }
     }
 }
 
-void print_item (const ResourceStaticDataStruct& item) {
+void ResourceParserTester::pr_item (const ResourceStaticDataStruct& item) {
     printf("name: %s\n", item.name.c_str());
-    print_u16_member("food", item.food);
-    print_u16_member("shields", item.shields);
-    print_u16_member("commerce", item.commerce);
-    print_reqs_member("reqs", item.reqs);
+    pr_u16("food", item.food);
+    pr_u16("shields", item.shields);
+    pr_u16("commerce", item.commerce);
+    pr_reqs("reqs", item.reqs);
 }
 
-int run_parse_driver () {
+int ResourceParserTester::run () {
+    s_inst = this;
     NameToIdxCbs cbs = {};
-    cbs.tech_name_to_idx = cb_tech_name_to_idx;
-    cbs.resource_name_to_idx = cb_resource_name_to_idx;
-    cbs.city_flag_name_to_idx = cb_city_flag_name_to_idx;
-    cbs.building_name_to_idx = cb_building_name_to_idx;
-    cbs.civ_name_to_idx = cb_civ_name_to_idx;
-    cbs.unit_name_to_idx = cb_unit_name_to_idx;
-    cbs.unit_type_name_to_idx = cb_unit_types_name_to_idx;
-    cbs.civ_trait_name_to_idx = cb_civ_trait_name_to_idx;
+
+    cbs.building_name_to_idx = st_building_n2i;
+    cbs.city_flag_name_to_idx = st_city_flag_n2i;
+    cbs.civ_name_to_idx = st_civ_n2i;
+    cbs.civ_trait_name_to_idx = st_civ_trait_n2i;
+    cbs.resource_name_to_idx = st_resource_n2i;
+    cbs.small_wonder_name_to_idx = st_small_wonder_n2i;
+    cbs.tech_name_to_idx = st_tech_n2i;
+    cbs.unit_name_to_idx = st_unit_n2i;
+    cbs.unit_action_name_to_idx = st_unit_action_n2i;
+    cbs.unit_type_name_to_idx = st_unit_type_n2i;
+    cbs.wonder_name_to_idx = st_wonder_n2i;
 
     PathMng paths("../");
-    StringManager tech_items;
-    StringManager resource_items;
-    StringManager city_flag_items;
+
     StringManager building_items;
+    StringManager city_flag_items;
     StringManager civ_items;
+    StringManager civ_trait_items;
+    StringManager resource_items;
+    StringManager small_wonder_items;
+    StringManager tech_items;
     StringManager unit_items;
-    StringManager unit_types_items;
-    StringManager civ_traits_items;
+    StringManager unit_action_items;
+    StringManager unit_type_items;
+    StringManager wonder_items;
+
     StringManager effect_items;
 
-    tech_items.load_file_content(paths.get_path_to_techs().c_str());
-    tech_items.split_string_by_char(0, '\n');
-    tech_items.cull_empty_strings();
-    resource_items.load_file_content(paths.get_path_to_resources().c_str());
-    resource_items.split_string_by_char(0, '\n');
-    resource_items.cull_empty_strings();
-    city_flag_items.load_file_content(paths.get_path_to_city_flags().c_str());
-    city_flag_items.split_string_by_char(0, '\n');
-    city_flag_items.cull_empty_strings();
-    building_items.load_file_content(paths.get_path_to_buildings().c_str());
-    building_items.split_string_by_char(0, '\n');
-    building_items.cull_empty_strings();
-    civ_items.load_file_content(paths.get_path_to_civs().c_str());
-    civ_items.split_string_by_char(0, '\n');
-    civ_items.cull_empty_strings();
-    unit_items.load_file_content(paths.get_path_to_units().c_str());
-    unit_items.split_string_by_char(0, '\n');
-    unit_items.cull_empty_strings();
-    unit_types_items.load_file_content(paths.get_path_to_unit_types().c_str());
-    unit_types_items.split_string_by_char(0, '\n');
-    unit_types_items.cull_empty_strings();
-    civ_traits_items.load_file_content(paths.get_path_to_civ_traits().c_str());
-    civ_traits_items.split_string_by_char(0, '\n');
-    civ_traits_items.cull_empty_strings();
-    effect_items.load_file_content(paths.get_path_to_effects().c_str());
-    effect_items.split_string_by_char(0, '\n');
-    effect_items.cull_empty_strings();
+    ld_sm(building_items, paths.get_path_to_buildings().c_str());
+    ld_sm(city_flag_items, paths.get_path_to_city_flags().c_str());
+    ld_sm(civ_items, paths.get_path_to_civs().c_str());
+    ld_sm(civ_trait_items, paths.get_path_to_civ_traits().c_str());
+    ld_sm(resource_items, paths.get_path_to_resources().c_str());
+    ld_sm(small_wonder_items, paths.get_path_to_small_wonders().c_str());
+    ld_sm(tech_items, paths.get_path_to_techs().c_str());
+    ld_sm(unit_items, paths.get_path_to_units().c_str());
+    ld_sm(unit_action_items, paths.get_path_to_unit_actions().c_str());
+    ld_sm(unit_type_items, paths.get_path_to_unit_types().c_str());
+    ld_sm(wonder_items, paths.get_path_to_wonders().c_str());
 
-    DataParserBase::set_item_effect_handler(&cbs, &effect_items);
+    const bool fx_ok = ld_sm(effect_items, paths.get_path_to_effects().c_str());
+    if (fx_ok) {
+        DataParserBase::set_item_effect_handler(&cbs, &effect_items);
+    }
 
-    DataParserBase tech_parser(tech_items, cbs);
-    DataParserBase resource_parser(resource_items, cbs);
-    DataParserBase city_flag_parser(city_flag_items, cbs);
     DataParserBase building_parser(building_items, cbs);
+    DataParserBase city_flag_parser(city_flag_items, cbs);
     DataParserBase civ_parser(civ_items, cbs);
+    DataParserBase civ_trait_parser(civ_trait_items, cbs);
+    DataParserBase resource_parser(resource_items, cbs);
+    DataParserBase small_wonder_parser(small_wonder_items, cbs);
+    DataParserBase tech_parser(tech_items, cbs);
     DataParserBase unit_parser(unit_items, cbs);
-    DataParserBase unit_types_parser(unit_types_items, cbs);
-    DataParserBase civ_traits_parser(civ_traits_items, cbs);
+    DataParserBase unit_action_parser(unit_action_items, cbs);
+    DataParserBase unit_type_parser(unit_type_items, cbs);
+    DataParserBase wonder_parser(wonder_items, cbs);
 
-    g_tech_parser = &tech_parser;
-    g_resource_parser = &resource_parser;
-    g_city_flag_parser = &city_flag_parser;
-    g_building_parser = &building_parser;
-    g_civ_parser = &civ_parser;
-    g_unit_parser = &unit_parser;
-    g_unit_types_parser = &unit_types_parser;
-    g_civ_traits_parser = &civ_traits_parser;
+    m_building_psr = &building_parser;
+    m_city_flag_psr = &city_flag_parser;
+    m_civ_psr = &civ_parser;
+    m_civ_trait_psr = &civ_trait_parser;
+    m_resource_psr = &resource_parser;
+    m_small_wonder_psr = &small_wonder_parser;
+    m_tech_psr = &tech_parser;
+    m_unit_psr = &unit_parser;
+    m_unit_action_psr = &unit_action_parser;
+    m_unit_type_psr = &unit_type_parser;
+    m_wonder_psr = &wonder_parser;
 
     StringManager raw_items;
-    raw_items.load_file_content("../game_config.resources");
+    if (!raw_items.load_file_content("../game_config.resources")) {
+        s_inst = NULL;
+        return 0;
+    }
     raw_items.split_string_by_char(0, '\n');
     raw_items.cull_empty_strings();
+    if (raw_items.get_string_count() == 0) {
+        s_inst = NULL;
+        return 0;
+    }
     ResourceParser parser(raw_items, cbs);
     ResourceStaticDataStruct* parsed_data = parser.parse_data_dependencies();
-
-    if (print_level >= 2) {
+    if (m_plvl >= 2) {
         for (u32 i = 0; i < raw_items.get_string_count(); ++i) {
-            print_item(parsed_data[i]);
+            pr_item(parsed_data[i]);
             printf("-----------------------------------------------------------\n");
         }
     }
-
     delete[] parsed_data;
+    s_inst = NULL;
     return 0;
-}
-
-//================================================================================================================================
-//=> - Main -
-//================================================================================================================================
-
-int main (int argc, char* argv[]) {
-    if (argc > 1) {
-        print_level = std::atoi(argv[1]);
-    }
-    return run_parse_driver();
 }
 
 //================================================================================================================================

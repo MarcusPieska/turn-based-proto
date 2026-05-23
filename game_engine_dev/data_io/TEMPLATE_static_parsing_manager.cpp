@@ -61,6 +61,8 @@ StaticParsingManager::~StaticParsingManager () {
 [STATIC_PARSE_CPP_TYPED_GETTERS_TAG]
 [STATIC_PARSE_CPP_RAW_GETTERS_TAG]
 [STATIC_PARSE_CPP_MAP_GETTERS_TAG]
+
+[STATIC_PARSE_CPP_RELEASE_MAP_BANKS_TAG]
 u16 StaticParsingManager::get_callback_count () const {
     return m_callback_count;
 }

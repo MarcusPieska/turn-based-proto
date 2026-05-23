@@ -255,6 +255,9 @@ ItemEffectsStruct DataParserBase::parse_item_effects (const StringManager& line_
 
 ItemReqsStruct DataParserBase::parse_item_reqs (const StringManager& line_items, u16 start_idx) const {
     ItemReqsStruct reqs = {};
+    for (u32 i = 0; i < MAX_PREREQ_COUNT; ++i) {
+        reqs.indices[i] = U16_KEY_NULL;
+    }
     u16 write_idx = 0;
     for (u16 i = start_idx; i < line_items.get_string_count(); ++i) {
         std::string token = trim_ws(line_items.get_string_content(i));
@@ -312,6 +315,9 @@ ItemReqsStruct DataParserBase::parse_item_reqs (const StringManager& line_items,
 
 CivTraitStruct DataParserBase::parse_civ_traits (const StringManager& line_items, u16 start_idx) const {
     CivTraitStruct traits = {};
+    for (u32 i = 0; i < MAX_CIV_TRAIT_COUNT; ++i) {
+        traits.indices[i] = U16_KEY_NULL;
+    }
     for (u16 i = 0; i + start_idx < line_items.get_string_count() && i < MAX_CIV_TRAIT_COUNT; ++i) {
         traits.indices[i] = m_name_to_idx_cbs.civ_trait_name_to_idx(line_items.get_string_content(i + start_idx));
     }

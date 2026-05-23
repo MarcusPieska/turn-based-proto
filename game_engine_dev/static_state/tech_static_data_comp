@@ -1,14 +1,11 @@
 #!/bin/bash
 
-# Define the include path for the compiler
-INC="-I.."
+INC="-I.. -I../static_state"
+CXXFLAGS="-std=c++17 -Wall -Wextra"
 
-# Compile objects
-g++ $INC -c tech_static_data.cpp -o tech_static_data.o
-g++ $INC -c tech_static_data_tester.cpp -o tech_static_data_tester.o
+g++ $CXXFLAGS $INC -c tech_static_data.cpp -o tech_static_data.o
+g++ $CXXFLAGS $INC -c tech_static_data_tester.cpp -o tech_static_data_tester.o
 
-# Link everything into the final tester
-g++ -o tech_static_data_tester tech_static_data.o tech_static_data_tester.o
+g++ $CXXFLAGS -o tech_static_data_tester tech_static_data.o tech_static_data_tester.o
 
-# Clean up
 rm tech_static_data.o tech_static_data_tester.o

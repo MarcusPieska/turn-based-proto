@@ -11,6 +11,7 @@ g++ $INC -c ../data_io/item_effect_handler.cpp -o item_effect_handler.o
 g++ $INC -c ../data_io/item_effect_helpers.cpp -o item_effect_helpers.o
 g++ $INC -c resource_parser.cpp -o resource_parser.o
 g++ $INC -c resource_parser_tester.cpp -o resource_parser_tester.o
+g++ $INC -c resource_parser_tester_drv.cpp -o resource_parser_tester_drv.o
 
 # Link everything into the final tester
 g++ -o resource_parser_tester \
@@ -20,7 +21,8 @@ g++ -o resource_parser_tester \
     item_effect_helpers.o \
     data_parser_base.o \
     resource_parser.o \
-    resource_parser_tester.o
+    resource_parser_tester.o \
+    resource_parser_tester_drv.o
 
 # Clean up
 rm \
@@ -30,4 +32,5 @@ rm \
     item_effect_helpers.o \
     data_parser_base.o \
     resource_parser.o \
-    resource_parser_tester.o
+    resource_parser_tester.o \
+    resource_parser_tester_drv.o

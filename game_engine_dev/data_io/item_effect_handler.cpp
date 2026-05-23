@@ -189,6 +189,7 @@ ItemEffectsStruct ItemEffectHandler::parse_effects_line (const StringManager& li
                 continue;
             }
             slot.type = static_cast<u16>(ItemEffectType::BUILD);
+            slot.effect.build.building_id = U16_KEY_NULL;
             if (m_cbs->building_name_to_idx != nullptr) {
                 slot.effect.build.building_id = m_cbs->building_name_to_idx(args_mgr.get_string_content(0));
             }
@@ -231,6 +232,7 @@ ItemEffectsStruct ItemEffectHandler::parse_effects_line (const StringManager& li
                 continue;
             }
             slot.type = static_cast<u16>(ItemEffectType::TRAIN);
+            slot.effect.train.unit_id = U16_KEY_NULL;
             if (m_cbs->unit_name_to_idx != nullptr) {
                 slot.effect.train.unit_id = m_cbs->unit_name_to_idx(args_mgr.get_string_content(0));
             }

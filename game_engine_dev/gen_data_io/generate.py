@@ -8,6 +8,39 @@ sys.dont_write_bytecode = True
 import os
 
 #================================================================================================================================#
+#=> - Parser specs and ref-parser metadata -
+#================================================================================================================================#
+
+PARSER_SPECS = []
+PARSER_SPECS.append(("building", "Building", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStruct"))
+PARSER_SPECS.append(("city_flag", "CityFlag", ""))
+PARSER_SPECS.append(("civ", "Civ", "traits,1,CivTraitStruct"))
+PARSER_SPECS.append(("civ_trait", "CivTrait", ""))
+PARSER_SPECS.append(("resource", "Resource", "food,1,u16:shields,2,u16:commerce,3,u16:reqs,4,ItemReqsStruct"))
+PARSER_SPECS.append(("small_wonder", "SmallWonder", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStruct"))
+PARSER_SPECS.append(("tech", "Tech", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStruct"))
+PARSER_SPECS.append(("unit", "Unit", "type,1,UnitType:cost,2,u32:attack,3,u16:defense,4,u16:mvt_pts,5,u16:reqs,6,ItemReqsStruct"))
+PARSER_SPECS.append(("unit_action", "UnitAction", ""))
+PARSER_SPECS.append(("unit_type", "UnitType", ""))
+PARSER_SPECS.append(("wonder", "Wonder", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStruct"))
+
+def derive_req_type(prefix):
+    if prefix == "city_flag":
+        return "ITEM_REQ_TYPE_FLAG"
+    req_type = "ITEM_REQ_TYPE_" + prefix.upper()
+    if req_type in ("ITEM_REQ_TYPE_BUILDING", "ITEM_REQ_TYPE_CIV", "ITEM_REQ_TYPE_RESOURCE", "ITEM_REQ_TYPE_TECH"):
+        return req_type
+    return None
+
+def derive_ref_parser_deps():
+    deps = []
+    for prefix, class_name, parsing_instructions in PARSER_SPECS:
+        deps.append((prefix, "get_path_to_%ss" % prefix, "%s_name_to_idx" % prefix, derive_req_type(prefix)))
+    return deps
+
+REF_PARSER_DEPS = derive_ref_parser_deps()
+
+#================================================================================================================================#
 #=> - Helper functions -
 #================================================================================================================================#
 
@@ -44,15 +77,89 @@ def derive_member_print_lines(parsing_instructions):
     for instruction in parsing_instructions.split(":"):
         mem, idx, data_type = [part.strip() for part in instruction.strip().split(",")]
         if data_type in ["u16", "UnitType"]:
-            lines.append('print_u16_member("%s", item.%s);' % (mem, mem))
+            lines.append('pr_u16("%s", item.%s);' % (mem, mem))
         elif data_type == "u32":
-            lines.append('print_u32_member("%s", item.%s);' % (mem, mem))
+            lines.append('pr_u32("%s", item.%s);' % (mem, mem))
         elif data_type == "ItemReqsStruct":
-            lines.append('print_reqs_member("%s", item.%s);' % (mem, mem))
+            lines.append('pr_reqs("%s", item.%s);' % (mem, mem))
         elif data_type == "ItemEffectsStruct":
-            lines.append('print_effects_member("%s", item.%s);' % (mem, mem))
+            lines.append('pr_fx("%s", item.%s);' % (mem, mem))
         elif data_type == "CivTraitStruct":
-            lines.append('print_civ_traits_member("%s", item.%s);' % (mem, mem))
+            lines.append('pr_traits("%s", item.%s);' % (mem, mem))
+    return lines
+
+def derive_dep_psr_members():
+    lines = []
+    for prefix, path_fn, cb_field, req_type in REF_PARSER_DEPS:
+        lines.append("const DataParserBase* m_%s_psr;" % prefix)
+    return lines
+
+def derive_dep_n2i_decls():
+    lines = []
+    for prefix, path_fn, cb_field, req_type in REF_PARSER_DEPS:
+        lines.append("static u16 st_%s_n2i (cstr name);" % prefix)
+    return lines
+
+def derive_dep_init():
+    parts = []
+    for prefix, path_fn, cb_field, req_type in REF_PARSER_DEPS:
+        parts.append("m_%s_psr(NULL)" % prefix)
+    return ",\n    ".join(parts)
+
+def derive_dep_n2i_impl(class_tag):
+    lines = []
+    for prefix, path_fn, cb_field, req_type in REF_PARSER_DEPS:
+        lines.append("u16 %sParserTester::st_%s_n2i (cstr name) {" % (class_tag, prefix))
+        lines.append("    if (s_inst == NULL || s_inst->m_%s_psr == NULL) {" % prefix)
+        lines.append("        return U16_KEY_NULL;")
+        lines.append("    }")
+        lines.append("    return s_inst->m_%s_psr->name_to_idx(name);" % prefix)
+        lines.append("}")
+        lines.append("")
+    return lines
+
+def derive_dep_cbs_wire():
+    lines = []
+    for prefix, path_fn, cb_field, req_type in REF_PARSER_DEPS:
+        lines.append("cbs.%s = st_%s_n2i;" % (cb_field, prefix))
+    return lines
+
+def derive_dep_items_decl():
+    lines = []
+    for prefix, path_fn, cb_field, req_type in REF_PARSER_DEPS:
+        lines.append("StringManager %s_items;" % prefix)
+    return lines
+
+def derive_dep_ld():
+    lines = []
+    for prefix, path_fn, cb_field, req_type in REF_PARSER_DEPS:
+        lines.append("ld_sm(%s_items, paths.%s().c_str());" % (prefix, path_fn))
+    return lines
+
+def derive_dep_parser_decl():
+    lines = []
+    for prefix, path_fn, cb_field, req_type in REF_PARSER_DEPS:
+        lines.append("DataParserBase %s_parser(%s_items, cbs);" % (prefix, prefix))
+    return lines
+
+def derive_dep_psr_assign():
+    lines = []
+    for prefix, path_fn, cb_field, req_type in REF_PARSER_DEPS:
+        lines.append("m_%s_psr = &%s_parser;" % (prefix, prefix))
+    return lines
+
+def derive_dep_reqs_print():
+    lines = []
+    first = True
+    for prefix, path_fn, cb_field, req_type in REF_PARSER_DEPS:
+        if req_type is None:
+            continue
+        if first:
+            lines.append("if (type == %s && m_%s_psr != NULL) {" % (req_type, prefix))
+            first = False
+        else:
+            lines.append("} else if (type == %s && m_%s_psr != NULL) {" % (req_type, prefix))
+        lines.append('    printf("    [%%u] type=%%u %%s (%%u)", j, type, m_%s_psr->idx_to_name(idx).c_str(), idx);' % prefix)
     return lines
 
 def get_output_filename(output_prefix, template_file):
@@ -84,11 +191,23 @@ if __name__ == "__main__":
     substitution_pairs.append(("[STRUCT_TAG]", struct_name))
     substitution_pairs.append(("[PARSE_TAG]", "\n        ".join(derive_parsing_lines(parsing_instructions))))
     substitution_pairs.append(("[MEMBER_PRINT_TAG]", "\n    ".join(derive_member_print_lines(parsing_instructions))))
+    substitution_pairs.append(("[DEP_PSR_MEMBERS_TAG]", "\n    ".join(derive_dep_psr_members())))
+    substitution_pairs.append(("[DEP_N2I_DECL_TAG]", "\n    ".join(derive_dep_n2i_decls())))
+    substitution_pairs.append(("[DEP_INIT_TAG]", derive_dep_init()))
+    substitution_pairs.append(("[DEP_N2I_IMPL_TAG]", "\n".join(derive_dep_n2i_impl(class_name))))
+    substitution_pairs.append(("[DEP_CBS_WIRE_TAG]", "\n    ".join(derive_dep_cbs_wire())))
+    substitution_pairs.append(("[DEP_ITEMS_DECL_TAG]", "\n    ".join(derive_dep_items_decl())))
+    substitution_pairs.append(("[DEP_LD_TAG]", "\n    ".join(derive_dep_ld())))
+    substitution_pairs.append(("[DEP_PARSER_DECL_TAG]", "\n    ".join(derive_dep_parser_decl())))
+    substitution_pairs.append(("[DEP_PSR_ASSIGN_TAG]", "\n    ".join(derive_dep_psr_assign())))
+    substitution_pairs.append(("[DEP_REQS_PRINT_TAG]", "\n        ".join(derive_dep_reqs_print())))
 
     template_files = []
     template_files.append("PREFIX_parser.cpp")
     template_files.append("PREFIX_parser.h")
+    template_files.append("PREFIX_parser_tester.h")
     template_files.append("PREFIX_parser_tester.cpp")
+    template_files.append("PREFIX_parser_tester_drv.cpp")
     template_files.append("PREFIX_parser_comp")
 
     output_files = []

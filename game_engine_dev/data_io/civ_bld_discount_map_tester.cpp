@@ -40,7 +40,8 @@ public:
         const StringManager& civ_trait_items,
         const StringManager& building_items,
         u16 civ_trait_count,
-        u16 building_count) {
+        u16 building_count,
+        const CivBldDiscountMap& map) {
 
         StringManager civ_name_parts;
         StringManager bld_name_parts;
@@ -52,7 +53,7 @@ public:
             }
             printf("%s:\n", nm);
             for (u16 b = 0; b < building_count; ++b) {
-                if (CivBldDiscountMap::civ_trait_has_discount_for_bld(c, b)) {
+                if (map.civ_trait_has_discount_for_bld(c, b)) {
                     cstr bnm = get_name(building_items, b, bld_name_parts);
                     if (std::strcmp(bnm, "NONE") == 0) {
                         continue;
@@ -82,10 +83,12 @@ int main () {
     CivTraitParser civ_trait_parser(civ_trait_items, empty_cbs);
     const u16 civ_trait_count = static_cast<u16>(civ_trait_items.get_string_count());
     const u16 building_count = static_cast<u16>(building_items.get_string_count());
-    StaticBitBank bank(civ_trait_count, building_count);
-    CivBldDiscountMapParsing::load_cfg_map(bank, civ_trait_items, civ_trait_parser, building_parser);
-    CivBldDiscountMap::set_map(&bank, civ_trait_count, building_count);
-    CivBldDiscountMapTester::print_mapping(civ_trait_items, building_items, civ_trait_count, building_count);
+    StaticBitBank* bank = new StaticBitBank(civ_trait_count, building_count);
+    CivBldDiscountMapParsing::load_cfg_map(*bank, civ_trait_items, civ_trait_parser, building_parser);
+    CivBldDiscountMap map;
+    map.set_map(bank, civ_trait_count, building_count);
+    map.take_ownership();
+    CivBldDiscountMapTester::print_mapping(civ_trait_items, building_items, civ_trait_count, building_count, map);
     return 0;
 }
 

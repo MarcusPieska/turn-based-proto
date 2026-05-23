@@ -16,11 +16,9 @@
 #include "static_bit_bank.h"
 #include "unit_type_parser.h"
 #include "unit_action_parser.h"
-#include "unit_type_action_map.h"
 #include "unit_type_action_map_parsing.h"
 #include "civ_trait_parser.h"
 #include "building_parser.h"
-#include "civ_bld_discount_map.h"
 #include "civ_bld_discount_map_parsing.h"
 
 //================================================================================================================================
@@ -299,6 +297,11 @@ StaticBitBank* StaticParsingManager::get_unit_type_action_map_bank () const {
 StaticBitBank* StaticParsingManager::get_civ_bld_discount_map_bank () const {
     return m_civ_bld_discount_map_bank;
 }
+
+void StaticParsingManager::release_map_banks () {
+    m_unit_type_action_map_bank = nullptr;
+    m_civ_bld_discount_map_bank = nullptr;
+}
 u16 StaticParsingManager::get_callback_count () const {
     return m_callback_count;
 }
@@ -361,13 +364,11 @@ void StaticParsingManager::parse_supported_data () {
     const u16 unit_action_n = safe_size_to_u16(m_unit_action_items.get_string_count());
     m_unit_type_action_map_bank = new StaticBitBank(unit_type_n, unit_action_n);
     UnitTypeActionMapParsing::load_cfg_map(*m_unit_type_action_map_bank, m_unit_type_items, unit_type_parser, unit_action_parser);
-    UnitTypeActionMap::set_map(m_unit_type_action_map_bank, unit_type_n, unit_action_n);
     
     const u16 civ_trait_n = safe_size_to_u16(m_civ_trait_items.get_string_count());
     const u16 building_n = safe_size_to_u16(m_building_items.get_string_count());
     m_civ_bld_discount_map_bank = new StaticBitBank(civ_trait_n, building_n);
     CivBldDiscountMapParsing::load_cfg_map(*m_civ_bld_discount_map_bank, m_civ_trait_items, civ_trait_parser, building_parser);
-    CivBldDiscountMap::set_map(m_civ_bld_discount_map_bank, civ_trait_n, building_n);
 }
 
 u16 StaticParsingManager::safe_size_to_u16 (size_t value) {
