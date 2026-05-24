@@ -5,23 +5,106 @@
 INC="-I.. -I../misc -I../static_state"
 CXXFLAGS="-std=c++17"
 LIB_DIR="."
-LIB_NAME="static_parse"
+LIB_SO="runtime_static_loader_lib.so"
 OUT_BIN="runtime_statics_tester"
 
-if [ ! -f "$LIB_DIR/lib${LIB_NAME}.so" ]; then
-    echo "missing lib${LIB_NAME}.so - run ./static_parse_lib_comp first"
+if [ ! -f "$LIB_DIR/$LIB_SO" ]; then
+    echo "missing $LIB_SO - run ./runtime_static_loader_lib_comp first"
     exit 1
 fi
 
 g++ $INC $CXXFLAGS -c runtime_static_loader.cpp -o runtime_static_loader.o
 g++ $INC $CXXFLAGS -c runtime_statics_tester.cpp -o runtime_statics_tester.o
+g++ $INC $CXXFLAGS -c ../misc/opt_str_mng.cpp -o opt_str_mng.o
+g++ $INC $CXXFLAGS -c path_mng.cpp -o path_mng.o
+g++ $INC $CXXFLAGS -c data_parser_base.cpp -o data_parser_base.o
+g++ $INC $CXXFLAGS -c item_effect_handler.cpp -o item_effect_handler.o
+g++ $INC $CXXFLAGS -c item_effect_helpers.cpp -o item_effect_helpers.o
+g++ $INC $CXXFLAGS -c building_parser.cpp -o building_parser.o
+g++ $INC $CXXFLAGS -c building_parser_tester.cpp -o building_parser_tester.o
+g++ $INC $CXXFLAGS -c city_flag_parser.cpp -o city_flag_parser.o
+g++ $INC $CXXFLAGS -c city_flag_parser_tester.cpp -o city_flag_parser_tester.o
+g++ $INC $CXXFLAGS -c civ_parser.cpp -o civ_parser.o
+g++ $INC $CXXFLAGS -c civ_parser_tester.cpp -o civ_parser_tester.o
+g++ $INC $CXXFLAGS -c civ_trait_parser.cpp -o civ_trait_parser.o
+g++ $INC $CXXFLAGS -c civ_trait_parser_tester.cpp -o civ_trait_parser_tester.o
+g++ $INC $CXXFLAGS -c resource_parser.cpp -o resource_parser.o
+g++ $INC $CXXFLAGS -c resource_parser_tester.cpp -o resource_parser_tester.o
+g++ $INC $CXXFLAGS -c small_wonder_parser.cpp -o small_wonder_parser.o
+g++ $INC $CXXFLAGS -c small_wonder_parser_tester.cpp -o small_wonder_parser_tester.o
+g++ $INC $CXXFLAGS -c tech_parser.cpp -o tech_parser.o
+g++ $INC $CXXFLAGS -c tech_parser_tester.cpp -o tech_parser_tester.o
+g++ $INC $CXXFLAGS -c unit_parser.cpp -o unit_parser.o
+g++ $INC $CXXFLAGS -c unit_parser_tester.cpp -o unit_parser_tester.o
+g++ $INC $CXXFLAGS -c unit_action_parser.cpp -o unit_action_parser.o
+g++ $INC $CXXFLAGS -c unit_action_parser_tester.cpp -o unit_action_parser_tester.o
+g++ $INC $CXXFLAGS -c unit_type_parser.cpp -o unit_type_parser.o
+g++ $INC $CXXFLAGS -c unit_type_parser_tester.cpp -o unit_type_parser_tester.o
+g++ $INC $CXXFLAGS -c wonder_parser.cpp -o wonder_parser.o
+g++ $INC $CXXFLAGS -c wonder_parser_tester.cpp -o wonder_parser_tester.o
+g++ $INC $CXXFLAGS -c parser_test_manager.cpp -o parser_test_manager.o
 
 g++ $CXXFLAGS -o $OUT_BIN \
     runtime_static_loader.o \
     runtime_statics_tester.o \
+    opt_str_mng.o \
+    path_mng.o \
+    item_effect_handler.o \
+    item_effect_helpers.o \
+    data_parser_base.o \
+    building_parser.o \
+    building_parser_tester.o \
+    city_flag_parser.o \
+    city_flag_parser_tester.o \
+    civ_parser.o \
+    civ_parser_tester.o \
+    civ_trait_parser.o \
+    civ_trait_parser_tester.o \
+    resource_parser.o \
+    resource_parser_tester.o \
+    small_wonder_parser.o \
+    small_wonder_parser_tester.o \
+    tech_parser.o \
+    tech_parser_tester.o \
+    unit_parser.o \
+    unit_parser_tester.o \
+    unit_action_parser.o \
+    unit_action_parser_tester.o \
+    unit_type_parser.o \
+    unit_type_parser_tester.o \
+    wonder_parser.o \
+    wonder_parser_tester.o \
+    parser_test_manager.o \
     -ldl \
-    -L$LIB_DIR \
-    -l$LIB_NAME \
+    $LIB_DIR/$LIB_SO \
     -Wl,-rpath,'$ORIGIN'
 
-rm runtime_static_loader.o runtime_statics_tester.o
+rm runtime_static_loader.o runtime_statics_tester.o \
+    opt_str_mng.o \
+    path_mng.o \
+    item_effect_handler.o \
+    item_effect_helpers.o \
+    data_parser_base.o \
+    building_parser.o \
+    building_parser_tester.o \
+    city_flag_parser.o \
+    city_flag_parser_tester.o \
+    civ_parser.o \
+    civ_parser_tester.o \
+    civ_trait_parser.o \
+    civ_trait_parser_tester.o \
+    resource_parser.o \
+    resource_parser_tester.o \
+    small_wonder_parser.o \
+    small_wonder_parser_tester.o \
+    tech_parser.o \
+    tech_parser_tester.o \
+    unit_parser.o \
+    unit_parser_tester.o \
+    unit_action_parser.o \
+    unit_action_parser_tester.o \
+    unit_type_parser.o \
+    unit_type_parser_tester.o \
+    wonder_parser.o \
+    wonder_parser_tester.o \
+    parser_test_manager.o \

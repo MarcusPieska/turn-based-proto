@@ -4,7 +4,7 @@
 
 INC="-I../ -I../misc -I../static_state"
 CXXFLAGS="-std=c++17 -fPIC"
-OUT_SO="libstatic_parse.so"
+OUT_SO="runtime_static_loader_lib.so"
 
 g++ $INC $CXXFLAGS -c ../misc/opt_str_mng.cpp -o opt_str_mng.o
 g++ $INC $CXXFLAGS -c path_mng.cpp -o path_mng.o
@@ -12,12 +12,12 @@ g++ $INC $CXXFLAGS -c data_parser_base.cpp -o data_parser_base.o
 g++ $INC $CXXFLAGS -c item_effect_handler.cpp -o item_effect_handler.o
 g++ $INC $CXXFLAGS -c item_effect_helpers.cpp -o item_effect_helpers.o
 g++ $INC $CXXFLAGS -c ../static_state/static_bit_bank.cpp -o static_bit_bank.o
-[STATIC_PARSE_LIB_COMP_COMPILE_MAPS_TAG]
-[STATIC_PARSE_LIB_COMP_COMPILE_PARSERS_TAG]
-[STATIC_PARSE_LIB_COMP_COMPILE_HOLDERS_TAG]
+[RUNTIME_STATIC_LOADER_LIB_COMP_COMPILE_MAPS_TAG]
+[RUNTIME_STATIC_LOADER_LIB_COMP_COMPILE_PARSERS_TAG]
+[RUNTIME_STATIC_LOADER_LIB_COMP_COMPILE_HOLDERS_TAG]
 g++ $INC $CXXFLAGS -c static_parsing_manager.cpp -o static_parsing_manager.o
 g++ $INC $CXXFLAGS -c runtime_statics.cpp -o runtime_statics.o
-g++ $INC $CXXFLAGS -c static_parse_lib_api.cpp -o static_parse_lib_api.o
+g++ $INC $CXXFLAGS -c runtime_static_loader_lib_api.cpp -o runtime_static_loader_lib_api.o
 
 g++ -shared -o $OUT_SO \
     opt_str_mng.o \
@@ -31,7 +31,7 @@ g++ -shared -o $OUT_SO \
     [RUNTIME_STATICS_COMP_LINK_HOLDERS_TAG]
     static_parsing_manager.o \
     runtime_statics.o \
-    static_parse_lib_api.o
+    runtime_static_loader_lib_api.o
 
 rm \
     opt_str_mng.o \
@@ -45,4 +45,4 @@ rm \
     [RUNTIME_STATICS_COMP_CLEAN_HOLDERS_TAG]
     static_parsing_manager.o \
     runtime_statics.o \
-    static_parse_lib_api.o
+    runtime_static_loader_lib_api.o

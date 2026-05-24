@@ -9,25 +9,25 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef STATIC_PARSE_LIB_API_H
-#define STATIC_PARSE_LIB_API_H
+#ifndef RUNTIME_STATIC_LOADER_LIB_API_H
+#define RUNTIME_STATIC_LOADER_LIB_API_H
 
 #ifdef __cplusplus
 struct RuntimeStatics;
 extern "C" {
 #endif
 
-typedef void* StaticParseLibHandle;
+typedef void* RuntimeStaticLoaderLibHandle;
 
-StaticParseLibHandle static_parse_lib_create (const char* path_offset);
-void static_parse_lib_destroy (StaticParseLibHandle handle);
-struct RuntimeStatics* static_parse_lib_runtime_statics (StaticParseLibHandle handle);
+RuntimeStaticLoaderLibHandle runtime_static_loader_lib_create (const char* path_offset);
+void runtime_static_loader_lib_destroy (RuntimeStaticLoaderLibHandle handle);
+struct RuntimeStatics* runtime_static_loader_lib_runtime_statics (RuntimeStaticLoaderLibHandle handle);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // STATIC_PARSE_LIB_API_H
+#endif // RUNTIME_STATIC_LOADER_LIB_API_H
 
 //================================================================================================================================
 //=> - End of file -

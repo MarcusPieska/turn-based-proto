@@ -116,6 +116,47 @@ def lines_comp_link_parsers ():
 def lines_comp_clean_parsers ():
     return ["%s_parser.o \\" % stem for stem in get_entries()]
 
+def lines_comp_compile_parser_test_suite ():
+    lines = []
+    lines.append("g++ $INC $CXXFLAGS -c ../misc/opt_str_mng.cpp -o opt_str_mng.o")
+    lines.append("g++ $INC $CXXFLAGS -c path_mng.cpp -o path_mng.o")
+    lines.append("g++ $INC $CXXFLAGS -c data_parser_base.cpp -o data_parser_base.o")
+    lines.append("g++ $INC $CXXFLAGS -c item_effect_handler.cpp -o item_effect_handler.o")
+    lines.append("g++ $INC $CXXFLAGS -c item_effect_helpers.cpp -o item_effect_helpers.o")
+    for stem in get_entries():
+        lines.append("g++ $INC $CXXFLAGS -c %s_parser.cpp -o %s_parser.o" % (stem, stem))
+        lines.append("g++ $INC $CXXFLAGS -c %s_parser_tester.cpp -o %s_parser_tester.o" % (stem, stem))
+    lines.append("g++ $INC $CXXFLAGS -c parser_test_manager.cpp -o parser_test_manager.o")
+    return lines
+
+def lines_comp_link_parser_test_suite ():
+    lines = [
+        "opt_str_mng.o \\",
+        "path_mng.o \\",
+        "item_effect_handler.o \\",
+        "item_effect_helpers.o \\",
+        "data_parser_base.o \\",
+    ]
+    for stem in get_entries():
+        lines.append("%s_parser.o \\" % stem)
+        lines.append("%s_parser_tester.o \\" % stem)
+    lines.append("parser_test_manager.o \\")
+    return lines
+
+def lines_comp_clean_parser_test_suite ():
+    lines = [
+        "opt_str_mng.o \\",
+        "path_mng.o \\",
+        "item_effect_handler.o \\",
+        "item_effect_helpers.o \\",
+        "data_parser_base.o \\",
+    ]
+    for stem in get_entries():
+        lines.append("%s_parser.o \\" % stem)
+        lines.append("%s_parser_tester.o \\" % stem)
+    lines.append("parser_test_manager.o \\")
+    return lines
+
 def lines_tester_map_includes ():
     lines = []
     for map_base, row_stem, col_stem in get_map_specs():

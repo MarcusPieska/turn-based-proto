@@ -4,7 +4,7 @@
 
 INC="-I../ -I../misc -I../static_state"
 CXXFLAGS="-std=c++17 -fPIC"
-OUT_SO="libstatic_parse.so"
+OUT_SO="runtime_static_loader_lib.so"
 
 g++ $INC $CXXFLAGS -c ../misc/opt_str_mng.cpp -o opt_str_mng.o
 g++ $INC $CXXFLAGS -c path_mng.cpp -o path_mng.o
@@ -40,7 +40,7 @@ g++ $INC $CXXFLAGS -c ../static_state/unit_type_static_data.cpp -o unit_type_sta
 g++ $INC $CXXFLAGS -c ../static_state/wonder_static_data.cpp -o wonder_static_data.o
 g++ $INC $CXXFLAGS -c static_parsing_manager.cpp -o static_parsing_manager.o
 g++ $INC $CXXFLAGS -c runtime_statics.cpp -o runtime_statics.o
-g++ $INC $CXXFLAGS -c static_parse_lib_api.cpp -o static_parse_lib_api.o
+g++ $INC $CXXFLAGS -c runtime_static_loader_lib_api.cpp -o runtime_static_loader_lib_api.o
 
 g++ -shared -o $OUT_SO \
     opt_str_mng.o \
@@ -77,7 +77,7 @@ g++ -shared -o $OUT_SO \
     wonder_static_data.o \
     static_parsing_manager.o \
     runtime_statics.o \
-    static_parse_lib_api.o
+    runtime_static_loader_lib_api.o
 
 rm \
     opt_str_mng.o \
@@ -114,4 +114,4 @@ rm \
     wonder_static_data.o \
     static_parsing_manager.o \
     runtime_statics.o \
-    static_parse_lib_api.o
+    runtime_static_loader_lib_api.o

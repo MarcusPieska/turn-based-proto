@@ -18,8 +18,30 @@
 
 [CLASS_TAG]ParserTester::[CLASS_TAG]ParserTester () : 
     m_plvl(0), 
+    m_out(NULL), 
+    [DEP_SD_INIT_TAG], 
     [DEP_INIT_TAG] 
 {
+}
+
+[DEP_SD_SETTERS_IMPL_TAG]
+
+FILE* [CLASS_TAG]ParserTester::out () const {
+    return m_out != NULL ? m_out : stdout;
+}
+
+void [CLASS_TAG]ParserTester::open_writer () {
+    if (m_out != NULL) {
+        return;
+    }
+    m_out = fopen("RESULTS_NEW_[MACRO_TAG]", "w");
+}
+
+void [CLASS_TAG]ParserTester::close_writer () {
+    if (m_out != NULL) {
+        fclose(m_out);
+        m_out = NULL;
+    }
 }
 
 void [CLASS_TAG]ParserTester::set_plvl (int lvl) {
@@ -40,15 +62,15 @@ bool [CLASS_TAG]ParserTester::ld_sm (StringManager& sm, cstr path) {
 
 [DEP_N2I_IMPL_TAG]
 void [CLASS_TAG]ParserTester::pr_u16 (cstr label, u16 value) {
-    printf("  %s: %u\n", label, value);
+    fprintf(out(), "  %s: %u\n", label, value);
 }
 
 void [CLASS_TAG]ParserTester::pr_u32 (cstr label, u32 value) {
-    printf("  %s: %u\n", label, value);
+    fprintf(out(), "  %s: %u\n", label, value);
 }
 
 void [CLASS_TAG]ParserTester::pr_reqs (cstr label, const ItemReqsStruct& reqs) {
-    printf("  %s:\n", label);
+    fprintf(out(), "  %s:\n", label);
     for (u32 j = 0; j < MAX_PREREQ_COUNT; ++j) {
         if (reqs.types[j] == ITEM_REQ_TYPE_NONE) {
             continue;
@@ -62,24 +84,24 @@ void [CLASS_TAG]ParserTester::pr_reqs (cstr label, const ItemReqsStruct& reqs) {
         [DEP_REQS_PRINT_TAG]
 
         } else {
-            printf("    [%u] type=%u <unknown> (%u)", j, type, idx);
+            fprintf(out(), "    [%u] type=%u <unknown> (%u)", j, type, idx);
         }
         if (reqs.added_args[j] != 0) {
-            printf(" arg=%u", reqs.added_args[j]);
+            fprintf(out(), " arg=%u", reqs.added_args[j]);
         }
-        printf("\n");
+        fprintf(out(), "\n");
     }
 }
 
 void [CLASS_TAG]ParserTester::pr_fx (cstr label, const ItemEffectsStruct& e) {
-    printf("  %s:\n", label);
+    fprintf(out(), "  %s:\n", label);
     for (u32 j = 0; j < MAX_EFFECT_COUNT; ++j) {
         const ItemEffectStruct& slot = e.items[j];
         const u16 type_u = slot.type;
         if (type_u == static_cast<u16>(ItemEffectType::NONE)) {
             continue;
         }
-        printf("    [%u] type=%u", j, static_cast<u32>(type_u));
+        fprintf(out(), "    [%u] type=%u", j, static_cast<u32>(type_u));
         switch (static_cast<ItemEffectType>(type_u)) {
         case ItemEffectType::BOOSTER: {
             const ItemEffectBooster& b = slot.effect.booster;
@@ -120,9 +142,9 @@ void [CLASS_TAG]ParserTester::pr_fx (cstr label, const ItemEffectsStruct& e) {
                 case ItemEffectAmountMode::PERCENTAGE: am = "PERCENTAGE"; break;
                 default: break;
             }
-            printf(" booster %s (%d)", tname, static_cast<int>(b.amount));
-            printf(" scope=%s", sc);
-            printf(" mode=%s", am);
+            fprintf(out(), " booster %s (%d)", tname, static_cast<int>(b.amount));
+            fprintf(out(), " scope=%s", sc);
+            fprintf(out(), " mode=%s", am);
             break;
         }
         case ItemEffectType::BUILD: {
@@ -147,14 +169,16 @@ void [CLASS_TAG]ParserTester::pr_fx (cstr label, const ItemEffectsStruct& e) {
                 default: break;
             }
             if (b.building_id == U16_KEY_NULL) {
-                printf(" build");
+                fprintf(out(), " build");
+            } else if (m_building_sd != NULL && b.building_id < m_building_sd->get_item_count()) {
+                fprintf(out(), " build %s (%u)", m_building_sd->get_item(BuildingStaticDataKey::from_raw(b.building_id)).name.c_str(), static_cast<u32>(b.building_id));
             } else if (m_building_psr != NULL) {
-                printf(" build %s (%u)", m_building_psr->idx_to_name(b.building_id).c_str(), static_cast<u32>(b.building_id));
+                fprintf(out(), " build %s (%u)", m_building_psr->idx_to_name(b.building_id).c_str(), static_cast<u32>(b.building_id));
             } else {
-                printf(" build <unknown> (%u)", static_cast<u32>(b.building_id));
+                fprintf(out(), " build <unknown> (%u)", static_cast<u32>(b.building_id));
             }
-            printf(" scope=%s", sc);
-            printf(" build_mode=%s upkeep=%s", bm, um);
+            fprintf(out(), " scope=%s", sc);
+            fprintf(out(), " build_mode=%s upkeep=%s", bm, um);
             break;
         }
         case ItemEffectType::ENABLE: {
@@ -177,59 +201,61 @@ void [CLASS_TAG]ParserTester::pr_fx (cstr label, const ItemEffectsStruct& e) {
                 case ItemEffectsScope::GLOBAL: sc = "CIV"; break;
                 default: break;
             }
-            printf(" enable %s (%u)", fn, static_cast<u32>(en.feature_id));
-            printf(" scope=%s", sc);
+            fprintf(out(), " enable %s (%u)", fn, static_cast<u32>(en.feature_id));
+            fprintf(out(), " scope=%s", sc);
             break;
         }
         case ItemEffectType::RESEARCH_TECH: {
             const ItemEffectResearchTech& rt = slot.effect.research_tech;
-            printf(" researchTech (%u)", static_cast<u32>(rt.tech_count));
+            fprintf(out(), " researchTech (%u)", static_cast<u32>(rt.tech_count));
             break;
         }
         case ItemEffectType::TRAIN: {
             const ItemEffectTrain& tr = slot.effect.train;
             if (tr.unit_id == U16_KEY_NULL) {
-                printf(" train");
+                fprintf(out(), " train");
+            } else if (m_unit_sd != NULL && tr.unit_id < m_unit_sd->get_item_count()) {
+                fprintf(out(), " train %s (%u)", m_unit_sd->get_item(UnitStaticDataKey::from_raw(tr.unit_id)).name.c_str(), static_cast<u32>(tr.unit_id));
+            } else if (m_unit_psr != NULL) {
+                fprintf(out(), " train %s (%u)", m_unit_psr->idx_to_name(tr.unit_id).c_str(), static_cast<u32>(tr.unit_id));
             } else {
-                if (m_unit_psr != NULL) {
-                    printf(" train %s (%u)", m_unit_psr->idx_to_name(tr.unit_id).c_str(), static_cast<u32>(tr.unit_id));
-                } else {
-                    printf(" train <unknown> (%u)", static_cast<u32>(tr.unit_id));
-                }
+                fprintf(out(), " train <unknown> (%u)", static_cast<u32>(tr.unit_id));
             }
             if (tr.turns_interval != 0) {
-                printf(" interval=%u", static_cast<u32>(tr.turns_interval));
+                fprintf(out(), " interval=%u", static_cast<u32>(tr.turns_interval));
             }
             break;
         }
         case ItemEffectType::TERRAIN_BOOSTER:
-            printf(" TERRAIN_BOOSTER");
+            fprintf(out(), " TERRAIN_BOOSTER");
             break;
         default:
-            printf(" <unhandled>");
+            fprintf(out(), " <unhandled>");
             break;
         }
-        printf("\n");
+        fprintf(out(), "\n");
     }
 }
 
 void [CLASS_TAG]ParserTester::pr_traits (cstr label, const CivTraitStruct& traits) {
-    printf("  %s:\n", label);
+    fprintf(out(), "  %s:\n", label);
     for (u32 j = 0; j < MAX_CIV_TRAIT_COUNT; ++j) {
         const u16 tix = traits.indices[j];
         if (tix == U16_KEY_NULL) {
             continue;
         }
-        if (m_civ_trait_psr != NULL) {
-            printf("    [%u] %s (%u)\n", j, m_civ_trait_psr->idx_to_name(tix).c_str(), tix);
+        if (m_civ_trait_sd != NULL && tix < m_civ_trait_sd->get_item_count()) {
+            fprintf(out(), "    [%u] %s (%u)\n", j, m_civ_trait_sd->get_item(CivTraitStaticDataKey::from_raw(tix)).name.c_str(), tix);
+        } else if (m_civ_trait_psr != NULL) {
+            fprintf(out(), "    [%u] %s (%u)\n", j, m_civ_trait_psr->idx_to_name(tix).c_str(), tix);
         } else {
-            printf("    [%u] <unknown> (%u)\n", j, tix);
+            fprintf(out(), "    [%u] <unknown> (%u)\n", j, tix);
         }
     }
 }
 
 void [CLASS_TAG]ParserTester::pr_item (const [STRUCT_TAG]& item) {
-    printf("name: %s\n", item.name.c_str());
+    fprintf(out(), "name: %s\n", item.name.c_str());
     [MEMBER_PRINT_TAG]
 }
 

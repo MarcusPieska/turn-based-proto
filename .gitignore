@@ -11,6 +11,7 @@
 *.temp
 *_tester
 *.pyc
+RESULTS_*
 
 map_driver
 map_driver.exe

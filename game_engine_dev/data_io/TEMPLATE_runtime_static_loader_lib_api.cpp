@@ -11,27 +11,27 @@
 
 #include <string>
 
-#include "static_parse_lib_api.h"
+#include "runtime_static_loader_lib_api.h"
 
 #include "static_parsing_manager.h"
 #include "runtime_statics.h"
 
 //================================================================================================================================
-//=> - StaticParseLibState -
+//=> - RuntimeStaticLoaderLibState -
 //================================================================================================================================
 
-struct StaticParseLibState {
+struct RuntimeStaticLoaderLibState {
     StaticParsingManager* parser;
     RuntimeStatics* statics;
 
-    explicit StaticParseLibState (const char* path_offset) :
+    explicit RuntimeStaticLoaderLibState (const char* path_offset) :
         parser(new StaticParsingManager(std::string(path_offset ? path_offset : ""))),
         statics(new RuntimeStatics()) {
         statics->load_from(*parser);
         set_runtime_statics(statics);
     }
 
-    ~StaticParseLibState () {
+    ~RuntimeStaticLoaderLibState () {
         set_runtime_statics(nullptr);
         delete statics;
         delete parser;
@@ -42,16 +42,16 @@ struct StaticParseLibState {
 //=> - C API -
 //================================================================================================================================
 
-extern "C" StaticParseLibHandle static_parse_lib_create (const char* path_offset) {
-    return new StaticParseLibState(path_offset);
+extern "C" RuntimeStaticLoaderLibHandle runtime_static_loader_lib_create (const char* path_offset) {
+    return new RuntimeStaticLoaderLibState(path_offset);
 }
 
-extern "C" void static_parse_lib_destroy (StaticParseLibHandle handle) {
-    delete static_cast<StaticParseLibState*>(handle);
+extern "C" void runtime_static_loader_lib_destroy (RuntimeStaticLoaderLibHandle handle) {
+    delete static_cast<RuntimeStaticLoaderLibState*>(handle);
 }
 
-extern "C" RuntimeStatics* static_parse_lib_runtime_statics (StaticParseLibHandle handle) {
-    return static_cast<StaticParseLibState*>(handle)->statics;
+extern "C" RuntimeStatics* runtime_static_loader_lib_runtime_statics (RuntimeStaticLoaderLibHandle handle) {
+    return static_cast<RuntimeStaticLoaderLibState*>(handle)->statics;
 }
 
 //================================================================================================================================

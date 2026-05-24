@@ -21,7 +21,7 @@
 
 typedef const char* cstr;
 
-static const char* g_lib_path = "./libstatic_parse.so";
+static const char* g_lib_path = "./runtime_static_loader_lib.so";
 static const char* g_data_path = "../";
 
 int test_count = 0;

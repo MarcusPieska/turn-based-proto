@@ -11,6 +11,18 @@
 #include "name_to_idx_callbacks.h"
 #include "item_effects.h"
 
+#include "building_static_data.h"
+#include "city_flag_static_data.h"
+#include "civ_static_data.h"
+#include "civ_trait_static_data.h"
+#include "resource_static_data.h"
+#include "small_wonder_static_data.h"
+#include "tech_static_data.h"
+#include "unit_static_data.h"
+#include "unit_action_static_data.h"
+#include "unit_type_static_data.h"
+#include "wonder_static_data.h"
+
 //================================================================================================================================
 //=> - CivParserTester class -
 //================================================================================================================================
@@ -20,12 +32,40 @@ public:
     CivParserTester ();
     void set_plvl (int lvl);
     int run ();
+    void open_writer ();
+    void close_writer ();
     void pr_item (const CivStaticDataStruct& item);
+    
+    void set_building_sd (const BuildingStaticData* sd);
+    void set_city_flag_sd (const CityFlagStaticData* sd);
+    void set_civ_sd (const CivStaticData* sd);
+    void set_civ_trait_sd (const CivTraitStaticData* sd);
+    void set_resource_sd (const ResourceStaticData* sd);
+    void set_small_wonder_sd (const SmallWonderStaticData* sd);
+    void set_tech_sd (const TechStaticData* sd);
+    void set_unit_sd (const UnitStaticData* sd);
+    void set_unit_action_sd (const UnitActionStaticData* sd);
+    void set_unit_type_sd (const UnitTypeStaticData* sd);
+    void set_wonder_sd (const WonderStaticData* sd);
 
 private:
     typedef const char* cstr;
     int m_plvl;
+    FILE* m_out;
+    FILE* out () const;
     
+    const BuildingStaticData* m_building_sd;
+    const CityFlagStaticData* m_city_flag_sd;
+    const CivStaticData* m_civ_sd;
+    const CivTraitStaticData* m_civ_trait_sd;
+    const ResourceStaticData* m_resource_sd;
+    const SmallWonderStaticData* m_small_wonder_sd;
+    const TechStaticData* m_tech_sd;
+    const UnitStaticData* m_unit_sd;
+    const UnitActionStaticData* m_unit_action_sd;
+    const UnitTypeStaticData* m_unit_type_sd;
+    const WonderStaticData* m_wonder_sd;
+
     const DataParserBase* m_building_psr;
     const DataParserBase* m_city_flag_psr;
     const DataParserBase* m_civ_psr;

@@ -16,8 +16,11 @@ from generater_commons import (
     get_req_test_stems,
     join_tag_lines,
     lines_comp_clean_maps,
+    lines_comp_clean_parser_test_suite,
     lines_comp_clean_parsers,
+    lines_comp_compile_parser_test_suite,
     lines_comp_link_maps,
+    lines_comp_link_parser_test_suite,
     lines_comp_link_parsers,
     map_class_name,
     static_data_class,
@@ -155,6 +158,13 @@ def build_runtime_sub_pairs ():
     sub_pairs.append(("[RUNTIME_STATICS_CPP_ACCESSORS_TAG]", join_tag_lines(lines_runtime_cpp_accessors(), "\n\n")))
     return sub_pairs
 
+def build_runtime_statics_comp_sub_pairs ():
+    sub_pairs = []
+    sub_pairs.append(("[RUNTIME_STATICS_COMP_COMPILE_PARSER_SUITE_TAG]", join_tag_lines(lines_comp_compile_parser_test_suite(), "\n")))
+    sub_pairs.append(("[RUNTIME_STATICS_COMP_LINK_PARSER_SUITE_TAG]", join_tag_lines(lines_comp_link_parser_test_suite(), "\n    ")))
+    sub_pairs.append(("[RUNTIME_STATICS_COMP_CLEAN_PARSER_SUITE_TAG]", join_tag_lines(lines_comp_clean_parser_test_suite(), "\n    ")))
+    return sub_pairs
+
 def build_lib_sub_pairs ():
     sub_pairs = []
     sub_pairs.append(("[RUNTIME_STATICS_COMP_LINK_MAPS_TAG]", join_tag_lines(lines_comp_link_maps(), "\n    ")))
@@ -163,9 +173,9 @@ def build_lib_sub_pairs ():
     sub_pairs.append(("[RUNTIME_STATICS_COMP_CLEAN_MAPS_TAG]", join_tag_lines(lines_comp_clean_maps(), "\n    ")))
     sub_pairs.append(("[RUNTIME_STATICS_COMP_CLEAN_PARSERS_TAG]", join_tag_lines(lines_comp_clean_parsers(), "\n    ")))
     sub_pairs.append(("[RUNTIME_STATICS_COMP_CLEAN_HOLDERS_TAG]", join_tag_lines(["%s_static_data.o \\" % stem for stem in entries], "\n    ")))
-    sub_pairs.append(("[STATIC_PARSE_LIB_COMP_COMPILE_MAPS_TAG]", join_tag_lines(lines_lib_comp_compile_maps(), "\n")))
-    sub_pairs.append(("[STATIC_PARSE_LIB_COMP_COMPILE_PARSERS_TAG]", join_tag_lines(lines_lib_comp_compile_parsers(), "\n")))
-    sub_pairs.append(("[STATIC_PARSE_LIB_COMP_COMPILE_HOLDERS_TAG]", join_tag_lines(lines_lib_comp_compile_holders(), "\n")))
+    sub_pairs.append(("[RUNTIME_STATIC_LOADER_LIB_COMP_COMPILE_MAPS_TAG]", join_tag_lines(lines_lib_comp_compile_maps(), "\n")))
+    sub_pairs.append(("[RUNTIME_STATIC_LOADER_LIB_COMP_COMPILE_PARSERS_TAG]", join_tag_lines(lines_lib_comp_compile_parsers(), "\n")))
+    sub_pairs.append(("[RUNTIME_STATIC_LOADER_LIB_COMP_COMPILE_HOLDERS_TAG]", join_tag_lines(lines_lib_comp_compile_holders(), "\n")))
     return sub_pairs
 
 #================================================================================================================================#
@@ -179,17 +189,17 @@ if __name__ == "__main__":
         ("runtime_statics.cpp", "runtime_statics.cpp"),
         ("runtime_statics_tester.cpp", "runtime_statics_tester.cpp"),
         ("runtime_statics_comp", "runtime_statics_comp"),
-        ("static_parse_lib_api.h", "static_parse_lib_api.h"),
-        ("static_parse_lib_api.cpp", "static_parse_lib_api.cpp"),
-        ("static_parse_lib_comp", "static_parse_lib_comp"),
+        ("runtime_static_loader_lib_api.h", "runtime_static_loader_lib_api.h"),
+        ("runtime_static_loader_lib_api.cpp", "runtime_static_loader_lib_api.cpp"),
+        ("runtime_static_loader_lib_comp", "runtime_static_loader_lib_comp"),
     ]
     for template_name, output_name in runtime_statics_files:
         if output_name == "runtime_statics_tester.cpp":
             generate_from_templates(this_dir, template_name, output_name, build_loader_sub_pairs())
-        elif output_name == "static_parse_lib_comp":
+        elif output_name == "runtime_static_loader_lib_comp":
             generate_from_templates(this_dir, template_name, output_name, build_lib_sub_pairs())
         elif output_name == "runtime_statics_comp":
-            generate_from_templates(this_dir, template_name, output_name, [])
+            generate_from_templates(this_dir, template_name, output_name, build_runtime_statics_comp_sub_pairs())
         else:
             generate_from_templates(this_dir, template_name, output_name, build_runtime_sub_pairs())
 

@@ -148,19 +148,82 @@ def derive_dep_psr_assign():
         lines.append("m_%s_psr = &%s_parser;" % (prefix, prefix))
     return lines
 
+def static_data_class_name(class_name):
+    return class_name + "StaticData"
+
+def static_data_key_name(class_name):
+    return class_name + "StaticDataKey"
+
+def derive_dep_sd_includes():
+    lines = []
+    seen = set()
+    for prefix, class_name, parsing_instructions in PARSER_SPECS:
+        hdr = "%s_static_data.h" % prefix
+        if hdr in seen:
+            continue
+        seen.add(hdr)
+        lines.append('#include "%s"' % hdr)
+    return lines
+
+def derive_dep_sd_members():
+    lines = []
+    for prefix, class_name, parsing_instructions in PARSER_SPECS:
+        lines.append("const %s* m_%s_sd;" % (static_data_class_name(class_name), prefix))
+    return lines
+
+def derive_dep_sd_setters_decl():
+    lines = []
+    for prefix, class_name, parsing_instructions in PARSER_SPECS:
+        sd = static_data_class_name(class_name)
+        lines.append("void set_%s_sd (const %s* sd);" % (prefix, sd))
+    return lines
+
+def derive_dep_sd_setters_impl(class_tag):
+    blocks = []
+    for prefix, class_name, parsing_instructions in PARSER_SPECS:
+        sd = static_data_class_name(class_name)
+        blocks.append("void %sParserTester::set_%s_sd (const %s* sd) {" % (class_tag, prefix, sd))
+        blocks.append("    m_%s_sd = sd;" % prefix)
+        blocks.append("}")
+    return blocks
+
+def derive_dep_sd_init():
+    parts = []
+    for prefix, class_name, parsing_instructions in PARSER_SPECS:
+        parts.append("m_%s_sd(NULL)" % prefix)
+    return ",\n    ".join(parts)
+
 def derive_dep_reqs_print():
+    prefix_to_class = {}
+    for prefix, class_name, parsing_instructions in PARSER_SPECS:
+        prefix_to_class[prefix] = class_name
     lines = []
     first = True
     for prefix, path_fn, cb_field, req_type in REF_PARSER_DEPS:
         if req_type is None:
             continue
+        class_name = prefix_to_class[prefix]
+        key_name = static_data_key_name(class_name)
         if first:
-            lines.append("if (type == %s && m_%s_psr != NULL) {" % (req_type, prefix))
+            lines.append("if (type == %s) {" % req_type)
             first = False
         else:
-            lines.append("} else if (type == %s && m_%s_psr != NULL) {" % (req_type, prefix))
-        lines.append('    printf("    [%%u] type=%%u %%s (%%u)", j, type, m_%s_psr->idx_to_name(idx).c_str(), idx);' % prefix)
+            lines.append("} else if (type == %s) {" % req_type)
+        lines.append("    if (m_%s_sd != NULL && idx < m_%s_sd->get_item_count()) {" % (prefix, prefix))
+        lines.append('        fprintf(out(), "    [%%u] type=%%u %%s (%%u)", j, type, m_%s_sd->get_item(%s::from_raw(idx)).name.c_str(), idx);' % (prefix, key_name))
+        lines.append("    } else if (m_%s_psr != NULL) {" % prefix)
+        lines.append('        fprintf(out(), "    [%%u] type=%%u %%s (%%u)", j, type, m_%s_psr->idx_to_name(idx).c_str(), idx);' % prefix)
+        lines.append("    }")
     return lines
+
+def derive_comp_compile_holders():
+    return ["g++ $INC -c ../static_state/%s_static_data.cpp -o %s_static_data.o" % (prefix, prefix) for prefix, class_name, parsing_instructions in PARSER_SPECS]
+
+def derive_comp_link_holders():
+    return ["%s_static_data.o \\" % prefix for prefix, class_name, parsing_instructions in PARSER_SPECS]
+
+def derive_comp_clean_holders():
+    return ["%s_static_data.o \\" % prefix for prefix, class_name, parsing_instructions in PARSER_SPECS]
 
 def get_output_filename(output_prefix, template_file):
     return template_file.replace("PREFIX", output_prefix)
@@ -191,6 +254,11 @@ if __name__ == "__main__":
     substitution_pairs.append(("[STRUCT_TAG]", struct_name))
     substitution_pairs.append(("[PARSE_TAG]", "\n        ".join(derive_parsing_lines(parsing_instructions))))
     substitution_pairs.append(("[MEMBER_PRINT_TAG]", "\n    ".join(derive_member_print_lines(parsing_instructions))))
+    substitution_pairs.append(("[DEP_SD_INCLUDES_TAG]", "\n".join(derive_dep_sd_includes())))
+    substitution_pairs.append(("[DEP_SD_SETTERS_DECL_TAG]", "\n    ".join(derive_dep_sd_setters_decl())))
+    substitution_pairs.append(("[DEP_SD_SETTERS_IMPL_TAG]", "\n\n".join(derive_dep_sd_setters_impl(class_name))))
+    substitution_pairs.append(("[DEP_SD_MEMBERS_TAG]", "\n    ".join(derive_dep_sd_members())))
+    substitution_pairs.append(("[DEP_SD_INIT_TAG]", derive_dep_sd_init()))
     substitution_pairs.append(("[DEP_PSR_MEMBERS_TAG]", "\n    ".join(derive_dep_psr_members())))
     substitution_pairs.append(("[DEP_N2I_DECL_TAG]", "\n    ".join(derive_dep_n2i_decls())))
     substitution_pairs.append(("[DEP_INIT_TAG]", derive_dep_init()))
@@ -201,6 +269,9 @@ if __name__ == "__main__":
     substitution_pairs.append(("[DEP_PARSER_DECL_TAG]", "\n    ".join(derive_dep_parser_decl())))
     substitution_pairs.append(("[DEP_PSR_ASSIGN_TAG]", "\n    ".join(derive_dep_psr_assign())))
     substitution_pairs.append(("[DEP_REQS_PRINT_TAG]", "\n        ".join(derive_dep_reqs_print())))
+    substitution_pairs.append(("[DEP_COMP_COMPILE_HOLDERS_TAG]", "\n".join(derive_comp_compile_holders())))
+    substitution_pairs.append(("[DEP_COMP_LINK_HOLDERS_TAG]", "\n    ".join(derive_comp_link_holders())))
+    substitution_pairs.append(("[DEP_COMP_CLEAN_HOLDERS_TAG]", "\n    ".join(derive_comp_clean_holders())))
 
     template_files = []
     template_files.append("PREFIX_parser.cpp")

@@ -13,7 +13,7 @@
 
 #include <dlfcn.h>
 
-#include "static_parse_lib_api.h"
+#include "runtime_static_loader_lib_api.h"
 
 //================================================================================================================================
 //=> - RuntimeStaticLoader implementation -
@@ -35,10 +35,10 @@ bool RuntimeStaticLoader::load (const char* lib_path, const char* data_path_offs
     if (m_lib == nullptr) {
         return false;
     }
-    auto fn_create = reinterpret_cast<StaticParseLibHandle (*)(const char*)>(
-        dlsym(m_lib, "static_parse_lib_create"));
-    auto fn_statics = reinterpret_cast<RuntimeStatics* (*)(StaticParseLibHandle)>(
-        dlsym(m_lib, "static_parse_lib_runtime_statics"));
+    auto fn_create = reinterpret_cast<RuntimeStaticLoaderLibHandle (*)(const char*)>(
+        dlsym(m_lib, "runtime_static_loader_lib_create"));
+    auto fn_statics = reinterpret_cast<RuntimeStatics* (*)(RuntimeStaticLoaderLibHandle)>(
+        dlsym(m_lib, "runtime_static_loader_lib_runtime_statics"));
     if (fn_create == nullptr || fn_statics == nullptr) {
         dlclose(m_lib);
         m_lib = nullptr;
@@ -52,8 +52,8 @@ bool RuntimeStaticLoader::load (const char* lib_path, const char* data_path_offs
     }
     m_statics = fn_statics(m_handle);
     if (m_statics == nullptr) {
-        auto fn_destroy = reinterpret_cast<void (*)(StaticParseLibHandle)>(
-            dlsym(m_lib, "static_parse_lib_destroy"));
+        auto fn_destroy = reinterpret_cast<void (*)(RuntimeStaticLoaderLibHandle)>(
+            dlsym(m_lib, "runtime_static_loader_lib_destroy"));
         if (fn_destroy != nullptr) {
             fn_destroy(m_handle);
         }
@@ -72,8 +72,8 @@ void RuntimeStaticLoader::unload () {
         return;
     }
     if (m_handle != nullptr) {
-        auto fn_destroy = reinterpret_cast<void (*)(StaticParseLibHandle)>(
-            dlsym(m_lib, "static_parse_lib_destroy"));
+        auto fn_destroy = reinterpret_cast<void (*)(RuntimeStaticLoaderLibHandle)>(
+            dlsym(m_lib, "runtime_static_loader_lib_destroy"));
         if (fn_destroy != nullptr) {
             fn_destroy(m_handle);
         }

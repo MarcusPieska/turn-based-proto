@@ -5,11 +5,11 @@
 INC="-I.. -I../misc -I../static_state"
 CXXFLAGS="-std=c++17"
 LIB_DIR="."
-LIB_NAME="static_parse"
+LIB_SO="runtime_static_loader_lib.so"
 OUT_BIN="runtime_static_loader_tester"
 
-if [ ! -f "$LIB_DIR/lib${LIB_NAME}.so" ]; then
-    echo "missing lib${LIB_NAME}.so - run ./static_parse_lib_comp first"
+if [ ! -f "$LIB_DIR/$LIB_SO" ]; then
+    echo "missing $LIB_SO - run ./runtime_static_loader_lib_comp first"
     exit 1
 fi
 
@@ -20,8 +20,7 @@ g++ $CXXFLAGS -o $OUT_BIN \
     runtime_static_loader.o \
     runtime_static_loader_tester.o \
     -ldl \
-    -L$LIB_DIR \
-    -l$LIB_NAME \
+    $LIB_DIR/$LIB_SO \
     -Wl,-rpath,'$ORIGIN'
 
 rm runtime_static_loader.o runtime_static_loader_tester.o

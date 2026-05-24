@@ -11,6 +11,8 @@
 #include "name_to_idx_callbacks.h"
 #include "item_effects.h"
 
+[DEP_SD_INCLUDES_TAG]
+
 //================================================================================================================================
 //=> - [CLASS_TAG]ParserTester class -
 //================================================================================================================================
@@ -20,12 +22,20 @@ public:
     [CLASS_TAG]ParserTester ();
     void set_plvl (int lvl);
     int run ();
+    void open_writer ();
+    void close_writer ();
     void pr_item (const [STRUCT_TAG]& item);
+    
+    [DEP_SD_SETTERS_DECL_TAG]
 
 private:
     typedef const char* cstr;
     int m_plvl;
+    FILE* m_out;
+    FILE* out () const;
     
+    [DEP_SD_MEMBERS_TAG]
+
     [DEP_PSR_MEMBERS_TAG]
 
     static [CLASS_TAG]ParserTester* s_inst;

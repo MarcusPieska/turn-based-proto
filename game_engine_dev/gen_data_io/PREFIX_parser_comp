@@ -9,6 +9,7 @@ g++ $INC -c ../data_io/path_mng.cpp -o path_mng.o
 g++ $INC -c ../data_io/data_parser_base.cpp -o data_parser_base.o
 g++ $INC -c ../data_io/item_effect_handler.cpp -o item_effect_handler.o
 g++ $INC -c ../data_io/item_effect_helpers.cpp -o item_effect_helpers.o
+[DEP_COMP_COMPILE_HOLDERS_TAG]
 g++ $INC -c [FILE_TAG]_parser.cpp -o [FILE_TAG]_parser.o
 g++ $INC -c [FILE_TAG]_parser_tester.cpp -o [FILE_TAG]_parser_tester.o
 g++ $INC -c [FILE_TAG]_parser_tester_drv.cpp -o [FILE_TAG]_parser_tester_drv.o
@@ -20,6 +21,7 @@ g++ -o [FILE_TAG]_parser_tester \
     item_effect_handler.o \
     item_effect_helpers.o \
     data_parser_base.o \
+    [DEP_COMP_LINK_HOLDERS_TAG]
     [FILE_TAG]_parser.o \
     [FILE_TAG]_parser_tester.o \
     [FILE_TAG]_parser_tester_drv.o
@@ -31,6 +33,7 @@ rm \
     item_effect_handler.o \
     item_effect_helpers.o \
     data_parser_base.o \
+    [DEP_COMP_CLEAN_HOLDERS_TAG]
     [FILE_TAG]_parser.o \
     [FILE_TAG]_parser_tester.o \
     [FILE_TAG]_parser_tester_drv.o

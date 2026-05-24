@@ -9,6 +9,17 @@ g++ $INC -c ../data_io/path_mng.cpp -o path_mng.o
 g++ $INC -c ../data_io/data_parser_base.cpp -o data_parser_base.o
 g++ $INC -c ../data_io/item_effect_handler.cpp -o item_effect_handler.o
 g++ $INC -c ../data_io/item_effect_helpers.cpp -o item_effect_helpers.o
+g++ $INC -c ../static_state/building_static_data.cpp -o building_static_data.o
+g++ $INC -c ../static_state/city_flag_static_data.cpp -o city_flag_static_data.o
+g++ $INC -c ../static_state/civ_static_data.cpp -o civ_static_data.o
+g++ $INC -c ../static_state/civ_trait_static_data.cpp -o civ_trait_static_data.o
+g++ $INC -c ../static_state/resource_static_data.cpp -o resource_static_data.o
+g++ $INC -c ../static_state/small_wonder_static_data.cpp -o small_wonder_static_data.o
+g++ $INC -c ../static_state/tech_static_data.cpp -o tech_static_data.o
+g++ $INC -c ../static_state/unit_static_data.cpp -o unit_static_data.o
+g++ $INC -c ../static_state/unit_action_static_data.cpp -o unit_action_static_data.o
+g++ $INC -c ../static_state/unit_type_static_data.cpp -o unit_type_static_data.o
+g++ $INC -c ../static_state/wonder_static_data.cpp -o wonder_static_data.o
 g++ $INC -c small_wonder_parser.cpp -o small_wonder_parser.o
 g++ $INC -c small_wonder_parser_tester.cpp -o small_wonder_parser_tester.o
 g++ $INC -c small_wonder_parser_tester_drv.cpp -o small_wonder_parser_tester_drv.o
@@ -20,6 +31,17 @@ g++ -o small_wonder_parser_tester \
     item_effect_handler.o \
     item_effect_helpers.o \
     data_parser_base.o \
+    building_static_data.o \
+    city_flag_static_data.o \
+    civ_static_data.o \
+    civ_trait_static_data.o \
+    resource_static_data.o \
+    small_wonder_static_data.o \
+    tech_static_data.o \
+    unit_static_data.o \
+    unit_action_static_data.o \
+    unit_type_static_data.o \
+    wonder_static_data.o \
     small_wonder_parser.o \
     small_wonder_parser_tester.o \
     small_wonder_parser_tester_drv.o
@@ -31,6 +53,17 @@ rm \
     item_effect_handler.o \
     item_effect_helpers.o \
     data_parser_base.o \
+    building_static_data.o \
+    city_flag_static_data.o \
+    civ_static_data.o \
+    civ_trait_static_data.o \
+    resource_static_data.o \
+    small_wonder_static_data.o \
+    tech_static_data.o \
+    unit_static_data.o \
+    unit_action_static_data.o \
+    unit_type_static_data.o \
+    wonder_static_data.o \
     small_wonder_parser.o \
     small_wonder_parser_tester.o \
     small_wonder_parser_tester_drv.o

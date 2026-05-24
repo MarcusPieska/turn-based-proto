@@ -14,6 +14,7 @@
 
 #include "runtime_static_loader.h"
 #include "item_reqs.h"
+#include "parser_test_manager.h"
 
 //================================================================================================================================
 //=> - Globals -
@@ -21,7 +22,7 @@
 
 typedef const char* cstr;
 
-static const char* g_lib_path = "./libstatic_parse.so";
+static const char* g_lib_path = "./runtime_static_loader_lib.so";
 static const char* g_data_path = "../";
 
 int test_count = 0;
@@ -120,6 +121,12 @@ void run_req_bounds_tests (const RuntimeStatics& statics) {
     [RUNTIME_LOADER_TESTER_REQ_TESTS_TAG]
 }
 
+void run_parser_manager_tests (const RuntimeStatics& statics) {
+    ParserTestManager mgr;
+    mgr.set_plvl(print_level);
+    mgr.print_all(statics);
+}
+
 int run_parse_driver () {
     RuntimeStaticLoader loader;
     if (!loader.load(g_lib_path, g_data_path)) {
@@ -131,6 +138,7 @@ int run_parse_driver () {
     RuntimeStatics& statics = loader.statics();
     run_load_tests(loader);
     run_req_bounds_tests(statics);
+    run_parser_manager_tests(statics);
     if (print_level >= 1) {
         print_holder_counts(statics);
     }
