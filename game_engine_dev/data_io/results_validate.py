@@ -108,18 +108,12 @@ class Validator:
 
     def __init__ (m, search_dir):
         m.search_dir = search_dir
-        m.log_path = os.path.join(search_dir, "results_validate.log")
-
-    def log (m, line):
-        with open(m.log_path, "a") as ptr:
-            ptr.write(line + "\n")
-        print(line)
 
     def ask_yn (m, prompt):
         while True:
             ans = input(prompt).strip().lower()
             if ans == "y" or ans == "n":
-                m.log("%s %s" % (prompt.rstrip(), ans))
+                print("%s %s" % (prompt.rstrip(), ans))
                 return ans == "y"
             print("Enter y or n")
 
@@ -134,7 +128,7 @@ class Validator:
         print("-----------------------------------------------------------")
 
     def run_auto (m, new_file, valid_file):
-        all_y = True
+        no_count = 0
         for name in sorted(new_file.by_name.keys()):
             new_res = new_file.by_name[name]
             valid_res = valid_file.by_name.get(name)
@@ -146,19 +140,19 @@ class Validator:
             else:
                 prompt = "%s:%s token mismatch (y/n): " % (new_file.tag, name)
             if not m.ask_yn(prompt):
-                all_y = False
-        return all_y
+                no_count = no_count + 1
+        return no_count
 
     def run_manual (m, new_file):
-        all_y = True
+        no_count = 0
         for name in sorted(new_file.by_name.keys()):
             new_res = new_file.by_name[name]
             print(new_res.full)
             print("-----------------------------------------------------------")
             prompt = "%s:%s manual accept (y/n): " % (new_file.tag, name)
             if not m.ask_yn(prompt):
-                all_y = False
-        return all_y
+                no_count = no_count + 1
+        return no_count
 
     def promote_new_to_valid (m, new_file):
         valid_path = valid_path_for_tag(m.search_dir, new_file.tag)
@@ -167,28 +161,29 @@ class Validator:
         with open(valid_path, "w") as ptr:
             ptr.write(content)
         os.remove(new_file.path)
-        m.log("PROMOTED %s -> %s, removed %s" % (new_file.path, valid_path, new_file.path))
+        print("PROMOTED %s -> %s, removed %s" % (new_file.path, valid_path, new_file.path))
 
     def validate_file (m, new_file, valid_files):
         valid_file = find_results_file_by_tag(valid_files, new_file.tag)
         if valid_file is None:
             valid_file = load_results_file_for_tag(m.search_dir, RESULTS_VALID_PREFIX, new_file.tag)
-        m.log("FILE %s (%s)" % (new_file.tag, new_file.path))
+        print("FILE %s (%s)" % (new_file.tag, new_file.path))
         if valid_file is not None:
-            m.log("  auto compare vs %s" % valid_file.path)
-            all_y = m.run_auto(new_file, valid_file)
+            print("  auto compare vs %s" % valid_file.path)
+            no_count = m.run_auto(new_file, valid_file)
         else:
-            m.log("  manual compare (no valid file)")
-            all_y = m.run_manual(new_file)
-        if all_y:
+            print("  manual compare (no valid file)")
+            no_count = m.run_manual(new_file)
+        print("  FILE %s: no_count=%d" % (new_file.tag, no_count))
+        if no_count == 0:
             m.promote_new_to_valid(new_file)
-            m.log("  FILE %s: all accepted" % new_file.tag)
+            print("  FILE %s: promoted" % new_file.tag)
         else:
-            m.log("  FILE %s: not promoted" % new_file.tag)
-        return all_y
+            print("  FILE %s: not promoted" % new_file.tag)
+        return no_count == 0
 
     def run (m, new_files, valid_files):
-        m.log("=== results validate session ===")
+        print("=== results validate session ===")
         for new_file in new_files:
             m.validate_file(new_file, valid_files)
 

@@ -1,0 +1,51 @@
+#!/bin/bash
+
+INC="-I../ -I../misc -I../data_io -I../static_state"
+DIO="../data_io"
+
+g++ $INC -c ../misc/opt_str_mng.cpp -o opt_str_mng.o
+g++ $INC -c ../misc/bit_array.cpp -o bit_array.o
+g++ $INC -c $DIO/path_mng.cpp -o path_mng.o
+g++ $INC -c $DIO/data_parser_base.cpp -o data_parser_base.o
+g++ $INC -c $DIO/item_effect_handler.cpp -o item_effect_handler.o
+g++ $INC -c $DIO/item_effect_helpers.cpp -o item_effect_helpers.o
+[DEP_SPM_COMPILE_TAG]
+[DEP_COMP_COMPILE_HOLDERS_TAG]
+g++ $INC -c $DIO/static_parsing_manager.cpp -o static_parsing_manager.o
+g++ $INC -c general_assessor.cpp -o general_assessor.o
+g++ $INC -c assessor_brute_shared.cpp -o assessor_brute_shared.o
+g++ $INC -c assessor_brute_write.cpp -o assessor_brute_write.o
+g++ $INC -c [FILE_TAG]_assessor_tester_brute.cpp -o [FILE_TAG]_assessor_tester_brute.o
+g++ $INC -c [FILE_TAG]_assessor_tester.cpp -o [FILE_TAG]_assessor_tester.o
+
+g++ -o [FILE_TAG]_assessor_tester \
+    opt_str_mng.o \
+    bit_array.o \
+    path_mng.o \
+    data_parser_base.o \
+    item_effect_handler.o \
+    item_effect_helpers.o \
+    [DEP_SPM_LINK_TAG]
+    static_parsing_manager.o \
+    general_assessor.o \
+    assessor_brute_shared.o \
+    assessor_brute_write.o \
+    [DEP_COMP_LINK_HOLDERS_TAG]
+    [FILE_TAG]_assessor_tester_brute.o \
+    [FILE_TAG]_assessor_tester.o
+
+rm \
+    opt_str_mng.o \
+    bit_array.o \
+    path_mng.o \
+    data_parser_base.o \
+    item_effect_handler.o \
+    item_effect_helpers.o \
+    [DEP_SPM_CLEAN_TAG]
+    static_parsing_manager.o \
+    general_assessor.o \
+    assessor_brute_shared.o \
+    assessor_brute_write.o \
+    [DEP_COMP_CLEAN_HOLDERS_TAG]
+    [FILE_TAG]_assessor_tester_brute.o \
+    [FILE_TAG]_assessor_tester.o
