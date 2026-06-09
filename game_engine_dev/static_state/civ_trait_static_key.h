@@ -20,6 +20,9 @@
 
 class CivTraitStaticDataKey {
     friend class CivTraitStaticData;
+    friend class CivTraitBitArray;
+    friend class GeneralAssessor;
+    friend class KeyHolder;
 public:
     constexpr CivTraitStaticDataKey() : m_val(U16_KEY_NULL) {}
 

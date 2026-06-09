@@ -1,0 +1,29 @@
+#!/bin/bash
+
+INC="-I.. -I../simple_map_gen"
+CXXFLAGS="-std=c++17 -Wall -Wextra"
+
+g++ $CXXFLAGS $INC -c map_terrain_validate.cpp -o map_terrain_validate.o
+g++ $CXXFLAGS $INC -c map_terrain_data.cpp -o map_terrain_data.o
+g++ $CXXFLAGS $INC -c map_loader.cpp -o map_loader.o
+g++ $CXXFLAGS $INC -c starting_point_generator.cpp -o starting_point_generator.o
+g++ $CXXFLAGS $INC -c starting_point_generator_tester.cpp -o starting_point_generator_tester.o
+g++ $CXXFLAGS $INC -c starting_point_generator_long_tester.cpp -o starting_point_generator_long_tester.o
+
+g++ $CXXFLAGS -o starting_point_generator_tester \
+    map_terrain_validate.o \
+    map_terrain_data.o \
+    map_loader.o \
+    starting_point_generator.o \
+    starting_point_generator_tester.o
+
+g++ $CXXFLAGS -o starting_point_generator_long_tester \
+    map_terrain_validate.o \
+    map_terrain_data.o \
+    map_loader.o \
+    starting_point_generator.o \
+    starting_point_generator_long_tester.o
+
+rm map_terrain_validate.o map_terrain_data.o map_loader.o \
+    starting_point_generator.o starting_point_generator_tester.o \
+    starting_point_generator_long_tester.o

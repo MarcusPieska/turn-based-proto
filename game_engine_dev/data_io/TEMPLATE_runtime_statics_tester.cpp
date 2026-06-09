@@ -121,6 +121,14 @@ void run_req_bounds_tests (const RuntimeStatics& statics) {
     [RUNTIME_LOADER_TESTER_REQ_TESTS_TAG]
 }
 
+void run_map_smoke_tests (const RuntimeStatics& statics) {
+    [RUNTIME_LOADER_TESTER_MAP_SMOKE_TESTS_TAG]
+}
+
+void run_effector_smoke_tests (const RuntimeStatics& statics) {
+    [RUNTIME_LOADER_TESTER_EFFECTOR_SMOKE_TESTS_TAG]
+}
+
 void run_parser_manager_tests (const RuntimeStatics& statics) {
     ParserTestManager mgr;
     mgr.set_plvl(print_level);
@@ -138,6 +146,8 @@ int run_parse_driver () {
     RuntimeStatics& statics = loader.statics();
     run_load_tests(loader);
     run_req_bounds_tests(statics);
+    run_map_smoke_tests(statics);
+    run_effector_smoke_tests(statics);
     run_parser_manager_tests(statics);
     if (print_level >= 1) {
         print_holder_counts(statics);

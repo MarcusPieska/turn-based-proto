@@ -1,0 +1,43 @@
+//================================================================================================================================
+//=> - Includes and globals -
+//================================================================================================================================
+
+#include "small_wonder_bit_array.h"
+
+//================================================================================================================================
+//=> - SmallWonderBitArray implementation -
+//================================================================================================================================
+
+SmallWonderBitArray::SmallWonderBitArray (u16 count) :
+    m_flags(count) {
+}
+
+SmallWonderBitArray::~SmallWonderBitArray () {
+}
+
+bool SmallWonderBitArray::is_flagged (SmallWonderStaticDataKey key) const {
+    return m_flags.get_bit(key.value()) != 0;
+}
+
+void SmallWonderBitArray::set_flag (SmallWonderStaticDataKey key) {
+    m_flags.set_bit(key.value());
+}
+
+void SmallWonderBitArray::clear_flag (SmallWonderStaticDataKey key) {
+    m_flags.clear_bit(key.value());
+}
+
+bool SmallWonderBitArray::can_access (u16 idx, SmallWonderStaticDataKey& out_key) const {
+    if (idx >= m_flags.get_count()) {
+        return false;
+    }
+    if (m_flags.get_bit(idx) == 0) {
+        return false;
+    }
+    out_key = SmallWonderStaticDataKey::from_raw(idx);
+    return true;
+}
+
+//================================================================================================================================
+//=> - End -
+//================================================================================================================================

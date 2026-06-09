@@ -1,0 +1,43 @@
+//================================================================================================================================
+//=> - Includes and globals -
+//================================================================================================================================
+
+#include "unit_bit_array.h"
+
+//================================================================================================================================
+//=> - UnitBitArray implementation -
+//================================================================================================================================
+
+UnitBitArray::UnitBitArray (u16 count) :
+    m_flags(count) {
+}
+
+UnitBitArray::~UnitBitArray () {
+}
+
+bool UnitBitArray::is_flagged (UnitStaticDataKey key) const {
+    return m_flags.get_bit(key.value()) != 0;
+}
+
+void UnitBitArray::set_flag (UnitStaticDataKey key) {
+    m_flags.set_bit(key.value());
+}
+
+void UnitBitArray::clear_flag (UnitStaticDataKey key) {
+    m_flags.clear_bit(key.value());
+}
+
+bool UnitBitArray::can_access (u16 idx, UnitStaticDataKey& out_key) const {
+    if (idx >= m_flags.get_count()) {
+        return false;
+    }
+    if (m_flags.get_bit(idx) == 0) {
+        return false;
+    }
+    out_key = UnitStaticDataKey::from_raw(idx);
+    return true;
+}
+
+//================================================================================================================================
+//=> - End -
+//================================================================================================================================

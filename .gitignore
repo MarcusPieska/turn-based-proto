@@ -12,6 +12,7 @@
 *_tester
 *.pyc
 RESULTS_*
+*.trace
 
 map_driver
 map_driver.exe

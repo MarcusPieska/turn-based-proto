@@ -1,0 +1,43 @@
+//================================================================================================================================
+//=> - Includes and globals -
+//================================================================================================================================
+
+#include "resource_bit_array.h"
+
+//================================================================================================================================
+//=> - ResourceBitArray implementation -
+//================================================================================================================================
+
+ResourceBitArray::ResourceBitArray (u16 count) :
+    m_flags(count) {
+}
+
+ResourceBitArray::~ResourceBitArray () {
+}
+
+bool ResourceBitArray::is_flagged (ResourceStaticDataKey key) const {
+    return m_flags.get_bit(key.value()) != 0;
+}
+
+void ResourceBitArray::set_flag (ResourceStaticDataKey key) {
+    m_flags.set_bit(key.value());
+}
+
+void ResourceBitArray::clear_flag (ResourceStaticDataKey key) {
+    m_flags.clear_bit(key.value());
+}
+
+bool ResourceBitArray::can_access (u16 idx, ResourceStaticDataKey& out_key) const {
+    if (idx >= m_flags.get_count()) {
+        return false;
+    }
+    if (m_flags.get_bit(idx) == 0) {
+        return false;
+    }
+    out_key = ResourceStaticDataKey::from_raw(idx);
+    return true;
+}
+
+//================================================================================================================================
+//=> - End -
+//================================================================================================================================

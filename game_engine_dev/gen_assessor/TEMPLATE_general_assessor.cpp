@@ -11,6 +11,7 @@
 
 #include "bit_array.h"
 #include "general_assessor.h"
+[ASSESS_INCLUDES_TAG]
 
 //================================================================================================================================
 //=> - GeneralAssessor implementation -
@@ -45,18 +46,7 @@ bool GeneralAssessor::chk (const ItemReqsStruct& reqs, const AssessorCtx& ctx) {
     return true;
 }
 
-BitArrayCL* GeneralAssessor::assess (u16 item_count, const ItemReqsStruct* reqs_per_item, const AssessorCtx& ctx) {
-    BitArrayCL* result = new BitArrayCL(item_count);
-    if (reqs_per_item == nullptr) {
-        return result;
-    }
-    for (u16 i = 0; i < item_count; ++i) {
-        if (chk(reqs_per_item[i], ctx)) {
-            result->set_bit(i);
-        }
-    }
-    return result;
-}
+[ASSESS_IMPLEMENTATIONS_TAG]
 
 //================================================================================================================================
 //=> - End -

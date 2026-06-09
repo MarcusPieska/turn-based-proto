@@ -27,10 +27,14 @@ RuntimeStaticLoader::RuntimeStaticLoader () :
 
 RuntimeStaticLoader::~RuntimeStaticLoader () {
     unload();
+    delete m_statics;
+    m_statics = nullptr;
 }
 
 bool RuntimeStaticLoader::load (const char* lib_path, const char* data_path_offset) {
     unload();
+    delete m_statics;
+    m_statics = nullptr;
     m_lib = dlopen(lib_path, RTLD_NOW);
     if (m_lib == nullptr) {
         return false;
@@ -67,25 +71,27 @@ bool RuntimeStaticLoader::load (const char* lib_path, const char* data_path_offs
 
 void RuntimeStaticLoader::unload () {
     if (m_lib == nullptr) {
-        m_handle = nullptr;
-        m_statics = nullptr;
         return;
     }
     if (m_handle != nullptr) {
+        auto fn_detach = reinterpret_cast<RuntimeStatics* (*)(RuntimeStaticLoaderLibHandle)>(
+            dlsym(m_lib, "runtime_static_loader_lib_detach_statics"));
+        if (fn_detach != nullptr && m_statics != nullptr) {
+            fn_detach(m_handle);
+        }
         auto fn_destroy = reinterpret_cast<void (*)(RuntimeStaticLoaderLibHandle)>(
             dlsym(m_lib, "runtime_static_loader_lib_destroy"));
         if (fn_destroy != nullptr) {
             fn_destroy(m_handle);
         }
         m_handle = nullptr;
-        m_statics = nullptr;
     }
     dlclose(m_lib);
     m_lib = nullptr;
 }
 
 bool RuntimeStaticLoader::is_loaded () const {
-    return m_lib != nullptr && m_statics != nullptr;
+    return m_lib != nullptr;
 }
 
 RuntimeStatics& RuntimeStaticLoader::statics () {

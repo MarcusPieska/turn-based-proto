@@ -50,6 +50,14 @@ extern "C" void runtime_static_loader_lib_destroy (RuntimeStaticLoaderLibHandle 
     delete static_cast<RuntimeStaticLoaderLibState*>(handle);
 }
 
+extern "C" RuntimeStatics* runtime_static_loader_lib_detach_statics (RuntimeStaticLoaderLibHandle handle) {
+    RuntimeStaticLoaderLibState* state = static_cast<RuntimeStaticLoaderLibState*>(handle);
+    RuntimeStatics* out = state->statics;
+    state->statics = nullptr;
+    set_runtime_statics(nullptr);
+    return out;
+}
+
 extern "C" RuntimeStatics* runtime_static_loader_lib_runtime_statics (RuntimeStaticLoaderLibHandle handle) {
     return static_cast<RuntimeStaticLoaderLibState*>(handle)->statics;
 }

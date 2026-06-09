@@ -1,0 +1,43 @@
+//================================================================================================================================
+//=> - Includes and globals -
+//================================================================================================================================
+
+#include "civ_trait_bit_array.h"
+
+//================================================================================================================================
+//=> - CivTraitBitArray implementation -
+//================================================================================================================================
+
+CivTraitBitArray::CivTraitBitArray (u16 count) :
+    m_flags(count) {
+}
+
+CivTraitBitArray::~CivTraitBitArray () {
+}
+
+bool CivTraitBitArray::is_flagged (CivTraitStaticDataKey key) const {
+    return m_flags.get_bit(key.value()) != 0;
+}
+
+void CivTraitBitArray::set_flag (CivTraitStaticDataKey key) {
+    m_flags.set_bit(key.value());
+}
+
+void CivTraitBitArray::clear_flag (CivTraitStaticDataKey key) {
+    m_flags.clear_bit(key.value());
+}
+
+bool CivTraitBitArray::can_access (u16 idx, CivTraitStaticDataKey& out_key) const {
+    if (idx >= m_flags.get_count()) {
+        return false;
+    }
+    if (m_flags.get_bit(idx) == 0) {
+        return false;
+    }
+    out_key = CivTraitStaticDataKey::from_raw(idx);
+    return true;
+}
+
+//================================================================================================================================
+//=> - End -
+//================================================================================================================================

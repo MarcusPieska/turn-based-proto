@@ -69,18 +69,6 @@ static inline f32 fbm_sum_octaves (PerlinNoise& gen, const f32* cx, const f32* c
     return sum;
 }
 
-static f32 sample_fbm_pixel (PerlinNoise& gen, u16 px, u16 py, const FbmOctaveSetup& setup) {
-    f32 cx[OCTAVES];
-    f32 cy[OCTAVES];
-    const f32 pxf = static_cast<f32>(px) + 0.5f;
-    const f32 pyf = static_cast<f32>(py) + 0.5f;
-    for (i32 o = 0; o < OCTAVES; ++o) {
-        cx[o] = pxf * setup.m_dcx[o];
-        cy[o] = pyf * setup.m_dcy[o];
-    }
-    return fbm_sum_octaves(gen, cx, cy, setup);
-}
-
 //================================================================================================================================
 //=> - PerlinImgParams -
 //================================================================================================================================

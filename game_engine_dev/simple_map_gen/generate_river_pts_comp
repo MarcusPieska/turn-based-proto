@@ -1,0 +1,29 @@
+#!/bin/bash
+
+INC="-I.. -I../map_loader -I../simple_map_gen"
+
+g++ -std=c++11 $INC -c ../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
+g++ -std=c++11 $INC -c ../map_loader/map_terrain_data.cpp -o map_terrain_data.o
+g++ -std=c++11 $INC -c ../map_loader/map_loader.cpp -o map_loader.o
+g++ -std=c++11 $INC -c generator_constants.cpp -o generator_constants.o
+g++ -std=c++11 $INC -c perlin_noise.cpp -o perlin_noise.o
+g++ -std=c++11 $INC -c generate_river_pts.cpp -o generate_river_pts.o
+g++ -std=c++11 $INC -c generate_river_pts_tester.cpp -o generate_river_pts_tester.o
+
+g++ -std=c++11 -o generate_river_pts_tester \
+    map_terrain_validate.o \
+    map_terrain_data.o \
+    map_loader.o \
+    generator_constants.o \
+    perlin_noise.o \
+    generate_river_pts.o \
+    generate_river_pts_tester.o \
+    -lm
+
+rm map_terrain_validate.o \
+    map_terrain_data.o \
+    map_loader.o \
+    generator_constants.o \
+    perlin_noise.o \
+    generate_river_pts.o \
+    generate_river_pts_tester.o

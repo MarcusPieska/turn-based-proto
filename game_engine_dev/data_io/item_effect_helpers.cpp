@@ -110,10 +110,10 @@ std::string ItemEffectHelper::terrain_yield_enum_to_str (ItemTerrainYield v) {
 }
 
 ItemEffectsScope ItemEffectHelper::effects_scope_str_to_enum (const std::string& s) {
-    if (s == "CIV") { return ItemEffectsScope::GLOBAL; }
     if (s == "NONE") { return ItemEffectsScope::NONE; }
     if (s == "LOCAL") { return ItemEffectsScope::LOCAL; }
     if (s == "CITY") { return ItemEffectsScope::CITY; }
+    if (s == "CIV") { return ItemEffectsScope::CIV; }
     if (s == "GLOBAL") { return ItemEffectsScope::GLOBAL; }
     return ItemEffectsScope::NONE;
 }
@@ -123,6 +123,7 @@ std::string ItemEffectHelper::effects_scope_enum_to_str (ItemEffectsScope v) {
         case ItemEffectsScope::NONE : return "NONE";
         case ItemEffectsScope::LOCAL : return "LOCAL";
         case ItemEffectsScope::CITY : return "CITY";
+        case ItemEffectsScope::CIV : return "CIV";
         case ItemEffectsScope::GLOBAL : return "GLOBAL";
         default: return "NONE";
     }

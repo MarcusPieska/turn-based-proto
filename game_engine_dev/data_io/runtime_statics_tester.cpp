@@ -70,17 +70,17 @@ void print_u16_member (cstr label, u16 value) {
 void print_holder_counts (const RuntimeStatics& statics) {
     printf("-----------------------------------------------------------\n");
     printf("RUNTIME STATICS COUNTS\n");
-    print_u16_member("building", statics.building().get_item_count());
-    print_u16_member("city_flag", statics.city_flag().get_item_count());
-    print_u16_member("civ", statics.civ().get_item_count());
-    print_u16_member("civ_trait", statics.civ_trait().get_item_count());
-    print_u16_member("resource", statics.resource().get_item_count());
-    print_u16_member("small_wonder", statics.small_wonder().get_item_count());
-    print_u16_member("tech", statics.tech().get_item_count());
-    print_u16_member("unit", statics.unit().get_item_count());
-    print_u16_member("unit_action", statics.unit_action().get_item_count());
-    print_u16_member("unit_type", statics.unit_type().get_item_count());
-    print_u16_member("wonder", statics.wonder().get_item_count());
+    print_u16_member("building", s.building().get_item_count());
+    print_u16_member("city_flag", s.city_flag().get_item_count());
+    print_u16_member("civ", s.civ().get_item_count());
+    print_u16_member("civ_trait", s.civ_trait().get_item_count());
+    print_u16_member("resource", s.resource().get_item_count());
+    print_u16_member("small_wonder", s.small_wonder().get_item_count());
+    print_u16_member("tech", s.tech().get_item_count());
+    print_u16_member("unit", s.unit().get_item_count());
+    print_u16_member("unit_action", s.unit_action().get_item_count());
+    print_u16_member("unit_type", s.unit_type().get_item_count());
+    print_u16_member("wonder", s.wonder().get_item_count());
 }
 
 u16 get_req_limit_for_type (const RuntimeStatics& statics, u8 req_type) {
@@ -124,23 +124,23 @@ bool are_reqs_in_bounds (const RuntimeStatics& statics, const ItemReqsStruct& re
 void run_load_tests (const RuntimeStaticLoader& loader) {
     note_result(loader.is_loaded(), "shared library load succeeded");
     const RuntimeStatics& statics = loader.statics();
-    note_result(statics.building().get_item_count() > 0, "building holder has items");
-    note_result(statics.city_flag().get_item_count() > 0, "city_flag holder has items");
-    note_result(statics.civ().get_item_count() > 0, "civ holder has items");
-    note_result(statics.civ_trait().get_item_count() > 0, "civ_trait holder has items");
-    note_result(statics.resource().get_item_count() > 0, "resource holder has items");
-    note_result(statics.small_wonder().get_item_count() > 0, "small_wonder holder has items");
-    note_result(statics.tech().get_item_count() > 0, "tech holder has items");
-    note_result(statics.unit().get_item_count() > 0, "unit holder has items");
-    note_result(statics.unit_action().get_item_count() > 0, "unit_action holder has items");
-    note_result(statics.unit_type().get_item_count() > 0, "unit_type holder has items");
-    note_result(statics.wonder().get_item_count() > 0, "wonder holder has items");
+    note_result(s.building().get_item_count() > 0, "building holder has items");
+    note_result(s.city_flag().get_item_count() > 0, "city_flag holder has items");
+    note_result(s.civ().get_item_count() > 0, "civ holder has items");
+    note_result(s.civ_trait().get_item_count() > 0, "civ_trait holder has items");
+    note_result(s.resource().get_item_count() > 0, "resource holder has items");
+    note_result(s.small_wonder().get_item_count() > 0, "small_wonder holder has items");
+    note_result(s.tech().get_item_count() > 0, "tech holder has items");
+    note_result(s.unit().get_item_count() > 0, "unit holder has items");
+    note_result(s.unit_action().get_item_count() > 0, "unit_action holder has items");
+    note_result(s.unit_type().get_item_count() > 0, "unit_type holder has items");
+    note_result(s.wonder().get_item_count() > 0, "wonder holder has items");
 }
 
 void run_req_bounds_tests (const RuntimeStatics& statics) {
     bool result = true;
-    for (u16 i = 0; i < statics.tech().get_item_count(); ++i) {
-        if (!are_reqs_in_bounds(statics, statics.tech().get_item(TechStaticDataKey::from_raw(i)).reqs, "tech", i)) {
+    for (u16 i = 0; i < s.tech().get_item_count(); ++i) {
+        if (!are_reqs_in_bounds(s, s.tech().get_item(TechStaticDataKey::from_raw(i)).reqs, "tech", i)) {
             result = false;
             break;
         }
@@ -148,8 +148,8 @@ void run_req_bounds_tests (const RuntimeStatics& statics) {
     note_result(result, "TechStaticDataStruct req indices in bounds");
     
     result = true;
-    for (u16 i = 0; i < statics.resource().get_item_count(); ++i) {
-        if (!are_reqs_in_bounds(statics, statics.resource().get_item(ResourceStaticDataKey::from_raw(i)).reqs, "resource", i)) {
+    for (u16 i = 0; i < s.resource().get_item_count(); ++i) {
+        if (!are_reqs_in_bounds(s, s.resource().get_item(ResourceStaticDataKey::from_raw(i)).reqs, "resource", i)) {
             result = false;
             break;
         }
@@ -157,8 +157,8 @@ void run_req_bounds_tests (const RuntimeStatics& statics) {
     note_result(result, "ResourceStaticDataStruct req indices in bounds");
     
     result = true;
-    for (u16 i = 0; i < statics.city_flag().get_item_count(); ++i) {
-        if (!are_reqs_in_bounds(statics, statics.city_flag().get_item(CityFlagStaticDataKey::from_raw(i)).reqs, "city_flag", i)) {
+    for (u16 i = 0; i < s.city_flag().get_item_count(); ++i) {
+        if (!are_reqs_in_bounds(s, s.city_flag().get_item(CityFlagStaticDataKey::from_raw(i)).reqs, "city_flag", i)) {
             result = false;
             break;
         }
@@ -166,8 +166,8 @@ void run_req_bounds_tests (const RuntimeStatics& statics) {
     note_result(result, "CityFlagStaticDataStruct req indices in bounds");
     
     result = true;
-    for (u16 i = 0; i < statics.building().get_item_count(); ++i) {
-        if (!are_reqs_in_bounds(statics, statics.building().get_item(BuildingStaticDataKey::from_raw(i)).reqs, "building", i)) {
+    for (u16 i = 0; i < s.building().get_item_count(); ++i) {
+        if (!are_reqs_in_bounds(s, s.building().get_item(BuildingStaticDataKey::from_raw(i)).reqs, "building", i)) {
             result = false;
             break;
         }
@@ -175,8 +175,8 @@ void run_req_bounds_tests (const RuntimeStatics& statics) {
     note_result(result, "BuildingStaticDataStruct req indices in bounds");
     
     result = true;
-    for (u16 i = 0; i < statics.unit().get_item_count(); ++i) {
-        if (!are_reqs_in_bounds(statics, statics.unit().get_item(UnitStaticDataKey::from_raw(i)).reqs, "unit", i)) {
+    for (u16 i = 0; i < s.unit().get_item_count(); ++i) {
+        if (!are_reqs_in_bounds(s, s.unit().get_item(UnitStaticDataKey::from_raw(i)).reqs, "unit", i)) {
             result = false;
             break;
         }
@@ -184,8 +184,8 @@ void run_req_bounds_tests (const RuntimeStatics& statics) {
     note_result(result, "UnitStaticDataStruct req indices in bounds");
     
     result = true;
-    for (u16 i = 0; i < statics.wonder().get_item_count(); ++i) {
-        if (!are_reqs_in_bounds(statics, statics.wonder().get_item(WonderStaticDataKey::from_raw(i)).reqs, "wonder", i)) {
+    for (u16 i = 0; i < s.wonder().get_item_count(); ++i) {
+        if (!are_reqs_in_bounds(s, s.wonder().get_item(WonderStaticDataKey::from_raw(i)).reqs, "wonder", i)) {
             result = false;
             break;
         }
@@ -193,13 +193,63 @@ void run_req_bounds_tests (const RuntimeStatics& statics) {
     note_result(result, "WonderStaticDataStruct req indices in bounds");
     
     result = true;
-    for (u16 i = 0; i < statics.small_wonder().get_item_count(); ++i) {
-        if (!are_reqs_in_bounds(statics, statics.small_wonder().get_item(SmallWonderStaticDataKey::from_raw(i)).reqs, "small_wonder", i)) {
+    for (u16 i = 0; i < s.small_wonder().get_item_count(); ++i) {
+        if (!are_reqs_in_bounds(s, s.small_wonder().get_item(SmallWonderStaticDataKey::from_raw(i)).reqs, "small_wonder", i)) {
             result = false;
             break;
         }
     }
     note_result(result, "SmallWonderStaticDataStruct req indices in bounds");
+}
+
+void run_map_smoke_tests (const RuntimeStatics& statics) {
+    note_result(s.unit_type_action_map().get_unit_type_count() > 0, "unit_type_action_map row count");
+    note_result(s.unit_type_action_map().get_action_count() > 0, "unit_type_action_map col count");
+    note_result(s.unit_type_action_map().get_unit_type_count() == s.unit_type().get_item_count(), "unit_type_action_map row match");
+    note_result(s.unit_type_action_map().get_action_count() == s.unit_action().get_item_count(), "unit_type_action_map col match");
+    note_result(s.civ_bld_discount_map().get_civ_trait_count() > 0, "civ_bld_discount_map row count");
+    note_result(s.civ_bld_discount_map().get_building_count() > 0, "civ_bld_discount_map col count");
+    note_result(s.civ_bld_discount_map().get_civ_trait_count() == s.civ_trait().get_item_count(), "civ_bld_discount_map row match");
+    note_result(s.civ_bld_discount_map().get_building_count() == s.building().get_item_count(), "civ_bld_discount_map col match");
+}
+
+void run_effector_smoke_tests (const RuntimeStatics& statics) {
+    note_result(s.local_fx().get_count() == 0 || s.local_fx().get_rows() != nullptr, "local_fx rows when non-empty");
+    note_result(s.city_fx().get_count() == 0 || s.city_fx().get_rows() != nullptr, "city_fx rows when non-empty");
+    note_result(s.civ_fx().get_count() == 0 || s.civ_fx().get_rows() != nullptr, "civ_fx rows when non-empty");
+    note_result(s.global_fx().get_count() == 0 || s.global_fx().get_rows() != nullptr, "global_fx rows when non-empty");
+    note_result(s.civ_fx().get_count() > 0, "civ_fx has rows");
+    u16 total_fx = 0;
+    for (u16 i = 0; i < s.building().get_item_count(); ++i) {
+        const ItemEffectStruct* slots = s.building().get_item(BuildingStaticDataKey::from_raw(i)).effects.items;
+        for (u16 j = 0; j < MAX_EFFECT_COUNT; ++j) {
+            if (slots[j].type != 0) { ++total_fx; }
+        }
+    }
+    for (u16 i = 0; i < s.small_wonder().get_item_count(); ++i) {
+        const ItemEffectStruct* slots = s.small_wonder().get_item(SmallWonderStaticDataKey::from_raw(i)).effects.items;
+        for (u16 j = 0; j < MAX_EFFECT_COUNT; ++j) {
+            if (slots[j].type != 0) { ++total_fx; }
+        }
+    }
+    for (u16 i = 0; i < s.tech().get_item_count(); ++i) {
+        const ItemEffectStruct* slots = s.tech().get_item(TechStaticDataKey::from_raw(i)).effects.items;
+        for (u16 j = 0; j < MAX_EFFECT_COUNT; ++j) {
+            if (slots[j].type != 0) { ++total_fx; }
+        }
+    }
+    for (u16 i = 0; i < s.wonder().get_item_count(); ++i) {
+        const ItemEffectStruct* slots = s.wonder().get_item(WonderStaticDataKey::from_raw(i)).effects.items;
+        for (u16 j = 0; j < MAX_EFFECT_COUNT; ++j) {
+            if (slots[j].type != 0) { ++total_fx; }
+        }
+    }
+    u16 scoped_fx = 0;
+    scoped_fx += s.local_fx().get_count();
+    scoped_fx += s.city_fx().get_count();
+    scoped_fx += s.civ_fx().get_count();
+    scoped_fx += s.global_fx().get_count();
+    note_result(total_fx == 0 || scoped_fx * 10 >= total_fx * 9, "effector scope sum >= 90% of total effects");
 }
 
 void run_parser_manager_tests (const RuntimeStatics& statics) {
@@ -219,6 +269,8 @@ int run_parse_driver () {
     RuntimeStatics& statics = loader.statics();
     run_load_tests(loader);
     run_req_bounds_tests(statics);
+    run_map_smoke_tests(statics);
+    run_effector_smoke_tests(statics);
     run_parser_manager_tests(statics);
     if (print_level >= 1) {
         print_holder_counts(statics);

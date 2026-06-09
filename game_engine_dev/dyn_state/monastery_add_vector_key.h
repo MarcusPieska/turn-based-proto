@@ -14,7 +14,7 @@
 class MonasteryAddKey {
     friend class MonasteryAddVector;
 public:
-    constexpr MonasteryAddKey() : m_val(0) {}
+    constexpr MonasteryAddKey() : m_val(U16_KEY_NULL) {}
 
     constexpr bool operator==(MonasteryAddKey other) const {
         return m_val == other.m_val; 
@@ -25,15 +25,23 @@ public:
     }
 
     constexpr bool is_null() const { 
-        return m_val == 0; 
+        return m_val == U16_KEY_NULL; 
+    }
+
+    constexpr bool is_invalid() const { 
+        return m_val == U16_KEY_INVALID; 
     }
 
     constexpr bool is_valid() const { 
-        return m_val != 0; 
+        return m_val != U16_KEY_NULL && m_val != U16_KEY_INVALID; 
     }
 
     static constexpr MonasteryAddKey None() { 
-        return MonasteryAddKey(0); 
+        return MonasteryAddKey(U16_KEY_NULL); 
+    }
+
+    static constexpr MonasteryAddKey Invalid() { 
+        return MonasteryAddKey(U16_KEY_INVALID); 
     }
 
     static constexpr MonasteryAddKey from_raw(u16 val) {
@@ -57,3 +65,4 @@ private:
 //================================================================================================================================
 //=> - End of file -
 //================================================================================================================================
+

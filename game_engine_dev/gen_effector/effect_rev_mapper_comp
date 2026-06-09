@@ -1,0 +1,80 @@
+#!/bin/bash
+
+INC="-I../ -I../misc -I../data_io -I../static_state"
+
+g++ $INC -c ../misc/opt_str_mng.cpp -o opt_str_mng.o
+g++ $INC -c ../data_io/path_mng.cpp -o path_mng.o
+g++ $INC -c ../data_io/data_parser_base.cpp -o data_parser_base.o
+g++ $INC -c ../data_io/item_effect_handler.cpp -o item_effect_handler.o
+g++ $INC -c ../data_io/item_effect_helpers.cpp -o item_effect_helpers.o
+g++ $INC -c ../static_state/static_bit_bank.cpp -o static_bit_bank.o
+g++ $INC -c ../static_state/unit_type_action_map.cpp -o unit_type_action_map.o
+g++ $INC -c ../data_io/unit_type_action_map_parsing.cpp -o unit_type_action_map_parsing.o
+g++ $INC -c ../static_state/civ_bld_discount_map.cpp -o civ_bld_discount_map.o
+g++ $INC -c ../data_io/civ_bld_discount_map_parsing.cpp -o civ_bld_discount_map_parsing.o
+g++ $INC -c ../data_io/building_parser.cpp -o building_parser.o
+g++ $INC -c ../data_io/city_flag_parser.cpp -o city_flag_parser.o
+g++ $INC -c ../data_io/civ_parser.cpp -o civ_parser.o
+g++ $INC -c ../data_io/civ_trait_parser.cpp -o civ_trait_parser.o
+g++ $INC -c ../data_io/resource_parser.cpp -o resource_parser.o
+g++ $INC -c ../data_io/small_wonder_parser.cpp -o small_wonder_parser.o
+g++ $INC -c ../data_io/tech_parser.cpp -o tech_parser.o
+g++ $INC -c ../data_io/unit_parser.cpp -o unit_parser.o
+g++ $INC -c ../data_io/unit_action_parser.cpp -o unit_action_parser.o
+g++ $INC -c ../data_io/unit_type_parser.cpp -o unit_type_parser.o
+g++ $INC -c ../data_io/wonder_parser.cpp -o wonder_parser.o
+g++ $INC -c ../data_io/static_parsing_manager.cpp -o static_parsing_manager.o
+g++ $INC -c effect_rev_mapper.cpp -o effect_rev_mapper.o
+g++ $INC -c effect_rev_mapper_tester.cpp -o effect_rev_mapper_tester.o
+
+g++ -o effect_rev_mapper_tester \
+    opt_str_mng.o \
+    path_mng.o \
+    data_parser_base.o \
+    item_effect_handler.o \
+    item_effect_helpers.o \
+    static_bit_bank.o \
+    unit_type_action_map.o \
+    unit_type_action_map_parsing.o \
+    civ_bld_discount_map.o \
+    civ_bld_discount_map_parsing.o \
+    building_parser.o \
+    city_flag_parser.o \
+    civ_parser.o \
+    civ_trait_parser.o \
+    resource_parser.o \
+    small_wonder_parser.o \
+    tech_parser.o \
+    unit_parser.o \
+    unit_action_parser.o \
+    unit_type_parser.o \
+    wonder_parser.o \
+    static_parsing_manager.o \
+    effect_rev_mapper.o \
+    effect_rev_mapper_tester.o
+
+rm \
+    opt_str_mng.o \
+    path_mng.o \
+    data_parser_base.o \
+    item_effect_handler.o \
+    item_effect_helpers.o \
+    static_bit_bank.o \
+    unit_type_action_map.o \
+    unit_type_action_map_parsing.o \
+    civ_bld_discount_map.o \
+    civ_bld_discount_map_parsing.o \
+    building_parser.o \
+    city_flag_parser.o \
+    civ_parser.o \
+    civ_trait_parser.o \
+    resource_parser.o \
+    small_wonder_parser.o \
+    tech_parser.o \
+    unit_parser.o \
+    unit_action_parser.o \
+    unit_type_parser.o \
+    wonder_parser.o \
+    static_parsing_manager.o \
+    effect_rev_mapper.o \
+    effect_rev_mapper_tester.o

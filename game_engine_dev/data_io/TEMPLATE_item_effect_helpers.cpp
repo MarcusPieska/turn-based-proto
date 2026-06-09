@@ -48,7 +48,6 @@ std::string ItemEffectHelper::terrain_yield_enum_to_str (ItemTerrainYield v) {
 }
 
 ItemEffectsScope ItemEffectHelper::effects_scope_str_to_enum (const std::string& s) {
-    if (s == "CIV") { return ItemEffectsScope::GLOBAL; }
     [IE_SCOPE_FROM_STRING_BODY]
     return ItemEffectsScope::NONE;
 }

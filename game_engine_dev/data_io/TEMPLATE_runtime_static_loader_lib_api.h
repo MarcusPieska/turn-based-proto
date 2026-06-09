@@ -21,6 +21,7 @@ typedef void* RuntimeStaticLoaderLibHandle;
 
 RuntimeStaticLoaderLibHandle runtime_static_loader_lib_create (const char* path_offset);
 void runtime_static_loader_lib_destroy (RuntimeStaticLoaderLibHandle handle);
+struct RuntimeStatics* runtime_static_loader_lib_detach_statics (RuntimeStaticLoaderLibHandle handle);
 struct RuntimeStatics* runtime_static_loader_lib_runtime_statics (RuntimeStaticLoaderLibHandle handle);
 
 #ifdef __cplusplus

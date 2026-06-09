@@ -14,7 +14,7 @@
 class ShipyardAddKey {
     friend class ShipyardAddVector;
 public:
-    constexpr ShipyardAddKey() : m_val(0) {}
+    constexpr ShipyardAddKey() : m_val(U16_KEY_NULL) {}
 
     constexpr bool operator==(ShipyardAddKey other) const {
         return m_val == other.m_val; 
@@ -25,15 +25,23 @@ public:
     }
 
     constexpr bool is_null() const { 
-        return m_val == 0; 
+        return m_val == U16_KEY_NULL; 
+    }
+
+    constexpr bool is_invalid() const { 
+        return m_val == U16_KEY_INVALID; 
     }
 
     constexpr bool is_valid() const { 
-        return m_val != 0; 
+        return m_val != U16_KEY_NULL && m_val != U16_KEY_INVALID; 
     }
 
     static constexpr ShipyardAddKey None() { 
-        return ShipyardAddKey(0); 
+        return ShipyardAddKey(U16_KEY_NULL); 
+    }
+
+    static constexpr ShipyardAddKey Invalid() { 
+        return ShipyardAddKey(U16_KEY_INVALID); 
     }
 
     static constexpr ShipyardAddKey from_raw(u16 val) {
@@ -57,3 +65,4 @@ private:
 //================================================================================================================================
 //=> - End of file -
 //================================================================================================================================
+

@@ -55,6 +55,7 @@ ie_scope_enum = []
 ie_scope_enum.append("NONE")
 ie_scope_enum.append("LOCAL")
 ie_scope_enum.append("CITY")
+ie_scope_enum.append("CIV")
 ie_scope_enum.append("GLOBAL")
 
 ie_amount_mode_enum = []

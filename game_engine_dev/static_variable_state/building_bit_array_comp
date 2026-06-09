@@ -1,0 +1,17 @@
+#!/bin/bash
+
+INC="-I.. -I../misc -I../static_state -I../gen_static_state -I../static_variable_state"
+
+g++ $INC -c ../misc/bit_array.cpp -o bit_array.o
+g++ $INC -c building_bit_array.cpp -o building_bit_array.o
+g++ $INC -c building_static_data.cpp -o building_static_data.o
+
+g++ -o building_bit_array_tester \
+    bit_array.o \
+    building_bit_array.o \
+    building_static_data.o
+
+rm -f \
+    bit_array.o \
+    building_bit_array.o \
+    building_static_data.o

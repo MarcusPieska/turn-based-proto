@@ -14,7 +14,7 @@
 class [CLASS_NAME_PREFIX]Key {
     friend class [CLASS_NAME_PREFIX]Vector;
 public:
-    constexpr [CLASS_NAME_PREFIX]Key() : m_val(0) {}
+    constexpr [CLASS_NAME_PREFIX]Key() : m_val(U16_KEY_NULL) {}
 
     constexpr bool operator==([CLASS_NAME_PREFIX]Key other) const {
         return m_val == other.m_val; 
@@ -25,15 +25,23 @@ public:
     }
 
     constexpr bool is_null() const { 
-        return m_val == 0; 
+        return m_val == U16_KEY_NULL; 
+    }
+
+    constexpr bool is_invalid() const { 
+        return m_val == U16_KEY_INVALID; 
     }
 
     constexpr bool is_valid() const { 
-        return m_val != 0; 
+        return m_val != U16_KEY_NULL && m_val != U16_KEY_INVALID; 
     }
 
     static constexpr [CLASS_NAME_PREFIX]Key None() { 
-        return [CLASS_NAME_PREFIX]Key(0); 
+        return [CLASS_NAME_PREFIX]Key(U16_KEY_NULL); 
+    }
+
+    static constexpr [CLASS_NAME_PREFIX]Key Invalid() { 
+        return [CLASS_NAME_PREFIX]Key(U16_KEY_INVALID); 
     }
 
     static constexpr [CLASS_NAME_PREFIX]Key from_raw(u16 val) {
@@ -57,3 +65,4 @@ private:
 //================================================================================================================================
 //=> - End of file -
 //================================================================================================================================
+

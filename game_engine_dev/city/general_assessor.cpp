@@ -11,6 +11,13 @@
 
 #include "bit_array.h"
 #include "general_assessor.h"
+#include "building_static_data.h"
+#include "city_flag_static_data.h"
+#include "resource_static_data.h"
+#include "small_wonder_static_data.h"
+#include "tech_static_data.h"
+#include "unit_static_data.h"
+#include "wonder_static_data.h"
 
 //================================================================================================================================
 //=> - GeneralAssessor implementation -
@@ -69,13 +76,91 @@ bool GeneralAssessor::chk (const ItemReqsStruct& reqs, const AssessorCtx& ctx) {
     return true;
 }
 
-BitArrayCL* GeneralAssessor::assess (u16 item_count, const ItemReqsStruct* reqs_per_item, const AssessorCtx& ctx) {
+BitArrayCL* GeneralAssessor::assess_building (u16 item_count, const BuildingStaticDataStruct* items, const AssessorCtx& ctx) {
     BitArrayCL* result = new BitArrayCL(item_count);
-    if (reqs_per_item == nullptr) {
+    if (items == nullptr) {
         return result;
     }
     for (u16 i = 0; i < item_count; ++i) {
-        if (chk(reqs_per_item[i], ctx)) {
+        if (chk(items[i].reqs, ctx)) {
+            result->set_bit(i);
+        }
+    }
+    return result;
+}
+
+BitArrayCL* GeneralAssessor::assess_city_flag (u16 item_count, const CityFlagStaticDataStruct* items, const AssessorCtx& ctx) {
+    BitArrayCL* result = new BitArrayCL(item_count);
+    if (items == nullptr) {
+        return result;
+    }
+    for (u16 i = 0; i < item_count; ++i) {
+        if (chk(items[i].reqs, ctx)) {
+            result->set_bit(i);
+        }
+    }
+    return result;
+}
+
+BitArrayCL* GeneralAssessor::assess_resource (u16 item_count, const ResourceStaticDataStruct* items, const AssessorCtx& ctx) {
+    BitArrayCL* result = new BitArrayCL(item_count);
+    if (items == nullptr) {
+        return result;
+    }
+    for (u16 i = 0; i < item_count; ++i) {
+        if (chk(items[i].reqs, ctx)) {
+            result->set_bit(i);
+        }
+    }
+    return result;
+}
+
+BitArrayCL* GeneralAssessor::assess_small_wonder (u16 item_count, const SmallWonderStaticDataStruct* items, const AssessorCtx& ctx) {
+    BitArrayCL* result = new BitArrayCL(item_count);
+    if (items == nullptr) {
+        return result;
+    }
+    for (u16 i = 0; i < item_count; ++i) {
+        if (chk(items[i].reqs, ctx)) {
+            result->set_bit(i);
+        }
+    }
+    return result;
+}
+
+BitArrayCL* GeneralAssessor::assess_tech (u16 item_count, const TechStaticDataStruct* items, const AssessorCtx& ctx) {
+    BitArrayCL* result = new BitArrayCL(item_count);
+    if (items == nullptr) {
+        return result;
+    }
+    for (u16 i = 0; i < item_count; ++i) {
+        if (chk(items[i].reqs, ctx)) {
+            result->set_bit(i);
+        }
+    }
+    return result;
+}
+
+BitArrayCL* GeneralAssessor::assess_unit (u16 item_count, const UnitStaticDataStruct* items, const AssessorCtx& ctx) {
+    BitArrayCL* result = new BitArrayCL(item_count);
+    if (items == nullptr) {
+        return result;
+    }
+    for (u16 i = 0; i < item_count; ++i) {
+        if (chk(items[i].reqs, ctx)) {
+            result->set_bit(i);
+        }
+    }
+    return result;
+}
+
+BitArrayCL* GeneralAssessor::assess_wonder (u16 item_count, const WonderStaticDataStruct* items, const AssessorCtx& ctx) {
+    BitArrayCL* result = new BitArrayCL(item_count);
+    if (items == nullptr) {
+        return result;
+    }
+    for (u16 i = 0; i < item_count; ++i) {
+        if (chk(items[i].reqs, ctx)) {
             result->set_bit(i);
         }
     }

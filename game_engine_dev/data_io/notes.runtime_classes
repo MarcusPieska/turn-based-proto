@@ -1,0 +1,10 @@
+Loading side:
+
+The runtime suite is driven by "generate_runtime_statics.py", which expands templates into "RuntimeStatics", "RuntimeStaticLoader", the loader ".so" API, and the comp scripts. The generator unrolls static-data holders, map banks, and per-scope effectors from the same lists used elsewhere (parsers from "generater_commons", scopes from "generate_item_effects"). Build the shared library with "./runtime_static_loader_lib_comp"; that ".so" owns the heavy work: "StaticParsingManager" reads "game_config" files, then "RuntimeStatics::load_from" borrows parser pointers, builds the flat effect list and scoped effectors, and finally calls "take_ownership()" on each holder so every array lives in memory the runtime owns. The host calls "RuntimeStaticLoader::load(lib_path, data_path)", which "dlopen"s the ".so", runs "runtime_static_loader_lib_create", and receives a populated "RuntimeStatics*".
+
+User interface post-unload:
+
+After load, game or test code reads data only through "RuntimeStatics" accessors ("building()", "tech()", "local_fx()", "city_fx()", etc.) — never through "StaticParsingManager", which stays inside the ".so". Calling "RuntimeStaticLoader::unload()" detaches that "RuntimeStatics" via "runtime_static_loader_lib_detach_statics", destroys the parser-side state, and "dlclose"s the library; "is_loaded()" becomes false, but "loader.statics()" remains valid because the detached object and all "take_ownership()" buffers survive in the host process. The loader deletes "RuntimeStatics" in its destructor. Post-unload usage is therefore the same API as during load: const references into owned static-data holders and effector scopers, with no dependency on the shared library still being mapped.
+
+
+Class to use as API post-unload: RuntimeStatics (via RuntimeStaticLoader::statics()).

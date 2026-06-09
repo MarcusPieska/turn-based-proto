@@ -17,6 +17,14 @@
 
 class BitArrayCL;
 
+struct BuildingStaticDataStruct;
+struct CityFlagStaticDataStruct;
+struct ResourceStaticDataStruct;
+struct SmallWonderStaticDataStruct;
+struct TechStaticDataStruct;
+struct UnitStaticDataStruct;
+struct WonderStaticDataStruct;
+
 //================================================================================================================================
 //=> - AssessorCtx -
 //================================================================================================================================
@@ -36,7 +44,14 @@ struct AssessorCtx {
 class GeneralAssessor {
 public:
     static bool chk (const ItemReqsStruct& reqs, const AssessorCtx& ctx);
-    static BitArrayCL* assess (u16 item_count, const ItemReqsStruct* reqs_per_item, const AssessorCtx& ctx);
+    
+    static BitArrayCL* assess_building (u16 item_count, const BuildingStaticDataStruct* items, const AssessorCtx& ctx);
+    static BitArrayCL* assess_city_flag (u16 item_count, const CityFlagStaticDataStruct* items, const AssessorCtx& ctx);
+    static BitArrayCL* assess_resource (u16 item_count, const ResourceStaticDataStruct* items, const AssessorCtx& ctx);
+    static BitArrayCL* assess_small_wonder (u16 item_count, const SmallWonderStaticDataStruct* items, const AssessorCtx& ctx);
+    static BitArrayCL* assess_tech (u16 item_count, const TechStaticDataStruct* items, const AssessorCtx& ctx);
+    static BitArrayCL* assess_unit (u16 item_count, const UnitStaticDataStruct* items, const AssessorCtx& ctx);
+    static BitArrayCL* assess_wonder (u16 item_count, const WonderStaticDataStruct* items, const AssessorCtx& ctx);
 
 private:
     GeneralAssessor () = delete;

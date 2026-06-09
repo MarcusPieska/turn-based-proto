@@ -1,0 +1,13 @@
+#!/bin/bash
+
+INC="-I.."
+
+g++ -std=c++11 $INC -c generate_climate.cpp -o generate_climate.o
+g++ -std=c++11 $INC -c generate_climate_tester.cpp -o generate_climate_tester.o
+
+g++ -std=c++11 -o generate_climate_tester \
+    generate_climate.o \
+    generate_climate_tester.o -lm
+
+rm generate_climate.o \
+    generate_climate_tester.o

@@ -20,6 +20,9 @@
 
 class BuildingStaticDataKey {
     friend class BuildingStaticData;
+    friend class BuildingBitArray;
+    friend class GeneralAssessor;
+    friend class KeyHolder;
 public:
     constexpr BuildingStaticDataKey() : m_val(U16_KEY_NULL) {}
 

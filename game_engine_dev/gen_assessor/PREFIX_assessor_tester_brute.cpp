@@ -6,6 +6,7 @@
 
 #include "assessor_brute_shared.h"
 #include "assessor_brute_write.h"
+#include "general_assessor.h"
 #include "static_parsing_manager.h"
 #include "[FILE_TAG]_static_data.h"
 
@@ -13,24 +14,14 @@
 //=> - Item access -
 //================================================================================================================================
 
-static u16 get_cnt (const StaticParsingManager& mgr) {
-    return mgr.get_[FILE_TAG]_count();
+static const [STRUCT_TAG]* s_items;
+
+static BitArrayCL* s_assess (u16 n, const AssessorCtx& ctx) {
+    return GeneralAssessor::assess_[FILE_TAG](n, s_items, ctx);
 }
 
-static const ItemReqsStruct* get_reqs (const StaticParsingManager& mgr) {
-    const [STRUCT_TAG]* items = mgr.get_[FILE_TAG]_data();
-    if (items == nullptr) {
-        return nullptr;
-    }
-    static ItemReqsStruct s_buf[4096];
-    u16 n = get_cnt(mgr);
-    if (n > 4096) {
-        n = 4096;
-    }
-    for (u16 i = 0; i < n; ++i) {
-        s_buf[i] = items[i].reqs;
-    }
-    return s_buf;
+static u16 get_cnt (const StaticParsingManager& mgr) {
+    return mgr.get_[FILE_TAG]_count();
 }
 
 static const char* get_nm (const StaticParsingManager& mgr, u16 idx) {
@@ -70,15 +61,18 @@ int run_[FILE_TAG]_assessor_brute () {
     if (n == 0) {
         return 0;
     }
+    s_items = mgr.get_[FILE_TAG]_data();
+    if (s_items == nullptr) {
+        return 0;
+    }
     static const char* s_nms[4096];
     for (u16 i = 0; i < n && i < 4096; ++i) {
         s_nms[i] = get_nm(mgr, i);
     }
-    const ItemReqsStruct* reqs = get_reqs(mgr);
     EmitUd eu = { &mgr };
     BruteRunCfg cfg = {};
     cfg.m_item_count = n;
-    cfg.m_reqs = reqs;
+    cfg.m_assess = s_assess;
     cfg.m_names = s_nms;
     cfg.m_results_to_match_path = "RESULTS_TO_MATCH_[MACRO_TAG]";
     cfg.m_results_readable_path = "RESULTS_READABLE_[MACRO_TAG]";

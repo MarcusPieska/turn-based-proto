@@ -14,7 +14,7 @@
 class MineAddKey {
     friend class MineAddVector;
 public:
-    constexpr MineAddKey() : m_val(0) {}
+    constexpr MineAddKey() : m_val(U16_KEY_NULL) {}
 
     constexpr bool operator==(MineAddKey other) const {
         return m_val == other.m_val; 
@@ -25,15 +25,23 @@ public:
     }
 
     constexpr bool is_null() const { 
-        return m_val == 0; 
+        return m_val == U16_KEY_NULL; 
+    }
+
+    constexpr bool is_invalid() const { 
+        return m_val == U16_KEY_INVALID; 
     }
 
     constexpr bool is_valid() const { 
-        return m_val != 0; 
+        return m_val != U16_KEY_NULL && m_val != U16_KEY_INVALID; 
     }
 
     static constexpr MineAddKey None() { 
-        return MineAddKey(0); 
+        return MineAddKey(U16_KEY_NULL); 
+    }
+
+    static constexpr MineAddKey Invalid() { 
+        return MineAddKey(U16_KEY_INVALID); 
     }
 
     static constexpr MineAddKey from_raw(u16 val) {
@@ -57,3 +65,4 @@ private:
 //================================================================================================================================
 //=> - End of file -
 //================================================================================================================================
+

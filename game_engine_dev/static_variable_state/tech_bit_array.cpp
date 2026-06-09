@@ -1,0 +1,43 @@
+//================================================================================================================================
+//=> - Includes and globals -
+//================================================================================================================================
+
+#include "tech_bit_array.h"
+
+//================================================================================================================================
+//=> - TechBitArray implementation -
+//================================================================================================================================
+
+TechBitArray::TechBitArray (u16 count) :
+    m_flags(count) {
+}
+
+TechBitArray::~TechBitArray () {
+}
+
+bool TechBitArray::is_flagged (TechStaticDataKey key) const {
+    return m_flags.get_bit(key.value()) != 0;
+}
+
+void TechBitArray::set_flag (TechStaticDataKey key) {
+    m_flags.set_bit(key.value());
+}
+
+void TechBitArray::clear_flag (TechStaticDataKey key) {
+    m_flags.clear_bit(key.value());
+}
+
+bool TechBitArray::can_access (u16 idx, TechStaticDataKey& out_key) const {
+    if (idx >= m_flags.get_count()) {
+        return false;
+    }
+    if (m_flags.get_bit(idx) == 0) {
+        return false;
+    }
+    out_key = TechStaticDataKey::from_raw(idx);
+    return true;
+}
+
+//================================================================================================================================
+//=> - End -
+//================================================================================================================================

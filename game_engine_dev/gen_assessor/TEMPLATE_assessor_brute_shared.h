@@ -15,7 +15,10 @@
 #include "game_primitives.h"
 #include "item_reqs.h"
 
+class BitArrayCL;
 class StaticParsingManager;
+
+struct AssessorCtx;
 
 //================================================================================================================================
 //=> - InferredReqs -
@@ -52,9 +55,11 @@ struct EnablesMap {
 //=> - BruteRunCfg -
 //================================================================================================================================
 
+typedef BitArrayCL* (*AssessFn) (u16 item_count, const AssessorCtx& ctx);
+
 struct BruteRunCfg {
     u16 m_item_count;
-    const ItemReqsStruct* m_reqs;
+    AssessFn m_assess;
     const char* const* m_names;
     const char* m_results_to_match_path;
     const char* m_results_readable_path;

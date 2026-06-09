@@ -65,7 +65,7 @@ static EnablesMap make_en_map ([MAKE_EN_MAP_ARGS_TAG]) {
 //================================================================================================================================
 
 int AssessorBrute::run (const StaticParsingManager& mgr, const BruteRunCfg& cfg) {
-    if (cfg.m_item_count == 0 || cfg.m_reqs == nullptr) {
+    if (cfg.m_item_count == 0 || cfg.m_assess == nullptr) {
         return 0;
     }
 
@@ -88,7 +88,7 @@ int AssessorBrute::run (const StaticParsingManager& mgr, const BruteRunCfg& cfg)
     AssessorCtx ctx = {};
     snap(ctx);
     set_base();
-    BitArrayCL* baseline = GeneralAssessor::assess(cfg.m_item_count, cfg.m_reqs, ctx);
+    BitArrayCL* baseline = cfg.m_assess(cfg.m_item_count, ctx);
 
     [ABLATION_LOOPS_TAG]
 

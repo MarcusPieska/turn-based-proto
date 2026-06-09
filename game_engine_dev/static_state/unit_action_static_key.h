@@ -20,6 +20,9 @@
 
 class UnitActionStaticDataKey {
     friend class UnitActionStaticData;
+    friend class UnitActionBitArray;
+    friend class GeneralAssessor;
+    friend class KeyHolder;
 public:
     constexpr UnitActionStaticDataKey() : m_val(U16_KEY_NULL) {}
 

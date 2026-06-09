@@ -20,6 +20,9 @@
 
 class CityFlagStaticDataKey {
     friend class CityFlagStaticData;
+    friend class CityFlagBitArray;
+    friend class GeneralAssessor;
+    friend class KeyHolder;
 public:
     constexpr CityFlagStaticDataKey() : m_val(U16_KEY_NULL) {}
 

@@ -14,7 +14,7 @@
 class PlantationAddKey {
     friend class PlantationAddVector;
 public:
-    constexpr PlantationAddKey() : m_val(0) {}
+    constexpr PlantationAddKey() : m_val(U16_KEY_NULL) {}
 
     constexpr bool operator==(PlantationAddKey other) const {
         return m_val == other.m_val; 
@@ -25,15 +25,23 @@ public:
     }
 
     constexpr bool is_null() const { 
-        return m_val == 0; 
+        return m_val == U16_KEY_NULL; 
+    }
+
+    constexpr bool is_invalid() const { 
+        return m_val == U16_KEY_INVALID; 
     }
 
     constexpr bool is_valid() const { 
-        return m_val != 0; 
+        return m_val != U16_KEY_NULL && m_val != U16_KEY_INVALID; 
     }
 
     static constexpr PlantationAddKey None() { 
-        return PlantationAddKey(0); 
+        return PlantationAddKey(U16_KEY_NULL); 
+    }
+
+    static constexpr PlantationAddKey Invalid() { 
+        return PlantationAddKey(U16_KEY_INVALID); 
     }
 
     static constexpr PlantationAddKey from_raw(u16 val) {
@@ -57,3 +65,4 @@ private:
 //================================================================================================================================
 //=> - End of file -
 //================================================================================================================================
+

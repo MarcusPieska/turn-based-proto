@@ -1,0 +1,36 @@
+//================================================================================================================================
+//=> - Includes -
+//================================================================================================================================
+
+#include <cstdlib>
+
+int run_building_assessor_brute ();
+int run_city_flag_assessor_brute ();
+int run_resource_assessor_brute ();
+int run_small_wonder_assessor_brute ();
+int run_tech_assessor_brute ();
+int run_unit_assessor_brute ();
+int run_wonder_assessor_brute ();
+
+//================================================================================================================================
+//=> - Driver -
+//================================================================================================================================
+
+int main (int argc, char* argv[]) {
+    (void)argc;
+    (void)argv;
+    
+    int rc = 0;
+    rc |= run_building_assessor_brute();
+    rc |= run_city_flag_assessor_brute();
+    rc |= run_resource_assessor_brute();
+    rc |= run_small_wonder_assessor_brute();
+    rc |= run_tech_assessor_brute();
+    rc |= run_unit_assessor_brute();
+    rc |= run_wonder_assessor_brute();
+    return rc;
+}
+
+//================================================================================================================================
+//=> - End -
+//================================================================================================================================

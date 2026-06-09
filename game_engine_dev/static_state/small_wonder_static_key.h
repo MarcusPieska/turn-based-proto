@@ -20,6 +20,9 @@
 
 class SmallWonderStaticDataKey {
     friend class SmallWonderStaticData;
+    friend class SmallWonderBitArray;
+    friend class GeneralAssessor;
+    friend class KeyHolder;
 public:
     constexpr SmallWonderStaticDataKey() : m_val(U16_KEY_NULL) {}
 

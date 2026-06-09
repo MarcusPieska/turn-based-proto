@@ -1,0 +1,43 @@
+//================================================================================================================================
+//=> - Includes and globals -
+//================================================================================================================================
+
+#include "civ_bit_array.h"
+
+//================================================================================================================================
+//=> - CivBitArray implementation -
+//================================================================================================================================
+
+CivBitArray::CivBitArray (u16 count) :
+    m_flags(count) {
+}
+
+CivBitArray::~CivBitArray () {
+}
+
+bool CivBitArray::is_flagged (CivStaticDataKey key) const {
+    return m_flags.get_bit(key.value()) != 0;
+}
+
+void CivBitArray::set_flag (CivStaticDataKey key) {
+    m_flags.set_bit(key.value());
+}
+
+void CivBitArray::clear_flag (CivStaticDataKey key) {
+    m_flags.clear_bit(key.value());
+}
+
+bool CivBitArray::can_access (u16 idx, CivStaticDataKey& out_key) const {
+    if (idx >= m_flags.get_count()) {
+        return false;
+    }
+    if (m_flags.get_bit(idx) == 0) {
+        return false;
+    }
+    out_key = CivStaticDataKey::from_raw(idx);
+    return true;
+}
+
+//================================================================================================================================
+//=> - End -
+//================================================================================================================================

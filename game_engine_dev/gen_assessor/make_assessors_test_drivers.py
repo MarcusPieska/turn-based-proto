@@ -7,8 +7,7 @@ sys.dont_write_bytecode = True
 
 import subprocess
 import os
-
-from generate import ASSESSOR_SPECS, generate_template_files
+from generate import ASSESSOR_SPECS, generate_all_files, migrate_to_city, remove_executables
 
 #================================================================================================================================#
 #=> - Main -
@@ -16,57 +15,57 @@ from generate import ASSESSOR_SPECS, generate_template_files
 
 if __name__ == "__main__":
     this_dir = os.path.dirname(os.path.abspath(__file__))
-    os.chdir(this_dir)
 
     total_failures = 0
 
     print("=======================================================")
-    print(" Generating template outputs")
+    print(" Generating assessor outputs")
     print("=======================================================")
-    generate_template_files()
+    generate_all_files()
+
+    print("\n=======================================================")
+    print(" Building and running assessor_tester")
+    print("=======================================================")
+
+    comp_script = os.path.join(this_dir, "assessor_tester_comp")
+    subprocess.run([comp_script], check=True, cwd=this_dir)
+
+    tester_bin = os.path.join(this_dir, "assessor_tester")
+    test_result = subprocess.run([tester_bin], check=False, cwd=this_dir)
+    if test_result.returncode != 0:
+        total_failures += 1
+
+    remove_executables(this_dir)
 
     for output_prefix, class_name, parsing_instructions in ASSESSOR_SPECS:
-        print("\n=======================================================")
-        print(" Generating assessor tester:", class_name, " (%s)" % output_prefix)
-        print("=======================================================")
-
-        gen_cmd = ["python3", "generate.py", output_prefix, class_name]
-        subprocess.run(gen_cmd, check=True)
-
-        comp_script = "./" + output_prefix + "_assessor_tester_comp"
-        subprocess.run([comp_script], check=True)
-
-        tester_bin = "./" + output_prefix + "_assessor_tester"
-        test_result = subprocess.run([tester_bin], check=False)
-        if test_result.returncode != 0:
-            total_failures += 1
-
         to_match = "RESULTS_TO_MATCH_%s" % output_prefix.upper()
         readable = "RESULTS_READABLE_%s" % output_prefix.upper()
-        if os.path.isfile(to_match):
+        if os.path.isfile(os.path.join(this_dir, to_match)):
             print(" Wrote:", to_match)
         else:
             print(" Missing:", to_match)
             total_failures += 1
-        if os.path.isfile(readable):
+        if os.path.isfile(os.path.join(this_dir, readable)):
             print(" Wrote:", readable)
         else:
             print(" Missing:", readable)
             total_failures += 1
 
-        print("=======================================================")
-        print(" Done:", class_name)
-        print("=======================================================")
-
     print("\n=======================================================")
     print(" Validating RESULTS_TO_MATCH vs game_config")
     print("=======================================================")
-    validate_result = subprocess.run(["python3", "assessor_results_validate.py"], check=False)
+    validate_result = subprocess.run(["python3", "assessor_results_validate.py"], check=False, cwd=this_dir)
     if validate_result.returncode != 0:
         total_failures += 1
 
+    if total_failures == 0:
+        print("\n=======================================================")
+        print(" Migrating sources to city/")
+        print("=======================================================")
+        migrate_to_city(this_dir)
+
     print("\n=======================================================")
-    print(" TOTAL FAILING ASSESSOR DRIVERS:", total_failures)
+    print(" TOTAL FAILURES:", total_failures)
     print("=======================================================")
 
     if total_failures > 0:

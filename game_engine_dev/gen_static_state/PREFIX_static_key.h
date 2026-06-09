@@ -20,6 +20,9 @@
 
 class [DATA_KEY] {
     friend class [CLASS_NAME];
+    friend class [BIT_ARRAY_CLASS];
+    friend class GeneralAssessor;
+    friend class KeyHolder;
 public:
     constexpr [DATA_KEY]() : m_val(U16_KEY_NULL) {}
 

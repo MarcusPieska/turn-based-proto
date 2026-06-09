@@ -15,6 +15,12 @@
 #include "unit_type_action_map.h"
 #include "civ_bld_discount_map.h"
 
+#include "gen_effector/effect_rev_mapper.h"
+#include "gen_effector/local_effector.h"
+#include "gen_effector/city_effector.h"
+#include "gen_effector/civ_effector.h"
+#include "gen_effector/global_effector.h"
+
 //================================================================================================================================
 //=> - Globals -
 //================================================================================================================================
@@ -35,27 +41,41 @@ RuntimeStatics& runtime_statics () {
 
 void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_building.set_items(const_cast<BuildingStaticDataStruct*>(p.get_building_data()), p.get_building_count());
-    m_building.take_ownership();
     m_city_flag.set_items(const_cast<CityFlagStaticDataStruct*>(p.get_city_flag_data()), p.get_city_flag_count());
-    m_city_flag.take_ownership();
     m_civ.set_items(const_cast<CivStaticDataStruct*>(p.get_civ_data()), p.get_civ_count());
-    m_civ.take_ownership();
     m_civ_trait.set_items(const_cast<CivTraitStaticDataStruct*>(p.get_civ_trait_data()), p.get_civ_trait_count());
-    m_civ_trait.take_ownership();
     m_resource.set_items(const_cast<ResourceStaticDataStruct*>(p.get_resource_data()), p.get_resource_count());
-    m_resource.take_ownership();
     m_small_wonder.set_items(const_cast<SmallWonderStaticDataStruct*>(p.get_small_wonder_data()), p.get_small_wonder_count());
-    m_small_wonder.take_ownership();
     m_tech.set_items(const_cast<TechStaticDataStruct*>(p.get_tech_data()), p.get_tech_count());
-    m_tech.take_ownership();
     m_unit.set_items(const_cast<UnitStaticDataStruct*>(p.get_unit_data()), p.get_unit_count());
-    m_unit.take_ownership();
     m_unit_action.set_items(const_cast<UnitActionStaticDataStruct*>(p.get_unit_action_data()), p.get_unit_action_count());
-    m_unit_action.take_ownership();
     m_unit_type.set_items(const_cast<UnitTypeStaticDataStruct*>(p.get_unit_type_data()), p.get_unit_type_count());
-    m_unit_type.take_ownership();
     m_wonder.set_items(const_cast<WonderStaticDataStruct*>(p.get_wonder_data()), p.get_wonder_count());
+
+    u16 flat_fx_n = 0;
+    EffectMapStruct* flat_fx = EffectRevMapper::build_flat_list(p, &flat_fx_n);
+    m_local_fx.parse(flat_fx, flat_fx_n);
+    m_local_fx.take_ownership();
+    m_city_fx.parse(flat_fx, flat_fx_n);
+    m_city_fx.take_ownership();
+    m_civ_fx.parse(flat_fx, flat_fx_n);
+    m_civ_fx.take_ownership();
+    m_global_fx.parse(flat_fx, flat_fx_n);
+    m_global_fx.take_ownership();
+    EffectRevMapper::release_flat_list(flat_fx);
+
+    m_building.take_ownership();
+    m_city_flag.take_ownership();
+    m_civ.take_ownership();
+    m_civ_trait.take_ownership();
+    m_resource.take_ownership();
+    m_small_wonder.take_ownership();
+    m_tech.take_ownership();
+    m_unit.take_ownership();
+    m_unit_action.take_ownership();
+    m_unit_type.take_ownership();
     m_wonder.take_ownership();
+    
     m_unit_type_action_map.set_map(p.get_unit_type_action_map_bank(), p.get_unit_type_count(), p.get_unit_action_count());
     m_unit_type_action_map.take_ownership();
     m_civ_bld_discount_map.set_map(p.get_civ_bld_discount_map_bank(), p.get_civ_trait_count(), p.get_building_count());
@@ -165,6 +185,38 @@ CivBldDiscountMap& RuntimeStatics::civ_bld_discount_map () {
 
 const CivBldDiscountMap& RuntimeStatics::civ_bld_discount_map () const {
     return m_civ_bld_discount_map;
+}
+
+LocalEffector& RuntimeStatics::local_fx () {
+    return m_local_fx;
+}
+
+const LocalEffector& RuntimeStatics::local_fx () const {
+    return m_local_fx;
+}
+
+CityEffector& RuntimeStatics::city_fx () {
+    return m_city_fx;
+}
+
+const CityEffector& RuntimeStatics::city_fx () const {
+    return m_city_fx;
+}
+
+CivEffector& RuntimeStatics::civ_fx () {
+    return m_civ_fx;
+}
+
+const CivEffector& RuntimeStatics::civ_fx () const {
+    return m_civ_fx;
+}
+
+GlobalEffector& RuntimeStatics::global_fx () {
+    return m_global_fx;
+}
+
+const GlobalEffector& RuntimeStatics::global_fx () const {
+    return m_global_fx;
 }
 
 //================================================================================================================================

@@ -20,6 +20,9 @@
 
 class TechStaticDataKey {
     friend class TechStaticData;
+    friend class TechBitArray;
+    friend class GeneralAssessor;
+    friend class KeyHolder;
 public:
     constexpr TechStaticDataKey() : m_val(U16_KEY_NULL) {}
 

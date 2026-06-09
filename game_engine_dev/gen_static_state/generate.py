@@ -42,6 +42,7 @@ if __name__ == "__main__":
     substitution_pairs.append(("[MACRO_PREFIX]", output_prefix.upper()))
     substitution_pairs.append(("[MEMBER_TAG]", output_prefix.lower()))
     substitution_pairs.append(("[DATA_STRUCT]", class_name + "StaticDataStruct"))
+    substitution_pairs.append(("[BIT_ARRAY_CLASS]", class_name + "BitArray"))
     substitution_pairs.append(("[STRUCT_MEMBERS]", struct_members))
     substitution_pairs.append(("[STRUCT_MEMBER1]", struct_member1))
     substitution_pairs.append(("[STRUCT_MEMBER2]", struct_member2))
@@ -72,6 +73,33 @@ if __name__ == "__main__":
         with open(output_file, "w") as ptr:
             ptr.write(content)
         if output_file.endswith("_static_data_comp"):
+            os.chmod(output_file, 0o755)
+
+    # Generate corresponding BitArray wrappers locally in gen_static_state
+    bit_array_templates = []
+    bit_array_templates.append("PREFIX_bit_array.cpp")
+    bit_array_templates.append("PREFIX_bit_array.h")
+    bit_array_templates.append("PREFIX_bit_array_tester.cpp")
+    bit_array_templates.append("PREFIX_bit_array_comp")
+
+    bit_array_outputs = []
+    for template_file in bit_array_templates:
+        bit_array_outputs.append(get_output_filename(output_prefix, template_file))
+
+    bit_array_contents = []
+    for template_file in bit_array_templates:
+        with open(template_file, "r") as ptr:
+            bit_array_contents.append(ptr.read())
+
+    for i, content in enumerate(bit_array_contents):
+        for old_string, new_string in substitution_pairs:
+            content = apply_substitution(content, old_string, new_string)
+        bit_array_contents[i] = content
+
+    for output_file, content in zip(bit_array_outputs, bit_array_contents):
+        with open(output_file, "w") as ptr:
+            ptr.write(content)
+        if output_file.endswith("_bit_array_comp"):
             os.chmod(output_file, 0o755)
 
 #================================================================================================================================#

@@ -1,0 +1,91 @@
+//================================================================================================================================
+//=> - Includes -
+//================================================================================================================================
+
+#include <cstdio>
+
+#include "assessor_brute_shared.h"
+#include "assessor_brute_write.h"
+#include "general_assessor.h"
+#include "static_parsing_manager.h"
+#include "building_static_data.h"
+
+//================================================================================================================================
+//=> - Item access -
+//================================================================================================================================
+
+static const BuildingStaticDataStruct* s_items;
+
+static BitArrayCL* s_assess (u16 n, const AssessorCtx& ctx) {
+    return GeneralAssessor::assess_building(n, s_items, ctx);
+}
+
+static u16 get_cnt (const StaticParsingManager& mgr) {
+    return mgr.get_building_count();
+}
+
+static const char* get_nm (const StaticParsingManager& mgr, u16 idx) {
+    const BuildingStaticDataStruct* items = mgr.get_building_data();
+    if (items == nullptr || idx >= get_cnt(mgr)) {
+        return "";
+    }
+    return items[idx].name.c_str();
+}
+
+//================================================================================================================================
+//=> - Line emit -
+//================================================================================================================================
+
+struct EmitUd {
+    const StaticParsingManager* m_mgr;
+};
+
+static void emit_ln (FILE* out, u16 idx, const InferredReqs& ir, void* ud) {
+    EmitUd* eu = static_cast<EmitUd*>(ud);
+    const StaticParsingManager& mgr = *eu->m_mgr;
+    char nm[64];
+    AssessorBruteWrite::pad_name(nm, 64, get_nm(mgr, idx));
+    std::fprintf(out, "%s", nm);
+    const BuildingStaticDataStruct* items = mgr.get_building_data();
+    if (items != nullptr) {
+        std::fprintf(out, " : %5u", items[idx].cost);
+    }
+    AssessorBruteWrite::emit_reqs(out, ir, mgr);
+    std::fprintf(out, "\n");
+}
+
+//================================================================================================================================
+//=> - Run -
+//================================================================================================================================
+
+int run_building_assessor_brute () {
+    StaticParsingManager mgr("../");
+    u16 n = get_cnt(mgr);
+    if (n == 0) {
+        return 0;
+    }
+    s_items = mgr.get_building_data();
+    if (s_items == nullptr) {
+        return 0;
+    }
+    static const char* s_nms[4096];
+    for (u16 i = 0; i < n && i < 4096; ++i) {
+        s_nms[i] = get_nm(mgr, i);
+    }
+    EmitUd eu = { &mgr };
+    BruteRunCfg cfg = {};
+    cfg.m_item_count = n;
+    cfg.m_assess = s_assess;
+    cfg.m_names = s_nms;
+    cfg.m_results_to_match_path = "RESULTS_TO_MATCH_BUILDING";
+    cfg.m_results_readable_path = "RESULTS_READABLE_BUILDING";
+    cfg.m_init_building_all = false;
+    cfg.m_building_isolate = true;
+    cfg.m_emit_line = emit_ln;
+    cfg.m_emit_ud = &eu;
+    return AssessorBrute::run(mgr, cfg);
+}
+
+//================================================================================================================================
+//=> - End -
+//================================================================================================================================

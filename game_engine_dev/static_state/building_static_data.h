@@ -13,6 +13,7 @@
 #define BUILDING_STATIC_DATA_H
 
 #include <string>
+
 #include "building_static_key.h"
 #include "item_reqs.h"
 #include "item_effects.h"

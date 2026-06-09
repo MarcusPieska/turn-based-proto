@@ -1,0 +1,43 @@
+//================================================================================================================================
+//=> - Includes and globals -
+//================================================================================================================================
+
+#include "building_bit_array.h"
+
+//================================================================================================================================
+//=> - BuildingBitArray implementation -
+//================================================================================================================================
+
+BuildingBitArray::BuildingBitArray (u16 count) :
+    m_flags(count) {
+}
+
+BuildingBitArray::~BuildingBitArray () {
+}
+
+bool BuildingBitArray::is_flagged (BuildingStaticDataKey key) const {
+    return m_flags.get_bit(key.value()) != 0;
+}
+
+void BuildingBitArray::set_flag (BuildingStaticDataKey key) {
+    m_flags.set_bit(key.value());
+}
+
+void BuildingBitArray::clear_flag (BuildingStaticDataKey key) {
+    m_flags.clear_bit(key.value());
+}
+
+bool BuildingBitArray::can_access (u16 idx, BuildingStaticDataKey& out_key) const {
+    if (idx >= m_flags.get_count()) {
+        return false;
+    }
+    if (m_flags.get_bit(idx) == 0) {
+        return false;
+    }
+    out_key = BuildingStaticDataKey::from_raw(idx);
+    return true;
+}
+
+//================================================================================================================================
+//=> - End -
+//================================================================================================================================

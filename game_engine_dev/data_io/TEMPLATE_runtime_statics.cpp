@@ -14,6 +14,8 @@
 
 [RUNTIME_STATICS_CPP_MAP_INCLUDES_TAG]
 
+[RUNTIME_STATICS_CPP_EFFECTOR_INCLUDES_TAG]
+
 //================================================================================================================================
 //=> - Globals -
 //================================================================================================================================
@@ -33,7 +35,12 @@ RuntimeStatics& runtime_statics () {
 }
 
 void RuntimeStatics::load_from (StaticParsingManager& p) {
-    [RUNTIME_STATICS_CPP_LOAD_ITEMS_TAG]
+    [RUNTIME_STATICS_CPP_LOAD_ITEMS_SET_TAG]
+
+    [RUNTIME_STATICS_CPP_LOAD_EFFECTORS_TAG]
+
+    [RUNTIME_STATICS_CPP_LOAD_ITEMS_TAKE_TAG]
+    
     [RUNTIME_STATICS_CPP_LOAD_MAPS_TAG]
 }
 

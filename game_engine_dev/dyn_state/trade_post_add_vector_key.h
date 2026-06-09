@@ -14,7 +14,7 @@
 class TradePostAddKey {
     friend class TradePostAddVector;
 public:
-    constexpr TradePostAddKey() : m_val(0) {}
+    constexpr TradePostAddKey() : m_val(U16_KEY_NULL) {}
 
     constexpr bool operator==(TradePostAddKey other) const {
         return m_val == other.m_val; 
@@ -25,15 +25,23 @@ public:
     }
 
     constexpr bool is_null() const { 
-        return m_val == 0; 
+        return m_val == U16_KEY_NULL; 
+    }
+
+    constexpr bool is_invalid() const { 
+        return m_val == U16_KEY_INVALID; 
     }
 
     constexpr bool is_valid() const { 
-        return m_val != 0; 
+        return m_val != U16_KEY_NULL && m_val != U16_KEY_INVALID; 
     }
 
     static constexpr TradePostAddKey None() { 
-        return TradePostAddKey(0); 
+        return TradePostAddKey(U16_KEY_NULL); 
+    }
+
+    static constexpr TradePostAddKey Invalid() { 
+        return TradePostAddKey(U16_KEY_INVALID); 
     }
 
     static constexpr TradePostAddKey from_raw(u16 val) {
@@ -57,3 +65,4 @@ private:
 //================================================================================================================================
 //=> - End of file -
 //================================================================================================================================
+

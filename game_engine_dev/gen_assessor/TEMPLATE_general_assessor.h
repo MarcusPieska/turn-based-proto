@@ -17,6 +17,8 @@
 
 class BitArrayCL;
 
+[ASSESS_STRUCT_FWD_TAG]
+
 //================================================================================================================================
 //=> - AssessorCtx -
 //================================================================================================================================
@@ -32,7 +34,8 @@ struct AssessorCtx {
 class GeneralAssessor {
 public:
     static bool chk (const ItemReqsStruct& reqs, const AssessorCtx& ctx);
-    static BitArrayCL* assess (u16 item_count, const ItemReqsStruct* reqs_per_item, const AssessorCtx& ctx);
+    
+    [ASSESS_DECLARATIONS_TAG]
 
 private:
     GeneralAssessor () = delete;

@@ -71,7 +71,8 @@ enum class ItemEffectsScope : u8 {
     NONE = 0,
     LOCAL = 1,
     CITY = 2,
-    GLOBAL = 3
+    CIV = 3,
+    GLOBAL = 4
 };
 
 enum class ItemEffectAmountMode : u8 {

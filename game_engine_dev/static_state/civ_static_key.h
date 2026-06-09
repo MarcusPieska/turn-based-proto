@@ -20,6 +20,9 @@
 
 class CivStaticDataKey {
     friend class CivStaticData;
+    friend class CivBitArray;
+    friend class GeneralAssessor;
+    friend class KeyHolder;
 public:
     constexpr CivStaticDataKey() : m_val(U16_KEY_NULL) {}
 

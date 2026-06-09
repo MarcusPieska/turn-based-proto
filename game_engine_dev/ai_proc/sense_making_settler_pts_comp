@@ -1,0 +1,47 @@
+#!/bin/bash
+
+MK=mk2
+
+INC="-I.. -I../map_loader -I../simple_map_gen"
+CXXFLAGS="-std=c++17 -Wall -Wextra"
+SMS_SRC="sense_making_settler_pts_${MK}.cpp"
+
+DEPS=(
+    map_terrain_validate.o
+    map_terrain_data.o
+    map_loader.o
+    starting_point_generator.o
+    perlin_noise.o
+    generator_constants.o
+    generate_terrain_cont_pn.o
+    generate_overlay_water_land.o
+    generate_distance_land_to_water.o
+)
+
+g++ $CXXFLAGS $INC -c ../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
+g++ $CXXFLAGS $INC -c ../map_loader/map_terrain_data.cpp -o map_terrain_data.o
+g++ $CXXFLAGS $INC -c ../map_loader/map_loader.cpp -o map_loader.o
+g++ $CXXFLAGS $INC -c ../map_loader/starting_point_generator.cpp -o starting_point_generator.o
+g++ $CXXFLAGS $INC -c ../simple_map_gen/perlin_noise.cpp -o perlin_noise.o
+g++ $CXXFLAGS $INC -c ../simple_map_gen/generator_constants.cpp -o generator_constants.o
+g++ $CXXFLAGS $INC -c ../simple_map_gen/generate_terrain_cont_pn.cpp -o generate_terrain_cont_pn.o
+g++ $CXXFLAGS $INC -c ../simple_map_gen/generate_overlay_water_land.cpp -o generate_overlay_water_land.o
+g++ $CXXFLAGS $INC -c ../simple_map_gen/generate_distance_land_to_water.cpp -o generate_distance_land_to_water.o
+g++ $CXXFLAGS $INC -c "$SMS_SRC" -o sense_making_settler_pts.o
+g++ $CXXFLAGS $INC -c sense_making_settler_pts_tester.cpp -o sense_making_settler_pts_tester.o
+g++ $CXXFLAGS $INC -c sense_making_settler_pts_iter_tester.cpp -o sense_making_settler_pts_iter_tester.o
+
+g++ $CXXFLAGS -o sense_making_settler_pts_tester \
+    "${DEPS[@]}" \
+    sense_making_settler_pts.o \
+    sense_making_settler_pts_tester.o \
+    -lm
+
+g++ $CXXFLAGS -o sense_making_settler_pts_iter_tester \
+    "${DEPS[@]}" \
+    sense_making_settler_pts.o \
+    sense_making_settler_pts_iter_tester.o \
+    -lm
+
+rm "${DEPS[@]}" sense_making_settler_pts.o \
+    sense_making_settler_pts_tester.o sense_making_settler_pts_iter_tester.o

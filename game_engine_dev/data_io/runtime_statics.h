@@ -27,6 +27,10 @@ class StaticParsingManager;
 #include "wonder_static_data.h"
 #include "unit_type_action_map.h"
 #include "civ_bld_discount_map.h"
+#include "gen_effector/local_effector.h"
+#include "gen_effector/city_effector.h"
+#include "gen_effector/civ_effector.h"
+#include "gen_effector/global_effector.h"
 
 //================================================================================================================================
 //=> - RuntimeStatics class -
@@ -88,6 +92,22 @@ public:
 
     const CivBldDiscountMap& civ_bld_discount_map () const;
 
+    LocalEffector& local_fx ();
+
+    const LocalEffector& local_fx () const;
+
+    CityEffector& city_fx ();
+
+    const CityEffector& city_fx () const;
+
+    CivEffector& civ_fx ();
+
+    const CivEffector& civ_fx () const;
+
+    GlobalEffector& global_fx ();
+
+    const GlobalEffector& global_fx () const;
+
 private:
     BuildingStaticData m_building;
     CityFlagStaticData m_city_flag;
@@ -100,8 +120,14 @@ private:
     UnitActionStaticData m_unit_action;
     UnitTypeStaticData m_unit_type;
     WonderStaticData m_wonder;
+    
     UnitTypeActionMap m_unit_type_action_map;
     CivBldDiscountMap m_civ_bld_discount_map;
+    
+    LocalEffector m_local_fx;
+    CityEffector m_city_fx;
+    CivEffector m_civ_fx;
+    GlobalEffector m_global_fx;
 };
 
 extern RuntimeStatics* g_runtime_statics;

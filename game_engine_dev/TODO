@@ -1,3 +1,13 @@
+
+Ideas:
+ - Units having effects: missionary/inquisitor enable buildings, units providing happiness/shields (shields if something like civil service is enabled) 
+
+Must fix:
+ - Windows/Linux cross-platform: Use "#include <cstdint>;" on both systems
+ - Windows/Linux cross-platform: Handle data-parsing by looking for \r at the last char and truncating after split
+ - Windows/Linux cross-platform: Enforce UTF-8 no BOM
+ - Windows/Linux cross-platform: File Paths: Linux uses forward slashes (/); Windows uses backslashes (\)
+
 Data and parsing for government types
 Data and parsing for citizens
 Particular requirements for buildings, wonders, and minor wonders

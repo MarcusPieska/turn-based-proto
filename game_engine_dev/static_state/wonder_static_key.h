@@ -20,6 +20,9 @@
 
 class WonderStaticDataKey {
     friend class WonderStaticData;
+    friend class WonderBitArray;
+    friend class GeneralAssessor;
+    friend class KeyHolder;
 public:
     constexpr WonderStaticDataKey() : m_val(U16_KEY_NULL) {}
 

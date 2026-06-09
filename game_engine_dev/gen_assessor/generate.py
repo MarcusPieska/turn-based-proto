@@ -6,6 +6,7 @@ import sys
 sys.dont_write_bytecode = True
 
 import os
+import shutil
 import importlib.util
 
 #================================================================================================================================#
@@ -217,7 +218,7 @@ def derive_ablation_loop_lines (name):
     lines.append("    set_base();")
     lines.append("    %s.clear_bit(%s_i);" % (name, name))
     lines.append("    snap(ctx);")
-    lines.append("    BitArrayCL* cur = GeneralAssessor::assess(cfg.m_item_count, cfg.m_reqs, ctx);")
+    lines.append("    BitArrayCL* cur = cfg.m_assess(cfg.m_item_count, ctx);")
     lines.append("    for (u16 i = 0; i < cfg.m_item_count; ++i) {")
     lines.append("        if (baseline->get_bit(i) == 1 && cur->get_bit(i) != 1) {")
     lines.append("            add_u16(inferred[i].m_%s, &inferred[i].m_%s_n, (u16)%s_i);" % (name, name, name))
@@ -244,14 +245,14 @@ def derive_building_isolate ():
     lines.append("        }")
     lines.append("        building.clear_bit(b);")
     lines.append("        snap(ctx);")
-    lines.append("        BitArrayCL* bl = GeneralAssessor::assess(cfg.m_item_count, cfg.m_reqs, ctx);")
+    lines.append("        BitArrayCL* bl = cfg.m_assess(cfg.m_item_count, ctx);")
     lines.append("        for (u32 bb = 0; bb < building_count; ++bb) {")
     lines.append("            if (bb == b) {")
     lines.append("                continue;")
     lines.append("            }")
     lines.append("            building.clear_bit(bb);")
     lines.append("            snap(ctx);")
-    lines.append("            BitArrayCL* cur = GeneralAssessor::assess(cfg.m_item_count, cfg.m_reqs, ctx);")
+    lines.append("            BitArrayCL* cur = cfg.m_assess(cfg.m_item_count, ctx);")
     lines.append("            if (bl->get_bit(b) == 1 && cur->get_bit(b) != 1) {")
     lines.append("                add_u16(inferred[b].m_building, &inferred[b].m_building_n, (u16)bb);")
     lines.append("                add_en(en.m_building[bb], b);")
@@ -308,6 +309,141 @@ def derive_assessor_ctx_members ():
         lines.append("const BitArrayCL* m_%s;" % name)
     return join_tag(lines)
 
+def derive_assess_struct_fwd ():
+    lines = []
+    for prefix, class_name, parsing_instructions in ASSESSOR_SPECS:
+        struct_name = class_name + "StaticDataStruct"
+        lines.append("struct %s;" % struct_name)
+    return join_tag(lines, "")
+
+def derive_assess_declarations ():
+    lines = []
+    for prefix, class_name, parsing_instructions in ASSESSOR_SPECS:
+        struct_name = class_name + "StaticDataStruct"
+        lines.append("static BitArrayCL* assess_%s (u16 item_count, const %s* items, const AssessorCtx& ctx);" % (prefix, struct_name))
+    return join_tag(lines)
+
+def derive_assess_includes ():
+    lines = []
+    for prefix, class_name, parsing_instructions in ASSESSOR_SPECS:
+        lines.append('#include "%s_static_data.h"' % prefix)
+    return join_tag(lines, "")
+
+def derive_assess_implementations ():
+    blocks = []
+    for prefix, class_name, parsing_instructions in ASSESSOR_SPECS:
+        struct_name = class_name + "StaticDataStruct"
+        fn = []
+        fn.append("BitArrayCL* GeneralAssessor::assess_%s (u16 item_count, const %s* items, const AssessorCtx& ctx) {" % (prefix, struct_name))
+        fn.append("    BitArrayCL* result = new BitArrayCL(item_count);")
+        fn.append("    if (items == nullptr) {")
+        fn.append("        return result;")
+        fn.append("    }")
+        fn.append("    for (u16 i = 0; i < item_count; ++i) {")
+        fn.append("        if (chk(items[i].reqs, ctx)) {")
+        fn.append("            result->set_bit(i);")
+        fn.append("        }")
+        fn.append("    }")
+        fn.append("    return result;")
+        fn.append("}")
+        blocks.append("\n".join(fn))
+    return "\n\n".join(blocks)
+
+def derive_assessor_static_includes ():
+    lines = []
+    for prefix, class_name, parsing_instructions in ASSESSOR_SPECS:
+        lines.append('#include "%s_static_data.h"' % prefix)
+    return join_tag(lines, "")
+
+def derive_assessor_brute_block (prefix, class_name, parsing_instructions):
+    struct_name = class_name + "StaticDataStruct"
+    macro = prefix.upper()
+    init_building_all, building_isolate = derive_building_flags(prefix)
+    cost_emit = derive_cost_emit_for_spec(prefix, class_name, parsing_instructions)
+    lines = []
+    lines.append("static const %s* s_%s_items;" % (struct_name, prefix))
+    lines.append("")
+    lines.append("static BitArrayCL* s_assess_%s (u16 n, const AssessorCtx& ctx) {" % prefix)
+    lines.append("    return GeneralAssessor::assess_%s(n, s_%s_items, ctx);" % (prefix, prefix))
+    lines.append("}")
+    lines.append("")
+    lines.append("static u16 get_%s_cnt (const StaticParsingManager& mgr) {" % prefix)
+    lines.append("    return mgr.get_%s_count();" % prefix)
+    lines.append("}")
+    lines.append("")
+    lines.append("static const char* get_%s_nm (const StaticParsingManager& mgr, u16 idx) {" % prefix)
+    lines.append("    const %s* items = mgr.get_%s_data();" % (struct_name, prefix))
+    lines.append("    if (items == nullptr || idx >= get_%s_cnt(mgr)) {" % prefix)
+    lines.append('        return "";')
+    lines.append("    }")
+    lines.append("    return items[idx].name.c_str();")
+    lines.append("}")
+    lines.append("")
+    lines.append("struct EmitUd_%s {" % macro)
+    lines.append("    const StaticParsingManager* m_mgr;")
+    lines.append("};")
+    lines.append("")
+    lines.append("static void emit_ln_%s (FILE* out, u16 idx, const InferredReqs& ir, void* ud) {" % prefix)
+    lines.append("    EmitUd_%s* eu = static_cast<EmitUd_%s*>(ud);" % (macro, macro))
+    lines.append("    const StaticParsingManager& mgr = *eu->m_mgr;")
+    lines.append("    char nm[64];")
+    lines.append("    AssessorBruteWrite::pad_name(nm, 64, get_%s_nm(mgr, idx));" % prefix)
+    lines.append('    std::fprintf(out, "%s", nm);')
+    if cost_emit:
+        lines.append(cost_emit)
+    lines.append("    AssessorBruteWrite::emit_reqs(out, ir, mgr);")
+    lines.append('    std::fprintf(out, "\\n");')
+    lines.append("}")
+    lines.append("")
+    lines.append("int run_%s_assessor_brute () {" % prefix)
+    lines.append("    StaticParsingManager mgr(\"../\");")
+    lines.append("    u16 n = get_%s_cnt(mgr);" % prefix)
+    lines.append("    if (n == 0) {")
+    lines.append("        return 0;")
+    lines.append("    }")
+    lines.append("    s_%s_items = mgr.get_%s_data();" % (prefix, prefix))
+    lines.append("    if (s_%s_items == nullptr) {" % prefix)
+    lines.append("        return 0;")
+    lines.append("    }")
+    lines.append("    static const char* s_nms[4096];")
+    lines.append("    for (u16 i = 0; i < n && i < 4096; ++i) {")
+    lines.append("        s_nms[i] = get_%s_nm(mgr, i);" % prefix)
+    lines.append("    }")
+    lines.append("    EmitUd_%s eu = { &mgr };" % macro)
+    lines.append("    BruteRunCfg cfg = {};")
+    lines.append("    cfg.m_item_count = n;")
+    lines.append("    cfg.m_assess = s_assess_%s;" % prefix)
+    lines.append("    cfg.m_names = s_nms;")
+    lines.append('    cfg.m_results_to_match_path = "RESULTS_TO_MATCH_%s";' % macro)
+    lines.append('    cfg.m_results_readable_path = "RESULTS_READABLE_%s";' % macro)
+    lines.append("    cfg.m_init_building_all = %s;" % init_building_all)
+    lines.append("    cfg.m_building_isolate = %s;" % building_isolate)
+    lines.append("    cfg.m_emit_line = emit_ln_%s;" % prefix)
+    lines.append("    cfg.m_emit_ud = &eu;")
+    lines.append("    return AssessorBrute::run(mgr, cfg);")
+    lines.append("}")
+    return "\n".join(lines)
+
+def derive_assessor_brute_blocks ():
+    blocks = []
+    for prefix, class_name, parsing_instructions in ASSESSOR_SPECS:
+        blocks.append(derive_assessor_brute_block(prefix, class_name, parsing_instructions))
+    return "\n\n".join(blocks)
+
+def derive_assessor_run_decl ():
+    lines = []
+    for prefix, class_name, parsing_instructions in ASSESSOR_SPECS:
+        lines.append("int run_%s_assessor_brute ();" % prefix)
+    return join_tag(lines, "")
+
+def derive_assessor_main_body ():
+    lines = []
+    lines.append("int rc = 0;")
+    for prefix, class_name, parsing_instructions in ASSESSOR_SPECS:
+        lines.append("rc |= run_%s_assessor_brute();" % prefix)
+    lines.append("return rc;")
+    return join_tag(lines, "    ")
+
 def derive_chk_switch_cases ():
     lines = []
     for name, section, tok, cls in PREREQ_TYPES:
@@ -342,6 +478,10 @@ def derive_shared_substitution_pairs ():
     pairs.append(("[WRITE_READABLE_SECTIONS_TAG]", derive_write_readable_sections()))
     pairs.append(("[ASSESSOR_CTX_MEMBERS_TAG]", derive_assessor_ctx_members()))
     pairs.append(("[CHK_SWITCH_CASES_TAG]", derive_chk_switch_cases()))
+    pairs.append(("[ASSESS_STRUCT_FWD_TAG]", derive_assess_struct_fwd()))
+    pairs.append(("[ASSESS_DECLARATIONS_TAG]", derive_assess_declarations()))
+    pairs.append(("[ASSESS_INCLUDES_TAG]", derive_assess_includes()))
+    pairs.append(("[ASSESS_IMPLEMENTATIONS_TAG]", derive_assess_implementations()))
     return pairs
 
 def template_outputs ():
@@ -359,13 +499,11 @@ def generate_template_files ():
     pairs = derive_shared_substitution_pairs()
     for template_name, output_name in template_outputs():
         template_path = os.path.join(this_dir, template_name)
-        out_path = os.path.join(this_dir, output_name)
         with open(template_path, "r") as ptr:
             content = ptr.read()
         for old_string, new_string in pairs:
             content = apply_substitution(content, old_string, new_string)
-        with open(out_path, "w") as ptr:
-            ptr.write(content)
+        write_generated_file(this_dir, output_name, content)
 
 def generate_shared_prereq_files ():
     generate_template_files()
@@ -437,44 +575,66 @@ def derive_spm_link_lines (objs):
 def derive_spm_clean_lines (objs):
     return "\n".join(["    %s \\" % o for o in objs])
 
-def get_output_filename (output_prefix, template_file):
-    return template_file.replace("PREFIX", output_prefix)
-
 def apply_substitution (content, old_string, new_string):
     return content.replace(old_string, new_string)
 
-#================================================================================================================================#
-#=> - Main -
-#================================================================================================================================#
+GENERATED_FILES = []
 
-if __name__ == "__main__":
+def clear_generated_files ():
+    GENERATED_FILES.clear()
 
-    generate_template_files()
+def write_generated_file (this_dir, output_name, content):
+    out_path = os.path.join(this_dir, output_name)
+    with open(out_path, "w") as ptr:
+        ptr.write(content)
+    if output_name.endswith("_comp"):
+        os.chmod(out_path, 0o755)
+    GENERATED_FILES.append(output_name)
 
-    if len(sys.argv) != 3:
-        print("Usage: python generate.py <output prefix> <class name>")
-        sys.exit(1)
+def get_output_filename (output_prefix, template_file):
+    return template_file.replace("PREFIX", output_prefix)
 
-    output_prefix = sys.argv[1]
-    class_name = sys.argv[2]
-    struct_name = class_name + "StaticDataStruct"
-    parsing_instructions = None
-    for prefix, cn, pi in PARSER_SPECS:
-        if prefix == output_prefix:
-            parsing_instructions = pi
-            break
+def generate_per_type_tester_files ():
+    this_dir = os.path.dirname(os.path.abspath(__file__))
+    spm_objs = derive_spm_link()
+    template_files = []
+    template_files.append("PREFIX_assessor_tester_brute.cpp")
+    template_files.append("PREFIX_assessor_tester.cpp")
+    template_files.append("PREFIX_assessor_tester_comp")
+    for output_prefix, class_name, parsing_instructions in ASSESSOR_SPECS:
+        struct_name = class_name + "StaticDataStruct"
+        init_building_all, building_isolate = derive_building_flags(output_prefix)
+        cost_emit = derive_cost_emit_for_spec(output_prefix, class_name, parsing_instructions)
+        substitution_pairs = []
+        substitution_pairs.append(("[CLASS_TAG]", class_name))
+        substitution_pairs.append(("[FILE_TAG]", output_prefix))
+        substitution_pairs.append(("[MACRO_TAG]", output_prefix.upper()))
+        substitution_pairs.append(("[STRUCT_TAG]", struct_name))
+        substitution_pairs.append(("[COST_EMIT_TAG]", cost_emit))
+        substitution_pairs.append(("[INIT_BUILDING_ALL_TAG]", init_building_all))
+        substitution_pairs.append(("[BUILDING_ISOLATE_TAG]", building_isolate))
+        substitution_pairs.append(("[DEP_COMP_COMPILE_HOLDERS_TAG]", "\n".join(derive_comp_compile_holders())))
+        substitution_pairs.append(("[DEP_COMP_LINK_HOLDERS_TAG]", "\n    ".join(derive_comp_link_holders())))
+        substitution_pairs.append(("[DEP_COMP_CLEAN_HOLDERS_TAG]", "\n    ".join(derive_comp_clean_holders())))
+        substitution_pairs.append(("[DEP_SPM_COMPILE_TAG]", "\n".join(derive_spm_compile())))
+        substitution_pairs.append(("[DEP_SPM_LINK_TAG]", derive_spm_link_lines(spm_objs)))
+        substitution_pairs.append(("[DEP_SPM_CLEAN_TAG]", derive_spm_clean_lines(spm_objs)))
+        for template_file in template_files:
+            template_path = os.path.join(this_dir, template_file)
+            output_name = get_output_filename(output_prefix, template_file)
+            with open(template_path, "r") as ptr:
+                content = ptr.read()
+            for old_string, new_string in substitution_pairs:
+                content = apply_substitution(content, old_string, new_string)
+            write_generated_file(this_dir, output_name, content)
 
-    init_building_all, building_isolate = derive_building_flags(output_prefix)
-    cost_emit = derive_cost_emit_for_spec(output_prefix, class_name, parsing_instructions)
-
+def generate_tester_files ():
+    this_dir = os.path.dirname(os.path.abspath(__file__))
     substitution_pairs = []
-    substitution_pairs.append(("[CLASS_TAG]", class_name))
-    substitution_pairs.append(("[FILE_TAG]", output_prefix))
-    substitution_pairs.append(("[MACRO_TAG]", output_prefix.upper()))
-    substitution_pairs.append(("[STRUCT_TAG]", struct_name))
-    substitution_pairs.append(("[COST_EMIT_TAG]", cost_emit))
-    substitution_pairs.append(("[INIT_BUILDING_ALL_TAG]", init_building_all))
-    substitution_pairs.append(("[BUILDING_ISOLATE_TAG]", building_isolate))
+    substitution_pairs.append(("[ASSESSOR_STATIC_INCLUDES_TAG]", derive_assessor_static_includes()))
+    substitution_pairs.append(("[ASSESSOR_BRUTE_BLOCKS_TAG]", derive_assessor_brute_blocks()))
+    substitution_pairs.append(("[ASSESSOR_RUN_DECL_TAG]", derive_assessor_run_decl()))
+    substitution_pairs.append(("[ASSESSOR_MAIN_BODY_TAG]", derive_assessor_main_body()))
     substitution_pairs.append(("[DEP_COMP_COMPILE_HOLDERS_TAG]", "\n".join(derive_comp_compile_holders())))
     substitution_pairs.append(("[DEP_COMP_LINK_HOLDERS_TAG]", "\n    ".join(derive_comp_link_holders())))
     substitution_pairs.append(("[DEP_COMP_CLEAN_HOLDERS_TAG]", "\n    ".join(derive_comp_clean_holders())))
@@ -482,31 +642,55 @@ if __name__ == "__main__":
     substitution_pairs.append(("[DEP_SPM_COMPILE_TAG]", "\n".join(derive_spm_compile())))
     substitution_pairs.append(("[DEP_SPM_LINK_TAG]", derive_spm_link_lines(spm_objs)))
     substitution_pairs.append(("[DEP_SPM_CLEAN_TAG]", derive_spm_clean_lines(spm_objs)))
-
     template_files = []
-    template_files.append("PREFIX_assessor_tester_brute.cpp")
-    template_files.append("PREFIX_assessor_tester.cpp")
-    template_files.append("PREFIX_assessor_tester_comp")
-
-    output_files = []
-    for template_file in template_files:
-        output_files.append(get_output_filename(output_prefix, template_file))
-
-    output_file_contents = []
-    for template_file in template_files:
-        with open(template_file, "r") as ptr:
-            output_file_contents.append(ptr.read())
-
-    for i, content in enumerate(output_file_contents):
+    template_files.append(("TEMPLATE_assessor_tester_brute.cpp", "assessor_tester_brute.cpp"))
+    template_files.append(("TEMPLATE_assessor_tester.cpp", "assessor_tester.cpp"))
+    template_files.append(("TEMPLATE_assessor_tester_comp", "assessor_tester_comp"))
+    for template_name, output_name in template_files:
+        template_path = os.path.join(this_dir, template_name)
+        with open(template_path, "r") as ptr:
+            content = ptr.read()
         for old_string, new_string in substitution_pairs:
             content = apply_substitution(content, old_string, new_string)
-        output_file_contents[i] = content
+        write_generated_file(this_dir, output_name, content)
+    generate_per_type_tester_files()
 
-    for output_file, content in zip(output_files, output_file_contents):
-        with open(output_file, "w") as ptr:
-            ptr.write(content)
-        if output_file.endswith("_assessor_tester_comp"):
-            os.chmod(output_file, 0o755)
+def generate_all_files ():
+    clear_generated_files()
+    generate_template_files()
+    generate_tester_files()
+    return list(GENERATED_FILES)
+
+def remove_executables (dir_path):
+    if not os.path.isdir(dir_path):
+        return
+    for name in os.listdir(dir_path):
+        path = os.path.join(dir_path, name)
+        if not os.path.isfile(path):
+            continue
+        if name == "assessor_tester" or name.endswith("_assessor_tester"):
+            os.remove(path)
+            print("  removed:", path)
+
+def migrate_to_city (this_dir, generated_files=None):
+    city_dir = os.path.normpath(os.path.join(this_dir, "..", "city"))
+    os.makedirs(city_dir, exist_ok=True)
+    remove_executables(this_dir)
+    remove_executables(city_dir)
+    names = generated_files if generated_files is not None else GENERATED_FILES
+    for name in names:
+        src = os.path.join(this_dir, name)
+        if os.path.isfile(src):
+            dst = os.path.join(city_dir, name)
+            shutil.move(src, dst)
+            print("  moved:", name, "->", city_dir)
+
+#================================================================================================================================#
+#=> - Main -
+#================================================================================================================================#
+
+if __name__ == "__main__":
+    generate_all_files()
 
 #================================================================================================================================#
 #=> - End -

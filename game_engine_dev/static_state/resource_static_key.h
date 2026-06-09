@@ -20,6 +20,9 @@
 
 class ResourceStaticDataKey {
     friend class ResourceStaticData;
+    friend class ResourceBitArray;
+    friend class GeneralAssessor;
+    friend class KeyHolder;
 public:
     constexpr ResourceStaticDataKey() : m_val(U16_KEY_NULL) {}
 
