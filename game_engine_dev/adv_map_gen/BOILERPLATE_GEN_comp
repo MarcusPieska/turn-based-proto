@@ -1,0 +1,13 @@
+#!/bin/bash
+
+INC="-I.."
+
+g++ -std=c++11 $INC -c [PIPE_FILE_PREFIX][FILE_PREFIX_TAG].cpp -o [PIPE_FILE_PREFIX][FILE_PREFIX_TAG].o
+g++ -std=c++11 $INC -c [PIPE_FILE_PREFIX][FILE_PREFIX_TAG]_tester.cpp -o [PIPE_FILE_PREFIX][FILE_PREFIX_TAG]_tester.o
+
+g++ -std=c++11 -o [PIPE_FILE_PREFIX][FILE_PREFIX_TAG]_tester \
+    [PIPE_FILE_PREFIX][FILE_PREFIX_TAG].o \
+    [PIPE_FILE_PREFIX][FILE_PREFIX_TAG]_tester.o -lm
+
+rm [PIPE_FILE_PREFIX][FILE_PREFIX_TAG].o \
+    [PIPE_FILE_PREFIX][FILE_PREFIX_TAG]_tester.o

@@ -1,0 +1,19 @@
+#!/bin/bash
+
+INC="-I.."
+
+g++ -std=c++11 $INC -c generator_constants.cpp -o generator_constants.o
+g++ -std=c++11 $INC -c perlin_noise.cpp -o perlin_noise.o
+g++ -std=c++11 $INC -c p1_gen_outline.cpp -o p1_gen_outline.o
+g++ -std=c++11 $INC -c p1_gen_outline_tester.cpp -o p1_gen_outline_tester.o
+
+g++ -std=c++11 -o p1_gen_outline_tester \
+    generator_constants.o \
+    perlin_noise.o \
+    p1_gen_outline.o \
+    p1_gen_outline_tester.o -lm
+
+rm generator_constants.o \
+    perlin_noise.o \
+    p1_gen_outline.o \
+    p1_gen_outline_tester.o

@@ -4,7 +4,9 @@
 
 #include "generate_river_sectors.h"
 
+#include "generate_global_ocean.h"
 #include "generator_constants.h"
+#include "generator_whiteboard.h"
 
 #include <algorithm>
 #include <cmath>
@@ -26,8 +28,22 @@ static bool is_mountain (u8 cls) {
     return cls == TERR_MOUNTAINS[0];
 }
 
-static bool tile_blocked (u8 cls) {
-    return is_water(cls) || is_mountain(cls);
+static bool tile_blocked (const u8* terrain, const u8* glob, u32 ti) {
+    if (is_mountain(terrain[ti])) {
+        return true;
+    }
+    if (glob[ti] != 0) {
+        return true;
+    }
+    return false;
+}
+
+static u8 sect_terr (const u8* terrain, const u8* glob, u32 ti) {
+    const u8 c = terrain[ti];
+    if (is_water(c) && glob[ti] == 0) {
+        return TERR_PLAINS[0];
+    }
+    return c;
 }
 
 struct QueueItem {
@@ -42,9 +58,10 @@ struct QueueItem {
 struct SectorBuild {
     u16 cx;
     u16 cy;
+    u8 terr;
     std::vector<std::pair<u16, u16>> coords;
     std::vector<u16> conn;
-    SectorBuild () : cx(0), cy(0) {}
+    SectorBuild () : cx(0), cy(0), terr(0) {}
 };
 
 static void add_conn (SectorBuild* a, SectorBuild* b, u32 ai, u32 bi) {
@@ -72,6 +89,10 @@ RiverSectorsResult* Generate_RiverSectors::generate (
         return nullptr;
     }
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
+    u8* glob = Generate_GlobalOcean::build_mask(terrain, w, h);
+    if (glob == nullptr) {
+        return nullptr;
+    }
     std::vector<SectorBuild> secs;
     secs.reserve(pts->n);
     for (u32 p = 0; p < pts->n; ++p) {
@@ -83,14 +104,17 @@ RiverSectorsResult* Generate_RiverSectors::generate (
     const u32 sector_n = static_cast<u32>(secs.size());
     std::vector<std::vector<QueueItem>> qs(sector_n);
     std::vector<std::set<std::pair<u16, u16>>> qsets(sector_n);
-    bool* clm = new bool[n];
+    u16* clm = GeneratorWhiteboard::alloc(static_cast<i32>(n));
     u16* overlay = new u16[n];
     if (clm == nullptr || overlay == nullptr) {
-        delete[] clm;
+        GeneratorWhiteboard::release(clm);
         delete[] overlay;
+        delete[] glob;
         return nullptr;
     }
-    std::memset(clm, 0, n * sizeof(bool));
+    for (u32 i = 0; i < n; ++i) {
+        clm[i] = 0;
+    }
     for (u32 i = 0; i < n; ++i) {
         overlay[i] = static_cast<u16>(RIVER_SECTOR_NONE);
     }
@@ -103,10 +127,11 @@ RiverSectorsResult* Generate_RiverSectors::generate (
             continue;
         }
         const u32 ti = static_cast<u32>(py) * static_cast<u32>(w) + static_cast<u32>(px);
-        if (tile_blocked(terrain[ti])) {
+        if (tile_blocked(terrain, glob, ti)) {
             continue;
         }
-        clm[ti] = true;
+        secs[si].terr = sect_terr(terrain, glob, ti);
+        clm[ti] = 1;
         overlay[ti] = static_cast<u16>(si);
         secs[si].coords.push_back({px, py});
         for (i32 d = 0; d < 4; ++d) {
@@ -116,7 +141,17 @@ RiverSectorsResult* Generate_RiverSectors::generate (
                 continue;
             }
             const u32 ni = static_cast<u32>(ny) * static_cast<u32>(w) + static_cast<u32>(nx);
-            if (clm[ni] || tile_blocked(terrain[ni])) {
+            if (tile_blocked(terrain, glob, ni)) {
+                continue;
+            }
+            if (clm[ni] != 0) {
+                const u16 oid = overlay[ni];
+                if (oid != static_cast<u16>(RIVER_SECTOR_NONE) && oid != static_cast<u16>(si)) {
+                    add_conn(&secs[si], &secs[oid], si, oid);
+                }
+                continue;
+            }
+            if (sect_terr(terrain, glob, ni) != secs[si].terr) {
                 continue;
             }
             const i32 dsq = (nx - static_cast<i32>(px)) * (nx - static_cast<i32>(px))
@@ -146,7 +181,7 @@ RiverSectorsResult* Generate_RiverSectors::generate (
             }
             for (const QueueItem& e : qs[static_cast<u32>(si)]) {
                 const u32 ti = static_cast<u32>(e.y) * static_cast<u32>(w) + static_cast<u32>(e.x);
-                if (!clm[ti]) {
+                if (clm[ti] == 0) {
                     min_dsq = (min_dsq == -1 || e.dsq < min_dsq) ? e.dsq : min_dsq;
                     break;
                 }
@@ -172,7 +207,7 @@ RiverSectorsResult* Generate_RiverSectors::generate (
                 const u16 x = e.x;
                 const u16 y = e.y;
                 const u32 ti = static_cast<u32>(y) * static_cast<u32>(w) + static_cast<u32>(x);
-                if (clm[ti]) {
+                if (clm[ti] != 0) {
                     qsets[static_cast<u32>(si)].erase({x, y});
                     qs[static_cast<u32>(si)].erase(qs[static_cast<u32>(si)].begin() + static_cast<std::ptrdiff_t>(qidx));
                     continue;
@@ -181,14 +216,14 @@ RiverSectorsResult* Generate_RiverSectors::generate (
                     qidx++;
                     continue;
                 }
-                if (tile_blocked(terrain[ti])) {
+                if (tile_blocked(terrain, glob, ti) || sect_terr(terrain, glob, ti) != secs[static_cast<u32>(si)].terr) {
                     qsets[static_cast<u32>(si)].erase({x, y});
                     qs[static_cast<u32>(si)].erase(qs[static_cast<u32>(si)].begin() + static_cast<std::ptrdiff_t>(qidx));
                     continue;
                 }
                 qsets[static_cast<u32>(si)].erase({x, y});
                 qs[static_cast<u32>(si)].erase(qs[static_cast<u32>(si)].begin() + static_cast<std::ptrdiff_t>(qidx));
-                clm[ti] = true;
+                clm[ti] = 1;
                 overlay[ti] = static_cast<u16>(si);
                 secs[static_cast<u32>(si)].coords.push_back({x, y});
                 claimed_cnt++;
@@ -199,27 +234,30 @@ RiverSectorsResult* Generate_RiverSectors::generate (
                         continue;
                     }
                     const u32 ni = static_cast<u32>(ny) * static_cast<u32>(w) + static_cast<u32>(nx);
-                    if (tile_blocked(terrain[ni])) {
+                    if (tile_blocked(terrain, glob, ni)) {
                         continue;
                     }
-                    if (clm[ni]) {
+                    if (clm[ni] != 0) {
                         const u16 oid = overlay[ni];
                         if (oid != static_cast<u16>(RIVER_SECTOR_NONE) && oid != static_cast<u16>(si)) {
                             add_conn(&secs[static_cast<u32>(si)], &secs[oid], static_cast<u32>(si), static_cast<u32>(oid));
                         }
-                    } else {
-                        const std::pair<u16, u16> c = {static_cast<u16>(nx), static_cast<u16>(ny)};
-                        if (qsets[static_cast<u32>(si)].find(c) == qsets[static_cast<u32>(si)].end()) {
-                            const i32 ndsq = (nx - static_cast<i32>(px)) * (nx - static_cast<i32>(px))
-                                + (ny - static_cast<i32>(py)) * (ny - static_cast<i32>(py));
-                            QueueItem ne = {};
-                            ne.dsq = ndsq;
-                            ne.x = static_cast<u16>(nx);
-                            ne.y = static_cast<u16>(ny);
-                            qs[static_cast<u32>(si)].push_back(ne);
-                            std::sort(qs[static_cast<u32>(si)].begin(), qs[static_cast<u32>(si)].end());
-                            qsets[static_cast<u32>(si)].insert(c);
-                        }
+                        continue;
+                    }
+                    if (sect_terr(terrain, glob, ni) != secs[static_cast<u32>(si)].terr) {
+                        continue;
+                    }
+                    const std::pair<u16, u16> c = {static_cast<u16>(nx), static_cast<u16>(ny)};
+                    if (qsets[static_cast<u32>(si)].find(c) == qsets[static_cast<u32>(si)].end()) {
+                        const i32 ndsq = (nx - static_cast<i32>(px)) * (nx - static_cast<i32>(px))
+                            + (ny - static_cast<i32>(py)) * (ny - static_cast<i32>(py));
+                        QueueItem ne = {};
+                        ne.dsq = ndsq;
+                        ne.x = static_cast<u16>(nx);
+                        ne.y = static_cast<u16>(ny);
+                        qs[static_cast<u32>(si)].push_back(ne);
+                        std::sort(qs[static_cast<u32>(si)].begin(), qs[static_cast<u32>(si)].end());
+                        qsets[static_cast<u32>(si)].insert(c);
                     }
                 }
                 break;
@@ -227,7 +265,7 @@ RiverSectorsResult* Generate_RiverSectors::generate (
             bool has_unclaimed = false;
             for (const QueueItem& e : qs[static_cast<u32>(si)]) {
                 const u32 ti = static_cast<u32>(e.y) * static_cast<u32>(w) + static_cast<u32>(e.x);
-                if (!clm[ti]) {
+                if (clm[ti] == 0) {
                     has_unclaimed = true;
                     break;
                 }
@@ -243,8 +281,9 @@ RiverSectorsResult* Generate_RiverSectors::generate (
     }
     RiverSectorsResult* out = new RiverSectorsResult();
     if (out == nullptr) {
+        GeneratorWhiteboard::release(clm);
         delete[] overlay;
-        delete[] clm;
+        delete[] glob;
         return nullptr;
     }
     out->w = w;
@@ -253,14 +292,16 @@ RiverSectorsResult* Generate_RiverSectors::generate (
     out->overlay = overlay;
     out->nodes = new RiverSectorNode[sector_n];
     if (out->nodes == nullptr) {
+        GeneratorWhiteboard::release(clm);
         delete[] overlay;
-        delete[] clm;
+        delete[] glob;
         delete out;
         return nullptr;
     }
     for (u32 si = 0; si < sector_n; ++si) {
         out->nodes[si].cx = secs[si].cx;
         out->nodes[si].cy = secs[si].cy;
+        out->nodes[si].terr = secs[si].terr;
         out->nodes[si].conn_n = static_cast<u16>(secs[si].conn.size());
         out->nodes[si].conn = nullptr;
         if (out->nodes[si].conn_n > 0) {
@@ -270,7 +311,8 @@ RiverSectorsResult* Generate_RiverSectors::generate (
             }
         }
     }
-    delete[] clm;
+    GeneratorWhiteboard::release(clm);
+    delete[] glob;
     return out;
 }
 

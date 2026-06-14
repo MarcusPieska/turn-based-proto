@@ -111,7 +111,8 @@ static bool save_network_viz (
     u32 seed) 
 {
     if (path == nullptr || terrain == nullptr || sectors == nullptr || network == nullptr
-        || sectors->overlay == nullptr || sectors->nodes == nullptr || w == 0 || h == 0) {
+        || sectors->overlay == nullptr || sectors->nodes == nullptr || network->overlay == nullptr
+        || w == 0 || h == 0) {
         return false;
     }
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
@@ -130,13 +131,10 @@ static bool save_network_viz (
     }
     std::srand(seed);
     std::map<u16, std::tuple<u8, u8, u8>> sys_clr;
-    for (u32 si = 0; si < static_cast<u32>(network->sector_n); ++si) {
-        const u16 rid = network->river_sys[si];
-        if (rid == static_cast<u16>(RIVER_SYS_NONE)) {
-            continue;
-        }
-        if (sys_clr.find(rid) == sys_clr.end()) {
-            sys_clr[rid] = {
+    for (u16 bi = 0; bi < network->basin_n; ++bi) {
+        const u16 bid = network->basins[bi].idx;
+        if (sys_clr.find(bid) == sys_clr.end()) {
+            sys_clr[bid] = {
                 static_cast<u8>(50 + (std::rand() % 151)),
                 static_cast<u8>(50 + (std::rand() % 151)),
                 static_cast<u8>(50 + (std::rand() % 151))};
@@ -164,15 +162,11 @@ static bool save_network_viz (
         }
     }
     for (u32 i = 0; i < n; ++i) {
-        const u16 sid = sectors->overlay[i];
-        if (sid == static_cast<u16>(RIVER_SECTOR_NONE)) {
+        const u16 bid = network->overlay[i];
+        if (bid == static_cast<u16>(RIVER_BASIN_NONE)) {
             continue;
         }
-        const u16 rid = network->river_sys[sid];
-        if (rid == static_cast<u16>(RIVER_SYS_NONE)) {
-            continue;
-        }
-        auto it = sys_clr.find(rid);
+        auto it = sys_clr.find(bid);
         if (it == sys_clr.end()) {
             continue;
         }
@@ -246,6 +240,17 @@ i32 test_generate_river_network_basic (u32 seed) {
     std::printf("Generate_RiverPts generate time: %.6f s\n", pts_sec);
     std::printf("Generate_RiverSectors generate time: %.6f s\n", sec_sec);
     std::printf("Generate_RiverNetwork generate time: %.6f s (%u x %u)\n", net_sec, w, h);
+    std::printf("watersheds: %u\n", network->basin_n);
+    for (u16 bi = 0; bi < network->basin_n; ++bi) {
+        const RiverBasinEntry& b = network->basins[bi];
+        std::printf(
+            "  basin %u: idx %u mouth (%u,%u) tiles %u\n",
+            bi,
+            b.idx,
+            b.mouth_x,
+            b.mouth_y,
+            b.tile_n);
+    }
     const bool ok = save_network_viz(g_out_path, terrain, w, h, sectors, network, seed);
     Generate_RiverNetwork::free_result(network);
     Generate_RiverSectors::free_result(sectors);

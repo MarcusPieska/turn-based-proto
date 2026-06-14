@@ -13,6 +13,7 @@
 //================================================================================================================================
 
 #define RIVER_SYS_NONE 0xFFFFu
+#define RIVER_BASIN_NONE 0u
 
 //================================================================================================================================
 //=> - RiverConn -
@@ -24,15 +25,31 @@ struct RiverConn {
 };
 
 //================================================================================================================================
+//=> - RiverBasinEntry -
+//================================================================================================================================
+
+struct RiverBasinEntry {
+    u16 idx;
+    u16 mouth_x;
+    u16 mouth_y;
+    u32 tile_n;
+};
+
+//================================================================================================================================
 //=> - RiverNetworkResult -
 //================================================================================================================================
 
 struct RiverNetworkResult {
+    u16 w;
+    u16 h;
     u16 sector_n;
     u16 conn_n;
+    u16 basin_n;
     RiverConn* conns;
     u16* river_sys;
     bool* coastal;
+    u16* overlay;
+    RiverBasinEntry* basins;
 };
 
 //================================================================================================================================
@@ -41,11 +58,7 @@ struct RiverNetworkResult {
 
 class Generate_RiverNetwork {
 public:
-    static RiverNetworkResult* generate (
-        const u8* terrain,
-        u16 w,
-        u16 h,
-        const RiverSectorsResult* sectors);
+    static RiverNetworkResult* generate (const u8* terrain, u16 w, u16 h, const RiverSectorsResult* sectors);
     static void free_result (RiverNetworkResult* res);
 
 private:

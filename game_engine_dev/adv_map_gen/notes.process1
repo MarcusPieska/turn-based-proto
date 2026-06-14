@@ -1,0 +1,31 @@
+Each step below should correspond to a new C++ module (.h and .cpp), a test driver, and a compile script. The test driver for each step should just make an image of the output at "/home/w/Projects/simple-map-gen"; or more than one if warrented. Be sure that each image is given a zero-left-padded number prefix in its name so that the images sort themselves. Each tester should read a seed from a local file so that they are consistent. The goal is zero-args passed via CLI. If we at some point add a step to the middle of the process numbers will get duplicated; that is OK. Make sure each tester also times how long generator or adjuster being tested take to finish the job.
+
+These are the steps of process 1:
+ - 01. Generator: Make a continent outline with a shaper and return overlay of outline.
+ - 02. Adjuster: On an all-ocean map, fill the outline with plains terrain.
+ - 03. Generator: Get perlin noise. 
+ - 04. Generator: Create a flood fill overlay that counts the distance to the outline limit inside of the outline.
+ - 05. Generator: Make shaped outline with radial parameter at 0.00; this will give a coastaline with more interest, but no large lakes. 
+ - 06. Generator: Make shaped outline with radial parameter at 0.85; this will give a faithful coastline, but many large inland lakes. (NOTE: Same class as above) 
+ - 07. Adjuster: Merge the two shaped outlines; favor 0.00 near coasts, favor 0.85 centrally; add ocean, sea, and costal, but no hills or mountains.
+       Not adding hills or mountains is new behavior.
+ - 08. Generator: Derive river sector points and return C-array of points and IDs.
+ - 09. Generator: Claim tiles for sectors and return overlay with sector owner IDs.
+ - 10. Generator: Do river network formation. Return overlay of watershed IDs (and other data). 
+       One innovation we want here is to randomly give differing claims per turn (1,2,3 or 4) to different claimers; we want big and small watersheds.
+       Moreover, only consider about 50% of coastal sectors as coastal; this is to limit really tiny watersheds; rule is to never have a coastal sector adjacent to another. 
+ - 11. Generator: Do river line overlay creation. Return river overlay and river data in struct.
+ - 12. Adjustor: Grouped rivers should be adjusted on map to coastal (i.e., a lake)
+ - 13. Adjustor: Inlets should be created at some percantage of the river depth. 
+ - 14. Generator: Select which watershed-pair border will have mountains on them; return overlay. 
+ - 15. Generator: Create an overlay that shows distance-to-river, but only over land.
+ - 16. Generator: Create a dissipation overlay from watershed mountain border, but only over land.
+       This is new, we want to start at some high value at the watershed border and then count down, but never go negative.  
+ - 17. Adjuster: Perlin noise (from step 3) together with dissipation overlay and distance-to-river to determine where hills and mountains go.
+       This is new: We want watershed mountain border to impact/add-with the perlin noise overlay to give us mountain lines. 
+ - 18. Adjustor: Make sure all water 8-adjacent to land is coastal, not sea or ocean (NEW). 
+ - 19. Adjustor: Make sure all water 8-adjacent to coastal is sea, not ocean (NEW).      
+ - 20. Adjustor: Make sure all land on or 8-adjacent to rivers is plains, not hills or mountains (NEW).   
+ - 21. Adjustor: Downgrade mountains 8-adjacent to plains to hills (NEW). 
+ - 22. Generator: Generate climate overlay.  
+ - 23. Generator: Reversed depth first walk from all river mouths; cull all rivers that have nothing but desert upstream.  

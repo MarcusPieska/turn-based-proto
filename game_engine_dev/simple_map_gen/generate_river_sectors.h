@@ -21,6 +21,7 @@
 struct RiverSectorNode {
     u16 cx;
     u16 cy;
+    u8 terr;
     u16 conn_n;
     u16* conn;
 };

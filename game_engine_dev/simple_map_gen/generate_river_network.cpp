@@ -2,41 +2,134 @@
 //=> - Includes -
 //================================================================================================================================
 
-#include "generate_river_network.h"
-
-#include "generator_constants.h"
-
+#include <algorithm>
 #include <cstring>
 #include <set>
 #include <utility>
 #include <vector>
 
+#include "generate_river_network.h"
+
+#include "generate_global_ocean.h"
+#include "generator_constants.h"
+
 //================================================================================================================================
 //=> - Internal -
 //================================================================================================================================
 
-static bool is_water (u8 cls) {
-    return cls == TERR_OCEAN[0] || cls == TERR_SEA[0] || cls == TERR_COASTAL[0];
+static bool is_hills (u8 terr) {
+    return terr == TERR_HILLS[0];
+}
+
+static bool is_plains (u8 terr) {
+    return terr == TERR_PLAINS[0];
+}
+
+static bool conn_ok (const RiverSectorNode* from, const RiverSectorNode* to) {
+    if (is_hills(from->terr) && is_plains(to->terr)) {
+        return false;
+    }
+    return true;
+}
+
+static u16* alloc_overlay (u16 w, u16 h) {
+    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
+    u16* ov = new u16[n];
+    if (ov == nullptr) {
+        return nullptr;
+    }
+    for (u32 i = 0; i < n; ++i) {
+        ov[i] = static_cast<u16>(RIVER_BASIN_NONE);
+    }
+    return ov;
+}
+
+static void build_basins (RiverNetworkResult* out, const RiverSectorsResult* sectors) 
+{
+    if (out == nullptr || sectors == nullptr || out->overlay == nullptr || out->river_sys == nullptr) {
+        return;
+    }
+    const u32 n = static_cast<u32>(out->w) * static_cast<u32>(out->h);
+    std::set<u16> roots;
+    for (u32 si = 0; si < static_cast<u32>(out->sector_n); ++si) {
+        const u16 sys = out->river_sys[si];
+        if (sys != static_cast<u16>(RIVER_SYS_NONE)) {
+            roots.insert(sys);
+        }
+    }
+    if (roots.empty()) {
+        out->basin_n = 0;
+        out->basins = nullptr;
+        return;
+    }
+    std::vector<u16> root_lst(roots.begin(), roots.end());
+    std::vector<u16> sys_idx(static_cast<size_t>(out->sector_n), static_cast<u16>(RIVER_BASIN_NONE));
+    std::vector<RiverBasinEntry> recs;
+    recs.reserve(root_lst.size());
+    u16 next_idx = 1;
+    for (u16 root : root_lst) {
+        RiverBasinEntry e = {};
+        e.idx = next_idx;
+        e.mouth_x = sectors->nodes[root].cx;
+        e.mouth_y = sectors->nodes[root].cy;
+        e.tile_n = 0;
+        recs.push_back(e);
+        for (u32 si = 0; si < static_cast<u32>(out->sector_n); ++si) {
+            if (out->river_sys[si] == root) {
+                sys_idx[si] = next_idx;
+            }
+        }
+        next_idx++;
+    }
+    for (u32 i = 0; i < n; ++i) {
+        const u16 sid = sectors->overlay[i];
+        if (sid == static_cast<u16>(RIVER_SECTOR_NONE) || sid >= out->sector_n) {
+            continue;
+        }
+        const u16 bidx = sys_idx[sid];
+        if (bidx == static_cast<u16>(RIVER_BASIN_NONE)) {
+            continue;
+        }
+        out->overlay[i] = bidx;
+        for (RiverBasinEntry& e : recs) {
+            if (e.idx == bidx) {
+                e.tile_n++;
+                break;
+            }
+        }
+    }
+    std::sort(recs.begin(), recs.end(), [](const RiverBasinEntry& a, const RiverBasinEntry& b) {
+        return a.tile_n > b.tile_n;
+    });
+    out->basin_n = static_cast<u16>(recs.size());
+    out->basins = new RiverBasinEntry[out->basin_n];
+    if (out->basins == nullptr) {
+        out->basin_n = 0;
+        return;
+    }
+    for (u16 i = 0; i < out->basin_n; ++i) {
+        out->basins[i] = recs[i];
+    }
 }
 
 //================================================================================================================================
 //=> - Generate_RiverNetwork -
 //================================================================================================================================
 
-RiverNetworkResult* Generate_RiverNetwork::generate (
-    const u8* terrain,
-    u16 w,
-    u16 h,
-    const RiverSectorsResult* sectors) 
-{
+RiverNetworkResult* Generate_RiverNetwork::generate (const u8* terrain, u16 w, u16 h, const RiverSectorsResult* sectors)  {
     if (terrain == nullptr || w == 0 || h == 0 || sectors == nullptr
         || sectors->overlay == nullptr || sectors->nodes == nullptr || sectors->sector_n == 0) {
         return nullptr;
     }
     const u32 sector_n = static_cast<u32>(sectors->sector_n);
+    u8* glob = Generate_GlobalOcean::build_mask(terrain, w, h);
+    if (glob == nullptr) {
+        return nullptr;
+    }
     bool* has_land = new bool[sector_n];
     bool* coastal = new bool[sector_n];
     if (has_land == nullptr || coastal == nullptr) {
+        delete[] glob;
         delete[] has_land;
         delete[] coastal;
         return nullptr;
@@ -60,7 +153,7 @@ RiverNetworkResult* Generate_RiverNetwork::generate (
                     continue;
                 }
                 const u32 ni = static_cast<u32>(ny) * static_cast<u32>(w) + static_cast<u32>(nx);
-                if (is_water(terrain[ni])) {
+                if (glob[ni] != 0) {
                     coastal[sid] = true;
                     break;
                 }
@@ -75,19 +168,27 @@ RiverNetworkResult* Generate_RiverNetwork::generate (
     }
     RiverNetworkResult* out = new RiverNetworkResult();
     if (out == nullptr) {
+        delete[] glob;
         delete[] has_land;
         delete[] coastal;
         return nullptr;
     }
+    out->w = w;
+    out->h = h;
     out->sector_n = sectors->sector_n;
     out->conn_n = 0;
     out->conns = nullptr;
+    out->basin_n = 0;
+    out->basins = nullptr;
+    out->overlay = alloc_overlay(w, h);
     out->river_sys = new u16[sector_n];
     out->coastal = new bool[sector_n];
-    if (out->river_sys == nullptr || out->coastal == nullptr) {
+    if (out->overlay == nullptr || out->river_sys == nullptr || out->coastal == nullptr) {
+        delete[] out->overlay;
         delete[] out->river_sys;
         delete[] out->coastal;
         delete out;
+        delete[] glob;
         delete[] has_land;
         delete[] coastal;
         return nullptr;
@@ -99,6 +200,8 @@ RiverNetworkResult* Generate_RiverNetwork::generate (
     delete[] has_land;
     delete[] coastal;
     if (coast.empty()) {
+        delete[] glob;
+
         return out;
     }
     for (u16 cid : coast) {
@@ -117,7 +220,7 @@ RiverNetworkResult* Generate_RiverNetwork::generate (
             const RiverSectorNode* sec = &sectors->nodes[sidx];
             for (u16 c = 0; c < sec->conn_n; ++c) {
                 const u16 aid = sec->conn[c];
-                if (clmd.find(aid) == clmd.end()) {
+                if (clmd.find(aid) == clmd.end() && conn_ok(sec, &sectors->nodes[aid])) {
                     clmd.insert(aid);
                     out->river_sys[aid] = out->river_sys[sidx];
                     rconns.insert({sidx, aid});
@@ -141,6 +244,8 @@ RiverNetworkResult* Generate_RiverNetwork::generate (
             ci++;
         }
     }
+    build_basins(out, sectors);
+    delete[] glob;
     return out;
 }
 
@@ -151,6 +256,8 @@ void Generate_RiverNetwork::free_result (RiverNetworkResult* res) {
     delete[] res->conns;
     delete[] res->river_sys;
     delete[] res->coastal;
+    delete[] res->overlay;
+    delete[] res->basins;
     delete res;
 }
 

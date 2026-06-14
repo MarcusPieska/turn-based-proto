@@ -1,0 +1,46 @@
+#!/bin/bash
+
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+cd "$ROOT"
+
+COMPS=(
+    p1_gen_outline_comp
+    p1_adj_outline_fill_comp
+    p1_gen_noise_perlin_comp
+    p1_gen_land_depth_comp
+    p1_gen_shaped_outline_comp
+    p1_gen_river_pts_comp
+    p1_gen_river_sectors_comp
+    p1_gen_river_network_comp
+    p1_gen_river_lines_comp
+    p1_adj_river_lakes_comp
+    p1_adj_river_inlets_comp
+    p1_gen_watershed_mountains_comp
+    p1_gen_watershed_mountain_line_sets_comp
+    p1_gen_distance_to_river_comp
+    p1_gen_nearness_to_watershed_mtn_comp
+    p1_adj_land_altitude_comp
+    p1_adj_ensure_coasts_comp
+    p1_adj_ensure_seas_comp
+    p1_adj_ensure_river_valleys_comp
+    p1_adj_ensure_mtn_foothills_comp
+    p1_gen_climate_comp
+    p1_gen_desert_river_cull_comp
+    p1_make_map_comp
+)
+
+failed=()
+
+for comp in "${COMPS[@]}"; do
+    echo "--- $comp ---"
+    if ! bash "$comp"; then
+        failed+=("$comp")
+    fi
+done
+
+if [ ${#failed[@]} -ne 0 ]; then
+    echo "failed (${#failed[@]}): ${failed[*]}"
+    exit 1
+fi
+
+echo "all test drivers compiled (${#COMPS[@]})"

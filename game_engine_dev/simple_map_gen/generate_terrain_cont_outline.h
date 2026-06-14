@@ -26,6 +26,8 @@ struct TerrainContOutlineParams {
 
     u8 m_fill_mode = TERR_OUTLINE_FILL_MODE_FULL;
     u8 m_mix_mode_corner_count = 3;
+    f32 m_outline_stretch_x = 1.f;
+    f32 m_outline_stretch_y = 1.f;
     TerrainContPnParams m_pn_params;
     
     bool m_debug = false;

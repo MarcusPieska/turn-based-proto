@@ -44,11 +44,13 @@ RiverPtsResult* Generate_RiverPts::generate (const u8* terrain, u16 w, u16 h, u3
         return nullptr;
     }
     out->n = 0;
+    const i32 jlim = static_cast<i32>(RIVER_LATTICE_STEP) / 2 - 1;
+    const u32 jspan = static_cast<u32>(jlim * 2 + 1);
     std::srand(seed);
     for (u16 ly = 0; ly < h; ly = static_cast<u16>(ly + RIVER_LATTICE_STEP)) {
         for (u16 lx = 0; lx < w; lx = static_cast<u16>(lx + RIVER_LATTICE_STEP)) {
-            const i32 ox = static_cast<i32>((std::rand() % 11) - 5);
-            const i32 oy = static_cast<i32>((std::rand() % 11) - 5);
+            const i32 ox = static_cast<i32>(std::rand() % jspan) - jlim;
+            const i32 oy = static_cast<i32>(std::rand() % jspan) - jlim;
             const i32 x = static_cast<i32>(lx) + ox;
             const i32 y = static_cast<i32>(ly) + oy;
             if (x < 0 || y < 0 || static_cast<u32>(x) >= static_cast<u32>(w) || static_cast<u32>(y) >= static_cast<u32>(h)) {

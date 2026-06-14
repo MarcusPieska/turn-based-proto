@@ -1,0 +1,78 @@
+//================================================================================================================================
+//=> - Includes -
+//================================================================================================================================
+
+#include <cstdio>
+#include <ctime>
+
+#include "[PIPE_FILE_PREFIX][FILE_PREFIX_TAG].h"
+#include "game_primitives.h"
+#include "map_loader.h"
+#include "map_terrain_data.h"
+#include "p1_tester_util.h"
+
+//================================================================================================================================
+//=> - Globals -
+//================================================================================================================================
+
+static const char* g_map_path = "maps/in_map.ppm";
+
+//================================================================================================================================
+//=> - Test helpers -
+//================================================================================================================================
+
+i32 test_[PIPE_FILE_PREFIX][file_prefix_tag]_basic (const P1_RunPrm& prm) {
+    char out_path[320];
+    if (!p1_make_out_path(prm.m_seed, "[STEP_OUT_FILE]", out_path, sizeof(out_path))) {
+        std::printf("failed to ensure output dir\n");
+        return -1;
+    }
+    MapTerrainData map;
+    if (!MapLoader::load_terrain_ppm(g_map_path, map)) {
+        std::printf("failed to load map: %s\n", g_map_path);
+        return -1;
+    }
+    const u16 w = map.width();
+    const u16 h = map.height();
+    u8* terrain = map.data();
+    if (terrain == nullptr || w == 0 || h == 0) {
+        std::printf("invalid map data\n");
+        return -1;
+    }
+    [PIPE_CLASS_PREFIX][MAIN_CLASS_TAG] adj(prm);
+    const clock_t t0 = clock();
+    adj.adjust(terrain, w, h);
+    const clock_t t1 = clock();
+    const double sec = static_cast<double>(t1 - t0) / static_cast<double>(CLOCKS_PER_SEC);
+    if (!adj.is_valid()) {
+        std::printf("[PIPE_CLASS_PREFIX][MAIN_CLASS_TAG] failed to adjust\n");
+        return -1;
+    }
+    std::printf("[PIPE_CLASS_PREFIX][MAIN_CLASS_TAG] adjust time: %.6f s (%u x %u)\n",
+        sec,
+        static_cast<u32>(w),
+        static_cast<u32>(h));
+    if (!map.save_terrain_ppm(out_path)) {
+        std::printf("failed to save map: %s\n", out_path);
+        return -1;
+    }
+    std::printf("saved: %s\n", out_path);
+    return 0;
+}
+
+//================================================================================================================================
+//=> - Main -
+//================================================================================================================================
+
+i32 main (i32 argc, char* argv[]) {
+    if (!p1_tester_checkout(argc, argv)) {
+        return -1;
+    }
+    P1_RunPrm prm;
+    p1_resolve_run_prm(argc, argv, &prm);
+    return test_[PIPE_FILE_PREFIX][file_prefix_tag]_basic(prm);
+}
+
+//================================================================================================================================
+//=> - End -
+//================================================================================================================================

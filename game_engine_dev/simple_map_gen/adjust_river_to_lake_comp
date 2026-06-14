@@ -1,0 +1,47 @@
+#!/bin/bash
+
+INC="-I.. -I../map_loader -I../simple_map_gen"
+
+g++ -std=c++11 $INC -c ../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
+g++ -std=c++11 $INC -c ../map_loader/map_terrain_data.cpp -o map_terrain_data.o
+g++ -std=c++11 $INC -c ../map_loader/map_loader.cpp -o map_loader.o
+g++ -std=c++11 $INC -c generator_constants.cpp -o generator_constants.o
+g++ -std=c++11 $INC -c generator_whiteboard.cpp -o generator_whiteboard.o
+g++ -std=c++11 $INC -c generate_global_ocean.cpp -o generate_global_ocean.o
+g++ -std=c++11 $INC -c perlin_noise.cpp -o perlin_noise.o
+g++ -std=c++11 $INC -c generate_river_pts.cpp -o generate_river_pts.o
+g++ -std=c++11 $INC -c generate_river_sectors.cpp -o generate_river_sectors.o
+g++ -std=c++11 $INC -c generate_river_network.cpp -o generate_river_network.o
+g++ -std=c++11 $INC -c generate_river_lines.cpp -o generate_river_lines.o
+g++ -std=c++11 $INC -c adjust_river_to_lake.cpp -o adjust_river_to_lake.o
+g++ -std=c++11 $INC -c adjust_river_to_lake_tester.cpp -o adjust_river_to_lake_tester.o
+
+g++ -std=c++11 -o adjust_river_to_lake_tester \
+    map_terrain_validate.o \
+    map_terrain_data.o \
+    map_loader.o \
+    generator_constants.o \
+    generator_whiteboard.o \
+    generate_global_ocean.o \
+    perlin_noise.o \
+    generate_river_pts.o \
+    generate_river_sectors.o \
+    generate_river_network.o \
+    generate_river_lines.o \
+    adjust_river_to_lake.o \
+    adjust_river_to_lake_tester.o \
+    -lm
+
+rm map_terrain_validate.o \
+    map_terrain_data.o \
+    map_loader.o \
+    generator_constants.o \
+    generator_whiteboard.o \
+    generate_global_ocean.o \
+    perlin_noise.o \
+    generate_river_pts.o \
+    generate_river_sectors.o \
+    generate_river_network.o \
+    generate_river_lines.o \
+    adjust_river_to_lake.o \
+    adjust_river_to_lake_tester.o

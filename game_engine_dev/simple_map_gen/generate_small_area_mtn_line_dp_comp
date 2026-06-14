@@ -1,0 +1,68 @@
+#!/bin/bash
+
+INC="-I.. -I../map_loader -I../simple_map_gen"
+
+g++ -std=c++11 $INC -c ../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
+g++ -std=c++11 $INC -c ../map_loader/map_terrain_data.cpp -o map_terrain_data.o
+g++ -std=c++11 $INC -c ../map_loader/map_loader.cpp -o map_loader.o
+g++ -std=c++11 $INC -c generator_constants.cpp -o generator_constants.o
+g++ -std=c++11 $INC -c generator_whiteboard.cpp -o generator_whiteboard.o
+g++ -std=c++11 $INC -c generate_global_ocean.cpp -o generate_global_ocean.o
+g++ -std=c++11 $INC -c perlin_noise.cpp -o perlin_noise.o
+g++ -std=c++11 $INC -c generate_overlay_water_land.cpp -o generate_overlay_water_land.o
+g++ -std=c++11 $INC -c generate_distance_land_to_water.cpp -o generate_distance_land_to_water.o
+g++ -std=c++11 $INC -c generate_terrain_cont_pn.cpp -o generate_terrain_cont_pn.o
+g++ -std=c++11 $INC -c generate_terrain_cont_outline.cpp -o generate_terrain_cont_outline.o
+g++ -std=c++11 $INC -c generate_terrain_rotation.cpp -o generate_terrain_rotation.o
+g++ -std=c++11 $INC -c generate_small_shape.cpp -o generate_small_shape.o
+g++ -std=c++11 $INC -c generate_river_pts.cpp -o generate_river_pts.o
+g++ -std=c++11 $INC -c generate_river_sectors.cpp -o generate_river_sectors.o
+g++ -std=c++11 $INC -c generate_river_network.cpp -o generate_river_network.o
+g++ -std=c++11 $INC -c generate_river_lines.cpp -o generate_river_lines.o
+g++ -std=c++11 $INC -c generate_watershed_mtn_lines.cpp -o generate_watershed_mtn_lines.o
+g++ -std=c++11 $INC -c generate_small_area_mtn_line_dp.cpp -o generate_small_area_mtn_line_dp.o
+g++ -std=c++11 $INC -c generate_small_area_mtn_line_dp_tester.cpp -o generate_small_area_mtn_line_dp_tester.o
+
+g++ -std=c++11 -o generate_small_area_mtn_line_dp_tester \
+    map_terrain_validate.o \
+    map_terrain_data.o \
+    map_loader.o \
+    generator_constants.o \
+    generator_whiteboard.o \
+    generate_global_ocean.o \
+    perlin_noise.o \
+    generate_overlay_water_land.o \
+    generate_distance_land_to_water.o \
+    generate_terrain_cont_pn.o \
+    generate_terrain_cont_outline.o \
+    generate_terrain_rotation.o \
+    generate_small_shape.o \
+    generate_river_pts.o \
+    generate_river_sectors.o \
+    generate_river_network.o \
+    generate_river_lines.o \
+    generate_watershed_mtn_lines.o \
+    generate_small_area_mtn_line_dp.o \
+    generate_small_area_mtn_line_dp_tester.o \
+    -lm
+
+rm map_terrain_validate.o \
+    map_terrain_data.o \
+    map_loader.o \
+    generator_constants.o \
+    generator_whiteboard.o \
+    generate_global_ocean.o \
+    perlin_noise.o \
+    generate_overlay_water_land.o \
+    generate_distance_land_to_water.o \
+    generate_terrain_cont_pn.o \
+    generate_terrain_cont_outline.o \
+    generate_terrain_rotation.o \
+    generate_small_shape.o \
+    generate_river_pts.o \
+    generate_river_sectors.o \
+    generate_river_network.o \
+    generate_river_lines.o \
+    generate_watershed_mtn_lines.o \
+    generate_small_area_mtn_line_dp.o \
+    generate_small_area_mtn_line_dp_tester.o

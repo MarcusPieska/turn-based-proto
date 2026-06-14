@@ -7,6 +7,8 @@ g++ -std=c++11 $INC -c ../map_loader/map_terrain_data.cpp -o map_terrain_data.o
 g++ -std=c++11 $INC -c ../map_loader/map_loader.cpp -o map_loader.o
 g++ -std=c++11 $INC -c perlin_noise.cpp -o perlin_noise.o
 g++ -std=c++11 $INC -c generator_constants.cpp -o generator_constants.o
+g++ -std=c++11 $INC -c generator_whiteboard.cpp -o generator_whiteboard.o
+g++ -std=c++11 $INC -c generate_global_ocean.cpp -o generate_global_ocean.o
 g++ -std=c++11 $INC -c generate_river_pts.cpp -o generate_river_pts.o
 g++ -std=c++11 $INC -c generate_river_sectors.cpp -o generate_river_sectors.o
 g++ -std=c++11 $INC -c generate_river_network.cpp -o generate_river_network.o
@@ -24,6 +26,8 @@ g++ -std=c++11 -o generate_map_climate_params_tester \
     map_loader.o \
     perlin_noise.o \
     generator_constants.o \
+    generator_whiteboard.o \
+    generate_global_ocean.o \
     generate_river_pts.o \
     generate_river_sectors.o \
     generate_river_network.o \
@@ -41,6 +45,8 @@ rm map_terrain_validate.o \
     map_loader.o \
     perlin_noise.o \
     generator_constants.o \
+    generator_whiteboard.o \
+    generate_global_ocean.o \
     generate_river_pts.o \
     generate_river_sectors.o \
     generate_river_network.o \

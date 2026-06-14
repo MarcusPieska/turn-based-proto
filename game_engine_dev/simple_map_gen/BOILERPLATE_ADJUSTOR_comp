@@ -1,0 +1,22 @@
+#!/bin/bash
+
+INC="-I.. -I../map_loader"
+
+g++ -std=c++11 $INC -c ../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
+g++ -std=c++11 $INC -c ../map_loader/map_terrain_data.cpp -o map_terrain_data.o
+g++ -std=c++11 $INC -c ../map_loader/map_loader.cpp -o map_loader.o
+g++ -std=c++11 $INC -c adjust_[FILE_PREFIX_TAG].cpp -o adjust_[FILE_PREFIX_TAG].o
+g++ -std=c++11 $INC -c adjust_[FILE_PREFIX_TAG]_tester.cpp -o adjust_[FILE_PREFIX_TAG]_tester.o
+
+g++ -std=c++11 -o adjust_[FILE_PREFIX_TAG]_tester \
+    map_terrain_validate.o \
+    map_terrain_data.o \
+    map_loader.o \
+    adjust_[FILE_PREFIX_TAG].o \
+    adjust_[FILE_PREFIX_TAG]_tester.o -lm
+
+rm map_terrain_validate.o \
+    map_terrain_data.o \
+    map_loader.o \
+    adjust_[FILE_PREFIX_TAG].o \
+    adjust_[FILE_PREFIX_TAG]_tester.o

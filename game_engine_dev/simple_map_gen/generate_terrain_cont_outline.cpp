@@ -201,6 +201,8 @@ struct OutlineShapeCtx {
     u16 m_h;
     f64 m_cx;
     f64 m_cy;
+    f64 m_stretch_x;
+    f64 m_stretch_y;
 };
 
 static void set_ter_px (u8* ter, u16 w, u16 h, i32 x, i32 y, u8 c) {
@@ -384,7 +386,11 @@ static bool build_outline_shape (OutlineShapeCtx& ctx, u32 seed) {
     for (size_t i = 0; i < angles.size(); ++i) {
         const f64 rad = max_r * depths[i];
         const f64 ar = angles[i] * 3.14159265358979323846 / 180.0;
-        points.push_back(std::pair<f64, f64>(ctx.m_cx + rad * std::cos(ar), ctx.m_cy - rad * std::sin(ar)));
+        f64 px = ctx.m_cx + rad * std::cos(ar);
+        f64 py = ctx.m_cy - rad * std::sin(ar);
+        px = ctx.m_cx + (px - ctx.m_cx) * ctx.m_stretch_x;
+        py = ctx.m_cy + (py - ctx.m_cy) * ctx.m_stretch_y;
+        points.push_back(std::pair<f64, f64>(px, py));
     }
     const size_t np = points.size();
     for (size_t i = 0; i < np; ++i) {
@@ -506,6 +512,8 @@ bool Generate_TerrainContOutline::generate () {
     ctx.m_h = h;
     ctx.m_cx = 0.0;
     ctx.m_cy = 0.0;
+    ctx.m_stretch_x = static_cast<f64>(m_params.m_outline_stretch_x);
+    ctx.m_stretch_y = static_cast<f64>(m_params.m_outline_stretch_y);
     if (!build_outline_shape(ctx, m_params.m_seed)) {
         return false;
     }
