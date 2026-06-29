@@ -1,0 +1,87 @@
+//================================================================================================================================
+//=> - Includes -
+//================================================================================================================================
+
+#include "game_array_simple.h"
+#include "runtime_trace_dbg.h"
+
+//================================================================================================================================
+//=> - GameArraySimple -
+//================================================================================================================================
+
+GameArraySimple::GameArraySimple () :
+    m_w(0),
+    m_h(0),
+    m_tiles(nullptr) {
+}
+
+GameArraySimple::~GameArraySimple () {
+    clear();
+}
+
+void GameArraySimple::clear () {
+    delete[] m_tiles;
+    m_tiles = nullptr;
+    m_w = 0;
+    m_h = 0;
+}
+
+u16 GameArraySimple::width () const {
+    return m_w;
+}
+
+u16 GameArraySimple::height () const {
+    return m_h;
+}
+
+u32 GameArraySimple::tile_n () const {
+    return static_cast<u32>(m_w) * static_cast<u32>(m_h);
+}
+
+u32 GameArraySimple::tidx (u16 x, u16 y) const {
+    return static_cast<u32>(y) * static_cast<u32>(m_w) + static_cast<u32>(x);
+}
+
+u8 GameArraySimple::get_terrain (u16 x, u16 y) const {
+    CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
+    return m_tiles[tidx(x, y)].m_terr;
+}
+
+u8 GameArraySimple::get_climate (u16 x, u16 y) const {
+    CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
+    return m_tiles[tidx(x, y)].m_clim;
+}
+
+u8 GameArraySimple::get_overlay (u16 x, u16 y) const {
+    CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
+    return m_tiles[tidx(x, y)].m_ov;
+}
+
+u8 GameArraySimple::get_river (u16 x, u16 y) const {
+    CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
+    return m_tiles[tidx(x, y)].m_riv;
+}
+
+u16 GameArraySimple::get_unit_hd (u16 x, u16 y) const {
+    CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
+    return m_tiles[tidx(x, y)].m_unit_hd;
+}
+
+u16 GameArraySimple::get_add_idx (u16 x, u16 y) const {
+    CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
+    return m_tiles[tidx(x, y)].m_add_idx;
+}
+
+u8 GameArraySimple::get_add_typ (u16 x, u16 y) const {
+    CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
+    return m_tiles[tidx(x, y)].m_add_typ;
+}
+
+u16 GameArraySimple::get_res (u16 x, u16 y) const {
+    CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
+    return m_tiles[tidx(x, y)].m_res;
+}
+
+//================================================================================================================================
+//=> - End of file -
+//================================================================================================================================

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+INC="-I.. -I../game"
+CXXFLAGS="-std=c++11 -Wall -Wextra"
+
+g++ $CXXFLAGS $INC -c ../game/runtime_trace_dbg.cpp -o runtime_trace_dbg.o
+g++ $CXXFLAGS $INC -c map_bit_array_overlay.cpp -o map_bit_array_overlay.o
+g++ $CXXFLAGS $INC -c map_bit_array_overlay_byte_map_tester.cpp -o map_bit_array_overlay_byte_map_tester.o
+
+g++ $CXXFLAGS -o map_bit_array_overlay_byte_map_tester \
+    runtime_trace_dbg.o \
+    map_bit_array_overlay.o \
+    map_bit_array_overlay_byte_map_tester.o
+
+rm runtime_trace_dbg.o map_bit_array_overlay.o map_bit_array_overlay_byte_map_tester.o

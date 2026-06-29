@@ -34,7 +34,7 @@ static bool is_water (u8 cls) {
 }
 
 static bool is_desert_climate (u8 cl) {
-    return cl == P1_CLIMATE_DESERT;
+    return cl == CLIMATE_DESERT;
 }
 
 static bool is_riv_mouth (const u8* terrain, const u8* riv, u16 w, u16 h, u16 x, u16 y) {

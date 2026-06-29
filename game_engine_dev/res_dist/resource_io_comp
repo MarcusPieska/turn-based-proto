@@ -1,0 +1,14 @@
+#!/bin/bash
+
+INC="-I../ -I../misc"
+
+g++ -std=c++11 $INC -c ../misc/opt_str_mng.cpp -o opt_str_mng.o
+g++ -std=c++11 $INC -c resource_io.cpp -o resource_io.o
+g++ -std=c++11 $INC -c resource_io_tester.cpp -o resource_io_tester.o
+
+g++ -std=c++11 -o resource_io_tester \
+    opt_str_mng.o \
+    resource_io.o \
+    resource_io_tester.o
+
+rm opt_str_mng.o resource_io.o resource_io_tester.o

@@ -35,6 +35,8 @@ struct P1_MakeMapRslt {
     u16 m_w;
     u16 m_h;
     u8* m_terrain;
+    u8* m_climate;
+    u8* m_rivers;
 };
 
 //================================================================================================================================
@@ -49,6 +51,8 @@ public:
     bool is_valid () const;
     const P1_MakeMapRslt& result () const;
     bool save_terrain_ppm (cstr path) const;
+    bool save_climate_ppm (cstr path) const;
+    bool save_rivers_ppm (cstr path) const;
     static void free_rslt (P1_MakeMapRslt* rslt);
 
 private:

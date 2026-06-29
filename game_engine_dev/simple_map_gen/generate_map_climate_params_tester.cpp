@@ -23,8 +23,7 @@
 //=> - Globals -
 //================================================================================================================================
 
-static const char* g_map_path =
-    "/home/w/Projects/simple-map-gen/var-seed-outline/combo-min-0.0000-0.6500/frame_028.ppm";
+static const char* g_map_path = "/home/w/Projects/simple-map-gen/var-seed-outline/combo-min-0.0000-0.6500/frame_028.ppm";
 static const char* g_out_dir = "/home/w/Projects/simple-map-gen/map-climate-params";
 
 //================================================================================================================================
@@ -61,30 +60,6 @@ static bool save_rgb_ppm (cstr path, const u8* rgb, u16 w, u16 h) {
     return ok;
 }
 
-static void climate_rgb (u8 cls, u8* r, u8* g, u8* b) {
-    if (cls == MAP_CLIMATE_GRASSLAND) {
-        *r = 90;
-        *g = 170;
-        *b = 50;
-        return;
-    }
-    if (cls == MAP_CLIMATE_PLAINS) {
-        *r = 210;
-        *g = 200;
-        *b = 80;
-        return;
-    }
-    if (cls == MAP_CLIMATE_DESERT) {
-        *r = 210;
-        *g = 160;
-        *b = 70;
-        return;
-    }
-    *r = 0;
-    *g = 0;
-    *b = 0;
-}
-
 static bool save_climate_viz (
     cstr path,
     const u8* terrain,
@@ -106,8 +81,8 @@ static bool save_climate_viz (
         u8 b = 0;
         MapTerrainValidate::rgb_from_class(terrain[i], &r, &g, &b);
         const u8 cl = res->climate[i];
-        if (cl != MAP_CLIMATE_NONE) {
-            climate_rgb(cl, &r, &g, &b);
+        if (cl != CLIMATE_NONE) {
+            climate_to_rgb(cl, &r, &g, &b);
         }
         rgb[i * 3u + 0] = r;
         rgb[i * 3u + 1] = g;
@@ -265,8 +240,8 @@ static i32 run_isolate_tests (ClimateCtx* ctx, MapClimateTypePct pct) {
 
 static i32 run_sweep_tests (ClimateCtx* ctx, MapClimateTypePct pct) {
     i32 rc = 0;
-    for (u16 v = 0; v <= MAP_CLIMATE_WT_MAX; ++v) {
-        const u8 comp = static_cast<u8>(MAP_CLIMATE_WT_MAX - v);
+    for (u16 v = 0; v <= CLIMATE_WT_MAX; ++v) {
+        const u8 comp = static_cast<u8>(CLIMATE_WT_MAX - v);
         MapClimateOverlayWts w = {};
         w.w_dist_river = static_cast<u8>(v);
         w.w_open_dist_water = comp;
@@ -276,8 +251,8 @@ static i32 run_sweep_tests (ClimateCtx* ctx, MapClimateTypePct pct) {
         std::snprintf(tag, sizeof(tag), "sweep-river-w%03u", v);
         rc |= run_case(ctx, w, pct, tag);
     }
-    for (u16 v = 0; v <= MAP_CLIMATE_WT_MAX; ++v) {
-        const u8 comp = static_cast<u8>(MAP_CLIMATE_WT_MAX - v);
+    for (u16 v = 0; v <= CLIMATE_WT_MAX; ++v) {
+        const u8 comp = static_cast<u8>(CLIMATE_WT_MAX - v);
         MapClimateOverlayWts w = {};
         w.w_dist_river = comp;
         w.w_open_dist_water = static_cast<u8>(v);
@@ -287,8 +262,8 @@ static i32 run_sweep_tests (ClimateCtx* ctx, MapClimateTypePct pct) {
         std::snprintf(tag, sizeof(tag), "sweep-open-w%03u", v);
         rc |= run_case(ctx, w, pct, tag);
     }
-    for (u16 v = 0; v <= MAP_CLIMATE_WT_MAX; ++v) {
-        const u8 comp = static_cast<u8>(MAP_CLIMATE_WT_MAX - v);
+    for (u16 v = 0; v <= CLIMATE_WT_MAX; ++v) {
+        const u8 comp = static_cast<u8>(CLIMATE_WT_MAX - v);
         MapClimateOverlayWts w = {};
         w.w_dist_river = comp;
         w.w_open_dist_water = comp;
@@ -298,8 +273,8 @@ static i32 run_sweep_tests (ClimateCtx* ctx, MapClimateTypePct pct) {
         std::snprintf(tag, sizeof(tag), "sweep-latitude-w%03u", v);
         rc |= run_case(ctx, w, pct, tag);
     }
-    for (u16 v = 0; v <= MAP_CLIMATE_WT_MAX; ++v) {
-        const u8 comp = static_cast<u8>(MAP_CLIMATE_WT_MAX - v);
+    for (u16 v = 0; v <= CLIMATE_WT_MAX; ++v) {
+        const u8 comp = static_cast<u8>(CLIMATE_WT_MAX - v);
         MapClimateOverlayWts w = {};
         w.w_dist_river = comp;
         w.w_open_dist_water = comp;

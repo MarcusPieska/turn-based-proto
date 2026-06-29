@@ -1,0 +1,23 @@
+#!/bin/bash
+
+INC="-I.. -I../map_loader -I../simple_map_gen"
+CXXFLAGS="-std=c++17 -Wall -Wextra"
+
+g++ $CXXFLAGS $INC -c ../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
+g++ $CXXFLAGS $INC -c ../map_loader/map_terrain_data.cpp -o map_terrain_data.o
+g++ $CXXFLAGS $INC -c ../map_loader/map_loader.cpp -o map_loader.o
+g++ $CXXFLAGS $INC -c generate_distance_to_ocean_coast.cpp -o generate_distance_to_ocean_coast.o
+g++ $CXXFLAGS $INC -c generate_distance_to_coastal_point.cpp -o generate_distance_to_coastal_point.o
+g++ $CXXFLAGS $INC -c generate_distance_to_coastal_point_tester.cpp -o generate_distance_to_coastal_point_tester.o
+
+g++ $CXXFLAGS -o generate_distance_to_coastal_point_tester \
+    map_terrain_validate.o \
+    map_terrain_data.o \
+    map_loader.o \
+    generate_distance_to_ocean_coast.o \
+    generate_distance_to_coastal_point.o \
+    generate_distance_to_coastal_point_tester.o
+
+rm map_terrain_validate.o map_terrain_data.o map_loader.o \
+    generate_distance_to_ocean_coast.o generate_distance_to_coastal_point.o \
+    generate_distance_to_coastal_point_tester.o

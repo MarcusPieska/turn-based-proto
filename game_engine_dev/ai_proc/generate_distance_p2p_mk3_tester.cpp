@@ -1,0 +1,609 @@
+//================================================================================================================================
+//=> - Includes -
+//================================================================================================================================
+
+#include <cstdio>
+#include <ctime>
+
+#include "generate_distance_p2p_mk3.h"
+#include "map_bit_array_overlay.h"
+#include "cont_indexer.h"
+#include "game_map_defs.h"
+#include "generator_constants.h"
+#include "map_loader.h"
+#include "water_land_overlay.h"
+
+typedef const char* cstr;
+
+//================================================================================================================================
+//=> - Constants -
+//================================================================================================================================
+
+static const cstr k_in_path = "/home/w/Projects/simple-map-gen/p1-seed-042/24_make_map_terrain.ppm";
+static const cstr k_in_riv = "/home/w/Projects/simple-map-gen/p1-seed-042/24_make_map_rivers.ppm";
+static const cstr k_out_path = "/home/w/Projects/simple-map-gen/distance-p2p-mk3.ppm";
+static const u16 k_turn_none = 0xFFFFu;
+static const u32 k_pred_none = 0xFFFFFFFFu;
+static const u32 k_turn_sent = Generate_DistanceP2P_Mk3::k_turn_sent;
+static const u32 k_ovl_mod = Generate_DistanceP2P_Mk3::k_ovl_mod;
+static const u32 k_step_top = Generate_DistanceP2P_Mk3::k_ovl_mod - 1u;
+static const u8 k_wtr_b = 30;
+static const u8 k_wtr_g = 110;
+static const u8 k_wtr_r = 220;
+static const u8 k_pt_r = 255;
+static const u8 k_pt_g = 0;
+static const u8 k_pt_b = 0;
+static const u8 k_path_r = 255;
+static const u8 k_path_g = 220;
+static const u8 k_path_b = 0;
+static const u8 k_path_riv_r = 40;
+static const u8 k_path_riv_g = 120;
+static const u8 k_path_riv_b = 255;
+static const u8 k_inland_r = 34;
+static const u8 k_inland_g = 112;
+static const u8 k_inland_b = 48;
+
+static const cstr k_ansi_rst = "\033[0m";
+static const cstr k_ansi_grn = "\033[32m";
+static const cstr k_ansi_red = "\033[31m";
+static const cstr k_ansi_blu = "\033[94m";
+
+struct P2PAuditRes {
+    u32 n_val;
+    u32 n_has_step;
+    u32 n_no_step;
+    u32 n_end;
+    u32 n_step_top;
+    u32 n_step_top_riv;
+};
+
+static bool audit_pass (const P2PAuditRes& a) {
+    return a.n_no_step == 0u;
+}
+
+//================================================================================================================================
+//=> - Helpers -
+//================================================================================================================================
+
+static bool is_water (u8 t) {
+    return t == TERR_OCEAN[0] || t == TERR_SEA[0] || t == TERR_COASTAL[0];
+}
+
+static u32 tidx (u16 w, u16 x, u16 y) {
+    return static_cast<u32>(y) * static_cast<u32>(w) + static_cast<u32>(x);
+}
+
+static bool is_walk (u8 t) {
+    return t != TERR_MOUNTAINS[0] && !is_water(t);
+}
+
+static bool pt_in_region (
+    const ContIndexer& idx,
+    u32 rid,
+    u16 x,
+    u16 y) {
+    const std::vector<ContRegionRec>& regs = idx.regions();
+    if (rid >= regs.size()) {
+        return false;
+    }
+    const ContRegionRec& r = regs[rid];
+    const u8* rgb = idx.count_map_rgb();
+    if (rgb == nullptr) {
+        return false;
+    }
+    const u32 i = tidx(idx.width(), x, y) * 3u;
+    return rgb[i + 0u] == r.m_r && rgb[i + 1u] == r.m_g && rgb[i + 2u] == r.m_b;
+}
+
+static u32 pick_largest_rid (const ContIndexer& idx) {
+    u32 best = 0;
+    u32 best_area = 0;
+    const std::vector<ContRegionRec>& regs = idx.regions();
+    for (u32 i = 0; i < regs.size(); ++i) {
+        if (regs[i].m_area_px > best_area) {
+            best_area = regs[i].m_area_px;
+            best = i;
+        }
+    }
+    return best;
+}
+
+static bool borders_water (
+    const u8* terrain,
+    u16 w,
+    u16 h,
+    u16 x,
+    u16 y) {
+    static const i16 dx4[] = {0, 1, 0, -1};
+    static const i16 dy4[] = {-1, 0, 1, 0};
+    for (u32 k = 0; k < 4u; ++k) {
+        const i32 nx = static_cast<i32>(x) + dx4[k];
+        const i32 ny = static_cast<i32>(y) + dy4[k];
+        if (nx < 0 || ny < 0) {
+            continue;
+        }
+        const u16 tx = static_cast<u16>(nx);
+        const u16 ty = static_cast<u16>(ny);
+        if (tx >= w || ty >= h) {
+            continue;
+        }
+        if (is_water(terrain[tidx(w, tx, ty)])) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static bool pick_src_dst (
+    const u8* terrain,
+    const ContIndexer& idx,
+    u32 rid,
+    u16 w,
+    u16 h,
+    u16* land_dep,
+    u16& src_x,
+    u16& src_y,
+    u16& dst_x,
+    u16& dst_y) {
+    src_x = 0;
+    src_y = 0;
+    dst_x = 0;
+    dst_y = 0;
+    const u32 tile_n = static_cast<u32>(w) * static_cast<u32>(h);
+    for (u32 i = 0; i < tile_n; ++i) {
+        land_dep[i] = k_turn_none;
+    }
+    u32* q = new u32[tile_n];
+    u32 qn = 0;
+    bool have_dst = false;
+    for (u16 y = 0; y < h; ++y) {
+        for (u16 x = 0; x < w; ++x) {
+            if (!pt_in_region(idx, rid, x, y)) {
+                continue;
+            }
+            if (!is_walk(terrain[tidx(w, x, y)])) {
+                continue;
+            }
+            if (!borders_water(terrain, w, h, x, y)) {
+                continue;
+            }
+            const u32 i = tidx(w, x, y);
+            land_dep[i] = 0;
+            q[qn++] = i;
+            if (!have_dst) {
+                dst_x = x;
+                dst_y = y;
+                have_dst = true;
+            }
+        }
+    }
+    if (!have_dst) {
+        delete[] q;
+        return false;
+    }
+    for (u32 qh = 0; qh < qn; ++qh) {
+        const u32 i = q[qh];
+        const u16 cur = land_dep[i];
+        if (cur >= 65534u) {
+            continue;
+        }
+        const u16 py = static_cast<u16>(i / static_cast<u32>(w));
+        const u16 px = static_cast<u16>(i - static_cast<u32>(py) * static_cast<u32>(w));
+        const u16 nxt = static_cast<u16>(cur + 1u);
+        static const i16 dx4[] = {0, 1, 0, -1};
+        static const i16 dy4[] = {-1, 0, 1, 0};
+        for (u32 k = 0; k < 4u; ++k) {
+            const i32 nx = static_cast<i32>(px) + dx4[k];
+            const i32 ny = static_cast<i32>(py) + dy4[k];
+            if (nx < 0 || ny < 0) {
+                continue;
+            }
+            const u16 tx = static_cast<u16>(nx);
+            const u16 ty = static_cast<u16>(ny);
+            if (tx >= w || ty >= h) {
+                continue;
+            }
+            if (!pt_in_region(idx, rid, tx, ty)) {
+                continue;
+            }
+            const u32 ni = tidx(w, tx, ty);
+            if (!is_walk(terrain[ni]) || land_dep[ni] != k_turn_none) {
+                continue;
+            }
+            land_dep[ni] = nxt;
+            q[qn++] = ni;
+        }
+    }
+    delete[] q;
+    u16 best = 0;
+    bool have_src = false;
+    for (u16 y = 0; y < h; ++y) {
+        for (u16 x = 0; x < w; ++x) {
+            const u16 d = land_dep[tidx(w, x, y)];
+            if (d == k_turn_none || d == 0u) {
+                continue;
+            }
+            if (!have_src || d > best) {
+                best = d;
+                src_x = x;
+                src_y = y;
+                have_src = true;
+            }
+        }
+    }
+    return have_src;
+}
+
+static bool ovl_reach (const u32* pred, u16 w, u16 x, u16 y) {
+    return pred[tidx(w, x, y)] != k_pred_none;
+}
+
+static bool ovl_dst (const u32* pred, u16 w, u16 x, u16 y) {
+    const u32 i = tidx(w, x, y);
+    return pred[i] == i;
+}
+
+static bool step_closer_u4 (u32 s, u32 ns) {
+    return ns > s;
+}
+
+static bool closer_u4 (u32 t, u32 s, u32 nt, u32 ns) {
+    const u32 td = (t + k_ovl_mod - nt) % k_ovl_mod;
+    if (td >= 1u && td <= (k_ovl_mod / 2u)) {
+        return true;
+    }
+    if (nt != t) {
+        return false;
+    }
+    return step_closer_u4(s, ns);
+}
+
+static bool has_valid_step (
+    u16 x,
+    u16 y,
+    const MapBitArrayOverlay& turn_o,
+    const MapBitArrayOverlay& step_o,
+    const u32* pred,
+    u16 w,
+    u16 h) {
+    if (!ovl_reach(pred, w, x, y)) {
+        return false;
+    }
+    const u32 t = turn_o.get(x, y);
+    const u32 s = step_o.get(x, y);
+    if (ovl_dst(pred, w, x, y)) {
+        return false;
+    }
+    static const i16 dx4[] = {0, 1, 0, -1};
+    static const i16 dy4[] = {-1, 0, 1, 0};
+    for (u32 k = 0; k < 4u; ++k) {
+        const i32 nx = static_cast<i32>(x) + dx4[k];
+        const i32 ny = static_cast<i32>(y) + dy4[k];
+        if (nx < 0 || ny < 0) {
+            continue;
+        }
+        const u16 tx = static_cast<u16>(nx);
+        const u16 ty = static_cast<u16>(ny);
+        if (tx >= w || ty >= h) {
+            continue;
+        }
+        if (!ovl_reach(pred, w, tx, ty)) {
+            continue;
+        }
+        const u32 nt = turn_o.get(tx, ty);
+        const u32 ns = step_o.get(tx, ty);
+        if (closer_u4(t, s, nt, ns)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static P2PAuditRes audit_overlay (
+    const MapBitArrayOverlay& turn_o,
+    const MapBitArrayOverlay& step_o,
+    const u32* pred,
+    const u8* rivers,
+    u16 w,
+    u16 h) {
+    P2PAuditRes res = {};
+    for (u16 y = 0; y < h; ++y) {
+        for (u16 x = 0; x < w; ++x) {
+            if (!ovl_reach(pred, w, x, y)) {
+                continue;
+            }
+            res.n_val++;
+            const u32 s = step_o.get(x, y);
+            if (ovl_dst(pred, w, x, y)) {
+                res.n_end++;
+                continue;
+            }
+            if (has_valid_step(x, y, turn_o, step_o, pred, w, h)) {
+                res.n_has_step++;
+            } else {
+                res.n_no_step++;
+            }
+            if (s == k_step_top) {
+                res.n_step_top++;
+                if (rivers[tidx(w, x, y)] != 0u) {
+                    res.n_step_top_riv++;
+                }
+            }
+        }
+    }
+    return res;
+}
+
+static void print_test_outcome (
+    u16 w,
+    u16 h,
+    u16 src_x,
+    u16 src_y,
+    u16 dst_x,
+    u16 dst_y,
+    u16 max_turn,
+    const P2PAuditRes& audit,
+    double ovl_sec,
+    cstr out_path) {
+    const bool pass = audit_pass(audit);
+    std::printf("test p2p mk3: %s\n", pass ? "PASS" : "FAIL");
+    std::printf("  map %ux%u src (%u,%u) dst (%u,%u) max_turn %u\n",
+        static_cast<unsigned>(w),
+        static_cast<unsigned>(h),
+        static_cast<unsigned>(src_x),
+        static_cast<unsigned>(src_y),
+        static_cast<unsigned>(dst_x),
+        static_cast<unsigned>(dst_y),
+        static_cast<unsigned>(max_turn));
+    std::printf(
+        "  overlay val=%u %shas_step=%u%s %sno_step=%u%s end=%u\n",
+        audit.n_val,
+        k_ansi_grn,
+        audit.n_has_step,
+        k_ansi_rst,
+        audit.n_no_step == 0u ? k_ansi_grn : k_ansi_red,
+        audit.n_no_step,
+        k_ansi_rst,
+        audit.n_end);
+    std::printf("  step=14 %u on_river %u\n",
+        audit.n_step_top,
+        audit.n_step_top_riv);
+    std::printf("  %soverlay time %.6f s%s\n",
+        k_ansi_blu,
+        ovl_sec,
+        k_ansi_rst);
+    std::printf("  saved %s\n", out_path);
+}
+
+static bool load_riv (cstr path, u16 ew, u16 eh, u8** out_riv) {
+    FILE* fp = std::fopen(path, "rb");
+    if (fp == nullptr) {
+        return false;
+    }
+    char magic[3] = {};
+    if (std::fscanf(fp, "%2s", magic) != 1 || magic[0] != 'P' || magic[1] != '6') {
+        std::fclose(fp);
+        return false;
+    }
+    int c = std::fgetc(fp);
+    while (c == '#') {
+        while (c != '\n' && c != EOF) {
+            c = std::fgetc(fp);
+        }
+        c = std::fgetc(fp);
+    }
+    ungetc(c, fp);
+    unsigned wi = 0;
+    unsigned hi = 0;
+    unsigned maxv = 0;
+    if (std::fscanf(fp, "%u %u %u", &wi, &hi, &maxv) != 3 || maxv != 255u) {
+        std::fclose(fp);
+        return false;
+    }
+    c = std::fgetc(fp);
+    if (c == EOF || wi == 0 || hi == 0 || wi != ew || hi != eh) {
+        std::fclose(fp);
+        return false;
+    }
+    const u32 tn = static_cast<u32>(ew) * static_cast<u32>(eh);
+    u8* rgb = new u8[tn * 3u];
+    if (std::fread(rgb, 1, static_cast<size_t>(tn) * 3u, fp) != static_cast<size_t>(tn) * 3u) {
+        delete[] rgb;
+        std::fclose(fp);
+        return false;
+    }
+    std::fclose(fp);
+    u8* riv = new u8[tn];
+    for (u32 i = 0; i < tn; ++i) {
+        const u8* px = rgb + i * 3u;
+        riv[i] = (px[0] != 0 || px[1] != 0 || px[2] != 0) ? 1 : 0;
+    }
+    delete[] rgb;
+    *out_riv = riv;
+    return true;
+}
+
+static bool save_rgb_ppm (cstr path, const u8* rgb, u16 w, u16 h) {
+    FILE* fp = std::fopen(path, "wb");
+    if (fp == nullptr) {
+        return false;
+    }
+    std::fprintf(fp, "P6\n%u %u\n255\n", (unsigned)w, (unsigned)h);
+    const size_t nbytes = static_cast<size_t>(w) * static_cast<size_t>(h) * 3u;
+    const bool ok = std::fwrite(rgb, 1, nbytes, fp) == nbytes;
+    std::fclose(fp);
+    return ok;
+}
+
+static void paint_pt (u8* rgb, u16 w, u16 h, u16 x, u16 y, u8 r, u8 g, u8 b) {
+    static const i16 rad = 4;
+    for (i16 dy = -rad; dy <= rad; ++dy) {
+        for (i16 dx = -rad; dx <= rad; ++dx) {
+            const i32 nx = static_cast<i32>(x) + dx;
+            const i32 ny = static_cast<i32>(y) + dy;
+            if (nx < 0 || ny < 0) {
+                continue;
+            }
+            const u16 tx = static_cast<u16>(nx);
+            const u16 ty = static_cast<u16>(ny);
+            if (tx >= w || ty >= h) {
+                continue;
+            }
+            if (dx * dx + dy * dy > rad * rad) {
+                continue;
+            }
+            const u32 o = tidx(w, tx, ty) * 3u;
+            rgb[o + 0u] = r;
+            rgb[o + 1u] = g;
+            rgb[o + 2u] = b;
+        }
+    }
+}
+
+static u8 norm_gray_u4 (u32 d) {
+    if (d >= k_turn_sent) {
+        return 0;
+    }
+    return static_cast<u8>((d * 255u) / k_step_top);
+}
+
+static bool build_img (
+    const u8* terrain,
+    const MapBitArrayOverlay& turn_o,
+    const u32* pred,
+    u16 w,
+    u16 h,
+    u16 src_x,
+    u16 src_y,
+    u16 dst_x,
+    u16 dst_y,
+    u8* rgb) {
+    for (u16 y = 0; y < h; ++y) {
+        for (u16 x = 0; x < w; ++x) {
+            const u32 i = tidx(w, x, y);
+            const u8 t = terrain[i];
+            u8 r = 0;
+            u8 g = 0;
+            u8 b = 0;
+            if (is_water(t)) {
+                r = k_wtr_r;
+                g = k_wtr_g;
+                b = k_wtr_b;
+            } else if (ovl_reach(pred, w, x, y)) {
+                const u8 gry = norm_gray_u4(turn_o.get(x, y));
+                r = gry;
+                g = gry;
+                b = gry;
+            } else {
+                r = k_inland_r;
+                g = k_inland_g;
+                b = k_inland_b;
+            }
+            rgb[i * 3u + 0] = r;
+            rgb[i * 3u + 1] = g;
+            rgb[i * 3u + 2] = b;
+        }
+    }
+    paint_pt(rgb, w, h, src_x, src_y, k_pt_r, k_pt_g, k_pt_b);
+    paint_pt(rgb, w, h, dst_x, dst_y, k_pt_r, k_pt_g, k_pt_b);
+    return true;
+}
+
+//================================================================================================================================
+//=> - Main -
+//================================================================================================================================
+
+int main () {
+    MapTerrainData map;
+    if (!MapLoader::load_terrain_ppm(k_in_path, map)) {
+        std::printf("*** FAILED load %s\n", k_in_path);
+        return 1;
+    }
+    const u16 w = map.width();
+    const u16 h = map.height();
+    const u8* terrain = map.data();
+    MapArrayTerrain arr;
+    if (!arr.assign_copy(w, h, terrain)) {
+        std::printf("*** FAILED terrain copy\n");
+        return 1;
+    }
+    WaterLandOverlay wl(arr);
+    if (!wl.is_valid()) {
+        std::printf("*** FAILED water-land overlay\n");
+        return 1;
+    }
+    ContIndexer cidx(wl);
+    if (!cidx.is_valid() || cidx.region_count() == 0u) {
+        std::printf("*** FAILED cont indexer\n");
+        return 1;
+    }
+    const u32 rid = pick_largest_rid(cidx);
+    const ContRegionRec& reg = cidx.regions()[rid];
+    std::printf("largest landmass rid=%u area=%u seed=(%u,%u)\n",
+        rid,
+        static_cast<unsigned>(reg.m_area_px),
+        static_cast<unsigned>(reg.m_sx),
+        static_cast<unsigned>(reg.m_sy));
+    u8* rivers = nullptr;
+    if (!load_riv(k_in_riv, w, h, &rivers)) {
+        std::printf("*** FAILED load %s\n", k_in_riv);
+        return 1;
+    }
+    const u32 tile_n = static_cast<u32>(w) * static_cast<u32>(h);
+    u16* land_dep = new u16[tile_n];
+    u16 src_x = 0;
+    u16 src_y = 0;
+    u16 dst_x = 0;
+    u16 dst_y = 0;
+    if (!pick_src_dst(terrain, cidx, rid, w, h, land_dep, src_x, src_y, dst_x, dst_y)) {
+        std::printf("*** FAILED pick src/dst on landmass\n");
+        delete[] land_dep;
+        return 1;
+    }
+    std::printf("picked src (%u,%u) land_depth %u dst (%u,%u)\n",
+        static_cast<unsigned>(src_x), static_cast<unsigned>(src_y),
+        static_cast<unsigned>(land_dep[tidx(w, src_x, src_y)]),
+        static_cast<unsigned>(dst_x), static_cast<unsigned>(dst_y));
+    MapBitArrayOverlay turn_o(w, h, Generate_DistanceP2P_Mk3::k_turn_bpv);
+    MapBitArrayOverlay step_o(w, h, Generate_DistanceP2P_Mk3::k_step_bpv);
+    u32* pred = new u32[tile_n];
+    u16* scr[Generate_DistanceP2P_Mk3::k_scr_n];
+    for (u32 s = 0; s < Generate_DistanceP2P_Mk3::k_scr_n; ++s) {
+        scr[s] = new u16[tile_n];
+    }
+    u16 p2p_max = 0;
+    const clock_t t0 = clock();
+    const bool ok = Generate_DistanceP2P_Mk3::generate(
+        terrain, rivers, w, h, src_x, src_y, dst_x, dst_y, &turn_o, &step_o, pred, scr, &p2p_max);
+    const double ovl_sec = static_cast<double>(clock() - t0) / static_cast<double>(CLOCKS_PER_SEC);
+    if (!ok) {
+        std::printf("*** FAILED p2p generate (no path)\n");
+        return 1;
+    }
+    const P2PAuditRes audit = audit_overlay(turn_o, step_o, pred, rivers, w, h);
+    u8* rgb = new u8[static_cast<size_t>(tile_n) * 3u];
+    build_img(terrain, turn_o, pred, w, h, src_x, src_y, dst_x, dst_y, rgb);
+    if (!save_rgb_ppm(k_out_path, rgb, w, h)) {
+        std::printf("*** FAILED save %s\n", k_out_path);
+        return 1;
+    }
+    print_test_outcome(w, h, src_x, src_y, dst_x, dst_y, p2p_max, audit, ovl_sec, k_out_path);
+    const bool test_ok = audit_pass(audit);
+    delete[] rgb;
+    delete[] rivers;
+    delete[] pred;
+    delete[] land_dep;
+    for (u32 s = 0; s < Generate_DistanceP2P_Mk3::k_scr_n; ++s) {
+        delete[] scr[s];
+    }
+    if (!test_ok) {
+        std::printf("*** FAILED generate_distance_p2p_mk3\n");
+        return 1;
+    }
+    std::printf("*** PASSED generate_distance_p2p_mk3\n");
+    return 0;
+}
+
+//================================================================================================================================
+//=> - End of file -
+//================================================================================================================================

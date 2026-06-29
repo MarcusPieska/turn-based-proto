@@ -6,17 +6,7 @@
 #define GENERATE_MAP_CLIMATE_H
 
 #include "game_primitives.h"
-
-//================================================================================================================================
-//=> - Limits -
-//================================================================================================================================
-
-#define MAP_CLIMATE_NONE 0
-#define MAP_CLIMATE_GRASSLAND 1
-#define MAP_CLIMATE_PLAINS 2
-#define MAP_CLIMATE_DESERT 3
-
-#define MAP_CLIMATE_WT_MAX 99
+#include "game_map_defs.h"
 
 //================================================================================================================================
 //=> - MapClimateOverlayWts -

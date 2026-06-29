@@ -33,30 +33,6 @@ static bool save_rgb_ppm (cstr path, const u8* rgb, u16 wi, u16 hi) {
     return ok;
 }
 
-static void climate_rgb (u8 cls, u8* r, u8* g, u8* b) {
-    if (cls == P1_CLIMATE_GRASSLAND) {
-        *r = 90;
-        *g = 170;
-        *b = 50;
-        return;
-    }
-    if (cls == P1_CLIMATE_PLAINS) {
-        *r = 210;
-        *g = 200;
-        *b = 80;
-        return;
-    }
-    if (cls == P1_CLIMATE_DESERT) {
-        *r = 210;
-        *g = 160;
-        *b = 70;
-        return;
-    }
-    *r = 0;
-    *g = 0;
-    *b = 0;
-}
-
 static bool save_climate_viz (
     cstr path,
     const u8* terrain,
@@ -79,8 +55,8 @@ static bool save_climate_viz (
         u8 b = 0;
         MapTerrainValidate::rgb_from_class(terrain[i], &r, &g, &b);
         const u8 cl = climate[i];
-        if (cl != P1_CLIMATE_NONE) {
-            climate_rgb(cl, &r, &g, &b);
+        if (cl != CLIMATE_NONE) {
+            climate_to_rgb(cl, &r, &g, &b);
         }
         if (terrain[i] == TERR_MOUNTAINS[0]) {
             MapTerrainValidate::rgb_from_class(TERR_MOUNTAINS[0], &r, &g, &b);

@@ -18,7 +18,7 @@ static bool is_open_land (u8 cls) {
 }
 
 static u8 clamp_wt (u8 w) {
-    return (w > MAP_CLIMATE_WT_MAX) ? MAP_CLIMATE_WT_MAX : w;
+    return (w > CLIMATE_WT_MAX) ? CLIMATE_WT_MAX : w;
 }
 
 static u32 tile_score (
@@ -83,7 +83,7 @@ MapClimateResult* Generate_MapClimate::generate (
         delete out;
         return nullptr;
     }
-    std::memset(out->climate, MAP_CLIMATE_NONE, n * sizeof(u8));
+    std::memset(out->climate, CLIMATE_NONE, n * sizeof(u8));
     u32 ti = 0;
     for (u16 py = 0; py < h; ++py) {
         for (u16 px = 0; px < w; ++px) {
@@ -120,11 +120,11 @@ MapClimateResult* Generate_MapClimate::generate (
     for (u32 k = 0; k < tile_n; ++k) {
         const MapClimateTileVal* e = &out->tiles[k];
         const u32 idx = static_cast<u32>(e->y) * static_cast<u32>(w) + static_cast<u32>(e->x);
-        u8 cls = MAP_CLIMATE_DESERT;
+        u8 cls = CLIMATE_DESERT;
         if (k < grass_n) {
-            cls = MAP_CLIMATE_GRASSLAND;
+            cls = CLIMATE_GRASSLAND;
         } else if (k < grass_n + plains_n) {
-            cls = MAP_CLIMATE_PLAINS;
+            cls = CLIMATE_PLAINS;
         }
         out->climate[idx] = cls;
     }

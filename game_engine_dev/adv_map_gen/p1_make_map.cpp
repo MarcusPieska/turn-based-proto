@@ -86,6 +86,8 @@ P1_MakeMap::P1_MakeMap (const P1_RunPrm& prm, const P1_MakeMapPrm& mp) :
     m_rslt.m_w = 0;
     m_rslt.m_h = 0;
     m_rslt.m_terrain = nullptr;
+    m_rslt.m_climate = nullptr;
+    m_rslt.m_rivers = nullptr;
 }
 
 void P1_MakeMap::free_rslt (P1_MakeMapRslt* rslt) {
@@ -93,7 +95,11 @@ void P1_MakeMap::free_rslt (P1_MakeMapRslt* rslt) {
         return;
     }
     delete[] rslt->m_terrain;
+    delete[] rslt->m_climate;
+    delete[] rslt->m_rivers;
     rslt->m_terrain = nullptr;
+    rslt->m_climate = nullptr;
+    rslt->m_rivers = nullptr;
     rslt->m_w = 0;
     rslt->m_h = 0;
 }
@@ -398,14 +404,23 @@ bool P1_MakeMap::generate () {
         P1_Gen_DesertRiverCull cull_gen(m_prm);
         ok = cull_gen.generate(river, w, h, terrain, climate, false) && cull_gen.is_valid();
     }
-    delete[] river;
     if (!ok) {
+        delete[] river;
         delete[] terrain;
         return false;
     }
+    u8* climate_copy = new u8[npx];
+    if (climate_copy == nullptr) {
+        delete[] river;
+        delete[] terrain;
+        return false;
+    }
+    std::memcpy(climate_copy, climate, static_cast<size_t>(npx));
     m_rslt.m_w = w;
     m_rslt.m_h = h;
     m_rslt.m_terrain = terrain;
+    m_rslt.m_climate = climate_copy;
+    m_rslt.m_rivers = river;
     m_valid_generation = true;
     return true;
 }
@@ -427,6 +442,68 @@ bool P1_MakeMap::save_terrain_ppm (cstr path) const {
         return false;
     }
     return map.save_terrain_ppm(path);
+}
+
+static bool save_rgb_ppm (cstr path, const u8* rgb, u16 wi, u16 hi) {
+    if (path == nullptr || rgb == nullptr || wi == 0 || hi == 0) {
+        return false;
+    }
+    std::FILE* fp = std::fopen(path, "wb");
+    if (fp == nullptr) {
+        return false;
+    }
+    std::fprintf(fp, "P6\n%u %u\n255\n", (unsigned)wi, (unsigned)hi);
+    const size_t nbytes = static_cast<size_t>(wi) * static_cast<size_t>(hi) * 3u;
+    const bool ok = std::fwrite(rgb, 1, nbytes, fp) == nbytes;
+    std::fclose(fp);
+    return ok;
+}
+
+bool P1_MakeMap::save_climate_ppm (cstr path) const {
+    if (!m_valid_generation || path == nullptr || m_rslt.m_climate == nullptr) {
+        return false;
+    }
+    const u16 w = m_rslt.m_w;
+    const u16 h = m_rslt.m_h;
+    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
+    u8* rgb = new u8[static_cast<size_t>(n) * 3u];
+    if (rgb == nullptr) {
+        return false;
+    }
+    for (u32 i = 0; i < n; ++i) {
+        u8 r = 0;
+        u8 g = 0;
+        u8 b = 0;
+        climate_to_rgb(m_rslt.m_climate[i], &r, &g, &b);
+        rgb[i * 3u + 0] = r;
+        rgb[i * 3u + 1] = g;
+        rgb[i * 3u + 2] = b;
+    }
+    const bool ok = save_rgb_ppm(path, rgb, w, h);
+    delete[] rgb;
+    return ok;
+}
+
+bool P1_MakeMap::save_rivers_ppm (cstr path) const {
+    if (!m_valid_generation || path == nullptr || m_rslt.m_rivers == nullptr) {
+        return false;
+    }
+    const u16 w = m_rslt.m_w;
+    const u16 h = m_rslt.m_h;
+    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
+    u8* rgb = new u8[static_cast<size_t>(n) * 3u];
+    if (rgb == nullptr) {
+        return false;
+    }
+    for (u32 i = 0; i < n; ++i) {
+        const u8 v = m_rslt.m_rivers[i] != 0 ? 255 : 0;
+        rgb[i * 3u + 0] = v;
+        rgb[i * 3u + 1] = v;
+        rgb[i * 3u + 2] = v;
+    }
+    const bool ok = save_rgb_ppm(path, rgb, w, h);
+    delete[] rgb;
+    return ok;
 }
 
 //================================================================================================================================

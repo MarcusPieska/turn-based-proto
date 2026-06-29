@@ -34,7 +34,7 @@ static bool is_land (u8 cls) {
 }
 
 static u8 clamp_wt (u8 w) {
-    return (w > P1_CLIMATE_WT_MAX) ? P1_CLIMATE_WT_MAX : w;
+    return (w > CLIMATE_WT_MAX) ? CLIMATE_WT_MAX : w;
 }
 
 static u8 scale_dist_u16 (u16 d, u16 max_dist, bool land_all_zero) {
@@ -122,6 +122,129 @@ static int cmp_climate_tile (const void* a, const void* b) {
         return 1;
     }
     return 0;
+}
+
+static u8 pick_adj_climate (u16 w, u16 h, u16 px, u16 py, const u8* terrain, const u8* climate) {
+    u32 cnt_grass = 0;
+    u32 cnt_plains = 0;
+    u32 cnt_desert = 0;
+    for (i32 dy = -1; dy <= 1; ++dy) {
+        for (i32 dx = -1; dx <= 1; ++dx) {
+            if (dx == 0 && dy == 0) {
+                continue;
+            }
+            const i32 nx = static_cast<i32>(px) + dx;
+            const i32 ny = static_cast<i32>(py) + dy;
+            if (nx < 0 || ny < 0 || static_cast<u32>(nx) >= static_cast<u32>(w)
+                || static_cast<u32>(ny) >= static_cast<u32>(h)) {
+                continue;
+            }
+            const u32 j = static_cast<u32>(ny) * static_cast<u32>(w) + static_cast<u32>(nx);
+            if (!is_land(terrain[j])) {
+                continue;
+            }
+            const u8 c = climate[j];
+            if (c == CLIMATE_GRASSLAND) {
+                cnt_grass++;
+            } else if (c == CLIMATE_PLAINS) {
+                cnt_plains++;
+            } else if (c == CLIMATE_DESERT) {
+                cnt_desert++;
+            }
+        }
+    }
+    u8 pick = CLIMATE_NONE;
+    u32 best = 0;
+    if (cnt_grass > best) {
+        best = cnt_grass;
+        pick = CLIMATE_GRASSLAND;
+    }
+    if (cnt_plains > best) {
+        best = cnt_plains;
+        pick = CLIMATE_PLAINS;
+    }
+    if (cnt_desert > best) {
+        best = cnt_desert;
+        pick = CLIMATE_DESERT;
+    }
+    return pick;
+}
+
+static bool has_adj_climate (u16 w, u16 h, u16 px, u16 py, const u8* terrain, const u8* climate) {
+    for (i32 dy = -1; dy <= 1; ++dy) {
+        for (i32 dx = -1; dx <= 1; ++dx) {
+            if (dx == 0 && dy == 0) {
+                continue;
+            }
+            const i32 nx = static_cast<i32>(px) + dx;
+            const i32 ny = static_cast<i32>(py) + dy;
+            if (nx < 0 || ny < 0 || static_cast<u32>(nx) >= static_cast<u32>(w)
+                || static_cast<u32>(ny) >= static_cast<u32>(h)) {
+                continue;
+            }
+            const u32 j = static_cast<u32>(ny) * static_cast<u32>(w) + static_cast<u32>(nx);
+            if (!is_land(terrain[j])) {
+                continue;
+            }
+            if (climate[j] != CLIMATE_NONE) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+static void assign_mountain_climate (u16 w, u16 h, const u8* terrain, u8* climate) {
+    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
+    u32* q = new u32[n];
+    if (q == nullptr) {
+        return;
+    }
+    size_t qh = 0;
+    size_t qn = 0;
+    for (u16 py = 0; py < h; ++py) {
+        for (u16 px = 0; px < w; ++px) {
+            const u32 i = static_cast<u32>(py) * static_cast<u32>(w) + static_cast<u32>(px);
+            if (terrain[i] != TERR_MOUNTAINS[0] || climate[i] != CLIMATE_NONE) {
+                continue;
+            }
+            if (has_adj_climate(w, h, px, py, terrain, climate)) {
+                q[qn++] = i;
+            }
+        }
+    }
+    while (qh < qn) {
+        const u32 i = q[qh++];
+        if (climate[i] != CLIMATE_NONE) {
+            continue;
+        }
+        const u16 py = static_cast<u16>(i / static_cast<u32>(w));
+        const u16 px = static_cast<u16>(i - static_cast<u32>(py) * static_cast<u32>(w));
+        const u8 pick = pick_adj_climate(w, h, px, py, terrain, climate);
+        if (pick == CLIMATE_NONE) {
+            continue;
+        }
+        climate[i] = pick;
+        for (i32 dy = -1; dy <= 1; ++dy) {
+            for (i32 dx = -1; dx <= 1; ++dx) {
+                if (dx == 0 && dy == 0) {
+                    continue;
+                }
+                const i32 nx = static_cast<i32>(px) + dx;
+                const i32 ny = static_cast<i32>(py) + dy;
+                if (nx < 0 || ny < 0 || static_cast<u32>(nx) >= static_cast<u32>(w)
+                    || static_cast<u32>(ny) >= static_cast<u32>(h)) {
+                    continue;
+                }
+                const u32 j = static_cast<u32>(ny) * static_cast<u32>(w) + static_cast<u32>(nx);
+                if (terrain[j] != TERR_MOUNTAINS[0] || climate[j] != CLIMATE_NONE) {
+                    continue;
+                }
+                q[qn++] = j;
+            }
+        }
+    }
+    delete[] q;
 }
 
 static bool bfs_land_to_river (
@@ -505,7 +628,7 @@ bool P1_Gen_Climate::generate (const u8* terrain, u16 w, u16 h, const u8* river_
         return false;
     }
     u8* climate = m_rslt.m_ov.data_w();
-    std::memset(climate, P1_CLIMATE_NONE, static_cast<size_t>(n));
+    std::memset(climate, CLIMATE_NONE, static_cast<size_t>(n));
     P1_ClimateTileVal* tiles = (tile_n > 0) ? new P1_ClimateTileVal[tile_n] : nullptr;
     if (tile_n > 0 && tiles == nullptr) {
         delete[] plain_dist_water;
@@ -540,15 +663,16 @@ bool P1_Gen_Climate::generate (const u8* terrain, u16 w, u16 h, const u8* river_
         for (u32 k = 0; k < tile_n; ++k) {
             const P1_ClimateTileVal* e = &tiles[k];
             const u32 idx = static_cast<u32>(e->m_y) * static_cast<u32>(w) + static_cast<u32>(e->m_x);
-            u8 cls = P1_CLIMATE_DESERT;
+            u8 cls = CLIMATE_DESERT;
             if (k < grass_n) {
-                cls = P1_CLIMATE_GRASSLAND;
+                cls = CLIMATE_GRASSLAND;
             } else if (k < grass_n + plains_n) {
-                cls = P1_CLIMATE_PLAINS;
+                cls = CLIMATE_PLAINS;
             }
             climate[idx] = cls;
         }
     }
+    assign_mountain_climate(w, h, terrain, climate);
     delete[] tiles;
     delete[] plain_dist_water;
     delete[] latitude;

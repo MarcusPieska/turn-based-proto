@@ -1,0 +1,92 @@
+#!/bin/bash
+
+INC="-I../ -I../misc -I../adv_map_gen -I../map_loader"
+
+MAP="../map_loader/map_terrain_validate.cpp"
+MAP2="../map_loader/map_terrain_data.cpp"
+MAP3="../map_loader/map_loader.cpp"
+GEN="../adv_map_gen/generator_constants.cpp"
+PRN="../adv_map_gen/perlin_noise.cpp"
+WBD="../adv_map_gen/whiteboard.cpp"
+
+g++ -std=c++11 $INC -c ../misc/opt_str_mng.cpp -o opt_str_mng.o
+g++ -std=c++11 $INC -c resource_io.cpp -o resource_io.o
+g++ -std=c++11 $INC -c resource_parsing.cpp -o resource_parsing.o
+g++ -std=c++11 $INC -c resource_placement.cpp -o resource_placement.o
+g++ -std=c++11 $INC -c $MAP -o map_terrain_validate.o
+g++ -std=c++11 $INC -c $MAP2 -o map_terrain_data.o
+g++ -std=c++11 $INC -c $MAP3 -o map_loader.o
+g++ -std=c++11 $INC -c $GEN -o generator_constants.o
+g++ -std=c++11 $INC -c $PRN -o perlin_noise.o
+g++ -std=c++11 $INC -c $WBD -o whiteboard.o
+g++ -std=c++11 $INC -c ../adv_map_gen/p1_gen_outline.cpp -o p1_gen_outline.o
+g++ -std=c++11 $INC -c ../adv_map_gen/p1_gen_land_depth.cpp -o p1_gen_land_depth.o
+g++ -std=c++11 $INC -c ../adv_map_gen/p1_gen_noise_perlin.cpp -o p1_gen_noise_perlin.o
+g++ -std=c++11 $INC -c ../adv_map_gen/p1_adj_outline_fill.cpp -o p1_adj_outline_fill.o
+g++ -std=c++11 $INC -c ../adv_map_gen/p1_gen_shaped_outline.cpp -o p1_gen_shaped_outline.o
+g++ -std=c++11 $INC -c ../adv_map_gen/p1_gen_river_pts.cpp -o p1_gen_river_pts.o
+g++ -std=c++11 $INC -c ../adv_map_gen/p1_gen_river_sectors.cpp -o p1_gen_river_sectors.o
+g++ -std=c++11 $INC -c ../adv_map_gen/p1_gen_river_network.cpp -o p1_gen_river_network.o
+g++ -std=c++11 $INC -c ../adv_map_gen/p1_gen_river_lines.cpp -o p1_gen_river_lines.o
+g++ -std=c++11 $INC -c ../adv_map_gen/p1_adj_river_lakes.cpp -o p1_adj_river_lakes.o
+g++ -std=c++11 $INC -c ../adv_map_gen/p1_adj_river_inlets.cpp -o p1_adj_river_inlets.o
+g++ -std=c++11 $INC -c ../adv_map_gen/p1_gen_watershed_mountains.cpp -o p1_gen_watershed_mountains.o
+g++ -std=c++11 $INC -c ../adv_map_gen/p1_gen_watershed_mountain_line_sets.cpp -o p1_gen_watershed_mountain_line_sets.o
+g++ -std=c++11 $INC -c ../adv_map_gen/p1_gen_distance_to_river.cpp -o p1_gen_distance_to_river.o
+g++ -std=c++11 $INC -c ../adv_map_gen/p1_gen_nearness_to_watershed_mtn.cpp -o p1_gen_nearness_to_watershed_mtn.o
+g++ -std=c++11 $INC -c ../adv_map_gen/p1_adj_land_altitude.cpp -o p1_adj_land_altitude.o
+g++ -std=c++11 $INC -c ../adv_map_gen/p1_adj_ensure_coasts.cpp -o p1_adj_ensure_coasts.o
+g++ -std=c++11 $INC -c ../adv_map_gen/p1_adj_ensure_seas.cpp -o p1_adj_ensure_seas.o
+g++ -std=c++11 $INC -c ../adv_map_gen/p1_adj_ensure_river_valleys.cpp -o p1_adj_ensure_river_valleys.o
+g++ -std=c++11 $INC -c ../adv_map_gen/p1_adj_ensure_mtn_foothills.cpp -o p1_adj_ensure_mtn_foothills.o
+g++ -std=c++11 $INC -c ../adv_map_gen/p1_tester_chain15.cpp -o p1_tester_chain15.o
+g++ -std=c++11 $INC -c ../adv_map_gen/p1_gen_climate.cpp -o p1_gen_climate.o
+g++ -std=c++11 $INC -c resource_placement_tester.cpp -o resource_placement_tester.o
+
+g++ -std=c++11 -o resource_placement_tester \
+    opt_str_mng.o \
+    resource_io.o \
+    resource_parsing.o \
+    resource_placement.o \
+    map_terrain_validate.o \
+    map_terrain_data.o \
+    map_loader.o \
+    generator_constants.o \
+    perlin_noise.o \
+    whiteboard.o \
+    p1_gen_outline.o \
+    p1_gen_land_depth.o \
+    p1_gen_noise_perlin.o \
+    p1_adj_outline_fill.o \
+    p1_gen_shaped_outline.o \
+    p1_gen_river_pts.o \
+    p1_gen_river_sectors.o \
+    p1_gen_river_network.o \
+    p1_gen_river_lines.o \
+    p1_adj_river_lakes.o \
+    p1_adj_river_inlets.o \
+    p1_gen_watershed_mountains.o \
+    p1_gen_watershed_mountain_line_sets.o \
+    p1_gen_distance_to_river.o \
+    p1_gen_nearness_to_watershed_mtn.o \
+    p1_adj_land_altitude.o \
+    p1_adj_ensure_coasts.o \
+    p1_adj_ensure_seas.o \
+    p1_adj_ensure_river_valleys.o \
+    p1_adj_ensure_mtn_foothills.o \
+    p1_tester_chain15.o \
+    p1_gen_climate.o \
+    resource_placement_tester.o -lm
+
+rm opt_str_mng.o resource_io.o resource_parsing.o resource_placement.o \
+    map_terrain_validate.o map_terrain_data.o map_loader.o \
+    generator_constants.o perlin_noise.o whiteboard.o \
+    p1_gen_outline.o p1_gen_land_depth.o p1_gen_noise_perlin.o \
+    p1_adj_outline_fill.o p1_gen_shaped_outline.o \
+    p1_gen_river_pts.o p1_gen_river_sectors.o p1_gen_river_network.o \
+    p1_gen_river_lines.o p1_adj_river_lakes.o p1_adj_river_inlets.o \
+    p1_gen_watershed_mountains.o p1_gen_watershed_mountain_line_sets.o \
+    p1_gen_distance_to_river.o p1_gen_nearness_to_watershed_mtn.o \
+    p1_adj_land_altitude.o p1_adj_ensure_coasts.o p1_adj_ensure_seas.o \
+    p1_adj_ensure_river_valleys.o p1_adj_ensure_mtn_foothills.o \
+    p1_tester_chain15.o p1_gen_climate.o resource_placement_tester.o

@@ -60,7 +60,7 @@ static const P1_TesterCfg g_p1_tester_tbl[] = {
     {"p1_adj_ensure_mtn_foothills_tester", 21u, "21_ensure_mtn_foothills.ppm"},
     {"p1_gen_climate_tester", 22u, "22_climate.ppm"},
     {"p1_gen_desert_river_cull_tester", 23u, "23_desert_river_cull_upstream.ppm"},
-    {"p1_make_map_tester", 24u, "24_make_map.ppm"},
+    {"p1_make_map_tester", 24u, "24_make_map_terrain.ppm"},
 };
 
 static const P1_TesterCfg* g_p1_tester_cfg = nullptr;
