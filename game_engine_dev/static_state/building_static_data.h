@@ -12,19 +12,20 @@
 #ifndef BUILDING_STATIC_DATA_H
 #define BUILDING_STATIC_DATA_H
 
-#include <string>
-
 #include "building_static_key.h"
 #include "item_reqs.h"
 #include "item_effects.h"
+#include "res_placement.h"
 #include "game_primitives.h"
+#include "static_string_pool.h"
+
+class DataParserBase;
 
 //================================================================================================================================
 //=> - BuildingStaticDataStruct -
 //================================================================================================================================
 
 typedef struct BuildingStaticDataStruct {
-    std::string name;
     ItemReqsStruct reqs;
     u32 cost;
     ItemEffectsStruct effects;
@@ -37,10 +38,14 @@ typedef struct BuildingStaticDataStruct {
 class BuildingStaticData {
 public:
     BuildingStaticData () = default;
+    ~BuildingStaticData ();
     void set_items (BuildingStaticDataStruct* items, u16 item_count);
+    bool load_names (cstr const* names, u16 n);
+    bool load_names_from (const DataParserBase& psr, u16 n);
     void take_ownership ();
     void release_items ();
     const BuildingStaticDataStruct& get_item (BuildingStaticDataKey key) const;
+    cstr get_name (BuildingStaticDataKey key) const;
     u16 get_item_count () const;
 
 private:
@@ -49,6 +54,8 @@ private:
 
     BuildingStaticDataStruct* m_item_array = nullptr;
     u16 m_item_count = 0;
+    bool m_owns_array = false;
+    StaticStringPool m_name_pool;
 };
 
 #endif // BUILDING_STATIC_DATA_H

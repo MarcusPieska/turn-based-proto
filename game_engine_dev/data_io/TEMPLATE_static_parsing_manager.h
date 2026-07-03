@@ -28,10 +28,11 @@ class StaticBitBank;
 
 class StaticParsingManager {
 public:
-    explicit StaticParsingManager (const std::string& path_offset);
+    explicit StaticParsingManager (cstr path_offset);
     ~StaticParsingManager ();
 
     [STATIC_PARSE_HEADER_TYPED_GETTERS_TAG]
+    [STATIC_PARSE_HEADER_NAME_PARSER_GETTERS_TAG]
     [STATIC_PARSE_HEADER_RAW_GETTERS_TAG]
     [STATIC_PARSE_HEADER_MAP_GETTERS_TAG]
     u16 get_callback_count () const;

@@ -11,8 +11,7 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include <fstream>
-#include <string>
+#include <cstring>
 
 #include "path_mng.h"
 
@@ -20,142 +19,184 @@
 //=> - Private helper functions -
 //================================================================================================================================
 
-static bool does_file_exist (const std::string& path) {
-    std::ifstream file(path.c_str());
-    return file.good();
+static void copy_path (char* dst, u16 n, cstr src) {
+    if (!src) {
+        src = "";
+    }
+    std::snprintf(dst, n, "%s", src);
+}
+
+static void join_path (char* dst, u16 n, cstr base, cstr suffix) {
+    if (!base) {
+        base = "";
+    }
+    if (!suffix) {
+        suffix = "";
+    }
+    std::snprintf(dst, n, "%s/%s", base, suffix);
+}
+
+static bool does_file_exist (cstr path) {
+    if (!path || !path[0]) {
+        return false;
+    }
+    FILE* f = std::fopen(path, "r");
+    if (!f) {
+        return false;
+    }
+    std::fclose(f);
+    return true;
 }
 
 //================================================================================================================================
 //=> - PathMng implementation -
 //================================================================================================================================
 
-PathMng::PathMng (const std::string& path_offset) :
-    m_path_offset(path_offset) {
+PathMng::PathMng (cstr path_offset) {
+    copy_path(m_path_offset, PATH_MNG_PATH_N, path_offset);
     build_paths();
     validate_paths_or_exit();
 }
 
-const std::string& PathMng::get_path_to_buildings () const {
+cstr PathMng::get_path_to_buildings () const {
     return m_path_buildings;
 }
 
-const std::string& PathMng::get_path_to_city_flags () const {
+cstr PathMng::get_path_to_city_flags () const {
     return m_path_city_flags;
 }
 
-const std::string& PathMng::get_path_to_civ_traits () const {
+cstr PathMng::get_path_to_civ_traits () const {
     return m_path_civ_traits;
 }
 
-const std::string& PathMng::get_path_to_civs () const {
+cstr PathMng::get_path_to_civs () const {
     return m_path_civs;
 }
 
-const std::string& PathMng::get_path_to_effects () const {
+cstr PathMng::get_path_to_effects () const {
     return m_path_effects;
 }
 
-const std::string& PathMng::get_path_to_governments () const {
+cstr PathMng::get_path_to_governments () const {
     return m_path_governments;
 }
 
-const std::string& PathMng::get_path_to_resources () const {
+cstr PathMng::get_path_to_mvt_costs () const {
+    return m_path_mvt_costs;
+}
+
+cstr PathMng::get_path_to_resources () const {
     return m_path_resources;
 }
 
-const std::string& PathMng::get_path_to_small_wonders () const {
+cstr PathMng::get_path_to_res_dists () const {
+    return m_path_res_dists;
+}
+
+cstr PathMng::get_path_to_small_wonders () const {
     return m_path_small_wonders;
 }
 
-const std::string& PathMng::get_path_to_techs () const {
+cstr PathMng::get_path_to_techs () const {
     return m_path_techs;
 }
 
-const std::string& PathMng::get_path_to_unit_actions () const {
+cstr PathMng::get_path_to_unit_actions () const {
     return m_path_unit_actions;
 }
 
-const std::string& PathMng::get_path_to_unit_types () const {
+cstr PathMng::get_path_to_unit_types () const {
     return m_path_unit_types;
 }
 
-const std::string& PathMng::get_path_to_units () const {
+cstr PathMng::get_path_to_units () const {
     return m_path_units;
 }
 
-const std::string& PathMng::get_path_to_wonders () const {
+cstr PathMng::get_path_to_wonders () const {
     return m_path_wonders;
 }
 
 void PathMng::build_paths () {
-    m_path_buildings = m_path_offset + "/game_config.buildings";
-    m_path_city_flags = m_path_offset + "/game_config.city_flags";
-    m_path_civ_traits = m_path_offset + "/game_config.civ_traits";
-    m_path_civs = m_path_offset + "/game_config.civs";
-    m_path_effects = m_path_offset + "/game_config.effects";
-    m_path_governments = m_path_offset + "/game_config.governments";
-    m_path_resources = m_path_offset + "/game_config.resources";
-    m_path_small_wonders = m_path_offset + "/game_config.small_wonders";
-    m_path_techs = m_path_offset + "/game_config.techs";
-    m_path_unit_actions = m_path_offset + "/game_config.unit_actions";
-    m_path_unit_types = m_path_offset + "/game_config.unit_types";
-    m_path_units = m_path_offset + "/game_config.units";
-    m_path_wonders = m_path_offset + "/game_config.wonders";
+    join_path(m_path_buildings, PATH_MNG_PATH_N, m_path_offset, "game_config.buildings");
+    join_path(m_path_city_flags, PATH_MNG_PATH_N, m_path_offset, "game_config.city_flags");
+    join_path(m_path_civ_traits, PATH_MNG_PATH_N, m_path_offset, "game_config.civ_traits");
+    join_path(m_path_civs, PATH_MNG_PATH_N, m_path_offset, "game_config.civs");
+    join_path(m_path_effects, PATH_MNG_PATH_N, m_path_offset, "game_config.effects");
+    join_path(m_path_governments, PATH_MNG_PATH_N, m_path_offset, "game_config.governments");
+    join_path(m_path_mvt_costs, PATH_MNG_PATH_N, m_path_offset, "game_config.mvt_costs");
+    join_path(m_path_resources, PATH_MNG_PATH_N, m_path_offset, "game_config.resources");
+    join_path(m_path_res_dists, PATH_MNG_PATH_N, m_path_offset, "game_config.res_dists");
+    join_path(m_path_small_wonders, PATH_MNG_PATH_N, m_path_offset, "game_config.small_wonders");
+    join_path(m_path_techs, PATH_MNG_PATH_N, m_path_offset, "game_config.techs");
+    join_path(m_path_unit_actions, PATH_MNG_PATH_N, m_path_offset, "game_config.unit_actions");
+    join_path(m_path_unit_types, PATH_MNG_PATH_N, m_path_offset, "game_config.unit_types");
+    join_path(m_path_units, PATH_MNG_PATH_N, m_path_offset, "game_config.units");
+    join_path(m_path_wonders, PATH_MNG_PATH_N, m_path_offset, "game_config.wonders");
 }
 
 void PathMng::validate_paths_or_exit () const {
     u32 error_count = 0;
 
     if (!does_file_exist(m_path_buildings)) {
-        printf("ERROR: Missing file: %s\n", m_path_buildings.c_str());
+        printf("ERROR: Missing file: %s\n", m_path_buildings);
         ++error_count;
     }
     if (!does_file_exist(m_path_city_flags)) {
-        printf("ERROR: Missing file: %s\n", m_path_city_flags.c_str());
+        printf("ERROR: Missing file: %s\n", m_path_city_flags);
         ++error_count;
     }
     if (!does_file_exist(m_path_civ_traits)) {
-        printf("ERROR: Missing file: %s\n", m_path_civ_traits.c_str());
+        printf("ERROR: Missing file: %s\n", m_path_civ_traits);
         ++error_count;
     }
     if (!does_file_exist(m_path_civs)) {
-        printf("ERROR: Missing file: %s\n", m_path_civs.c_str());
+        printf("ERROR: Missing file: %s\n", m_path_civs);
         ++error_count;
     }
     if (!does_file_exist(m_path_effects)) {
-        printf("ERROR: Missing file: %s\n", m_path_effects.c_str());
+        printf("ERROR: Missing file: %s\n", m_path_effects);
         ++error_count;
     }
     if (!does_file_exist(m_path_governments)) {
-        printf("ERROR: Missing file: %s\n", m_path_governments.c_str());
+        printf("ERROR: Missing file: %s\n", m_path_governments);
+        ++error_count;
+    }
+    if (!does_file_exist(m_path_mvt_costs)) {
+        printf("ERROR: Missing file: %s\n", m_path_mvt_costs);
         ++error_count;
     }
     if (!does_file_exist(m_path_resources)) {
-        printf("ERROR: Missing file: %s\n", m_path_resources.c_str());
+        printf("ERROR: Missing file: %s\n", m_path_resources);
+        ++error_count;
+    }
+    if (!does_file_exist(m_path_res_dists)) {
+        printf("ERROR: Missing file: %s\n", m_path_res_dists);
         ++error_count;
     }
     if (!does_file_exist(m_path_small_wonders)) {
-        printf("ERROR: Missing file: %s\n", m_path_small_wonders.c_str());
+        printf("ERROR: Missing file: %s\n", m_path_small_wonders);
         ++error_count;
     }
     if (!does_file_exist(m_path_techs)) {
-        printf("ERROR: Missing file: %s\n", m_path_techs.c_str());
+        printf("ERROR: Missing file: %s\n", m_path_techs);
         ++error_count;
     }
     if (!does_file_exist(m_path_unit_actions)) {
-        printf("ERROR: Missing file: %s\n", m_path_unit_actions.c_str());
+        printf("ERROR: Missing file: %s\n", m_path_unit_actions);
         ++error_count;
     }
     if (!does_file_exist(m_path_unit_types)) {
-        printf("ERROR: Missing file: %s\n", m_path_unit_types.c_str());
+        printf("ERROR: Missing file: %s\n", m_path_unit_types);
         ++error_count;
     }
     if (!does_file_exist(m_path_units)) {
-        printf("ERROR: Missing file: %s\n", m_path_units.c_str());
+        printf("ERROR: Missing file: %s\n", m_path_units);
         ++error_count;
     }
     if (!does_file_exist(m_path_wonders)) {
-        printf("ERROR: Missing file: %s\n", m_path_wonders.c_str());
+        printf("ERROR: Missing file: %s\n", m_path_wonders);
         ++error_count;
     }
 

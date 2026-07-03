@@ -17,7 +17,9 @@ static const u8* const k_terr_rows[] = {
     TERR_COASTAL,
     TERR_PLAINS,
     TERR_HILLS,
-    TERR_MOUNTAINS};
+    TERR_MOUNTAINS,
+    TERR_INLAND_SEA,
+    TERR_INLAND_LAKE};
 
 static bool is_valid_class (u8 cls) {
     for (unsigned i = 0; i < sizeof(k_terr_rows) / sizeof(k_terr_rows[0]); ++i) {

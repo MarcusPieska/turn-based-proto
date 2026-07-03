@@ -82,7 +82,7 @@ def unroll_enum_members(items):
     return ",\n    ".join(["%s = %d" % (item, idx) for item, idx in zip(items, indices)])
 
 def unroll_to_enum(items, context):
-    frm_str = "if (s == \"%s\") { return %s::%s; }"
+    frm_str = 'if (s && std::strcmp(s, "%s") == 0) { return %s::%s; }'
     return "\n    ".join([frm_str % (item, context, item) for item in items])
 
 def unroll_to_str(items, context):

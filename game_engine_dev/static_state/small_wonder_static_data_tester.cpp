@@ -12,7 +12,6 @@
 #include <cstdio>
 #include <cstdint>
 #include <cstdlib>
-#include <string>
 
 #include "small_wonder_static_data.h"
 
@@ -21,7 +20,6 @@
 //================================================================================================================================
 
 typedef const char* cstr;
-typedef std::string str;
 typedef uint32_t u32;
 
 int test_count = 0;
@@ -48,11 +46,6 @@ void note_result (bool cond, cstr msg) {
             printf("*** TEST FAILED: %s\n", msg);
         }
     }
-}
-
-void note_result (bool cond, cstr msg1, cstr msg2) {
-    str msg = str(msg1) + str(msg2);
-    note_result (cond, msg.c_str());
 }
 
 void summarize_test_results () {

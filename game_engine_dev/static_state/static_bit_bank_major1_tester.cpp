@@ -5,7 +5,6 @@
 #include <cstdio>
 #include <cstdint>
 #include <cstdlib>
-#include <string>
 
 #include "static_bit_bank.h"
 
@@ -14,7 +13,6 @@
 //================================================================================================================================
 
 typedef const char* cstr;
-typedef std::string str;
 
 int test_count = 0;
 int test_pass = 0;
@@ -114,11 +112,11 @@ void test_each_array_isolation_over_2500_arrays_with_11_flags () {
                 bool expected = (check_array == active_array);
                 bool actual = City::is_flagged(*bank, check_array, flag_idx);
                 if (actual != expected) {
-                    str msg = str("Isolation mismatch: active array ")
-                            + std::to_string(active_array)
-                            + ", checked array " + std::to_string(check_array)
-                            + ", flag " + std::to_string(flag_idx);
-                    note_result(false, msg.c_str());
+                    char msg[256];
+                    std::snprintf(msg, sizeof(msg),
+                        "Isolation mismatch: active array %u, checked array %u, flag %u",
+                        active_array, check_array, flag_idx);
+                    note_result(false, msg);
                     break;
                 }
             }

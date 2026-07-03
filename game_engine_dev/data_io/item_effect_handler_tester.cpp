@@ -5,7 +5,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <string>
 
 #include "item_effect_handler.h"
 #include "item_effect_helpers.h"
@@ -18,7 +17,6 @@
 //================================================================================================================================
 
 typedef const char* cstr;
-typedef std::string str;
 
 int test_count = 0;
 int test_pass = 0;
@@ -35,20 +33,41 @@ static const StringManager* g_unit_names = nullptr;
 //=> - Name resolution (same rules as DataParserBase::name_to_idx / idx_to_name on RawItem lists) -
 //================================================================================================================================
 
-static std::string trim_copy(cstr in) {
-    if (!in) return "";
-    std::string s(in);
-    std::size_t b = 0;
-    std::size_t e = s.size();
-    while (b < e && (s[b] == ' ' || s[b] == '\t' || s[b] == '\r' || s[b] == '\n')) ++b;
-    while (e > b && (s[e - 1] == ' ' || s[e - 1] == '\t' || s[e - 1] == '\r' || s[e - 1] == '\n')) --e;
-    return s.substr(b, e - b);
+static bool is_ws (char c) {
+    return c == ' ' || c == '\t' || c == '\r' || c == '\n';
+}
+
+static bool trim_to_buf (cstr in, char* out, u32 cap) {
+    if (!out || cap == 0) return false;
+    if (!in) in = "";
+    u32 b = 0;
+    u32 e = (u32)std::strlen(in);
+    while (b < e && is_ws(in[b])) ++b;
+    while (e > b && is_ws(in[e - 1])) --e;
+    u32 n = e - b;
+    if (n + 1 > cap) return false;
+    if (n > 0) std::memcpy(out, in + b, n);
+    out[n] = '\0';
+    return true;
+}
+
+static bool streq_trimmed (cstr a, cstr b) {
+    char abuf[256];
+    char bbuf[256];
+    if (!trim_to_buf(a, abuf, sizeof(abuf))) return false;
+    if (!trim_to_buf(b, bbuf, sizeof(bbuf))) return false;
+    return std::strcmp(abuf, bbuf) == 0;
 }
 
 static u16 raw_items_name_to_idx (const StringManager& items, cstr name) {
-    const std::string target = trim_copy(name);
+    char target[256];
+    if (!trim_to_buf(name, target, sizeof(target))) {
+        printf("ERROR: could not map name '%s' to index\n", name ? name : "");
+        ++g_name_lookup_errors;
+        return 0;
+    }
     for (u32 i = 0; i < items.get_string_count(); ++i) {
-        if (trim_copy(items.get_string_content(i)) == target) {
+        if (streq_trimmed(items.get_string_content(i), target)) {
             return static_cast<u16>(i);
         }
     }
@@ -57,7 +76,7 @@ static u16 raw_items_name_to_idx (const StringManager& items, cstr name) {
     return 0;
 }
 
-static std::string raw_items_idx_to_name (const StringManager& items, u16 idx) {
+static cstr raw_items_idx_to_name (const StringManager& items, u16 idx) {
     if (idx >= items.get_string_count()) {
         printf("ERROR: could not map index '%u' to name\n", static_cast<unsigned int>(idx));
         ++g_name_lookup_errors;
@@ -139,8 +158,9 @@ void note_result (bool cond, cstr msg) {
 }
 
 void note_result (bool cond, cstr msg1, cstr msg2) {
-    str msg = str(msg1) + str(msg2);
-    note_result(cond, msg.c_str());
+    char msg[512];
+    std::snprintf(msg, sizeof(msg), "%s%s", msg1 ? msg1 : "", msg2 ? msg2 : "");
+    note_result(cond, msg);
 }
 
 void summarize_test_results () {
@@ -171,32 +191,32 @@ void print_item_effects_readable (
         if (t == ItemEffectType::NONE) {
             continue;
         }
-        printf("  [%u] %s\n", j, ItemEffectHelper::type_enum_to_str(t).c_str());
+        printf("  [%u] %s\n", j, ItemEffectHelper::type_enum_to_str(t));
         switch (t) {
         case ItemEffectType::BOOSTER:
-            printf("      target: %s\n", ItemEffectHelper::booster_type_enum_to_str(e.effect.booster.target_id).c_str());
+            printf("      target: %s\n", ItemEffectHelper::booster_type_enum_to_str(e.effect.booster.target_id));
             printf("      amount: %d\n", static_cast<int>(e.effect.booster.amount));
-            printf("      scope:  %s\n", ItemEffectHelper::effects_scope_enum_to_str(e.effect.booster.scope).c_str());
-            printf("      mode:   %s\n", ItemEffectHelper::amount_mode_enum_to_str(e.effect.booster.amount_mode).c_str());
+            printf("      scope:  %s\n", ItemEffectHelper::effects_scope_enum_to_str(e.effect.booster.scope));
+            printf("      mode:   %s\n", ItemEffectHelper::amount_mode_enum_to_str(e.effect.booster.amount_mode));
             break;
         case ItemEffectType::BUILD: {
-            std::string bname = raw_items_idx_to_name(building_items, e.effect.build.building_id);
-            printf("      building: %s (id %u)\n", bname.c_str(), e.effect.build.building_id);
-            printf("      scope:    %s\n", ItemEffectHelper::effects_scope_enum_to_str(e.effect.build.scope).c_str());
-            printf("      build:    %s\n", ItemEffectHelper::build_mode_enum_to_str(e.effect.build.build_mode).c_str());
-            printf("      upkeep:   %s\n", ItemEffectHelper::upkeep_mode_enum_to_str(e.effect.build.upkeep_mode).c_str());
+            cstr bname = raw_items_idx_to_name(building_items, e.effect.build.building_id);
+            printf("      building: %s (id %u)\n", bname, e.effect.build.building_id);
+            printf("      scope:    %s\n", ItemEffectHelper::effects_scope_enum_to_str(e.effect.build.scope));
+            printf("      build:    %s\n", ItemEffectHelper::build_mode_enum_to_str(e.effect.build.build_mode));
+            printf("      upkeep:   %s\n", ItemEffectHelper::upkeep_mode_enum_to_str(e.effect.build.upkeep_mode));
             break;
         }
         case ItemEffectType::ENABLE:
             printf("      feature_id: %u\n", e.effect.enable.feature_id);
-            printf("      scope:      %s\n", ItemEffectHelper::effects_scope_enum_to_str(e.effect.enable.scope).c_str());
+            printf("      scope:      %s\n", ItemEffectHelper::effects_scope_enum_to_str(e.effect.enable.scope));
             break;
         case ItemEffectType::RESEARCH_TECH:
             printf("      tech_count: %u\n", e.effect.research_tech.tech_count);
             break;
         case ItemEffectType::TRAIN: {
-            std::string uname = raw_items_idx_to_name(unit_items, e.effect.train.unit_id);
-            printf("      unit:     %s (id %u)\n", uname.c_str(), e.effect.train.unit_id);
+            cstr uname = raw_items_idx_to_name(unit_items, e.effect.train.unit_id);
+            printf("      unit:     %s (id %u)\n", uname, e.effect.train.unit_id);
             printf("      interval: %u turns\n", e.effect.train.turns_interval);
             break;
         }
@@ -219,13 +239,13 @@ void test_parse_each_game_config_effects_line () {
     StringManager building_names;
     StringManager unit_names;
 
-    building_lines.load_file_content(paths.get_path_to_buildings().c_str());
+    building_lines.load_file_content(paths.get_path_to_buildings());
     building_lines.split_string_by_char(0, '\n');
     building_lines.cull_empty_strings();
-    unit_lines.load_file_content(paths.get_path_to_units().c_str());
+    unit_lines.load_file_content(paths.get_path_to_units());
     unit_lines.split_string_by_char(0, '\n');
     unit_lines.cull_empty_strings();
-    effect_lines.load_file_content(paths.get_path_to_effects().c_str());
+    effect_lines.load_file_content(paths.get_path_to_effects());
     effect_lines.split_string_by_char(0, '\n');
     effect_lines.cull_empty_strings();
 
@@ -264,8 +284,9 @@ void test_parse_each_game_config_effects_line () {
         const u32 lookup_errors_after = g_name_lookup_errors;
         const bool parse_ok = (handler_errors == 0);
 
-        str msg = str("effects line ") + std::to_string(i + 1) + ": " + line_items.get_string_content(0);
-        note_result(parse_ok, msg.c_str());
+        char msg[512];
+        std::snprintf(msg, sizeof(msg), "effects line %u: %s", i + 1, line_items.get_string_content(0));
+        note_result(parse_ok, msg);
 
         if (lookup_errors_after > 0 && print_level >= 1) {
             printf("    (note) %u name lookup issue(s) on this line — check buildings/units config strings\n",

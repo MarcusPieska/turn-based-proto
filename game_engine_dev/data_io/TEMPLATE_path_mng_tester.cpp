@@ -11,9 +11,7 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include <fstream>
-#include <string>
-
+#include <cstring>
 #include "path_mng.h"
 
 //================================================================================================================================
@@ -21,7 +19,6 @@
 //================================================================================================================================
 
 typedef const char* cstr;
-typedef std::string str;
 
 int test_count = 0;
 int test_pass = 0;
@@ -50,8 +47,9 @@ void note_result (bool cond, cstr msg) {
 }
 
 void note_result (bool cond, cstr msg1, cstr msg2) {
-    str msg = str(msg1) + str(msg2);
-    note_result(cond, msg.c_str());
+    char buf[128];
+    std::snprintf(buf, sizeof(buf), "%s%s", msg1 ? msg1 : "", msg2 ? msg2 : "");
+    note_result(cond, buf);
 }
 
 void summarize_test_results () {
@@ -70,9 +68,16 @@ void summarize_test_results () {
 //=> - Test functions -
 //================================================================================================================================
 
-static bool does_file_exist (const std::string& path) {
-    std::ifstream f(path.c_str());
-    return f.good();
+static bool does_file_exist (cstr path) {
+    if (!path || !path[0]) {
+        return false;
+    }
+    FILE* f = std::fopen(path, "r");
+    if (!f) {
+        return false;
+    }
+    std::fclose(f);
+    return true;
 }
 
 void note_all_paths_exist (const PathMng& paths, cstr tag) {

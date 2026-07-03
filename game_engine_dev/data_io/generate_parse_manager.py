@@ -44,6 +44,9 @@ def lines_header_parser_includes ():
 def lines_header_data_includes ():
     return ['#include "%s"' % data_header(stem) for stem in entries]
 
+def lines_header_name_parser_getter_blocks ():
+    return ["const DataParserBase& get_%s_name_parser () const;" % stem for stem in entries]
+
 def lines_header_typed_getter_blocks ():
     lines = []
     for stem in entries:
@@ -103,6 +106,16 @@ def lines_cpp_typed_getter_blocks ():
         blocks.append("\n".join(lines))
     return blocks
 
+def lines_cpp_name_parser_getter_blocks ():
+    blocks = []
+    for stem in entries:
+        lines = []
+        lines.append("const DataParserBase& StaticParsingManager::get_%s_name_parser () const {" % stem)
+        lines.append("    return *m_%s_name_parser;" % stem)
+        lines.append("}")
+        blocks.append("\n".join(lines))
+    return blocks
+
 def lines_cpp_raw_getter_blocks ():
     return []
 
@@ -121,7 +134,7 @@ def lines_cpp_load_items ():
         "m_effect_items.cull_empty_strings();",
     ]
     for stem in entries:
-        lines.append("m_%s_items.load_file_content(m_paths.get_path_to_%s().c_str());" % (stem, path_from_stem(stem)))
+        lines.append("m_%s_items.load_file_content(m_paths.get_path_to_%s());" % (stem, path_from_stem(stem)))
         lines.append("m_%s_items.split_string_by_char(0, '\\n');" % stem)
         lines.append("m_%s_items.cull_empty_strings();" % stem)
     return lines
@@ -229,6 +242,7 @@ def build_static_parse_sub_pairs ():
     sub_pairs.append(("[STATIC_PARSE_HEADER_PARSER_INCLUDES_TAG]", join_tag_lines(lines_header_parser_includes(), "\n")))
     sub_pairs.append(("[STATIC_PARSE_HEADER_DATA_INCLUDES_TAG]", join_tag_lines(lines_header_data_includes(), "\n")))
     sub_pairs.append(("[STATIC_PARSE_HEADER_TYPED_GETTERS_TAG]", join_tag_lines(lines_header_typed_getter_blocks(), "\n\n    ")))
+    sub_pairs.append(("[STATIC_PARSE_HEADER_NAME_PARSER_GETTERS_TAG]", join_tag_lines(lines_header_name_parser_getter_blocks(), "\n\n    ")))
     sub_pairs.append(("[STATIC_PARSE_HEADER_RAW_GETTERS_TAG]", join_tag_lines(lines_header_raw_getter_blocks(), "\n\n    ")))
     sub_pairs.append(("[STATIC_PARSE_HEADER_MAP_GETTERS_TAG]", join_tag_lines(lines_header_map_getter_blocks(), "\n\n    ")))
     sub_pairs.append(("[STATIC_PARSE_HEADER_READERS_TAG]", join_tag_lines(lines_header_readers())))
@@ -243,6 +257,7 @@ def build_static_parse_sub_pairs ():
     sub_pairs.append(("[STATIC_PARSE_CPP_MAP_BANK_INITS_TAG]", join_tag_lines(lines_cpp_map_bank_inits(), "\n    ")))
     sub_pairs.append(("[STATIC_PARSE_CPP_DATA_PTR_INITS_TAG]", join_tag_lines(lines_cpp_data_ptr_inits(), "\n    ")))
     sub_pairs.append(("[STATIC_PARSE_CPP_TYPED_GETTERS_TAG]", join_tag_lines(lines_cpp_typed_getter_blocks(), "\n\n")))
+    sub_pairs.append(("[STATIC_PARSE_CPP_NAME_PARSER_GETTERS_TAG]", join_tag_lines(lines_cpp_name_parser_getter_blocks(), "\n\n")))
     sub_pairs.append(("[STATIC_PARSE_CPP_RAW_GETTERS_TAG]", join_tag_lines(lines_cpp_raw_getter_blocks(), "\n\n")))
     sub_pairs.append(("[STATIC_PARSE_CPP_MAP_GETTERS_TAG]", join_tag_lines(lines_cpp_map_getter_blocks(), "\n\n")))
     sub_pairs.append(("[STATIC_PARSE_CPP_RELEASE_MAP_BANKS_TAG]", join_tag_lines(lines_cpp_release_map_banks(), "\n")))

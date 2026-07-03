@@ -11,9 +11,7 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include <fstream>
-#include <string>
-
+#include <cstring>
 #include "path_mng.h"
 
 //================================================================================================================================
@@ -21,7 +19,6 @@
 //================================================================================================================================
 
 typedef const char* cstr;
-typedef std::string str;
 
 int test_count = 0;
 int test_pass = 0;
@@ -50,8 +47,9 @@ void note_result (bool cond, cstr msg) {
 }
 
 void note_result (bool cond, cstr msg1, cstr msg2) {
-    str msg = str(msg1) + str(msg2);
-    note_result(cond, msg.c_str());
+    char buf[128];
+    std::snprintf(buf, sizeof(buf), "%s%s", msg1 ? msg1 : "", msg2 ? msg2 : "");
+    note_result(cond, buf);
 }
 
 void summarize_test_results () {
@@ -70,25 +68,34 @@ void summarize_test_results () {
 //=> - Test functions -
 //================================================================================================================================
 
-static bool does_file_exist (const std::string& path) {
-    std::ifstream f(path.c_str());
-    return f.good();
+static bool does_file_exist (cstr path) {
+    if (!path || !path[0]) {
+        return false;
+    }
+    FILE* f = std::fopen(path, "r");
+    if (!f) {
+        return false;
+    }
+    std::fclose(f);
+    return true;
 }
 
 void note_all_paths_exist (const PathMng& paths, cstr tag) {
-    note_result(does_file_exist(paths.get_path_to_buildings()), (str(tag) + " buildings exists").c_str());
-    note_result(does_file_exist(paths.get_path_to_city_flags()), (str(tag) + " city_flags exists").c_str());
-    note_result(does_file_exist(paths.get_path_to_civ_traits()), (str(tag) + " civ_traits exists").c_str());
-    note_result(does_file_exist(paths.get_path_to_civs()), (str(tag) + " civs exists").c_str());
-    note_result(does_file_exist(paths.get_path_to_effects()), (str(tag) + " effects exists").c_str());
-    note_result(does_file_exist(paths.get_path_to_governments()), (str(tag) + " governments exists").c_str());
-    note_result(does_file_exist(paths.get_path_to_resources()), (str(tag) + " resources exists").c_str());
-    note_result(does_file_exist(paths.get_path_to_small_wonders()), (str(tag) + " small_wonders exists").c_str());
-    note_result(does_file_exist(paths.get_path_to_techs()), (str(tag) + " techs exists").c_str());
-    note_result(does_file_exist(paths.get_path_to_unit_actions()), (str(tag) + " unit_actions exists").c_str());
-    note_result(does_file_exist(paths.get_path_to_unit_types()), (str(tag) + " unit_types exists").c_str());
-    note_result(does_file_exist(paths.get_path_to_units()), (str(tag) + " units exists").c_str());
-    note_result(does_file_exist(paths.get_path_to_wonders()), (str(tag) + " wonders exists").c_str());
+        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s buildings exists", tag); note_result(does_file_exist(paths.get_path_to_buildings()), _buf); }
+        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s city_flags exists", tag); note_result(does_file_exist(paths.get_path_to_city_flags()), _buf); }
+        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s civ_traits exists", tag); note_result(does_file_exist(paths.get_path_to_civ_traits()), _buf); }
+        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s civs exists", tag); note_result(does_file_exist(paths.get_path_to_civs()), _buf); }
+        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s effects exists", tag); note_result(does_file_exist(paths.get_path_to_effects()), _buf); }
+        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s governments exists", tag); note_result(does_file_exist(paths.get_path_to_governments()), _buf); }
+        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s mvt_costs exists", tag); note_result(does_file_exist(paths.get_path_to_mvt_costs()), _buf); }
+        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s resources exists", tag); note_result(does_file_exist(paths.get_path_to_resources()), _buf); }
+        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s res_dists exists", tag); note_result(does_file_exist(paths.get_path_to_res_dists()), _buf); }
+        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s small_wonders exists", tag); note_result(does_file_exist(paths.get_path_to_small_wonders()), _buf); }
+        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s techs exists", tag); note_result(does_file_exist(paths.get_path_to_techs()), _buf); }
+        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s unit_actions exists", tag); note_result(does_file_exist(paths.get_path_to_unit_actions()), _buf); }
+        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s unit_types exists", tag); note_result(does_file_exist(paths.get_path_to_unit_types()), _buf); }
+        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s units exists", tag); note_result(does_file_exist(paths.get_path_to_units()), _buf); }
+        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s wonders exists", tag); note_result(does_file_exist(paths.get_path_to_wonders()), _buf); }
 }
 
 void test_construct_with_parent_offset_with_trailing_slash () {

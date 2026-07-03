@@ -11,8 +11,7 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include <fstream>
-#include <string>
+#include <cstring>
 
 #include "path_mng.h"
 
@@ -20,17 +19,41 @@
 //=> - Private helper functions -
 //================================================================================================================================
 
-static bool does_file_exist (const std::string& path) {
-    std::ifstream file(path.c_str());
-    return file.good();
+static void copy_path (char* dst, u16 n, cstr src) {
+    if (!src) {
+        src = "";
+    }
+    std::snprintf(dst, n, "%s", src);
+}
+
+static void join_path (char* dst, u16 n, cstr base, cstr suffix) {
+    if (!base) {
+        base = "";
+    }
+    if (!suffix) {
+        suffix = "";
+    }
+    std::snprintf(dst, n, "%s/%s", base, suffix);
+}
+
+static bool does_file_exist (cstr path) {
+    if (!path || !path[0]) {
+        return false;
+    }
+    FILE* f = std::fopen(path, "r");
+    if (!f) {
+        return false;
+    }
+    std::fclose(f);
+    return true;
 }
 
 //================================================================================================================================
 //=> - PathMng implementation -
 //================================================================================================================================
 
-PathMng::PathMng (const std::string& path_offset) :
-    m_path_offset(path_offset) {
+PathMng::PathMng (cstr path_offset) {
+    copy_path(m_path_offset, PATH_MNG_PATH_N, path_offset);
     build_paths();
     validate_paths_or_exit();
 }

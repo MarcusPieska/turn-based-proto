@@ -12,9 +12,9 @@
 #ifndef PATH_MNG_H
 #define PATH_MNG_H
 
-#include <string>
-
 #include "game_primitives.h"
+
+static const u16 PATH_MNG_PATH_N = 384;
 
 //================================================================================================================================
 //=> - PathMng class -
@@ -22,21 +22,23 @@
 
 class PathMng {
 public:
-    explicit PathMng (const std::string& path_offset);
+    explicit PathMng (cstr path_offset);
 
-    const std::string& get_path_to_buildings () const;
-    const std::string& get_path_to_city_flags () const;
-    const std::string& get_path_to_civ_traits () const;
-    const std::string& get_path_to_civs () const;
-    const std::string& get_path_to_effects () const;
-    const std::string& get_path_to_governments () const;
-    const std::string& get_path_to_resources () const;
-    const std::string& get_path_to_small_wonders () const;
-    const std::string& get_path_to_techs () const;
-    const std::string& get_path_to_unit_actions () const;
-    const std::string& get_path_to_unit_types () const;
-    const std::string& get_path_to_units () const;
-    const std::string& get_path_to_wonders () const;
+    cstr get_path_to_buildings () const;
+    cstr get_path_to_city_flags () const;
+    cstr get_path_to_civ_traits () const;
+    cstr get_path_to_civs () const;
+    cstr get_path_to_effects () const;
+    cstr get_path_to_governments () const;
+    cstr get_path_to_mvt_costs () const;
+    cstr get_path_to_resources () const;
+    cstr get_path_to_res_dists () const;
+    cstr get_path_to_small_wonders () const;
+    cstr get_path_to_techs () const;
+    cstr get_path_to_unit_actions () const;
+    cstr get_path_to_unit_types () const;
+    cstr get_path_to_units () const;
+    cstr get_path_to_wonders () const;
 
 private:
     PathMng () = delete;
@@ -46,21 +48,23 @@ private:
     void build_paths ();
     void validate_paths_or_exit () const;
 
-    std::string m_path_offset;
+    char m_path_offset[PATH_MNG_PATH_N];
 
-    std::string m_path_buildings;
-    std::string m_path_city_flags;
-    std::string m_path_civ_traits;
-    std::string m_path_civs;
-    std::string m_path_effects;
-    std::string m_path_governments;
-    std::string m_path_resources;
-    std::string m_path_small_wonders;
-    std::string m_path_techs;
-    std::string m_path_unit_actions;
-    std::string m_path_unit_types;
-    std::string m_path_units;
-    std::string m_path_wonders;
+    char m_path_buildings[PATH_MNG_PATH_N];
+    char m_path_city_flags[PATH_MNG_PATH_N];
+    char m_path_civ_traits[PATH_MNG_PATH_N];
+    char m_path_civs[PATH_MNG_PATH_N];
+    char m_path_effects[PATH_MNG_PATH_N];
+    char m_path_governments[PATH_MNG_PATH_N];
+    char m_path_mvt_costs[PATH_MNG_PATH_N];
+    char m_path_resources[PATH_MNG_PATH_N];
+    char m_path_res_dists[PATH_MNG_PATH_N];
+    char m_path_small_wonders[PATH_MNG_PATH_N];
+    char m_path_techs[PATH_MNG_PATH_N];
+    char m_path_unit_actions[PATH_MNG_PATH_N];
+    char m_path_unit_types[PATH_MNG_PATH_N];
+    char m_path_units[PATH_MNG_PATH_N];
+    char m_path_wonders[PATH_MNG_PATH_N];
 };
 
 #endif // PATH_MNG_H

@@ -5,13 +5,14 @@
 #ifndef DATA_PARSER_BASE_H
 #define DATA_PARSER_BASE_H
 
-#include <string>
+#include <cstddef>
 
 #include "game_primitives.h"
 #include "item_effects.h"
 #include "item_reqs.h"
 #include "name_to_idx_callbacks.h"
 #include "opt_str_mng.h"
+#include "res_placement.h"
 
 class ItemEffectHandler;
 
@@ -28,7 +29,7 @@ public:
     static void clear_item_effect_handler ();
 
     u16 name_to_idx (cstr name) const;
-    std::string idx_to_name (u16 idx) const;
+    cstr idx_to_name (u16 idx) const;
     static void check_errors ();
 
 protected:
@@ -43,7 +44,8 @@ protected:
     ItemReqsStruct parse_item_reqs (const StringManager& line_items, u16 start_idx) const;
     ItemEffectsStruct parse_item_effects (const StringManager& line_items, u16 start_idx) const;
     CivTraitStruct parse_civ_traits (const StringManager& line_items, u16 start_idx) const;
-    
+    bool parse_res_placement (const StringManager& line_items, ResPlacement& plc) const;
+
     static u32 get_error_count_for_tests ();
     static void reset_error_count_for_tests ();
 

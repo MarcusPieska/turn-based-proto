@@ -19,7 +19,7 @@ static bool in_map (u16 w, u16 h, i32 x, i32 y) {
 }
 
 static bool is_coast_or_riv (const u8* terrain, const u8* riv, u32 i) {
-    return riv[i] != 0 || terrain[i] == TERR_COASTAL[0];
+    return riv[i] != 0 || terrain[i] == TERR_INLAND_LAKE[0];
 }
 
 static bool quad_ok (
@@ -47,10 +47,10 @@ static void stamp_quad (
     u16 x,
     u16 y) 
 {
-    terrain[tidx(w, x, y)] = TERR_COASTAL[0];
-    terrain[tidx(w, static_cast<u16>(x + 1u), y)] = TERR_COASTAL[0];
-    terrain[tidx(w, x, static_cast<u16>(y + 1u))] = TERR_COASTAL[0];
-    terrain[tidx(w, static_cast<u16>(x + 1u), static_cast<u16>(y + 1u))] = TERR_COASTAL[0];
+    terrain[tidx(w, x, y)] = TERR_INLAND_LAKE[0];
+    terrain[tidx(w, static_cast<u16>(x + 1u), y)] = TERR_INLAND_LAKE[0];
+    terrain[tidx(w, x, static_cast<u16>(y + 1u))] = TERR_INLAND_LAKE[0];
+    terrain[tidx(w, static_cast<u16>(x + 1u), static_cast<u16>(y + 1u))] = TERR_INLAND_LAKE[0];
     static const i32 k_rdx[8] = {-1, -1, 2, 2, 0, 1, 0, 1};
     static const i32 k_rdy[8] = {0, 1, 0, 1, -1, -1, 2, 2};
     for (i32 k = 0; k < 8; ++k) {
@@ -61,7 +61,7 @@ static void stamp_quad (
         }
         const u32 ti = tidx(w, static_cast<u16>(nx), static_cast<u16>(ny));
         if (riv[ti] != 0) {
-            terrain[ti] = TERR_COASTAL[0];
+            terrain[ti] = TERR_INLAND_LAKE[0];
         }
     }
 }

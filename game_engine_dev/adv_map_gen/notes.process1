@@ -15,7 +15,7 @@ These are the steps of process 1:
        One innovation we want here is to randomly give differing claims per turn (1,2,3 or 4) to different claimers; we want big and small watersheds.
        Moreover, only consider about 50% of coastal sectors as coastal; this is to limit really tiny watersheds; rule is to never have a coastal sector adjacent to another. 
  - 11. Generator: Do river line overlay creation. Return river overlay and river data in struct.
- - 12. Adjustor: Grouped rivers should be adjusted on map to coastal (i.e., a lake)
+ - 12. Adjustor: Grouped rivers should be adjusted on map to inland lake
  - 13. Adjustor: Inlets should be created at some percantage of the river depth. 
  - 14. Generator: Select which watershed-pair border will have mountains on them; return overlay. 
  - 15. Generator: Create an overlay that shows distance-to-river, but only over land.

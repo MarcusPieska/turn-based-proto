@@ -5,7 +5,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <string>
 #include <unistd.h>
 
 #include "data_parser_base.h"
@@ -16,7 +15,6 @@
 //================================================================================================================================
 
 typedef const char* cstr;
-typedef std::string str;
 
 int test_count = 0;
 int test_pass = 0;
@@ -34,14 +32,22 @@ const DataParserBase* g_civ_parser = NULL;
 //=> - Helper functions -
 //================================================================================================================================
 
-static str trim_copy(cstr in) {
-    if (!in) return "";
-    str s(in);
-    std::size_t b = 0;
-    std::size_t e = s.size();
-    while (b < e && (s[b] == ' ' || s[b] == '\t' || s[b] == '\r' || s[b] == '\n')) ++b;
-    while (e > b && (s[e - 1] == ' ' || s[e - 1] == '\t' || s[e - 1] == '\r' || s[e - 1] == '\n')) --e;
-    return s.substr(b, e - b);
+static bool is_ws (char c) {
+    return c == ' ' || c == '\t' || c == '\r' || c == '\n';
+}
+
+static bool trim_to_buf (cstr in, char* out, u32 cap) {
+    if (!out || cap == 0) return false;
+    if (!in) in = "";
+    u32 b = 0;
+    u32 e = (u32)std::strlen(in);
+    while (b < e && is_ws(in[b])) ++b;
+    while (e > b && is_ws(in[e - 1])) --e;
+    u32 n = e - b;
+    if (n + 1 > cap) return false;
+    if (n > 0) std::memcpy(out, in + b, n);
+    out[n] = '\0';
+    return true;
 }
 
 void note_result (bool cond, cstr msg) {
@@ -128,15 +134,15 @@ void run_item_reqs_parse_file_tests (const DataParserBaseHarness& parser, cstr f
     lines.cull_empty_strings();
 
     u32 line_count = 0;
+    char line_buf[512];
     for (u32 i = 0; i < lines.get_string_count(); ++i) {
-        const str line = trim_copy(lines.get_string_content(i));
-        if (line.empty()) {
+        if (!trim_to_buf(lines.get_string_content(i), line_buf, sizeof(line_buf)) || line_buf[0] == '\0') {
             continue;
         }
 
         ++line_count;
         StringManager line_items;
-        parser.split_line(line.c_str(), line_items);
+        parser.split_line(line_buf, line_items);
         ItemReqsStruct reqs;
 
         const u32 err_before = DataParserBaseHarness::get_error_count_for_harness();
@@ -167,8 +173,9 @@ void run_item_reqs_parse_file_tests (const DataParserBaseHarness& parser, cstr f
 
         const u32 err_after = DataParserBaseHarness::get_error_count_for_harness();
         const bool got_valid_parse = (err_after == err_before);
-        str msg = str(tag) + " line " + std::to_string(line_count) + ": " + line;
-        note_result(got_valid_parse == expect_valid, msg.c_str());
+        char msg[768];
+        std::snprintf(msg, sizeof(msg), "%s line %u: %s", tag, line_count, line_buf);
+        note_result(got_valid_parse == expect_valid, msg);
     }
 }
 
@@ -188,27 +195,27 @@ void run_item_reqs_parse_tests () {
     StringManager civ_items;
     StringManager unit_items;
 
-    tech_items.load_file_content(paths.get_path_to_techs().c_str());
+    tech_items.load_file_content(paths.get_path_to_techs());
     tech_items.split_string_by_char(0, '\n');
     tech_items.cull_empty_strings();
 
-    resource_items.load_file_content(paths.get_path_to_resources().c_str());
+    resource_items.load_file_content(paths.get_path_to_resources());
     resource_items.split_string_by_char(0, '\n');
     resource_items.cull_empty_strings();
 
-    city_flag_items.load_file_content(paths.get_path_to_city_flags().c_str());
+    city_flag_items.load_file_content(paths.get_path_to_city_flags());
     city_flag_items.split_string_by_char(0, '\n');
     city_flag_items.cull_empty_strings();
 
-    building_items.load_file_content(paths.get_path_to_buildings().c_str());
+    building_items.load_file_content(paths.get_path_to_buildings());
     building_items.split_string_by_char(0, '\n');
     building_items.cull_empty_strings();
 
-    civ_items.load_file_content(paths.get_path_to_civs().c_str());
+    civ_items.load_file_content(paths.get_path_to_civs());
     civ_items.split_string_by_char(0, '\n');
     civ_items.cull_empty_strings();
 
-    unit_items.load_file_content(paths.get_path_to_units().c_str());
+    unit_items.load_file_content(paths.get_path_to_units());
     unit_items.split_string_by_char(0, '\n');
     unit_items.cull_empty_strings();
 

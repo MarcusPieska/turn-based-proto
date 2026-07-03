@@ -28,12 +28,18 @@
 //================================================================================================================================
 
 static const u8 TERR_NONE[4] = {0, 255, 0, 255};
+
 static const u8 TERR_OCEAN[4] = {1, 14, 52, 112};
 static const u8 TERR_SEA[4] = {2, 38, 102, 188};
 static const u8 TERR_COASTAL[4] = {3, 118, 182, 242};
 static const u8 TERR_PLAINS[4] = {4, 34, 112, 48};
 static const u8 TERR_HILLS[4] = {5, 50, 140, 78};
 static const u8 TERR_MOUNTAINS[4] = {6, 76, 48, 30};
+
+static const u8 TERR_INLAND_SEA[4] = {7, 39, 103, 189};
+static const u8 TERR_INLAND_LAKE[4] = {8, 119, 183, 243};
+
+static const u8 TERR_TILE_SENTINEL[4] = {255, 50, 50, 50};
 
 //================================================================================================================================
 //=> - Path costs (TM movement) -

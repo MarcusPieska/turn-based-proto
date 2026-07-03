@@ -22,7 +22,8 @@ struct P1_ClimateTileVal {
 static const u16 k_inf = 0xFFFFu;
 
 static bool is_water (u8 cls) {
-    return cls == TERR_OCEAN[0] || cls == TERR_SEA[0] || cls == TERR_COASTAL[0];
+    return cls == TERR_OCEAN[0] || cls == TERR_SEA[0] || cls == TERR_COASTAL[0]
+        || cls == TERR_INLAND_SEA[0] || cls == TERR_INLAND_LAKE[0];
 }
 
 static bool is_open_land (u8 cls) {

@@ -12,7 +12,6 @@
 #include <cstdio>
 #include <cstdint>
 #include <cstdlib>
-#include <string>
 
 #include "civ_static_data.h"
 
@@ -21,7 +20,6 @@
 //================================================================================================================================
 
 typedef const char* cstr;
-typedef std::string str;
 typedef uint32_t u32;
 
 int test_count = 0;
@@ -50,11 +48,6 @@ void note_result (bool cond, cstr msg) {
     }
 }
 
-void note_result (bool cond, cstr msg1, cstr msg2) {
-    str msg = str(msg1) + str(msg2);
-    note_result (cond, msg.c_str());
-}
-
 void summarize_test_results () {
     if (print_level > 0) {
         printf("--------------------------------\n");
@@ -80,9 +73,9 @@ public:
 
 void test_set_items_updates_count () {
     static CivStaticDataStruct items[3];
-    items[0].traits.items[0] = 1;  items[0].traits.items[1] = 10;
-    items[1].traits.items[0] = 2;  items[1].traits.items[1] = 20;
-    items[2].traits.items[0] = 3;  items[2].traits.items[1] = 30;
+    items[0].traits.indices[0] = 1;  items[0].traits.indices[1] = 10;
+    items[1].traits.indices[0] = 2;  items[1].traits.indices[1] = 20;
+    items[2].traits.indices[0] = 3;  items[2].traits.indices[1] = 30;
     CivStaticData data;
     data.set_items(items, 3);
     note_result(data.get_item_count() == 3, "set_items updates item count");
@@ -91,25 +84,25 @@ void test_set_items_updates_count () {
 
 void test_get_item_returns_expected_struct_by_key () {
     static CivStaticDataStruct items[4];
-    items[0].traits.items[0] = 7;   items[0].traits.items[1] = 70;
-    items[1].traits.items[0] = 8;   items[1].traits.items[1] = 80;
-    items[2].traits.items[0] = 9;   items[2].traits.items[1] = 90;
-    items[3].traits.items[0] = 10;  items[3].traits.items[1] = 100;
+    items[0].traits.indices[0] = 7;   items[0].traits.indices[1] = 70;
+    items[1].traits.indices[0] = 8;   items[1].traits.indices[1] = 80;
+    items[2].traits.indices[0] = 9;   items[2].traits.indices[1] = 90;
+    items[3].traits.indices[0] = 10;  items[3].traits.indices[1] = 100;
     CivStaticData data;
     data.set_items(items, 4);
 
     CivStaticDataKey key = CivStaticDataTester::make_key(2);
     const CivStaticDataStruct& item = data.get_item(key);
 
-    note_result(item.traits.items[0] == 9, "get_item returns expected member1");
-    note_result(item.traits.items[1] == 90, "get_item returns expected member2");
+    note_result(item.traits.indices[0] == 9, "get_item returns expected member1");
+    note_result(item.traits.indices[1] == 90, "get_item returns expected member2");
     summarize_test_results();
 }
 
 void test_get_item_returns_reference_to_backing_array () {
     static CivStaticDataStruct items[2];
-    items[0].traits.items[0] = 11;  items[0].traits.items[1] = 110;
-    items[1].traits.items[0] = 12;  items[1].traits.items[1] = 120;
+    items[0].traits.indices[0] = 11;  items[0].traits.indices[1] = 110;
+    items[1].traits.indices[0] = 12;  items[1].traits.indices[1] = 120;
     CivStaticData data;
     data.set_items(items, 2);
 
@@ -122,14 +115,14 @@ void test_get_item_returns_reference_to_backing_array () {
 
 void test_set_items_can_replace_array_and_count () {
     static CivStaticDataStruct items_a[2];
-    items_a[0].traits.items[0] = 21; items_a[0].traits.items[1] = 210;
-    items_a[1].traits.items[0] = 22; items_a[1].traits.items[1] = 220;
+    items_a[0].traits.indices[0] = 21; items_a[0].traits.indices[1] = 210;
+    items_a[1].traits.indices[0] = 22; items_a[1].traits.indices[1] = 220;
     static CivStaticDataStruct items_b[5];
-    items_b[0].traits.items[0] = 31; items_b[0].traits.items[1] = 131;
-    items_b[1].traits.items[0] = 32; items_b[1].traits.items[1] = 132;
-    items_b[2].traits.items[0] = 33; items_b[2].traits.items[1] = 133;
-    items_b[3].traits.items[0] = 34; items_b[3].traits.items[1] = 134;
-    items_b[4].traits.items[0] = 35; items_b[4].traits.items[1] = 135;
+    items_b[0].traits.indices[0] = 31; items_b[0].traits.indices[1] = 131;
+    items_b[1].traits.indices[0] = 32; items_b[1].traits.indices[1] = 132;
+    items_b[2].traits.indices[0] = 33; items_b[2].traits.indices[1] = 133;
+    items_b[3].traits.indices[0] = 34; items_b[3].traits.indices[1] = 134;
+    items_b[4].traits.indices[0] = 35; items_b[4].traits.indices[1] = 135;
 
     CivStaticData data;
     data.set_items(items_a, 2);
@@ -139,13 +132,13 @@ void test_set_items_can_replace_array_and_count () {
     note_result(data.get_item_count() == 5, "replacement array count set");
     CivStaticDataKey key = CivStaticDataTester::make_key(4);
     const CivStaticDataStruct& item = data.get_item(key);
-    note_result(item.traits.items[0] == 35, "replacement array item accessible");
+    note_result(item.traits.indices[0] == 35, "replacement array item accessible");
     summarize_test_results();
 }
 
 void test_zero_count_is_allowed () {
     static CivStaticDataStruct items[1];
-    items[0].traits.items[0] = 41; items[0].traits.items[1] = 141;
+    items[0].traits.indices[0] = 41; items[0].traits.indices[1] = 141;
     CivStaticData data;
     data.set_items(items, 0);
     note_result(data.get_item_count() == 0, "zero item count can be stored");
@@ -154,8 +147,8 @@ void test_zero_count_is_allowed () {
 
 void test_take_ownership_copies_backing_array () {
     CivStaticDataStruct* items = new CivStaticDataStruct[2];
-    items[0].traits.items[0] = 51; items[0].traits.items[1] = 151;
-    items[1].traits.items[0] = 52; items[1].traits.items[1] = 152;
+    items[0].traits.indices[0] = 51; items[0].traits.indices[1] = 151;
+    items[1].traits.indices[0] = 52; items[1].traits.indices[1] = 152;
     CivStaticData data;
     data.set_items(items, 2);
     CivStaticDataKey key = CivStaticDataTester::make_key(1);
@@ -164,8 +157,8 @@ void test_take_ownership_copies_backing_array () {
     const CivStaticDataStruct& item = data.get_item(key);
 
     note_result(&item != src_ref, "take_ownership uses a distinct buffer");
-    note_result(item.traits.items[0] == 52, "take_ownership preserves member1");
-    note_result(item.traits.items[1] == 152, "take_ownership preserves member2");
+    note_result(item.traits.indices[0] == 52, "take_ownership preserves member1");
+    note_result(item.traits.indices[1] == 152, "take_ownership preserves member2");
     data.release_items();
     summarize_test_results();
 }

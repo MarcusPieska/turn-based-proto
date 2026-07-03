@@ -41,16 +41,31 @@ RuntimeStatics& runtime_statics () {
 
 void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_building.set_items(const_cast<BuildingStaticDataStruct*>(p.get_building_data()), p.get_building_count());
+    m_building.load_names_from(p.get_building_name_parser(), p.get_building_count());
     m_city_flag.set_items(const_cast<CityFlagStaticDataStruct*>(p.get_city_flag_data()), p.get_city_flag_count());
+    m_city_flag.load_names_from(p.get_city_flag_name_parser(), p.get_city_flag_count());
     m_civ.set_items(const_cast<CivStaticDataStruct*>(p.get_civ_data()), p.get_civ_count());
+    m_civ.load_names_from(p.get_civ_name_parser(), p.get_civ_count());
     m_civ_trait.set_items(const_cast<CivTraitStaticDataStruct*>(p.get_civ_trait_data()), p.get_civ_trait_count());
+    m_civ_trait.load_names_from(p.get_civ_trait_name_parser(), p.get_civ_trait_count());
+    m_mvt_cost.set_items(const_cast<MvtCostStaticDataStruct*>(p.get_mvt_cost_data()), p.get_mvt_cost_count());
+    m_mvt_cost.load_names_from(p.get_mvt_cost_name_parser(), p.get_mvt_cost_count());
     m_resource.set_items(const_cast<ResourceStaticDataStruct*>(p.get_resource_data()), p.get_resource_count());
+    m_resource.load_names_from(p.get_resource_name_parser(), p.get_resource_count());
+    m_res_dist.set_items(const_cast<ResDistStaticDataStruct*>(p.get_res_dist_data()), p.get_res_dist_count());
+    m_res_dist.load_names_from(p.get_res_dist_name_parser(), p.get_res_dist_count());
     m_small_wonder.set_items(const_cast<SmallWonderStaticDataStruct*>(p.get_small_wonder_data()), p.get_small_wonder_count());
+    m_small_wonder.load_names_from(p.get_small_wonder_name_parser(), p.get_small_wonder_count());
     m_tech.set_items(const_cast<TechStaticDataStruct*>(p.get_tech_data()), p.get_tech_count());
+    m_tech.load_names_from(p.get_tech_name_parser(), p.get_tech_count());
     m_unit.set_items(const_cast<UnitStaticDataStruct*>(p.get_unit_data()), p.get_unit_count());
+    m_unit.load_names_from(p.get_unit_name_parser(), p.get_unit_count());
     m_unit_action.set_items(const_cast<UnitActionStaticDataStruct*>(p.get_unit_action_data()), p.get_unit_action_count());
+    m_unit_action.load_names_from(p.get_unit_action_name_parser(), p.get_unit_action_count());
     m_unit_type.set_items(const_cast<UnitTypeStaticDataStruct*>(p.get_unit_type_data()), p.get_unit_type_count());
+    m_unit_type.load_names_from(p.get_unit_type_name_parser(), p.get_unit_type_count());
     m_wonder.set_items(const_cast<WonderStaticDataStruct*>(p.get_wonder_data()), p.get_wonder_count());
+    m_wonder.load_names_from(p.get_wonder_name_parser(), p.get_wonder_count());
 
     u16 flat_fx_n = 0;
     EffectMapStruct* flat_fx = EffectRevMapper::build_flat_list(p, &flat_fx_n);
@@ -68,7 +83,9 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_city_flag.take_ownership();
     m_civ.take_ownership();
     m_civ_trait.take_ownership();
+    m_mvt_cost.take_ownership();
     m_resource.take_ownership();
+    m_res_dist.take_ownership();
     m_small_wonder.take_ownership();
     m_tech.take_ownership();
     m_unit.take_ownership();
@@ -115,12 +132,28 @@ const CivTraitStaticData& RuntimeStatics::civ_trait () const {
     return m_civ_trait;
 }
 
+MvtCostStaticData& RuntimeStatics::mvt_cost () {
+    return m_mvt_cost;
+}
+
+const MvtCostStaticData& RuntimeStatics::mvt_cost () const {
+    return m_mvt_cost;
+}
+
 ResourceStaticData& RuntimeStatics::resource () {
     return m_resource;
 }
 
 const ResourceStaticData& RuntimeStatics::resource () const {
     return m_resource;
+}
+
+ResDistStaticData& RuntimeStatics::res_dist () {
+    return m_res_dist;
+}
+
+const ResDistStaticData& RuntimeStatics::res_dist () const {
+    return m_res_dist;
 }
 
 SmallWonderStaticData& RuntimeStatics::small_wonder () {

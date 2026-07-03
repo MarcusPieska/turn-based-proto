@@ -9,86 +9,88 @@
 //=> - Includes and globals -
 //================================================================================================================================
 
+#include <cstring>
+
 #include "item_effect_helpers.h"
 
-ItemEffectType ItemEffectHelper::type_str_to_enum (const std::string& s) {
+ItemEffectType ItemEffectHelper::type_str_to_enum (cstr s) {
     [IE_TYPE_FROM_STRING_BODY]
     return ItemEffectType::NONE;
 }
 
-std::string ItemEffectHelper::type_enum_to_str (ItemEffectType v) {
+cstr ItemEffectHelper::type_enum_to_str (ItemEffectType v) {
     switch (v) {
         [IE_TYPE_TO_STRING_SWITCH_BODY]
         default: return "NONE";
     }
 }
 
-ItemEffectBoosterType ItemEffectHelper::booster_type_str_to_enum (const std::string& s) {
+ItemEffectBoosterType ItemEffectHelper::booster_type_str_to_enum (cstr s) {
     [IE_BOOSTER_TYPE_FROM_STRING_BODY]
     return ItemEffectBoosterType::NONE;
 }
 
-std::string ItemEffectHelper::booster_type_enum_to_str (ItemEffectBoosterType v) {
+cstr ItemEffectHelper::booster_type_enum_to_str (ItemEffectBoosterType v) {
     switch (v) {
         [IE_BOOSTER_TYPE_TO_STRING_SWITCH_BODY]
         default: return "NONE";
     }
 }
 
-ItemTerrainYield ItemEffectHelper::terrain_yield_str_to_enum (const std::string& s) {
+ItemTerrainYield ItemEffectHelper::terrain_yield_str_to_enum (cstr s) {
     [IE_TERRAIN_YIELD_FROM_STRING_BODY]
     return ItemTerrainYield::NONE;
 }
 
-std::string ItemEffectHelper::terrain_yield_enum_to_str (ItemTerrainYield v) {
+cstr ItemEffectHelper::terrain_yield_enum_to_str (ItemTerrainYield v) {
     switch (v) {
         [IE_TERRAIN_YIELD_TO_STRING_SWITCH_BODY]
         default: return "NONE";
     }
 }
 
-ItemEffectsScope ItemEffectHelper::effects_scope_str_to_enum (const std::string& s) {
+ItemEffectsScope ItemEffectHelper::effects_scope_str_to_enum (cstr s) {
     [IE_SCOPE_FROM_STRING_BODY]
     return ItemEffectsScope::NONE;
 }
 
-std::string ItemEffectHelper::effects_scope_enum_to_str (ItemEffectsScope v) {
+cstr ItemEffectHelper::effects_scope_enum_to_str (ItemEffectsScope v) {
     switch (v) {
         [IE_SCOPE_TO_STRING_SWITCH_BODY]
         default: return "NONE";
     }
 }
 
-ItemEffectAmountMode ItemEffectHelper::amount_mode_str_to_enum (const std::string& s) {
+ItemEffectAmountMode ItemEffectHelper::amount_mode_str_to_enum (cstr s) {
     [IE_AMOUNT_MODE_FROM_STRING_BODY]
     return ItemEffectAmountMode::NONE;
 }
 
-std::string ItemEffectHelper::amount_mode_enum_to_str (ItemEffectAmountMode v) {
+cstr ItemEffectHelper::amount_mode_enum_to_str (ItemEffectAmountMode v) {
     switch (v) {
         [IE_AMOUNT_MODE_TO_STRING_SWITCH_BODY]
         default: return "NONE";
     }
 }
 
-ItemEffectBuildMode ItemEffectHelper::build_mode_str_to_enum (const std::string& s) {
+ItemEffectBuildMode ItemEffectHelper::build_mode_str_to_enum (cstr s) {
     [IE_BUILD_MODE_FROM_STRING_BODY]
     return ItemEffectBuildMode::NONE;
 }
 
-std::string ItemEffectHelper::build_mode_enum_to_str (ItemEffectBuildMode v) {
+cstr ItemEffectHelper::build_mode_enum_to_str (ItemEffectBuildMode v) {
     switch (v) {
         [IE_BUILD_MODE_TO_STRING_SWITCH_BODY]
         default: return "NONE";
     }
 }
 
-ItemEffectUpkeepMode ItemEffectHelper::upkeep_mode_str_to_enum (const std::string& s) {
+ItemEffectUpkeepMode ItemEffectHelper::upkeep_mode_str_to_enum (cstr s) {
     [IE_UPKEEP_MODE_FROM_STRING_BODY]
     return ItemEffectUpkeepMode::NONE;
 }
 
-std::string ItemEffectHelper::upkeep_mode_enum_to_str (ItemEffectUpkeepMode v) {
+cstr ItemEffectHelper::upkeep_mode_enum_to_str (ItemEffectUpkeepMode v) {
     switch (v) {
         [IE_UPKEEP_MODE_TO_STRING_SWITCH_BODY]
         default: return "NONE";

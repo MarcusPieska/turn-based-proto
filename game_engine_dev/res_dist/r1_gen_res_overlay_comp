@@ -1,0 +1,97 @@
+#!/bin/bash
+
+INC="-I../ -I../misc -I../adv_map_gen -I../map_loader -I../data_io -I../static_state"
+CXXFLAGS="-std=c++17"
+LIB_SO="../data_io/runtime_static_loader_lib.so"
+
+if [ ! -f "$LIB_SO" ]; then
+    echo "missing $LIB_SO - run ../data_io/runtime_static_loader_lib_comp first"
+    exit 1
+fi
+
+MAP="../map_loader/map_terrain_validate.cpp"
+GEN="../adv_map_gen/generator_constants.cpp"
+PRN="../adv_map_gen/perlin_noise.cpp"
+WBD="../adv_map_gen/whiteboard.cpp"
+
+g++ $CXXFLAGS $INC -c ../data_io/runtime_static_loader.cpp -o runtime_static_loader.o
+g++ $CXXFLAGS $INC -c res_statics.cpp -o res_statics.o
+g++ $CXXFLAGS $INC -c resource_placement.cpp -o resource_placement.o
+g++ $CXXFLAGS $INC -c r1_adj_res_place.cpp -o r1_adj_res_place.o
+g++ $CXXFLAGS $INC -c r1_gen_res_overlay.cpp -o r1_gen_res_overlay.o
+g++ $CXXFLAGS $INC -c $MAP -o map_terrain_validate.o
+g++ $CXXFLAGS $INC -c $GEN -o generator_constants.o
+g++ $CXXFLAGS $INC -c $PRN -o perlin_noise.o
+g++ $CXXFLAGS $INC -c $WBD -o whiteboard.o
+g++ $CXXFLAGS $INC -c ../adv_map_gen/p1_gen_outline.cpp -o p1_gen_outline.o
+g++ $CXXFLAGS $INC -c ../adv_map_gen/p1_gen_land_depth.cpp -o p1_gen_land_depth.o
+g++ $CXXFLAGS $INC -c ../adv_map_gen/p1_gen_noise_perlin.cpp -o p1_gen_noise_perlin.o
+g++ $CXXFLAGS $INC -c ../adv_map_gen/p1_adj_outline_fill.cpp -o p1_adj_outline_fill.o
+g++ $CXXFLAGS $INC -c ../adv_map_gen/p1_gen_shaped_outline.cpp -o p1_gen_shaped_outline.o
+g++ $CXXFLAGS $INC -c ../adv_map_gen/p1_gen_river_pts.cpp -o p1_gen_river_pts.o
+g++ $CXXFLAGS $INC -c ../adv_map_gen/p1_gen_river_sectors.cpp -o p1_gen_river_sectors.o
+g++ $CXXFLAGS $INC -c ../adv_map_gen/p1_gen_river_network.cpp -o p1_gen_river_network.o
+g++ $CXXFLAGS $INC -c ../adv_map_gen/p1_gen_river_lines.cpp -o p1_gen_river_lines.o
+g++ $CXXFLAGS $INC -c ../adv_map_gen/p1_adj_river_lakes.cpp -o p1_adj_river_lakes.o
+g++ $CXXFLAGS $INC -c ../adv_map_gen/p1_adj_river_inlets.cpp -o p1_adj_river_inlets.o
+g++ $CXXFLAGS $INC -c ../adv_map_gen/p1_gen_watershed_mountains.cpp -o p1_gen_watershed_mountains.o
+g++ $CXXFLAGS $INC -c ../adv_map_gen/p1_gen_watershed_mountain_line_sets.cpp -o p1_gen_watershed_mountain_line_sets.o
+g++ $CXXFLAGS $INC -c ../adv_map_gen/p1_gen_distance_to_river.cpp -o p1_gen_distance_to_river.o
+g++ $CXXFLAGS $INC -c ../adv_map_gen/p1_gen_nearness_to_watershed_mtn.cpp -o p1_gen_nearness_to_watershed_mtn.o
+g++ $CXXFLAGS $INC -c ../adv_map_gen/p1_adj_land_altitude.cpp -o p1_adj_land_altitude.o
+g++ $CXXFLAGS $INC -c ../adv_map_gen/p1_adj_ensure_coasts.cpp -o p1_adj_ensure_coasts.o
+g++ $CXXFLAGS $INC -c ../adv_map_gen/p1_adj_ensure_seas.cpp -o p1_adj_ensure_seas.o
+g++ $CXXFLAGS $INC -c ../adv_map_gen/p1_adj_ensure_river_valleys.cpp -o p1_adj_ensure_river_valleys.o
+g++ $CXXFLAGS $INC -c ../adv_map_gen/p1_adj_ensure_mtn_foothills.cpp -o p1_adj_ensure_mtn_foothills.o
+g++ $CXXFLAGS $INC -c ../adv_map_gen/p1_tester_chain15.cpp -o p1_tester_chain15.o
+g++ $CXXFLAGS $INC -c ../adv_map_gen/p1_gen_climate.cpp -o p1_gen_climate.o
+g++ $CXXFLAGS $INC -c r1_gen_res_overlay_tester.cpp -o r1_gen_res_overlay_tester.o
+
+g++ $CXXFLAGS -o r1_gen_res_overlay_tester \
+    runtime_static_loader.o \
+    res_statics.o \
+    resource_placement.o \
+    r1_adj_res_place.o \
+    r1_gen_res_overlay.o \
+    map_terrain_validate.o \
+    generator_constants.o \
+    perlin_noise.o \
+    whiteboard.o \
+    p1_gen_outline.o \
+    p1_gen_land_depth.o \
+    p1_gen_noise_perlin.o \
+    p1_adj_outline_fill.o \
+    p1_gen_shaped_outline.o \
+    p1_gen_river_pts.o \
+    p1_gen_river_sectors.o \
+    p1_gen_river_network.o \
+    p1_gen_river_lines.o \
+    p1_adj_river_lakes.o \
+    p1_adj_river_inlets.o \
+    p1_gen_watershed_mountains.o \
+    p1_gen_watershed_mountain_line_sets.o \
+    p1_gen_distance_to_river.o \
+    p1_gen_nearness_to_watershed_mtn.o \
+    p1_adj_land_altitude.o \
+    p1_adj_ensure_coasts.o \
+    p1_adj_ensure_seas.o \
+    p1_adj_ensure_river_valleys.o \
+    p1_adj_ensure_mtn_foothills.o \
+    p1_tester_chain15.o \
+    p1_gen_climate.o \
+    r1_gen_res_overlay_tester.o \
+    -ldl \
+    $LIB_SO \
+    -Wl,-rpath,'$ORIGIN/../data_io' -lm
+
+rm runtime_static_loader.o res_statics.o resource_placement.o r1_adj_res_place.o \
+    r1_gen_res_overlay.o map_terrain_validate.o generator_constants.o \
+    perlin_noise.o whiteboard.o p1_gen_outline.o p1_gen_land_depth.o \
+    p1_gen_noise_perlin.o p1_adj_outline_fill.o p1_gen_shaped_outline.o \
+    p1_gen_river_pts.o p1_gen_river_sectors.o p1_gen_river_network.o \
+    p1_gen_river_lines.o p1_adj_river_lakes.o p1_adj_river_inlets.o \
+    p1_gen_watershed_mountains.o p1_gen_watershed_mountain_line_sets.o \
+    p1_gen_distance_to_river.o p1_gen_nearness_to_watershed_mtn.o \
+    p1_adj_land_altitude.o p1_adj_ensure_coasts.o p1_adj_ensure_seas.o \
+    p1_adj_ensure_river_valleys.o p1_adj_ensure_mtn_foothills.o \
+    p1_tester_chain15.o p1_gen_climate.o r1_gen_res_overlay_tester.o

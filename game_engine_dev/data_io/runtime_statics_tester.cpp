@@ -67,14 +67,16 @@ void print_u16_member (cstr label, u16 value) {
     printf(" %s: %u\n", label, value);
 }
 
-void print_holder_counts (const RuntimeStatics& statics) {
+void print_holder_counts (const RuntimeStatics& s) {
     printf("-----------------------------------------------------------\n");
     printf("RUNTIME STATICS COUNTS\n");
     print_u16_member("building", s.building().get_item_count());
     print_u16_member("city_flag", s.city_flag().get_item_count());
     print_u16_member("civ", s.civ().get_item_count());
     print_u16_member("civ_trait", s.civ_trait().get_item_count());
+    print_u16_member("mvt_cost", s.mvt_cost().get_item_count());
     print_u16_member("resource", s.resource().get_item_count());
+    print_u16_member("res_dist", s.res_dist().get_item_count());
     print_u16_member("small_wonder", s.small_wonder().get_item_count());
     print_u16_member("tech", s.tech().get_item_count());
     print_u16_member("unit", s.unit().get_item_count());
@@ -83,33 +85,33 @@ void print_holder_counts (const RuntimeStatics& statics) {
     print_u16_member("wonder", s.wonder().get_item_count());
 }
 
-u16 get_req_limit_for_type (const RuntimeStatics& statics, u8 req_type) {
+u16 get_req_limit_for_type (const RuntimeStatics& s, u8 req_type) {
     if (req_type == ITEM_REQ_TYPE_TECH) {
-        return statics.tech().get_item_count();
+        return s.tech().get_item_count();
     }
     if (req_type == ITEM_REQ_TYPE_RESOURCE) {
-        return statics.resource().get_item_count();
+        return s.resource().get_item_count();
     }
     if (req_type == ITEM_REQ_TYPE_FLAG) {
-        return statics.city_flag().get_item_count();
+        return s.city_flag().get_item_count();
     }
     if (req_type == ITEM_REQ_TYPE_CIV) {
-        return statics.civ().get_item_count();
+        return s.civ().get_item_count();
     }
     if (req_type == ITEM_REQ_TYPE_BUILDING) {
-        return statics.building().get_item_count();
+        return s.building().get_item_count();
     }
     return 0;
 }
 
-bool are_reqs_in_bounds (const RuntimeStatics& statics, const ItemReqsStruct& reqs, cstr label, u16 item_idx) {
+bool are_reqs_in_bounds (const RuntimeStatics& s, const ItemReqsStruct& reqs, cstr label, u16 item_idx) {
     for (u16 j = 0; j < MAX_PREREQ_COUNT; ++j) {
         const u8 req_type = reqs.types[j];
         if (req_type == ITEM_REQ_TYPE_NONE) {
             continue;
         }
         const u16 req_idx = reqs.indices[j];
-        const u16 req_limit = get_req_limit_for_type(statics, req_type);
+        const u16 req_limit = get_req_limit_for_type(s, req_type);
         cstr frm = "*** OOB REQ: %s item=%u req_slot=%u type=%u idx=%u limit=%u\n";
         if (req_idx >= req_limit) {
             if (print_level > 0) {
@@ -123,12 +125,14 @@ bool are_reqs_in_bounds (const RuntimeStatics& statics, const ItemReqsStruct& re
 
 void run_load_tests (const RuntimeStaticLoader& loader) {
     note_result(loader.is_loaded(), "shared library load succeeded");
-    const RuntimeStatics& statics = loader.statics();
+    const RuntimeStatics& s = loader.statics();
     note_result(s.building().get_item_count() > 0, "building holder has items");
     note_result(s.city_flag().get_item_count() > 0, "city_flag holder has items");
     note_result(s.civ().get_item_count() > 0, "civ holder has items");
     note_result(s.civ_trait().get_item_count() > 0, "civ_trait holder has items");
+    note_result(s.mvt_cost().get_item_count() > 0, "mvt_cost holder has items");
     note_result(s.resource().get_item_count() > 0, "resource holder has items");
+    note_result(s.res_dist().get_item_count() > 0, "res_dist holder has items");
     note_result(s.small_wonder().get_item_count() > 0, "small_wonder holder has items");
     note_result(s.tech().get_item_count() > 0, "tech holder has items");
     note_result(s.unit().get_item_count() > 0, "unit holder has items");
@@ -137,7 +141,7 @@ void run_load_tests (const RuntimeStaticLoader& loader) {
     note_result(s.wonder().get_item_count() > 0, "wonder holder has items");
 }
 
-void run_req_bounds_tests (const RuntimeStatics& statics) {
+void run_req_bounds_tests (const RuntimeStatics& s) {
     bool result = true;
     for (u16 i = 0; i < s.tech().get_item_count(); ++i) {
         if (!are_reqs_in_bounds(s, s.tech().get_item(TechStaticDataKey::from_raw(i)).reqs, "tech", i)) {
@@ -202,7 +206,7 @@ void run_req_bounds_tests (const RuntimeStatics& statics) {
     note_result(result, "SmallWonderStaticDataStruct req indices in bounds");
 }
 
-void run_map_smoke_tests (const RuntimeStatics& statics) {
+void run_map_smoke_tests (const RuntimeStatics& s) {
     note_result(s.unit_type_action_map().get_unit_type_count() > 0, "unit_type_action_map row count");
     note_result(s.unit_type_action_map().get_action_count() > 0, "unit_type_action_map col count");
     note_result(s.unit_type_action_map().get_unit_type_count() == s.unit_type().get_item_count(), "unit_type_action_map row match");
@@ -213,7 +217,7 @@ void run_map_smoke_tests (const RuntimeStatics& statics) {
     note_result(s.civ_bld_discount_map().get_building_count() == s.building().get_item_count(), "civ_bld_discount_map col match");
 }
 
-void run_effector_smoke_tests (const RuntimeStatics& statics) {
+void run_effector_smoke_tests (const RuntimeStatics& s) {
     note_result(s.local_fx().get_count() == 0 || s.local_fx().get_rows() != nullptr, "local_fx rows when non-empty");
     note_result(s.city_fx().get_count() == 0 || s.city_fx().get_rows() != nullptr, "city_fx rows when non-empty");
     note_result(s.civ_fx().get_count() == 0 || s.civ_fx().get_rows() != nullptr, "civ_fx rows when non-empty");
@@ -252,10 +256,10 @@ void run_effector_smoke_tests (const RuntimeStatics& statics) {
     note_result(total_fx == 0 || scoped_fx * 10 >= total_fx * 9, "effector scope sum >= 90% of total effects");
 }
 
-void run_parser_manager_tests (const RuntimeStatics& statics) {
+void run_parser_manager_tests (const RuntimeStatics& s) {
     ParserTestManager mgr;
     mgr.set_plvl(print_level);
-    mgr.print_all(statics);
+    mgr.print_all(s);
 }
 
 int run_parse_driver () {
@@ -266,14 +270,14 @@ int run_parse_driver () {
         }
         return 1;
     }
-    RuntimeStatics& statics = loader.statics();
+    RuntimeStatics& s = loader.statics();
     run_load_tests(loader);
-    run_req_bounds_tests(statics);
-    run_map_smoke_tests(statics);
-    run_effector_smoke_tests(statics);
-    run_parser_manager_tests(statics);
+    run_req_bounds_tests(s);
+    run_map_smoke_tests(s);
+    run_effector_smoke_tests(s);
+    run_parser_manager_tests(s);
     if (print_level >= 1) {
-        print_holder_counts(statics);
+        print_holder_counts(s);
     }
     loader.unload();
     note_result(!loader.is_loaded(), "shared library unload succeeded");

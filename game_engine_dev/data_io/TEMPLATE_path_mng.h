@@ -12,9 +12,9 @@
 #ifndef PATH_MNG_H
 #define PATH_MNG_H
 
-#include <string>
-
 #include "game_primitives.h"
+
+static const u16 PATH_MNG_PATH_N = 384;
 
 //================================================================================================================================
 //=> - PathMng class -
@@ -22,7 +22,7 @@
 
 class PathMng {
 public:
-    explicit PathMng (const std::string& path_offset);
+    explicit PathMng (cstr path_offset);
 
     [PATH_MNG_HEADER_GETTERS_TAG]
 
@@ -34,7 +34,7 @@ private:
     void build_paths ();
     void validate_paths_or_exit () const;
 
-    std::string m_path_offset;
+    char m_path_offset[PATH_MNG_PATH_N];
 
     [PATH_MNG_HEADER_MEMBERS_TAG]
 };

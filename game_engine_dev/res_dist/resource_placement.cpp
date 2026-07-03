@@ -10,9 +10,13 @@
 #include <sys/stat.h>
 
 #include "resource_placement.h"
-#include "resource_types.h"
+#include "r1_adj_res_place.h"
+#include "res_placement_defs.h"
+#include "game_map_defs.h"
 #include "generator_constants.h"
 #include "map_terrain_validate.h"
+#include "resource_static_key.h"
+#include "res_dist_static_key.h"
 
 static const char* RES_PLC_OUT_ROOT = "/home/w/Projects/simple-map-gen";
 static const char* RES_PLC_OUT_SUBDIR = "resource_placement";
@@ -60,25 +64,41 @@ bool ResPlcMatch::tile_ok (
         && ov_ok(ov, q.m_ov);
 }
 
+static const ResDistStaticDataStruct* res_rd (
+    const RuntimeStatics& s,
+    u16 res_i) 
+{
+    const ResourceStaticDataStruct& r = s.resource().get_item(
+        ResourceStaticDataKey::from_raw(res_i));
+    if (r.res_dist_idx >= s.res_dist().get_item_count()) {
+        return nullptr;
+    }
+    return &s.res_dist().get_item(ResDistStaticDataKey::from_raw(r.res_dist_idx));
+}
+
 bool ResPlcMatch::entry_ok (
     const ResPlcMapCtx& ctx,
     u32 idx,
-    const ResEntry& entry,
+    const RuntimeStatics& s,
+    u16 res_i,
     u8 quad_idx) 
 {
-    if (entry.m_has_plc == 0 || quad_idx >= entry.m_plc.m_quad_n) {
+    const ResDistStaticDataStruct* rd = res_rd(s, res_i);
+    if (rd == nullptr || rd->has_plc == 0 || quad_idx >= rd->plc.m_quad_n) {
         return false;
     }
-    return tile_ok(ctx, idx, entry.m_plc.m_quads[quad_idx]);
+    return tile_ok(ctx, idx, rd->plc.m_quads[quad_idx]);
 }
 
 u32 ResPlcMatch::mark_all_rules (
     const ResPlcMapCtx& ctx,
-    const ResEntry& entry,
+    const RuntimeStatics& s,
+    u16 res_i,
     u8* out,
     u32 out_n) 
 {
-    if (out == nullptr || entry.m_has_plc == 0) {
+    const ResDistStaticDataStruct* rd = res_rd(s, res_i);
+    if (out == nullptr || rd == nullptr || rd->has_plc == 0) {
         return 0;
     }
     const u32 n = (u32)ctx.m_w * (u32)ctx.m_h;
@@ -89,9 +109,9 @@ u32 ResPlcMatch::mark_all_rules (
     for (u32 i = 0; i < n; ++i) {
         out[i] = 0;
     }
-    for (u8 qi = 0; qi < entry.m_plc.m_quad_n; ++qi) {
+    for (u8 qi = 0; qi < rd->plc.m_quad_n; ++qi) {
         for (u32 i = 0; i < n; ++i) {
-            if (ResPlcMatch::entry_ok(ctx, i, entry, qi)) {
+            if (ResPlcMatch::entry_ok(ctx, i, s, res_i, qi)) {
                 out[i] = (u8)(qi + 1u);
                 ++hit;
             }
@@ -104,96 +124,10 @@ u32 ResPlcMatch::mark_all_rules (
 //=> - ResPlcSelect -
 //================================================================================================================================
 
-typedef struct ResPlcPool {
-    u32* m_idx;
-    u32 m_n;
-    u32 m_cap;
-} ResPlcPool;
-
-static void pool_free (ResPlcPool* p) {
-    if (p == nullptr) {
-        return;
-    }
-    delete[] p->m_idx;
-    p->m_idx = nullptr;
-    p->m_n = 0;
-    p->m_cap = 0;
-}
-
-static bool pool_add (ResPlcPool* p, u32 idx) {
-    if (p == nullptr) {
-        return false;
-    }
-    if (p->m_n >= p->m_cap) {
-        const u32 nc = p->m_cap == 0 ? 256u : p->m_cap * 2u;
-        u32* ni = new u32[nc];
-        if (ni == nullptr) {
-            return false;
-        }
-        for (u32 i = 0; i < p->m_n; ++i) {
-            ni[i] = p->m_idx[i];
-        }
-        delete[] p->m_idx;
-        p->m_idx = ni;
-        p->m_cap = nc;
-    }
-    p->m_idx[p->m_n++] = idx;
-    return true;
-}
-
-static u32 lcg_next (u32* seed) {
-    *seed = (*seed * 1103515245u + 12345u);
-    return (*seed >> 16u) & 0x7fffu;
-}
-
-static u32 wt_sum (const ResEntry& entry) {
-    u32 s = 0;
-    for (u8 qi = 0; qi < entry.m_plc.m_quad_n; ++qi) {
-        s += (u32)entry.m_plc.m_quads[qi].m_wt;
-    }
-    return s;
-}
-
-static u32 quota_for (u32 total, u32 wt, u32 wt_tot, u32* rem) {
-    if (wt_tot == 0) {
-        return 0;
-    }
-    const u64 num = (u64)total * (u64)wt + (u64)(*rem);
-    const u32 q = (u32)(num / (u64)wt_tot);
-    *rem = (u32)(num % (u64)wt_tot);
-    return q;
-}
-
-static u32 draw_from_pool (
-    ResPlcPool* pool,
-    u32 want,
-    u32* seed,
-    u8 rule_idx,
-    u8* out,
-    u32 n) 
-{
-    if (pool == nullptr || out == nullptr || seed == nullptr) {
-        return 0;
-    }
-    u32 placed = 0;
-    u32 rem = pool->m_n;
-    for (u32 d = 0; d < pool->m_n && placed < want && rem > 0; ++d) {
-        const u32 pick = lcg_next(seed) % rem;
-        const u32 idx = pool->m_idx[pick];
-        pool->m_idx[pick] = pool->m_idx[rem - 1u];
-        --rem;
-        if (out[idx] != 0) {
-            continue;
-        }
-        out[idx] = rule_idx;
-        ++placed;
-    }
-    return placed;
-}
-
 bool ResPlcSelect::run (
     const ResPlcMapCtx& ctx,
-    const ResEntry& entry,
+    const RuntimeStatics& s,
+    u16 res_i,
     u32 base_n,
     u32 seed,
     u8* out,
@@ -201,75 +135,7 @@ bool ResPlcSelect::run (
     u32* placed_n,
     double* sec_out) 
 {
-    if (placed_n != nullptr) {
-        *placed_n = 0;
-    }
-    if (sec_out != nullptr) {
-        *sec_out = 0.0;
-    }
-    if (out == nullptr || entry.m_has_plc == 0) {
-        return false;
-    }
-    const u32 n = (u32)ctx.m_w * (u32)ctx.m_h;
-    if (out_n < n || base_n == 0) {
-        return false;
-    }
-    const clock_t t0 = clock();
-    for (u32 i = 0; i < n; ++i) {
-        out[i] = 0;
-    }
-    const u32 wt_tot = wt_sum(entry);
-    if (wt_tot == 0) {
-        return false;
-    }
-    const u32 total = base_n * (u32)entry.m_plc.m_res_wt;
-    ResPlcPool* pools = new ResPlcPool[entry.m_plc.m_quad_n]();
-    if (pools == nullptr) {
-        return false;
-    }
-    for (u8 qi = 0; qi < entry.m_plc.m_quad_n; ++qi) {
-        pools[qi].m_idx = nullptr;
-        pools[qi].m_n = 0;
-        pools[qi].m_cap = 0;
-    }
-    for (u8 qi = 0; qi < entry.m_plc.m_quad_n; ++qi) {
-        for (u32 i = 0; i < n; ++i) {
-            if (ResPlcMatch::entry_ok(ctx, i, entry, qi)) {
-                if (!pool_add(&pools[qi], i)) {
-                    for (u8 qj = 0; qj < entry.m_plc.m_quad_n; ++qj) {
-                        pool_free(&pools[qj]);
-                    }
-                    delete[] pools;
-                    return false;
-                }
-            }
-        }
-    }
-    u32 rem = 0;
-    u32 placed = 0;
-    u32 rng = seed;
-    for (u8 qi = 0; qi < entry.m_plc.m_quad_n; ++qi) {
-        const u32 wt = (u32)entry.m_plc.m_quads[qi].m_wt;
-        u32 want = quota_for(total, wt, wt_tot, &rem);
-        if (qi + 1u == entry.m_plc.m_quad_n) {
-            if (placed + want > total) {
-                want = total - placed;
-            }
-        }
-        placed += draw_from_pool(&pools[qi], want, &rng, (u8)(qi + 1u), out, n);
-    }
-    for (u8 qi = 0; qi < entry.m_plc.m_quad_n; ++qi) {
-        pool_free(&pools[qi]);
-    }
-    delete[] pools;
-    const clock_t t1 = clock();
-    if (placed_n != nullptr) {
-        *placed_n = placed;
-    }
-    if (sec_out != nullptr) {
-        *sec_out = (double)(t1 - t0) / (double)CLOCKS_PER_SEC;
-    }
-    return true;
+    return r1_adj_res_place_u8(ctx, s, res_i, base_n, seed, out, out_n, placed_n, sec_out);
 }
 
 //================================================================================================================================
@@ -408,6 +274,7 @@ static void draw_mark (
     u16 w,
     u16 h,
     u16 x0,
+    u16 y0,
     u16 y,
     u16 x,
     u8 rule_idx,
@@ -418,22 +285,64 @@ static void draw_mark (
     u8 b = 0;
     ResPlcViz::rule_rgb(rule_idx, &r, &g, &b);
     if (dot_rad == 0) {
-        set_px(rgb, w, h, (i32)x0 + (i32)x, (i32)y, r, g, b);
+        set_px(rgb, w, h, (i32)x0 + (i32)x, (i32)y0 + (i32)y, r, g, b);
         return;
     }
     const i32 rad = (i32)dot_rad;
     for (i32 dy = -rad; dy <= rad; ++dy) {
         for (i32 dx = -rad; dx <= rad; ++dx) {
-            set_px(rgb, w, h, (i32)x0 + (i32)x + dx, (i32)y + dy, r, g, b);
+            set_px(rgb, w, h, (i32)x0 + (i32)x + dx, (i32)y0 + (i32)y + dy, r, g, b);
         }
     }
+}
+
+static void draw_marks_panel (
+    u8* rgb,
+    u16 out_w,
+    u16 out_h,
+    u16 map_w,
+    u16 map_h,
+    u16 x0,
+    u16 y0,
+    const u8* marks,
+    u32 mark_n,
+    u8 dot_rad) 
+{
+    const u32 n = (u32)map_w * (u32)map_h;
+    if (marks == nullptr || mark_n < n) {
+        return;
+    }
+    for (u32 i = 0; i < n; ++i) {
+        if (marks[i] == 0) {
+            continue;
+        }
+        const u16 x = (u16)(i % (u32)map_w);
+        const u16 y = (u16)(i / (u32)map_w);
+        draw_mark(rgb, out_w, out_h, x0, y0, y, x, marks[i], dot_rad);
+    }
+}
+
+static void draw_marks_pair (
+    const ResPlcMapCtx& ctx,
+    u8* rgb,
+    u16 out_w,
+    u16 out_h,
+    u16 y0,
+    const u8* marks,
+    u32 mark_n,
+    u8 dot_rad) 
+{
+    draw_marks_panel(rgb, out_w, out_h, ctx.m_w, ctx.m_h, 0, y0, marks, mark_n, dot_rad);
+    draw_marks_panel(rgb, out_w, out_h, ctx.m_w, ctx.m_h, ctx.m_w, y0, marks, mark_n, dot_rad);
 }
 
 static void fill_bg (
     const ResPlcMapCtx& ctx,
     u8* rgb,
     u16 out_w,
+    u16 out_h,
     u16 x0,
+    u16 y0,
     bool use_climate) 
 {
     const u32 n = (u32)ctx.m_w * (u32)ctx.m_h;
@@ -459,8 +368,19 @@ static void fill_bg (
         soften_bg_px(&r, &g, &b);
         const u16 x = (u16)(i % (u32)ctx.m_w);
         const u16 y = (u16)(i / (u32)ctx.m_w);
-        set_px(rgb, out_w, ctx.m_h, (i32)x0 + (i32)x, (i32)y, r, g, b);
+        set_px(rgb, out_w, out_h, (i32)x0 + (i32)x, (i32)y0 + (i32)y, r, g, b);
     }
+}
+
+static void fill_pair_row (
+    const ResPlcMapCtx& ctx,
+    u8* rgb,
+    u16 out_w,
+    u16 out_h,
+    u16 y0) 
+{
+    fill_bg(ctx, rgb, out_w, out_h, 0, y0, false);
+    fill_bg(ctx, rgb, out_w, out_h, ctx.m_w, y0, true);
 }
 
 static bool save_rgb_ppm (cstr path, const u8* rgb, u16 wi, u16 hi) {
@@ -490,22 +410,49 @@ bool ResPlcViz::save_pair_img (
         return false;
     }
     const u16 out_w = (u16)(ctx.m_w * 2u);
-    u8* rgb = new u8[static_cast<size_t>(out_w) * static_cast<size_t>(ctx.m_h) * 3u];
+    const u16 out_h = ctx.m_h;
+    u8* rgb = new u8[static_cast<size_t>(out_w) * static_cast<size_t>(out_h) * 3u];
     if (rgb == nullptr) {
         return false;
     }
-    fill_bg(ctx, rgb, out_w, 0, false);
-    fill_bg(ctx, rgb, out_w, ctx.m_w, true);
+    fill_pair_row(ctx, rgb, out_w, out_h, 0);
     for (u32 i = 0; i < n; ++i) {
         if (marks[i] == 0) {
             continue;
         }
         const u16 x = (u16)(i % (u32)ctx.m_w);
         const u16 y = (u16)(i / (u32)ctx.m_w);
-        draw_mark(rgb, out_w, ctx.m_h, 0, y, x, marks[i], prm.m_dot_rad);
-        draw_mark(rgb, out_w, ctx.m_h, ctx.m_w, y, x, marks[i], prm.m_dot_rad);
+        draw_mark(rgb, out_w, out_h, 0, 0, y, x, marks[i], prm.m_dot_rad);
+        draw_mark(rgb, out_w, out_h, ctx.m_w, 0, y, x, marks[i], prm.m_dot_rad);
     }
-    const bool ok = save_rgb_ppm(path, rgb, out_w, ctx.m_h);
+    const bool ok = save_rgb_ppm(path, rgb, out_w, out_h);
+    delete[] rgb;
+    return ok;
+}
+
+bool ResPlcViz::save_pair_ov_img (
+    cstr path,
+    const ResPlcMapCtx& ctx,
+    const u8* poss_marks,
+    const u8* act_marks,
+    u32 mark_n,
+    const ResPlcVizPrm& prm) 
+{
+    const u32 n = (u32)ctx.m_w * (u32)ctx.m_h;
+    if (path == nullptr || poss_marks == nullptr || act_marks == nullptr || mark_n < n) {
+        return false;
+    }
+    const u16 out_w = (u16)(ctx.m_w * 2u);
+    const u16 out_h = (u16)(ctx.m_h * 2u);
+    u8* rgb = new u8[static_cast<size_t>(out_w) * static_cast<size_t>(out_h) * 3u];
+    if (rgb == nullptr) {
+        return false;
+    }
+    fill_pair_row(ctx, rgb, out_w, out_h, 0);
+    fill_pair_row(ctx, rgb, out_w, out_h, ctx.m_h);
+    draw_marks_pair(ctx, rgb, out_w, out_h, 0, poss_marks, mark_n, prm.m_dot_rad);
+    draw_marks_pair(ctx, rgb, out_w, out_h, ctx.m_h, act_marks, mark_n, res_plc_viz_prm_def().m_dot_rad);
+    const bool ok = save_rgb_ppm(path, rgb, out_w, out_h);
     delete[] rgb;
     return ok;
 }

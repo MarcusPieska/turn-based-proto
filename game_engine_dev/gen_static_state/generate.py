@@ -14,6 +14,15 @@ import os
 def get_output_filename(output_prefix, template_file):
     return template_file.replace("PREFIX", output_prefix)
 
+def get_template_dir():
+    return os.path.dirname(os.path.abspath(__file__))
+
+def get_static_state_dir():
+    return os.path.normpath(os.path.join(get_template_dir(), "..", "static_state"))
+
+def get_static_variable_state_dir():
+    return os.path.normpath(os.path.join(get_template_dir(), "..", "static_variable_state"))
+
 def apply_substitution(content, old_string, new_string):
     return content.replace(old_string, new_string)
 
@@ -36,6 +45,12 @@ if __name__ == "__main__":
         struct_members.append("    " + member.strip() + ";")
     struct_members = "\n".join(struct_members)
 
+    template_dir = get_template_dir()
+    static_state_dir = get_static_state_dir()
+    static_variable_state_dir = get_static_variable_state_dir()
+    os.makedirs(static_state_dir, exist_ok=True)
+    os.makedirs(static_variable_state_dir, exist_ok=True)
+
     substitution_pairs = []
     substitution_pairs.append(("[CLASS_NAME]", class_name + "StaticData"))
     substitution_pairs.append(("[DATA_KEY]", class_name + "StaticDataKey"))
@@ -49,6 +64,7 @@ if __name__ == "__main__":
 
     template_files = []
     template_files.append("PREFIX_static_data.cpp")
+    template_files.append("PREFIX_static_data_load.cpp")
     template_files.append("PREFIX_static_data.h")
     template_files.append("PREFIX_static_key.h")
     if struct_member1 != "None" and struct_member2 != "None":
@@ -61,7 +77,7 @@ if __name__ == "__main__":
     
     output_file_contents = []
     for template_file in template_files:
-        with open(template_file, "r") as ptr:
+        with open(os.path.join(template_dir, template_file), "r") as ptr:
             output_file_contents.append(ptr.read())
 
     for i, content in enumerate(output_file_contents):
@@ -70,12 +86,12 @@ if __name__ == "__main__":
         output_file_contents[i] = content
 
     for output_file, content in zip(output_files, output_file_contents):
-        with open(output_file, "w") as ptr:
+        out_path = os.path.join(static_state_dir, output_file)
+        with open(out_path, "w") as ptr:
             ptr.write(content)
         if output_file.endswith("_static_data_comp"):
-            os.chmod(output_file, 0o755)
+            os.chmod(out_path, 0o755)
 
-    # Generate corresponding BitArray wrappers locally in gen_static_state
     bit_array_templates = []
     bit_array_templates.append("PREFIX_bit_array.cpp")
     bit_array_templates.append("PREFIX_bit_array.h")
@@ -88,7 +104,7 @@ if __name__ == "__main__":
 
     bit_array_contents = []
     for template_file in bit_array_templates:
-        with open(template_file, "r") as ptr:
+        with open(os.path.join(template_dir, template_file), "r") as ptr:
             bit_array_contents.append(ptr.read())
 
     for i, content in enumerate(bit_array_contents):
@@ -97,10 +113,11 @@ if __name__ == "__main__":
         bit_array_contents[i] = content
 
     for output_file, content in zip(bit_array_outputs, bit_array_contents):
-        with open(output_file, "w") as ptr:
+        out_path = os.path.join(static_variable_state_dir, output_file)
+        with open(out_path, "w") as ptr:
             ptr.write(content)
         if output_file.endswith("_bit_array_comp"):
-            os.chmod(output_file, 0o755)
+            os.chmod(out_path, 0o755)
 
 #================================================================================================================================#
 #=> - End -

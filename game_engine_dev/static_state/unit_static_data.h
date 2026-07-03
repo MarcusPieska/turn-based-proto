@@ -12,25 +12,27 @@
 #ifndef UNIT_STATIC_DATA_H
 #define UNIT_STATIC_DATA_H
 
-#include <string>
-
 #include "unit_static_key.h"
 #include "item_reqs.h"
 #include "item_effects.h"
+#include "res_placement.h"
 #include "game_primitives.h"
+#include "static_string_pool.h"
+
+class DataParserBase;
 
 //================================================================================================================================
 //=> - UnitStaticDataStruct -
 //================================================================================================================================
 
 typedef struct UnitStaticDataStruct {
-    std::string name;
     ItemReqsStruct reqs;
     u32 cost;
     u16 type;
     u16 attack;
     u16 defense;
     u16 mvt_pts;
+    u16 sight;
 } UnitStaticDataStruct;
 
 //================================================================================================================================
@@ -40,10 +42,14 @@ typedef struct UnitStaticDataStruct {
 class UnitStaticData {
 public:
     UnitStaticData () = default;
+    ~UnitStaticData ();
     void set_items (UnitStaticDataStruct* items, u16 item_count);
+    bool load_names (cstr const* names, u16 n);
+    bool load_names_from (const DataParserBase& psr, u16 n);
     void take_ownership ();
     void release_items ();
     const UnitStaticDataStruct& get_item (UnitStaticDataKey key) const;
+    cstr get_name (UnitStaticDataKey key) const;
     u16 get_item_count () const;
 
 private:
@@ -52,6 +58,8 @@ private:
 
     UnitStaticDataStruct* m_item_array = nullptr;
     u16 m_item_count = 0;
+    bool m_owns_array = false;
+    StaticStringPool m_name_pool;
 };
 
 #endif // UNIT_STATIC_DATA_H

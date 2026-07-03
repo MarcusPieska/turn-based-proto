@@ -9,20 +9,22 @@
 //=> - Includes and globals -
 //================================================================================================================================
 
+#include <cstring>
+
 #include "item_effect_helpers.h"
 
-ItemEffectType ItemEffectHelper::type_str_to_enum (const std::string& s) {
-    if (s == "NONE") { return ItemEffectType::NONE; }
-    if (s == "BOOSTER") { return ItemEffectType::BOOSTER; }
-    if (s == "BUILD") { return ItemEffectType::BUILD; }
-    if (s == "ENABLE") { return ItemEffectType::ENABLE; }
-    if (s == "RESEARCH_TECH") { return ItemEffectType::RESEARCH_TECH; }
-    if (s == "TRAIN") { return ItemEffectType::TRAIN; }
-    if (s == "TERRAIN_BOOSTER") { return ItemEffectType::TERRAIN_BOOSTER; }
+ItemEffectType ItemEffectHelper::type_str_to_enum (cstr s) {
+    if (s && std::strcmp(s, "NONE") == 0) { return ItemEffectType::NONE; }
+    if (s && std::strcmp(s, "BOOSTER") == 0) { return ItemEffectType::BOOSTER; }
+    if (s && std::strcmp(s, "BUILD") == 0) { return ItemEffectType::BUILD; }
+    if (s && std::strcmp(s, "ENABLE") == 0) { return ItemEffectType::ENABLE; }
+    if (s && std::strcmp(s, "RESEARCH_TECH") == 0) { return ItemEffectType::RESEARCH_TECH; }
+    if (s && std::strcmp(s, "TRAIN") == 0) { return ItemEffectType::TRAIN; }
+    if (s && std::strcmp(s, "TERRAIN_BOOSTER") == 0) { return ItemEffectType::TERRAIN_BOOSTER; }
     return ItemEffectType::NONE;
 }
 
-std::string ItemEffectHelper::type_enum_to_str (ItemEffectType v) {
+cstr ItemEffectHelper::type_enum_to_str (ItemEffectType v) {
     switch (v) {
         case ItemEffectType::NONE : return "NONE";
         case ItemEffectType::BOOSTER : return "BOOSTER";
@@ -35,32 +37,32 @@ std::string ItemEffectHelper::type_enum_to_str (ItemEffectType v) {
     }
 }
 
-ItemEffectBoosterType ItemEffectHelper::booster_type_str_to_enum (const std::string& s) {
-    if (s == "NONE") { return ItemEffectBoosterType::NONE; }
-    if (s == "SCIENCE") { return ItemEffectBoosterType::SCIENCE; }
-    if (s == "HAPPINESS") { return ItemEffectBoosterType::HAPPINESS; }
-    if (s == "PRODUCTION") { return ItemEffectBoosterType::PRODUCTION; }
-    if (s == "AIR_DEFENSE") { return ItemEffectBoosterType::AIR_DEFENSE; }
-    if (s == "AIR_RANGE") { return ItemEffectBoosterType::AIR_RANGE; }
-    if (s == "COMMERCE") { return ItemEffectBoosterType::COMMERCE; }
-    if (s == "CORRUPTION") { return ItemEffectBoosterType::CORRUPTION; }
-    if (s == "DEFENSE") { return ItemEffectBoosterType::DEFENSE; }
-    if (s == "ESPIONAGE") { return ItemEffectBoosterType::ESPIONAGE; }
-    if (s == "MOVEMENT") { return ItemEffectBoosterType::MOVEMENT; }
-    if (s == "NUKE_DEFENSE") { return ItemEffectBoosterType::NUKE_DEFENSE; }
-    if (s == "POLLUTION") { return ItemEffectBoosterType::POLLUTION; }
-    if (s == "POP_GROWTH") { return ItemEffectBoosterType::POP_GROWTH; }
-    if (s == "SEA_TRADE") { return ItemEffectBoosterType::SEA_TRADE; }
-    if (s == "SHIP_DEFENSE") { return ItemEffectBoosterType::SHIP_DEFENSE; }
-    if (s == "SHIP_MOVEMENT") { return ItemEffectBoosterType::SHIP_MOVEMENT; }
-    if (s == "SHIP_TRAINING") { return ItemEffectBoosterType::SHIP_TRAINING; }
-    if (s == "UNIT_EXP") { return ItemEffectBoosterType::UNIT_EXP; }
-    if (s == "UPGRADE_COST") { return ItemEffectBoosterType::UPGRADE_COST; }
-    if (s == "WAR_WEAR") { return ItemEffectBoosterType::WAR_WEAR; }
+ItemEffectBoosterType ItemEffectHelper::booster_type_str_to_enum (cstr s) {
+    if (s && std::strcmp(s, "NONE") == 0) { return ItemEffectBoosterType::NONE; }
+    if (s && std::strcmp(s, "SCIENCE") == 0) { return ItemEffectBoosterType::SCIENCE; }
+    if (s && std::strcmp(s, "HAPPINESS") == 0) { return ItemEffectBoosterType::HAPPINESS; }
+    if (s && std::strcmp(s, "PRODUCTION") == 0) { return ItemEffectBoosterType::PRODUCTION; }
+    if (s && std::strcmp(s, "AIR_DEFENSE") == 0) { return ItemEffectBoosterType::AIR_DEFENSE; }
+    if (s && std::strcmp(s, "AIR_RANGE") == 0) { return ItemEffectBoosterType::AIR_RANGE; }
+    if (s && std::strcmp(s, "COMMERCE") == 0) { return ItemEffectBoosterType::COMMERCE; }
+    if (s && std::strcmp(s, "CORRUPTION") == 0) { return ItemEffectBoosterType::CORRUPTION; }
+    if (s && std::strcmp(s, "DEFENSE") == 0) { return ItemEffectBoosterType::DEFENSE; }
+    if (s && std::strcmp(s, "ESPIONAGE") == 0) { return ItemEffectBoosterType::ESPIONAGE; }
+    if (s && std::strcmp(s, "MOVEMENT") == 0) { return ItemEffectBoosterType::MOVEMENT; }
+    if (s && std::strcmp(s, "NUKE_DEFENSE") == 0) { return ItemEffectBoosterType::NUKE_DEFENSE; }
+    if (s && std::strcmp(s, "POLLUTION") == 0) { return ItemEffectBoosterType::POLLUTION; }
+    if (s && std::strcmp(s, "POP_GROWTH") == 0) { return ItemEffectBoosterType::POP_GROWTH; }
+    if (s && std::strcmp(s, "SEA_TRADE") == 0) { return ItemEffectBoosterType::SEA_TRADE; }
+    if (s && std::strcmp(s, "SHIP_DEFENSE") == 0) { return ItemEffectBoosterType::SHIP_DEFENSE; }
+    if (s && std::strcmp(s, "SHIP_MOVEMENT") == 0) { return ItemEffectBoosterType::SHIP_MOVEMENT; }
+    if (s && std::strcmp(s, "SHIP_TRAINING") == 0) { return ItemEffectBoosterType::SHIP_TRAINING; }
+    if (s && std::strcmp(s, "UNIT_EXP") == 0) { return ItemEffectBoosterType::UNIT_EXP; }
+    if (s && std::strcmp(s, "UPGRADE_COST") == 0) { return ItemEffectBoosterType::UPGRADE_COST; }
+    if (s && std::strcmp(s, "WAR_WEAR") == 0) { return ItemEffectBoosterType::WAR_WEAR; }
     return ItemEffectBoosterType::NONE;
 }
 
-std::string ItemEffectHelper::booster_type_enum_to_str (ItemEffectBoosterType v) {
+cstr ItemEffectHelper::booster_type_enum_to_str (ItemEffectBoosterType v) {
     switch (v) {
         case ItemEffectBoosterType::NONE : return "NONE";
         case ItemEffectBoosterType::SCIENCE : return "SCIENCE";
@@ -87,17 +89,17 @@ std::string ItemEffectHelper::booster_type_enum_to_str (ItemEffectBoosterType v)
     }
 }
 
-ItemTerrainYield ItemEffectHelper::terrain_yield_str_to_enum (const std::string& s) {
-    if (s == "NONE") { return ItemTerrainYield::NONE; }
-    if (s == "FOOD") { return ItemTerrainYield::FOOD; }
-    if (s == "SHIELDS") { return ItemTerrainYield::SHIELDS; }
-    if (s == "COMMERCE") { return ItemTerrainYield::COMMERCE; }
-    if (s == "HAPPINESS") { return ItemTerrainYield::HAPPINESS; }
-    if (s == "DEFENSE") { return ItemTerrainYield::DEFENSE; }
+ItemTerrainYield ItemEffectHelper::terrain_yield_str_to_enum (cstr s) {
+    if (s && std::strcmp(s, "NONE") == 0) { return ItemTerrainYield::NONE; }
+    if (s && std::strcmp(s, "FOOD") == 0) { return ItemTerrainYield::FOOD; }
+    if (s && std::strcmp(s, "SHIELDS") == 0) { return ItemTerrainYield::SHIELDS; }
+    if (s && std::strcmp(s, "COMMERCE") == 0) { return ItemTerrainYield::COMMERCE; }
+    if (s && std::strcmp(s, "HAPPINESS") == 0) { return ItemTerrainYield::HAPPINESS; }
+    if (s && std::strcmp(s, "DEFENSE") == 0) { return ItemTerrainYield::DEFENSE; }
     return ItemTerrainYield::NONE;
 }
 
-std::string ItemEffectHelper::terrain_yield_enum_to_str (ItemTerrainYield v) {
+cstr ItemEffectHelper::terrain_yield_enum_to_str (ItemTerrainYield v) {
     switch (v) {
         case ItemTerrainYield::NONE : return "NONE";
         case ItemTerrainYield::FOOD : return "FOOD";
@@ -109,16 +111,16 @@ std::string ItemEffectHelper::terrain_yield_enum_to_str (ItemTerrainYield v) {
     }
 }
 
-ItemEffectsScope ItemEffectHelper::effects_scope_str_to_enum (const std::string& s) {
-    if (s == "NONE") { return ItemEffectsScope::NONE; }
-    if (s == "LOCAL") { return ItemEffectsScope::LOCAL; }
-    if (s == "CITY") { return ItemEffectsScope::CITY; }
-    if (s == "CIV") { return ItemEffectsScope::CIV; }
-    if (s == "GLOBAL") { return ItemEffectsScope::GLOBAL; }
+ItemEffectsScope ItemEffectHelper::effects_scope_str_to_enum (cstr s) {
+    if (s && std::strcmp(s, "NONE") == 0) { return ItemEffectsScope::NONE; }
+    if (s && std::strcmp(s, "LOCAL") == 0) { return ItemEffectsScope::LOCAL; }
+    if (s && std::strcmp(s, "CITY") == 0) { return ItemEffectsScope::CITY; }
+    if (s && std::strcmp(s, "CIV") == 0) { return ItemEffectsScope::CIV; }
+    if (s && std::strcmp(s, "GLOBAL") == 0) { return ItemEffectsScope::GLOBAL; }
     return ItemEffectsScope::NONE;
 }
 
-std::string ItemEffectHelper::effects_scope_enum_to_str (ItemEffectsScope v) {
+cstr ItemEffectHelper::effects_scope_enum_to_str (ItemEffectsScope v) {
     switch (v) {
         case ItemEffectsScope::NONE : return "NONE";
         case ItemEffectsScope::LOCAL : return "LOCAL";
@@ -129,14 +131,14 @@ std::string ItemEffectHelper::effects_scope_enum_to_str (ItemEffectsScope v) {
     }
 }
 
-ItemEffectAmountMode ItemEffectHelper::amount_mode_str_to_enum (const std::string& s) {
-    if (s == "NONE") { return ItemEffectAmountMode::NONE; }
-    if (s == "COUNT") { return ItemEffectAmountMode::COUNT; }
-    if (s == "PERCENTAGE") { return ItemEffectAmountMode::PERCENTAGE; }
+ItemEffectAmountMode ItemEffectHelper::amount_mode_str_to_enum (cstr s) {
+    if (s && std::strcmp(s, "NONE") == 0) { return ItemEffectAmountMode::NONE; }
+    if (s && std::strcmp(s, "COUNT") == 0) { return ItemEffectAmountMode::COUNT; }
+    if (s && std::strcmp(s, "PERCENTAGE") == 0) { return ItemEffectAmountMode::PERCENTAGE; }
     return ItemEffectAmountMode::NONE;
 }
 
-std::string ItemEffectHelper::amount_mode_enum_to_str (ItemEffectAmountMode v) {
+cstr ItemEffectHelper::amount_mode_enum_to_str (ItemEffectAmountMode v) {
     switch (v) {
         case ItemEffectAmountMode::NONE : return "NONE";
         case ItemEffectAmountMode::COUNT : return "COUNT";
@@ -145,14 +147,14 @@ std::string ItemEffectHelper::amount_mode_enum_to_str (ItemEffectAmountMode v) {
     }
 }
 
-ItemEffectBuildMode ItemEffectHelper::build_mode_str_to_enum (const std::string& s) {
-    if (s == "NONE") { return ItemEffectBuildMode::NONE; }
-    if (s == "AUTO_BUILD") { return ItemEffectBuildMode::AUTO_BUILD; }
-    if (s == "NO_BUILD") { return ItemEffectBuildMode::NO_BUILD; }
+ItemEffectBuildMode ItemEffectHelper::build_mode_str_to_enum (cstr s) {
+    if (s && std::strcmp(s, "NONE") == 0) { return ItemEffectBuildMode::NONE; }
+    if (s && std::strcmp(s, "AUTO_BUILD") == 0) { return ItemEffectBuildMode::AUTO_BUILD; }
+    if (s && std::strcmp(s, "NO_BUILD") == 0) { return ItemEffectBuildMode::NO_BUILD; }
     return ItemEffectBuildMode::NONE;
 }
 
-std::string ItemEffectHelper::build_mode_enum_to_str (ItemEffectBuildMode v) {
+cstr ItemEffectHelper::build_mode_enum_to_str (ItemEffectBuildMode v) {
     switch (v) {
         case ItemEffectBuildMode::NONE : return "NONE";
         case ItemEffectBuildMode::AUTO_BUILD : return "AUTO_BUILD";
@@ -161,14 +163,14 @@ std::string ItemEffectHelper::build_mode_enum_to_str (ItemEffectBuildMode v) {
     }
 }
 
-ItemEffectUpkeepMode ItemEffectHelper::upkeep_mode_str_to_enum (const std::string& s) {
-    if (s == "NONE") { return ItemEffectUpkeepMode::NONE; }
-    if (s == "NORMAL_UPKEEP") { return ItemEffectUpkeepMode::NORMAL_UPKEEP; }
-    if (s == "NO_UPKEEP") { return ItemEffectUpkeepMode::NO_UPKEEP; }
+ItemEffectUpkeepMode ItemEffectHelper::upkeep_mode_str_to_enum (cstr s) {
+    if (s && std::strcmp(s, "NONE") == 0) { return ItemEffectUpkeepMode::NONE; }
+    if (s && std::strcmp(s, "NORMAL_UPKEEP") == 0) { return ItemEffectUpkeepMode::NORMAL_UPKEEP; }
+    if (s && std::strcmp(s, "NO_UPKEEP") == 0) { return ItemEffectUpkeepMode::NO_UPKEEP; }
     return ItemEffectUpkeepMode::NONE;
 }
 
-std::string ItemEffectHelper::upkeep_mode_enum_to_str (ItemEffectUpkeepMode v) {
+cstr ItemEffectHelper::upkeep_mode_enum_to_str (ItemEffectUpkeepMode v) {
     switch (v) {
         case ItemEffectUpkeepMode::NONE : return "NONE";
         case ItemEffectUpkeepMode::NORMAL_UPKEEP : return "NORMAL_UPKEEP";

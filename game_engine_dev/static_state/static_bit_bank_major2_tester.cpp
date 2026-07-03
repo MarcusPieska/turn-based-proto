@@ -5,7 +5,6 @@
 #include <cstdio>
 #include <cstdint>
 #include <cstdlib>
-#include <string>
 
 #include "static_bit_bank.h"
 
@@ -14,7 +13,6 @@
 //================================================================================================================================
 
 typedef const char* cstr;
-typedef std::string str;
 
 int test_count = 0;
 int test_pass = 0;
@@ -106,12 +104,11 @@ void test_array_isolation_over_500_arrays_for_sizes_1_to_20 () {
                     bool expected = (check_array == active_array);
                     bool actual = City::is_flagged(*bank, check_array, flag_idx);
                     if (actual != expected) {
-                        str msg = str("Isolation mismatch: size ")
-                                + std::to_string(array_size)
-                                + ", active " + std::to_string(active_array)
-                                + ", checked " + std::to_string(check_array)
-                                + ", flag " + std::to_string(flag_idx);
-                        note_result(false, msg.c_str());
+                        char msg[256];
+                        std::snprintf(msg, sizeof(msg),
+                            "Isolation mismatch: size %u, active %u, checked %u, flag %u",
+                            array_size, active_array, check_array, flag_idx);
+                        note_result(false, msg);
                         break;
                     }
                 }
@@ -120,8 +117,9 @@ void test_array_isolation_over_500_arrays_for_sizes_1_to_20 () {
         }
 
         {
-            str msg = str("Isolation holds for array size ") + std::to_string(array_size);
-            note_result(total_test_fails == 0, msg.c_str());
+            char msg[128];
+            std::snprintf(msg, sizeof(msg), "Isolation holds for array size %u", array_size);
+            note_result(total_test_fails == 0, msg);
         }
         City::destroy_bank(bank);
     }

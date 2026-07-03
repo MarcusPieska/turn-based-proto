@@ -44,7 +44,7 @@ public:
         u8* terrain,
         u16 w,
         u16 h,
-        const u8* riv,
+        u8* riv,
         const P1_Gen_RiverLinesRslt& lines);
     bool is_valid () const;
 

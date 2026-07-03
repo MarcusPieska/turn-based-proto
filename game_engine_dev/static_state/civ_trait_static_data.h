@@ -12,19 +12,21 @@
 #ifndef CIV_TRAIT_STATIC_DATA_H
 #define CIV_TRAIT_STATIC_DATA_H
 
-#include <string>
-
 #include "civ_trait_static_key.h"
 #include "item_reqs.h"
 #include "item_effects.h"
+#include "res_placement.h"
 #include "game_primitives.h"
+#include "static_string_pool.h"
+
+class DataParserBase;
 
 //================================================================================================================================
 //=> - CivTraitStaticDataStruct -
 //================================================================================================================================
 
 typedef struct CivTraitStaticDataStruct {
-    std::string name;
+
 } CivTraitStaticDataStruct;
 
 //================================================================================================================================
@@ -34,10 +36,14 @@ typedef struct CivTraitStaticDataStruct {
 class CivTraitStaticData {
 public:
     CivTraitStaticData () = default;
+    ~CivTraitStaticData ();
     void set_items (CivTraitStaticDataStruct* items, u16 item_count);
+    bool load_names (cstr const* names, u16 n);
+    bool load_names_from (const DataParserBase& psr, u16 n);
     void take_ownership ();
     void release_items ();
     const CivTraitStaticDataStruct& get_item (CivTraitStaticDataKey key) const;
+    cstr get_name (CivTraitStaticDataKey key) const;
     u16 get_item_count () const;
 
 private:
@@ -46,6 +52,8 @@ private:
 
     CivTraitStaticDataStruct* m_item_array = nullptr;
     u16 m_item_count = 0;
+    bool m_owns_array = false;
+    StaticStringPool m_name_pool;
 };
 
 #endif // CIV_TRAIT_STATIC_DATA_H

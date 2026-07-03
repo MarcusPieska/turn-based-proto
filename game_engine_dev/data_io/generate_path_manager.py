@@ -18,7 +18,9 @@ path_config_endings.append("civ_traits")
 path_config_endings.append("civs")
 path_config_endings.append("effects")
 path_config_endings.append("governments")
+path_config_endings.append("mvt_costs")
 path_config_endings.append("resources")
+path_config_endings.append("res_dists")
 path_config_endings.append("small_wonders")
 path_config_endings.append("techs")
 path_config_endings.append("unit_actions")
@@ -36,7 +38,7 @@ def join_tag_lines(lines, indent_between="\n    "):
 def lines_path_header_getters(stems):
     lines = []
     for s in stems:
-        lines.append("const std::string& get_path_to_%s () const;" % s)
+        lines.append("cstr get_path_to_%s () const;" % s)
     return lines
 
 def unroll_path_header_getters(stems):
@@ -45,7 +47,7 @@ def unroll_path_header_getters(stems):
 def lines_path_header_members(stems):
     lines = []
     for s in stems:
-        lines.append("std::string m_path_%s;" % s)
+        lines.append("char m_path_%s[PATH_MNG_PATH_N];" % s)
     return lines
 
 def unroll_path_header_members(stems):
@@ -53,7 +55,7 @@ def unroll_path_header_members(stems):
 
 def lines_path_cpp_getter_block(stem):
     lines = []
-    lines.append("const std::string& PathMng::get_path_to_%s () const {" % stem)
+    lines.append("cstr PathMng::get_path_to_%s () const {" % stem)
     lines.append("    return m_path_%s;" % stem)
     lines.append("}")
     return lines
@@ -67,7 +69,7 @@ def unroll_path_cpp_getters(stems):
 def lines_path_cpp_build_assignments(stems):
     lines = []
     for s in stems:
-        lines.append("m_path_%s = m_path_offset + \"/game_config.%s\";" % (s, s))
+        lines.append('join_path(m_path_%s, PATH_MNG_PATH_N, m_path_offset, "game_config.%s");' % (s, s))
     return lines
 
 def unroll_path_cpp_build_paths(stems):
@@ -76,7 +78,7 @@ def unroll_path_cpp_build_paths(stems):
 def lines_path_cpp_validate_block(stem):
     lines = []
     lines.append("if (!does_file_exist(m_path_%s)) {" % stem)
-    lines.append("    printf(\"ERROR: Missing file: %%s\\n\", m_path_%s.c_str());" % stem)
+    lines.append('    printf("ERROR: Missing file: %%s\\n", m_path_%s);' % stem)
     lines.append("    ++error_count;")
     lines.append("}")
     return lines
@@ -90,7 +92,7 @@ def unroll_path_cpp_validate_paths(stems):
 def lines_path_mng_tester_note_all_paths_exist(stems):
     lines = []
     for s in stems:
-        lines.append("note_result(does_file_exist(paths.get_path_to_%s()), (str(tag) + \" %s exists\").c_str());" % (s, s))
+        lines.append('    { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%%s %s exists", tag); note_result(does_file_exist(paths.get_path_to_%s()), _buf); }' % (s, s))
     return lines
 
 def unroll_path_mng_tester_note_all_paths_exist(stems):

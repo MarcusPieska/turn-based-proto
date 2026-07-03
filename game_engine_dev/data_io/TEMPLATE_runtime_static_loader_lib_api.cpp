@@ -9,8 +9,6 @@
 //=> - Includes -
 //================================================================================================================================
 
-#include <string>
-
 #include "runtime_static_loader_lib_api.h"
 
 #include "static_parsing_manager.h"
@@ -25,7 +23,7 @@ struct RuntimeStaticLoaderLibState {
     RuntimeStatics* statics;
 
     explicit RuntimeStaticLoaderLibState (const char* path_offset) :
-        parser(new StaticParsingManager(std::string(path_offset ? path_offset : ""))),
+        parser(new StaticParsingManager(path_offset ? path_offset : "")),
         statics(new RuntimeStatics()) {
         statics->load_from(*parser);
         set_runtime_statics(statics);

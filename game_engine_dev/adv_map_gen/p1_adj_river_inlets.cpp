@@ -37,7 +37,7 @@ bool P1_Adj_RiverInlets::adjust (
     u8* terrain,
     u16 w,
     u16 h,
-    const u8* riv,
+    u8* riv,
     const P1_Gen_RiverLinesRslt& lines) 
 {
     m_valid_adjust = false;
@@ -66,6 +66,7 @@ bool P1_Adj_RiverInlets::adjust (
         const u16 lim = inlet_lim(lines.m_sys[si].m_max_d, m_sp.m_perc, m_sp.m_min_sz);
         if (lines.m_rdep[i] <= lim) {
             terrain[i] = TERR_COASTAL[0];
+            riv[i] = 0u;
         }
     }
     m_valid_adjust = true;

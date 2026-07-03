@@ -1,31 +1,37 @@
-The data format for specifying resource placement is up to 4 quadruplets, plus one resource-level weight. The quadruplets contains 3 enums and an integer weight. The enums denote terrains, climates and overlays. Below is an example of a resource that uses two quadruplets, in the correct format. What it specifies is that a certain resource, like iron, is placed in hills and mountains, regardless of climate and overlay. Below that is another example for something like furs. The resource-level weights in these two examples (4 and 1) indicate that a world should have 4 times as much iron as furs. Placement rules are appended to each resource line in game_config.resources after the tech requirement. City has no placement rule.
+Resource placement is stored in game_config.res_dists, one line per resource. Each line has a name, a resource-level weight, and up to four placement quadruplets. Top-level fields are colon-separated. Each quadruplet is parenthesized and comma-separated inside: terrain, climate, overlay, quad weight.
 
-4 : (TERR_HILLS : ALL_CLIMATES : ALL_OVERLAYS : 1) : (TERR_MOUNTAINS : ALL_CLIMATES : ALL_OVERLAYS : 2)
-1 : (TERR_PLAINS : CLIMATE_GRASSLAND : OVERLAY_FORESTS : 1) : (TERR_HILLS : CLIMATE_GRASSLAND : OVERLAY_FORESTS : 1) 
+Example (Iron — global weight 4, two quads):
 
+Iron : 4 : (TERR_HILLS, ALL_CLIMATES, ALL_OVERLAYS, 1) : (TERR_MOUNTAINS, ALL_CLIMATES, ALL_OVERLAYS, 2)
 
-All terrain types:
+Example (Furs — global weight 1, two quads):
+
+Furs : 1 : (TERR_PLAINS, CLIMATE_GRASSLAND, OVERLAY_FORESTS, 1) : (TERR_HILLS, CLIMATE_GRASSLAND, OVERLAY_FORESTS, 1)
+
+The resource-level weight sets relative abundance across resources. Quad weights set relative frequency among quads for the same resource.
+
+Terrain tokens:
  - ALL_TERRAINS
  - TERR_OCEAN
  - TERR_SEA
  - TERR_COASTAL
- - TERR_PLAINS (as in flat lands)
+ - TERR_PLAINS
  - TERR_HILLS
  - TERR_MOUNTAINS
- 
-All climate types:
+
+Climate tokens:
  - ALL_CLIMATES
  - CLIMATE_TUNDRA
  - CLIMATE_GRASSLAND
- - CLIMATE_PLAINS (as in moderate dry lands, or poor farmlands like podsol)
+ - CLIMATE_PLAINS
  - CLIMATE_DESERT
- 
-Overlays: 
+
+Overlay tokens:
  - ALL_OVERLAYS
  - NO_OVERLAYS
  - OVERLAY_SWAMPS
  - OVERLAY_FORESTS
  - OVERLAY_JUNGLES
- - OVERLAY_RIVERS (no resource for this yet, but maybe gold, silt, peat at some point)
+ - OVERLAY_RIVERS
 
-
+Parsed into ResPlacement / ResQuad in static_state/res_placement.h via DataParserBase::parse_res_placement and ResDistParser.

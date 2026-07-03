@@ -64,7 +64,8 @@ def derive_manager_print_all(specs):
         key_name = class_name + "StaticDataKey"
         lines.append("m_%s.open_writer();" % prefix)
         lines.append("for (u16 i = 0; i < statics.%s().get_item_count(); ++i) {" % prefix)
-        lines.append("    m_%s.pr_item(statics.%s().get_item(%s::from_raw(i)));" % (prefix, prefix, key_name))
+        lines.append("    m_%s.pr_item(statics.%s().get_name(%s::from_raw(i)), statics.%s().get_item(%s::from_raw(i)));" % (
+            prefix, prefix, key_name, prefix, key_name))
         lines.append("}")
         lines.append("m_%s.close_writer();" % prefix)
         lines.append("")
@@ -74,6 +75,7 @@ def derive_manager_print_all(specs):
 
 def generate_parser_test_manager(specs):
     this_dir = os.path.dirname(os.path.abspath(__file__))
+    data_io_dir = os.path.normpath(os.path.join(this_dir, "..", "data_io"))
     sub_pairs = []
     sub_pairs.append(("[MANAGER_INCLUDES_TAG]", "\n".join(derive_manager_includes(specs))))
     sub_pairs.append(("[MANAGER_MEMBERS_TAG]", "\n    ".join(derive_manager_members(specs))))
@@ -86,7 +88,7 @@ def generate_parser_test_manager(specs):
     output_files = ["parser_test_manager.h", "parser_test_manager.cpp"]
     for template_file, output_file in zip(template_files, output_files):
         template_path = os.path.join(this_dir, template_file)
-        out_path = os.path.join(this_dir, output_file)
+        out_path = os.path.join(data_io_dir, output_file)
         with open(template_path, "r") as ptr:
             content = ptr.read()
         for old_string, new_string in sub_pairs:

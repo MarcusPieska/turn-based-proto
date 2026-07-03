@@ -5,8 +5,6 @@
 #ifndef ITEM_EFFECT_HANDLER_H
 #define ITEM_EFFECT_HANDLER_H
 
-#include <string>
-
 #include "item_effects.h"
 #include "opt_str_mng.h"
 
@@ -22,7 +20,6 @@ public:
 
     ItemEffectsStruct parse_effects_line (const StringManager& line_items) const;
     ItemEffectsStruct parse_effects_line (cstr line) const;
-    ItemEffectsStruct parse_effects_line (const std::string& line) const;
 
     u32 get_error_count () const;
     void reset_error_count ();

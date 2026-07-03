@@ -31,7 +31,7 @@ namespace {
 //=> - StaticParsingManager implementation -
 //================================================================================================================================
 
-StaticParsingManager::StaticParsingManager (const std::string& path_offset) :
+StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_paths(path_offset),
 
     m_effect_items(),
@@ -46,7 +46,7 @@ StaticParsingManager::StaticParsingManager (const std::string& path_offset) :
 
     [STATIC_PARSE_CPP_DATA_PTR_INITS_TAG]
 {
-    m_effect_items.load_file_content(m_paths.get_path_to_effects().c_str());
+    m_effect_items.load_file_content(m_paths.get_path_to_effects());
     [STATIC_PARSE_CPP_LOAD_ITEMS_TAG]
     [STATIC_PARSE_CPP_INIT_NAME_PARSERS_TAG]
     build_name_to_idx_callbacks();
@@ -59,6 +59,7 @@ StaticParsingManager::~StaticParsingManager () {
 }
 
 [STATIC_PARSE_CPP_TYPED_GETTERS_TAG]
+[STATIC_PARSE_CPP_NAME_PARSER_GETTERS_TAG]
 [STATIC_PARSE_CPP_RAW_GETTERS_TAG]
 [STATIC_PARSE_CPP_MAP_GETTERS_TAG]
 

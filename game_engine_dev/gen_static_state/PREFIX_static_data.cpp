@@ -9,35 +9,75 @@
 //=> - Includes -
 //================================================================================================================================
 
+#include <cstring>
+
 #include "[MEMBER_TAG]_static_data.h"
 
 //================================================================================================================================
 //=> - [CLASS_NAME] implementation -
 //================================================================================================================================
 
+[CLASS_NAME]::~[CLASS_NAME] () {
+    release_items();
+}
+
 void [CLASS_NAME]::set_items ([DATA_STRUCT]* items, u16 item_count) {
     m_item_array = items;
     m_item_count = item_count;
+    m_owns_array = false;
+}
+
+bool [CLASS_NAME]::load_names (cstr const* names, u16 n) {
+    if (!names || n == 0) {
+        return false;
+    }
+    u32 char_n = 0;
+    for (u16 i = 0; i < n; ++i) {
+        char_n += (u32)std::strlen(names[i] ? names[i] : "");
+    }
+    StaticStringPool built(n, char_n);
+    for (u16 i = 0; i < n; ++i) {
+        u16 k = 0;
+        if (!built.add(names[i], &k) || k != i) {
+            return false;
+        }
+    }
+    m_name_pool = built;
+    return true;
 }
 
 void [CLASS_NAME]::take_ownership () {
     [DATA_STRUCT]* tmp_array = m_item_array;
+    bool tmp_owned = m_owns_array;
+    StaticStringPool tmp_pool(m_name_pool);
     m_item_array = new [DATA_STRUCT][m_item_count];
     for (u16 i = 0; i < m_item_count; ++i) {
         m_item_array[i] = tmp_array[i];
     }
-    delete[] tmp_array;
+    if (tmp_owned) {
+        delete[] tmp_array;
+    }
+    m_name_pool = tmp_pool;
+    m_owns_array = true;
 }
 
 void [CLASS_NAME]::release_items () {
-    delete[] m_item_array;
+    if (m_owns_array) {
+        delete[] m_item_array;
+        m_owns_array = false;
+    }
     m_item_array = nullptr;
     m_item_count = 0;
+    m_name_pool.reset();
 }
 
 const [DATA_STRUCT]& [CLASS_NAME]::get_item ([DATA_KEY] key) const {
     u16 idx = key.value();
     return m_item_array[idx];
+}
+
+cstr [CLASS_NAME]::get_name ([DATA_KEY] key) const {
+    return m_name_pool.get(key.value());
 }
 
 u16 [CLASS_NAME]::get_item_count () const {

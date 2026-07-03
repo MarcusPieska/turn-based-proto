@@ -3,8 +3,8 @@
 //================================================================================================================================
 
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
-#include <string>
 
 #include "item_effect_handler.h"
 #include "item_effect_helpers.h"
@@ -16,55 +16,87 @@
 
 namespace {
 
-std::string trim_copy (cstr in) {
-    if (!in) return "";
-    std::string s(in);
-    std::size_t b = 0;
-    std::size_t e = s.size();
-    while (b < e && (s[b] == ' ' || s[b] == '\t' || s[b] == '\r' || s[b] == '\n')) ++b;
-    while (e > b && (s[e - 1] == ' ' || s[e - 1] == '\t' || s[e - 1] == '\r' || s[e - 1] == '\n')) --e;
-    return s.substr(b, e - b);
+void trim_ws_idx (StringManager& m, u32 i) {
+    m.trim_head_char(i, ' ');
+    m.trim_tail_char(i, ' ');
+    m.trim_head_char(i, '\t');
+    m.trim_tail_char(i, '\t');
+    m.trim_head_char(i, '\r');
+    m.trim_tail_char(i, '\r');
+    m.trim_head_char(i, '\n');
+    m.trim_tail_char(i, '\n');
 }
 
 void trim_all (StringManager& m) {
     for (u32 i = 0; i < m.get_string_count(); ++i) {
-        m.trim_head_char(i, ' ');
-        m.trim_tail_char(i, ' ');
-        m.trim_head_char(i, '\t');
-        m.trim_tail_char(i, '\t');
-        m.trim_head_char(i, '\r');
-        m.trim_tail_char(i, '\r');
-        m.trim_head_char(i, '\n');
-        m.trim_tail_char(i, '\n');
+        trim_ws_idx(m, i);
     }
 }
 
-bool enable_feature_from_token (const std::string& n, u16& out) {
-    if (n == "ALL_GOVERNMENTS") {
+bool streq (cstr a, cstr b) {
+    if (!a) {
+        a = "";
+    }
+    if (!b) {
+        b = "";
+    }
+    return std::strcmp(a, b) == 0;
+}
+
+bool parse_paren_token (cstr raw, StringManager& verb_out, StringManager& args_out, StringManager& raw_out) {
+    raw_out.load_cstr_content(raw ? raw : "");
+    trim_ws_idx(raw_out, 0);
+
+    StringManager tok;
+    tok.load_cstr_content(raw_out.get_string_content(0));
+    tok.split_string_by_char(0, '(');
+    if (tok.get_string_count() < 2u) {
+        return false;
+    }
+    verb_out.load_cstr_content(tok.get_string_content(0));
+    trim_ws_idx(verb_out, 0);
+
+    StringManager inside;
+    inside.load_cstr_content(tok.get_string_content(1));
+    inside.split_string_by_char(0, ')');
+    inside.cull_empty_strings();
+    if (inside.get_string_count() == 0) {
+        return false;
+    }
+    trim_ws_idx(inside, 0);
+    args_out.load_cstr_content(inside.get_string_content(0));
+    args_out.split_string_by_char(0, ',');
+    trim_all(args_out);
+    args_out.cull_empty_strings();
+    return true;
+}
+
+bool enable_feature_from_token (cstr n, u16& out) {
+    if (streq(n, "ALL_GOVERNMENTS")) {
         out = 1;
         return true;
     }
-    if (n == "UNIT_VETERAN") {
+    if (streq(n, "UNIT_VETERAN")) {
         out = 2;
         return true;
     }
-    if (n == "DIPLOMACY") {
+    if (streq(n, "DIPLOMACY")) {
         out = 3;
         return true;
     }
-    if (n == "NUKES") {
+    if (streq(n, "NUKES")) {
         out = 4;
         return true;
     }
-    if (n == "SPACE") {
+    if (streq(n, "SPACE")) {
         out = 5;
         return true;
     }
-    if (n == "SHIP_BUILD") {
+    if (streq(n, "SHIP_BUILD")) {
         out = 6;
         return true;
     }
-    if (n == "AIR_UNIT") {
+    if (streq(n, "AIR_UNIT")) {
         out = 7;
         return true;
     }
@@ -105,39 +137,33 @@ ItemEffectsStruct ItemEffectHandler::parse_effects_line (const StringManager& li
 
     u16 write_idx = 0;
     for (u32 pi = 1; pi < line_items.get_string_count(); ++pi) {
-        const std::string token = trim_copy(line_items.get_string_content(pi));
+        StringManager verb_m;
+        StringManager raw_m;
+        StringManager args_mgr;
+        if (!parse_paren_token(line_items.get_string_content(pi), verb_m, args_mgr, raw_m)) {
+            printf("ERROR: ItemEffectHandler invalid effect token '%s'\n", line_items.get_string_content(pi));
+            ++m_error_count;
+            continue;
+        }
+        cstr effect_verb = verb_m.get_string_content(0);
+        cstr token_raw = raw_m.get_string_content(0);
         if (write_idx >= MAX_EFFECT_COUNT) {
             printf("ERROR: ItemEffectHandler too many (%u) effects\n", MAX_EFFECT_COUNT);
             ++m_error_count;
             return effects;
         }
-        std::size_t p0 = token.find('(');
-        std::size_t p1 = token.rfind(')');
-        if (p0 == std::string::npos || p1 == std::string::npos || p1 <= p0 + 1) {
-            printf("ERROR: ItemEffectHandler invalid effect token '%s'\n", token.c_str());
-            ++m_error_count;
-            continue;
-        }
-
-        const std::string effect_verb = trim_copy(token.substr(0, p0).c_str());
-        const std::string arg_text = token.substr(p0 + 1, p1 - p0 - 1);
-        StringManager args_mgr;
-        args_mgr.load_cstr_content(arg_text.c_str());
-        args_mgr.split_string_by_char(0, ',');
-        trim_all(args_mgr);
-        args_mgr.cull_empty_strings();
         u32 arg_n = args_mgr.get_string_count();
 
         if (m_cbs->effect_name_to_idx != nullptr) {
-            (void)m_cbs->effect_name_to_idx(effect_verb.c_str());
+            (void)m_cbs->effect_name_to_idx(effect_verb);
         }
 
         ItemEffectStruct& slot = effects.items[write_idx];
         slot.type = static_cast<u16>(ItemEffectType::NONE);
 
-        if (effect_verb == "booster") {
+        if (streq(effect_verb, "booster")) {
             if (arg_n != 4) {
-                printf("ERROR: ItemEffectHandler booster(...) expects 4 args in '%s'\n", token.c_str());
+                printf("ERROR: ItemEffectHandler booster(...) expects 4 args in '%s'\n", token_raw);
                 ++m_error_count;
                 continue;
             }
@@ -161,12 +187,12 @@ ItemEffectsStruct ItemEffectHandler::parse_effects_line (const StringManager& li
             }
             slot.type = static_cast<u16>(ItemEffectType::BOOSTER);
             slot.effect.booster.target_id = target_id;
-            slot.effect.booster.amount = static_cast<i16>(std::stoi(args_mgr.get_string_content(1)));
+            slot.effect.booster.amount = static_cast<i16>(std::strtol(args_mgr.get_string_content(1), nullptr, 10));
             slot.effect.booster.scope = scope;
             slot.effect.booster.amount_mode = amount_mode;
-        } else if (effect_verb == "build") {
+        } else if (streq(effect_verb, "build")) {
             if (arg_n != 4) {
-                printf("ERROR: ItemEffectHandler build(...) expects 4 args in '%s'\n", token.c_str());
+                printf("ERROR: ItemEffectHandler build(...) expects 4 args in '%s'\n", token_raw);
                 ++m_error_count;
                 continue;
             }
@@ -196,9 +222,9 @@ ItemEffectsStruct ItemEffectHandler::parse_effects_line (const StringManager& li
             slot.effect.build.scope = scope;
             slot.effect.build.build_mode = bmode;
             slot.effect.build.upkeep_mode = umode;
-        } else if (effect_verb == "enable") {
+        } else if (streq(effect_verb, "enable")) {
             if (arg_n != 2) {
-                printf("ERROR: ItemEffectHandler enable(...) expects 2 args in '%s'\n", token.c_str());
+                printf("ERROR: ItemEffectHandler enable(...) expects 2 args in '%s'\n", token_raw);
                 ++m_error_count;
                 continue;
             }
@@ -217,17 +243,17 @@ ItemEffectsStruct ItemEffectHandler::parse_effects_line (const StringManager& li
             slot.type = static_cast<u16>(ItemEffectType::ENABLE);
             slot.effect.enable.feature_id = feature_id;
             slot.effect.enable.scope = scope;
-        } else if (effect_verb == "researchTech") {
+        } else if (streq(effect_verb, "researchTech")) {
             if (arg_n != 1) {
-                printf("ERROR: ItemEffectHandler researchTech(...) expects 1 arg in '%s'\n", token.c_str());
+                printf("ERROR: ItemEffectHandler researchTech(...) expects 1 arg in '%s'\n", token_raw);
                 ++m_error_count;
                 continue;
             }
             slot.type = static_cast<u16>(ItemEffectType::RESEARCH_TECH);
-            slot.effect.research_tech.tech_count = static_cast<u16>(std::stoi(args_mgr.get_string_content(0)));
-        } else if (effect_verb == "train") {
+            slot.effect.research_tech.tech_count = static_cast<u16>(std::strtoul(args_mgr.get_string_content(0), nullptr, 10));
+        } else if (streq(effect_verb, "train")) {
             if (arg_n != 2) {
-                printf("ERROR: ItemEffectHandler train(...) expects 2 args in '%s'\n", token.c_str());
+                printf("ERROR: ItemEffectHandler train(...) expects 2 args in '%s'\n", token_raw);
                 ++m_error_count;
                 continue;
             }
@@ -236,9 +262,9 @@ ItemEffectsStruct ItemEffectHandler::parse_effects_line (const StringManager& li
             if (m_cbs->unit_name_to_idx != nullptr) {
                 slot.effect.train.unit_id = m_cbs->unit_name_to_idx(args_mgr.get_string_content(0));
             }
-            slot.effect.train.turns_interval = static_cast<u8>(std::stoi(args_mgr.get_string_content(1)));
+            slot.effect.train.turns_interval = static_cast<u8>(std::strtoul(args_mgr.get_string_content(1), nullptr, 10));
         } else {
-            printf("ERROR: ItemEffectHandler unhandled effect verb '%s'\n", effect_verb.c_str());
+            printf("ERROR: ItemEffectHandler unhandled effect verb '%s'\n", effect_verb);
             ++m_error_count;
             continue;
         }
@@ -254,10 +280,6 @@ ItemEffectsStruct ItemEffectHandler::parse_effects_line (cstr line) const {
     trim_all(parts);
     parts.cull_empty_strings();
     return parse_effects_line(parts);
-}
-
-ItemEffectsStruct ItemEffectHandler::parse_effects_line (const std::string& line) const {
-    return parse_effects_line(line.c_str());
 }
 
 //================================================================================================================================

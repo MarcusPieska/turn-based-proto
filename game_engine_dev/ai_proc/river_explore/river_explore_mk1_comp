@@ -1,0 +1,38 @@
+#!/bin/bash
+
+INC="-I.. -I../.. -I../../game -I../../map_loader -I../../simple_map_gen -I../../misc"
+CXXFLAGS="-std=c++17 -Wall -Wextra"
+
+g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
+g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_data.cpp -o map_terrain_data.o
+g++ $CXXFLAGS $INC -c ../../map_loader/map_loader.cpp -o map_loader.o
+g++ $CXXFLAGS $INC -c ../../game/runtime_trace_dbg.cpp -o runtime_trace_dbg.o
+g++ $CXXFLAGS $INC -c ../../game/game_array_simple.cpp -o game_array_simple.o
+g++ $CXXFLAGS $INC -c ../../game/factory_game_array_simple.cpp -o factory_game_array_simple.o
+g++ $CXXFLAGS $INC -c ../../misc/map_bit_overlay.cpp -o map_bit_overlay.o
+g++ $CXXFLAGS $INC -c ../ai_whiteboard.cpp -o ai_whiteboard.o
+g++ $CXXFLAGS $INC -c ../path_mk1.cpp -o path_mk1.o
+g++ $CXXFLAGS $INC -c river_pathing.cpp -o river_pathing.o
+g++ $CXXFLAGS $INC -c test_support.cpp -o test_support.o
+g++ $CXXFLAGS $INC -c river_explore_mk1.cpp -o river_explore_mk1.o
+g++ $CXXFLAGS $INC -c river_explore_mk1_tester.cpp -o river_explore_mk1_tester.o
+
+g++ $CXXFLAGS -o river_explore_mk1_tester \
+    map_terrain_validate.o \
+    map_terrain_data.o \
+    map_loader.o \
+    runtime_trace_dbg.o \
+    game_array_simple.o \
+    factory_game_array_simple.o \
+    map_bit_overlay.o \
+    ai_whiteboard.o \
+    path_mk1.o \
+    river_pathing.o \
+    test_support.o \
+    river_explore_mk1.o \
+    river_explore_mk1_tester.o
+
+rm map_terrain_validate.o map_terrain_data.o map_loader.o runtime_trace_dbg.o \
+    game_array_simple.o factory_game_array_simple.o map_bit_overlay.o \
+    ai_whiteboard.o path_mk1.o \
+    river_pathing.o test_support.o river_explore_mk1.o river_explore_mk1_tester.o

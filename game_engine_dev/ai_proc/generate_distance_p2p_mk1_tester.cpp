@@ -387,7 +387,7 @@ static P2PAuditRes audit_overlay (
             } else {
                 res.n_no_step++;
             }
-            if (step_dec(step[i]) == 1000) {
+            if (step_dec(step[i]) == static_cast<i32>(PATH_MP_TURN)) {
                 res.n_rem1000++;
                 if (rivers[i] != 0u) {
                     res.n_rem1000_riv++;
@@ -433,7 +433,8 @@ static void print_test_outcome (
         audit.n_no_step,
         k_ansi_rst,
         audit.n_end);
-    std::printf("  rem=1000 %u on_river %u\n",
+    std::printf("  rem=%u %u on_river %u\n",
+        static_cast<unsigned>(PATH_MP_TURN),
         audit.n_rem1000,
         audit.n_rem1000_riv);
     std::printf("  path len %u traced %s\n",

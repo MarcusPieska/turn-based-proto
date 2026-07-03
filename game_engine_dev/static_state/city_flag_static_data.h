@@ -12,19 +12,20 @@
 #ifndef CITY_FLAG_STATIC_DATA_H
 #define CITY_FLAG_STATIC_DATA_H
 
-#include <string>
-
 #include "city_flag_static_key.h"
 #include "item_reqs.h"
 #include "item_effects.h"
+#include "res_placement.h"
 #include "game_primitives.h"
+#include "static_string_pool.h"
+
+class DataParserBase;
 
 //================================================================================================================================
 //=> - CityFlagStaticDataStruct -
 //================================================================================================================================
 
 typedef struct CityFlagStaticDataStruct {
-    std::string name;
     ItemReqsStruct reqs;
     ItemEffectsStruct effects;
 } CityFlagStaticDataStruct;
@@ -36,10 +37,14 @@ typedef struct CityFlagStaticDataStruct {
 class CityFlagStaticData {
 public:
     CityFlagStaticData () = default;
+    ~CityFlagStaticData ();
     void set_items (CityFlagStaticDataStruct* items, u16 item_count);
+    bool load_names (cstr const* names, u16 n);
+    bool load_names_from (const DataParserBase& psr, u16 n);
     void take_ownership ();
     void release_items ();
     const CityFlagStaticDataStruct& get_item (CityFlagStaticDataKey key) const;
+    cstr get_name (CityFlagStaticDataKey key) const;
     u16 get_item_count () const;
 
 private:
@@ -48,6 +53,8 @@ private:
 
     CityFlagStaticDataStruct* m_item_array = nullptr;
     u16 m_item_count = 0;
+    bool m_owns_array = false;
+    StaticStringPool m_name_pool;
 };
 
 #endif // CITY_FLAG_STATIC_DATA_H

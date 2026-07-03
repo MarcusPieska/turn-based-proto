@@ -22,7 +22,9 @@ class StaticBitBank;
 #include "city_flag_parser.h"
 #include "civ_parser.h"
 #include "civ_trait_parser.h"
+#include "mvt_cost_parser.h"
 #include "resource_parser.h"
+#include "res_dist_parser.h"
 #include "small_wonder_parser.h"
 #include "tech_parser.h"
 #include "unit_parser.h"
@@ -34,7 +36,9 @@ class StaticBitBank;
 #include "city_flag_static_data.h"
 #include "civ_static_data.h"
 #include "civ_trait_static_data.h"
+#include "mvt_cost_static_data.h"
 #include "resource_static_data.h"
+#include "res_dist_static_data.h"
 #include "small_wonder_static_data.h"
 #include "tech_static_data.h"
 #include "unit_static_data.h"
@@ -48,7 +52,7 @@ class StaticBitBank;
 
 class StaticParsingManager {
 public:
-    explicit StaticParsingManager (const std::string& path_offset);
+    explicit StaticParsingManager (cstr path_offset);
     ~StaticParsingManager ();
 
     const BuildingStaticDataStruct* get_building_data () const;
@@ -67,9 +71,17 @@ public:
 
     u16 get_civ_trait_count () const;
 
+    const MvtCostStaticDataStruct* get_mvt_cost_data () const;
+
+    u16 get_mvt_cost_count () const;
+
     const ResourceStaticDataStruct* get_resource_data () const;
 
     u16 get_resource_count () const;
+
+    const ResDistStaticDataStruct* get_res_dist_data () const;
+
+    u16 get_res_dist_count () const;
 
     const SmallWonderStaticDataStruct* get_small_wonder_data () const;
 
@@ -94,6 +106,31 @@ public:
     const WonderStaticDataStruct* get_wonder_data () const;
 
     u16 get_wonder_count () const;
+    const DataParserBase& get_building_name_parser () const;
+
+    const DataParserBase& get_city_flag_name_parser () const;
+
+    const DataParserBase& get_civ_name_parser () const;
+
+    const DataParserBase& get_civ_trait_name_parser () const;
+
+    const DataParserBase& get_mvt_cost_name_parser () const;
+
+    const DataParserBase& get_resource_name_parser () const;
+
+    const DataParserBase& get_res_dist_name_parser () const;
+
+    const DataParserBase& get_small_wonder_name_parser () const;
+
+    const DataParserBase& get_tech_name_parser () const;
+
+    const DataParserBase& get_unit_name_parser () const;
+
+    const DataParserBase& get_unit_action_name_parser () const;
+
+    const DataParserBase& get_unit_type_name_parser () const;
+
+    const DataParserBase& get_wonder_name_parser () const;
     
     StaticBitBank* get_unit_type_action_map_bank () const;
 
@@ -119,7 +156,9 @@ private:
     StringManager m_city_flag_items;
     StringManager m_civ_items;
     StringManager m_civ_trait_items;
+    StringManager m_mvt_cost_items;
     StringManager m_resource_items;
+    StringManager m_res_dist_items;
     StringManager m_small_wonder_items;
     StringManager m_tech_items;
     StringManager m_unit_items;
@@ -131,7 +170,9 @@ private:
     DataParserBase* m_city_flag_name_parser;
     DataParserBase* m_civ_name_parser;
     DataParserBase* m_civ_trait_name_parser;
+    DataParserBase* m_mvt_cost_name_parser;
     DataParserBase* m_resource_name_parser;
+    DataParserBase* m_res_dist_name_parser;
     DataParserBase* m_small_wonder_name_parser;
     DataParserBase* m_tech_name_parser;
     DataParserBase* m_unit_name_parser;
@@ -149,7 +190,9 @@ private:
     CityFlagStaticDataStruct* m_city_flag_data;
     CivStaticDataStruct* m_civ_data;
     CivTraitStaticDataStruct* m_civ_trait_data;
+    MvtCostStaticDataStruct* m_mvt_cost_data;
     ResourceStaticDataStruct* m_resource_data;
+    ResDistStaticDataStruct* m_res_dist_data;
     SmallWonderStaticDataStruct* m_small_wonder_data;
     TechStaticDataStruct* m_tech_data;
     UnitStaticDataStruct* m_unit_data;

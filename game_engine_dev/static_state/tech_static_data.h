@@ -12,19 +12,20 @@
 #ifndef TECH_STATIC_DATA_H
 #define TECH_STATIC_DATA_H
 
-#include <string>
-
 #include "tech_static_key.h"
 #include "item_reqs.h"
 #include "item_effects.h"
+#include "res_placement.h"
 #include "game_primitives.h"
+#include "static_string_pool.h"
+
+class DataParserBase;
 
 //================================================================================================================================
 //=> - TechStaticDataStruct -
 //================================================================================================================================
 
 typedef struct TechStaticDataStruct {
-    std::string name;
     ItemReqsStruct reqs;
     ItemEffectsStruct effects;
     u32 cost;
@@ -38,10 +39,14 @@ typedef struct TechStaticDataStruct {
 class TechStaticData {
 public:
     TechStaticData () = default;
+    ~TechStaticData ();
     void set_items (TechStaticDataStruct* items, u16 item_count);
+    bool load_names (cstr const* names, u16 n);
+    bool load_names_from (const DataParserBase& psr, u16 n);
     void take_ownership ();
     void release_items ();
     const TechStaticDataStruct& get_item (TechStaticDataKey key) const;
+    cstr get_name (TechStaticDataKey key) const;
     u16 get_item_count () const;
 
 private:
@@ -50,6 +55,8 @@ private:
 
     TechStaticDataStruct* m_item_array = nullptr;
     u16 m_item_count = 0;
+    bool m_owns_array = false;
+    StaticStringPool m_name_pool;
 };
 
 #endif // TECH_STATIC_DATA_H

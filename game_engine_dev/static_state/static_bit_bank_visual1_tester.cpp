@@ -5,7 +5,6 @@
 #include <cstdio>
 #include <cstdint>
 #include <cstdlib>
-#include <string>
 
 #include "static_bit_bank.h"
 
@@ -14,7 +13,6 @@
 //================================================================================================================================
 
 typedef const char* cstr;
-typedef std::string str;
 typedef uint32_t u32;
 
 int test_count = 0;
@@ -121,8 +119,9 @@ void test_visual_walk_array1_flags_for_sizes_1_to_100 () {
         set_all_flags_for_array(*bank, 2, array_size, true);
 
         for (u16 flag_idx = 0; flag_idx < array_size; ++flag_idx) {
-            str msg = str("Array 1 starts clear for size ") + std::to_string(array_size) + ", flag " + std::to_string(flag_idx);
-            note_result(!City::is_flagged(*bank, 1, flag_idx), msg.c_str());
+            char msg[256];
+            std::snprintf(msg, sizeof(msg), "Array 1 starts clear for size %u, flag %u", array_size, flag_idx);
+            note_result(!City::is_flagged(*bank, 1, flag_idx), msg);
         }
 
         u8 seen_flags[100] = {0};
@@ -144,8 +143,9 @@ void test_visual_walk_array1_flags_for_sizes_1_to_100 () {
                 bool a2 = City::is_flagged(*bank, 2, flag_idx);
 
                 if (!a0 || !a2) {
-                    str msg = str("Array 0/2 all 1 for size ") + std::to_string(array_size) + ", iter " + std::to_string(idx);
-                    note_result(false, msg.c_str());
+                    char msg[256];
+                    std::snprintf(msg, sizeof(msg), "Array 0/2 all 1 for size %u, iter %u", array_size, idx);
+                    note_result(false, msg);
                     break;
                 }
                 if (a1) {
@@ -155,12 +155,14 @@ void test_visual_walk_array1_flags_for_sizes_1_to_100 () {
             }
 
             {
-                str msg = str("Array 1 has one set bit for size ") + std::to_string(array_size) + ", iter " + std::to_string(idx);
-                note_result(set_count_array1 == 1, msg.c_str());
+                char msg[256];
+                std::snprintf(msg, sizeof(msg), "Array 1 has one set bit for size %u, iter %u", array_size, idx);
+                note_result(set_count_array1 == 1, msg);
             }
             {
-                str msg = str("Array 1 set-bit idx match for size ") + std::to_string(array_size) + ", iter " + std::to_string(idx);
-                note_result(idx_array1 == idx, msg.c_str());
+                char msg[256];
+                std::snprintf(msg, sizeof(msg), "Array 1 set-bit idx match for size %u, iter %u", array_size, idx);
+                note_result(idx_array1 == idx, msg);
             }
 
             observed_indices[observed_count] = idx_array1;
@@ -171,10 +173,12 @@ void test_visual_walk_array1_flags_for_sizes_1_to_100 () {
 
         note_result(observed_count == array_size, "Observed index array has expected size");
         for (u16 i = 0; i < array_size; ++i) {
-            str msg_seen = str("Observed indices contain flag ") + std::to_string(i) + " for size " + std::to_string(array_size);
-            note_result(seen_flags[i] == 1, msg_seen.c_str());
-            str msg_order = str("Set indices increment at pos ") + std::to_string(i) + " for size " + std::to_string(array_size);
-            note_result(observed_indices[i] == i, msg_order.c_str());
+            char msg_seen[256];
+            std::snprintf(msg_seen, sizeof(msg_seen), "Observed indices contain flag %u for size %u", i, array_size);
+            note_result(seen_flags[i] == 1, msg_seen);
+            char msg_order[256];
+            std::snprintf(msg_order, sizeof(msg_order), "Set indices increment at pos %u for size %u", i, array_size);
+            note_result(observed_indices[i] == i, msg_order);
         }
 
         if (print_level >= 3) {

@@ -5,7 +5,6 @@
 #include <cstdio>
 #include <cstdint>
 #include <cstdlib>
-#include <string>
 
 #include "static_bit_bank.h"
 
@@ -14,7 +13,6 @@
 //================================================================================================================================
 
 typedef const char* cstr;
-typedef std::string str;
 
 int test_count = 0;
 int test_pass = 0;
@@ -84,9 +82,9 @@ public:
 void assert_array_is_clear (StaticBitBank& bank, u16 array_idx, u16 array_size, cstr prefix) {
     for (u16 flag_idx = 0; flag_idx < array_size; ++flag_idx) {
         bool flagged = City::is_flagged(bank, array_idx, flag_idx);
-        str msg = str(prefix) + " - array " + std::to_string(array_idx)
-                + " flag " + std::to_string(flag_idx) + " is clear";
-        note_result(!flagged, msg.c_str());
+        char msg[256];
+        std::snprintf(msg, sizeof(msg), "%s - array %u flag %u is clear", prefix, array_idx, flag_idx);
+        note_result(!flagged, msg);
     }
 }
 
@@ -171,11 +169,11 @@ void test_single_active_array_isolation () {
                 bool expected = (check_array == active_array);
                 bool actual = City::is_flagged(*bank, check_array, flag_idx);
                 if (actual != expected) {
-                    str msg = str("Isolation mismatch: active array ")
-                            + std::to_string(active_array)
-                            + ", checked array " + std::to_string(check_array)
-                            + ", flag " + std::to_string(flag_idx);
-                    note_result(false, msg.c_str());
+                    char msg[256];
+                    std::snprintf(msg, sizeof(msg),
+                        "Isolation mismatch: active array %u, checked array %u, flag %u",
+                        active_array, check_array, flag_idx);
+                    note_result(false, msg);
                     break;
                 }
             }

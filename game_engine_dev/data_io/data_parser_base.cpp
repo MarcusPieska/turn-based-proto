@@ -5,10 +5,134 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <string>
 
 #include "data_parser_base.h"
+#include "game_map_defs.h"
 #include "item_effect_handler.h"
+#include "res_placement_defs.h"
+
+typedef struct PlcTokRow {
+    cstr m_tok;
+    u8 m_val;
+} PlcTokRow;
+
+static const PlcTokRow k_terr_tok[] = {
+    {"ALL_TERRAINS", RES_TERR_ALL},
+    {"TERR_OCEAN", TERR_OCEAN[0]},
+    {"TERR_SEA", TERR_SEA[0]},
+    {"TERR_COASTAL", TERR_COASTAL[0]},
+    {"TERR_PLAINS", TERR_PLAINS[0]},
+    {"TERR_HILLS", TERR_HILLS[0]},
+    {"TERR_MOUNTAINS", TERR_MOUNTAINS[0]},
+};
+
+static const PlcTokRow k_clim_tok[] = {
+    {"ALL_CLIMATES", RES_CLIM_ALL},
+    {"CLIMATE_TUNDRA", CLIMATE_TUNDRA},
+    {"CLIMATE_GRASSLAND", CLIMATE_GRASSLAND},
+    {"CLIMATE_PLAINS", CLIMATE_PLAINS},
+    {"CLIMATE_DESERT", CLIMATE_DESERT},
+};
+
+static const PlcTokRow k_ov_tok[] = {
+    {"ALL_OVERLAYS", RES_OV_ALL},
+    {"NO_OVERLAYS", RES_OV_NONE},
+    {"OVERLAY_SWAMPS", RES_OV_SWAMPS},
+    {"OVERLAY_FORESTS", RES_OV_FORESTS},
+    {"OVERLAY_JUNGLES", RES_OV_JUNGLES},
+    {"OVERLAY_RIVERS", RES_OV_RIVERS},
+};
+
+namespace {
+
+void trim_ws_idx (StringManager& m, u32 i) {
+    m.trim_head_char(i, ' ');
+    m.trim_tail_char(i, ' ');
+    m.trim_head_char(i, '\t');
+    m.trim_tail_char(i, '\t');
+    m.trim_head_char(i, '\r');
+    m.trim_tail_char(i, '\r');
+    m.trim_head_char(i, '\n');
+    m.trim_tail_char(i, '\n');
+}
+
+void trim_ws_all (StringManager& m) {
+    for (u32 i = 0; i < m.get_string_count(); ++i) {
+        trim_ws_idx(m, i);
+    }
+}
+
+bool streq_trimmed (cstr a, cstr b) {
+    StringManager am;
+    am.load_cstr_content(a ? a : "");
+    trim_ws_idx(am, 0);
+    StringManager bm;
+    bm.load_cstr_content(b ? b : "");
+    trim_ws_idx(bm, 0);
+    return std::strcmp(am.get_string_content(0), bm.get_string_content(0)) == 0;
+}
+
+bool is_empty_trimmed (cstr in) {
+    StringManager m;
+    m.load_cstr_content(in ? in : "");
+    trim_ws_idx(m, 0);
+    return m.get_string_content(0)[0] == '\0';
+}
+
+}
+
+static bool plc_tok_u8 (cstr tok, const PlcTokRow* rows, u32 row_n, u8* out) {
+    if (!tok || !out) return false;
+    for (u32 i = 0; i < row_n; ++i) {
+        if (std::strcmp(tok, rows[i].m_tok) == 0) {
+            *out = rows[i].m_val;
+            return true;
+        }
+    }
+    return false;
+}
+
+static bool plc_u16_tok (cstr tok, u16* out) {
+    if (!tok || !out || tok[0] == '\0') return false;
+    char* end = 0;
+    const unsigned long v = std::strtoul(tok, &end, 10);
+    if (end == tok) return false;
+    *out = (u16)v;
+    return true;
+}
+
+static bool plc_quad_inner (cstr inner, ResQuad* q) {
+    if (!inner || !q) return false;
+    StringManager parts;
+    parts.load_cstr_content(inner);
+    parts.split_string_by_char(0, ',');
+    trim_ws_all(parts);
+    parts.cull_empty_strings();
+    if (parts.get_string_count() != 4u) return false;
+    if (!plc_tok_u8(parts.get_string_content(0), k_terr_tok, (u32)(sizeof(k_terr_tok) / sizeof(k_terr_tok[0])), &q->m_terr)) return false;
+    if (!plc_tok_u8(parts.get_string_content(1), k_clim_tok, (u32)(sizeof(k_clim_tok) / sizeof(k_clim_tok[0])), &q->m_clim)) return false;
+    if (!plc_tok_u8(parts.get_string_content(2), k_ov_tok, (u32)(sizeof(k_ov_tok) / sizeof(k_ov_tok[0])), &q->m_ov)) return false;
+    return plc_u16_tok(parts.get_string_content(3), &q->m_wt);
+}
+
+static bool plc_quad_tok (cstr tok, ResQuad* q) {
+    if (!tok || !q) return false;
+    StringManager quad;
+    quad.load_cstr_content(tok);
+    trim_ws_idx(quad, 0);
+    cstr s = quad.get_string_content(0);
+    if (s[0] != '(') return false;
+    const u32 n = (u32)std::strlen(s);
+    if (n < 3u || s[n - 1] != ')') return false;
+    quad.split_string_by_char(0, '(');
+    if (quad.get_string_count() < 2u) return false;
+    StringManager inside;
+    inside.load_cstr_content(quad.get_string_content(1));
+    inside.split_string_by_char(0, ')');
+    inside.cull_empty_strings();
+    if (inside.get_string_count() == 0) return false;
+    return plc_quad_inner(inside.get_string_content(0), q);
+}
 
 //================================================================================================================================
 //=> - DataParserBase implementation -
@@ -17,16 +141,6 @@
 u32 DataParserBase::m_error_count = 0;
 ItemEffectHandler* DataParserBase::s_item_effect_handler = 0;
 const StringManager* DataParserBase::s_effect_definition_items = 0;
-
-static std::string trim_ws(cstr in) {
-    if (!in) return "";
-    std::string s(in);
-    std::size_t b = 0;
-    std::size_t e = s.size();
-    while (b < e && (s[b] == ' ' || s[b] == '\t' || s[b] == '\r' || s[b] == '\n')) ++b;
-    while (e > b && (s[e - 1] == ' ' || s[e - 1] == '\t' || s[e - 1] == '\r' || s[e - 1] == '\n')) --e;
-    return s.substr(b, e - b);
-}
 
 void DataParserBase::set_item_effect_handler (const NameToIdxCbs* name_to_idx_cbs, const StringManager* effect_defs) {
     if (s_item_effect_handler != 0) {
@@ -138,9 +252,12 @@ DataParserBase::DataParserBase (const StringManager& raw_lines, const NameToIdxC
 }
 
 u16 DataParserBase::name_to_idx (cstr name) const {
-    std::string target = trim_ws(name);
+    StringManager target;
+    target.load_cstr_content(name ? name : "");
+    trim_ws_idx(target, 0);
+    cstr target_s = target.get_string_content(0);
     for (u32 i = 0; i < m_item_count; ++i) {
-        if (trim_ws(m_names.get_string_content(i)) == target) {
+        if (streq_trimmed(m_names.get_string_content(i), target_s)) {
             return (u16)i;
         }
     }
@@ -149,7 +266,7 @@ u16 DataParserBase::name_to_idx (cstr name) const {
     return U16_KEY_NULL;
 }
 
-std::string DataParserBase::idx_to_name (u16 idx) const {
+cstr DataParserBase::idx_to_name (u16 idx) const {
     if (idx >= m_item_count) {
         printf("ERROR: DataParserBase could not map index '%u' to name\n", idx);
         ++m_error_count;
@@ -221,8 +338,11 @@ ItemEffectsStruct DataParserBase::parse_item_effects (const StringManager& line_
         ++m_error_count;
         return effects;
     }
-    std::string item_name = trim_ws(line_items.get_string_content(0));
-    if (item_name.empty()) {
+    StringManager item_name_m;
+    item_name_m.load_cstr_content(line_items.get_string_content(0));
+    trim_ws_idx(item_name_m, 0);
+    cstr item_name = item_name_m.get_string_content(0);
+    if (item_name[0] == '\0') {
         printf("ERROR: DataParserBase parse_item_effects: empty item name\n");
         ++m_error_count;
         return effects;
@@ -232,13 +352,13 @@ ItemEffectsStruct DataParserBase::parse_item_effects (const StringManager& line_
     for (u32 i = 0; i < s_effect_definition_items->get_string_count(); ++i) {
         StringManager parts;
         get_line_items(s_effect_definition_items->get_string_content(i), parts);
-        if (trim_ws(parts.get_string_content(0)) == item_name) {
+        if (streq_trimmed(parts.get_string_content(0), item_name)) {
             effect_line = s_effect_definition_items->get_string_content(i);
             break;
         }
     }
     if (effect_line == 0) {
-        printf("ERROR: DataParserBase parse_item_effects: no effect row for item '%s'\n", item_name.c_str());
+        printf("ERROR: DataParserBase parse_item_effects: no effect row for item '%s'\n", item_name);
         ++m_error_count;
         return effects;
     }
@@ -248,7 +368,7 @@ ItemEffectsStruct DataParserBase::parse_item_effects (const StringManager& line_
         return effects;
     }
     s_item_effect_handler->reset_error_count();
-    effects = s_item_effect_handler->parse_effects_line(std::string(effect_line));
+    effects = s_item_effect_handler->parse_effects_line(effect_line);
     m_error_count += s_item_effect_handler->get_error_count();
     return effects;
 }
@@ -260,8 +380,8 @@ ItemReqsStruct DataParserBase::parse_item_reqs (const StringManager& line_items,
     }
     u16 write_idx = 0;
     for (u16 i = start_idx; i < line_items.get_string_count(); ++i) {
-        std::string token = trim_ws(line_items.get_string_content(i));
-        if (token.empty()) {
+        cstr raw_tok = line_items.get_string_content(i);
+        if (is_empty_trimmed(raw_tok)) {
             continue;
         }
         if (write_idx >= MAX_PREREQ_COUNT) {
@@ -269,42 +389,64 @@ ItemReqsStruct DataParserBase::parse_item_reqs (const StringManager& line_items,
             ++m_error_count;
             return reqs;
         }
-        std::size_t p0 = token.find('(');
-        std::size_t p1 = token.rfind(')');
-        if (p0 == std::string::npos || p1 == std::string::npos || p1 <= p0 + 1) {
-            printf("ERROR: DataParserBase found invalid req token '%s'\n", token.c_str());
+        StringManager tok_full;
+        tok_full.load_cstr_content(raw_tok);
+        trim_ws_idx(tok_full, 0);
+        cstr token_raw = tok_full.get_string_content(0);
+
+        StringManager tok;
+        tok.load_cstr_content(token_raw);
+        tok.split_string_by_char(0, '(');
+        if (tok.get_string_count() < 2u) {
+            printf("ERROR: DataParserBase found invalid req token '%s'\n", token_raw);
             ++m_error_count;
             continue;
         }
-        std::string type_name = trim_ws(token.substr(0, p0).c_str());
-        std::string inside = token.substr(p0 + 1, p1 - p0 - 1);
-        std::size_t comma = inside.find(',');
-        std::string req_name = trim_ws((comma == std::string::npos ? inside : inside.substr(0, comma)).c_str());
-        if (req_name.empty()) {
-            printf("ERROR: DataParserBase found empty req name in token '%s'\n", token.c_str());
+        trim_ws_idx(tok, 0);
+        cstr type_name = tok.get_string_content(0);
+
+        StringManager inside;
+        inside.load_cstr_content(tok.get_string_content(1));
+        inside.split_string_by_char(0, ')');
+        inside.cull_empty_strings();
+        if (inside.get_string_count() == 0 || inside.get_string_content(0)[0] == '\0') {
+            printf("ERROR: DataParserBase found empty req name in token '%s'\n", token_raw);
             ++m_error_count;
             continue;
         }
-        if (comma != std::string::npos) {
-            reqs.added_args[write_idx] = (u8)std::strtoul(trim_ws(inside.substr(comma + 1).c_str()).c_str(), 0, 10);
+        trim_ws_idx(inside, 0);
+
+        StringManager args;
+        args.load_cstr_content(inside.get_string_content(0));
+        args.split_string_by_char(0, ',');
+        trim_ws_all(args);
+        args.cull_empty_strings();
+        if (args.get_string_count() == 0 || args.get_string_content(0)[0] == '\0') {
+            printf("ERROR: DataParserBase found empty req name in token '%s'\n", token_raw);
+            ++m_error_count;
+            continue;
         }
-        if (type_name == "resource") {
+        cstr req_name = args.get_string_content(0);
+        if (args.get_string_count() >= 2) {
+            reqs.added_args[write_idx] = (u8)std::strtoul(args.get_string_content(1), 0, 10);
+        }
+        if (std::strcmp(type_name, "resource") == 0) {
             reqs.types[write_idx] = ITEM_REQ_TYPE_RESOURCE;
-            reqs.indices[write_idx] = m_name_to_idx_cbs.resource_name_to_idx(req_name.c_str());
-        } else if (type_name == "flag") {
+            reqs.indices[write_idx] = m_name_to_idx_cbs.resource_name_to_idx(req_name);
+        } else if (std::strcmp(type_name, "flag") == 0) {
             reqs.types[write_idx] = ITEM_REQ_TYPE_FLAG;
-            reqs.indices[write_idx] = m_name_to_idx_cbs.city_flag_name_to_idx(req_name.c_str());
-        } else if (type_name == "civ") {
+            reqs.indices[write_idx] = m_name_to_idx_cbs.city_flag_name_to_idx(req_name);
+        } else if (std::strcmp(type_name, "civ") == 0) {
             reqs.types[write_idx] = ITEM_REQ_TYPE_CIV;
-            reqs.indices[write_idx] = m_name_to_idx_cbs.civ_name_to_idx(req_name.c_str());
-        } else if (type_name == "building") {
+            reqs.indices[write_idx] = m_name_to_idx_cbs.civ_name_to_idx(req_name);
+        } else if (std::strcmp(type_name, "building") == 0) {
             reqs.types[write_idx] = ITEM_REQ_TYPE_BUILDING;
-            reqs.indices[write_idx] = m_name_to_idx_cbs.building_name_to_idx(req_name.c_str());
-        } else if (type_name == "tech") {
+            reqs.indices[write_idx] = m_name_to_idx_cbs.building_name_to_idx(req_name);
+        } else if (std::strcmp(type_name, "tech") == 0) {
             reqs.types[write_idx] = ITEM_REQ_TYPE_TECH;
-            reqs.indices[write_idx] = m_name_to_idx_cbs.tech_name_to_idx(req_name.c_str());
+            reqs.indices[write_idx] = m_name_to_idx_cbs.tech_name_to_idx(req_name);
         } else {
-            printf("ERROR: DataParserBase unknown req type '%s' in token '%s'\n", type_name.c_str(), token.c_str());
+            printf("ERROR: DataParserBase unknown req type '%s' in token '%s'\n", type_name, token_raw);
             ++m_error_count;
             continue;
         }
@@ -322,6 +464,37 @@ CivTraitStruct DataParserBase::parse_civ_traits (const StringManager& line_items
         traits.indices[i] = m_name_to_idx_cbs.civ_trait_name_to_idx(line_items.get_string_content(i + start_idx));
     }
     return traits;
+}
+
+bool DataParserBase::parse_res_placement (const StringManager& line_items, ResPlacement& plc) const {
+    plc = {};
+    if (line_items.get_string_count() < 3) {
+        printf("ERROR: DataParserBase parse_res_placement: expected name, res_wt, and quad(s)\n");
+        ++m_error_count;
+        return false;
+    }
+    StringManager res_wt;
+    res_wt.load_cstr_content(line_items.get_string_content(1));
+    trim_ws_idx(res_wt, 0);
+    if (!plc_u16_tok(res_wt.get_string_content(0), &plc.m_res_wt)) {
+        printf("ERROR: DataParserBase parse_res_placement: invalid res_wt '%s'\n", line_items.get_string_content(1));
+        ++m_error_count;
+        return false;
+    }
+    for (u16 qi = 2; qi < line_items.get_string_count() && plc.m_quad_n < RES_IO_QUAD_MAX; ++qi) {
+        if (!plc_quad_tok(line_items.get_string_content(qi), &plc.m_quads[plc.m_quad_n])) {
+            printf("ERROR: DataParserBase parse_res_placement: invalid quad '%s'\n", line_items.get_string_content(qi));
+            ++m_error_count;
+            return false;
+        }
+        ++plc.m_quad_n;
+    }
+    if (plc.m_quad_n == 0) {
+        printf("ERROR: DataParserBase parse_res_placement: no quads parsed\n");
+        ++m_error_count;
+        return false;
+    }
+    return true;
 }
 
 //================================================================================================================================

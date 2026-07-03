@@ -5,7 +5,8 @@
 #ifndef RESOURCE_PLACEMENT_H
 #define RESOURCE_PLACEMENT_H
 
-#include "resource_types.h"
+#include "game_primitives.h"
+#include "runtime_static_loader.h"
 
 //================================================================================================================================
 //=> - ResPlcMapCtx -
@@ -53,11 +54,13 @@ public:
     static bool entry_ok (
         const ResPlcMapCtx& ctx,
         u32 idx,
-        const ResEntry& entry,
+        const RuntimeStatics& s,
+        u16 res_i,
         u8 quad_idx);
     static u32 mark_all_rules (
         const ResPlcMapCtx& ctx,
-        const ResEntry& entry,
+        const RuntimeStatics& s,
+        u16 res_i,
         u8* out,
         u32 out_n);
 };
@@ -70,7 +73,8 @@ class ResPlcSelect {
 public:
     static bool run (
         const ResPlcMapCtx& ctx,
-        const ResEntry& entry,
+        const RuntimeStatics& s,
+        u16 res_i,
         u32 base_n,
         u32 seed,
         u8* out,
@@ -104,6 +108,13 @@ public:
         cstr path,
         const ResPlcMapCtx& ctx,
         const u8* marks,
+        u32 mark_n,
+        const ResPlcVizPrm& prm);
+    static bool save_pair_ov_img (
+        cstr path,
+        const ResPlcMapCtx& ctx,
+        const u8* poss_marks,
+        const u8* act_marks,
         u32 mark_n,
         const ResPlcVizPrm& prm);
     static bool make_out_path (

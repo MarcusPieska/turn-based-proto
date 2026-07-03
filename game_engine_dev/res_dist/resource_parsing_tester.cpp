@@ -4,205 +4,139 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include <cstring>
-#include <ctime>
 
-#include "resource_io.h"
-#include "resource_parsing.h"
-#include "resource_placement.h"
-#include "p1_gen_climate.h"
-#include "p1_tester_chain15.h"
-#include "p1_tester_util.h"
+#include "res_statics.h"
+#include "item_reqs.h"
+#include "res_placement_defs.h"
+#include "game_map_defs.h"
+#include "resource_static_key.h"
+#include "res_dist_static_key.h"
+#include "tech_static_key.h"
+#include "building_static_key.h"
+#include "city_flag_static_key.h"
+#include "civ_static_key.h"
 
 typedef const char* cstr;
 
-int test_count = 0;
-int test_pass = 0;
-int total_test_fails = 0;
-int total_tests_run = 0;
-int print_level = 0;
-static u8 g_dot_small = 0;
+static const char* g_lib_path = "../data_io/runtime_static_loader_lib.so";
+static const char* g_data_path = "../";
+static int g_plvl = 0;
 
 //================================================================================================================================
-//=> - Helper functions -
+//=> - Print helpers -
 //================================================================================================================================
 
-void note_result (bool cond, cstr msg) {
-    test_count++;
-    total_tests_run++;
-    if (cond) {
-        test_pass++;
-        if (print_level > 1) {
-            std::printf("*** TEST PASSED: %s\n", msg);
-        }
-    } else {
-        total_test_fails++;
-        if (print_level > 0) {
-            std::printf("*** TEST FAILED: %s\n", msg);
-        }
-    }
+static cstr terr_tok (u8 v) {
+    if (v == RES_TERR_ALL) return "ALL_TERRAINS";
+    if (v == TERR_OCEAN[0]) return "TERR_OCEAN";
+    if (v == TERR_SEA[0]) return "TERR_SEA";
+    if (v == TERR_COASTAL[0]) return "TERR_COASTAL";
+    if (v == TERR_PLAINS[0]) return "TERR_PLAINS";
+    if (v == TERR_HILLS[0]) return "TERR_HILLS";
+    if (v == TERR_MOUNTAINS[0]) return "TERR_MOUNTAINS";
+    return "?";
 }
 
-void summarize_test_results () {
-    if (print_level > 0) {
-        std::printf("--------------------------------\n");
-        std::printf(" Test count: %d\n", test_count);
-        std::printf(" Test pass: %d\n", test_pass);
-        std::printf(" Test fail: %d\n", test_count - test_pass);
-        std::printf("--------------------------------\n\n");
-    }
-    test_count = 0;
-    test_pass = 0;
+static cstr clim_tok (u8 v) {
+    if (v == RES_CLIM_ALL) return "ALL_CLIMATES";
+    if (v == CLIMATE_TUNDRA) return "CLIMATE_TUNDRA";
+    if (v == CLIMATE_GRASSLAND) return "CLIMATE_GRASSLAND";
+    if (v == CLIMATE_PLAINS) return "CLIMATE_PLAINS";
+    if (v == CLIMATE_DESERT) return "CLIMATE_DESERT";
+    return "?";
 }
 
-static const ResEntry* find_entry (const ResCatalog& cat, cstr name) {
-    for (u16 i = 0; i < cat.m_n; ++i) {
-        if (std::strcmp(cat.m_items[i].m_name, name) == 0) {
-            return &cat.m_items[i];
-        }
-    }
-    return nullptr;
+static cstr ov_tok (u8 v) {
+    if (v == RES_OV_ALL) return "ALL_OVERLAYS";
+    if (v == RES_OV_NONE) return "NO_OVERLAYS";
+    if (v == RES_OV_SWAMPS) return "OVERLAY_SWAMPS";
+    if (v == RES_OV_FORESTS) return "OVERLAY_FORESTS";
+    if (v == RES_OV_JUNGLES) return "OVERLAY_JUNGLES";
+    if (v == RES_OV_RIVERS) return "OVERLAY_RIVERS";
+    return "?";
 }
 
-static ResPlcVizPrm viz_prm () {
-    return g_dot_small != 0 ? res_plc_viz_prm_small() : res_plc_viz_prm_def();
+static void pr_u16 (cstr label, u16 value) {
+    std::printf("  %s: %u\n", label, value);
 }
 
-static bool build_ctx (
-    const P1_RunPrm& prm,
-    const P1_Adj_LandAltitudePrm& lap,
-    ResPlcMapCtx* ctx,
-    P1_TesterChain15Rslt* chain,
-    u8** overlay) 
-{
-    if (ctx == nullptr || chain == nullptr || overlay == nullptr) {
-        return false;
-    }
-    double sec_i = 0.0;
-    if (!p1_build_ensure_input(prm, lap, 22u, chain, &sec_i)) {
-        return false;
-    }
-    P1_Gen_Climate clim_gen(prm);
-    if (!clim_gen.generate(chain->m_terrain, chain->m_w, chain->m_h, chain->m_river)
-        || !clim_gen.is_valid()) {
-        return false;
-    }
-    *overlay = ResPlcOverlay::build_stub(chain->m_w, chain->m_h, chain->m_terrain,
-        clim_gen.result().m_ov.data(), chain->m_river);
-    if (*overlay == nullptr) {
-        return false;
-    }
-    ctx->m_w = chain->m_w;
-    ctx->m_h = chain->m_h;
-    ctx->m_terrain = chain->m_terrain;
-    ctx->m_climate = clim_gen.result().m_ov.data();
-    ctx->m_river = chain->m_river;
-    ctx->m_overlay = *overlay;
-    return true;
-}
-
-//================================================================================================================================
-//=> - Test functions -
-//================================================================================================================================
-
-void test_res_parse_catalog () {
-    ResIoPath paths("../");
-    ResIoFile file;
-    ResParser parser;
-    note_result(file.load(paths.resources_path()), "load file");
-    note_result(parser.parse_file(file), "parse catalog");
-    const ResCatalog& cat = parser.catalog();
-    note_result(cat.m_n == 60u, "catalog count");
-    note_result(find_entry(cat, "Iron") != nullptr, "Iron found");
-    note_result(find_entry(cat, "Furs") != nullptr, "Furs found");
-    parser.release();
-}
-
-void test_res_parse_fields () {
-    ResIoPath paths("../");
-    ResIoFile file;
-    ResParser parser;
-    file.load(paths.resources_path());
-    parser.parse_file(file);
-    const ResCatalog& cat = parser.catalog();
-    const ResEntry* city = find_entry(cat, "City");
-    const ResEntry* iron = find_entry(cat, "Iron");
-    const ResEntry* furs = find_entry(cat, "Furs");
-    note_result(city != nullptr && city->m_has_plc == 0, "City has no placement");
-    note_result(iron != nullptr && iron->m_has_plc == 1, "Iron has placement");
-    note_result(iron != nullptr && iron->m_plc.m_res_wt == 4u, "Iron resource weight");
-    note_result(iron != nullptr && iron->m_plc.m_quad_n == 2u, "Iron quad count");
-    note_result(furs != nullptr && furs->m_plc.m_quad_n == 2u, "Furs quad count");
-    note_result(iron != nullptr && iron->m_food == 0u && iron->m_shields == 2u, "Iron yields");
-    note_result(std::strcmp(iron->m_tech, "Iron Working") == 0, "Iron tech");
-    parser.release();
-}
-
-static i32 run_parse_viz (const P1_RunPrm& prm, const P1_Adj_LandAltitudePrm& lap) {
-    ResIoPath paths("../");
-    ResIoFile file;
-    ResParser parser;
-    if (!file.load(paths.resources_path()) || !parser.parse_file(file)) {
-        return -1;
-    }
-    const ResCatalog& cat = parser.catalog();
-    P1_TesterChain15Rslt chain = {};
-    ResPlcMapCtx ctx = {};
-    u8* overlay = nullptr;
-    if (!build_ctx(prm, lap, &ctx, &chain, &overlay)) {
-        parser.release();
-        return -1;
-    }
-    const u32 npx = (u32)chain.m_w * (u32)chain.m_h;
-    u8* marks = new u8[npx];
-    if (marks == nullptr) {
-        delete[] overlay;
-        p1_free_chain15(&chain);
-        parser.release();
-        return -1;
-    }
-    const ResPlcVizPrm vprm = viz_prm();
-    u32 img_n = 0;
-    char fname[96];
-    char out_path[384];
-    for (u16 ri = 0; ri < cat.m_n; ++ri) {
-        const ResEntry& entry = cat.m_items[ri];
-        if (entry.m_has_plc == 0) {
+static void pr_reqs (const RuntimeStatics& s, cstr label, const ItemReqsStruct& reqs) {
+    std::printf("  %s:\n", label);
+    for (u32 j = 0; j < MAX_PREREQ_COUNT; ++j) {
+        if (reqs.types[j] == ITEM_REQ_TYPE_NONE) {
             continue;
         }
-        const u32 hit = ResPlcMatch::mark_all_rules(ctx, entry, marks, npx);
-        std::snprintf(fname, sizeof(fname), "Possible_%s.ppm", entry.m_name);
-        if (!ResPlcViz::make_out_path(prm.m_seed, fname, out_path, sizeof(out_path))) {
-            delete[] marks;
-            delete[] overlay;
-            p1_free_chain15(&chain);
-            parser.release();
-            return -1;
+        const u16 idx = reqs.indices[j];
+        if (idx == U16_KEY_NULL) {
+            continue;
         }
-        if (!ResPlcViz::save_pair_img(out_path, ctx, marks, npx, vprm)) {
-            delete[] marks;
-            delete[] overlay;
-            p1_free_chain15(&chain);
-            parser.release();
-            return -1;
+        const u8 type = reqs.types[j];
+        cstr nm = "<unknown>";
+        if (type == ITEM_REQ_TYPE_BUILDING && idx < s.building().get_item_count()) {
+            nm = s.building().get_name(BuildingStaticDataKey::from_raw(idx));
+        } else if (type == ITEM_REQ_TYPE_FLAG && idx < s.city_flag().get_item_count()) {
+            nm = s.city_flag().get_name(CityFlagStaticDataKey::from_raw(idx));
+        } else if (type == ITEM_REQ_TYPE_CIV && idx < s.civ().get_item_count()) {
+            nm = s.civ().get_name(CivStaticDataKey::from_raw(idx));
+        } else if (type == ITEM_REQ_TYPE_RESOURCE && idx < s.resource().get_item_count()) {
+            nm = s.resource().get_name(ResourceStaticDataKey::from_raw(idx));
+        } else if (type == ITEM_REQ_TYPE_TECH && idx < s.tech().get_item_count()) {
+            nm = s.tech().get_name(TechStaticDataKey::from_raw(idx));
         }
-        std::printf("saved: %s (hits=%u)\n", out_path, hit);
-        ++img_n;
+        std::printf("    [%u] type=%u %s (%u)", j, type, nm, idx);
+        if (reqs.added_args[j] != 0) {
+            std::printf(" arg=%u", reqs.added_args[j]);
+        }
+        std::printf("\n");
     }
-    std::printf("resource_parsing images: %u (seed=%u, %ux%u pair)\n",
-        img_n, prm.m_seed, (unsigned)(chain.m_w * 2u), (unsigned)chain.m_h);
-    delete[] marks;
-    delete[] overlay;
-    p1_free_chain15(&chain);
-    parser.release();
-    return (i32)img_n;
 }
 
-void test_suite_res_parsing () {
-    test_res_parse_catalog();
-    summarize_test_results();
-    test_res_parse_fields();
-    summarize_test_results();
+static void pr_plc (const ResPlacement& plc) {
+    pr_u16("res_wt", plc.m_res_wt);
+    pr_u16("quad_n", plc.m_quad_n);
+    for (u32 qi = 0; qi < plc.m_quad_n; ++qi) {
+        const ResQuad& q = plc.m_quads[qi];
+        std::printf("  quad[%u]: terr=%s clim=%s ov=%s wt=%u\n", qi,
+            terr_tok(q.m_terr), clim_tok(q.m_clim), ov_tok(q.m_ov), q.m_wt);
+    }
+}
+
+static void pr_res_item (const RuntimeStatics& s, u16 i) {
+    const ResourceStaticDataKey rk = ResourceStaticDataKey::from_raw(i);
+    const ResourceStaticDataStruct& res = s.resource().get_item(rk);
+    cstr nm = s.resource().get_name(rk);
+    std::printf("name: %s\n", nm);
+    pr_u16("food", res.food);
+    pr_u16("shields", res.shields);
+    pr_u16("commerce", res.commerce);
+    pr_reqs(s, "reqs", res.reqs);
+    if (res.res_dist_idx < s.res_dist().get_item_count()) {
+        cstr rd_nm = s.res_dist().get_name(ResDistStaticDataKey::from_raw(res.res_dist_idx));
+        std::printf("  res_dist: %s (%u)\n", rd_nm, res.res_dist_idx);
+        const ResDistStaticDataStruct& rd = s.res_dist().get_item(
+            ResDistStaticDataKey::from_raw(res.res_dist_idx));
+        std::printf("  has_plc: %u\n", rd.has_plc);
+        if (rd.has_plc != 0) {
+            pr_plc(rd.plc);
+        }
+    } else {
+        std::printf("  res_dist: <oob> (%u)\n", res.res_dist_idx);
+    }
+}
+
+static void print_all (const RuntimeStatics& s) {
+    const u16 n = s.resource().get_item_count();
+    if (g_plvl >= 1) {
+        std::printf("resource count: %u\n", n);
+        std::printf("res_dist count: %u\n", s.res_dist().get_item_count());
+    }
+    if (g_plvl < 2) {
+        return;
+    }
+    for (u16 i = 0; i < n; ++i) {
+        pr_res_item(s, i);
+        std::printf("-----------------------------------------------------------\n");
+    }
 }
 
 //================================================================================================================================
@@ -211,39 +145,25 @@ void test_suite_res_parsing () {
 
 int main (int argc, char* argv[]) {
     if (argc > 1) {
-        print_level = std::atoi(argv[1]);
+        g_plvl = std::atoi(argv[1]);
     }
     if (argc > 2) {
-        g_dot_small = (u8)std::atoi(argv[2]);
+        g_lib_path = argv[2];
     }
-    test_suite_res_parsing();
-    P1_RunPrm prm = p1_run_prm_def();
-    P1_Adj_LandAltitudePrm lap = p1_tester_land_altitude_prm();
-    if (argc >= 4) {
-        prm.m_seed = (u32)std::strtoul(argv[3], nullptr, 10);
-        if (argc >= 5) {
-            prm.m_w = (u16)std::strtoul(argv[4], nullptr, 10);
-        }
-        if (argc >= 6) {
-            prm.m_h = (u16)std::strtoul(argv[5], nullptr, 10);
-        }
-    } else {
-        prm.m_seed = p1_read_seed_file();
+    if (argc > 3) {
+        g_data_path = argv[3];
     }
-    const clock_t t0 = clock();
-    const i32 img_n = run_parse_viz(prm, lap);
-    const clock_t t1 = clock();
-    if (img_n < 0) {
-        std::printf("resource_parsing viz failed\n");
-        return total_test_fails > 0 ? total_test_fails : -1;
+    ResStatics rs;
+    if (!rs.load(g_lib_path, g_data_path)) {
+        std::printf("failed to load %s\n", g_lib_path);
+        return 1;
     }
-    const double sec = (double)(t1 - t0) / (double)CLOCKS_PER_SEC;
+    print_all(rs.s());
+    rs.unload();
     std::printf("=======================================================\n");
-    std::printf(" TESTING RESOURCE PARSING: TOTAL FAILURES: %d/%d\n", total_test_fails, total_tests_run);
-    std::printf(" parsing viz: %d images in %.3f s (dot=%s)\n",
-        img_n, sec, g_dot_small != 0 ? "1px" : "large");
+    std::printf(" RESOURCE STATICS PRINT DONE (plvl=%d)\n", g_plvl);
     std::printf("=======================================================\n");
-    return total_test_fails;
+    return 0;
 }
 
 //================================================================================================================================
