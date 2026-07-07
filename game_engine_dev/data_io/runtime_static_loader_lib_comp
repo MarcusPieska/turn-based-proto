@@ -69,6 +69,8 @@ g++ $INC $CXXFLAGS -c ../gen_effector/local_effector.cpp -o local_effector.o
 g++ $INC $CXXFLAGS -c ../gen_effector/city_effector.cpp -o city_effector.o
 g++ $INC $CXXFLAGS -c ../gen_effector/civ_effector.cpp -o civ_effector.o
 g++ $INC $CXXFLAGS -c ../gen_effector/global_effector.cpp -o global_effector.o
+g++ $INC $CXXFLAGS -c ../static_state/config_settings_static.cpp -o config_settings_static.o
+g++ $INC $CXXFLAGS -c ../static_state/config_settings_parse.cpp -o config_settings_parse.o
 g++ $INC $CXXFLAGS -c static_parsing_manager.cpp -o static_parsing_manager.o
 g++ $INC $CXXFLAGS -c runtime_statics.cpp -o runtime_statics.o
 g++ $INC $CXXFLAGS -c runtime_static_loader_lib_api.cpp -o runtime_static_loader_lib_api.o
@@ -130,6 +132,8 @@ g++ -shared -o $OUT_SO \
     city_effector.o \
     civ_effector.o \
     global_effector.o \
+    config_settings_static.o \
+    config_settings_parse.o \
     static_parsing_manager.o \
     runtime_statics.o \
     runtime_static_loader_lib_api.o
@@ -191,6 +195,8 @@ rm \
     city_effector.o \
     civ_effector.o \
     global_effector.o \
+    config_settings_static.o \
+    config_settings_parse.o \
     static_parsing_manager.o \
     runtime_statics.o \
     runtime_static_loader_lib_api.o

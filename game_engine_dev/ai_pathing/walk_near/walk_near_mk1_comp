@@ -1,0 +1,41 @@
+#!/bin/bash
+
+INC="-I. -I.. -I../.. -I../../game -I../../map_loader -I../../simple_map_gen -I../../misc"
+CXXFLAGS="-std=c++17 -Wall -Wextra"
+
+g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
+g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_data.cpp -o map_terrain_data.o
+g++ $CXXFLAGS $INC -c ../../map_loader/map_loader.cpp -o map_loader.o
+g++ $CXXFLAGS $INC -c ../../game/runtime_trace_dbg.cpp -o runtime_trace_dbg.o
+g++ $CXXFLAGS $INC -c ../../game/game_array_simple.cpp -o game_array_simple.o
+g++ $CXXFLAGS $INC -c ../../game/factory_game_array_simple.cpp -o factory_game_array_simple.o
+g++ $CXXFLAGS $INC -c ../../misc/map_bit_overlay.cpp -o map_bit_overlay.o
+g++ $CXXFLAGS $INC -c walk_near_mk1.cpp -o walk_near_mk1.o
+g++ $CXXFLAGS $INC -c walk_near_mk1_tester.cpp -o walk_near_mk1_tester.o
+g++ $CXXFLAGS $INC -c walk_near_mk1_adv_tester.cpp -o walk_near_mk1_adv_tester.o
+
+g++ $CXXFLAGS -o walk_near_mk1_tester \
+    map_terrain_validate.o \
+    map_terrain_data.o \
+    map_loader.o \
+    runtime_trace_dbg.o \
+    game_array_simple.o \
+    factory_game_array_simple.o \
+    map_bit_overlay.o \
+    walk_near_mk1.o \
+    walk_near_mk1_tester.o
+
+g++ $CXXFLAGS -o walk_near_mk1_adv_tester \
+    map_terrain_validate.o \
+    map_terrain_data.o \
+    map_loader.o \
+    runtime_trace_dbg.o \
+    game_array_simple.o \
+    factory_game_array_simple.o \
+    map_bit_overlay.o \
+    walk_near_mk1.o \
+    walk_near_mk1_adv_tester.o
+
+rm map_terrain_validate.o map_terrain_data.o map_loader.o runtime_trace_dbg.o \
+    game_array_simple.o factory_game_array_simple.o map_bit_overlay.o \
+    walk_near_mk1.o walk_near_mk1_tester.o walk_near_mk1_adv_tester.o

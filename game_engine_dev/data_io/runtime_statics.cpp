@@ -9,8 +9,11 @@
 //=> - Includes -
 //================================================================================================================================
 
+#include <cstdlib>
+
 #include "runtime_statics.h"
 #include "static_parsing_manager.h"
+#include "config_settings_parse.h"
 
 #include "unit_type_action_map.h"
 #include "civ_bld_discount_map.h"
@@ -98,6 +101,18 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_civ_bld_discount_map.set_map(p.get_civ_bld_discount_map_bank(), p.get_civ_trait_count(), p.get_building_count());
     m_civ_bld_discount_map.take_ownership();
     p.release_map_banks();
+    GameConfigSettingsParser psr(p.get_name_to_idx_cbs());
+    if (!psr.load_file(p.get_path_to_settings(), &m_config)) {
+        std::exit(1);
+    }
+}
+
+GameConfigSettings& RuntimeStatics::config () {
+    return m_config;
+}
+
+const GameConfigSettings& RuntimeStatics::config () const {
+    return m_config;
 }
 
 BuildingStaticData& RuntimeStatics::building () {

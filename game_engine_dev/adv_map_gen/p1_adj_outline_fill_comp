@@ -4,6 +4,7 @@ INC="-I. -I.. -I../map_loader"
 
 g++ -std=c++11 $INC -c generator_constants.cpp -o generator_constants.o
 g++ -std=c++11 $INC -c perlin_noise.cpp -o perlin_noise.o
+g++ -std=c++11 $INC -c whiteboard.cpp -o whiteboard.o
 g++ -std=c++11 $INC -c p1_gen_outline.cpp -o p1_gen_outline.o
 g++ -std=c++11 $INC -c ../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
 g++ -std=c++11 $INC -c ../map_loader/map_terrain_data.cpp -o map_terrain_data.o
@@ -13,6 +14,7 @@ g++ -std=c++11 $INC -c p1_adj_outline_fill_tester.cpp -o p1_adj_outline_fill_tes
 g++ -std=c++11 -o p1_adj_outline_fill_tester \
     generator_constants.o \
     perlin_noise.o \
+    whiteboard.o \
     p1_gen_outline.o \
     map_terrain_validate.o \
     map_terrain_data.o \
@@ -21,6 +23,7 @@ g++ -std=c++11 -o p1_adj_outline_fill_tester \
 
 rm generator_constants.o \
     perlin_noise.o \
+    whiteboard.o \
     p1_gen_outline.o \
     map_terrain_validate.o \
     map_terrain_data.o \

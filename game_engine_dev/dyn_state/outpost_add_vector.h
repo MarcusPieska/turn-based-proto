@@ -14,14 +14,7 @@
 
 #include "outpost_add_vector_key.h"
 #include "game_primitives.h"
-
-//================================================================================================================================
-//=> - OutpostAddItem struct -
-//================================================================================================================================
-
-struct OutpostAddItem {
-    u16 outpost_add_idx;
-};
+#include "outpost_add_struct.h"
 
 //================================================================================================================================
 //=> - OutpostAddVector class -
@@ -32,13 +25,13 @@ public:
     OutpostAddVector();
     ~OutpostAddVector();
 
-    OutpostAddItem* get_outpost_add(OutpostAddKey key);
-    const OutpostAddItem* get_outpost_add(OutpostAddKey key) const;
+    OutpostAddStruct* get_outpost_add(OutpostAddKey key);
+    const OutpostAddStruct* get_outpost_add(OutpostAddKey key) const;
     OutpostAddKey get_next_new_outpost_add_key();
 
     void return_outpost_add(OutpostAddKey key);
-    OutpostAddItem* get_page(u16 page_idx);
-    const OutpostAddItem* get_page(u16 page_idx) const;
+    OutpostAddStruct* get_page(u16 page_idx);
+    const OutpostAddStruct* get_page(u16 page_idx) const;
 
     static const u16 MAX_PAGES = 256;
     static const u16 OUTPOST_ADD_ITEMS_PER_PAGE = 256;
@@ -46,7 +39,7 @@ public:
 private:
     friend class OutpostAddVectorTester;
 
-    OutpostAddItem* m_pages[MAX_PAGES];
+    OutpostAddStruct* m_pages[MAX_PAGES];
     u8* m_exists_pages[MAX_PAGES];
     u16 m_outpost_add_count;
     u16 m_head_outpost_add_idx;

@@ -89,18 +89,21 @@ static u32 tile_score (
     u8 river,
     u8 open_w,
     u8 lat,
-    u8 plain_w,
+    u8 plain_w, 
+    u8 rain,
     const P1_Gen_ClimateOverlayWts* wts) 
 {
     const u32 wr = static_cast<u32>(clamp_wt(wts->m_w_dist_river));
     const u32 wo = static_cast<u32>(clamp_wt(wts->m_w_open_dist_water));
     const u32 wl = static_cast<u32>(clamp_wt(wts->m_w_latitude));
     const u32 wp = static_cast<u32>(clamp_wt(wts->m_w_plain_dist_water));
+    const u32 wn = static_cast<u32>(clamp_wt(wts->m_w_rain));
     const u32 sr = static_cast<u32>(255u - static_cast<u32>(river));
     const u32 so = static_cast<u32>(255u - static_cast<u32>(open_w));
     const u32 sl = static_cast<u32>(255u - static_cast<u32>(lat));
     const u32 sp = static_cast<u32>(255u - static_cast<u32>(plain_w));
-    return sr * wr + so * wo + sl * wl + sp * wp;
+    const u32 sn = static_cast<u32>(rain);
+    return sr * wr + so * wo + sl * wl + sp * wp + sn * wn;
 }
 
 static u32 pct_count (u32 n, u8 pct) {
@@ -582,7 +585,7 @@ P1_Gen_Climate::P1_Gen_Climate (const P1_RunPrm& prm, const P1_Gen_ClimatePrm& s
     m_rslt.m_h = 0;
 }
 
-bool P1_Gen_Climate::generate (const u8* terrain, u16 w, u16 h, const u8* river_ov) {
+bool P1_Gen_Climate::generate (const u8* terrain, u16 w, u16 h, const u8* river_ov, const u8* rain_ov) {
     m_valid_generation = false;
     m_rslt.m_w = 0;
     m_rslt.m_h = 0;
@@ -648,11 +651,16 @@ bool P1_Gen_Climate::generate (const u8* terrain, u16 w, u16 h, const u8* river_
             P1_ClimateTileVal* e = &tiles[ti];
             e->m_x = px;
             e->m_y = py;
+            u8 rain_v = 0;
+            if (rain_ov != nullptr) {
+                rain_v = rain_ov[i];
+            }
             e->m_val = tile_score(
                 dist_river[i],
                 open_dist_water[i],
                 latitude[i],
                 plain_dist_water[i],
+                rain_v,
                 &m_sp.m_wts);
             ti++;
         }

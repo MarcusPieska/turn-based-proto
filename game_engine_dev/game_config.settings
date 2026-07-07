@@ -1,0 +1,5 @@
+
+PATH_MP_TURN == 1000
+
+START_UNITS == Settler, Spearman
+START_EXP_UNITS == Settler, Explorer

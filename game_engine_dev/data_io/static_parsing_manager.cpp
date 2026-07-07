@@ -395,6 +395,15 @@ void StaticParsingManager::release_map_banks () {
     m_unit_type_action_map_bank = nullptr;
     m_civ_bld_discount_map_bank = nullptr;
 }
+
+const NameToIdxCbs& StaticParsingManager::get_name_to_idx_cbs () const {
+    return m_name_to_idx_cbs;
+}
+
+cstr StaticParsingManager::get_path_to_settings () const {
+    return m_paths.get_path_to_settings();
+}
+
 u16 StaticParsingManager::get_callback_count () const {
     return m_callback_count;
 }

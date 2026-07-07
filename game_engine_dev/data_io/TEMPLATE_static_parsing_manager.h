@@ -35,6 +35,9 @@ public:
     [STATIC_PARSE_HEADER_NAME_PARSER_GETTERS_TAG]
     [STATIC_PARSE_HEADER_RAW_GETTERS_TAG]
     [STATIC_PARSE_HEADER_MAP_GETTERS_TAG]
+    
+    const NameToIdxCbs& get_name_to_idx_cbs () const;
+    cstr get_path_to_settings () const;
     u16 get_callback_count () const;
 
 private:

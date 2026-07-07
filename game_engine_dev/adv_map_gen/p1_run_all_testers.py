@@ -43,6 +43,10 @@ TESTERS = [
     "p1_gen_climate",
     "p1_gen_desert_river_cull",
     "p1_make_map",
+    "p1_gen_wind_pattern_adv",
+    "p1_gen_loess_boost",
+    "p1_adj_grassland_loess_tiles",
+    "p1_gen_rain_orographic",
 ]
 
 #================================================================================================================================#

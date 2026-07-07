@@ -1,0 +1,37 @@
+#!/bin/bash
+
+INC="-I. -I.. -I../map_loader"
+
+g++ -std=c++11 $INC -c whiteboard.cpp -o whiteboard.o
+g++ -std=c++11 $INC -c wb_sheet.cpp -o wb_sheet.o
+g++ -std=c++11 $INC -c wb_que_xy.cpp -o wb_que_xy.o
+g++ -std=c++11 $INC -c generator_constants.cpp -o generator_constants.o
+g++ -std=c++11 $INC -c perlin_noise.cpp -o perlin_noise.o
+g++ -std=c++11 $INC -c ../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
+g++ -std=c++11 $INC -c ../map_loader/map_terrain_data.cpp -o map_terrain_data.o
+g++ -std=c++11 $INC -c ../map_loader/map_loader.cpp -o map_loader.o
+g++ -std=c++11 $INC -c p1_gen_wind_pattern.cpp -o p1_gen_wind_pattern.o
+g++ -std=c++11 $INC -c p1_gen_wind_pattern_tester.cpp -o p1_gen_wind_pattern_tester.o
+
+g++ -std=c++11 -o p1_gen_wind_pattern_tester \
+    whiteboard.o \
+    wb_sheet.o \
+    wb_que_xy.o \
+    generator_constants.o \
+    perlin_noise.o \
+    map_terrain_validate.o \
+    map_terrain_data.o \
+    map_loader.o \
+    p1_gen_wind_pattern.o \
+    p1_gen_wind_pattern_tester.o -lm
+
+rm whiteboard.o \
+    wb_sheet.o \
+    wb_que_xy.o \
+    generator_constants.o \
+    perlin_noise.o \
+    map_terrain_validate.o \
+    map_terrain_data.o \
+    map_loader.o \
+    p1_gen_wind_pattern.o \
+    p1_gen_wind_pattern_tester.o

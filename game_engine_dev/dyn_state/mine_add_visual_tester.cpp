@@ -78,7 +78,7 @@ public:
 
         for (u16 i = 0; i < limit; ++i) {
             char c = '-';
-            MineAddItem* item = array.get_mine_add(MineAddKey::from_raw(i));
+            MineAddStruct* item = array.get_mine_add(MineAddKey::from_raw(i));
             if (item != nullptr) {
                 c = '1';
             } else if (i < head_count) {
@@ -216,7 +216,7 @@ static void test_large_return_and_reuse () {
         }
 
         if (ok) {
-            MineAddItem* item = array.get_mine_add(id);
+            MineAddStruct* item = array.get_mine_add(id);
             if (item == nullptr) {
                 ok = false;
             }

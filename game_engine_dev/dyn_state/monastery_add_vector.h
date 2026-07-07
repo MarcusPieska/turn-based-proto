@@ -14,14 +14,7 @@
 
 #include "monastery_add_vector_key.h"
 #include "game_primitives.h"
-
-//================================================================================================================================
-//=> - MonasteryAddItem struct -
-//================================================================================================================================
-
-struct MonasteryAddItem {
-    u16 monastery_add_idx;
-};
+#include "monastery_add_struct.h"
 
 //================================================================================================================================
 //=> - MonasteryAddVector class -
@@ -32,13 +25,13 @@ public:
     MonasteryAddVector();
     ~MonasteryAddVector();
 
-    MonasteryAddItem* get_monastery_add(MonasteryAddKey key);
-    const MonasteryAddItem* get_monastery_add(MonasteryAddKey key) const;
+    MonasteryAddStruct* get_monastery_add(MonasteryAddKey key);
+    const MonasteryAddStruct* get_monastery_add(MonasteryAddKey key) const;
     MonasteryAddKey get_next_new_monastery_add_key();
 
     void return_monastery_add(MonasteryAddKey key);
-    MonasteryAddItem* get_page(u16 page_idx);
-    const MonasteryAddItem* get_page(u16 page_idx) const;
+    MonasteryAddStruct* get_page(u16 page_idx);
+    const MonasteryAddStruct* get_page(u16 page_idx) const;
 
     static const u16 MAX_PAGES = 256;
     static const u16 MONASTERY_ADD_ITEMS_PER_PAGE = 256;
@@ -46,7 +39,7 @@ public:
 private:
     friend class MonasteryAddVectorTester;
 
-    MonasteryAddItem* m_pages[MAX_PAGES];
+    MonasteryAddStruct* m_pages[MAX_PAGES];
     u8* m_exists_pages[MAX_PAGES];
     u16 m_monastery_add_count;
     u16 m_head_monastery_add_idx;

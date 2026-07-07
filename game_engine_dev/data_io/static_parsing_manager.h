@@ -137,6 +137,9 @@ public:
     StaticBitBank* get_civ_bld_discount_map_bank () const;
 
     void release_map_banks ();
+    
+    const NameToIdxCbs& get_name_to_idx_cbs () const;
+    cstr get_path_to_settings () const;
     u16 get_callback_count () const;
 
 private:

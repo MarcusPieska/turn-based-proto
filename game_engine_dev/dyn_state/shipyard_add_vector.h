@@ -14,14 +14,7 @@
 
 #include "shipyard_add_vector_key.h"
 #include "game_primitives.h"
-
-//================================================================================================================================
-//=> - ShipyardAddItem struct -
-//================================================================================================================================
-
-struct ShipyardAddItem {
-    u16 shipyard_add_idx;
-};
+#include "shipyard_add_struct.h"
 
 //================================================================================================================================
 //=> - ShipyardAddVector class -
@@ -32,13 +25,13 @@ public:
     ShipyardAddVector();
     ~ShipyardAddVector();
 
-    ShipyardAddItem* get_shipyard_add(ShipyardAddKey key);
-    const ShipyardAddItem* get_shipyard_add(ShipyardAddKey key) const;
+    ShipyardAddStruct* get_shipyard_add(ShipyardAddKey key);
+    const ShipyardAddStruct* get_shipyard_add(ShipyardAddKey key) const;
     ShipyardAddKey get_next_new_shipyard_add_key();
 
     void return_shipyard_add(ShipyardAddKey key);
-    ShipyardAddItem* get_page(u16 page_idx);
-    const ShipyardAddItem* get_page(u16 page_idx) const;
+    ShipyardAddStruct* get_page(u16 page_idx);
+    const ShipyardAddStruct* get_page(u16 page_idx) const;
 
     static const u16 MAX_PAGES = 256;
     static const u16 SHIPYARD_ADD_ITEMS_PER_PAGE = 256;
@@ -46,7 +39,7 @@ public:
 private:
     friend class ShipyardAddVectorTester;
 
-    ShipyardAddItem* m_pages[MAX_PAGES];
+    ShipyardAddStruct* m_pages[MAX_PAGES];
     u8* m_exists_pages[MAX_PAGES];
     u16 m_shipyard_add_count;
     u16 m_head_shipyard_add_idx;

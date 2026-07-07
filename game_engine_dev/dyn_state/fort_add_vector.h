@@ -14,14 +14,7 @@
 
 #include "fort_add_vector_key.h"
 #include "game_primitives.h"
-
-//================================================================================================================================
-//=> - FortAddItem struct -
-//================================================================================================================================
-
-struct FortAddItem {
-    u16 fort_add_idx;
-};
+#include "fort_add_struct.h"
 
 //================================================================================================================================
 //=> - FortAddVector class -
@@ -32,13 +25,13 @@ public:
     FortAddVector();
     ~FortAddVector();
 
-    FortAddItem* get_fort_add(FortAddKey key);
-    const FortAddItem* get_fort_add(FortAddKey key) const;
+    FortAddStruct* get_fort_add(FortAddKey key);
+    const FortAddStruct* get_fort_add(FortAddKey key) const;
     FortAddKey get_next_new_fort_add_key();
 
     void return_fort_add(FortAddKey key);
-    FortAddItem* get_page(u16 page_idx);
-    const FortAddItem* get_page(u16 page_idx) const;
+    FortAddStruct* get_page(u16 page_idx);
+    const FortAddStruct* get_page(u16 page_idx) const;
 
     static const u16 MAX_PAGES = 256;
     static const u16 FORT_ADD_ITEMS_PER_PAGE = 256;
@@ -46,7 +39,7 @@ public:
 private:
     friend class FortAddVectorTester;
 
-    FortAddItem* m_pages[MAX_PAGES];
+    FortAddStruct* m_pages[MAX_PAGES];
     u8* m_exists_pages[MAX_PAGES];
     u16 m_fort_add_count;
     u16 m_head_fort_add_idx;

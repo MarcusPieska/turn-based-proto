@@ -78,7 +78,7 @@ public:
 
         for (u16 i = 0; i < limit; ++i) {
             char c = '-';
-            ShipyardAddItem* item = array.get_shipyard_add(ShipyardAddKey::from_raw(i));
+            ShipyardAddStruct* item = array.get_shipyard_add(ShipyardAddKey::from_raw(i));
             if (item != nullptr) {
                 c = '1';
             } else if (i < head_count) {
@@ -216,7 +216,7 @@ static void test_large_return_and_reuse () {
         }
 
         if (ok) {
-            ShipyardAddItem* item = array.get_shipyard_add(id);
+            ShipyardAddStruct* item = array.get_shipyard_add(id);
             if (item == nullptr) {
                 ok = false;
             }

@@ -6,8 +6,13 @@
 #define P1_MAKE_MAP_H
 
 #include "game_primitives.h"
+#include "p1_adj_grassland_loess_tiles.h"
 #include "p1_adj_land_altitude.h"
+#include "p1_gen_climate.h"
+#include "p1_gen_loess_boost.h"
+#include "p1_gen_rain_orographic.h"
 #include "p1_gen_shaped_outline.h"
+#include "p1_gen_wind_pattern_adv.h"
 #include "p1_map_size.h"
 #include "p1_tester_util.h"
 
@@ -18,14 +23,39 @@
 struct P1_MakeMapPrm {
     P1_Gen_ShapedOutlinePrm m_shaped;
     P1_Adj_LandAltitudePrm m_lap;
+    P1_Gen_WindPatternAdvPrm m_wind;
+    P1_Gen_RainOrographicPrm m_rain;
+    P1_Gen_ClimatePrm m_climate;
+    P1_Gen_LoessBoostPrm m_loess;
+    P1_Adj_GrasslandLoessTilesPrm m_grass_loess;
+    u16 m_rain_finish;
+    u16 m_slope_finish;
 };
 
 static inline P1_MakeMapPrm p1_make_map_prm_def () {
     P1_MakeMapPrm p;
     p.m_shaped = p1_gen_shaped_outline_prm_def();
     p.m_lap = p1_tester_land_altitude_prm();
+    p.m_wind = p1_gen_wind_pattern_adv_prm_def();
+    p.m_rain = p1_gen_rain_orographic_prm_def();
+    p.m_climate = p1_gen_climate_prm_def();
+    p.m_loess = p1_gen_loess_boost_prm_def();
+    p.m_grass_loess = p1_adj_grassland_loess_tiles_prm_def();
+    p.m_grass_loess.m_w_rain = static_cast<u16>(CLIMATE_WT_MAX);
+    p.m_rain_finish = 3;
+    p.m_slope_finish = 100;
     return p;
 }
+
+static const u16 k_p1_step_foothills = 21u;
+static const u16 k_p1_step_wind = 22u;
+static const u16 k_p1_step_rain = 23u;
+static const u16 k_p1_step_climate = 24u;
+static const u16 k_p1_step_desert_cull = 25u;
+static const u16 k_p1_step_loess = 26u;
+static const u16 k_p1_step_grass_loess = 27u;
+static const u16 k_p1_step_core = 28u;
+static const u16 k_p1_step_seed_export = 29u;
 
 //================================================================================================================================
 //=> - P1_MakeMapRslt -
@@ -37,6 +67,10 @@ struct P1_MakeMapRslt {
     u8* m_terrain;
     u8* m_climate;
     u8* m_rivers;
+    u8* m_wind_dir;
+    u8* m_wind_str;
+    u8* m_loess;
+    u8* m_rain;
 };
 
 //================================================================================================================================
@@ -47,13 +81,15 @@ class P1_MakeMap {
 public:
     explicit P1_MakeMap (const P1_RunPrm& prm, const P1_MakeMapPrm& mp = p1_make_map_prm_def ());
 
-    bool generate ();
+    bool generate (u16 last_step = k_p1_step_seed_export);
     bool is_valid () const;
     const P1_MakeMapRslt& result () const;
     bool save_terrain_ppm (cstr path) const;
     bool save_climate_ppm (cstr path) const;
     bool save_rivers_ppm (cstr path) const;
+    bool save_seed_export () const;
     static void free_rslt (P1_MakeMapRslt* rslt);
+    static bool copy_rslt (P1_MakeMapRslt* dst, const P1_MakeMapRslt& src);
 
 private:
     P1_MakeMap (const P1_MakeMap& other) = delete;

@@ -118,6 +118,10 @@ cstr PathMng::get_path_to_wonders () const {
     return m_path_wonders;
 }
 
+cstr PathMng::get_path_to_settings () const {
+    return m_path_settings;
+}
+
 void PathMng::build_paths () {
     join_path(m_path_buildings, PATH_MNG_PATH_N, m_path_offset, "game_config.buildings");
     join_path(m_path_city_flags, PATH_MNG_PATH_N, m_path_offset, "game_config.city_flags");
@@ -134,6 +138,7 @@ void PathMng::build_paths () {
     join_path(m_path_unit_types, PATH_MNG_PATH_N, m_path_offset, "game_config.unit_types");
     join_path(m_path_units, PATH_MNG_PATH_N, m_path_offset, "game_config.units");
     join_path(m_path_wonders, PATH_MNG_PATH_N, m_path_offset, "game_config.wonders");
+    join_path(m_path_settings, PATH_MNG_PATH_N, m_path_offset, "game_config.settings");
 }
 
 void PathMng::validate_paths_or_exit () const {
@@ -197,6 +202,10 @@ void PathMng::validate_paths_or_exit () const {
     }
     if (!does_file_exist(m_path_wonders)) {
         printf("ERROR: Missing file: %s\n", m_path_wonders);
+        ++error_count;
+    }
+    if (!does_file_exist(m_path_settings)) {
+        printf("ERROR: Missing file: %s\n", m_path_settings);
         ++error_count;
     }
 

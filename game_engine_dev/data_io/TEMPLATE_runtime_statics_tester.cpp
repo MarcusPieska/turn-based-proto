@@ -11,6 +11,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 
 #include "runtime_static_loader.h"
 #include "item_reqs.h"
@@ -135,6 +136,27 @@ void run_parser_manager_tests (const RuntimeStatics& s) {
     mgr.print_all(s);
 }
 
+void run_config_smoke_tests (const RuntimeStatics& s) {
+    const GameConfigSettings& cfg = s.config();
+    note_result(!cfg.is_default(), "config loaded from settings file");
+    note_result(cfg.get_mov_pt_per_turn() == 1000, "PATH_MP_TURN matches game_config.settings");
+    const ConfigListUnit& su = cfg.get_start_units();
+    note_result(su.n == 2, "START_UNITS count");
+    note_result(std::strcmp(s.unit().get_name(su.keys[0]), "Settler") == 0, "START_UNITS first is Settler");
+    note_result(std::strcmp(s.unit().get_name(su.keys[1]), "Spearman") == 0, "START_UNITS second is Spearman");
+    if (print_level >= 1) {
+        printf("-----------------------------------------------------------\n");
+        printf("RUNTIME STATICS CONFIG\n");
+        printf("  PATH_MP_TURN: %u\n", cfg.get_mov_pt_per_turn());
+        printf("  START_UNITS:");
+        for (u16 i = 0; i < su.n; ++i) {
+            printf(" %s", s.unit().get_name(su.keys[i]));
+        }
+        printf("\n");
+    }
+    summarize_test_results();
+}
+
 int run_parse_driver () {
     RuntimeStaticLoader loader;
     if (!loader.load(g_lib_path, g_data_path)) {
@@ -148,6 +170,7 @@ int run_parse_driver () {
     run_req_bounds_tests(s);
     run_map_smoke_tests(s);
     run_effector_smoke_tests(s);
+    run_config_smoke_tests(s);
     run_parser_manager_tests(s);
     if (print_level >= 1) {
         print_holder_counts(s);

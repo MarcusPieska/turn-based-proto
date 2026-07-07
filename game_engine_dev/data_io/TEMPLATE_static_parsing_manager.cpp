@@ -64,6 +64,15 @@ StaticParsingManager::~StaticParsingManager () {
 [STATIC_PARSE_CPP_MAP_GETTERS_TAG]
 
 [STATIC_PARSE_CPP_RELEASE_MAP_BANKS_TAG]
+
+const NameToIdxCbs& StaticParsingManager::get_name_to_idx_cbs () const {
+    return m_name_to_idx_cbs;
+}
+
+cstr StaticParsingManager::get_path_to_settings () const {
+    return m_paths.get_path_to_settings();
+}
+
 u16 StaticParsingManager::get_callback_count () const {
     return m_callback_count;
 }

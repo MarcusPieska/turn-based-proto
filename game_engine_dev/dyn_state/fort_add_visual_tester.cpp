@@ -78,7 +78,7 @@ public:
 
         for (u16 i = 0; i < limit; ++i) {
             char c = '-';
-            FortAddItem* item = array.get_fort_add(FortAddKey::from_raw(i));
+            FortAddStruct* item = array.get_fort_add(FortAddKey::from_raw(i));
             if (item != nullptr) {
                 c = '1';
             } else if (i < head_count) {
@@ -216,7 +216,7 @@ static void test_large_return_and_reuse () {
         }
 
         if (ok) {
-            FortAddItem* item = array.get_fort_add(id);
+            FortAddStruct* item = array.get_fort_add(id);
             if (item == nullptr) {
                 ok = false;
             }

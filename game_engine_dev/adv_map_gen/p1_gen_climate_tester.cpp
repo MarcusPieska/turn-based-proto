@@ -6,11 +6,13 @@
 #include <ctime>
 
 #include "p1_gen_climate.h"
+#include "game_map_defs.h"
 #include "game_primitives.h"
 #include "generator_constants.h"
 #include "map_terrain_validate.h"
-#include "p1_tester_chain15.h"
-#include "p1_tester_util.h"
+#include "p1_make_map.h"
+#include "p1_tester_chain_core.h"
+#include "p1_tester_util.h" 
 
 //================================================================================================================================
 //=> - Test helpers -
@@ -70,52 +72,84 @@ static bool save_climate_viz (
     return ok;
 }
 
-i32 test_p1_gen_climate_basic (const P1_RunPrm& prm, const P1_Adj_LandAltitudePrm& lap) {
+static bool run_rain_wt (
+    const P1_RunPrm& prm,
+    const P1_MakeMapRslt& chain,
+    u8 rain_wt) 
+{
     char out_path[320];
     char terr_path[320];
-    if (!p1_tester_make_out(prm.m_seed, out_path, sizeof(out_path))) {
-        std::printf("failed to ensure output dir\n");
-        return -1;
+    char suffix[64];
+    std::snprintf(suffix, sizeof(suffix), "climate_rain_wt_%02u", static_cast<unsigned>(rain_wt));
+    if (!p1_tester_make_step_out(prm.m_seed, k_p1_step_climate, suffix, out_path, sizeof(out_path))
+        || !p1_tester_make_step_out(prm.m_seed, k_p1_step_climate, "climate_terrain", terr_path, sizeof(terr_path))) {
+        std::printf("failed to ensure output path rain_wt=%u\n", static_cast<unsigned>(rain_wt));
+        return false;
     }
-    if (!p1_tester_make_step_out(prm.m_seed, p1_tester_step(), "climate_terrain", terr_path, sizeof(terr_path))) {
-        std::printf("failed to ensure terrain output path\n");
-        return -1;
-    }
-    P1_TesterChain15Rslt chain = {};
-    double sec_i = 0.0;
-    if (!p1_build_ensure_input(prm, lap, static_cast<u16>(p1_tester_step()), &chain, &sec_i)) {
-        std::printf("P1 steps 1-21 input failed for step 22\n");
-        return -1;
-    }
-    P1_Gen_Climate gen(prm);
+    P1_Gen_ClimatePrm sp = p1_gen_climate_prm_def();
+    sp.m_wts.m_w_rain = rain_wt;
+    P1_Gen_Climate gen(prm, sp);
     const clock_t t0 = clock();
-    const bool ok = gen.generate(chain.m_terrain, chain.m_w, chain.m_h, chain.m_river);
+    const bool ok = gen.generate(chain.m_terrain, chain.m_w, chain.m_h, chain.m_rivers, chain.m_rain);
     const clock_t t1 = clock();
     const double sec = static_cast<double>(t1 - t0) / static_cast<double>(CLOCKS_PER_SEC);
     if (!ok || !gen.is_valid()) {
-        std::printf("P1_Gen_Climate failed to generate\n");
-        p1_free_chain15(&chain);
-        return -1;
+        std::printf("P1_Gen_Climate failed rain_wt=%u\n", static_cast<unsigned>(rain_wt));
+        return false;
     }
     const u8* climate = gen.result().m_ov.data();
-    std::printf("P1 steps 1-21 input time: %.6f s\n", sec_i);
-    std::printf("P1_Gen_Climate generate time: %.6f s (%u x %u)\n",
+    std::printf("P1_Gen_Climate rain_wt=%3u generate time: %.6f s (%u x %u)\n",
+        static_cast<unsigned>(rain_wt),
         sec,
         static_cast<u32>(chain.m_w),
         static_cast<u32>(chain.m_h));
-    if (!save_climate_viz(out_path, chain.m_terrain, chain.m_river, climate, chain.m_w, chain.m_h)) {
+    if (!save_climate_viz(out_path, chain.m_terrain, chain.m_rivers, climate, chain.m_w, chain.m_h)) {
         std::printf("failed to save map: %s\n", out_path);
-        p1_free_chain15(&chain);
-        return -1;
+        return false;
     }
     std::printf("saved: %s\n", out_path);
-    if (!save_climate_viz(terr_path, chain.m_terrain, nullptr, climate, chain.m_w, chain.m_h)) {
+    if (rain_wt == p1_gen_climate_prm_def().m_wts.m_w_rain && !save_climate_viz(terr_path, chain.m_terrain, nullptr, climate, chain.m_w, chain.m_h)) {
         std::printf("failed to save terrain map: %s\n", terr_path);
-        p1_free_chain15(&chain);
+        return false;
+    }
+    if (rain_wt == p1_gen_climate_prm_def().m_wts.m_w_rain) {
+        std::printf("saved: %s\n", terr_path);
+    }
+    return true;
+}
+
+i32 test_p1_gen_climate_basic (const P1_RunPrm& prm, u8 rain_wt_arg, bool rain_wt_set) {
+    P1_MakeMapRslt chain = {};
+    double sec_i = 0.0;
+    if (!p1_build_chain_core(prm, k_p1_step_rain, &chain, &sec_i)) {
+        std::printf("P1 steps 1-23 input failed for step 24\n");
         return -1;
     }
-    p1_free_chain15(&chain);
-    std::printf("saved: %s\n", terr_path);
+    if (chain.m_terrain == nullptr || chain.m_rivers == nullptr || chain.m_rain == nullptr
+        || chain.m_w == 0 || chain.m_h == 0) {
+        std::printf("invalid chain input for climate\n");
+        P1_MakeMap::free_rslt(&chain);
+        return -1;
+    }
+    std::printf("P1 steps 1-23 input time: %.6f s\n", sec_i);
+    if (rain_wt_set) {
+        if (!run_rain_wt(prm, chain, rain_wt_arg)) {
+            P1_MakeMap::free_rslt(&chain);
+            return -1;
+        }
+    } else {
+        for (u32 wi = 0; wi <= 10u; ++wi) {
+            u8 wt = static_cast<u8>(wi * 10u);
+            if (wt > static_cast<u8>(CLIMATE_WT_MAX)) {
+                wt = static_cast<u8>(CLIMATE_WT_MAX);
+            }
+            if (!run_rain_wt(prm, chain, wt)) {
+                P1_MakeMap::free_rslt(&chain);
+                return -1;
+            }
+        }
+    }
+    P1_MakeMap::free_rslt(&chain);
     return 0;
 }
 
@@ -128,10 +162,15 @@ i32 main (i32 argc, char* argv[]) {
         return -1;
     }
     P1_RunPrm prm;
-    P1_Adj_LandAltitudePrm lap;
+    u8 rain_wt = 0;
+    bool rain_wt_set = false;
     p1_resolve_run_prm(argc, argv, &prm);
-    p1_resolve_land_altitude_prm(argc, argv, &lap);
-    return test_p1_gen_climate_basic(prm, lap);
+    p1_resolve_climate_rain_wt(argc, argv, &rain_wt, &rain_wt_set);
+    const i32 rc = test_p1_gen_climate_basic(prm, rain_wt, rain_wt_set);
+    if (!p1_tester_whiteboard_chk()) {
+        return -1;
+    }
+    return rc;
 }
 
 //================================================================================================================================

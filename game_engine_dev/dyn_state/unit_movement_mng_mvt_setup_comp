@@ -1,0 +1,67 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")"
+
+LIB_SO="../data_io/runtime_static_loader_lib.so"
+if [ ! -f "$LIB_SO" ]; then
+    echo "missing $LIB_SO - run ../data_io/runtime_static_loader_lib_comp first"
+    exit 1
+fi
+
+INC="-I. \
+     -I.. \
+     -I../misc \
+     -I../data_io \
+     -I../static_state \
+     -I../game"
+CXXFLAGS="-std=c++17 -Wall -Wextra"
+
+g++ $CXXFLAGS $INC -c ../data_io/runtime_static_loader.cpp -o runtime_static_loader.o
+g++ $CXXFLAGS $INC -c ../game/runtime_trace_dbg.cpp -o runtime_trace_dbg.o
+g++ $CXXFLAGS $INC -c ../misc/map_bit_overlay.cpp -o map_bit_overlay.o
+g++ $CXXFLAGS $INC -c ../misc/map_bit_array_overlay.cpp -o map_bit_array_overlay.o
+g++ $CXXFLAGS $INC -c ../misc/bit_array.cpp -o bit_array.o
+g++ $CXXFLAGS $INC -c fort_add_vector.cpp -o fort_add_vector.o
+g++ $CXXFLAGS $INC -c mine_add_vector.cpp -o mine_add_vector.o
+g++ $CXXFLAGS $INC -c monastery_add_vector.cpp -o monastery_add_vector.o
+g++ $CXXFLAGS $INC -c outpost_add_vector.cpp -o outpost_add_vector.o
+g++ $CXXFLAGS $INC -c plantation_add_vector.cpp -o plantation_add_vector.o
+g++ $CXXFLAGS $INC -c shipyard_add_vector.cpp -o shipyard_add_vector.o
+g++ $CXXFLAGS $INC -c trade_post_add_vector.cpp -o trade_post_add_vector.o
+g++ $CXXFLAGS $INC -c unit_add_vector.cpp -o unit_add_vector.o
+g++ $CXXFLAGS $INC -c unit_movement_mng.cpp -o unit_movement_mng.o
+g++ $CXXFLAGS $INC -c ../game/game_array_simple.cpp -o game_array_simple.o
+g++ $CXXFLAGS $INC -c ../game/game_state.cpp -o game_state.o
+g++ $CXXFLAGS $INC -c ../game/civ_relations.cpp -o civ_relations.o
+g++ $CXXFLAGS $INC -c unit_movement_mng_mvt_setup_tester.cpp -o unit_movement_mng_mvt_setup_tester.o
+
+g++ $CXXFLAGS -o unit_movement_mng_mvt_setup_tester \
+    runtime_static_loader.o \
+    runtime_trace_dbg.o \
+    map_bit_overlay.o \
+    map_bit_array_overlay.o \
+    bit_array.o \
+    fort_add_vector.o \
+    mine_add_vector.o \
+    monastery_add_vector.o \
+    outpost_add_vector.o \
+    plantation_add_vector.o \
+    shipyard_add_vector.o \
+    trade_post_add_vector.o \
+    unit_add_vector.o \
+    unit_movement_mng.o \
+    game_array_simple.o \
+    game_state.o \
+    civ_relations.o \
+    unit_movement_mng_mvt_setup_tester.o \
+    -ldl \
+    $LIB_SO \
+    -Wl,-rpath,'$ORIGIN/../data_io'
+
+rm runtime_static_loader.o runtime_trace_dbg.o map_bit_overlay.o map_bit_array_overlay.o bit_array.o \
+    fort_add_vector.o mine_add_vector.o monastery_add_vector.o \
+    outpost_add_vector.o plantation_add_vector.o shipyard_add_vector.o \
+    trade_post_add_vector.o unit_add_vector.o unit_movement_mng.o \
+    game_array_simple.o game_state.o civ_relations.o \
+    unit_movement_mng_mvt_setup_tester.o

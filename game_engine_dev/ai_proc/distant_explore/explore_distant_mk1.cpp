@@ -5,6 +5,7 @@
 #include "explore_distant_mk1.h"
 #include "ai_whiteboard.h"
 #include "game_map_defs.h"
+#include "game_map_grid_defs.h"
 #include "runtime_trace_dbg.h"
 
 //================================================================================================================================
@@ -14,8 +15,6 @@
 static const u16 k_dep_none = 0xFFFFu;
 static const u8 k_lim_cd = 12u;
 static const u8 k_follow_max = 24u;
-static const i16 k_dx4[] = {0, 1, 0, -1};
-static const i16 k_dy4[] = {-1, 0, 1, 0};
 #define EDM1_PHASE_GO 0
 #define EDM1_PHASE_FOLLOW 1
 
@@ -115,8 +114,8 @@ static bool has_water_nbr (const GameArraySimple& map, u16 x, u16 y) {
     const u16 w = map.width();
     const u16 h = map.height();
     for (u32 i = 0; i < 4u; ++i) {
-        const i32 nx = static_cast<i32>(x) + k_dx4[i];
-        const i32 ny = static_cast<i32>(y) + k_dy4[i];
+        const i32 nx = static_cast<i32>(x) + MAP_NBR4_DX[i];
+        const i32 ny = static_cast<i32>(y) + MAP_NBR4_DY[i];
         if (nx < 0 || ny < 0) {
             continue;
         }
@@ -244,9 +243,9 @@ static void mark_comp (u16* cmp, const GameArraySimple& map, u8 lim, u16 sx, u16
         const u32 i = q[qh];
         const u16 py = static_cast<u16>(i / static_cast<u32>(w));
         const u16 px = static_cast<u16>(i - static_cast<u32>(py) * static_cast<u32>(w));
-        for (u32 k = 0; k < 4u; ++k) {
-            const i32 nx = static_cast<i32>(px) + k_dx4[k];
-            const i32 ny = static_cast<i32>(py) + k_dy4[k];
+        for (u32 k = 0u; k < MAP_NBR4_N; ++k) {
+            const i32 nx = static_cast<i32>(px) + MAP_NBR4_DX[k];
+            const i32 ny = static_cast<i32>(py) + MAP_NBR4_DY[k];
             if (nx < 0 || ny < 0) {
                 continue;
             }
@@ -273,9 +272,9 @@ static bool is_comp_edge (const u16* cmp, u16 w, u16 h, u16 x, u16 y) {
     if (cmp[tidx(w, x, y)] == 0) {
         return false;
     }
-    for (u32 k = 0; k < 4u; ++k) {
-        const i32 nx = static_cast<i32>(x) + k_dx4[k];
-        const i32 ny = static_cast<i32>(y) + k_dy4[k];
+    for (u32 k = 0u; k < MAP_NBR4_N; ++k) {
+        const i32 nx = static_cast<i32>(x) + MAP_NBR4_DX[k];
+        const i32 ny = static_cast<i32>(y) + MAP_NBR4_DY[k];
         if (nx < 0 || ny < 0) {
             return true;
         }
@@ -319,9 +318,9 @@ static u16 flood_lim_edge (u16* dep, u16* edg, const u16* cmp, u16 w, u16 h, u32
         const u16 d = dep[i];
         const u16 py = static_cast<u16>(i / static_cast<u32>(w));
         const u16 px = static_cast<u16>(i - static_cast<u32>(py) * static_cast<u32>(w));
-        for (u32 k = 0; k < 4u; ++k) {
-            const i32 nx = static_cast<i32>(px) + k_dx4[k];
-            const i32 ny = static_cast<i32>(py) + k_dy4[k];
+        for (u32 k = 0u; k < MAP_NBR4_N; ++k) {
+            const i32 nx = static_cast<i32>(px) + MAP_NBR4_DX[k];
+            const i32 ny = static_cast<i32>(py) + MAP_NBR4_DY[k];
             if (nx < 0 || ny < 0) {
                 continue;
             }
@@ -367,9 +366,9 @@ static u16 collect_waypts (u16* wpx, u16* wpy, u16* wpm, const u16* edg, const G
                 wp_n = add_waypt(wpx, wpy, wpm, w, x, y, wp_n);
                 continue;
             }
-            for (u32 k = 0; k < 4u; ++k) {
-                const i32 nx = static_cast<i32>(x) + k_dx4[k];
-                const i32 ny = static_cast<i32>(y) + k_dy4[k];
+            for (u32 k = 0u; k < MAP_NBR4_N; ++k) {
+                const i32 nx = static_cast<i32>(x) + MAP_NBR4_DX[k];
+                const i32 ny = static_cast<i32>(y) + MAP_NBR4_DY[k];
                 if (nx < 0 || ny < 0) {
                     continue;
                 }
@@ -510,8 +509,8 @@ static bool pick_walk_nbr (
     u16 cy[4];
     u32 n = 0;
     for (u32 i = 0; i < 4u; ++i) {
-        const i32 nx = static_cast<i32>(ux) + k_dx4[i];
-        const i32 ny = static_cast<i32>(uy) + k_dy4[i];
+        const i32 nx = static_cast<i32>(ux) + MAP_NBR4_DX[i];
+        const i32 ny = static_cast<i32>(uy) + MAP_NBR4_DY[i];
         if (nx < 0 || ny < 0) {
             continue;
         }
@@ -552,8 +551,8 @@ static bool step_go (EdSt* st, const GameArraySimple& map, MapBitOverlay& exp, u
     u16 by = uy;
     bool found = false;
     for (u32 i = 0; i < 4u; ++i) {
-        const i32 nx = static_cast<i32>(ux) + k_dx4[i];
-        const i32 ny = static_cast<i32>(uy) + k_dy4[i];
+        const i32 nx = static_cast<i32>(ux) + MAP_NBR4_DX[i];
+        const i32 ny = static_cast<i32>(uy) + MAP_NBR4_DY[i];
         if (nx < 0 || ny < 0) {
             continue;
         }
@@ -583,8 +582,8 @@ static bool step_go (EdSt* st, const GameArraySimple& map, MapBitOverlay& exp, u
     best = 0xFFFFFFFFu;
     found = false;
     for (u32 i = 0; i < 4u; ++i) {
-        const i32 nx = static_cast<i32>(ux) + k_dx4[i];
-        const i32 ny = static_cast<i32>(uy) + k_dy4[i];
+        const i32 nx = static_cast<i32>(ux) + MAP_NBR4_DX[i];
+        const i32 ny = static_cast<i32>(uy) + MAP_NBR4_DY[i];
         if (nx < 0 || ny < 0) {
             continue;
         }
@@ -650,8 +649,8 @@ static bool step_follow_edge (EdSt* st, const GameArraySimple& map, u16& ux, u16
         u16 by = uy;
         bool found = false;
         for (u32 i = 0; i < 4u; ++i) {
-            const i32 nx = static_cast<i32>(ux) + k_dx4[i];
-            const i32 ny = static_cast<i32>(uy) + k_dy4[i];
+            const i32 nx = static_cast<i32>(ux) + MAP_NBR4_DX[i];
+            const i32 ny = static_cast<i32>(uy) + MAP_NBR4_DY[i];
             if (nx < 0 || ny < 0) {
                 continue;
             }

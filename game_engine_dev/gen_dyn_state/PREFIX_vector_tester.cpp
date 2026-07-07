@@ -78,11 +78,11 @@ class [CLASS_NAME_PREFIX]VectorTester {
 
 void test_first_item_zero_initialized () {
     [CLASS_NAME_PREFIX]Vector array;
-    [CLASS_NAME_PREFIX]Item* should_be_null = array.get_[MEMBER_TAG]([CLASS_NAME_PREFIX]Key::None());
+    [STRUCT_NAME]* should_be_null = array.get_[MEMBER_TAG]([CLASS_NAME_PREFIX]Key::None());
     bool ok = (should_be_null == nullptr);
 
     [CLASS_NAME_PREFIX]Key id = array.get_next_new_[MEMBER_TAG]_key();
-    [CLASS_NAME_PREFIX]Item* item = array.get_[MEMBER_TAG](id);
+    [STRUCT_NAME]* item = array.get_[MEMBER_TAG](id);
 
     if (item == nullptr) {
         ok = false;
@@ -94,7 +94,7 @@ void test_first_item_zero_initialized () {
 
 void test_null_key_reserved () {
     [CLASS_NAME_PREFIX]Vector array;
-    [CLASS_NAME_PREFIX]Item* null_item = array.get_[MEMBER_TAG]([CLASS_NAME_PREFIX]Key::None());
+    [STRUCT_NAME]* null_item = array.get_[MEMBER_TAG]([CLASS_NAME_PREFIX]Key::None());
     [CLASS_NAME_PREFIX]Key first_key = array.get_next_new_[MEMBER_TAG]_key();
     bool ok = (null_item == nullptr) && (first_key.value() == 0);
     note_result(ok, "None key is null; first allocated key is 0");
@@ -102,7 +102,7 @@ void test_null_key_reserved () {
 }
 
 void test_item_size_is_nonzero () {
-    bool ok = (sizeof([CLASS_NAME_PREFIX]Item) > 0);
+    bool ok = (sizeof([STRUCT_NAME]) > 0);
     note_result(ok, "Item size is non-zero");
     summarize_test_results();
 }
@@ -119,12 +119,12 @@ void test_array_unique_ids () {
         if (id.value() != expected) {
             ok_ids = false;
         }
-        [CLASS_NAME_PREFIX]Item* item = array.get_[MEMBER_TAG](id);
+        [STRUCT_NAME]* item = array.get_[MEMBER_TAG](id);
         if (item == nullptr) {
             ok_ids = false;
             break;
         }
-        item->[MEMBER_TAG]_idx = id.value();
+        item->[NUM_MEMBER] = id.value();
     }
 
     if (ok_ids) {
@@ -134,12 +134,12 @@ void test_array_unique_ids () {
         } else {
             for (u16 i = 0; i < target_count; ++i) {
                 const u16 expected = i;
-                [CLASS_NAME_PREFIX]Item* item = array.get_[MEMBER_TAG]([CLASS_NAME_PREFIX]Key::from_raw(expected));
+                [STRUCT_NAME]* item = array.get_[MEMBER_TAG]([CLASS_NAME_PREFIX]Key::from_raw(expected));
                 if (item == nullptr) {
                     ok_ids = false;
                     break;
                 }
-                if (item->[MEMBER_TAG]_idx != expected) {
+                if (item->[NUM_MEMBER] != expected) {
                     ok_ids = false;
                     break;
                 }
@@ -162,7 +162,7 @@ void test_return_clears_existence () {
     bool ok = true;
 
     const u16 return_idx1 = 3;
-    [CLASS_NAME_PREFIX]Item* item1 = array.get_[MEMBER_TAG]([CLASS_NAME_PREFIX]Key::from_raw(return_idx1));
+    [STRUCT_NAME]* item1 = array.get_[MEMBER_TAG]([CLASS_NAME_PREFIX]Key::from_raw(return_idx1));
     if (item1 == nullptr) {
         ok = false;
     } else {
@@ -173,7 +173,7 @@ void test_return_clears_existence () {
     }
 
     const u16 return_idx2 = 8;
-    [CLASS_NAME_PREFIX]Item* item2 = array.get_[MEMBER_TAG]([CLASS_NAME_PREFIX]Key::from_raw(return_idx2));
+    [STRUCT_NAME]* item2 = array.get_[MEMBER_TAG]([CLASS_NAME_PREFIX]Key::from_raw(return_idx2));
     if (item2 == nullptr) {
         ok = false;
     } else {
@@ -224,7 +224,7 @@ void test_return_decrements_count () {
     u16 before_head  = [CLASS_NAME_PREFIX]VectorTester::get_head_count(array);
 
     const u16 return_idx = 4;
-    [CLASS_NAME_PREFIX]Item* item = array.get_[MEMBER_TAG]([CLASS_NAME_PREFIX]Key::from_raw(return_idx));
+    [STRUCT_NAME]* item = array.get_[MEMBER_TAG]([CLASS_NAME_PREFIX]Key::from_raw(return_idx));
     bool ok = true;
     if (item == nullptr) {
         ok = false;
@@ -271,7 +271,7 @@ void test_reuse_recycled_slot_basic () {
     u16 before_count = [CLASS_NAME_PREFIX]VectorTester::get_count(array);
     u16 before_head  = [CLASS_NAME_PREFIX]VectorTester::get_head_count(array);
     const u16 return_idx = 1;
-    [CLASS_NAME_PREFIX]Item* item = array.get_[MEMBER_TAG]([CLASS_NAME_PREFIX]Key::from_raw(return_idx));
+    [STRUCT_NAME]* item = array.get_[MEMBER_TAG]([CLASS_NAME_PREFIX]Key::from_raw(return_idx));
     bool ok = (item != nullptr);
     if (ok) {
         array.return_[MEMBER_TAG]([CLASS_NAME_PREFIX]Key::from_raw(return_idx));
@@ -285,7 +285,7 @@ void test_reuse_recycled_slot_basic () {
         if ([CLASS_NAME_PREFIX]VectorTester::get_head_count(array) != before_head) {
             ok = false;
         }
-        [CLASS_NAME_PREFIX]Item* reused = array.get_[MEMBER_TAG]([CLASS_NAME_PREFIX]Key::from_raw(return_idx));
+        [STRUCT_NAME]* reused = array.get_[MEMBER_TAG]([CLASS_NAME_PREFIX]Key::from_raw(return_idx));
         if (reused == nullptr) {
             ok = false;
         }
@@ -301,8 +301,8 @@ void test_reuse_recycled_slot_lifo () {
         array.get_next_new_[MEMBER_TAG]_key();
     }
 
-    [CLASS_NAME_PREFIX]Item* i1 = array.get_[MEMBER_TAG]([CLASS_NAME_PREFIX]Key::from_raw(1));
-    [CLASS_NAME_PREFIX]Item* i2 = array.get_[MEMBER_TAG]([CLASS_NAME_PREFIX]Key::from_raw(2));
+    [STRUCT_NAME]* i1 = array.get_[MEMBER_TAG]([CLASS_NAME_PREFIX]Key::from_raw(1));
+    [STRUCT_NAME]* i2 = array.get_[MEMBER_TAG]([CLASS_NAME_PREFIX]Key::from_raw(2));
     bool ok = (i1 != nullptr && i2 != nullptr);
     if (ok) {
         array.return_[MEMBER_TAG]([CLASS_NAME_PREFIX]Key::from_raw(1));
@@ -330,7 +330,7 @@ void test_return_twice_is_noop_second_time () {
     }
 
     const u16 return_idx = 3;
-    [CLASS_NAME_PREFIX]Item* item = array.get_[MEMBER_TAG]([CLASS_NAME_PREFIX]Key::from_raw(return_idx));
+    [STRUCT_NAME]* item = array.get_[MEMBER_TAG]([CLASS_NAME_PREFIX]Key::from_raw(return_idx));
 
     bool ok = true;
     if (item == nullptr) {
@@ -372,7 +372,7 @@ void test_array_page_allocation () {
         ok_pages = false;
     } else {
         for (u16 p = 0; p < page_count; ++p) {
-            [CLASS_NAME_PREFIX]Item* page = array.get_page(p);
+            [STRUCT_NAME]* page = array.get_page(p);
             if (page == nullptr) {
                 ok_pages = false;
                 break;

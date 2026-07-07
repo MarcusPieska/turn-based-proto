@@ -12,15 +12,19 @@
 
 #include <sys/stat.h>
 
+#include "game_map_defs.h"
 #include "game_primitives.h"
 #include "p1_adj_land_altitude.h"
+#include "p1_gen_climate.h"
 #include "p1_map_size.h"
+#include "whiteboard.h"
 
 //================================================================================================================================
 //=> - P1 tester helpers -
 //================================================================================================================================
 
 static const char* P1_OUT_ROOT = "/home/w/Projects/simple-map-gen";
+static const char* P1_MAPS_ROOT = "/home/w/Projects/simple-map-gen/maps";
 static const char* P1_SEED_FILE = "seed.txt";
 
 static const f32 P1_TEST_RADIAL_LIM = 0.45f;
@@ -58,9 +62,13 @@ static const P1_TesterCfg g_p1_tester_tbl[] = {
     {"p1_adj_ensure_seas_tester", 19u, "19_ensure_seas.ppm"},
     {"p1_adj_ensure_river_valleys_tester", 20u, "20_ensure_river_valleys.ppm"},
     {"p1_adj_ensure_mtn_foothills_tester", 21u, "21_ensure_mtn_foothills.ppm"},
-    {"p1_gen_climate_tester", 22u, "22_climate.ppm"},
-    {"p1_gen_desert_river_cull_tester", 23u, "23_desert_river_cull_upstream.ppm"},
-    {"p1_make_map_tester", 24u, "24_make_map_terrain.ppm"},
+    {"p1_gen_wind_pattern_adv_tester", 22u, "22_wind_pattern_adv_dir.ppm"},
+    {"p1_gen_rain_orographic_tester", 23u, "23_rain_oro_rain.ppm"},
+    {"p1_gen_climate_tester", 24u, "24_climate.ppm"},
+    {"p1_gen_desert_river_cull_tester", 25u, "25_desert_river_cull_upstream.ppm"},
+    {"p1_gen_loess_boost_tester", 26u, "26_loess_boost.ppm"},
+    {"p1_adj_grassland_loess_tiles_tester", 27u, "27_grassland_loess_tiles.ppm"},
+    {"p1_make_map_tester", 29u, "28_make_map_terrain.ppm"},
 };
 
 static const P1_TesterCfg* g_p1_tester_cfg = nullptr;
@@ -192,6 +200,25 @@ static void p1_resolve_land_altitude_prm (i32 argc, char* argv[], P1_Adj_LandAlt
     }
 }
 
+static bool p1_resolve_climate_rain_wt (i32 argc, char* argv[], u8* out_wt, bool* out_set) {
+    if (out_wt == nullptr || out_set == nullptr) {
+        return false;
+    }
+    *out_set = false;
+    *out_wt = p1_gen_climate_prm_def().m_wts.m_w_rain;
+    for (i32 a = 1; a < argc; ++a) {
+        if (argv[a] == nullptr) {
+            continue;
+        }
+        if (std::strncmp(argv[a], "--rain-wt=", 10) == 0) {
+            const i32 v = static_cast<i32>(std::strtol(argv[a] + 10, nullptr, 10));
+            *out_wt = (v < 0) ? 0 : ((v > CLIMATE_WT_MAX) ? static_cast<u8>(CLIMATE_WT_MAX) : static_cast<u8>(v));
+            *out_set = true;
+        }
+    }
+    return true;
+}
+
 static bool p1_ensure_dir (cstr path) {
     if (path == nullptr || path[0] == '\0') {
         return false;
@@ -200,6 +227,17 @@ static bool p1_ensure_dir (cstr path) {
         return true;
     }
     return false;
+}
+
+static bool p1_make_seed_export_path (u32 seed, cstr kind, char* out, size_t cap) {
+    if (kind == nullptr || out == nullptr || cap == 0) {
+        return false;
+    }
+    if (!p1_ensure_dir(P1_OUT_ROOT) || !p1_ensure_dir(P1_MAPS_ROOT)) {
+        return false;
+    }
+    std::snprintf(out, cap, "%s/seed-%04u-%s.ppm", P1_MAPS_ROOT, static_cast<unsigned>(seed), kind);
+    return true;
 }
 
 static bool p1_make_out_path (u32 seed, cstr fname, char* out, size_t cap) {
@@ -239,6 +277,16 @@ static bool p1_tester_make_step_out (
     char fname[160];
     std::snprintf(fname, sizeof(fname), "%02u_%s.ppm", step, suffix);
     return p1_make_out_path(seed, fname, out, cap);
+}
+
+static bool p1_tester_whiteboard_chk () {
+    const u32 n = Whiteboard::chkout();
+    if (n != 0u) {
+        std::printf("Whiteboard checkout leak: %u\n", n);
+        return false;
+    }
+    Whiteboard::dealloc();
+    return true;
 }
 
 #endif // P1_TESTER_UTIL_H

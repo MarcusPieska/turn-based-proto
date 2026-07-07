@@ -4,6 +4,7 @@ INC="-I. -I.."
 
 g++ -std=c++11 $INC -c generator_constants.cpp -o generator_constants.o
 g++ -std=c++11 $INC -c perlin_noise.cpp -o perlin_noise.o
+g++ -std=c++11 $INC -c whiteboard.cpp -o whiteboard.o
 g++ -std=c++11 $INC -c p1_gen_outline.cpp -o p1_gen_outline.o
 g++ -std=c++11 $INC -c p1_gen_land_depth.cpp -o p1_gen_land_depth.o
 g++ -std=c++11 $INC -c p1_gen_land_depth_tester.cpp -o p1_gen_land_depth_tester.o
@@ -11,12 +12,14 @@ g++ -std=c++11 $INC -c p1_gen_land_depth_tester.cpp -o p1_gen_land_depth_tester.
 g++ -std=c++11 -o p1_gen_land_depth_tester \
     generator_constants.o \
     perlin_noise.o \
+    whiteboard.o \
     p1_gen_outline.o \
     p1_gen_land_depth.o \
     p1_gen_land_depth_tester.o -lm
 
 rm generator_constants.o \
     perlin_noise.o \
+    whiteboard.o \
     p1_gen_outline.o \
     p1_gen_land_depth.o \
     p1_gen_land_depth_tester.o

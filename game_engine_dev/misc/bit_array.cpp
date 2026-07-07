@@ -31,21 +31,21 @@ u32 BitArray32::get_count () const {
 }
 
 u32 BitArray32::get_bit (u32 index) const {
-    if (index < 0 || index >= MAX_BITS) {
+    if (index >= MAX_BITS) {
         return 0;
     }
     return (m_num_bits & masks[index]) ? 1 : 0;
 }
 
 void BitArray32::set_bit (u32 index) {
-    if (index < 0 || index >= MAX_BITS) {
+    if (index >= MAX_BITS) {
         return;
     }
     m_num_bits |= masks[index];
 }
 
 void BitArray32::clear_bit (u32 index) {
-    if (index < 0 || index >= MAX_BITS) {
+    if (index >= MAX_BITS) {
         return;
     }
     m_num_bits &= ~masks[index];
@@ -80,7 +80,7 @@ u32 BitArrayCL::get_count () const {
 
 
 u32 BitArrayCL::get_bit (u32 index) const {
-    if (index < 0 || index >= m_num_bits) {
+    if (index >= m_num_bits) {
         return 0;
     }
     u32 array_idx = index / MAX_BITS;
@@ -89,7 +89,7 @@ u32 BitArrayCL::get_bit (u32 index) const {
 }
 
 void BitArrayCL::set_bit (u32 index) {
-    if (index < 0 || index >= m_num_bits) {
+    if (index >= m_num_bits) {
         return;
     }
     u32 array_idx = index / MAX_BITS;
@@ -98,7 +98,7 @@ void BitArrayCL::set_bit (u32 index) {
 }
 
 void BitArrayCL::clear_bit (u32 index) {
-    if (index < 0 || index >= m_num_bits) {
+    if (index >= m_num_bits) {
         return;
     }
     u32 array_idx = index / MAX_BITS;

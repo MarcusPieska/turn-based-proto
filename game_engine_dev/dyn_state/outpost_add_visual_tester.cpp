@@ -78,7 +78,7 @@ public:
 
         for (u16 i = 0; i < limit; ++i) {
             char c = '-';
-            OutpostAddItem* item = array.get_outpost_add(OutpostAddKey::from_raw(i));
+            OutpostAddStruct* item = array.get_outpost_add(OutpostAddKey::from_raw(i));
             if (item != nullptr) {
                 c = '1';
             } else if (i < head_count) {
@@ -216,7 +216,7 @@ static void test_large_return_and_reuse () {
         }
 
         if (ok) {
-            OutpostAddItem* item = array.get_outpost_add(id);
+            OutpostAddStruct* item = array.get_outpost_add(id);
             if (item == nullptr) {
                 ok = false;
             }

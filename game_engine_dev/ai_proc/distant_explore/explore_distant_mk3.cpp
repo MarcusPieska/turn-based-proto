@@ -5,6 +5,7 @@
 #include "explore_distant_mk3.h"
 #include "ai_whiteboard.h"
 #include "game_map_defs.h"
+#include "game_map_grid_defs.h"
 #include "generate_distance_to_coastal_point.h"
 #include "generate_distance_to_ocean_coast.h"
 #include "runtime_trace_dbg.h"
@@ -17,8 +18,6 @@
 
 static const u16 k_st_cap = 1000u;
 static const u16 k_dep_none = 0xFFFFu;
-static const i16 k_dx4[] = {0, 1, 0, -1};
-static const i16 k_dy4[] = {-1, 0, 1, 0};
 
 //================================================================================================================================
 //=> - Helpers -
@@ -65,7 +64,7 @@ static bool st_add (
     if (st_n >= k_st_cap) {
         return false;
     }
-    if (st_n > 0u && ShortRangePathing::cheb(stx[st_n - 1u], sty[st_n - 1u], x, y) != 1u) {
+    if (st_n > 0u && NearPathMk1::cheb(stx[st_n - 1u], sty[st_n - 1u], x, y) != 1u) {
         return false;
     }
     stx[st_n] = x;
@@ -75,7 +74,7 @@ static bool st_add (
 }
 
 static bool walk_st (
-    ShortRangePathing& path,
+    NearPathMk1& path,
     u16& cx,
     u16& cy,
     u16 tx,
@@ -116,9 +115,9 @@ static bool step_down (
     u16 bx = x;
     u16 by = y;
     bool found = false;
-    for (u32 k = 0; k < 4u; ++k) {
-        const i32 nx = static_cast<i32>(x) + k_dx4[k];
-        const i32 ny = static_cast<i32>(y) + k_dy4[k];
+    for (u32 k = 0u; k < MAP_NBR4_N; ++k) {
+        const i32 nx = static_cast<i32>(x) + MAP_NBR4_DX[k];
+        const i32 ny = static_cast<i32>(y) + MAP_NBR4_DY[k];
         if (nx < 0 || ny < 0) {
             continue;
         }
@@ -170,9 +169,9 @@ static bool step_ring_fwd (
     i16 bdx = 0;
     i16 bdy = 0;
     bool found = false;
-    for (u32 k = 0; k < 4u; ++k) {
-        const i32 nx = static_cast<i32>(x) + k_dx4[k];
-        const i32 ny = static_cast<i32>(y) + k_dy4[k];
+    for (u32 k = 0u; k < MAP_NBR4_N; ++k) {
+        const i32 nx = static_cast<i32>(x) + MAP_NBR4_DX[k];
+        const i32 ny = static_cast<i32>(y) + MAP_NBR4_DY[k];
         if (nx < 0 || ny < 0) {
             continue;
         }
@@ -186,8 +185,8 @@ static bool step_ring_fwd (
             continue;
         }
         const u16 cd = coast_dep[ni];
-        const i16 ndx = k_dx4[k];
-        const i16 ndy = k_dy4[k];
+        const i16 ndx = MAP_NBR4_DX[k];
+        const i16 ndy = MAP_NBR4_DY[k];
         const i32 dot = static_cast<i32>(pdx) * static_cast<i32>(ndx)
             + static_cast<i32>(pdy) * static_cast<i32>(ndy);
         if (!found || cd < best_cd || (cd == best_cd && dot > best_dot)) {
@@ -247,13 +246,7 @@ static bool pick_coast_tgt (
 //=> - ExploreDistantMk3 -
 //================================================================================================================================
 
-ExploreDistantMk3::ExploreDistantMk3 (
-    const GameArraySimple& map,
-    MapBitOverlay& explored,
-    u16 sx,
-    u16 sy,
-    u16 sight,
-    u8 player) :
+ExploreDistantMk3::ExploreDistantMk3 (const GameArraySimple& map,MapBitOverlay& explored, u16 sx, u16 sy, u16 sight, u8 player) :
     ExploreAi(map, explored, sx, sy, sight, player),
     m_wpx(nullptr),
     m_wpy(nullptr),
@@ -294,7 +287,7 @@ void ExploreDistantMk3::move (u16 moves) {
         }
         const u16 tx = m_wpx[m_wp_i];
         const u16 ty = m_wpy[m_wp_i];
-        if (ShortRangePathing::cheb(m_x, m_y, tx, ty) == 1u
+        if (NearPathMk1::cheb(m_x, m_y, tx, ty) == 1u
             && is_walk(m_map.get_terrain(tx, ty))) {
             m_x = tx;
             m_y = ty;
@@ -366,13 +359,7 @@ double ExploreDistantMk3::derive_sec () const {
     return m_derive_sec;
 }
 
-void ExploreDistantMk3::note_step (
-    MapBitOverlay& exp,
-    u16 x,
-    u16 y,
-    u16& st_n,
-    u16* stx,
-    u16* sty) {
+void ExploreDistantMk3::note_step (MapBitOverlay& exp, u16 x, u16 y, u16& st_n, u16* stx, u16* sty) {
     exp.set(x, y);
     st_add(stx, sty, st_n, x, y);
 }

@@ -78,11 +78,11 @@ class OutpostAddVectorTester {
 
 void test_first_item_zero_initialized () {
     OutpostAddVector array;
-    OutpostAddItem* should_be_null = array.get_outpost_add(OutpostAddKey::None());
+    OutpostAddStruct* should_be_null = array.get_outpost_add(OutpostAddKey::None());
     bool ok = (should_be_null == nullptr);
 
     OutpostAddKey id = array.get_next_new_outpost_add_key();
-    OutpostAddItem* item = array.get_outpost_add(id);
+    OutpostAddStruct* item = array.get_outpost_add(id);
 
     if (item == nullptr) {
         ok = false;
@@ -94,7 +94,7 @@ void test_first_item_zero_initialized () {
 
 void test_null_key_reserved () {
     OutpostAddVector array;
-    OutpostAddItem* null_item = array.get_outpost_add(OutpostAddKey::None());
+    OutpostAddStruct* null_item = array.get_outpost_add(OutpostAddKey::None());
     OutpostAddKey first_key = array.get_next_new_outpost_add_key();
     bool ok = (null_item == nullptr) && (first_key.value() == 0);
     note_result(ok, "None key is null; first allocated key is 0");
@@ -102,7 +102,7 @@ void test_null_key_reserved () {
 }
 
 void test_item_size_is_nonzero () {
-    bool ok = (sizeof(OutpostAddItem) > 0);
+    bool ok = (sizeof(OutpostAddStruct) > 0);
     note_result(ok, "Item size is non-zero");
     summarize_test_results();
 }
@@ -119,7 +119,7 @@ void test_array_unique_ids () {
         if (id.value() != expected) {
             ok_ids = false;
         }
-        OutpostAddItem* item = array.get_outpost_add(id);
+        OutpostAddStruct* item = array.get_outpost_add(id);
         if (item == nullptr) {
             ok_ids = false;
             break;
@@ -134,7 +134,7 @@ void test_array_unique_ids () {
         } else {
             for (u16 i = 0; i < target_count; ++i) {
                 const u16 expected = i;
-                OutpostAddItem* item = array.get_outpost_add(OutpostAddKey::from_raw(expected));
+                OutpostAddStruct* item = array.get_outpost_add(OutpostAddKey::from_raw(expected));
                 if (item == nullptr) {
                     ok_ids = false;
                     break;
@@ -162,7 +162,7 @@ void test_return_clears_existence () {
     bool ok = true;
 
     const u16 return_idx1 = 3;
-    OutpostAddItem* item1 = array.get_outpost_add(OutpostAddKey::from_raw(return_idx1));
+    OutpostAddStruct* item1 = array.get_outpost_add(OutpostAddKey::from_raw(return_idx1));
     if (item1 == nullptr) {
         ok = false;
     } else {
@@ -173,7 +173,7 @@ void test_return_clears_existence () {
     }
 
     const u16 return_idx2 = 8;
-    OutpostAddItem* item2 = array.get_outpost_add(OutpostAddKey::from_raw(return_idx2));
+    OutpostAddStruct* item2 = array.get_outpost_add(OutpostAddKey::from_raw(return_idx2));
     if (item2 == nullptr) {
         ok = false;
     } else {
@@ -224,7 +224,7 @@ void test_return_decrements_count () {
     u16 before_head  = OutpostAddVectorTester::get_head_count(array);
 
     const u16 return_idx = 4;
-    OutpostAddItem* item = array.get_outpost_add(OutpostAddKey::from_raw(return_idx));
+    OutpostAddStruct* item = array.get_outpost_add(OutpostAddKey::from_raw(return_idx));
     bool ok = true;
     if (item == nullptr) {
         ok = false;
@@ -271,7 +271,7 @@ void test_reuse_recycled_slot_basic () {
     u16 before_count = OutpostAddVectorTester::get_count(array);
     u16 before_head  = OutpostAddVectorTester::get_head_count(array);
     const u16 return_idx = 1;
-    OutpostAddItem* item = array.get_outpost_add(OutpostAddKey::from_raw(return_idx));
+    OutpostAddStruct* item = array.get_outpost_add(OutpostAddKey::from_raw(return_idx));
     bool ok = (item != nullptr);
     if (ok) {
         array.return_outpost_add(OutpostAddKey::from_raw(return_idx));
@@ -285,7 +285,7 @@ void test_reuse_recycled_slot_basic () {
         if (OutpostAddVectorTester::get_head_count(array) != before_head) {
             ok = false;
         }
-        OutpostAddItem* reused = array.get_outpost_add(OutpostAddKey::from_raw(return_idx));
+        OutpostAddStruct* reused = array.get_outpost_add(OutpostAddKey::from_raw(return_idx));
         if (reused == nullptr) {
             ok = false;
         }
@@ -301,8 +301,8 @@ void test_reuse_recycled_slot_lifo () {
         array.get_next_new_outpost_add_key();
     }
 
-    OutpostAddItem* i1 = array.get_outpost_add(OutpostAddKey::from_raw(1));
-    OutpostAddItem* i2 = array.get_outpost_add(OutpostAddKey::from_raw(2));
+    OutpostAddStruct* i1 = array.get_outpost_add(OutpostAddKey::from_raw(1));
+    OutpostAddStruct* i2 = array.get_outpost_add(OutpostAddKey::from_raw(2));
     bool ok = (i1 != nullptr && i2 != nullptr);
     if (ok) {
         array.return_outpost_add(OutpostAddKey::from_raw(1));
@@ -330,7 +330,7 @@ void test_return_twice_is_noop_second_time () {
     }
 
     const u16 return_idx = 3;
-    OutpostAddItem* item = array.get_outpost_add(OutpostAddKey::from_raw(return_idx));
+    OutpostAddStruct* item = array.get_outpost_add(OutpostAddKey::from_raw(return_idx));
 
     bool ok = true;
     if (item == nullptr) {
@@ -372,7 +372,7 @@ void test_array_page_allocation () {
         ok_pages = false;
     } else {
         for (u16 p = 0; p < page_count; ++p) {
-            OutpostAddItem* page = array.get_page(p);
+            OutpostAddStruct* page = array.get_page(p);
             if (page == nullptr) {
                 ok_pages = false;
                 break;

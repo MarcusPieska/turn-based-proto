@@ -1,5 +1,3 @@
-PATH_MP_TURN                    : 1000
-
 TERR_NONE                       : 1000
 TERR_OCEAN                      : 1000
 TERR_SEA                        : 1000

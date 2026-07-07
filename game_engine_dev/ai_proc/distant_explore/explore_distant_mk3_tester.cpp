@@ -151,7 +151,7 @@ static bool save_wp_ppm (
 
 int main () {
     GameArraySimple map;
-    if (!Factory_GameArraySimple::load(&map, ED3_IN_TERR, ED3_IN_CLIM, ED3_IN_RIV)) {
+    if (!Factory_GameArraySimple::load_map_gen_data(&map, ED3_IN_TERR, ED3_IN_CLIM, ED3_IN_RIV)) {
         std::printf("*** FAILED load map\n");
         return 1;
     }

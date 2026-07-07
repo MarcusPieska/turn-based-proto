@@ -14,6 +14,8 @@
 
 class StaticParsingManager;
 
+#include "config_settings_static.h"
+
 [RUNTIME_STATICS_HEADER_INCLUDES_TAG]
 
 //================================================================================================================================
@@ -24,9 +26,13 @@ class RuntimeStatics {
 public:
     void load_from (StaticParsingManager& p);
 
+    GameConfigSettings& config ();
+    const GameConfigSettings& config () const;
+
     [RUNTIME_STATICS_HEADER_ACCESSORS_TAG]
 
 private:
+    GameConfigSettings m_config;
     [RUNTIME_STATICS_HEADER_MEMBERS_TAG]
 };
 

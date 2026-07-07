@@ -1,6 +1,6 @@
 #!/bin/bash
 
-INC="-I.. -I../.. -I../../game -I../../map_loader -I../../simple_map_gen -I../../misc"
+INC="-I.. -I../.. -I../../game -I../../map_loader -I../../simple_map_gen -I../../misc -I../distant_explore -I../../ai_pathing -I../../ai_pathing/walk_target"
 CXXFLAGS="-std=c++17 -Wall -Wextra"
 
 g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
@@ -11,9 +11,9 @@ g++ $CXXFLAGS $INC -c ../../game/game_array_simple.cpp -o game_array_simple.o
 g++ $CXXFLAGS $INC -c ../../game/factory_game_array_simple.cpp -o factory_game_array_simple.o
 g++ $CXXFLAGS $INC -c ../../misc/map_bit_overlay.cpp -o map_bit_overlay.o
 g++ $CXXFLAGS $INC -c ../ai_whiteboard.cpp -o ai_whiteboard.o
-g++ $CXXFLAGS $INC -c ../generate_distance_to_ocean_coast.cpp -o generate_distance_to_ocean_coast.o
-g++ $CXXFLAGS $INC -c ../generate_distance_to_coastal_point.cpp -o generate_distance_to_coastal_point.o
-g++ $CXXFLAGS $INC -c ../short_range_pathing.cpp -o short_range_pathing.o
+g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_target/generate_distance_to_ocean_coast.cpp -o generate_distance_to_ocean_coast.o
+g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_target/generate_distance_to_coastal_point.cpp -o generate_distance_to_coastal_point.o
+g++ $CXXFLAGS $INC -c ../../ai_pathing/near_path_mk1.cpp -o near_path_mk1.o
 g++ $CXXFLAGS $INC -c explore_distant_mk1.cpp -o explore_distant_mk1.o
 g++ $CXXFLAGS $INC -c explore_distant_mk2.cpp -o explore_distant_mk2.o
 g++ $CXXFLAGS $INC -c explore_distant_mk3.cpp -o explore_distant_mk3.o
@@ -45,12 +45,12 @@ g++ $CXXFLAGS -o explore_distant_mk3_tester \
     explore_distant_mk1.o \
     generate_distance_to_ocean_coast.o \
     generate_distance_to_coastal_point.o \
-    short_range_pathing.o \
+    near_path_mk1.o \
     explore_distant_mk3.o \
     explore_distant_mk3_tester.o
 
 rm map_terrain_validate.o map_terrain_data.o map_loader.o runtime_trace_dbg.o \
     game_array_simple.o factory_game_array_simple.o map_bit_overlay.o \
     ai_whiteboard.o explore_distant_mk1.o explore_distant_mk2.o explore_distant_mk3.o \
-    generate_distance_to_ocean_coast.o generate_distance_to_coastal_point.o short_range_pathing.o \
+    generate_distance_to_ocean_coast.o generate_distance_to_coastal_point.o near_path_mk1.o \
     explore_distant_tester.o explore_distant_mk3_tester.o

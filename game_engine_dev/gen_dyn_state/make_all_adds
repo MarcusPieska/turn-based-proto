@@ -1,8 +1,9 @@
-python3 generate_dyn_state.py mine_add MineAdd
-python3 generate_dyn_state.py fort_add FortAdd
-python3 generate_dyn_state.py plantation_add PlantationAdd
-python3 generate_dyn_state.py shipyard_add ShipyardAdd
-python3 generate_dyn_state.py outpost_add OutpostAdd
-python3 generate_dyn_state.py trade_post_add TradePostAdd
-python3 generate_dyn_state.py monastery_add MonasteryAdd
+python3 generate_dyn_state.py mine_add MineAdd mine_add_struct.h MineAddStruct mine_add_idx
+python3 generate_dyn_state.py fort_add FortAdd fort_add_struct.h FortAddStruct fort_add_idx
+python3 generate_dyn_state.py plantation_add PlantationAdd plantation_add_struct.h PlantationAddStruct plantation_add_idx
+python3 generate_dyn_state.py shipyard_add ShipyardAdd shipyard_add_struct.h ShipyardAddStruct shipyard_add_idx
+python3 generate_dyn_state.py outpost_add OutpostAdd outpost_add_struct.h OutpostAddStruct outpost_add_idx
+python3 generate_dyn_state.py trade_post_add TradePostAdd trade_post_add_struct.h TradePostAddStruct trade_post_add_idx
+python3 generate_dyn_state.py monastery_add MonasteryAdd monastery_add_struct.h MonasteryAddStruct monastery_add_idx
 
+python3 generate_dyn_state.py unit Unit ../game/unit_array.h Unit id

@@ -78,7 +78,7 @@ public:
 
         for (u16 i = 0; i < limit; ++i) {
             char c = '-';
-            TradePostAddItem* item = array.get_trade_post_add(TradePostAddKey::from_raw(i));
+            TradePostAddStruct* item = array.get_trade_post_add(TradePostAddKey::from_raw(i));
             if (item != nullptr) {
                 c = '1';
             } else if (i < head_count) {
@@ -216,7 +216,7 @@ static void test_large_return_and_reuse () {
         }
 
         if (ok) {
-            TradePostAddItem* item = array.get_trade_post_add(id);
+            TradePostAddStruct* item = array.get_trade_post_add(id);
             if (item == nullptr) {
                 ok = false;
             }

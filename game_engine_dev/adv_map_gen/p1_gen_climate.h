@@ -18,6 +18,7 @@ struct P1_Gen_ClimateOverlayWts {
     u8 m_w_open_dist_water;
     u8 m_w_latitude;
     u8 m_w_plain_dist_water;
+    u8 m_w_rain; 
 };
 
 //================================================================================================================================
@@ -41,10 +42,11 @@ struct P1_Gen_ClimatePrm {
 
 static inline P1_Gen_ClimatePrm p1_gen_climate_prm_def () {
     P1_Gen_ClimatePrm p = {};
-    p.m_wts.m_w_dist_river = 50;
+    p.m_wts.m_w_dist_river = 100;
     p.m_wts.m_w_open_dist_water = 10;
     p.m_wts.m_w_latitude = 90;
     p.m_wts.m_w_plain_dist_water = 10;
+    p.m_wts.m_w_rain = 20;
     p.m_pct.m_pct_grassland = 40;
     p.m_pct.m_pct_plains = 35;
     p.m_pct.m_pct_desert = 25;
@@ -71,7 +73,7 @@ public:
         const P1_RunPrm& prm,
         const P1_Gen_ClimatePrm& sp = p1_gen_climate_prm_def ());
 
-    bool generate (const u8* terrain, u16 w, u16 h, const u8* river_ov);
+    bool generate (const u8* terrain, u16 w, u16 h, const u8* river_ov, const u8* rain_ov = nullptr);
     bool is_valid () const;
     const P1_Gen_ClimateRslt& result () const;
 

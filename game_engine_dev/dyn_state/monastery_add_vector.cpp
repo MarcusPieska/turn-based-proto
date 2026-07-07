@@ -46,7 +46,7 @@ MonasteryAddVector::~MonasteryAddVector() {
     }
 }
 
-MonasteryAddItem* MonasteryAddVector::get_monastery_add(MonasteryAddKey key) {
+MonasteryAddStruct* MonasteryAddVector::get_monastery_add(MonasteryAddKey key) {
     if (!key.is_valid()) {
         return nullptr;
     }
@@ -62,7 +62,7 @@ MonasteryAddItem* MonasteryAddVector::get_monastery_add(MonasteryAddKey key) {
     return &m_pages[page][slot];
 }
 
-const MonasteryAddItem* MonasteryAddVector::get_monastery_add(MonasteryAddKey key) const {
+const MonasteryAddStruct* MonasteryAddVector::get_monastery_add(MonasteryAddKey key) const {
     if (!key.is_valid()) {
         return nullptr;
     }
@@ -94,9 +94,9 @@ MonasteryAddKey MonasteryAddVector::get_next_new_monastery_add_key() {
         u16 add_slot = static_cast<u16>(recycled_idx & 0xFF);
 
         if (add_page < MAX_PAGES && m_pages[add_page] && m_exists_pages[add_page]) {
-            MonasteryAddItem* add = &m_pages[add_page][add_slot];
+            MonasteryAddStruct* add = &m_pages[add_page][add_slot];
             m_exists_pages[add_page][add_slot] = 1;
-            *add = MonasteryAddItem{};
+            *add = MonasteryAddStruct{};
             m_monastery_add_count = static_cast<u16>(m_monastery_add_count + 1);
             return MonasteryAddKey::from_raw(recycled_idx);
         }
@@ -111,26 +111,26 @@ MonasteryAddKey MonasteryAddVector::get_next_new_monastery_add_key() {
     u16 page = static_cast<u16>(idx >> 8);
     u16 slot = static_cast<u16>(idx & 0xFF);
     if (!m_pages[page]) {
-        m_pages[page] = new MonasteryAddItem[MONASTERY_ADD_ITEMS_PER_PAGE]();
+        m_pages[page] = new MonasteryAddStruct[MONASTERY_ADD_ITEMS_PER_PAGE]();
         m_exists_pages[page] = new u8[MONASTERY_ADD_ITEMS_PER_PAGE]();
         m_page_count = static_cast<u16>(m_page_count + 1);
     }
     m_exists_pages[page][slot] = 1;
-    m_pages[page][slot] = MonasteryAddItem{};
+    m_pages[page][slot] = MonasteryAddStruct{};
 
     m_head_monastery_add_idx = static_cast<u16>(m_head_monastery_add_idx + 1);
     m_monastery_add_count = static_cast<u16>(m_monastery_add_count + 1);
     return MonasteryAddKey::from_raw(idx);
 }
 
-MonasteryAddItem* MonasteryAddVector::get_page(u16 page_idx) {
+MonasteryAddStruct* MonasteryAddVector::get_page(u16 page_idx) {
     if (page_idx >= MAX_PAGES) {
         return nullptr;
     }
     return m_pages[page_idx];
 }
 
-const MonasteryAddItem* MonasteryAddVector::get_page(u16 page_idx) const {
+const MonasteryAddStruct* MonasteryAddVector::get_page(u16 page_idx) const {
     if (page_idx >= MAX_PAGES) {
         return nullptr;
     }
@@ -152,7 +152,7 @@ void MonasteryAddVector::return_monastery_add(MonasteryAddKey key) {
     }
 
     m_exists_pages[page][slot] = 0;
-    m_pages[page][slot] = MonasteryAddItem{};
+    m_pages[page][slot] = MonasteryAddStruct{};
 
     u16 push_pos = m_recycled_monastery_add_count;
     u16 push_page = static_cast<u16>(push_pos >> 8);

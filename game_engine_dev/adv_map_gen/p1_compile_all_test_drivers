@@ -27,6 +27,10 @@ COMPS=(
     p1_gen_climate_comp
     p1_gen_desert_river_cull_comp
     p1_make_map_comp
+    p1_gen_wind_pattern_adv_comp
+    p1_gen_loess_boost_comp
+    p1_adj_grassland_loess_tiles_comp
+    p1_gen_rain_orographic_comp
 )
 
 failed=()

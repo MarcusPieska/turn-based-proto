@@ -78,7 +78,7 @@ public:
 
         for (u16 i = 0; i < limit; ++i) {
             char c = '-';
-            [CLASS_NAME_PREFIX]Item* item = array.get_[MEMBER_TAG]([CLASS_NAME_PREFIX]Key::from_raw(i));
+            [STRUCT_NAME]* item = array.get_[MEMBER_TAG]([CLASS_NAME_PREFIX]Key::from_raw(i));
             if (item != nullptr) {
                 c = '1';
             } else if (i < head_count) {
@@ -216,7 +216,7 @@ static void test_large_return_and_reuse () {
         }
 
         if (ok) {
-            [CLASS_NAME_PREFIX]Item* item = array.get_[MEMBER_TAG](id);
+            [STRUCT_NAME]* item = array.get_[MEMBER_TAG](id);
             if (item == nullptr) {
                 ok = false;
             }

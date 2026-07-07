@@ -17,6 +17,7 @@
 static const char* GAS_IN_TERR = "/home/w/Projects/simple-map-gen/p1-seed-042/24_make_map_terrain.ppm";
 static const char* GAS_IN_CLIM = "/home/w/Projects/simple-map-gen/p1-seed-042/24_make_map_climate.ppm";
 static const char* GAS_IN_RIV = "/home/w/Projects/simple-map-gen/p1-seed-042/24_make_map_rivers.ppm";
+static const char* GAS_IN_RES = "/home/w/Projects/simple-map-gen/p1-seed-042/25_res_overlay.ppm";
 static const char* GAS_OUT_ROOT = "/home/w/Projects/simple-map-gen/game-array-simple-test";
 
 static const u8 k_terr_max = 7;
@@ -60,6 +61,7 @@ static void print_stats (const GameArraySimple& arr) {
     u32 terr_cnt[k_terr_max] = {};
     u32 clim_cnt[k_clim_max] = {};
     u32 riv_cnt = 0;
+    u32 res_cnt = 0;
     for (u16 y = 0; y < h; ++y) {
         for (u16 x = 0; x < w; ++x) {
             const u8 t = arr.get_terrain(x, y);
@@ -72,6 +74,9 @@ static void print_stats (const GameArraySimple& arr) {
             }
             if (arr.get_river(x, y) != 0) {
                 riv_cnt++;
+            }
+            if (arr.get_res(x, y) != U16_KEY_NULL) {
+                res_cnt++;
             }
         }
     }
@@ -91,6 +96,8 @@ static void print_stats (const GameArraySimple& arr) {
     print_pct("desert", clim_cnt[CLIMATE_DESERT], tot);
     std::printf("rivers\n");
     print_pct("river", riv_cnt, tot);
+    std::printf("resources\n");
+    print_pct("placed", res_cnt, tot);
 }
 
 static bool save_terrain (const GameArraySimple& arr, cstr path) {
@@ -161,8 +168,12 @@ int main () {
         return -1;
     }
     GameArraySimple arr;
-    if (!Factory_GameArraySimple::load(&arr, GAS_IN_TERR, GAS_IN_CLIM, GAS_IN_RIV)) {
-        std::printf("failed to load map data\n");
+    if (!Factory_GameArraySimple::load_map_gen_data(&arr, GAS_IN_TERR, GAS_IN_CLIM, GAS_IN_RIV)) {
+        std::printf("failed to load map gen data\n");
+        return -1;
+    }
+    if (!Factory_GameArraySimple::load_res_dist_data(&arr, GAS_IN_RES)) {
+        std::printf("failed to load res dist data\n");
         return -1;
     }
     std::printf("loaded %u x %u (%u tiles)\n",

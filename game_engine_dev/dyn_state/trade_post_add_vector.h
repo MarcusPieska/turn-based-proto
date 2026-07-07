@@ -14,14 +14,7 @@
 
 #include "trade_post_add_vector_key.h"
 #include "game_primitives.h"
-
-//================================================================================================================================
-//=> - TradePostAddItem struct -
-//================================================================================================================================
-
-struct TradePostAddItem {
-    u16 trade_post_add_idx;
-};
+#include "trade_post_add_struct.h"
 
 //================================================================================================================================
 //=> - TradePostAddVector class -
@@ -32,13 +25,13 @@ public:
     TradePostAddVector();
     ~TradePostAddVector();
 
-    TradePostAddItem* get_trade_post_add(TradePostAddKey key);
-    const TradePostAddItem* get_trade_post_add(TradePostAddKey key) const;
+    TradePostAddStruct* get_trade_post_add(TradePostAddKey key);
+    const TradePostAddStruct* get_trade_post_add(TradePostAddKey key) const;
     TradePostAddKey get_next_new_trade_post_add_key();
 
     void return_trade_post_add(TradePostAddKey key);
-    TradePostAddItem* get_page(u16 page_idx);
-    const TradePostAddItem* get_page(u16 page_idx) const;
+    TradePostAddStruct* get_page(u16 page_idx);
+    const TradePostAddStruct* get_page(u16 page_idx) const;
 
     static const u16 MAX_PAGES = 256;
     static const u16 TRADE_POST_ADD_ITEMS_PER_PAGE = 256;
@@ -46,7 +39,7 @@ public:
 private:
     friend class TradePostAddVectorTester;
 
-    TradePostAddItem* m_pages[MAX_PAGES];
+    TradePostAddStruct* m_pages[MAX_PAGES];
     u8* m_exists_pages[MAX_PAGES];
     u16 m_trade_post_add_count;
     u16 m_head_trade_post_add_idx;

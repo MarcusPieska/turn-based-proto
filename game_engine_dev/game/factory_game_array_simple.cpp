@@ -4,6 +4,7 @@
 
 #include "factory_game_array_simple.h"
 
+#include "game_map_defs.h"
 #include "map_loader.h"
 #include "map_terrain_data.h"
 
@@ -120,11 +121,56 @@ static bool load_riv_ppm (cstr path, u16 ew, u16 eh, u8** out_riv) {
     return true;
 }
 
+static bool is_res_bg_px (u8 r, u8 g, u8 b) {
+    if (r == 80 && g == 160 && b == 80) {
+        return true;
+    }
+    if (r == 64 && g == 128 && b == 192) {
+        return true;
+    }
+    return false;
+}
+
+static u16 decode_res_px (u8 r, u8 g, u8 b) {
+    if (is_res_bg_px(r, g, b)) {
+        return U16_KEY_NULL;
+    }
+    if (r != g || g != b) {
+        return U16_KEY_NULL;
+    }
+    return static_cast<u16>(r);
+}
+
+static bool load_res_ppm (cstr path, u16 ew, u16 eh, u16** out_res) {
+    if (path == nullptr) {
+        return false;
+    }
+    u16 w = 0;
+    u16 h = 0;
+    u8* rgb = nullptr;
+    if (!rd_ppm_rgb(path, &w, &h, &rgb)) {
+        return false;
+    }
+    if (w != ew || h != eh) {
+        delete[] rgb;
+        return false;
+    }
+    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
+    u16* res = new u16[n];
+    for (u32 i = 0; i < n; ++i) {
+        const u8* px = rgb + i * 3u;
+        res[i] = decode_res_px(px[0], px[1], px[2]);
+    }
+    delete[] rgb;
+    *out_res = res;
+    return true;
+}
+
 //================================================================================================================================
 //=> - Factory_GameArraySimple -
 //================================================================================================================================
 
-bool Factory_GameArraySimple::load (
+bool Factory_GameArraySimple::load_map_gen_data (
     GameArraySimple* out,
     cstr terr_path,
     cstr clim_path,
@@ -157,7 +203,7 @@ bool Factory_GameArraySimple::load (
         GameTileSimple* t = &tiles[i];
         t->m_unit_hd = U16_KEY_NULL;
         t->m_add_idx = U16_KEY_NULL;
-        t->m_res = 0;
+        t->m_res = U16_KEY_NULL;
         t->m_terr = terr[i];
         t->m_clim = clim[i];
         t->m_ov = OVERLAY_NONE;
@@ -169,6 +215,27 @@ bool Factory_GameArraySimple::load (
     out->m_w = w;
     out->m_h = h;
     out->m_tiles = tiles;
+    return true;
+}
+
+bool Factory_GameArraySimple::load_res_dist_data (GameArraySimple* out, cstr res_path) {
+    if (out == nullptr || res_path == nullptr) {
+        return false;
+    }
+    const u16 w = out->m_w;
+    const u16 h = out->m_h;
+    if (out->m_tiles == nullptr || w == 0 || h == 0) {
+        return false;
+    }
+    u16* res = nullptr;
+    if (!load_res_ppm(res_path, w, h, &res)) {
+        return false;
+    }
+    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
+    for (u32 i = 0; i < n; ++i) {
+        out->m_tiles[i].m_res = res[i];
+    }
+    delete[] res;
     return true;
 }
 

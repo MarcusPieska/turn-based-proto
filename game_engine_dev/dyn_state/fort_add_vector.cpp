@@ -46,7 +46,7 @@ FortAddVector::~FortAddVector() {
     }
 }
 
-FortAddItem* FortAddVector::get_fort_add(FortAddKey key) {
+FortAddStruct* FortAddVector::get_fort_add(FortAddKey key) {
     if (!key.is_valid()) {
         return nullptr;
     }
@@ -62,7 +62,7 @@ FortAddItem* FortAddVector::get_fort_add(FortAddKey key) {
     return &m_pages[page][slot];
 }
 
-const FortAddItem* FortAddVector::get_fort_add(FortAddKey key) const {
+const FortAddStruct* FortAddVector::get_fort_add(FortAddKey key) const {
     if (!key.is_valid()) {
         return nullptr;
     }
@@ -94,9 +94,9 @@ FortAddKey FortAddVector::get_next_new_fort_add_key() {
         u16 add_slot = static_cast<u16>(recycled_idx & 0xFF);
 
         if (add_page < MAX_PAGES && m_pages[add_page] && m_exists_pages[add_page]) {
-            FortAddItem* add = &m_pages[add_page][add_slot];
+            FortAddStruct* add = &m_pages[add_page][add_slot];
             m_exists_pages[add_page][add_slot] = 1;
-            *add = FortAddItem{};
+            *add = FortAddStruct{};
             m_fort_add_count = static_cast<u16>(m_fort_add_count + 1);
             return FortAddKey::from_raw(recycled_idx);
         }
@@ -111,26 +111,26 @@ FortAddKey FortAddVector::get_next_new_fort_add_key() {
     u16 page = static_cast<u16>(idx >> 8);
     u16 slot = static_cast<u16>(idx & 0xFF);
     if (!m_pages[page]) {
-        m_pages[page] = new FortAddItem[FORT_ADD_ITEMS_PER_PAGE]();
+        m_pages[page] = new FortAddStruct[FORT_ADD_ITEMS_PER_PAGE]();
         m_exists_pages[page] = new u8[FORT_ADD_ITEMS_PER_PAGE]();
         m_page_count = static_cast<u16>(m_page_count + 1);
     }
     m_exists_pages[page][slot] = 1;
-    m_pages[page][slot] = FortAddItem{};
+    m_pages[page][slot] = FortAddStruct{};
 
     m_head_fort_add_idx = static_cast<u16>(m_head_fort_add_idx + 1);
     m_fort_add_count = static_cast<u16>(m_fort_add_count + 1);
     return FortAddKey::from_raw(idx);
 }
 
-FortAddItem* FortAddVector::get_page(u16 page_idx) {
+FortAddStruct* FortAddVector::get_page(u16 page_idx) {
     if (page_idx >= MAX_PAGES) {
         return nullptr;
     }
     return m_pages[page_idx];
 }
 
-const FortAddItem* FortAddVector::get_page(u16 page_idx) const {
+const FortAddStruct* FortAddVector::get_page(u16 page_idx) const {
     if (page_idx >= MAX_PAGES) {
         return nullptr;
     }
@@ -152,7 +152,7 @@ void FortAddVector::return_fort_add(FortAddKey key) {
     }
 
     m_exists_pages[page][slot] = 0;
-    m_pages[page][slot] = FortAddItem{};
+    m_pages[page][slot] = FortAddStruct{};
 
     u16 push_pos = m_recycled_fort_add_count;
     u16 push_page = static_cast<u16>(push_pos >> 8);

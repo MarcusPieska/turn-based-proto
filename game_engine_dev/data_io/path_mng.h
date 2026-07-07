@@ -39,6 +39,7 @@ public:
     cstr get_path_to_unit_types () const;
     cstr get_path_to_units () const;
     cstr get_path_to_wonders () const;
+    cstr get_path_to_settings () const;
 
 private:
     PathMng () = delete;
@@ -65,6 +66,7 @@ private:
     char m_path_unit_types[PATH_MNG_PATH_N];
     char m_path_units[PATH_MNG_PATH_N];
     char m_path_wonders[PATH_MNG_PATH_N];
+    char m_path_settings[PATH_MNG_PATH_N];
 };
 
 #endif // PATH_MNG_H

@@ -14,14 +14,7 @@
 
 #include "mine_add_vector_key.h"
 #include "game_primitives.h"
-
-//================================================================================================================================
-//=> - MineAddItem struct -
-//================================================================================================================================
-
-struct MineAddItem {
-    u16 mine_add_idx;
-};
+#include "mine_add_struct.h"
 
 //================================================================================================================================
 //=> - MineAddVector class -
@@ -32,13 +25,13 @@ public:
     MineAddVector();
     ~MineAddVector();
 
-    MineAddItem* get_mine_add(MineAddKey key);
-    const MineAddItem* get_mine_add(MineAddKey key) const;
+    MineAddStruct* get_mine_add(MineAddKey key);
+    const MineAddStruct* get_mine_add(MineAddKey key) const;
     MineAddKey get_next_new_mine_add_key();
 
     void return_mine_add(MineAddKey key);
-    MineAddItem* get_page(u16 page_idx);
-    const MineAddItem* get_page(u16 page_idx) const;
+    MineAddStruct* get_page(u16 page_idx);
+    const MineAddStruct* get_page(u16 page_idx) const;
 
     static const u16 MAX_PAGES = 256;
     static const u16 MINE_ADD_ITEMS_PER_PAGE = 256;
@@ -46,7 +39,7 @@ public:
 private:
     friend class MineAddVectorTester;
 
-    MineAddItem* m_pages[MAX_PAGES];
+    MineAddStruct* m_pages[MAX_PAGES];
     u8* m_exists_pages[MAX_PAGES];
     u16 m_mine_add_count;
     u16 m_head_mine_add_idx;

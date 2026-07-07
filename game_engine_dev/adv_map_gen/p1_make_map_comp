@@ -5,9 +5,11 @@ INC="-I. -I.. -I../map_loader"
 g++ -std=c++11 $INC -c ../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
 g++ -std=c++11 $INC -c ../map_loader/map_terrain_data.cpp -o map_terrain_data.o
 g++ -std=c++11 $INC -c ../map_loader/map_loader.cpp -o map_loader.o
+g++ -std=c++11 $INC -c whiteboard.cpp -o whiteboard.o
+g++ -std=c++11 $INC -c wb_sheet.cpp -o wb_sheet.o
+g++ -std=c++11 $INC -c wb_que_xy.cpp -o wb_que_xy.o
 g++ -std=c++11 $INC -c generator_constants.cpp -o generator_constants.o
 g++ -std=c++11 $INC -c perlin_noise.cpp -o perlin_noise.o
-g++ -std=c++11 $INC -c whiteboard.cpp -o whiteboard.o
 g++ -std=c++11 $INC -c p1_gen_outline.cpp -o p1_gen_outline.o
 g++ -std=c++11 $INC -c p1_gen_land_depth.cpp -o p1_gen_land_depth.o
 g++ -std=c++11 $INC -c p1_gen_noise_perlin.cpp -o p1_gen_noise_perlin.o
@@ -30,6 +32,10 @@ g++ -std=c++11 $INC -c p1_adj_ensure_river_valleys.cpp -o p1_adj_ensure_river_va
 g++ -std=c++11 $INC -c p1_adj_ensure_mtn_foothills.cpp -o p1_adj_ensure_mtn_foothills.o
 g++ -std=c++11 $INC -c p1_gen_climate.cpp -o p1_gen_climate.o
 g++ -std=c++11 $INC -c p1_gen_desert_river_cull.cpp -o p1_gen_desert_river_cull.o
+g++ -std=c++11 $INC -c p1_gen_wind_pattern_adv.cpp -o p1_gen_wind_pattern_adv.o
+g++ -std=c++11 $INC -c p1_gen_loess_boost.cpp -o p1_gen_loess_boost.o
+g++ -std=c++11 $INC -c p1_adj_grassland_loess_tiles.cpp -o p1_adj_grassland_loess_tiles.o
+g++ -std=c++11 $INC -c p1_gen_rain_orographic.cpp -o p1_gen_rain_orographic.o
 g++ -std=c++11 $INC -DP1_ENABLE_TIMING -c p1_make_map.cpp -o p1_make_map.o
 g++ -std=c++11 $INC -c p1_make_map_tester.cpp -o p1_make_map_tester.o
 
@@ -40,6 +46,8 @@ g++ -std=c++11 -o p1_make_map_tester \
     generator_constants.o \
     perlin_noise.o \
     whiteboard.o \
+    wb_sheet.o \
+    wb_que_xy.o \
     p1_gen_outline.o \
     p1_gen_land_depth.o \
     p1_gen_noise_perlin.o \
@@ -62,6 +70,10 @@ g++ -std=c++11 -o p1_make_map_tester \
     p1_adj_ensure_mtn_foothills.o \
     p1_gen_climate.o \
     p1_gen_desert_river_cull.o \
+    p1_gen_wind_pattern_adv.o \
+    p1_gen_loess_boost.o \
+    p1_adj_grassland_loess_tiles.o \
+    p1_gen_rain_orographic.o \
     p1_make_map.o \
     p1_make_map_tester.o -lm
 
@@ -71,6 +83,8 @@ rm map_terrain_validate.o \
     generator_constants.o \
     perlin_noise.o \
     whiteboard.o \
+    wb_sheet.o \
+    wb_que_xy.o \
     p1_gen_outline.o \
     p1_gen_land_depth.o \
     p1_gen_noise_perlin.o \
@@ -93,5 +107,9 @@ rm map_terrain_validate.o \
     p1_adj_ensure_mtn_foothills.o \
     p1_gen_climate.o \
     p1_gen_desert_river_cull.o \
+    p1_gen_wind_pattern_adv.o \
+    p1_gen_loess_boost.o \
+    p1_adj_grassland_loess_tiles.o \
+    p1_gen_rain_orographic.o \
     p1_make_map.o \
     p1_make_map_tester.o

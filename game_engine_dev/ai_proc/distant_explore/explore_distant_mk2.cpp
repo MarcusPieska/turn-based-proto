@@ -4,6 +4,7 @@
 
 #include "explore_distant_mk2.h"
 #include "game_map_defs.h"
+#include "game_map_grid_defs.h"
 #include "runtime_trace_dbg.h"
 
 #include <cstdio>
@@ -14,8 +15,6 @@
 
 static const u32 k_dist_none = 0xFFFFFFFFu;
 static const u32 k_par_none = 0xFFFFFFFFu;
-static const i16 k_dx4[] = {0, 1, 0, -1};
-static const i16 k_dy4[] = {-1, 0, 1, 0};
 
 //================================================================================================================================
 //=> - Helpers -
@@ -58,8 +57,8 @@ static bool is_frontier (
         return false;
     }
     for (u32 i = 0; i < 4u; ++i) {
-        const i32 nx = static_cast<i32>(x) + k_dx4[i];
-        const i32 ny = static_cast<i32>(y) + k_dy4[i];
+        const i32 nx = static_cast<i32>(x) + MAP_NBR4_DX[i];
+        const i32 ny = static_cast<i32>(y) + MAP_NBR4_DY[i];
         if (nx < 0 || ny < 0) {
             continue;
         }
@@ -172,9 +171,9 @@ static bool bfs_step (
         }
         const u16 py = static_cast<u16>(i / static_cast<u32>(w));
         const u16 px = static_cast<u16>(i - static_cast<u32>(py) * static_cast<u32>(w));
-        for (u32 k = 0; k < 4u; ++k) {
-            const i32 nx = static_cast<i32>(px) + k_dx4[k];
-            const i32 ny = static_cast<i32>(py) + k_dy4[k];
+        for (u32 k = 0u; k < MAP_NBR4_N; ++k) {
+            const i32 nx = static_cast<i32>(px) + MAP_NBR4_DX[k];
+            const i32 ny = static_cast<i32>(py) + MAP_NBR4_DY[k];
             if (nx < 0 || ny < 0) {
                 continue;
             }
@@ -300,9 +299,9 @@ bool ExploreDistantMk2::pick_frontier () {
                 m_has_tgt = true;
             }
         }
-        for (u32 k = 0; k < 4u; ++k) {
-            const i32 nx = static_cast<i32>(px) + k_dx4[k];
-            const i32 ny = static_cast<i32>(py) + k_dy4[k];
+        for (u32 k = 0u; k < MAP_NBR4_N; ++k) {
+            const i32 nx = static_cast<i32>(px) + MAP_NBR4_DX[k];
+            const i32 ny = static_cast<i32>(py) + MAP_NBR4_DY[k];
             if (nx < 0 || ny < 0) {
                 continue;
             }
@@ -353,8 +352,8 @@ bool ExploreDistantMk2::step_to_tgt () {
     u16 bx = m_x;
     u16 by = m_y;
     for (u32 i = 0; i < 4u; ++i) {
-        const i32 nx = static_cast<i32>(m_x) + k_dx4[i];
-        const i32 ny = static_cast<i32>(m_y) + k_dy4[i];
+        const i32 nx = static_cast<i32>(m_x) + MAP_NBR4_DX[i];
+        const i32 ny = static_cast<i32>(m_y) + MAP_NBR4_DY[i];
         if (nx < 0 || ny < 0) {
             continue;
         }

@@ -35,3 +35,89 @@ Per-civilization:
 Per city:
  - Building array (built)
  - Unit array (trainable)
+ 
+ 
+Possible techs:
+ - Heavy wheeled plow 
+ - Three-field system
+ - Horse collar 
+ - Wet Rice Puddling
+ - Biochar
+ 
+ 
+ 
+ 
+Historical Wheat Yields Compared to Medieval England (100%)
+
+Ancient Egypt (Pharaonic Era): ~160% to 180%
+Roman Egypt (c. 100 CE): ~250% 
+Kingdom of France (c. 1300 CE): ~110% 
+Northern Italy (c. 1300 CE): ~150%
+Europe. The Industrial Revolution (England, c. 1800 CE): ~400% 
+Modern Global Average (2020s): ~800% to 1,200%
+
+
+
+Desert: 10%, 120% with irrigation
+Drylands: 20%, 120% with irrigation
+Temperate: 80%, 100% with good agriculture
+
+
+
+The Nile Archetype: The "Passive Blessing" (The Regular Flood): 150%
+The Indus/Mesopotamia Archetype: The "Ticking Time Bomb" (The Salinity Trap): 140%: Need worker intervention, salt cleanup, else becomes desert 10%
+The Amazon/Congo Archetype: The "Nutrient Vacuum" (The Tropical Flood): 40%, but with intense conversion 200%
+The Mississippi/Yellow River Archetype: The "Silt Chaos" (The High-Risk Flood): 130% but commonly floods badly. 
+The Rhine/Danube Archetype: The "Logistics Highway": 110%, navigable, commerce
+The Lena/Yenisey Archetype: The "Frozen Swamp Trap": 
+The Vanilla Archetype: The "Stable Bed" (e.g., The Thames or Seine): 120%
+
+
+Silt Type (Nutrient Quality):
+  Volcanic/Loess = +50% Food Cap.
+  Tropical/Acidic = -30% Food Cap until Upgraded.
+  
+Flood Predictability (Risk Profile):
+  Stable (Nile) = Immune to Drought, No Disaster Risk.
+  Unstable (Yellow/Tigris) = 5% chance per turn to trigger a "Washout" event.
+
+Flooding is heavily controlled via infrastructure. Large-scale flood control became globally common during the mid-to-late 19th century and the mid-20th century, driven by industrial-era engineering, steam power, and reinforced concrete.
+
+Historically, early civilizations used local infrastructure (dykes and levees), but they could not control the river itself; they could only protect small pockets of land. True, comprehensive river control emerged in two distinct historical waves.
+
+Wave 1: The Industrial Era Channelization (Mid-to-Late 1800s)
+
+Wave 2: The Age of Mega-Dams (Mid-1900s)
+
+Controlling flooding reduces fertility without extensive irrigation 
+
+Irrigation extends river bonus.
+
+In agricultural physics, this limit is governed by evaporative water loss.
+
+
+
+
+The Volcanic Alluvial Sink (Basin of large watershed with volcanos) - 350% Yield
+The Inter-Mountain Volcanic Valley (Flatlands surrounded by mountains) - 400% Yield
+
+The Micro-Climatic Marine Delta (Deltas of largest river systems) - 500% Yield (The Ultimate Jackpot)
+
+
+
+Blackearth (300%+ Jackpot Loess/Volcanic)
+Brownsoil (100% Reliable baseline)
+Stoneland (30% Harsh, packed earth), Scrubland, Sourland
+Sandwaste (0% Barren desert) Sere, Desert
+
+Richmold 
+Fieldland 
+Heathland
+Barrens 
+
+Rain sources:
+ - Orographic Lift (Wind Going Uphill)
+ - Convective Rainfall (The Sun-Baked Engine):
+ - Frontal / Cyclonic Rainfall (The Air Mass Clash): At around 40° to 60° where cold and hot air collide 
+ - 
+ 

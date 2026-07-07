@@ -17,21 +17,21 @@ i32 test_p1_make_map_basic (const P1_RunPrm& prm) {
     char terr_path[320];
     char clim_path[320];
     char riv_path[320];
-    if (!p1_make_out_path(prm.m_seed, "24_make_map_terrain.ppm", terr_path, sizeof(terr_path))) {
+    if (!p1_tester_make_step_out(prm.m_seed, k_p1_step_core, "make_map_terrain", terr_path, sizeof(terr_path))) {
         std::printf("failed to ensure output dir\n");
         return -1;
     }
-    if (!p1_make_out_path(prm.m_seed, "24_make_map_climate.ppm", clim_path, sizeof(clim_path))) {
+    if (!p1_tester_make_step_out(prm.m_seed, k_p1_step_core, "make_map_climate", clim_path, sizeof(clim_path))) {
         std::printf("failed to ensure climate output path\n");
         return -1;
     }
-    if (!p1_make_out_path(prm.m_seed, "24_make_map_rivers.ppm", riv_path, sizeof(riv_path))) {
+    if (!p1_tester_make_step_out(prm.m_seed, k_p1_step_core, "make_map_rivers", riv_path, sizeof(riv_path))) {
         std::printf("failed to ensure rivers output path\n");
         return -1;
     }
     P1_MakeMap mk(prm);
     const clock_t t0 = clock();
-    const bool ok = mk.generate();
+    const bool ok = mk.generate(k_p1_step_seed_export);
     const clock_t t1 = clock();
     const double sec = static_cast<double>(t1 - t0) / static_cast<double>(CLOCKS_PER_SEC);
     if (!ok || !mk.is_valid()) {
@@ -71,7 +71,11 @@ i32 main (i32 argc, char* argv[]) {
     }
     P1_RunPrm prm;
     p1_resolve_run_prm(argc, argv, &prm);
-    return test_p1_make_map_basic(prm);
+    const i32 rc = test_p1_make_map_basic(prm);
+    if (!p1_tester_whiteboard_chk()) {
+        return -1;
+    }
+    return rc;
 }
 
 //================================================================================================================================

@@ -14,6 +14,8 @@
 
 class StaticParsingManager;
 
+#include "config_settings_static.h"
+
 #include "building_static_data.h"
 #include "city_flag_static_data.h"
 #include "civ_static_data.h"
@@ -41,6 +43,9 @@ class StaticParsingManager;
 class RuntimeStatics {
 public:
     void load_from (StaticParsingManager& p);
+
+    GameConfigSettings& config ();
+    const GameConfigSettings& config () const;
 
     BuildingStaticData& building ();
 
@@ -119,6 +124,7 @@ public:
     const GlobalEffector& global_fx () const;
 
 private:
+    GameConfigSettings m_config;
     BuildingStaticData m_building;
     CityFlagStaticData m_city_flag;
     CivStaticData m_civ;

@@ -11,7 +11,8 @@
 #include "game_primitives.h"
 #include "generator_constants.h"
 #include "map_terrain_validate.h"
-#include "p1_tester_chain15.h"
+#include "p1_make_map.h"
+#include "p1_tester_chain_core.h"
 #include "p1_tester_util.h"
 
 //================================================================================================================================
@@ -108,7 +109,7 @@ static bool run_cull_case (
     return saved;
 }
 
-i32 test_p1_gen_desert_river_cull_basic (const P1_RunPrm& prm, const P1_Adj_LandAltitudePrm& lap) {
+i32 test_p1_gen_desert_river_cull_basic (const P1_RunPrm& prm) {
     char up_path[320];
     char dn_path[320];
     if (!p1_tester_make_out(prm.m_seed, up_path, sizeof(up_path))) {
@@ -119,30 +120,29 @@ i32 test_p1_gen_desert_river_cull_basic (const P1_RunPrm& prm, const P1_Adj_Land
         std::printf("failed to ensure downstream output dir\n");
         return -1;
     }
-    P1_TesterChain15Rslt chain = {};
+    P1_MakeMapRslt chain = {};
     double sec_i = 0.0;
-    if (!p1_build_ensure_input(prm, lap, static_cast<u16>(p1_tester_step() - 1u), &chain, &sec_i)) {
-        std::printf("P1 steps 1-22 input failed for step 23\n");
+    if (!p1_build_chain_core(prm, k_p1_step_climate, &chain, &sec_i)) {
+        std::printf("P1 steps 1-24 input failed for step 25\n");
         return -1;
     }
-    P1_Gen_Climate clim_gen(prm);
-    if (!clim_gen.generate(chain.m_terrain, chain.m_w, chain.m_h, chain.m_river)
-        || !clim_gen.is_valid()) {
-        std::printf("P1_Gen_Climate failed for step 23 input\n");
-        p1_free_chain15(&chain);
+    if (chain.m_terrain == nullptr || chain.m_climate == nullptr || chain.m_rivers == nullptr
+        || chain.m_w == 0 || chain.m_h == 0) {
+        std::printf("invalid chain input for desert river cull\n");
+        P1_MakeMap::free_rslt(&chain);
         return -1;
     }
-    const u8* climate = clim_gen.result().m_ov.data();
+    const u8* climate = chain.m_climate;
     double sec_up = 0.0;
     double sec_dn = 0.0;
     u32 culled_up = 0;
     u32 culled_dn = 0;
-    std::printf("P1 steps 1-22 input time: %.6f s\n", sec_i);
+    std::printf("P1 steps 1-24 input time: %.6f s\n", sec_i);
     if (!run_cull_case(
             prm,
             chain.m_terrain,
             climate,
-            chain.m_river,
+            chain.m_rivers,
             chain.m_w,
             chain.m_h,
             true,
@@ -150,7 +150,7 @@ i32 test_p1_gen_desert_river_cull_basic (const P1_RunPrm& prm, const P1_Adj_Land
             &sec_up,
             &culled_up)) {
         std::printf("P1_Gen_DesertRiverCull upstream failed\n");
-        p1_free_chain15(&chain);
+        P1_MakeMap::free_rslt(&chain);
         return -1;
     }
     std::printf(
@@ -164,7 +164,7 @@ i32 test_p1_gen_desert_river_cull_basic (const P1_RunPrm& prm, const P1_Adj_Land
             prm,
             chain.m_terrain,
             climate,
-            chain.m_river,
+            chain.m_rivers,
             chain.m_w,
             chain.m_h,
             false,
@@ -172,7 +172,7 @@ i32 test_p1_gen_desert_river_cull_basic (const P1_RunPrm& prm, const P1_Adj_Land
             &sec_dn,
             &culled_dn)) {
         std::printf("P1_Gen_DesertRiverCull downstream failed\n");
-        p1_free_chain15(&chain);
+        P1_MakeMap::free_rslt(&chain);
         return -1;
     }
     std::printf(
@@ -182,7 +182,7 @@ i32 test_p1_gen_desert_river_cull_basic (const P1_RunPrm& prm, const P1_Adj_Land
         static_cast<u32>(chain.m_w),
         static_cast<u32>(chain.m_h));
     std::printf("saved: %s\n", dn_path);
-    p1_free_chain15(&chain);
+    P1_MakeMap::free_rslt(&chain);
     return 0;
 }
 
@@ -195,10 +195,12 @@ i32 main (i32 argc, char* argv[]) {
         return -1;
     }
     P1_RunPrm prm;
-    P1_Adj_LandAltitudePrm lap;
     p1_resolve_run_prm(argc, argv, &prm);
-    p1_resolve_land_altitude_prm(argc, argv, &lap);
-    return test_p1_gen_desert_river_cull_basic(prm, lap);
+    const i32 rc = test_p1_gen_desert_river_cull_basic(prm);
+    if (!p1_tester_whiteboard_chk()) {
+        return -1;
+    }
+    return rc;
 }
 
 //================================================================================================================================

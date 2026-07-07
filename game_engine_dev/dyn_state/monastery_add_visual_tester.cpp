@@ -78,7 +78,7 @@ public:
 
         for (u16 i = 0; i < limit; ++i) {
             char c = '-';
-            MonasteryAddItem* item = array.get_monastery_add(MonasteryAddKey::from_raw(i));
+            MonasteryAddStruct* item = array.get_monastery_add(MonasteryAddKey::from_raw(i));
             if (item != nullptr) {
                 c = '1';
             } else if (i < head_count) {
@@ -216,7 +216,7 @@ static void test_large_return_and_reuse () {
         }
 
         if (ok) {
-            MonasteryAddItem* item = array.get_monastery_add(id);
+            MonasteryAddStruct* item = array.get_monastery_add(id);
             if (item == nullptr) {
                 ok = false;
             }

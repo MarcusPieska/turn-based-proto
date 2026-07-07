@@ -82,7 +82,7 @@ static u32 cnt_explored (const MapBitOverlay& ov) {
 
 int main () {
     GameArraySimple map;
-    if (!Factory_GameArraySimple::load(&map, ED_IN_TERR, ED_IN_CLIM, ED_IN_RIV)) {
+    if (!Factory_GameArraySimple::load_map_gen_data(&map, ED_IN_TERR, ED_IN_CLIM, ED_IN_RIV)) {
         std::printf("*** FAILED load map\n");
         return 1;
     }

@@ -78,11 +78,11 @@ class TradePostAddVectorTester {
 
 void test_first_item_zero_initialized () {
     TradePostAddVector array;
-    TradePostAddItem* should_be_null = array.get_trade_post_add(TradePostAddKey::None());
+    TradePostAddStruct* should_be_null = array.get_trade_post_add(TradePostAddKey::None());
     bool ok = (should_be_null == nullptr);
 
     TradePostAddKey id = array.get_next_new_trade_post_add_key();
-    TradePostAddItem* item = array.get_trade_post_add(id);
+    TradePostAddStruct* item = array.get_trade_post_add(id);
 
     if (item == nullptr) {
         ok = false;
@@ -94,7 +94,7 @@ void test_first_item_zero_initialized () {
 
 void test_null_key_reserved () {
     TradePostAddVector array;
-    TradePostAddItem* null_item = array.get_trade_post_add(TradePostAddKey::None());
+    TradePostAddStruct* null_item = array.get_trade_post_add(TradePostAddKey::None());
     TradePostAddKey first_key = array.get_next_new_trade_post_add_key();
     bool ok = (null_item == nullptr) && (first_key.value() == 0);
     note_result(ok, "None key is null; first allocated key is 0");
@@ -102,7 +102,7 @@ void test_null_key_reserved () {
 }
 
 void test_item_size_is_nonzero () {
-    bool ok = (sizeof(TradePostAddItem) > 0);
+    bool ok = (sizeof(TradePostAddStruct) > 0);
     note_result(ok, "Item size is non-zero");
     summarize_test_results();
 }
@@ -119,7 +119,7 @@ void test_array_unique_ids () {
         if (id.value() != expected) {
             ok_ids = false;
         }
-        TradePostAddItem* item = array.get_trade_post_add(id);
+        TradePostAddStruct* item = array.get_trade_post_add(id);
         if (item == nullptr) {
             ok_ids = false;
             break;
@@ -134,7 +134,7 @@ void test_array_unique_ids () {
         } else {
             for (u16 i = 0; i < target_count; ++i) {
                 const u16 expected = i;
-                TradePostAddItem* item = array.get_trade_post_add(TradePostAddKey::from_raw(expected));
+                TradePostAddStruct* item = array.get_trade_post_add(TradePostAddKey::from_raw(expected));
                 if (item == nullptr) {
                     ok_ids = false;
                     break;
@@ -162,7 +162,7 @@ void test_return_clears_existence () {
     bool ok = true;
 
     const u16 return_idx1 = 3;
-    TradePostAddItem* item1 = array.get_trade_post_add(TradePostAddKey::from_raw(return_idx1));
+    TradePostAddStruct* item1 = array.get_trade_post_add(TradePostAddKey::from_raw(return_idx1));
     if (item1 == nullptr) {
         ok = false;
     } else {
@@ -173,7 +173,7 @@ void test_return_clears_existence () {
     }
 
     const u16 return_idx2 = 8;
-    TradePostAddItem* item2 = array.get_trade_post_add(TradePostAddKey::from_raw(return_idx2));
+    TradePostAddStruct* item2 = array.get_trade_post_add(TradePostAddKey::from_raw(return_idx2));
     if (item2 == nullptr) {
         ok = false;
     } else {
@@ -224,7 +224,7 @@ void test_return_decrements_count () {
     u16 before_head  = TradePostAddVectorTester::get_head_count(array);
 
     const u16 return_idx = 4;
-    TradePostAddItem* item = array.get_trade_post_add(TradePostAddKey::from_raw(return_idx));
+    TradePostAddStruct* item = array.get_trade_post_add(TradePostAddKey::from_raw(return_idx));
     bool ok = true;
     if (item == nullptr) {
         ok = false;
@@ -271,7 +271,7 @@ void test_reuse_recycled_slot_basic () {
     u16 before_count = TradePostAddVectorTester::get_count(array);
     u16 before_head  = TradePostAddVectorTester::get_head_count(array);
     const u16 return_idx = 1;
-    TradePostAddItem* item = array.get_trade_post_add(TradePostAddKey::from_raw(return_idx));
+    TradePostAddStruct* item = array.get_trade_post_add(TradePostAddKey::from_raw(return_idx));
     bool ok = (item != nullptr);
     if (ok) {
         array.return_trade_post_add(TradePostAddKey::from_raw(return_idx));
@@ -285,7 +285,7 @@ void test_reuse_recycled_slot_basic () {
         if (TradePostAddVectorTester::get_head_count(array) != before_head) {
             ok = false;
         }
-        TradePostAddItem* reused = array.get_trade_post_add(TradePostAddKey::from_raw(return_idx));
+        TradePostAddStruct* reused = array.get_trade_post_add(TradePostAddKey::from_raw(return_idx));
         if (reused == nullptr) {
             ok = false;
         }
@@ -301,8 +301,8 @@ void test_reuse_recycled_slot_lifo () {
         array.get_next_new_trade_post_add_key();
     }
 
-    TradePostAddItem* i1 = array.get_trade_post_add(TradePostAddKey::from_raw(1));
-    TradePostAddItem* i2 = array.get_trade_post_add(TradePostAddKey::from_raw(2));
+    TradePostAddStruct* i1 = array.get_trade_post_add(TradePostAddKey::from_raw(1));
+    TradePostAddStruct* i2 = array.get_trade_post_add(TradePostAddKey::from_raw(2));
     bool ok = (i1 != nullptr && i2 != nullptr);
     if (ok) {
         array.return_trade_post_add(TradePostAddKey::from_raw(1));
@@ -330,7 +330,7 @@ void test_return_twice_is_noop_second_time () {
     }
 
     const u16 return_idx = 3;
-    TradePostAddItem* item = array.get_trade_post_add(TradePostAddKey::from_raw(return_idx));
+    TradePostAddStruct* item = array.get_trade_post_add(TradePostAddKey::from_raw(return_idx));
 
     bool ok = true;
     if (item == nullptr) {
@@ -372,7 +372,7 @@ void test_array_page_allocation () {
         ok_pages = false;
     } else {
         for (u16 p = 0; p < page_count; ++p) {
-            TradePostAddItem* page = array.get_page(p);
+            TradePostAddStruct* page = array.get_page(p);
             if (page == nullptr) {
                 ok_pages = false;
                 break;

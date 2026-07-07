@@ -27,6 +27,7 @@ path_config_endings.append("unit_actions")
 path_config_endings.append("unit_types")
 path_config_endings.append("units")
 path_config_endings.append("wonders")
+path_config_endings.append("settings")
 
 #================================================================================================================================#
 #=> - Helpers -

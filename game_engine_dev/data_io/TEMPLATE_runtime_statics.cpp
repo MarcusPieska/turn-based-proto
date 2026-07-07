@@ -9,8 +9,11 @@
 //=> - Includes -
 //================================================================================================================================
 
+#include <cstdlib>
+
 #include "runtime_statics.h"
 #include "static_parsing_manager.h"
+#include "config_settings_parse.h"
 
 [RUNTIME_STATICS_CPP_MAP_INCLUDES_TAG]
 
@@ -42,6 +45,18 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     [RUNTIME_STATICS_CPP_LOAD_ITEMS_TAKE_TAG]
     
     [RUNTIME_STATICS_CPP_LOAD_MAPS_TAG]
+    GameConfigSettingsParser psr(p.get_name_to_idx_cbs());
+    if (!psr.load_file(p.get_path_to_settings(), &m_config)) {
+        std::exit(1);
+    }
+}
+
+GameConfigSettings& RuntimeStatics::config () {
+    return m_config;
+}
+
+const GameConfigSettings& RuntimeStatics::config () const {
+    return m_config;
 }
 
 [RUNTIME_STATICS_CPP_ACCESSORS_TAG]

@@ -14,14 +14,7 @@
 
 #include "plantation_add_vector_key.h"
 #include "game_primitives.h"
-
-//================================================================================================================================
-//=> - PlantationAddItem struct -
-//================================================================================================================================
-
-struct PlantationAddItem {
-    u16 plantation_add_idx;
-};
+#include "plantation_add_struct.h"
 
 //================================================================================================================================
 //=> - PlantationAddVector class -
@@ -32,13 +25,13 @@ public:
     PlantationAddVector();
     ~PlantationAddVector();
 
-    PlantationAddItem* get_plantation_add(PlantationAddKey key);
-    const PlantationAddItem* get_plantation_add(PlantationAddKey key) const;
+    PlantationAddStruct* get_plantation_add(PlantationAddKey key);
+    const PlantationAddStruct* get_plantation_add(PlantationAddKey key) const;
     PlantationAddKey get_next_new_plantation_add_key();
 
     void return_plantation_add(PlantationAddKey key);
-    PlantationAddItem* get_page(u16 page_idx);
-    const PlantationAddItem* get_page(u16 page_idx) const;
+    PlantationAddStruct* get_page(u16 page_idx);
+    const PlantationAddStruct* get_page(u16 page_idx) const;
 
     static const u16 MAX_PAGES = 256;
     static const u16 PLANTATION_ADD_ITEMS_PER_PAGE = 256;
@@ -46,7 +39,7 @@ public:
 private:
     friend class PlantationAddVectorTester;
 
-    PlantationAddItem* m_pages[MAX_PAGES];
+    PlantationAddStruct* m_pages[MAX_PAGES];
     u8* m_exists_pages[MAX_PAGES];
     u16 m_plantation_add_count;
     u16 m_head_plantation_add_idx;

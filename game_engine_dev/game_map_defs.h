@@ -15,6 +15,7 @@
 #define CLIMATE_GRASSLAND 1
 #define CLIMATE_PLAINS 2
 #define CLIMATE_DESERT 3
+#define CLIMATE_BLACK_SOIL 4
 #define CLIMATE_WT_MAX 99
 
 //================================================================================================================================
@@ -28,7 +29,6 @@
 //================================================================================================================================
 
 static const u8 TERR_NONE[4] = {0, 255, 0, 255};
-
 static const u8 TERR_OCEAN[4] = {1, 14, 52, 112};
 static const u8 TERR_SEA[4] = {2, 38, 102, 188};
 static const u8 TERR_COASTAL[4] = {3, 118, 182, 242};
@@ -73,6 +73,12 @@ static inline void climate_to_rgb (u8 cls, u8* r, u8* g, u8* b) {
         *b = 70;
         return;
     }
+    if (cls == CLIMATE_BLACK_SOIL) {
+        *r = 48;
+        *g = 128;
+        *b = 38;
+        return;
+    }
     *r = 0;
     *g = 0;
     *b = 0;
@@ -99,6 +105,12 @@ static inline u8 climate_from_rgb (u8 r, u8 g, u8 b, bool* matched) {
             *matched = true;
         }
         return CLIMATE_DESERT;
+    }
+    if (r == 48 && g == 128 && b == 38) {
+        if (matched != nullptr) {
+            *matched = true;
+        }
+        return CLIMATE_BLACK_SOIL;
     }
     if (r == 0 && g == 0 && b == 0) {
         if (matched != nullptr) {

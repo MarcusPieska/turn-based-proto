@@ -46,7 +46,7 @@ OutpostAddVector::~OutpostAddVector() {
     }
 }
 
-OutpostAddItem* OutpostAddVector::get_outpost_add(OutpostAddKey key) {
+OutpostAddStruct* OutpostAddVector::get_outpost_add(OutpostAddKey key) {
     if (!key.is_valid()) {
         return nullptr;
     }
@@ -62,7 +62,7 @@ OutpostAddItem* OutpostAddVector::get_outpost_add(OutpostAddKey key) {
     return &m_pages[page][slot];
 }
 
-const OutpostAddItem* OutpostAddVector::get_outpost_add(OutpostAddKey key) const {
+const OutpostAddStruct* OutpostAddVector::get_outpost_add(OutpostAddKey key) const {
     if (!key.is_valid()) {
         return nullptr;
     }
@@ -94,9 +94,9 @@ OutpostAddKey OutpostAddVector::get_next_new_outpost_add_key() {
         u16 add_slot = static_cast<u16>(recycled_idx & 0xFF);
 
         if (add_page < MAX_PAGES && m_pages[add_page] && m_exists_pages[add_page]) {
-            OutpostAddItem* add = &m_pages[add_page][add_slot];
+            OutpostAddStruct* add = &m_pages[add_page][add_slot];
             m_exists_pages[add_page][add_slot] = 1;
-            *add = OutpostAddItem{};
+            *add = OutpostAddStruct{};
             m_outpost_add_count = static_cast<u16>(m_outpost_add_count + 1);
             return OutpostAddKey::from_raw(recycled_idx);
         }
@@ -111,26 +111,26 @@ OutpostAddKey OutpostAddVector::get_next_new_outpost_add_key() {
     u16 page = static_cast<u16>(idx >> 8);
     u16 slot = static_cast<u16>(idx & 0xFF);
     if (!m_pages[page]) {
-        m_pages[page] = new OutpostAddItem[OUTPOST_ADD_ITEMS_PER_PAGE]();
+        m_pages[page] = new OutpostAddStruct[OUTPOST_ADD_ITEMS_PER_PAGE]();
         m_exists_pages[page] = new u8[OUTPOST_ADD_ITEMS_PER_PAGE]();
         m_page_count = static_cast<u16>(m_page_count + 1);
     }
     m_exists_pages[page][slot] = 1;
-    m_pages[page][slot] = OutpostAddItem{};
+    m_pages[page][slot] = OutpostAddStruct{};
 
     m_head_outpost_add_idx = static_cast<u16>(m_head_outpost_add_idx + 1);
     m_outpost_add_count = static_cast<u16>(m_outpost_add_count + 1);
     return OutpostAddKey::from_raw(idx);
 }
 
-OutpostAddItem* OutpostAddVector::get_page(u16 page_idx) {
+OutpostAddStruct* OutpostAddVector::get_page(u16 page_idx) {
     if (page_idx >= MAX_PAGES) {
         return nullptr;
     }
     return m_pages[page_idx];
 }
 
-const OutpostAddItem* OutpostAddVector::get_page(u16 page_idx) const {
+const OutpostAddStruct* OutpostAddVector::get_page(u16 page_idx) const {
     if (page_idx >= MAX_PAGES) {
         return nullptr;
     }
@@ -152,7 +152,7 @@ void OutpostAddVector::return_outpost_add(OutpostAddKey key) {
     }
 
     m_exists_pages[page][slot] = 0;
-    m_pages[page][slot] = OutpostAddItem{};
+    m_pages[page][slot] = OutpostAddStruct{};
 
     u16 push_pos = m_recycled_outpost_add_count;
     u16 push_page = static_cast<u16>(push_pos >> 8);

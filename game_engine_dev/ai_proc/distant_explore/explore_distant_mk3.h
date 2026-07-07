@@ -6,7 +6,7 @@
 #define EXPLORE_DISTANT_MK3_H
 
 #include "explore_distant_mk1.h"
-#include "short_range_pathing.h"
+#include "near_path_mk1.h"
 
 //================================================================================================================================
 //=> - ExploreDistantMk3 -
@@ -14,13 +14,8 @@
 
 class ExploreDistantMk3 : public ExploreAi {
 public:
-    ExploreDistantMk3 (
-        const GameArraySimple& map,
-        MapBitOverlay& explored,
-        u16 sx,
-        u16 sy,
-        u16 sight,
-        u8 player);
+    ExploreDistantMk3 (const GameArraySimple& map, MapBitOverlay& explored, u16 sx, u16 sy, u16 sight, u8 player);
+    
     ~ExploreDistantMk3 () override;
     void move (u16 moves) override;
     bool done () const;
@@ -38,7 +33,7 @@ private:
     u16 m_wp_i;
     bool m_done;
     double m_derive_sec;
-    ShortRangePathing m_path;
+    NearPathMk1 m_path;
     void note_step (MapBitOverlay& exp, u16 x, u16 y, u16& st_n, u16* stx, u16* sty);
     void reveal_around ();
     void derive_path ();

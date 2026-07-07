@@ -1,0 +1,7 @@
+
+
+
+Desert     : DESERT    : 1000 :  30 :  10
+Scrublands : PLAINS    : 0    :  60 :  35
+Brownsoil  : GRASSLAND : 0    :  90 : 100
+Blackearth : FERTILE   : 0    : 100 : 800
