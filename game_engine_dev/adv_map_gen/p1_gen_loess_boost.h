@@ -25,17 +25,19 @@ struct P1_Gen_LoessBoostPrm {
     f32 m_move; // Base mobile fraction per step
     f32 m_gamma; // Display gamma; lower lifts faint plumes
     f32 m_peak; // Peak scale for normalize; lower boosts contrast
+    u8 m_smooth_n; // Fine overlay 3x3 blur passes after upsample
 };
 
 static inline P1_Gen_LoessBoostPrm p1_gen_loess_boost_prm_def () {
     P1_Gen_LoessBoostPrm p;
-    p.m_chunk_sz = 2;
+    p.m_chunk_sz = 3;
     p.m_step_n = 6;
     p.m_hop_max = 10;
     p.m_emit = 0.028f;
     p.m_move = 0.62f;
     p.m_gamma = 0.45f;
     p.m_peak = 0.32f;
+    p.m_smooth_n = 2;
     return p;
 }
 

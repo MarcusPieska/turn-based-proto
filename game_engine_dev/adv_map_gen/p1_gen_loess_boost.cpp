@@ -243,6 +243,33 @@ static void build_gamma_lut (u8* lut, f32 gamma) {
     }
 }
 
+static void blur_fine (u16 w, u16 h, f32* fine, f32* tmp) {
+    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
+    if (fine == nullptr || tmp == nullptr || w == 0 || h == 0) {
+        return;
+    }
+    for (u16 py = 0; py < h; ++py) {
+        for (u16 px = 0; px < w; ++px) {
+            f32 sum = 0.f;
+            u32 cnt = 0;
+            for (i32 oy = -1; oy <= 1; ++oy) {
+                for (i32 ox = -1; ox <= 1; ++ox) {
+                    const i32 nx = static_cast<i32>(px) + ox;
+                    const i32 ny = static_cast<i32>(py) + oy;
+                    if (nx < 0 || ny < 0 || nx >= static_cast<i32>(w) || ny >= static_cast<i32>(h)) {
+                        continue;
+                    }
+                    const u32 j = static_cast<u32>(ny) * static_cast<u32>(w) + static_cast<u32>(nx);
+                    sum += fine[j];
+                    ++cnt;
+                }
+            }
+            tmp[static_cast<u32>(py) * static_cast<u32>(w) + static_cast<u32>(px)] = cnt > 0 ? sum / static_cast<f32>(cnt) : 0.f;
+        }
+    }
+    std::memcpy(fine, tmp, static_cast<size_t>(n) * sizeof(f32));
+}
+
 static void norm_pack (u32 n, const f32* conc, u8* out, f32 gamma, f32 peak) {
     f32 vmax = 0.f;
     for (u32 i = 0; i < n; ++i) {
@@ -360,7 +387,11 @@ bool P1_Gen_LoessBoost::generate (const u8* climate, const u8* wind_dir, const u
         return false;
     }
     f32* fine = reinterpret_cast<f32*>(sh_next.get());
+    f32* sm_tmp = reinterpret_cast<f32*>(sh_conc.get());
     upsample_conc(w, h, chunk_sz, gw, gh, conc, fine);
+    for (u8 pass = 0; pass < m_sp.m_smooth_n; ++pass) {
+        blur_fine(w, h, fine, sm_tmp);
+    }
     norm_pack(n, fine, m_rslt.m_ov.data_w(), m_sp.m_gamma, m_sp.m_peak);
     m_rslt.m_w = w;
     m_rslt.m_h = h;

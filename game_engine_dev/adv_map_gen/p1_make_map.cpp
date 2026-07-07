@@ -21,7 +21,7 @@
 #include "p1_gen_loess_boost.h"
 #include "p1_gen_nearness_to_watershed_mtn.h"
 #include "p1_gen_noise_perlin.h"
-#include "p1_gen_outline.h"
+#include "p1_gen_cont_outlines.h"
 #include "p1_gen_rain_orographic.h"
 #include "p1_gen_river_lines.h"
 #include "p1_gen_river_network.h"
@@ -194,7 +194,7 @@ bool P1_MakeMap::generate (u16 last_step) {
         const u8* ov = nullptr;
         const u16* land_depth = nullptr;
         P1_Gen_NoisePerlin noise_gen(m_prm);
-        P1_Gen_Outline ol_gen(m_prm);
+        MapArrayOverlay ov_map;
         P1_Gen_LandDepth depth_gen(m_prm);
         P1_Gen_DistanceToRiver dist_gen(m_prm);
         P1_Gen_NearnessToWatershedMtn near_gen(m_prm);
@@ -213,15 +213,11 @@ bool P1_MakeMap::generate (u16 last_step) {
         return false;
     }
     {
-        P1_MK_TIME("01 outline");
-        ok = ol_gen.generate() && ol_gen.is_valid();
+        P1_MK_TIME("01 cont_outline");
+        ok = p1_gen_step01_ov(m_prm, &ov_map);
         if (ok) {
-            const P1_Gen_OutlineRslt& ol = ol_gen.result();
-            ok = ol.m_w == w && ol.m_h == h;
-            if (ok) {
-                ov = ol.m_ov.data();
-                ok = ov != nullptr;
-            }
+            ov = ov_map.data();
+            ok = ov != nullptr && ov_map.width() == w && ov_map.height() == h;
         }
     }
     if (!ok) {

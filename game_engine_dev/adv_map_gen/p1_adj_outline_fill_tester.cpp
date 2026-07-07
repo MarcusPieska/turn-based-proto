@@ -6,7 +6,7 @@
 #include <ctime>
 
 #include "p1_adj_outline_fill.h"
-#include "p1_gen_outline.h"
+#include "p1_gen_cont_outlines.h"
 #include "game_primitives.h"
 #include "map_terrain_data.h"
 #include "p1_tester_util.h"
@@ -21,17 +21,16 @@ i32 test_p1_adj_outline_fill_basic (const P1_RunPrm& prm) {
         std::printf("failed to ensure output dir\n");
         return -1;
     }
-    P1_Gen_Outline ol_gen(prm);
+    MapArrayOverlay ov_map;
     const clock_t t0o = clock();
-    if (!ol_gen.generate() || !ol_gen.is_valid()) {
-        std::printf("P1_Gen_Outline failed for step 2 input\n");
+    if (!p1_gen_step01_ov(prm, &ov_map)) {
+        std::printf("P1_Gen_ContOutlines failed for step 2 input\n");
         return -1;
     }
     const clock_t t1o = clock();
-    const P1_Gen_OutlineRslt& ol = ol_gen.result();
-    const u16 w = ol.m_w;
-    const u16 h = ol.m_h;
-    const u8* ov = ol.m_ov.data();
+    const u16 w = ov_map.width();
+    const u16 h = ov_map.height();
+    const u8* ov = ov_map.data();
     if (ov == nullptr || w == 0 || h == 0) {
         std::printf("invalid outline overlay\n");
         return -1;
@@ -52,7 +51,7 @@ i32 test_p1_adj_outline_fill_basic (const P1_RunPrm& prm) {
         delete[] terrain;
         return -1;
     }
-    std::printf("P1_Gen_Outline input time: %.6f s\n", sec_o);
+    std::printf("P1_Gen_ContOutlines input time: %.6f s\n", sec_o);
     std::printf("P1_Adj_OutlineFill adjust time: %.6f s (%u x %u)\n",
         sec,
         static_cast<u32>(w),

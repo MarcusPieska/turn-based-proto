@@ -29,7 +29,7 @@ class P1_Gen_Outline {
 public:
     explicit P1_Gen_Outline (const P1_RunPrm& prm);
 
-    bool generate ();
+    bool generate (u8 size_pct = 100u);
     bool is_valid () const;
     const P1_Gen_OutlineRslt& result () const;
     void save_output (cstr path) const;

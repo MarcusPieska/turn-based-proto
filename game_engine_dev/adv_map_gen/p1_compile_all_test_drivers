@@ -4,7 +4,7 @@ ROOT="$(cd "$(dirname "$0")" && pwd)"
 cd "$ROOT"
 
 COMPS=(
-    p1_gen_outline_comp
+    p1_gen_cont_outlines_comp
     p1_adj_outline_fill_comp
     p1_gen_noise_perlin_comp
     p1_gen_land_depth_comp

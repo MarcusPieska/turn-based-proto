@@ -42,7 +42,7 @@ struct P1_TesterCfg {
 };
 
 static const P1_TesterCfg g_p1_tester_tbl[] = {
-    {"p1_gen_outline_tester", 1u, "01_outline.ppm"},
+    {"p1_gen_cont_outlines_tester", 1u, "01_outline.ppm"},
     {"p1_adj_outline_fill_tester", 2u, "02_outline_fill.ppm"},
     {"p1_gen_noise_perlin_tester", 3u, "03_noise_perlin.ppm"},
     {"p1_gen_land_depth_tester", 4u, "04_land_depth.ppm"},

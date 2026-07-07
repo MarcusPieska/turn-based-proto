@@ -8,7 +8,7 @@
 
 #include "p1_adj_outline_fill.h"
 #include "p1_gen_land_depth.h"
-#include "p1_gen_outline.h"
+#include "p1_gen_cont_outlines.h"
 #include "p1_gen_shaped_outline.h"
 #include "game_primitives.h"
 #include "map_terrain_data.h"
@@ -76,15 +76,14 @@ static bool run_shaped_layer (
 i32 test_p1_gen_shaped_outline_basic (const P1_RunPrm& prm) {
     P1_Gen_ShapedOutlinePrm sp = p1_gen_shaped_outline_prm_def();
     const clock_t t0o = clock();
-    P1_Gen_Outline ol_gen(prm);
-    if (!ol_gen.generate() || !ol_gen.is_valid()) {
-        std::printf("P1_Gen_Outline failed for shaped outline input\n");
+    MapArrayOverlay ov_map;
+    if (!p1_gen_step01_ov(prm, &ov_map)) {
+        std::printf("P1_Gen_ContOutlines failed for shaped outline input\n");
         return -1;
     }
-    const P1_Gen_OutlineRslt& ol = ol_gen.result();
-    const u16 w = ol.m_w;
-    const u16 h = ol.m_h;
-    const u8* ov = ol.m_ov.data();
+    const u16 w = ov_map.width();
+    const u16 h = ov_map.height();
+    const u8* ov = ov_map.data();
     if (ov == nullptr || w == 0 || h == 0) {
         std::printf("invalid outline overlay\n");
         return -1;

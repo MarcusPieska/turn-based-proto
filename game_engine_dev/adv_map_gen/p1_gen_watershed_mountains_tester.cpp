@@ -11,7 +11,7 @@
 #include "p1_adj_river_lakes.h"
 #include "p1_gen_land_depth.h"
 #include "p1_gen_noise_perlin.h"
-#include "p1_gen_outline.h"
+#include "p1_gen_cont_outlines.h"
 #include "p1_gen_river_lines.h"
 #include "p1_gen_river_network.h"
 #include "p1_gen_river_pts.h"
@@ -47,15 +47,14 @@ static bool build_step11_input (
     P1_Gen_RiverLines* lin_gen,
     P1_Gen_RiverNetwork* net_gen) 
 {
-    P1_Gen_Outline ol_gen(prm);
-    if (!ol_gen.generate() || !ol_gen.is_valid()) {
+    MapArrayOverlay ov_map;
+    if (!p1_gen_step01_ov(prm, &ov_map)) {
         return false;
     }
-    const P1_Gen_OutlineRslt& ol = ol_gen.result();
-    if (ol.m_w != w || ol.m_h != h) {
+    if (ov_map.width() != w || ov_map.height() != h) {
         return false;
     }
-    const u8* ov = ol.m_ov.data();
+    const u8* ov = ov_map.data();
     if (ov == nullptr) {
         return false;
     }

@@ -6,7 +6,7 @@
 #include <cstring>
 
 #include "p1_gen_land_depth.h"
-#include "p1_gen_outline.h"
+#include "p1_gen_cont_outlines.h"
 
 //================================================================================================================================
 //=> - Private generation helpers -
@@ -148,16 +148,15 @@ bool P1_Gen_LandDepth::generate (const u8* ol_gray, u16 w, u16 h) {
 }
 
 bool P1_Gen_LandDepth::generate () {
-    P1_Gen_Outline ol(m_prm);
-    if (!ol.generate() || !ol.is_valid()) {
+    MapArrayOverlay ov_map;
+    if (!p1_gen_step01_ov(m_prm, &ov_map)) {
         return false;
     }
-    const P1_Gen_OutlineRslt& r = ol.result();
-    const u8* ov = r.m_ov.data();
+    const u8* ov = ov_map.data();
     if (ov == nullptr) {
         return false;
     }
-    return generate(ov, r.m_w, r.m_h);
+    return generate(ov, ov_map.width(), ov_map.height());
 }
 
 bool P1_Gen_LandDepth::is_valid () const {

@@ -20,7 +20,7 @@ from p1_tester_driver import read_seed_file
 #================================================================================================================================#
 
 TESTERS = [
-    "p1_gen_outline",
+    "p1_gen_cont_outlines",
     "p1_adj_outline_fill",
     "p1_gen_noise_perlin",
     "p1_gen_land_depth",

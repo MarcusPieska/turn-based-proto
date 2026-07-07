@@ -217,12 +217,11 @@ static bool flood_fill_ov (u8* ov, u16 w, u16 h, i32 sx, i32 sy) {
     return true;
 }
 
-static bool build_outline_shape (OutlineShapeCtx& ctx, u32 seed) {
+static bool build_outline_shape (OutlineShapeCtx& ctx, u32 seed, f64 scale) {
     Mt19937 rng;
     mt_seed(&rng, seed);
     const f64 min_ang = 1.0;
     const f64 max_ang = 30.0;
-    const f64 scale = 1.0;
     const f64 min_depth = 0.3 * scale;
     const f64 max_depth = 0.9 * scale;
     const f64 zoom = 1.0;
@@ -267,12 +266,12 @@ static bool build_outline_shape (OutlineShapeCtx& ctx, u32 seed) {
     return true;
 }
 
-static bool fill_outline_overlay (OutlineShapeCtx& ctx, u32 seed) {
+static bool fill_outline_overlay (OutlineShapeCtx& ctx, u32 seed, f64 scale) {
     const u32 npx = static_cast<u32>(ctx.m_w) * static_cast<u32>(ctx.m_h);
     for (u32 i = 0; i < npx; ++i) {
         ctx.m_ov[i] = k_ov_water;
     }
-    if (!build_outline_shape(ctx, seed)) {
+    if (!build_outline_shape(ctx, seed, scale)) {
         return false;
     }
     if (!flood_fill_ov(ctx.m_ov, ctx.m_w, ctx.m_h, static_cast<i32>(ctx.m_cx), static_cast<i32>(ctx.m_cy))) {
@@ -296,7 +295,7 @@ P1_Gen_Outline::P1_Gen_Outline (const P1_RunPrm& prm) :
     m_rslt.m_stretch_y = 1.f;
 }
 
-bool P1_Gen_Outline::generate () {
+bool P1_Gen_Outline::generate (u8 size_pct) {
     m_valid_generation = false;
     m_rslt.m_ov.clear();
     if (!p1_run_prm_ok(m_prm)) {
@@ -309,6 +308,10 @@ bool P1_Gen_Outline::generate () {
     if (!m_rslt.m_ov.resize(m_rslt.m_w, m_rslt.m_h)) {
         return false;
     }
+    f64 scale = static_cast<f64>(size_pct) / 100.0;
+    if (scale < 0.01) {
+        scale = 0.01;
+    }
     OutlineShapeCtx ctx;
     ctx.m_ov = m_rslt.m_ov.data_w();
     ctx.m_w = m_rslt.m_w;
@@ -317,7 +320,7 @@ bool P1_Gen_Outline::generate () {
     ctx.m_cy = 0.0;
     ctx.m_stretch_x = static_cast<f64>(m_rslt.m_stretch_x);
     ctx.m_stretch_y = static_cast<f64>(m_rslt.m_stretch_y);
-    if (!fill_outline_overlay(ctx, m_prm.m_seed)) {
+    if (!fill_outline_overlay(ctx, m_prm.m_seed, scale)) {
         return false;
     }
     m_valid_generation = true;

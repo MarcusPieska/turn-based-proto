@@ -199,9 +199,10 @@ static bool shape_outline_layer (
     }
     delete[] combo;
     const f64 lim_cap = 1.0;
-    const size_t j0 = frac_idx(n, 0.7, lim_cap);
-    const size_t j1 = frac_idx(n, 0.85, lim_cap);
-    const size_t j2 = frac_idx(n, 0.88, lim_cap);
+    const f64 fact = 0.7;
+    const size_t j0 = frac_idx(n, 0.7 * fact, lim_cap);
+    const size_t j1 = frac_idx(n, 0.85 * fact, lim_cap);
+    const size_t j2 = frac_idx(n, 0.88 * fact, lim_cap);
     f32* work = new f32[n];
     if (work == nullptr) {
         delete[] norm;
