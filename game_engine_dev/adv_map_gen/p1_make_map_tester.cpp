@@ -6,30 +6,23 @@
 #include <ctime>
 
 #include "game_primitives.h"
-#include "p1_make_map.h"
-#include "p1_tester_util.h"
+#include "p1_tester_harness.h"
 
 //================================================================================================================================
 //=> - Test helpers -
 //================================================================================================================================
 
-i32 test_p1_make_map_basic (const P1_RunPrm& prm) {
+i32 test_p1_make_map_basic (P1_TesterHarness& h) {
     char terr_path[320];
     char clim_path[320];
     char riv_path[320];
-    if (!p1_tester_make_step_out(prm.m_seed, k_p1_step_core, "make_map_terrain", terr_path, sizeof(terr_path))) {
+    if (!h.path_pri(terr_path, sizeof(terr_path))
+        || !h.path_sec(clim_path, sizeof(clim_path))
+        || !h.path_extra("make_map_rivers", riv_path, sizeof(riv_path))) {
         std::printf("failed to ensure output dir\n");
         return -1;
     }
-    if (!p1_tester_make_step_out(prm.m_seed, k_p1_step_core, "make_map_climate", clim_path, sizeof(clim_path))) {
-        std::printf("failed to ensure climate output path\n");
-        return -1;
-    }
-    if (!p1_tester_make_step_out(prm.m_seed, k_p1_step_core, "make_map_rivers", riv_path, sizeof(riv_path))) {
-        std::printf("failed to ensure rivers output path\n");
-        return -1;
-    }
-    P1_MakeMap mk(prm);
+    P1_MakeMap mk(h.prm());
     const clock_t t0 = clock();
     const bool ok = mk.generate(k_p1_step_seed_export);
     const clock_t t1 = clock();
@@ -66,16 +59,18 @@ i32 test_p1_make_map_basic (const P1_RunPrm& prm) {
 //================================================================================================================================
 
 i32 main (i32 argc, char* argv[]) {
-    if (!p1_tester_checkout(argc, argv)) {
+    P1_TesterHarness h;
+    if (!h.begin(argc, argv)) {
         return -1;
     }
-    P1_RunPrm prm;
-    p1_resolve_run_prm(argc, argv, &prm);
-    const i32 rc = test_p1_make_map_basic(prm);
-    if (!p1_tester_whiteboard_chk()) {
+    const i32 rc = test_p1_make_map_basic(h);
+    if (rc != 0) {
+        return rc;
+    }
+    if (!h.finish()) {
         return -1;
     }
-    return rc;
+    return 0;
 }
 
 //================================================================================================================================

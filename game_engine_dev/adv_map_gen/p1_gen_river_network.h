@@ -6,8 +6,9 @@
 #define P1_GEN_RIVER_NETWORK_H
 
 #include "game_primitives.h"
+#include "p1_gen_coastal_mtn_limits.h"
 #include "p1_gen_river_sectors.h"
-#include "p1_map_size.h"
+#include "p1_map_size.h" 
 
 //================================================================================================================================
 //=> - P1 river network limits -
@@ -62,7 +63,12 @@ public:
     explicit P1_Gen_RiverNetwork (const P1_RunPrm& prm);
     ~P1_Gen_RiverNetwork ();
 
-    bool generate (const u8* terrain, u16 w, u16 h, const P1_Gen_RiverSectorsRslt& sectors);
+    bool generate (
+        const u8* terrain,
+        u16 w,
+        u16 h,
+        const P1_Gen_RiverSectorsRslt& sectors,
+        const P1_Gen_CoastalMtnLimitsRslt& coast_lim);
     bool is_valid () const;
     const P1_Gen_RiverNetworkRslt& result () const;
     void save_output (cstr path, const u8* terrain, const P1_Gen_RiverSectorsRslt& sectors) const;

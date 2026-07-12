@@ -1,0 +1,5 @@
+#!/bin/bash
+g++ -I.. -std=c++11 -DWB_TRACE_DB -c whiteboard_mng.cpp -o whiteboard_mng.o
+g++ -I.. -std=c++11 -DWB_TRACE_DB -c whiteboard_mng_tester.cpp -o whiteboard_mng_tester.o
+g++ -o whiteboard_mng_tester whiteboard_mng.o whiteboard_mng_tester.o
+rm whiteboard_mng.o whiteboard_mng_tester.o

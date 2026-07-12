@@ -13,7 +13,7 @@
 #include "p1_gen_river_network.h"
 #include "p1_gen_river_pts.h"
 #include "p1_gen_river_sectors.h"
-#include "game_primitives.h"
+#include "p1_gen_coastal_mtn_limits.h"
 #include "p1_tester_util.h"
 
 //================================================================================================================================
@@ -86,8 +86,14 @@ i32 test_p1_gen_river_lines_basic (const P1_RunPrm& prm) {
         delete[] terrain;
         return -1;
     }
+    P1_Gen_CoastalMtnLimits lim_gen(prm);
+    if (!lim_gen.generate(terrain, w, h, sec_gen.result()) || !lim_gen.is_valid()) {
+        std::printf("P1_Gen_CoastalMtnLimits failed for step 11 input\n");
+        delete[] terrain;
+        return -1;
+    }
     P1_Gen_RiverNetwork net_gen(prm);
-    if (!net_gen.generate(terrain, w, h, sec_gen.result()) || !net_gen.is_valid()) {
+    if (!net_gen.generate(terrain, w, h, sec_gen.result(), lim_gen.result()) || !net_gen.is_valid()) {
         std::printf("P1_Gen_RiverNetwork failed for step 11 input\n");
         delete[] terrain;
         return -1;

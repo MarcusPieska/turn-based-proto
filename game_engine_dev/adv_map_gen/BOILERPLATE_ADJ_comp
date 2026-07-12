@@ -11,6 +11,10 @@
 
 INC="-I.. -I../map_loader"
 
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+cd "$ROOT"
+source p1_build_tester_cli_obj.sh
+
 g++ -std=c++11 $INC -c ../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
 g++ -std=c++11 $INC -c ../map_loader/map_terrain_data.cpp -o map_terrain_data.o
 g++ -std=c++11 $INC -c ../map_loader/map_loader.cpp -o map_loader.o
@@ -18,6 +22,7 @@ g++ -std=c++11 $INC -c [PIPE_FILE_PREFIX][FILE_PREFIX_TAG].cpp -o [PIPE_FILE_PRE
 g++ -std=c++11 $INC -c [PIPE_FILE_PREFIX][FILE_PREFIX_TAG]_tester.cpp -o [PIPE_FILE_PREFIX][FILE_PREFIX_TAG]_tester.o
 
 g++ -std=c++11 -o [PIPE_FILE_PREFIX][FILE_PREFIX_TAG]_tester \
+    p1_tester_cli.o \
     map_terrain_validate.o \
     map_terrain_data.o \
     map_loader.o \
@@ -28,4 +33,5 @@ rm map_terrain_validate.o \
     map_terrain_data.o \
     map_loader.o \
     [PIPE_FILE_PREFIX][FILE_PREFIX_TAG].o \
+    p1_tester_cli.o \
     [PIPE_FILE_PREFIX][FILE_PREFIX_TAG]_tester.o

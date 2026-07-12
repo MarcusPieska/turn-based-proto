@@ -7,6 +7,7 @@
 
 #include "p1_gen_shaped_outline.h"
 #include "p1_adj_outline_fill.h"
+#include "p1_adj_coastal_mtn_rivers.h"
 #include "p1_adj_river_inlets.h"
 #include "p1_adj_river_lakes.h"
 #include "p1_gen_distance_to_river.h"
@@ -16,7 +17,7 @@
 #include "p1_gen_river_network.h"
 #include "p1_gen_river_pts.h"
 #include "p1_gen_river_sectors.h"
-#include "game_primitives.h"
+#include "p1_gen_coastal_mtn_limits.h"
 #include "p1_tester_util.h"
 
 //================================================================================================================================
@@ -75,12 +76,21 @@ static bool build_step11_input (
     if (!sec_gen.generate(terrain, w, h, pts_gen.result()) || !sec_gen.is_valid()) {
         return false;
     }
+    P1_Gen_CoastalMtnLimits lim_gen(prm);
+    if (!lim_gen.generate(terrain, w, h, sec_gen.result()) || !lim_gen.is_valid()) {
+        return false;
+    }
     P1_Gen_RiverNetwork net_gen(prm);
-    if (!net_gen.generate(terrain, w, h, sec_gen.result()) || !net_gen.is_valid()) {
+    if (!net_gen.generate(terrain, w, h, sec_gen.result(), lim_gen.result()) || !net_gen.is_valid()) {
         return false;
     }
     if (!lin_gen->generate(terrain, w, h, sec_gen.result(), net_gen.result())
         || !lin_gen->is_valid()) {
+        return false;
+    }
+    P1_Adj_CoastalMtnRivers cmr(prm);
+    if (!cmr.adjust(terrain, w, h, lin_gen->result().m_ov, sec_gen.result(), lim_gen.result())
+        || !cmr.is_valid()) {
         return false;
     }
     P1_Adj_RiverLakes lakes(prm);

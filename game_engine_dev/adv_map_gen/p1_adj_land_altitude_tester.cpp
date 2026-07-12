@@ -11,36 +11,30 @@
 #include "generator_constants.h"
 #include "map_terrain_validate.h"
 #include "perlin_noise.h"
-#include "p1_tester_chain15.h"
+#include "p1_tester_harness.h"
 #include "p1_tester_util.h"
 
 //================================================================================================================================
 //=> - Test helpers -
 //================================================================================================================================
 
-i32 test_p1_adj_land_altitude_basic (const P1_RunPrm& prm, const P1_Adj_LandAltitudePrm& sp) {
+i32 test_p1_adj_land_altitude_basic (P1_TesterHarness& h, const P1_Adj_LandAltitudePrm& sp) {
     char out_path[320];
     char joint_path[320];
-    if (!p1_tester_make_out(prm.m_seed, out_path, sizeof(out_path))) {
+    if (!h.path_pri(out_path, sizeof(out_path)) || !h.path_sec(joint_path, sizeof(joint_path))) {
         std::printf("failed to ensure output dir\n");
         return -1;
     }
-    if (!p1_tester_make_step_out(prm.m_seed, p1_tester_step(), "land_altitude_joint", joint_path, sizeof(joint_path))) {
-        std::printf("failed to ensure joint output path\n");
-        return -1;
-    }
-    P1_TesterChain15Rslt chain = {};
-    double sec_i = 0.0;
-    if (!p1_build_step14_input(prm, &chain, &sec_i)) {
+    if (!h.run_input()) {
         std::printf("P1 steps 1-16 input failed for step 17\n");
         return -1;
     }
+    P1_TesterChain15Rslt& chain = h.c15_mut();
     const u16 w = chain.m_w;
-    const u16 h = chain.m_h;
-    const u32 npx = static_cast<u32>(w) * static_cast<u32>(h);
+    const u16 ht = chain.m_h;
+    const u32 npx = static_cast<u32>(w) * static_cast<u32>(ht);
     u8* terrain_pre = new u8[npx];
     if (terrain_pre == nullptr) {
-        p1_free_chain15(&chain);
         return -1;
     }
     std::memcpy(terrain_pre, chain.m_terrain, static_cast<size_t>(npx));
@@ -51,27 +45,19 @@ i32 test_p1_adj_land_altitude_basic (const P1_RunPrm& prm, const P1_Adj_LandAlti
         sp.m_w_riv,
         sp.m_lim_hills,
         sp.m_lim_mtn);
-    P1_Adj_LandAltitude adj(prm, sp);
+    P1_Adj_LandAltitude adj(h.prm(), sp);
     const clock_t t0 = clock();
-    const bool ok = adj.adjust(
-        chain.m_terrain,
-        w,
-        h,
-        chain.m_noise,
-        chain.m_dist_riv,
-        chain.m_near_mtn);
+    const bool ok = adj.adjust(chain.m_terrain, w, ht, chain.m_noise, chain.m_dist_riv, chain.m_near_mtn);
     const clock_t t1 = clock();
     u8* joint = new u8[npx];
     if (joint == nullptr) {
         delete[] terrain_pre;
-        p1_free_chain15(&chain);
         return -1;
     }
-    if (!adj.joint_ov(terrain_pre, w, h, chain.m_noise, chain.m_dist_riv, chain.m_near_mtn, joint)) {
+    if (!adj.joint_ov(terrain_pre, w, ht, chain.m_noise, chain.m_dist_riv, chain.m_near_mtn, joint)) {
         std::printf("P1_Adj_LandAltitude joint_ov failed\n");
         delete[] joint;
         delete[] terrain_pre;
-        p1_free_chain15(&chain);
         return -1;
     }
     const double sec = static_cast<double>(t1 - t0) / static_cast<double>(CLOCKS_PER_SEC);
@@ -79,7 +65,6 @@ i32 test_p1_adj_land_altitude_basic (const P1_RunPrm& prm, const P1_Adj_LandAlti
         std::printf("P1_Adj_LandAltitude failed to adjust\n");
         delete[] joint;
         delete[] terrain_pre;
-        p1_free_chain15(&chain);
         return -1;
     }
     u32 pln_n = 0;
@@ -95,7 +80,7 @@ i32 test_p1_adj_land_altitude_basic (const P1_RunPrm& prm, const P1_Adj_LandAlti
             mtn_n++;
         }
     }
-    std::printf("P1 steps 1-16 input time: %.6f s\n", sec_i);
+    std::printf("P1 steps 1-16 input time: %.6f s\n", h.input_sec());
     std::printf(
         "P1_Adj_LandAltitude adjust time: %.6f s (plains %u hills %u mountains %u, %u x %u)\n",
         sec,
@@ -103,26 +88,23 @@ i32 test_p1_adj_land_altitude_basic (const P1_RunPrm& prm, const P1_Adj_LandAlti
         hil_n,
         mtn_n,
         static_cast<u32>(w),
-        static_cast<u32>(h));
-    if (!p1_save_terrain_rivers_ppm(out_path, chain.m_terrain, chain.m_river, w, h)) {
+        static_cast<u32>(ht));
+    if (!p1_save_terrain_rivers_ppm(out_path, chain.m_terrain, chain.m_river, w, ht)) {
         std::printf("failed to save map: %s\n", out_path);
         delete[] joint;
         delete[] terrain_pre;
-        p1_free_chain15(&chain);
         return -1;
     }
     std::printf("saved: %s\n", out_path);
-    if (!save_perlin_gray_pgm(joint_path, joint, w, h)) {
+    if (!save_perlin_gray_pgm(joint_path, joint, w, ht)) {
         std::printf("failed to save joint: %s\n", joint_path);
         delete[] joint;
         delete[] terrain_pre;
-        p1_free_chain15(&chain);
         return -1;
     }
     std::printf("saved: %s\n", joint_path);
     delete[] joint;
     delete[] terrain_pre;
-    p1_free_chain15(&chain);
     return 0;
 }
 
@@ -131,14 +113,20 @@ i32 test_p1_adj_land_altitude_basic (const P1_RunPrm& prm, const P1_Adj_LandAlti
 //================================================================================================================================
 
 i32 main (i32 argc, char* argv[]) {
-    if (!p1_tester_checkout(argc, argv)) {
+    P1_TesterHarness h;
+    if (!h.begin(argc, argv)) {
         return -1;
     }
-    P1_RunPrm prm;
     P1_Adj_LandAltitudePrm sp;
-    p1_resolve_run_prm(argc, argv, &prm);
     p1_resolve_land_altitude_prm(argc, argv, &sp);
-    return test_p1_adj_land_altitude_basic(prm, sp);
+    const i32 rc = test_p1_adj_land_altitude_basic(h, sp);
+    if (rc != 0) {
+        return rc;
+    }
+    if (!h.finish()) {
+        return -1;
+    }
+    return 0;
 }
 
 //================================================================================================================================

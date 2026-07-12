@@ -1,58 +1,18 @@
 #!/bin/bash
 
-INC="-I. -I.."
+set -e
 
-g++ -std=c++11 $INC -c generator_constants.cpp -o generator_constants.o
-g++ -std=c++11 $INC -c perlin_noise.cpp -o perlin_noise.o
-g++ -std=c++11 $INC -c whiteboard.cpp -o whiteboard.o
-g++ -std=c++11 $INC -c p1_gen_outline.cpp -o p1_gen_outline.o
-g++ -std=c++11 $INC -I../simple_map_gen -c ../simple_map_gen/generate_terrain_rotation.cpp -o generate_terrain_rotation.o
-g++ -std=c++11 $INC -I../simple_map_gen -c p1_gen_cont_outlines.cpp -o p1_gen_cont_outlines.o
-g++ -std=c++11 $INC -c p1_gen_land_depth.cpp -o p1_gen_land_depth.o
-g++ -std=c++11 $INC -c p1_adj_outline_fill.cpp -o p1_adj_outline_fill.o
-g++ -std=c++11 $INC -c p1_gen_shaped_outline.cpp -o p1_gen_shaped_outline.o
-g++ -std=c++11 $INC -c p1_gen_river_pts.cpp -o p1_gen_river_pts.o
-g++ -std=c++11 $INC -c p1_gen_river_sectors.cpp -o p1_gen_river_sectors.o
-g++ -std=c++11 $INC -c p1_gen_river_network.cpp -o p1_gen_river_network.o
-g++ -std=c++11 $INC -c p1_gen_river_lines.cpp -o p1_gen_river_lines.o
-g++ -std=c++11 $INC -c p1_adj_river_lakes.cpp -o p1_adj_river_lakes.o
-g++ -std=c++11 $INC -c p1_adj_river_inlets.cpp -o p1_adj_river_inlets.o
-g++ -std=c++11 $INC -c p1_gen_distance_to_river.cpp -o p1_gen_distance_to_river.o
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+cd "$ROOT"
+
+source p1_build_river_chain_objs.sh
+
+INC="-I. -I.. -I../map_loader"
+
 g++ -std=c++11 $INC -c p1_gen_distance_to_river_tester.cpp -o p1_gen_distance_to_river_tester.o
 
 g++ -std=c++11 -o p1_gen_distance_to_river_tester \
-    generator_constants.o \
-    perlin_noise.o \
-    whiteboard.o \
-    p1_gen_outline.o \
-generate_terrain_rotation.o \
-    p1_gen_cont_outlines.o \
-        p1_gen_land_depth.o \
-    p1_adj_outline_fill.o \
-    p1_gen_shaped_outline.o \
-    p1_gen_river_pts.o \
-    p1_gen_river_sectors.o \
-    p1_gen_river_network.o \
-    p1_gen_river_lines.o \
-    p1_adj_river_lakes.o \
-    p1_adj_river_inlets.o \
-    p1_gen_distance_to_river.o \
+    $RIV_CHAIN_DIST_OBJS \
     p1_gen_distance_to_river_tester.o -lm
 
-rm generator_constants.o \
-    perlin_noise.o \
-    whiteboard.o \
-    p1_gen_outline.o \
-generate_terrain_rotation.o \
-    p1_gen_cont_outlines.o \
-        p1_gen_land_depth.o \
-    p1_adj_outline_fill.o \
-    p1_gen_shaped_outline.o \
-    p1_gen_river_pts.o \
-    p1_gen_river_sectors.o \
-    p1_gen_river_network.o \
-    p1_gen_river_lines.o \
-    p1_adj_river_lakes.o \
-    p1_adj_river_inlets.o \
-    p1_gen_distance_to_river.o \
-    p1_gen_distance_to_river_tester.o
+rm $RIV_CHAIN_DIST_OBJS p1_gen_distance_to_river_tester.o

@@ -7,6 +7,7 @@
 
 #include "p1_gen_river_network.h"
 #include "generator_constants.h"
+#include "p1_gen_coastal_mtn_limits.h"
 
 //================================================================================================================================
 //=> - Private generation helpers -
@@ -253,14 +254,46 @@ static void build_basins (
     out->m_basins = recs;
 }
 
+static void build_sec_grey_mask (
+    u16 w,
+    u16 h,
+    const u16* sec_ov,
+    u16 sector_n,
+    const u8* lim_ov,
+    bool* sec_grey) 
+{
+    if (sec_ov == nullptr || lim_ov == nullptr || sec_grey == nullptr) {
+        return;
+    }
+    for (u32 si = 0; si < static_cast<u32>(sector_n); ++si) {
+        sec_grey[si] = false;
+    }
+    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
+    for (u32 i = 0; i < n; ++i) {
+        if (lim_ov[i] != static_cast<u8>(P1_COASTAL_MTN_OV_BLK)) {
+            continue;
+        }
+        const u16 sid = sec_ov[i];
+        if (sid == static_cast<u16>(P1_RIVER_SECTOR_NONE) || sid >= sector_n) {
+            continue;
+        }
+        sec_grey[sid] = true;
+    }
+}
+
 static bool build_river_network (
     u32 seed,
     const u8* terrain,
     u16 w,
     u16 h,
     const P1_Gen_RiverSectorsRslt& sectors,
+    const P1_Gen_CoastalMtnLimitsRslt& coast_lim,
     P1_Gen_RiverNetworkRslt* out) {
     if (terrain == nullptr || out == nullptr || sectors.m_ov == nullptr || sectors.m_nodes == nullptr || sectors.m_sector_n == 0) {
+        return false;
+    }
+    const u8* lim_ov = coast_lim.m_limit_ov.data();
+    if (lim_ov == nullptr || coast_lim.m_w != w || coast_lim.m_h != h) {
         return false;
     }
     const u32 sector_n = static_cast<u32>(sectors.m_sector_n);
@@ -270,7 +303,9 @@ static bool build_river_network (
     }
     bool* has_land = new bool[sector_n];
     bool* touch_glob = new bool[sector_n];
-    if (has_land == nullptr || touch_glob == nullptr) {
+    bool* sec_grey = new bool[sector_n];
+    if (has_land == nullptr || touch_glob == nullptr || sec_grey == nullptr) {
+        delete[] sec_grey;
         delete[] glob;
         delete[] has_land;
         delete[] touch_glob;
@@ -278,6 +313,7 @@ static bool build_river_network (
     }
     std::memset(has_land, 0, sector_n * sizeof(bool));
     std::memset(touch_glob, 0, sector_n * sizeof(bool));
+    build_sec_grey_mask(w, h, sectors.m_ov, sectors.m_sector_n, lim_ov, sec_grey);
     const i32 dx4[4] = {-1, 1, 0, 0};
     const i32 dy4[4] = {0, 0, -1, 1};
     for (u32 py = 0; py < static_cast<u32>(h); ++py) {
@@ -304,6 +340,7 @@ static bool build_river_network (
     }
     u16* coast_cand = new u16[sector_n];
     if (coast_cand == nullptr) {
+        delete[] sec_grey;
         delete[] glob;
         delete[] has_land;
         delete[] touch_glob;
@@ -311,7 +348,7 @@ static bool build_river_network (
     }
     u32 coast_n = 0;
     for (u32 si = 0; si < sector_n; ++si) {
-        if (has_land[si] && touch_glob[si]) {
+        if (has_land[si] && touch_glob[si] && !sec_grey[si]) {
             coast_cand[coast_n++] = static_cast<u16>(si);
         }
     }
@@ -327,6 +364,7 @@ static bool build_river_network (
         delete[] ws_claim;
         delete[] is_mouth;
         delete[] coast_cand;
+        delete[] sec_grey;
         delete[] glob;
         delete[] has_land;
         delete[] touch_glob;
@@ -357,6 +395,8 @@ static bool build_river_network (
         delete[] coastal;
         delete[] is_mouth;
         delete[] ws_claim;
+        delete[] coast_cand;
+        delete[] sec_grey;
         delete[] glob;
         delete[] has_land;
         delete[] touch_glob;
@@ -376,6 +416,7 @@ static bool build_river_network (
         delete[] coastal;
         delete[] is_mouth;
         delete[] ws_claim;
+        delete[] sec_grey;
         delete[] glob;
         delete[] has_land;
         delete[] touch_glob;
@@ -392,6 +433,7 @@ static bool build_river_network (
         delete[] river_sys;
         delete[] coastal;
         delete[] ws_claim;
+        delete[] sec_grey;
         delete[] glob;
         delete[] has_land;
         delete[] touch_glob;
@@ -419,6 +461,7 @@ static bool build_river_network (
         delete[] river_sys;
         delete[] coastal;
         delete[] conns;
+        delete[] sec_grey;
         delete[] glob;
         delete[] has_land;
         delete[] touch_glob;
@@ -434,7 +477,7 @@ static bool build_river_network (
             u32 nb_n = 0;
             for (u16 c = 0; c < sec->m_conn_n; ++c) {
                 const u16 aid = sec->m_conn[c];
-                if (!clmd[aid] && conn_ok(sec, &sectors.m_nodes[aid])) {
+                if (!clmd[aid] && !sec_grey[aid] && conn_ok(sec, &sectors.m_nodes[aid])) {
                     nb[nb_n++] = aid;
                 }
             }
@@ -480,6 +523,7 @@ static bool build_river_network (
     delete[] nb;
     delete[] q;
     delete[] clmd;
+    delete[] sec_grey;
     delete[] glob;
     delete[] has_land;
     delete[] touch_glob;
@@ -614,7 +658,13 @@ void P1_Gen_RiverNetwork::clear_rslt () {
     std::memset(&m_rslt, 0, sizeof(m_rslt));
 }
 
-bool P1_Gen_RiverNetwork::generate (const u8* terrain, u16 w, u16 h, const P1_Gen_RiverSectorsRslt& sectors) {
+bool P1_Gen_RiverNetwork::generate (
+    const u8* terrain,
+    u16 w,
+    u16 h,
+    const P1_Gen_RiverSectorsRslt& sectors,
+    const P1_Gen_CoastalMtnLimitsRslt& coast_lim) 
+{
     m_valid_generation = false;
     clear_rslt();
     if (terrain == nullptr || !p1_map_size_ok(w, h) || sectors.m_sector_n == 0) {
@@ -623,7 +673,7 @@ bool P1_Gen_RiverNetwork::generate (const u8* terrain, u16 w, u16 h, const P1_Ge
     if (w != m_prm.m_w || h != m_prm.m_h) {
         return false;
     }
-    if (!build_river_network(m_prm.m_seed, terrain, w, h, sectors, &m_rslt)) {
+    if (!build_river_network(m_prm.m_seed, terrain, w, h, sectors, coast_lim, &m_rslt)) {
         return false;
     }
     m_valid_generation = true;

@@ -7,6 +7,7 @@
 
 #include "game_primitives.h"
 #include "generator_constants.h"
+#include "p1_gen_coastal_mtn_limits.h"
 #include "p1_gen_watershed_mountain_line_sets.h"
 #include "p1_map_size.h"
 
@@ -58,7 +59,8 @@ public:
         const u8* terrain,
         u16 w,
         u16 h,
-        const P1_Gen_WatershedMountainLineSetsRslt& line_sets);
+        const P1_Gen_WatershedMountainLineSetsRslt& line_sets,
+        const P1_Gen_CoastalMtnLimitsRslt& coast_lim);
     bool is_valid () const;
     const P1_Gen_NearnessToWatershedMtnRslt& result () const;
     void save_output (cstr path) const;

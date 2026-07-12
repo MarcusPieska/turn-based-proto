@@ -4,7 +4,7 @@
 
 #include "p1_adj_outline_fill.h"
 #include "generator_constants.h"
-
+#include "p1_step_log.h"
 
 //================================================================================================================================
 //=> - Private adjustment helpers -
@@ -12,7 +12,7 @@
 
 static bool fill_outline_plains (u8* ter, u16 w, u16 h, const u8* ov) {
     if (ter == nullptr || ov == nullptr || w == 0 || h == 0) {
-        return false;
+        P1_STEP_ABORT("P1_Adj_OutlineFill", "null terrain or overlay");
     }
     const u32 npx = static_cast<u32>(w) * static_cast<u32>(h);
     const u8 ocean = TERR_OCEAN[0];

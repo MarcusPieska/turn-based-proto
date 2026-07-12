@@ -14,7 +14,7 @@
 #include "p1_gen_river_network.h"
 #include "p1_gen_river_pts.h"
 #include "p1_gen_river_sectors.h"
-#include "game_primitives.h"
+#include "p1_gen_coastal_mtn_limits.h"
 #include "map_terrain_data.h"
 #include "p1_tester_util.h"
 
@@ -74,8 +74,12 @@ static bool build_step9_input (
     if (!sec_gen.generate(terrain, w, h, pts_gen.result()) || !sec_gen.is_valid()) {
         return false;
     }
+    P1_Gen_CoastalMtnLimits lim_gen(prm);
+    if (!lim_gen.generate(terrain, w, h, sec_gen.result()) || !lim_gen.is_valid()) {
+        return false;
+    }
     P1_Gen_RiverNetwork net_gen(prm);
-    if (!net_gen.generate(terrain, w, h, sec_gen.result()) || !net_gen.is_valid()) {
+    if (!net_gen.generate(terrain, w, h, sec_gen.result(), lim_gen.result()) || !net_gen.is_valid()) {
         return false;
     }
     return lin_gen->generate(terrain, w, h, sec_gen.result(), net_gen.result())

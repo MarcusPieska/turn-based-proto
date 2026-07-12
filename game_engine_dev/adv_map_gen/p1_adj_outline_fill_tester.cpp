@@ -6,68 +6,97 @@
 #include <ctime>
 
 #include "p1_adj_outline_fill.h"
-#include "p1_gen_cont_outlines.h"
-#include "game_primitives.h"
-#include "map_terrain_data.h"
-#include "p1_tester_util.h"
+#include "p1_adj_outline_fill_view.h"
+#include "p1_rprint.h"
+#include "p1_tester_harness.h"
+#include "p1_wb_util.h"
+#include "generator_constants.h"
 
 //================================================================================================================================
 //=> - Test helpers -
 //================================================================================================================================
 
-i32 test_p1_adj_outline_fill_basic (const P1_RunPrm& prm) {
-    char out_path[320];
-    if (!p1_tester_make_out(prm.m_seed, out_path, sizeof(out_path))) {
-        std::printf("failed to ensure output dir\n");
+static u32 count_land_ov (const u8* ov, u32 n) {
+    u32 c = 0u;
+    if (ov == nullptr) {
+        return 0u;
+    }
+    for (u32 i = 0; i < n; ++i) {
+        if (ov[i] == WL_OVERLAY_LAND_GRAY) {
+            ++c;
+        }
+    }
+    return c;
+}
+
+static u32 count_plains (const u8* ter, u32 n) {
+    u32 c = 0u;
+    if (ter == nullptr) {
+        return 0u;
+    }
+    const u8 plains = TERR_PLAINS[0];
+    for (u32 i = 0; i < n; ++i) {
+        if (ter[i] == plains) {
+            ++c;
+        }
+    }
+    return c;
+}
+
+//================================================================================================================================
+//=> - Test body -
+//================================================================================================================================
+
+i32 test_p1_adj_outline_fill_basic (P1_TesterHarness& h) {
+    if (!h.run_input()) {
+        P1_RPrint::rprint_info("Failed to build step 1 input");
         return -1;
     }
-    MapArrayOverlay ov_map;
-    const clock_t t0o = clock();
-    if (!p1_gen_step01_ov(prm, &ov_map)) {
-        std::printf("P1_Gen_ContOutlines failed for step 2 input\n");
+    char ibuf[64];
+    std::snprintf(ibuf, sizeof(ibuf), "Input: %.6f s", h.input_sec());
+    P1_RPrint::rprint_info(ibuf);
+    const P1_EarlyChainRslt& ec = h.early();
+    const u16 w = ec.m_w;
+    const u16 ht = ec.m_h;
+    const u8* ov = ec.m_ov.data();
+    if (ov == nullptr || w == 0 || ht == 0) {
+        P1_RPrint::rprint_info("Invalid outline overlay from early chain");
         return -1;
     }
-    const clock_t t1o = clock();
-    const u16 w = ov_map.width();
-    const u16 h = ov_map.height();
-    const u8* ov = ov_map.data();
-    if (ov == nullptr || w == 0 || h == 0) {
-        std::printf("invalid outline overlay\n");
-        return -1;
-    }
-    const u32 npx = static_cast<u32>(w) * static_cast<u32>(h);
-    u8* terrain = new u8[npx];
-    if (terrain == nullptr) {
-        return -1;
-    }
-    P1_Adj_OutlineFill adj(prm);
+    const u32 npx = static_cast<u32>(w) * static_cast<u32>(ht);
+    const u32 land_n = count_land_ov(ov, npx);
+    Whiteboard_1B wb_ter("P1_Adj_OutlineFillTester", "Terrain", h.prm().m_seed);
+    P1_WB_CHK(wb_ter);
+    u8* terrain = wb_ter.get_iter_ptr();
+    P1_Adj_OutlineFill adj(h.prm());
     const clock_t t0 = clock();
-    const bool ok = adj.adjust(terrain, w, h, ov);
+    const bool ok = adj.adjust(terrain, w, ht, ov);
     const clock_t t1 = clock();
-    const double sec_o = static_cast<double>(t1o - t0o) / static_cast<double>(CLOCKS_PER_SEC);
     const double sec = static_cast<double>(t1 - t0) / static_cast<double>(CLOCKS_PER_SEC);
-    if (!ok || !adj.is_valid()) {
-        std::printf("P1_Adj_OutlineFill failed to adjust\n");
-        delete[] terrain;
+    const u32 plains_n = count_plains(terrain, npx);
+    const bool match = ok && adj.is_valid() && plains_n == land_n && land_n > 0u;
+    if (!match) {
+        P1_RPrint::rprint_result_u32("P1_Adj_OutlineFill", "Plains", plains_n, false);
         return -1;
     }
-    std::printf("P1_Gen_ContOutlines input time: %.6f s\n", sec_o);
-    std::printf("P1_Adj_OutlineFill adjust time: %.6f s (%u x %u)\n",
-        sec,
-        static_cast<u32>(w),
-        static_cast<u32>(h));
-    MapTerrainData map;
-    if (!map.assign_raw(w, h, terrain)) {
-        std::printf("failed to assign terrain\n");
-        delete[] terrain;
+    char tbuf[64];
+    std::snprintf(tbuf, sizeof(tbuf), "Timing: %.6f s", sec);
+    P1_RPrint::rprint_info(tbuf);
+    P1_RPrint::rprint_state_u32("P1_Adj_OutlineFill", "Plains", plains_n);
+    P1_RPrint::rprint_state("Map", "W", w);
+    P1_RPrint::rprint_state("Map", "H", ht);
+    char pri_path[320];
+    if (!h.path_pri(pri_path, sizeof(pri_path))) {
+        P1_RPrint::rprint_info("Failed to ensure primary output path");
         return -1;
     }
-    delete[] terrain;
-    if (!map.save_terrain_ppm(out_path)) {
-        std::printf("failed to save map: %s\n", out_path);
+    if (!P1_Adj_OutlineFillView::save_pri(pri_path, terrain, w, ht)) {
+        P1_RPrint::rprint_info("Failed to save primary output");
         return -1;
     }
-    std::printf("saved: %s\n", out_path);
+    char obuf[384];
+    std::snprintf(obuf, sizeof(obuf), "Output: %s", pri_path);
+    P1_RPrint::rprint_info(obuf);
     return 0;
 }
 
@@ -76,12 +105,18 @@ i32 test_p1_adj_outline_fill_basic (const P1_RunPrm& prm) {
 //================================================================================================================================
 
 i32 main (i32 argc, char* argv[]) {
-    if (!p1_tester_checkout(argc, argv)) {
+    P1_TesterHarness h;
+    if (!h.begin(argc, argv)) {
         return -1;
     }
-    P1_RunPrm prm;
-    p1_resolve_run_prm(argc, argv, &prm);
-    return test_p1_adj_outline_fill_basic(prm);
+    const i32 rc = test_p1_adj_outline_fill_basic(h);
+    if (rc != 0) {
+        return rc;
+    }
+    if (!h.finish()) {
+        return -1;
+    }
+    return 0;
 }
 
 //================================================================================================================================

@@ -27,13 +27,16 @@ TESTERS = [
     "p1_gen_shaped_outline",
     "p1_gen_river_pts",
     "p1_gen_river_sectors",
+    "p1_gen_coastal_mtn_limits",
     "p1_gen_river_network",
     "p1_gen_river_lines",
+    "p1_adj_coastal_mtn_rivers",
     "p1_adj_river_lakes",
     "p1_adj_river_inlets",
     "p1_gen_watershed_mountains",
     "p1_gen_watershed_mountain_line_sets",
     "p1_gen_distance_to_river",
+    "p1_gen_river_dist",
     "p1_gen_nearness_to_watershed_mtn",
     "p1_adj_land_altitude",
     "p1_adj_ensure_coasts",
@@ -47,6 +50,11 @@ TESTERS = [
     "p1_gen_loess_boost",
     "p1_adj_grassland_loess_tiles",
     "p1_gen_rain_orographic",
+    "p1_gen_rich_coast_fertility",
+    "p1_adj_coast_fertility",
+    "p1_adj_ensure_adj_rules",
+    "p1_gen_forest_overlay",
+    "p1_adj_delta_swamps",
 ]
 
 #================================================================================================================================#

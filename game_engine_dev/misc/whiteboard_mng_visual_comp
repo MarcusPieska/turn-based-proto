@@ -1,0 +1,10 @@
+#!/bin/bash
+g++ -I.. -std=c++11 -c whiteboard_mng.cpp -o whiteboard_mng.o
+g++ -I.. -std=c++11 -c whiteboard_mng_visual_main.cpp -o whiteboard_mng_visual_main.o
+g++ -I.. -std=c++11 -c whiteboard_mng_visual_basic.cpp -o whiteboard_mng_visual_basic.o
+g++ -I.. -std=c++11 -c whiteboard_mng_visual_pack.cpp -o whiteboard_mng_visual_pack.o
+g++ -I.. -std=c++11 -c whiteboard_mng_visual_ret.cpp -o whiteboard_mng_visual_ret.o
+g++ -I.. -std=c++11 -c whiteboard_mng_visual_gap.cpp -o whiteboard_mng_visual_gap.o
+g++ -I.. -std=c++11 -c whiteboard_mng_visual_limit.cpp -o whiteboard_mng_visual_limit.o
+g++ -o whiteboard_mng_visual_tester whiteboard_mng.o whiteboard_mng_visual_main.o whiteboard_mng_visual_basic.o whiteboard_mng_visual_pack.o whiteboard_mng_visual_ret.o whiteboard_mng_visual_gap.o whiteboard_mng_visual_limit.o
+rm whiteboard_mng.o whiteboard_mng_visual_main.o whiteboard_mng_visual_basic.o whiteboard_mng_visual_pack.o whiteboard_mng_visual_ret.o whiteboard_mng_visual_gap.o whiteboard_mng_visual_limit.o

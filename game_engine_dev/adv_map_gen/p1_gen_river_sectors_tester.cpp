@@ -5,101 +5,90 @@
 #include <cstdio>
 #include <ctime>
 
-#include "p1_gen_shaped_outline.h"
-#include "p1_adj_outline_fill.h"
-#include "p1_gen_land_depth.h"
-#include "p1_gen_cont_outlines.h"
 #include "p1_gen_river_pts.h"
 #include "p1_gen_river_sectors.h"
-#include "game_primitives.h"
-#include "p1_tester_util.h"
+#include "p1_gen_river_sectors_view.h"
+#include "p1_rprint.h"
+#include "p1_tester_harness.h"
 
 //================================================================================================================================
 //=> - Test helpers -
 //================================================================================================================================
 
-static bool build_step5_terrain (
-    const P1_RunPrm& prm,
-    u8* terrain,
-    u16 w,
-    u16 h,
-    const u8* ov,
-    const u16* land_depth) {
-    P1_Adj_OutlineFill fill(prm);
-    if (!fill.adjust(terrain, w, h, ov) || !fill.is_valid()) {
+static bool copy_pts_rslt (const P1_EarlyChainRslt& ec, P1_Gen_RiverPtsRslt* out) {
+    if (out == nullptr || ec.m_pts_que == nullptr || !ec.m_pts_que->ok() || ec.m_pts_n == 0u) {
         return false;
     }
-    const P1_Gen_ShapedOutlinePrm sp = p1_gen_shaped_outline_prm_def();
-    return p1_apply_shaped_outline(prm, sp, terrain, w, h, ov, land_depth);
+    out->m_w = ec.m_w;
+    out->m_h = ec.m_h;
+    out->m_n = ec.m_pts_n;
+    out->m_que.clear();
+    for (u32 pi = 0; pi < ec.m_pts_n; ++pi) {
+        if (!out->m_que.push(ec.m_pts_que->x_at(pi), ec.m_pts_que->y_at(pi))) {
+            return false;
+        }
+    }
+    return out->m_que.ok();
 }
 
-i32 test_p1_gen_river_sectors_basic (const P1_RunPrm& prm) {
-    char out_path[320];
-    if (!p1_tester_make_out(prm.m_seed, out_path, sizeof(out_path))) {
-        std::printf("failed to ensure output dir\n");
+//================================================================================================================================
+//=> - Test body -
+//================================================================================================================================
+
+i32 test_p1_gen_river_sectors_basic (P1_TesterHarness& h) {
+    if (!h.run_input()) {
+        P1_RPrint::rprint_info("Failed to build step 8 input");
         return -1;
     }
-    const clock_t t0i = clock();
-    MapArrayOverlay ov_map;
-    if (!p1_gen_step01_ov(prm, &ov_map)) {
-        std::printf("P1_Gen_ContOutlines failed for step 9 input\n");
+    char ibuf[64];
+    std::snprintf(ibuf, sizeof(ibuf), "Input: %.6f s", h.input_sec());
+    P1_RPrint::rprint_info(ibuf);
+    const P1_EarlyChainRslt& ec = h.early();
+    if (ec.m_ter == nullptr || ec.m_pts_que == nullptr || !ec.m_pts_que->ok() || ec.m_pts_n == 0u || ec.m_w == 0 || ec.m_h == 0) {
+        P1_RPrint::rprint_info("Invalid early chain input for river sectors");
         return -1;
     }
-    const u16 w = ov_map.width();
-    const u16 h = ov_map.height();
-    const u8* ov = ov_map.data();
-    if (ov == nullptr || w == 0 || h == 0) {
-        std::printf("invalid outline overlay\n");
+    P1_Gen_RiverPtsRslt pts_rslt;
+    if (!copy_pts_rslt(ec, &pts_rslt)) {
+        P1_RPrint::rprint_info("Failed to copy river pts from early chain");
         return -1;
     }
-    P1_Gen_LandDepth depth_gen(prm);
-    if (!depth_gen.generate(ov, w, h) || !depth_gen.is_valid()) {
-        std::printf("P1_Gen_LandDepth failed for step 9 input\n");
-        return -1;
-    }
-    const u16* land_depth = depth_gen.result().m_dist.data();
-    if (land_depth == nullptr) {
-        std::printf("invalid land depth data\n");
-        return -1;
-    }
-    const u32 npx = static_cast<u32>(w) * static_cast<u32>(h);
-    u8* terrain = new u8[npx];
-    if (terrain == nullptr) {
-        return -1;
-    }
-    if (!build_step5_terrain(prm, terrain, w, h, ov, land_depth)) {
-        std::printf("P1_Gen_ShapedOutline failed for step 9 input\n");
-        delete[] terrain;
-        return -1;
-    }
-    P1_Gen_RiverPts pts_gen(prm);
-    if (!pts_gen.generate(terrain, w, h) || !pts_gen.is_valid()) {
-        std::printf("P1_Gen_RiverPts failed for step 9 input\n");
-        delete[] terrain;
-        return -1;
-    }
-    const clock_t t1i = clock();
-    P1_Gen_RiverSectors sec_gen(prm);
+    P1_Gen_RiverSectors gen(h.prm());
     const clock_t t0 = clock();
-    const bool ok = sec_gen.generate(terrain, w, h, pts_gen.result());
+    const bool ok = gen.generate(ec.m_ter, ec.m_w, ec.m_h, pts_rslt);
     const clock_t t1 = clock();
-    const double sec_i = static_cast<double>(t1i - t0i) / static_cast<double>(CLOCKS_PER_SEC);
     const double sec = static_cast<double>(t1 - t0) / static_cast<double>(CLOCKS_PER_SEC);
-    if (!ok || !sec_gen.is_valid()) {
-        std::printf("P1_Gen_RiverSectors failed to generate\n");
-        delete[] terrain;
+    const P1_Gen_RiverSectorsRslt& r = gen.result();
+    if (!ok || !gen.is_valid() || r.m_sector_n == 0u || r.m_ov == nullptr) {
+        P1_RPrint::rprint_result_u16("P1_Gen_RiverSectors", "Sectors", r.m_sector_n, false);
         return -1;
     }
-    const P1_Gen_RiverSectorsRslt& r = sec_gen.result();
-    std::printf("P1 steps 1-8 input time: %.6f s\n", sec_i);
-    std::printf("P1_Gen_RiverSectors generate time: %.6f s (%u sectors, %u x %u)\n",
-        sec,
-        static_cast<u32>(r.m_sector_n),
-        static_cast<u32>(w),
-        static_cast<u32>(h));
-    sec_gen.save_output(out_path, terrain);
-    delete[] terrain;
-    std::printf("saved: %s\n", out_path);
+    char tbuf[64];
+    std::snprintf(tbuf, sizeof(tbuf), "Timing: %.6f s", sec);
+    P1_RPrint::rprint_info(tbuf);
+    P1_RPrint::rprint_state("P1_Gen_RiverSectors", "Sectors", r.m_sector_n);
+    P1_RPrint::rprint_state_u32("P1_Gen_RiverPts", "Pts", pts_rslt.m_n);
+    P1_RPrint::rprint_state("Map", "W", ec.m_w);
+    P1_RPrint::rprint_state("Map", "H", ec.m_h);
+    char pri_path[320];
+    if (!h.path_pri(pri_path, sizeof(pri_path))) {
+        P1_RPrint::rprint_info("Failed to ensure primary output path");
+        return -1;
+    }
+    if (!P1_Gen_RiverSectorsView::save_pri(
+            pri_path,
+            ec.m_ter,
+            ec.m_w,
+            ec.m_h,
+            h.seed(),
+            r.m_ov,
+            r.m_sector_n)) {
+        P1_RPrint::rprint_info("Failed to save primary output");
+        return -1;
+    }
+    char obuf[384];
+    std::snprintf(obuf, sizeof(obuf), "Output: %s", pri_path);
+    P1_RPrint::rprint_info(obuf);
     return 0;
 }
 
@@ -108,12 +97,18 @@ i32 test_p1_gen_river_sectors_basic (const P1_RunPrm& prm) {
 //================================================================================================================================
 
 i32 main (i32 argc, char* argv[]) {
-    if (!p1_tester_checkout(argc, argv)) {
+    P1_TesterHarness h;
+    if (!h.begin(argc, argv)) {
         return -1;
     }
-    P1_RunPrm prm;
-    p1_resolve_run_prm(argc, argv, &prm);
-    return test_p1_gen_river_sectors_basic(prm);
+    const i32 rc = test_p1_gen_river_sectors_basic(h);
+    if (rc != 0) {
+        return rc;
+    }
+    if (!h.finish()) {
+        return -1;
+    }
+    return 0;
 }
 
 //================================================================================================================================

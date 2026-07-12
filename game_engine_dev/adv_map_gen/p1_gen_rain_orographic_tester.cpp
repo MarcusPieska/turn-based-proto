@@ -6,21 +6,11 @@
 #include <cstdio>
 #include <ctime>
 
+#include "game_map_defs.h"
 #include "game_primitives.h"
-#include "map_loader.h"
-#include "map_terrain_data.h"
 #include "map_terrain_validate.h"
 #include "p1_gen_rain_orographic.h"
-#include "p1_make_map.h"
-#include "p1_tester_chain_core.h"
-#include "p1_tester_util.h"
-
-//================================================================================================================================
-//=> - Globals -
-//================================================================================================================================
-
-static const char* g_terr_path = "/home/w/Projects/simple-map-gen/p1-seed-042/24_make_map_terrain.ppm";
-static const u32 g_seed = 42u;
+#include "p1_tester_harness.h"
 
 //================================================================================================================================
 //=> - Test helpers -
@@ -113,7 +103,7 @@ static bool save_rain_viz (cstr path, const u8* terrain, const u8* rain, u16 w, 
             rgb[i * 3u + 2] = tb;
             continue;
         }
-        const f32 a = 0.92f; // Transparency of the rain overlay.
+        const f32 a = 0.92f;
         const f32 u = std::pow(t, 0.55f);
         const f32 cr = 52.f + (218.f - 52.f) * u;
         const f32 cg = 108.f + (56.f - 108.f) * u;
@@ -127,56 +117,40 @@ static bool save_rain_viz (cstr path, const u8* terrain, const u8* rain, u16 w, 
     return ok;
 }
 
-static bool make_out (cstr fname, char* out, size_t cap) {
-    if (fname == nullptr || out == nullptr || cap == 0) {
-        return false;
-    }
-    char dir[256];
-    std::snprintf(dir, sizeof(dir), "%s/p1-seed-%03u", P1_OUT_ROOT, static_cast<unsigned>(g_seed));
-    if (!p1_ensure_dir(P1_OUT_ROOT) || !p1_ensure_dir(dir)) {
-        return false;
-    }
-    std::snprintf(out, cap, "%s/%s", dir, fname);
-    return true;
-}
-
-i32 test_p1_gen_rain_orographic_basic (const P1_RunPrm& prm) {
+i32 test_p1_gen_rain_orographic_basic (P1_TesterHarness& h) {
     char flood_coast_path[320];
     char flood_mtn_path[320];
     char height_path[320];
     char slope_path[320];
     char rain_path[320];
-    if (!p1_tester_make_step_out(prm.m_seed, k_p1_step_rain, "rain_oro_flood_coast", flood_coast_path, sizeof(flood_coast_path))
-        || !p1_tester_make_step_out(prm.m_seed, k_p1_step_rain, "rain_oro_flood_mtn", flood_mtn_path, sizeof(flood_mtn_path))
-        || !p1_tester_make_step_out(prm.m_seed, k_p1_step_rain, "rain_oro_height", height_path, sizeof(height_path))
-        || !p1_tester_make_step_out(prm.m_seed, k_p1_step_rain, "rain_oro_slope", slope_path, sizeof(slope_path))
-        || !p1_tester_make_step_out(prm.m_seed, k_p1_step_rain, "rain_oro_rain", rain_path, sizeof(rain_path))) {
+    if (!h.path_extra("rain_oro_flood_coast", flood_coast_path, sizeof(flood_coast_path))
+        || !h.path_extra("rain_oro_flood_mtn", flood_mtn_path, sizeof(flood_mtn_path))
+        || !h.path_extra("rain_oro_height", height_path, sizeof(height_path))
+        || !h.path_extra("rain_oro_slope", slope_path, sizeof(slope_path))
+        || !h.path_pri(rain_path, sizeof(rain_path))) {
         std::printf("failed to ensure output dir\n");
         return -1;
     }
-    P1_MakeMapRslt chain = {};
-    double sec_i = 0.0;
-    if (!p1_build_chain_core(prm, k_p1_step_wind, &chain, &sec_i)) {
+    if (!h.run_input()) {
         std::printf("P1 steps 1-22 input failed for step 23\n");
         return -1;
     }
+    const P1_MakeMapRslt& chain = h.mk();
     const u16 w = chain.m_w;
-    const u16 h = chain.m_h;
-    if (chain.m_terrain == nullptr || chain.m_wind_dir == nullptr || chain.m_wind_str == nullptr || w == 0 || h == 0) {
+    const u16 ht = chain.m_h;
+    if (chain.m_terrain == nullptr || chain.m_wind_dir == nullptr || chain.m_wind_str == nullptr || w == 0 || ht == 0) {
         std::printf("invalid chain input for rain\n");
-        P1_MakeMap::free_rslt(&chain);
         return -1;
     }
     P1_Gen_RainOrographicPrm sp = p1_gen_rain_orographic_prm_def();
     sp.m_pack_dbg = 1;
-    P1_Gen_RainOrographic rain(prm, 3, 100, sp);
+    P1_Gen_RainOrographic rain(h.prm(), 3, 100, sp);
     const clock_t t0 = clock();
-    const bool ok = rain.generate(chain.m_terrain, chain.m_wind_dir, chain.m_wind_str, w, h);
+    const bool ok = rain.generate(chain.m_terrain, chain.m_wind_dir, chain.m_wind_str, w, ht);
     const clock_t t1 = clock();
     const double sec = static_cast<double>(t1 - t0) / static_cast<double>(CLOCKS_PER_SEC);
     if (!ok || !rain.is_valid()) {
         std::printf("P1_Gen_RainOrographic failed to generate\n");
-        P1_MakeMap::free_rslt(&chain);
         return -1;
     }
     const u8* flood_coast = rain.result().m_flood_coast.data();
@@ -187,37 +161,31 @@ i32 test_p1_gen_rain_orographic_basic (const P1_RunPrm& prm) {
     if (flood_coast == nullptr || flood_mtn == nullptr || height == nullptr || slope == nullptr
         || rov == nullptr) {
         std::printf("P1_Gen_RainOrographic missing overlays\n");
-        P1_MakeMap::free_rslt(&chain);
         return -1;
     }
-    std::printf("P1 steps 1-22 input time: %.6f s\n", sec_i);
+    std::printf("P1 steps 1-22 input time: %.6f s\n", h.input_sec());
     std::printf("P1_Gen_RainOrographic generate time: %.6f s (%u x %u)\n",
         sec,
         static_cast<u32>(w),
-        static_cast<u32>(h));
-    if (!save_gray_viz(flood_coast_path, chain.m_terrain, flood_coast, w, h)) {
+        static_cast<u32>(ht));
+    if (!save_gray_viz(flood_coast_path, chain.m_terrain, flood_coast, w, ht)) {
         std::printf("failed to save flood coast: %s\n", flood_coast_path);
-        P1_MakeMap::free_rslt(&chain);
         return -1;
     }
-    if (!save_gray_viz(flood_mtn_path, chain.m_terrain, flood_mtn, w, h)) {
+    if (!save_gray_viz(flood_mtn_path, chain.m_terrain, flood_mtn, w, ht)) {
         std::printf("failed to save flood mtn: %s\n", flood_mtn_path);
-        P1_MakeMap::free_rslt(&chain);
         return -1;
     }
-    if (!save_gray_viz(height_path, chain.m_terrain, height, w, h)) {
+    if (!save_gray_viz(height_path, chain.m_terrain, height, w, ht)) {
         std::printf("failed to save height: %s\n", height_path);
-        P1_MakeMap::free_rslt(&chain);
         return -1;
     }
-    if (!save_gray_viz(slope_path, chain.m_terrain, slope, w, h)) {
+    if (!save_gray_viz(slope_path, chain.m_terrain, slope, w, ht)) {
         std::printf("failed to save slope: %s\n", slope_path);
-        P1_MakeMap::free_rslt(&chain);
         return -1;
     }
-    if (!save_rain_viz(rain_path, chain.m_terrain, rov, w, h)) {
+    if (!save_rain_viz(rain_path, chain.m_terrain, rov, w, ht)) {
         std::printf("failed to save rain: %s\n", rain_path);
-        P1_MakeMap::free_rslt(&chain);
         return -1;
     }
     std::printf("saved: %s\n", flood_coast_path);
@@ -225,7 +193,6 @@ i32 test_p1_gen_rain_orographic_basic (const P1_RunPrm& prm) {
     std::printf("saved: %s\n", height_path);
     std::printf("saved: %s\n", slope_path);
     std::printf("saved: %s\n", rain_path);
-    P1_MakeMap::free_rslt(&chain);
     return 0;
 }
 
@@ -234,16 +201,18 @@ i32 test_p1_gen_rain_orographic_basic (const P1_RunPrm& prm) {
 //================================================================================================================================
 
 i32 main (i32 argc, char* argv[]) {
-    if (!p1_tester_checkout(argc, argv)) {
+    P1_TesterHarness h;
+    if (!h.begin(argc, argv)) {
         return -1;
     }
-    P1_RunPrm prm;
-    p1_resolve_run_prm(argc, argv, &prm);
-    const i32 rc = test_p1_gen_rain_orographic_basic(prm);
-    if (!p1_tester_whiteboard_chk()) {
+    const i32 rc = test_p1_gen_rain_orographic_basic(h);
+    if (rc != 0) {
+        return rc;
+    }
+    if (!h.finish()) {
         return -1;
     }
-    return rc;
+    return 0;
 }
 
 //================================================================================================================================

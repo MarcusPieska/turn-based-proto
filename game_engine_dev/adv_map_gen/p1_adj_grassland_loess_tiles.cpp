@@ -2,14 +2,13 @@
 //=> - Includes -
 //================================================================================================================================
 
-#include "p1_adj_grassland_loess_tiles.h"
-
-#include "game_map_defs.h"
-#include "wb_que_xy.h"
-#include "wb_sheet.h"
-
 #include <algorithm>
 #include <vector>
+
+#include "p1_adj_grassland_loess_tiles.h"
+#include "game_map_defs.h"
+#include "p1_wb_util.h"
+#include "wb_que_xy.h"
 
 //================================================================================================================================
 //=> - Private adjustment helpers -
@@ -132,16 +131,17 @@ static bool apply_grass_loess (
         return false;
     }
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
-    const i32 wb_n = static_cast<i32>(n * 2u);
-    WbSheet sh_adj(wb_n);
-    WbSheet sh_eff(wb_n);
-    WB_QueXY que_in(wb_n);
-    WB_QueXY que_out(wb_n);
-    if (!sh_adj.ok() || !sh_eff.ok() || !que_in.ok() || !que_out.ok()) {
+    Whiteboard_2B wb_adj("P1_Adj_GrasslandLoessTiles", "adj", 0u);
+    P1_WB_CHK(wb_adj);
+    Whiteboard_2B wb_eff("P1_Adj_GrasslandLoessTiles", "eff", 0u);
+    P1_WB_CHK(wb_eff);
+    WB_QueXY que_in;
+    WB_QueXY que_out;
+    if (!que_in.ok() || !que_out.ok()) {
         return false;
     }
-    u16* adj = sh_adj.get();
-    u16* eff = sh_eff.get();
+    u16* adj = wb_adj.get_iter_ptr();
+    u16* eff = wb_eff.get_iter_ptr();
     u32 land_n = 0;
     for (u32 i = 0; i < n; ++i) {
         adj[i] = rain_scaled(rain[i], rain_wt);

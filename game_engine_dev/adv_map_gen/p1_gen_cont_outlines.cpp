@@ -2,15 +2,16 @@
 //=> - Includes -
 //================================================================================================================================
 
-#include "p1_gen_cont_outlines.h"
+#include <cmath>
+#include <cstdio>
+#include <cstring>
 
+#include "p1_gen_cont_outlines.h"
 #include "generator_constants.h"
 #include "p1_gen_outline.h"
+#include "p1_step_log.h"
+#include "p1_wb_util.h"
 #include "generate_terrain_rotation.h"
-#include "whiteboard.h"
-
-#include <cmath>
-#include <cstring>
 
 //================================================================================================================================
 //=> - Private placement types -
@@ -30,10 +31,6 @@ static bool is_cont (u8 v) {
     return v != k_cont_water;
 }
 
-static u8* wb_u8 (u16* p) {
-    return reinterpret_cast<u8*>(p);
-}
-
 static u32 q_get (const u16* lo, const u16* hi, u32 i) {
     return static_cast<u32>(lo[i]) | (static_cast<u32>(hi[i]) << 16);
 }
@@ -41,14 +38,6 @@ static u32 q_get (const u16* lo, const u16* hi, u32 i) {
 static void q_set (u16* lo, u16* hi, u32 i, u32 v) {
     lo[i] = static_cast<u16>(v);
     hi[i] = static_cast<u16>(v >> 16);
-}
-
-static void vis_bump (u16* vis, u32 n, u16* tag) {
-    ++(*tag);
-    if (*tag == 0u) {
-        std::memset(vis, 0, static_cast<size_t>(n) * sizeof(u16));
-        *tag = 1u;
-    }
 }
 
 struct OvBBox {
@@ -140,7 +129,7 @@ static OvBBox bbox_land (const u8* ov, u16 w, u16 h) {
             bb.m_ok = true;
         }
     }
-    return bb;
+    return bb; 
 }
 
 static void land_cen (const u8* ov, u16 w, u16 h, f32* cx, f32* cy) {
@@ -241,13 +230,6 @@ static void step_dir (f32 dir_x, f32 dir_y, i32* dx, i32* dy) {
     }
 }
 
-static const i32 k_drag_step = 20;
-
-struct OvlpFfRslt {
-    u32 m_land;
-    u32 m_ov;
-};
-
 static void step_dir_n (f32 dir_x, f32 dir_y, i32 dist, i32* dx, i32* dy) {
     if (dx == nullptr || dy == nullptr || dist <= 0) {
         return;
@@ -256,74 +238,166 @@ static void step_dir_n (f32 dir_x, f32 dir_y, i32 dist, i32* dx, i32* dy) {
     *dy += static_cast<i32>(std::lrint(static_cast<f64>(dir_y) * static_cast<f64>(dist)));
 }
 
-static OvlpFfRslt ovlp_ff_cnt (
-    const u8* piece,
-    i32 dx,
-    i32 dy,
+static const i32 k_drag_step = 20;
+static const u8 k_ovlp_pct_slack = 5u;
+
+static u32 land_idx_fill (const u8* plc, u16 w, u16 h, u16* qlo, u16* qhi) {
+    if (plc == nullptr || qlo == nullptr || qhi == nullptr || w == 0 || h == 0) {
+        return 0u;
+    }
+    u32 n = 0u;
+    const u32 npx = static_cast<u32>(w) * static_cast<u32>(h);
+    for (u32 i = 0; i < npx; ++i) {
+        if (!is_land_ov(plc[i])) {
+            continue;
+        }
+        q_set(qlo, qhi, n++, i);
+    }
+    return n;
+}
+
+static u32 ovlp_cnt_idx (
+    const u16* qlo,
+    const u16* qhi,
+    u32 land_n,
     u16 w,
     u16 h,
+    i32 dx,
+    i32 dy,
     const u8* comp,
-    u8 ovlp_id,
-    u16* vis,
-    u16* vis_tag,
-    u16* qlo,
-    u16* qhi) 
+    u8 ovlp_id) 
 {
-    OvlpFfRslt r = {0u, 0u};
-    if (piece == nullptr || vis == nullptr || vis_tag == nullptr || qlo == nullptr || qhi == nullptr || w == 0 || h == 0) {
-        return r;
+    if (qlo == nullptr || qhi == nullptr || comp == nullptr || land_n == 0u) {
+        return 0u;
     }
-    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
-    const u16 tag = *vis_tag;
-    vis_bump(vis, n, vis_tag);
-    for (u16 py = 0; py < h; ++py) {
-        for (u16 px = 0; px < w; ++px) {
-            const u32 i = static_cast<u32>(py) * static_cast<u32>(w) + static_cast<u32>(px);
-            if (!is_land_ov(piece[i]) || vis[i] == tag) {
-                continue;
+    u32 ov = 0u;
+    for (u32 k = 0; k < land_n; ++k) {
+        const u32 i = q_get(qlo, qhi, k);
+        const u16 px = static_cast<u16>(i % static_cast<u32>(w));
+        const u16 py = static_cast<u16>(i / static_cast<u32>(w));
+        const i32 nx = static_cast<i32>(px) + dx;
+        const i32 ny = static_cast<i32>(py) + dy;
+        if (nx < 0 || ny < 0 || nx >= static_cast<i32>(w) || ny >= static_cast<i32>(h)) {
+            continue;
+        }
+        const u32 j = static_cast<u32>(ny) * static_cast<u32>(w) + static_cast<u32>(nx); 
+        const u8 cv = comp[j];
+        if (ovlp_id == 0u) {
+            if (is_cont(cv)) {
+                ++ov;
             }
-            u32 qh = 0u;
-            u32 qt = 0u;
-            q_set(qlo, qhi, qt++, i);
-            vis[i] = tag;
-            while (qh < qt) {
-                const u32 ci = q_get(qlo, qhi, qh++);
-                const u16 cpx = static_cast<u16>(ci % static_cast<u32>(w));
-                const u16 cpy = static_cast<u16>(ci / static_cast<u32>(w));
-                ++r.m_land;
-                const i32 nx = static_cast<i32>(cpx) + dx;
-                const i32 ny = static_cast<i32>(cpy) + dy;
-                if (comp != nullptr && nx >= 0 && ny >= 0
-                    && nx < static_cast<i32>(w) && ny < static_cast<i32>(h)) {
-                    const u32 j = static_cast<u32>(ny) * static_cast<u32>(w) + static_cast<u32>(nx);
-                    const u8 cv = comp[j];
-                    if (ovlp_id == 0u) {
-                        if (is_cont(cv)) {
-                            ++r.m_ov;
-                        }
-                    } else if (cv == ovlp_id) {
-                        ++r.m_ov;
-                    }
-                }
-                const i32 ox[4] = {1, -1, 0, 0};
-                const i32 oy[4] = {0, 0, 1, -1};
-                for (u8 k = 0; k < 4u; ++k) {
-                    const i32 npx = static_cast<i32>(cpx) + ox[k];
-                    const i32 npy = static_cast<i32>(cpy) + oy[k];
-                    if (npx < 0 || npy < 0 || npx >= static_cast<i32>(w) || npy >= static_cast<i32>(h)) {
-                        continue;
-                    }
-                    const u32 ni = static_cast<u32>(npy) * static_cast<u32>(w) + static_cast<u32>(npx);
-                    if (!is_land_ov(piece[ni]) || vis[ni] == tag) {
-                        continue;
-                    }
-                    vis[ni] = tag;
-                    q_set(qlo, qhi, qt++, ni);
-                }
-            }
+        } else if (cv == ovlp_id) {
+            ++ov;
         }
     }
-    return r;
+    return ov;
+}
+
+static i32 drag_max_px (
+    OvBBox bb,
+    i32 x0,
+    i32 y0,
+    u16 w,
+    u16 h,
+    i32 mx,
+    i32 my,
+    f32 dir_x,
+    f32 dir_y) 
+{
+    i32 tdx = x0;
+    i32 tdy = y0;
+    i32 prev_tdx = tdx - 1;
+    i32 prev_tdy = tdy - 1;
+    i32 max_px = 0;
+    for (i32 step = k_drag_step; step <= static_cast<i32>(w + h); step += k_drag_step) {
+        step_dir_n(dir_x, dir_y, k_drag_step, &tdx, &tdy);
+        clamp_off(bb, w, h, mx, my, &tdx, &tdy);
+        if (tdx == prev_tdx && tdy == prev_tdy) {
+            break;
+        }
+        prev_tdx = tdx;
+        prev_tdy = tdy;
+        max_px = step;
+    }
+    return max_px;
+}
+
+static void drag_along (
+    const u16* qlo,
+    const u16* qhi,
+    u32 land_n,
+    OvBBox bb,
+    i32* dx,
+    i32* dy,
+    u16 w,
+    u16 h,
+    i32 mx,
+    i32 my,
+    const u8* comp,
+    u8 ovlp_id,
+    u32 tgt_max,
+    f32 dir_x,
+    f32 dir_y,
+    i32* drag_n) 
+{
+    if (dx == nullptr || dy == nullptr || drag_n == nullptr || qlo == nullptr || qhi == nullptr) {
+        return;
+    }
+    const i32 x0 = *dx;
+    const i32 y0 = *dy;
+    const u32 ov0 = ovlp_cnt_idx(qlo, qhi, land_n, w, h, x0, y0, comp, ovlp_id);
+    if (ov0 <= tgt_max) {
+        return;
+    }
+    const i32 max_px = drag_max_px(bb, x0, y0, w, h, mx, my, dir_x, dir_y);
+    if (max_px <= 0) {
+        return;
+    }
+    i32 edx = x0;
+    i32 edy = y0;
+    step_dir_n(dir_x, dir_y, max_px, &edx, &edy);
+    clamp_off(bb, w, h, mx, my, &edx, &edy);
+    const u32 ov_end = ovlp_cnt_idx(qlo, qhi, land_n, w, h, edx, edy, comp, ovlp_id);
+    if (ov_end > tgt_max) {
+        *dx = edx;
+        *dy = edy;
+        *drag_n = max_px;
+        return;
+    }
+    i32 s_est = max_px;
+    if (ov0 > ov_end) {
+        const u32 num = ov0 - tgt_max;
+        const u32 den = ov0 - ov_end;
+        if (den > 0u) {
+            s_est = static_cast<i32>((static_cast<u64>(max_px) * static_cast<u64>(num)) / static_cast<u64>(den));
+        }
+    }
+    if (s_est < 0) {
+        s_est = 0;
+    }
+    if (s_est > max_px) {
+        s_est = max_px;
+    }
+    i32 fdx = x0;
+    i32 fdy = y0;
+    step_dir_n(dir_x, dir_y, s_est, &fdx, &fdy);
+    clamp_off(bb, w, h, mx, my, &fdx, &fdy);
+    u32 ov = ovlp_cnt_idx(qlo, qhi, land_n, w, h, fdx, fdy, comp, ovlp_id);
+    i32 fin = 0;
+    while (ov > tgt_max && fin < k_drag_step) {
+        const i32 pdx = fdx;
+        const i32 pdy = fdy;
+        step_dir(dir_x, dir_y, &fdx, &fdy);
+        clamp_off(bb, w, h, mx, my, &fdx, &fdy);
+        if (fdx == pdx && fdy == pdy) {
+            break;
+        }
+        ov = ovlp_cnt_idx(qlo, qhi, land_n, w, h, fdx, fdy, comp, ovlp_id);
+        ++fin;
+    }
+    *dx = fdx;
+    *dy = fdy;
+    *drag_n = s_est + fin;
 }
 
 static void blit_cont (const u8* piece, i32 dx, i32 dy, u16 w, u16 h, u8 cid, u8* comp) {
@@ -574,69 +648,15 @@ static bool gen_src_ov (
     }
     P1_Gen_Outline ol(prm);
     if (!ol.generate(pct) || !ol.is_valid()) {
-        return false;
+        P1_STEP_ABORT("P1_Gen_ContOutlines", "P1_Gen_Outline failed for source continent");
     }
     const P1_Gen_OutlineRslt& r = ol.result();
     if (r.m_w != w || r.m_h != h || r.m_ov.data() == nullptr) {
-        return false;
+        P1_STEP_ABORT("P1_Gen_ContOutlines", "source outline size mismatch");
     }
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
     std::memcpy(dst, r.m_ov.data(), static_cast<size_t>(n));
     return true;
-}
-
-static void drag_along (
-    const u8* plc,
-    OvBBox bb,
-    i32* dx,
-    i32* dy,
-    u16 w,
-    u16 h,
-    i32 mx,
-    i32 my,
-    const u8* comp,
-    u8 ovlp_id,
-    u16* vis,
-    u16* vis_tag,
-    u16* qlo,
-    u16* qhi,
-    f32 dir_x,
-    f32 dir_y,
-    u32 tgt,
-    i32* drag_n) 
-{
-    if (dx == nullptr || dy == nullptr || drag_n == nullptr) {
-        return;
-    }
-    for (;;) {
-        const u32 ov = ovlp_ff_cnt(plc, *dx, *dy, w, h, comp, ovlp_id, vis, vis_tag, qlo, qhi).m_ov;
-        if (ov <= tgt) {
-            return;
-        }
-        i32 ndx = *dx;
-        i32 ndy = *dy;
-        step_dir_n(dir_x, dir_y, k_drag_step, &ndx, &ndy);
-        clamp_off(bb, w, h, mx, my, &ndx, &ndy);
-        if (ndx == *dx && ndy == *dy) {
-            break;
-        }
-        const u32 ov2 = ovlp_ff_cnt(plc, ndx, ndy, w, h, comp, ovlp_id, vis, vis_tag, qlo, qhi).m_ov;
-        *dx = ndx;
-        *dy = ndy;
-        *drag_n += k_drag_step;
-        if (ov2 <= tgt) {
-            return;
-        }
-    }
-    for (i32 step = 0; step < k_drag_step; ++step) {
-        const u32 ov = ovlp_ff_cnt(plc, *dx, *dy, w, h, comp, ovlp_id, vis, vis_tag, qlo, qhi).m_ov;
-        if (ov <= tgt) {
-            return;
-        }
-        step_dir(dir_x, dir_y, dx, dy);
-        clamp_off(bb, w, h, mx, my, dx, dy);
-        ++(*drag_n);
-    }
 }
 
 static void pull_along (
@@ -682,22 +702,20 @@ static bool stack_drag_cut_drag_rotate (
     u8* plc,
     i32* dx,
     i32* dy,
-    u16* vis,
-    u16* vis_tag,
     u16* qlo,
     u16* qhi,
     Mt19937* rng) 
 {
     if (dx == nullptr || dy == nullptr || plc == nullptr || rng == nullptr
-        || vis == nullptr || vis_tag == nullptr || qlo == nullptr || qhi == nullptr) {
-        return false;
+        || qlo == nullptr || qhi == nullptr) {
+        P1_STEP_ABORT("P1_Gen_ContOutlines", "stack_drag null args");
     }
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
     std::memcpy(plc, src, static_cast<size_t>(n));
     const u8 par_id = cont_id(pid);
-    const u32 land_n = ovlp_ff_cnt(plc, 0, 0, w, h, nullptr, 0u, vis, vis_tag, qlo, qhi).m_land;
+    const u32 land_n = land_idx_fill(plc, w, h, qlo, qhi);
     if (land_n == 0u) {
-        return false;
+        P1_STEP_ABORT("P1_Gen_ContOutlines", "stack_drag no land pixels");
     }
     f32 mcx = 0.f;
     f32 mcy = 0.f;
@@ -707,7 +725,13 @@ static bool stack_drag_cut_drag_rotate (
     land_cen(src, w, h, &ocx, &ocy);
     const f32 mpx = mcx + static_cast<f32>(pdx);
     const f32 mpy = mcy + static_cast<f32>(pdy);
-    const u32 tgt = (land_n * static_cast<u32>(cut_pct) + 50u) / 100u;
+    u8 cut_hi = cut_pct;
+    if (static_cast<u16>(cut_hi) + static_cast<u16>(k_ovlp_pct_slack) <= 100u) {
+        cut_hi = static_cast<u8>(cut_hi + k_ovlp_pct_slack);
+    } else {
+        cut_hi = 100u;
+    }
+    const u32 tgt_max = (land_n * static_cast<u32>(cut_hi) + 50u) / 100u;
     *dx = static_cast<i32>(std::lrint(static_cast<f64>(mpx - ocx)));
     *dy = static_cast<i32>(std::lrint(static_cast<f64>(mpy - ocy)));
     clamp_off(bb, w, h, mx, my, dx, dy);
@@ -718,11 +742,11 @@ static bool stack_drag_cut_drag_rotate (
     f32 dir_y = 0.f;
     ray_drag_dir(comp, w, h, mx, my, mpx, mpy, par_id, pref_x, pref_y, &dir_x, &dir_y);
     i32 drag_n = 0;
-    drag_along(plc, bb, dx, dy, w, h, mx, my, comp, par_id, vis, vis_tag, qlo, qhi, dir_x, dir_y, tgt, &drag_n);
+    drag_along(qlo, qhi, land_n, bb, dx, dy, w, h, mx, my, comp, par_id, tgt_max, dir_x, dir_y, &drag_n);
     clip_plc(plc, *dx, *dy, w, h, comp);
     bb = bbox_land(plc, w, h);
     if (!bb.m_ok) {
-        return false;
+        P1_STEP_ABORT("P1_Gen_ContOutlines", "stack_drag bbox invalid after clip");
     }
     i32 pull_n = 0;
     if (pull_pct > 0u && drag_n > 0) {
@@ -732,21 +756,13 @@ static bool stack_drag_cut_drag_rotate (
     const f64 rot = rng_rot_deg(rng);
     const i32 deg_cw = static_cast<i32>(std::lrint(rot));
     if (!rotate_plc_nn(plc, w, h, deg_cw)) {
-        return false;
+        P1_STEP_ABORT("P1_Gen_ContOutlines", "stack_drag rotate failed");
     }
     bb = bbox_land(plc, w, h);
     if (!bb.m_ok) {
-        return false;
-    }
+        P1_STEP_ABORT("P1_Gen_ContOutlines", "stack_drag bbox invalid after rotate");    }
     clamp_off(bb, w, h, mx, my, dx, dy);
     return true;
-}
-
-static void wb_rel (u16*& p) {
-    if (p != nullptr) {
-        Whiteboard::release(p);
-        p = nullptr;
-    }
 }
 
 //================================================================================================================================
@@ -769,7 +785,7 @@ bool P1_Gen_ContOutlines::generate () {
     m_valid_generation = false;
     m_rslt.m_ov.clear();
     if (!p1_run_prm_ok(m_prm) || m_sp.m_sz.m_n == 0u || m_sp.m_sz.m_n > P1_CONT_PCT_MAX) {
-        return false;
+        P1_STEP_ABORT("P1_Gen_ContOutlines", "invalid run prm or continent count");
     }
     u8 main_n = m_sp.m_main_n;
     if (main_n == 0u) {
@@ -784,39 +800,26 @@ bool P1_Gen_ContOutlines::generate () {
     i32 my = 0;
     map_margins(w, h, m_sp.m_margin, &mx, &my);
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
-    const i32 tile_n = static_cast<i32>(n);
-    u16* wb_cur = Whiteboard::alloc(tile_n);
-    u16* wb_p0 = Whiteboard::alloc(tile_n);
-    u16* wb_p1 = Whiteboard::alloc(tile_n);
-    u16* wb_vis = Whiteboard::alloc(tile_n);
-    u16* wb_qlo = Whiteboard::alloc(tile_n);
-    u16* wb_qhi = Whiteboard::alloc(tile_n);
-    if (wb_cur == nullptr || wb_p0 == nullptr || wb_p1 == nullptr
-        || wb_vis == nullptr || wb_qlo == nullptr || wb_qhi == nullptr) {
-        wb_rel(wb_qhi);
-        wb_rel(wb_qlo);
-        wb_rel(wb_vis);
-        wb_rel(wb_p1);
-        wb_rel(wb_p0);
-        wb_rel(wb_cur);
-        return false;
-    }
-    u8* cur = wb_u8(wb_cur);
-    u8* p0 = wb_u8(wb_p0);
-    u8* p1 = wb_u8(wb_p1);
-    std::memset(wb_vis, 0, static_cast<size_t>(n) * sizeof(u16));
-    u16 vis_tag = 1u;
+    Whiteboard_1B wb_cur("P1_Gen_ContOutlines", "cur", m_prm.m_seed);
+    P1_WB_CHK(wb_cur);
+    Whiteboard_1B wb_p0("P1_Gen_ContOutlines", "p0", m_prm.m_seed);
+    P1_WB_CHK(wb_p0);
+    Whiteboard_1B wb_p1("P1_Gen_ContOutlines", "p1", m_prm.m_seed);
+    P1_WB_CHK(wb_p1);
+    Whiteboard_2B wb_qlo("P1_Gen_ContOutlines", "qlo", m_prm.m_seed);
+    P1_WB_CHK(wb_qlo);
+    Whiteboard_2B wb_qhi("P1_Gen_ContOutlines", "qhi", m_prm.m_seed);
+    P1_WB_CHK(wb_qhi);
+    u8* cur = wb_cur.get_iter_ptr();
+    u8* p0 = wb_p0.get_iter_ptr();
+    u8* p1 = wb_p1.get_iter_ptr();
+    u16* qlo = wb_qlo.get_iter_ptr();
+    u16* qhi = wb_qhi.get_iter_ptr();
     Mt19937 rng = {};
     mt_seed(&rng, m_prm.m_seed + 7919u);
     const u8 corner0 = static_cast<u8>(mt_next(&rng) % 4u);
     if (!m_rslt.m_ov.resize(w, h)) {
-        wb_rel(wb_qhi);
-        wb_rel(wb_qlo);
-        wb_rel(wb_vis);
-        wb_rel(wb_p1);
-        wb_rel(wb_p0);
-        wb_rel(wb_cur);
-        return false;
+        P1_STEP_ABORT("P1_Gen_ContOutlines", "overlay resize failed");
     }
     u8* comp = m_rslt.m_ov.data_w();
     for (u32 i = 0; i < n; ++i) {
@@ -834,26 +837,14 @@ bool P1_Gen_ContOutlines::generate () {
     }
     P1_RunPrm prm0 = m_prm;
     if (!gen_src_ov(prm0, m_sp.m_sz.m_ent[0].m_pct, cur, w, h)) {
-        wb_rel(wb_qhi);
-        wb_rel(wb_qlo);
-        wb_rel(wb_vis);
-        wb_rel(wb_p1);
-        wb_rel(wb_p0);
-        wb_rel(wb_cur);
         m_rslt.m_ov.clear();
-        return false;
+        P1_STEP_ABORT("P1_Gen_ContOutlines", "gen_src_ov failed for continent 0");
     }
     std::memcpy(p0, cur, static_cast<size_t>(n));
     OvBBox bb = bbox_land(cur, w, h);
     if (!bb.m_ok || !place_corner(corner0, w, h, mx, my, bb, &off_x[0], &off_y[0])) {
-        wb_rel(wb_qhi);
-        wb_rel(wb_qlo);
-        wb_rel(wb_vis);
-        wb_rel(wb_p1);
-        wb_rel(wb_p0);
-        wb_rel(wb_cur);
         m_rslt.m_ov.clear();
-        return false;
+        P1_STEP_ABORT("P1_Gen_ContOutlines", "place_corner failed for continent 0");
     }
     blit_cont(cur, off_x[0], off_y[0], w, h, cont_id(0u), comp);
     for (u8 i = 1; i < m_sp.m_sz.m_n; ++i) {
@@ -861,13 +852,8 @@ bool P1_Gen_ContOutlines::generate () {
         P1_RunPrm prm_i = m_prm;
         prm_i.m_seed = m_prm.m_seed + static_cast<u32>(i) * 1000u;
         if (!gen_src_ov(prm_i, m_sp.m_sz.m_ent[i].m_pct, cur, w, h)) {
-            wb_rel(wb_qhi);
-            wb_rel(wb_qlo);
-            wb_rel(wb_vis);
-            wb_rel(wb_p1);
-            wb_rel(wb_p0);
-            wb_rel(wb_cur);
             m_rslt.m_ov.clear();
+            std::printf("P1_Gen_ContOutlines abort: gen_src_ov failed for continent %u\n", static_cast<unsigned>(i));
             return false;
         }
         if (i == 1u) {
@@ -875,13 +861,8 @@ bool P1_Gen_ContOutlines::generate () {
         }
         bb = bbox_land(cur, w, h);
         if (!bb.m_ok) {
-            wb_rel(wb_qhi);
-            wb_rel(wb_qlo);
-            wb_rel(wb_vis);
-            wb_rel(wb_p1);
-            wb_rel(wb_p0);
-            wb_rel(wb_cur);
             m_rslt.m_ov.clear();
+            std::printf("P1_Gen_ContOutlines abort: bbox invalid for continent %u\n", static_cast<unsigned>(i));
             return false;
         }
         Mt19937 rng_i = {};
@@ -906,30 +887,13 @@ bool P1_Gen_ContOutlines::generate () {
                 cur,
                 &off_x[i],
                 &off_y[i],
-                wb_vis,
-                &vis_tag,
-                wb_qlo,
-                wb_qhi,
+                qlo,
+                qhi,
                 &rng_i)) {
-            wb_rel(wb_qhi);
-            wb_rel(wb_qlo);
-            wb_rel(wb_vis);
-            wb_rel(wb_p1);
-            wb_rel(wb_p0);
-            wb_rel(wb_cur);
             m_rslt.m_ov.clear();
             return false;
         } 
         blit_cont(cur, off_x[i], off_y[i], w, h, cont_id(i), comp);
-    }
-    wb_rel(wb_qhi);
-    wb_rel(wb_qlo);
-    wb_rel(wb_vis);
-    wb_rel(wb_p1);
-    wb_rel(wb_p0);
-    wb_rel(wb_cur);
-    if (Whiteboard::chkout() == 0u) {
-        Whiteboard::dealloc();
     }
     m_valid_generation = true;
     return true;
@@ -959,23 +923,23 @@ bool p1_gen_step01_ov (
     const P1_Gen_ContOutlinesPrm& sp) 
 {
     if (ov_gray == nullptr) {
-        return false;
+        P1_STEP_ABORT("P1_Gen_ContOutlines", "p1_gen_step01_ov null output");
     }
     P1_Gen_ContOutlines gen(prm, sp);
     if (!gen.generate() || !gen.is_valid()) {
-        return false;
+        P1_STEP_ABORT("P1_Gen_ContOutlines", "p1_gen_step01_ov generate failed");
     }
     const P1_Gen_ContOutlinesRslt& r = gen.result();
     const u8* comp = r.m_ov.data();
     if (comp == nullptr || r.m_w == 0 || r.m_h == 0) {
-        return false;
+        P1_STEP_ABORT("P1_Gen_ContOutlines", "p1_gen_step01_ov empty result");
     }
     if (!ov_gray->resize(r.m_w, r.m_h)) {
-        return false;
+        P1_STEP_ABORT("P1_Gen_ContOutlines", "p1_gen_step01_ov gray resize failed");
     }
     u8* dst = ov_gray->data_w();
     if (dst == nullptr) {
-        return false;
+        P1_STEP_ABORT("P1_Gen_ContOutlines", "p1_gen_step01_ov gray buffer null");
     }
     p1_cont_ov_to_gray(comp, dst, r.m_w, r.m_h);
     return true;

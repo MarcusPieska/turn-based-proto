@@ -12,6 +12,7 @@
 #include "p1_gen_river_network.h"
 #include "p1_gen_river_pts.h"
 #include "p1_gen_river_sectors.h"
+#include "p1_gen_coastal_mtn_limits.h"
 #include "game_primitives.h"
 #include "p1_tester_util.h"
 
@@ -85,10 +86,16 @@ i32 test_p1_gen_river_network_basic (const P1_RunPrm& prm) {
         delete[] terrain;
         return -1;
     }
-    const clock_t t1i = clock();
+    P1_Gen_CoastalMtnLimits lim_gen(prm);
+    if (!lim_gen.generate(terrain, w, h, sec_gen.result()) || !lim_gen.is_valid()) {
+        std::printf("P1_Gen_CoastalMtnLimits failed for step 11 input\n");
+        delete[] terrain;
+        return -1;
+    }
     P1_Gen_RiverNetwork net_gen(prm);
+    const clock_t t1i = clock();
     const clock_t t0 = clock();
-    const bool ok = net_gen.generate(terrain, w, h, sec_gen.result());
+    const bool ok = net_gen.generate(terrain, w, h, sec_gen.result(), lim_gen.result());
     const clock_t t1 = clock();
     const double sec_i = static_cast<double>(t1i - t0i) / static_cast<double>(CLOCKS_PER_SEC);
     const double sec = static_cast<double>(t1 - t0) / static_cast<double>(CLOCKS_PER_SEC);

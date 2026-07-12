@@ -1,15 +1,14 @@
 #!/bin/bash
 
-INC="-I. -I.. -I../map_loader"
+INC="-I. -I.. -I../map_loader -I../static_state -I../misc"
 
 g++ -std=c++11 $INC -c ../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
 g++ -std=c++11 $INC -c ../map_loader/map_terrain_data.cpp -o map_terrain_data.o
 g++ -std=c++11 $INC -c ../map_loader/map_loader.cpp -o map_loader.o
-g++ -std=c++11 $INC -c whiteboard.cpp -o whiteboard.o
-g++ -std=c++11 $INC -c wb_sheet.cpp -o wb_sheet.o
+g++ -std=c++11 $INC -c ../misc/whiteboard_mng.cpp -o whiteboard_mng.o
 g++ -std=c++11 $INC -c wb_que_xy.cpp -o wb_que_xy.o
-g++ -std=c++11 $INC -c generator_constants.cpp -o generator_constants.o
-g++ -std=c++11 $INC -c perlin_noise.cpp -o perlin_noise.o
+g++ -std=c++11 $INC -O2 -c generator_constants.cpp -o generator_constants.o
+g++ -std=c++11 $INC -O3 -ffast-math -c perlin_noise.cpp -o perlin_noise.o
 g++ -std=c++11 $INC -c p1_gen_outline.cpp -o p1_gen_outline.o
 g++ -std=c++11 $INC -I../simple_map_gen -c ../simple_map_gen/generate_terrain_rotation.cpp -o generate_terrain_rotation.o
 g++ -std=c++11 $INC -I../simple_map_gen -c p1_gen_cont_outlines.cpp -o p1_gen_cont_outlines.o
@@ -19,10 +18,13 @@ g++ -std=c++11 $INC -c p1_adj_outline_fill.cpp -o p1_adj_outline_fill.o
 g++ -std=c++11 $INC -c p1_gen_shaped_outline.cpp -o p1_gen_shaped_outline.o
 g++ -std=c++11 $INC -c p1_gen_river_pts.cpp -o p1_gen_river_pts.o
 g++ -std=c++11 $INC -c p1_gen_river_sectors.cpp -o p1_gen_river_sectors.o
+g++ -std=c++11 $INC -c p1_gen_coastal_mtn_limits.cpp -o p1_gen_coastal_mtn_limits.o
 g++ -std=c++11 $INC -c p1_gen_river_network.cpp -o p1_gen_river_network.o
 g++ -std=c++11 $INC -c p1_gen_river_lines.cpp -o p1_gen_river_lines.o
+g++ -std=c++11 $INC -c p1_adj_coastal_mtn_rivers.cpp -o p1_adj_coastal_mtn_rivers.o
 g++ -std=c++11 $INC -c p1_adj_river_lakes.cpp -o p1_adj_river_lakes.o
 g++ -std=c++11 $INC -c p1_adj_river_inlets.cpp -o p1_adj_river_inlets.o
+g++ -std=c++11 $INC -c p1_gen_river_dist.cpp -o p1_gen_river_dist.o
 g++ -std=c++11 $INC -c p1_gen_watershed_mountains.cpp -o p1_gen_watershed_mountains.o
 g++ -std=c++11 $INC -c p1_gen_watershed_mountain_line_sets.cpp -o p1_gen_watershed_mountain_line_sets.o
 g++ -std=c++11 $INC -c p1_gen_distance_to_river.cpp -o p1_gen_distance_to_river.o
@@ -38,7 +40,21 @@ g++ -std=c++11 $INC -c p1_gen_wind_pattern_adv.cpp -o p1_gen_wind_pattern_adv.o
 g++ -std=c++11 $INC -c p1_gen_loess_boost.cpp -o p1_gen_loess_boost.o
 g++ -std=c++11 $INC -c p1_adj_grassland_loess_tiles.cpp -o p1_adj_grassland_loess_tiles.o
 g++ -std=c++11 $INC -c p1_gen_rain_orographic.cpp -o p1_gen_rain_orographic.o
+g++ -std=c++11 $INC -c p1_gen_rich_coast_fertility.cpp -o p1_gen_rich_coast_fertility.o
+g++ -std=c++11 $INC -c p1_adj_coast_fertility.cpp -o p1_adj_coast_fertility.o
+g++ -std=c++11 $INC -c p1_adj_ensure_adj_rules.cpp -o p1_adj_ensure_adj_rules.o
+g++ -std=c++11 $INC -c p1_gen_forest_overlay.cpp -o p1_gen_forest_overlay.o
 g++ -std=c++11 $INC -c p1_make_map.cpp -o p1_make_map.o
 g++ -std=c++11 $INC -c p1_tester_chain_core.cpp -o p1_tester_chain_core.o
+g++ -std=c++11 $INC -c p1_tester_cli.cpp -o p1_tester_cli.o
+g++ -std=c++11 $INC -c p1_tester_harness.cpp -o p1_tester_harness.o
+g++ -std=c++11 $INC -c p1_tester_early_chain.cpp -o p1_tester_early_chain.o
+g++ -std=c++11 $INC -c p1_tester_early_views.cpp -o p1_tester_early_views.o
+g++ -std=c++11 $INC -c p1_gen_cont_outlines_view.cpp -o p1_gen_cont_outlines_view.o
+g++ -std=c++11 $INC -c p1_adj_outline_fill_view.cpp -o p1_adj_outline_fill_view.o
+g++ -std=c++11 $INC -c p1_gen_noise_perlin_view.cpp -o p1_gen_noise_perlin_view.o
+g++ -std=c++11 $INC -c p1_gen_land_depth_view.cpp -o p1_gen_land_depth_view.o
+g++ -std=c++11 $INC -c p1_gen_shaped_outline_view.cpp -o p1_gen_shaped_outline_view.o
+g++ -std=c++11 $INC -c p1_gen_river_pts_view.cpp -o p1_gen_river_pts_view.o
 
-CORE_MAP_OBJS="map_terrain_validate.o map_terrain_data.o map_loader.o generator_constants.o perlin_noise.o whiteboard.o wb_sheet.o wb_que_xy.o p1_gen_outline.o generate_terrain_rotation.o p1_gen_cont_outlines.o p1_gen_land_depth.o p1_gen_noise_perlin.o p1_adj_outline_fill.o p1_gen_shaped_outline.o p1_gen_river_pts.o p1_gen_river_sectors.o p1_gen_river_network.o p1_gen_river_lines.o p1_adj_river_lakes.o p1_adj_river_inlets.o p1_gen_watershed_mountains.o p1_gen_watershed_mountain_line_sets.o p1_gen_distance_to_river.o p1_gen_nearness_to_watershed_mtn.o p1_adj_land_altitude.o p1_adj_ensure_coasts.o p1_adj_ensure_seas.o p1_adj_ensure_river_valleys.o p1_adj_ensure_mtn_foothills.o p1_gen_climate.o p1_gen_desert_river_cull.o p1_gen_wind_pattern_adv.o p1_gen_loess_boost.o p1_adj_grassland_loess_tiles.o p1_gen_rain_orographic.o p1_make_map.o p1_tester_chain_core.o"
+CORE_MAP_OBJS="map_terrain_validate.o map_terrain_data.o map_loader.o generator_constants.o perlin_noise.o whiteboard_mng.o wb_que_xy.o p1_gen_outline.o generate_terrain_rotation.o p1_gen_cont_outlines.o p1_gen_land_depth.o p1_gen_noise_perlin.o p1_adj_outline_fill.o p1_gen_shaped_outline.o p1_gen_river_pts.o p1_gen_river_sectors.o p1_gen_coastal_mtn_limits.o p1_gen_river_network.o p1_gen_river_lines.o p1_adj_coastal_mtn_rivers.o p1_adj_river_lakes.o p1_adj_river_inlets.o p1_gen_river_dist.o p1_gen_watershed_mountains.o p1_gen_watershed_mountain_line_sets.o p1_gen_distance_to_river.o p1_gen_nearness_to_watershed_mtn.o p1_adj_land_altitude.o p1_adj_ensure_coasts.o p1_adj_ensure_seas.o p1_adj_ensure_river_valleys.o p1_adj_ensure_mtn_foothills.o p1_gen_climate.o p1_gen_desert_river_cull.o p1_gen_wind_pattern_adv.o p1_gen_loess_boost.o p1_adj_grassland_loess_tiles.o p1_gen_rain_orographic.o p1_gen_rich_coast_fertility.o p1_adj_coast_fertility.o p1_adj_ensure_adj_rules.o p1_gen_forest_overlay.o p1_make_map.o p1_tester_chain_core.o p1_tester_cli.o p1_tester_harness.o p1_tester_early_chain.o p1_tester_early_views.o p1_gen_cont_outlines_view.o p1_adj_outline_fill_view.o p1_gen_noise_perlin_view.o p1_gen_land_depth_view.o p1_gen_shaped_outline_view.o p1_gen_river_pts_view.o"

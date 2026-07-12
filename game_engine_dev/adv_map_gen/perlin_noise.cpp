@@ -2,10 +2,12 @@
 //=> - Includes -
 //================================================================================================================================
 
-#include "perlin_noise.h"
-
 #include <cmath>
 #include <cstdio>
+#include <new>
+
+#include "perlin_noise.h"
+#include "p1_step_log.h"
 
 //================================================================================================================================
 //=> - Internal helpers -
@@ -61,12 +63,37 @@ static void fbm_octave_init (FbmOctaveSetup* s, const PerlinImgParams& p) {
     }
 }
 
+static inline f32 fbm_sum_oct9 (const PerlinNoise& gen, const f32* cx, const f32* cy, const FbmOctaveSetup& setup) {
+    return gen.noise2(cx[0], cy[0]) * setup.m_amp[0]
+        + gen.noise2(cx[1], cy[1]) * setup.m_amp[1]
+        + gen.noise2(cx[2], cy[2]) * setup.m_amp[2]
+        + gen.noise2(cx[3], cy[3]) * setup.m_amp[3]
+        + gen.noise2(cx[4], cy[4]) * setup.m_amp[4]
+        + gen.noise2(cx[5], cy[5]) * setup.m_amp[5]
+        + gen.noise2(cx[6], cy[6]) * setup.m_amp[6]
+        + gen.noise2(cx[7], cy[7]) * setup.m_amp[7]
+        + gen.noise2(cx[8], cy[8]) * setup.m_amp[8];
+}
+
 static inline f32 fbm_sum_octaves (PerlinNoise& gen, const f32* cx, const f32* cy, const FbmOctaveSetup& setup) {
-    f32 sum = 0.f;
-    for (i32 o = 0; o < OCTAVES; ++o) {
-        sum += gen.noise2(cx[o], cy[o]) * setup.m_amp[o];
+    return fbm_sum_oct9(gen, cx, cy, setup);
+}
+
+static void perlin_gray_fill (const f32* src, u32 n, f32 vmin, f32 vmax, u8* out_gray) {
+    f32 denom = vmax - vmin;
+    if (denom < 1e-12f) {
+        denom = 1.f;
     }
-    return sum;
+    for (u32 i = 0; i < n; ++i) {
+        f32 t = (src[i] - vmin) / denom;
+        if (t < 0.f) {
+            t = 0.f;
+        }
+        if (t > 1.f) {
+            t = 1.f;
+        }
+        out_gray[i] = static_cast<u8>(std::lrint(t * 255.f));
+    }
 }
 
 //================================================================================================================================
@@ -234,6 +261,86 @@ bool accumulate_perlin_field_f32 (f32* acc_row_major, f32 weight, const PerlinIm
                 cx[o] += setup.m_dcx[o];
             }
         }
+    }
+    return true;
+}
+
+static const i32 k_fused_layer_max = 16;
+
+bool render_perlin_layers_f32 (
+    f32* out_row_major,
+    u8* out_gray_row_major,
+    u16 w,
+    u16 h,
+    f32 lacunarity,
+    const PerlinLayerSpec* layers,
+    i32 layer_n) 
+{
+    if (out_row_major == nullptr || layers == nullptr || w == 0 || h == 0 || layer_n <= 0) {
+        P1_STEP_ABORT("P1_Gen_NoisePerlin", "render_perlin invalid args");
+    }
+    if (layer_n > k_fused_layer_max) {
+        P1_STEP_ABORT("P1_Gen_NoisePerlin", "render_perlin layer_n out of range");
+    }
+    const i32 lc = layer_n;
+    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
+    alignas(PerlinNoise) u8 gen_buf[k_fused_layer_max][sizeof(PerlinNoise)];
+    PerlinNoise* gen[k_fused_layer_max];
+    FbmOctaveSetup setup[k_fused_layer_max];
+    f32 wt[k_fused_layer_max];
+    for (i32 k = 0; k < lc; ++k) {
+        gen[k] = new (&gen_buf[k]) PerlinNoise(layers[k].m_seed);
+        PerlinImgParams lp;
+        lp.m_w = w;
+        lp.m_h = h;
+        lp.m_frequency = layers[k].m_frequency;
+        lp.m_lacunarity = lacunarity;
+        fbm_octave_init(&setup[k], lp);
+        wt[k] = layers[k].m_weight;
+    }
+    f32 cx[k_fused_layer_max][OCTAVES];
+    f32 cy[k_fused_layer_max][OCTAVES];
+    f32 vmin = 0.f;
+    f32 vmax = 0.f;
+    bool have_rng = false;
+    for (u16 py = 0; py < h; ++py) {
+        const f32 pyf = static_cast<f32>(py) + 0.5f;
+        for (i32 k = 0; k < lc; ++k) {
+            for (i32 o = 0; o < OCTAVES; ++o) {
+                cy[k][o] = pyf * setup[k].m_dcy[o];
+                cx[k][o] = 0.5f * setup[k].m_dcx[o];
+            }
+        }
+        for (u16 px = 0; px < w; ++px) {
+            const u32 idx = static_cast<u32>(py) * static_cast<u32>(w) + static_cast<u32>(px);
+            f32 sum = 0.f;
+            for (i32 k = 0; k < lc; ++k) {
+                sum += wt[k] * fbm_sum_oct9(*gen[k], cx[k], cy[k], setup[k]);
+                for (i32 o = 0; o < OCTAVES; ++o) {
+                    cx[k][o] += setup[k].m_dcx[o];
+                }
+            }
+            out_row_major[idx] = sum;
+            if (out_gray_row_major != nullptr) {
+                if (!have_rng) {
+                    vmin = vmax = sum;
+                    have_rng = true;
+                } else {
+                    if (sum < vmin) {
+                        vmin = sum;
+                    }
+                    if (sum > vmax) {
+                        vmax = sum;
+                    }
+                }
+            }
+        }
+    }
+    if (out_gray_row_major != nullptr) {
+        perlin_gray_fill(out_row_major, n, vmin, vmax, out_gray_row_major);
+    }
+    for (i32 k = 0; k < lc; ++k) {
+        gen[k]->~PerlinNoise();
     }
     return true;
 }

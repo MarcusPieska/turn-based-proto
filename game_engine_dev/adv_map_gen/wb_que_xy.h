@@ -7,17 +7,19 @@
 
 #include "game_primitives.h"
 
+class Whiteboard_2B;
+
 //================================================================================================================================
 //=> - WB_QueXY -
 //================================================================================================================================
 //
-//  Ring queue of tile (x,y) pairs backed by a Whiteboard sheet.
+//  Ring queue of tile (x,y) pairs backed by two u16 whiteboard sheets (one entry per map tile).
 //
 //================================================================================================================================
 
 class WB_QueXY {
 public:
-    explicit WB_QueXY (i32 word_n);
+    WB_QueXY ();
     ~WB_QueXY ();
     bool ok () const;
     u32 cap () const;
@@ -36,8 +38,13 @@ private:
     WB_QueXY& operator= (WB_QueXY&& other) = delete;
 
     u32 slot (u32 i) const;
+    void wr_u16 (u32 wi, u16 v) const;
+    u16 rd_u16 (u32 wi) const;
 
+    Whiteboard_2B* m_wb0;
+    Whiteboard_2B* m_wb1;
     u16* m_p;
+    u16* m_p2;
     u32 m_ent_n;
     u32 m_head;
     u32 m_cnt;

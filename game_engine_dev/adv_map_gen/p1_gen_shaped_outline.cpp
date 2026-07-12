@@ -2,13 +2,14 @@
 //=> - Includes -
 //================================================================================================================================
 
-#include "p1_gen_shaped_outline.h"
-
-#include "generator_constants.h"
-#include "perlin_noise.h"
-
 #include <cmath>
 #include <cstring>
+
+#include "p1_gen_shaped_outline.h"
+#include "generator_constants.h"
+#include "p1_gen_noise_perlin.h"
+#include "p1_step_log.h"
+#include "p1_wb_util.h"
 
 //================================================================================================================================
 //=> - Private generation helpers -
@@ -18,10 +19,6 @@ static const u16 k_dist_inf = 0xFFFFu;
 
 static inline bool ol_is_land (const u8* ov, u32 i) {
     return ov[i] == WL_OVERLAY_LAND_GRAY;
-}
-
-static u32 derived_layer_seed (u32 base_seed, i32 layer_idx) {
-    return base_seed ^ (static_cast<u32>(layer_idx + 1) * 2654435769u);
 }
 
 static size_t frac_idx (u32 n, f64 pop, f64 cap) {
@@ -118,6 +115,56 @@ static u8 terr_cls_shaped (f64 v, const f64 thr[3]) {
     return TERR_PLAINS[0];
 }
 
+static f64 shelf_cum_pop (const P1_ShapedShelfFracs& shelf, u8 band) {
+    u32 sum = 0u;
+    if (band >= 1u) {
+        sum += static_cast<u32>(shelf.m_ocean);
+    }
+    if (band >= 2u) {
+        sum += static_cast<u32>(shelf.m_sea);
+    }
+    if (band >= 3u) {
+        sum += static_cast<u32>(shelf.m_coastal);
+    }
+    return static_cast<f64>(sum) / 100.0;
+}
+
+static bool shelf_thr_from_fracs (
+    const f32* norm,
+    u32 n,
+    const u8* ol_ov,
+    u32 shelf_n,
+    const P1_ShapedShelfFracs& shelf,
+    f32* work,
+    f64 thr[3]) 
+{
+    if (norm == nullptr || ol_ov == nullptr || work == nullptr || shelf_n == 0u) {
+        return false;
+    }
+    auto refill = [&]() {
+        u32 si = 0u;
+        for (u32 i = 0; i < n; ++i) {
+            if (!ol_is_land(ol_ov, i)) {
+                continue;
+            }
+            work[si++] = norm[i];
+        }
+    };
+    refill();
+    const size_t j0 = frac_idx(shelf_n, shelf_cum_pop(shelf, 1u), 1.0);
+    nth_f32(work, shelf_n, static_cast<u32>(j0));
+    thr[0] = static_cast<f64>(work[j0]);
+    refill();
+    const size_t j1 = frac_idx(shelf_n, shelf_cum_pop(shelf, 2u), 1.0);
+    nth_f32(work, shelf_n, static_cast<u32>(j1));
+    thr[1] = static_cast<f64>(work[j1]);
+    refill();
+    const size_t j2 = frac_idx(shelf_n, shelf_cum_pop(shelf, 3u), 1.0);
+    nth_f32(work, shelf_n, static_cast<u32>(j2));
+    thr[2] = static_cast<f64>(work[j2]);
+    return true;
+}
+
 static u16 land_depth_max (const u16* land_depth, u32 n) {
     u16 d_max = 0;
     for (u32 i = 0; i < n; ++i) {
@@ -130,58 +177,41 @@ static u16 land_depth_max (const u16* land_depth, u32 n) {
 }
 
 static bool shape_outline_layer (
-    u32 seed,
+    const f32* perlin_base,
     u16 w,
     u16 h,
     f32 radial,
+    const P1_ShapedShelfFracs& shelf,
     u8* terrain,
     const u8* ol_ov,
-    const u16* land_depth) {
+    const u16* land_depth) 
+{
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
-    if (n == 0 || terrain == nullptr || ol_ov == nullptr || land_depth == nullptr) {
-        return false;
+    if (n == 0 || perlin_base == nullptr || terrain == nullptr || ol_ov == nullptr || land_depth == nullptr) {
+        P1_STEP_ABORT("P1_Gen_ShapedOutline", "shape_outline_layer null args");
     }
+    Whiteboard_4B wb_combo("P1_Gen_ShapedOutline", "combo", 0u);
+    Whiteboard_4B wb_norm("P1_Gen_ShapedOutline", "norm", 0u);
+    P1_WB_CHK(wb_combo);
+    P1_WB_CHK(wb_norm);
+    f32* combo = reinterpret_cast<f32*>(wb_combo.get_iter_ptr());
+    f32* norm = reinterpret_cast<f32*>(wb_norm.get_iter_ptr());
     const u16 d_max = land_depth_max(land_depth, n);
-    const i32 lc = 5;
-    const f32 lac = 2.f;
-    const f32 freq_base = 0.5f;
-    const f32 layer_w = 0.2f;
-    const f32 freq_step = 1.62f;
-    f32* combo = new f32[n];
-    if (combo == nullptr) {
-        return false;
-    }
-    for (u32 i = 0; i < n; ++i) {
-        combo[i] = 0.f;
-    }
-    PerlinImgParams lp;
-    lp.m_w = w;
-    lp.m_h = h;
-    lp.m_lacunarity = lac;
-    f32 freq = freq_base;
-    for (i32 k = 0; k < lc; ++k) {
-        lp.m_frequency = freq;
-        if (!accumulate_perlin_field_f32(combo, layer_w, lp, derived_layer_seed(seed, k))) {
-            delete[] combo;
-            return false;
-        }
-        freq *= freq_step;
-    }
     f32 vmin = 0.f;
     f32 vmax = 0.f;
     bool first = true;
     for (u32 i = 0; i < n; ++i) {
-        combo[i] -= land_dist_sub(land_depth[i], d_max, radial);
-        const f32 v = combo[i];
+        const f32 cv = perlin_base[i] - land_dist_sub(land_depth[i], d_max, radial);
+        combo[i] = cv;
         if (first) {
-            vmin = vmax = v;
+            vmin = vmax = cv;
             first = false;
         } else {
-            if (v < vmin) {
-                vmin = v;
+            if (cv < vmin) {
+                vmin = cv;
             }
-            if (v > vmax) {
-                vmax = v;
+            if (cv > vmax) {
+                vmax = cv;
             }
         }
     }
@@ -189,42 +219,22 @@ static bool shape_outline_layer (
     if (denom < 1e-12f) {
         denom = 1.f;
     }
-    f32* norm = new f32[n];
-    if (norm == nullptr) {
-        delete[] combo;
-        return false;
-    }
     for (u32 i = 0; i < n; ++i) {
         norm[i] = (combo[i] - vmin) / denom;
     }
-    delete[] combo;
-    const f64 lim_cap = 1.0;
-    const f64 fact = 0.7;
-    const size_t j0 = frac_idx(n, 0.7 * fact, lim_cap);
-    const size_t j1 = frac_idx(n, 0.85 * fact, lim_cap);
-    const size_t j2 = frac_idx(n, 0.88 * fact, lim_cap);
-    f32* work = new f32[n];
-    if (work == nullptr) {
-        delete[] norm;
-        return false;
-    }
+    u32 shelf_n = 0u;
     for (u32 i = 0; i < n; ++i) {
-        work[i] = norm[i];
+        if (ol_is_land(ol_ov, i)) {
+            ++shelf_n;
+        }
     }
-    nth_f32(work, n, static_cast<u32>(j0));
+    if (shelf_n == 0u) {
+        P1_STEP_ABORT("P1_Gen_ShapedOutline", "shape_outline_layer no shelf pixels");
+    }
     f64 thr[3];
-    thr[0] = static_cast<f64>(work[j0]);
-    for (u32 i = 0; i < n; ++i) {
-        work[i] = norm[i];
+    if (!shelf_thr_from_fracs(norm, n, ol_ov, shelf_n, shelf, combo, thr)) {
+        P1_STEP_ABORT("P1_Gen_ShapedOutline", "shape_outline_layer shelf thresholds failed");
     }
-    nth_f32(work, n, static_cast<u32>(j1));
-    thr[1] = static_cast<f64>(work[j1]);
-    for (u32 i = 0; i < n; ++i) {
-        work[i] = norm[i];
-    }
-    nth_f32(work, n, static_cast<u32>(j2));
-    thr[2] = static_cast<f64>(work[j2]);
-    delete[] work;
     for (u32 i = 0; i < n; ++i) {
         if (!ol_is_land(ol_ov, i)) {
             terrain[i] = TERR_OCEAN[0];
@@ -239,7 +249,6 @@ static bool shape_outline_layer (
         }
         terrain[i] = terr_cls_shaped(vd, thr);
     }
-    delete[] norm;
     return true;
 }
 
@@ -249,7 +258,24 @@ static bool shape_outline_layer (
 
 P1_Gen_ShapedOutline::P1_Gen_ShapedOutline (const P1_RunPrm& prm) :
     m_prm(prm),
-    m_valid_generation(false) {
+    m_valid_generation(false),
+    m_perlin_bind(nullptr),
+    m_perlin_n(0u) {
+}
+
+P1_Gen_ShapedOutline::~P1_Gen_ShapedOutline () {
+    free_perlin();
+}
+
+void P1_Gen_ShapedOutline::free_perlin () {
+    m_perlin_bind = nullptr;
+    m_perlin_n = 0u;
+}
+
+void P1_Gen_ShapedOutline::bind_perlin_field (const f32* field, u16 w, u16 h) {
+    free_perlin();
+    m_perlin_bind = field;
+    m_perlin_n = static_cast<u32>(w) * static_cast<u32>(h);
 }
 
 bool P1_Gen_ShapedOutline::generate_layer (
@@ -258,16 +284,32 @@ bool P1_Gen_ShapedOutline::generate_layer (
     u16 h,
     const u8* ol_ov,
     const u16* land_depth,
-    f32 radial) 
+    f32 radial,
+    const P1_ShapedShelfFracs& shelf) 
 {
     m_valid_generation = false;
     if (!p1_run_prm_ok(m_prm) || terrain == nullptr || ol_ov == nullptr || land_depth == nullptr) {
-        return false;
+        P1_STEP_ABORT("P1_Gen_ShapedOutline", "generate_layer null args");
     }
     if (w != m_prm.m_w || h != m_prm.m_h) {
-        return false;
+        P1_STEP_ABORT("P1_Gen_ShapedOutline", "generate_layer size mismatch");
     }
-    if (!shape_outline_layer(m_prm.m_seed, w, h, radial, terrain, ol_ov, land_depth)) {
+    const f32* perlin = m_perlin_bind;
+    if (perlin == nullptr) {
+        Whiteboard_4B wb_perlin("P1_Gen_ShapedOutline", "perlin", m_prm.m_seed);
+        P1_WB_CHK(wb_perlin);
+        f32* combo = reinterpret_cast<f32*>(wb_perlin.get_iter_ptr());
+        const P1_Gen_NoisePerlinPrm nprm = p1_gen_noise_perlin_prm_from_cfg(p1_map_config_def(), w, h);
+        if (!p1_build_perlin_field_f32(m_prm.m_seed, nprm, combo, nullptr)) {
+            P1_STEP_ABORT("P1_Gen_ShapedOutline", "generate_layer perlin build failed");
+        }
+        if (!shape_outline_layer(combo, w, h, radial, shelf, terrain, ol_ov, land_depth)) {
+            return false;
+        }
+        m_valid_generation = true;
+        return true;
+    }
+    if (!shape_outline_layer(perlin, w, h, radial, shelf, terrain, ol_ov, land_depth)) {
         return false;
     }
     m_valid_generation = true;
@@ -290,10 +332,10 @@ bool P1_Gen_ShapedOutline::merge_layers (
     m_valid_generation = false;
     if (!p1_run_prm_ok(m_prm) || terrain == nullptr || ol_ov == nullptr
         || land_depth == nullptr || near_ter == nullptr || far_ter == nullptr) {
-        return false;
+        P1_STEP_ABORT("P1_Gen_ShapedOutline", "merge_layers null args");
     }
     if (w != m_prm.m_w || h != m_prm.m_h) {
-        return false;
+        P1_STEP_ABORT("P1_Gen_ShapedOutline", "merge_layers size mismatch");
     }
     (void)land_depth;
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
@@ -318,32 +360,24 @@ bool P1_Gen_ShapedOutline::apply (
 {
     m_valid_generation = false;
     if (!p1_run_prm_ok(m_prm) || terrain == nullptr || ol_ov == nullptr || land_depth == nullptr) {
-        return false;
+        P1_STEP_ABORT("P1_Gen_ShapedOutline", "apply null args");
     }
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
-    u8* near_ter = new u8[n];
-    u8* far_ter = new u8[n];
-    if (near_ter == nullptr || far_ter == nullptr) {
-        delete[] far_ter;
-        delete[] near_ter;
-        return false;
-    }
+    Whiteboard_2B wb_near("P1_Gen_ShapedOutline", "near_ter", 0u);
+    Whiteboard_2B wb_far("P1_Gen_ShapedOutline", "far_ter", 0u);
+    P1_WB_CHK(wb_near);
+    P1_WB_CHK(wb_far);
+    u8* near_ter = reinterpret_cast<u8*>(wb_near.get_iter_ptr());
+    u8* far_ter = reinterpret_cast<u8*>(wb_far.get_iter_ptr());
     std::memcpy(near_ter, terrain, static_cast<size_t>(n));
     std::memcpy(far_ter, terrain, static_cast<size_t>(n));
-    if (!generate_layer(near_ter, w, h, ol_ov, land_depth, sp.m_radial_near)) {
-        delete[] far_ter;
-        delete[] near_ter;
+    if (!generate_layer(near_ter, w, h, ol_ov, land_depth, sp.m_radial_near, sp.m_shelf_near)) {
         return false;
     }
-    if (!generate_layer(far_ter, w, h, ol_ov, land_depth, sp.m_radial_far)) {
-        delete[] far_ter;
-        delete[] near_ter;
+    if (!generate_layer(far_ter, w, h, ol_ov, land_depth, sp.m_radial_far, sp.m_shelf_far)) {
         return false;
     }
-    const bool ok = merge_layers(terrain, w, h, ol_ov, land_depth, near_ter, far_ter);
-    delete[] far_ter;
-    delete[] near_ter;
-    return ok;
+    return merge_layers(terrain, w, h, ol_ov, land_depth, near_ter, far_ter);
 }
 
 bool P1_Gen_ShapedOutline::is_valid () const {

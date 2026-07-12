@@ -5,11 +5,12 @@
 #ifndef P1_TESTER_UTIL_H
 #define P1_TESTER_UTIL_H
 
+#include "p1_map_config.h"
+
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-
 #include <sys/stat.h>
 
 #include "game_map_defs.h"
@@ -17,7 +18,8 @@
 #include "p1_adj_land_altitude.h"
 #include "p1_gen_climate.h"
 #include "p1_map_size.h"
-#include "whiteboard.h"
+#include "p1_tester_cli.h"
+#include "whiteboard_mng.h"
 
 //================================================================================================================================
 //=> - P1 tester helpers -
@@ -29,7 +31,15 @@ static const char* P1_SEED_FILE = "seed.txt";
 
 static const f32 P1_TEST_RADIAL_LIM = 0.45f;
 
-static bool g_p1_out_subdir = true;
+//================================================================================================================================
+//=> - P1 tester input kinds -
+//================================================================================================================================
+
+static const u8 P1_TIN_NONE = 0u;
+static const u8 P1_TIN_MK = 1u;
+static const u8 P1_TIN_C14 = 2u;
+static const u8 P1_TIN_CENS = 3u;
+static const u8 P1_TIN_EARLY = 4u;
 
 //================================================================================================================================
 //=> - P1_TesterCfg -
@@ -38,37 +48,48 @@ static bool g_p1_out_subdir = true;
 struct P1_TesterCfg {
     cstr m_exe;
     u32 m_step;
-    cstr m_out;
+    u8 m_in_kind;
+    u16 m_in_step;
+    cstr m_out_pri;
+    cstr m_out_sec;
 };
 
 static const P1_TesterCfg g_p1_tester_tbl[] = {
-    {"p1_gen_cont_outlines_tester", 1u, "01_outline.ppm"},
-    {"p1_adj_outline_fill_tester", 2u, "02_outline_fill.ppm"},
-    {"p1_gen_noise_perlin_tester", 3u, "03_noise_perlin.ppm"},
-    {"p1_gen_land_depth_tester", 4u, "04_land_depth.ppm"},
-    {"p1_gen_shaped_outline_tester", 5u, "07_shaped_outline_merge.ppm"},
-    {"p1_gen_river_pts_tester", 8u, "08_river_pts.ppm"},
-    {"p1_gen_river_sectors_tester", 9u, "09_river_sectors.ppm"},
-    {"p1_gen_river_network_tester", 10u, "10_river_network.ppm"},
-    {"p1_gen_river_lines_tester", 11u, "11_river_lines.ppm"},
-    {"p1_adj_river_lakes_tester", 12u, "12_river_lakes.ppm"},
-    {"p1_adj_river_inlets_tester", 13u, "13_river_inlets.ppm"},
-    {"p1_gen_watershed_mountains_tester", 14u, "14_watershed_mountains.ppm"},
-    {"p1_gen_watershed_mountain_line_sets_tester", 14u, "14_watershed_mountain_line_sets.ppm"},
-    {"p1_gen_distance_to_river_tester", 15u, "15_distance_to_river.ppm"},
-    {"p1_gen_nearness_to_watershed_mtn_tester", 16u, "16_nearness_watershed_mtn.ppm"},
-    {"p1_adj_land_altitude_tester", 17u, "17_land_altitude.ppm"},
-    {"p1_adj_ensure_coasts_tester", 18u, "18_ensure_coasts.ppm"},
-    {"p1_adj_ensure_seas_tester", 19u, "19_ensure_seas.ppm"},
-    {"p1_adj_ensure_river_valleys_tester", 20u, "20_ensure_river_valleys.ppm"},
-    {"p1_adj_ensure_mtn_foothills_tester", 21u, "21_ensure_mtn_foothills.ppm"},
-    {"p1_gen_wind_pattern_adv_tester", 22u, "22_wind_pattern_adv_dir.ppm"},
-    {"p1_gen_rain_orographic_tester", 23u, "23_rain_oro_rain.ppm"},
-    {"p1_gen_climate_tester", 24u, "24_climate.ppm"},
-    {"p1_gen_desert_river_cull_tester", 25u, "25_desert_river_cull_upstream.ppm"},
-    {"p1_gen_loess_boost_tester", 26u, "26_loess_boost.ppm"},
-    {"p1_adj_grassland_loess_tiles_tester", 27u, "27_grassland_loess_tiles.ppm"},
-    {"p1_make_map_tester", 29u, "28_make_map_terrain.ppm"},
+    {"p1_gen_cont_outlines_tester", 1u, P1_TIN_NONE, 0u, "01_outline.ppm", ""},
+    {"p1_adj_outline_fill_tester", 2u, P1_TIN_EARLY, 1u, "02_outline_fill.ppm", ""},
+    {"p1_gen_noise_perlin_tester", 3u, P1_TIN_EARLY, 3u, "03_noise_perlin.ppm", ""},
+    {"p1_gen_land_depth_tester", 4u, P1_TIN_EARLY, 1u, "04_land_depth.ppm", ""},
+    {"p1_gen_shaped_outline_tester", 7u, P1_TIN_EARLY, 4u, "07_shaped_outline_merge.ppm", ""},
+    {"p1_gen_river_pts_tester", 8u, P1_TIN_EARLY, 7u, "08_river_pts.ppm", ""},
+    {"p1_gen_river_sectors_tester", 9u, P1_TIN_EARLY, 8u, "09_river_sectors.ppm", ""},
+    {"p1_gen_coastal_mtn_limits_tester", 10u, P1_TIN_NONE, 0u, "10_coastal_mtn_limits.ppm", ""},
+    {"p1_gen_river_network_tester", 11u, P1_TIN_NONE, 0u, "11_river_network.ppm", ""},
+    {"p1_gen_river_lines_tester", 12u, P1_TIN_NONE, 0u, "12_river_lines.ppm", ""},
+    {"p1_adj_coastal_mtn_rivers_tester", 121u, P1_TIN_NONE, 0u, "12_coastal_mtn_rivers.ppm", ""},
+    {"p1_adj_river_lakes_tester", 13u, P1_TIN_NONE, 0u, "13_river_lakes.ppm", ""},
+    {"p1_adj_river_inlets_tester", 14u, P1_TIN_NONE, 0u, "14_river_inlets.ppm", ""},
+    {"p1_gen_watershed_mountains_tester", 15u, P1_TIN_NONE, 0u, "15_watershed_mountains.ppm", ""},
+    {"p1_gen_watershed_mountain_line_sets_tester", 15u, P1_TIN_NONE, 0u, "15_watershed_mountain_line_sets.ppm", ""},
+    {"p1_gen_distance_to_river_tester", 16u, P1_TIN_NONE, 0u, "16_distance_to_river.ppm", ""},
+    {"p1_gen_river_dist_tester", 163u, P1_TIN_NONE, 0u, "163_river_dist_up.ppm", "163_river_dist_dn.ppm"},
+    {"p1_gen_nearness_to_watershed_mtn_tester", 17u, P1_TIN_NONE, 0u, "17_nearness_watershed_mtn.ppm", ""},
+    {"p1_adj_land_altitude_tester", 18u, P1_TIN_C14, 0u, "18_land_altitude.ppm", "18_land_altitude_joint.ppm"},
+    {"p1_adj_ensure_coasts_tester", 19u, P1_TIN_CENS, 18u, "19_ensure_coasts.ppm", ""},
+    {"p1_adj_ensure_seas_tester", 20u, P1_TIN_CENS, 19u, "20_ensure_seas.ppm", ""},
+    {"p1_adj_ensure_river_valleys_tester", 21u, P1_TIN_CENS, 20u, "21_ensure_river_valleys.ppm", ""},
+    {"p1_adj_ensure_mtn_foothills_tester", 22u, P1_TIN_CENS, 21u, "22_ensure_mtn_foothills.ppm", ""},
+    {"p1_gen_wind_pattern_adv_tester", 23u, P1_TIN_MK, 22u, "23_wind_pattern_adv_dir.ppm", "23_wind_pattern_adv_str.ppm"},
+    {"p1_gen_rain_orographic_tester", 24u, P1_TIN_MK, 23u, "24_rain_oro_rain.ppm", ""},
+    {"p1_gen_climate_tester", 25u, P1_TIN_MK, 24u, "25_climate.ppm", "25_climate_terrain.ppm"},
+    {"p1_gen_desert_river_cull_tester", 26u, P1_TIN_MK, 25u, "26_desert_river_cull_upstream.ppm", "26_desert_river_cull_downstream.ppm"},
+    {"p1_gen_loess_boost_tester", 27u, P1_TIN_MK, 25u, "27_loess_boost.ppm", ""},
+    {"p1_adj_grassland_loess_tiles_tester", 28u, P1_TIN_MK, 27u, "28_grassland_loess_tiles.ppm", ""},
+    {"p1_make_map_tester", 30u, P1_TIN_MK, 30u, "29_make_map_terrain.ppm", "29_make_map_climate.ppm"},
+    {"p1_gen_rich_coast_fertility_tester", 31u, P1_TIN_MK, 24u, "31_rich_coast_fertility.ppm", ""},
+    {"p1_adj_coast_fertility_tester", 32u, P1_TIN_MK, 24u, "32_coast_fertility_adj.ppm", ""},
+    {"p1_adj_ensure_adj_rules_tester", 33u, P1_TIN_MK, 28u, "33_ensure_adj_rules.ppm", "33_ensure_adj_rules_terrain.ppm"},
+    {"p1_gen_forest_overlay_tester", 34u, P1_TIN_MK, 33u, "34_forest_overlay.ppm", ""},
+    {"p1_adj_delta_swamps_tester", 35u, P1_TIN_MK, 33u, "35_delta_swamps.ppm", "35_delta_swamps_climate.ppm"},
 };
 
 static const P1_TesterCfg* g_p1_tester_cfg = nullptr;
@@ -114,47 +135,32 @@ static u32 p1_tester_step () {
 }
 
 static cstr p1_tester_out () {
-    return g_p1_tester_cfg != nullptr ? g_p1_tester_cfg->m_out : nullptr;
+    return g_p1_tester_cfg != nullptr ? g_p1_tester_cfg->m_out_pri : nullptr;
 }
 
-static u32 p1_read_seed_file () {
-    FILE* f = std::fopen(P1_SEED_FILE, "r");
-    if (f == nullptr) {
-        return 42u;
-    }
-    u32 seed = 0;
-    if (std::fscanf(f, "%u", &seed) != 1) {
-        std::fclose(f);
-        return 42u;
-    }
-    std::fclose(f);
-    return seed;
+static cstr p1_tester_out_sec () {
+    return g_p1_tester_cfg != nullptr ? g_p1_tester_cfg->m_out_sec : nullptr;
 }
 
-static u32 p1_resolve_seed (i32 argc, char* argv[]) {
-    if (argc >= 2) {
-        g_p1_out_subdir = false;
-        return static_cast<u32>(std::strtoul(argv[1], nullptr, 10));
-    }
-    g_p1_out_subdir = true;
-    return p1_read_seed_file();
+static u8 p1_tester_in_kind () {
+    return g_p1_tester_cfg != nullptr ? g_p1_tester_cfg->m_in_kind : P1_TIN_NONE;
 }
 
-static void p1_resolve_run_prm (i32 argc, char* argv[], P1_RunPrm* prm) {
-    if (prm == nullptr) {
-        return;
-    }
-    *prm = p1_run_prm_def();
-    prm->m_seed = p1_resolve_seed(argc, argv);
-    if (argc >= 3) {
-        prm->m_w = static_cast<u16>(std::strtoul(argv[2], nullptr, 10));
-    }
-    if (argc >= 4) {
-        prm->m_h = static_cast<u16>(std::strtoul(argv[3], nullptr, 10));
+static u16 p1_tester_in_step () {
+    return g_p1_tester_cfg != nullptr ? g_p1_tester_cfg->m_in_step : 0u;
+}
+
+bool p1_tester_clear_out (u32 seed);
+
+static inline void p1_resolve_run_prm (i32 argc, char* argv[], P1_RunPrm* prm) {
+    P1_TesterCli cli;
+    cli.parse(argc, argv);
+    if (prm != nullptr) {
+        *prm = cli.prm();
     }
 }
 
-static void p1_resolve_test_args (i32 argc, char* argv[], u32* seed, u16* map_w, u16* map_h) {
+static inline void p1_resolve_test_args (i32 argc, char* argv[], u32* seed, u16* map_w, u16* map_h) {
     P1_RunPrm prm;
     p1_resolve_run_prm(argc, argv, &prm);
     if (seed != nullptr) {
@@ -174,48 +180,26 @@ static inline P1_Adj_LandAltitudePrm p1_tester_land_altitude_prm () {
     sp.m_w_near = 0.85f;
     sp.m_w_riv = 0.5f;
     sp.m_lim_hills = 0.4f;
-    sp.m_lim_mtn = 0.8f;
+    sp.m_lim_mtn = 0.90f;
     return sp;
 }
 
-static void p1_resolve_land_altitude_prm (i32 argc, char* argv[], P1_Adj_LandAltitudePrm* sp) {
-    if (sp == nullptr) {
-        return;
-    }
-    *sp = p1_tester_land_altitude_prm();
-    if (argc >= 5) {
-        sp->m_w_noise = static_cast<f32>(std::strtod(argv[4], nullptr));
-    }
-    if (argc >= 6) {
-        sp->m_w_near = static_cast<f32>(std::strtod(argv[5], nullptr));
-    }
-    if (argc >= 7) {
-        sp->m_w_riv = static_cast<f32>(std::strtod(argv[6], nullptr));
-    }
-    if (argc >= 8) {
-        sp->m_lim_hills = static_cast<f32>(std::strtod(argv[7], nullptr));
-    }
-    if (argc >= 9) {
-        sp->m_lim_mtn = static_cast<f32>(std::strtod(argv[8], nullptr));
+static inline void p1_resolve_land_altitude_prm (i32 argc, char* argv[], P1_Adj_LandAltitudePrm* sp) {
+    P1_TesterCli cli;
+    cli.parse(argc, argv);
+    if (sp != nullptr) {
+        *sp = cli.lap();
     }
 }
 
-static bool p1_resolve_climate_rain_wt (i32 argc, char* argv[], u8* out_wt, bool* out_set) {
+static inline bool p1_resolve_climate_rain_wt (i32 argc, char* argv[], u8* out_wt, bool* out_set) {
     if (out_wt == nullptr || out_set == nullptr) {
         return false;
     }
-    *out_set = false;
-    *out_wt = p1_gen_climate_prm_def().m_wts.m_w_rain;
-    for (i32 a = 1; a < argc; ++a) {
-        if (argv[a] == nullptr) {
-            continue;
-        }
-        if (std::strncmp(argv[a], "--rain-wt=", 10) == 0) {
-            const i32 v = static_cast<i32>(std::strtol(argv[a] + 10, nullptr, 10));
-            *out_wt = (v < 0) ? 0 : ((v > CLIMATE_WT_MAX) ? static_cast<u8>(CLIMATE_WT_MAX) : static_cast<u8>(v));
-            *out_set = true;
-        }
-    }
+    P1_TesterCli cli;
+    cli.parse(argc, argv);
+    *out_wt = cli.rain_wt();
+    *out_set = cli.rain_wt_set();
     return true;
 }
 
@@ -247,7 +231,7 @@ static bool p1_make_out_path (u32 seed, cstr fname, char* out, size_t cap) {
     if (!p1_ensure_dir(P1_OUT_ROOT)) {
         return false;
     }
-    if (g_p1_out_subdir) {
+    if (p1_tester_out_subdir()) {
         char dir[256];
         std::snprintf(dir, sizeof(dir), "%s/p1-seed-%03u", P1_OUT_ROOT, static_cast<unsigned>(seed));
         if (!p1_ensure_dir(dir)) {
@@ -280,12 +264,11 @@ static bool p1_tester_make_step_out (
 }
 
 static bool p1_tester_whiteboard_chk () {
-    const u32 n = Whiteboard::chkout();
+    const u32 n = WhiteboardMng::chkout();
     if (n != 0u) {
         std::printf("Whiteboard checkout leak: %u\n", n);
         return false;
     }
-    Whiteboard::dealloc();
     return true;
 }
 

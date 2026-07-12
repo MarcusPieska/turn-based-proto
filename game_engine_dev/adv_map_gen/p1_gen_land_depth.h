@@ -23,6 +23,10 @@ struct P1_Gen_LandDepthRslt {
 //================================================================================================================================
 //=> - P1_Gen_LandDepth -
 //================================================================================================================================
+//
+//  BFS land distance from water on a gray outline overlay; dist is u16 per tile (k_inf unreachable).
+//
+//================================================================================================================================
 
 class P1_Gen_LandDepth {
 public:
@@ -32,7 +36,6 @@ public:
     bool generate (const u8* ol_gray, u16 w, u16 h);
     bool is_valid () const;
     const P1_Gen_LandDepthRslt& result () const;
-    void save_output (cstr path) const;
 
 private:
     P1_Gen_LandDepth (const P1_Gen_LandDepth& other) = delete;

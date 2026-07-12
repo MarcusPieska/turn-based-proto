@@ -6,7 +6,7 @@
 #include <cstring>
 
 #include "p1_gen_river_lines.h"
-#include "whiteboard.h"
+#include "p1_wb_util.h"
 #include "generator_constants.h"
 
 //================================================================================================================================
@@ -532,16 +532,16 @@ static bool walk_sec_bfs (
         return false;
     }
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
-    u16* vis = Whiteboard::alloc(static_cast<i32>(n));
-    if (vis == nullptr) {
+    Whiteboard_2B wb_vis("P1_Gen_RiverLines", "walk_bfs_vis", 0u);
+    if (!wb_vis.ok()) {
         return false;
     }
+    u16* vis = wb_vis.get_iter_ptr();
     u32* par = new u32[n];
     u32* q = new u32[n];
     if (par == nullptr || q == nullptr) {
         delete[] q;
         delete[] par;
-        Whiteboard::release(vis);
         return false;
     }
     for (u32 i = 0; i < n; ++i) {
@@ -552,7 +552,6 @@ static bool walk_sec_bfs (
     if (ov_sec[si] != sid || ov_sec[gi] != sid) {
         delete[] q;
         delete[] par;
-        Whiteboard::release(vis);
         return false;
     }
     vis[si] = 1;
@@ -585,7 +584,6 @@ static bool walk_sec_bfs (
     if (!hit) {
         delete[] q;
         delete[] par;
-        Whiteboard::release(vis);
         return false;
     }
     for (u32 c = gi; c != si; c = par[c]) {
@@ -599,7 +597,6 @@ static bool walk_sec_bfs (
     mark_riv(ov, terrain, glob_wat, w, h, x1, y1);
     delete[] q;
     delete[] par;
-    Whiteboard::release(vis);
     return true;
 }
 
@@ -617,20 +614,18 @@ static void paint_half (
     i32 by) 
 {
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
-    u16* brd = Whiteboard::alloc(static_cast<i32>(n));
-    u16* sdep = Whiteboard::alloc(static_cast<i32>(n));
-    if (brd == nullptr || sdep == nullptr) {
-        Whiteboard::release(brd);
-        Whiteboard::release(sdep);
+    Whiteboard_2B wb_brd("P1_Gen_RiverLines", "paint_brd", 0u);
+    Whiteboard_2B wb_sdep("P1_Gen_RiverLines", "paint_sdep", 0u);
+    if (!wb_brd.ok() || !wb_sdep.ok()) {
         return;
     }
+    u16* brd = wb_brd.get_iter_ptr();
+    u16* sdep = wb_sdep.get_iter_ptr();
     flood_dep(brd, sec_ov, w, h, sid, bx, by);
     flood_dep(sdep, sec_ov, w, h, sid, cx, cy);
     if (!walk_dep(ov, sec_ov, brd, sdep, terrain, glob_wat, w, h, sid, cx, cy, bx, by)) {
         walk_sec_bfs(ov, sec_ov, terrain, glob_wat, w, h, sid, cx, cy, bx, by);
     }
-    Whiteboard::release(brd);
-    Whiteboard::release(sdep);
 }
 
 static bool bfs_sec_goal (
@@ -655,16 +650,16 @@ static bool bfs_sec_goal (
         return false;
     }
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
-    u16* vis = Whiteboard::alloc(static_cast<i32>(n));
-    if (vis == nullptr) {
+    Whiteboard_2B wb_vis("P1_Gen_RiverLines", "sec_goal_vis", 0u);
+    if (!wb_vis.ok()) {
         return false;
     }
+    u16* vis = wb_vis.get_iter_ptr();
     for (u32 i = 0; i < n; ++i) {
         vis[i] = 0;
     }
     u32* q = new u32[n];
     if (q == nullptr) {
-        Whiteboard::release(vis);
         return false;
     }
     const u32 si = tidx(w, sx, sy);
@@ -719,7 +714,6 @@ static bool bfs_sec_goal (
         }
     }
     delete[] q;
-    Whiteboard::release(vis);
     return ok;
 }
 
@@ -740,16 +734,16 @@ static bool paint_water (
         return false;
     }
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
-    u16* vis = Whiteboard::alloc(static_cast<i32>(n));
-    if (vis == nullptr) {
+    Whiteboard_2B wb_vis("P1_Gen_RiverLines", "paint_wat_vis", 0u);
+    if (!wb_vis.ok()) {
         return false;
     }
+    u16* vis = wb_vis.get_iter_ptr();
     u32* par = new u32[n];
     u32* q = new u32[n];
     if (par == nullptr || q == nullptr) {
         delete[] q;
         delete[] par;
-        Whiteboard::release(vis);
         return false;
     }
     for (u32 i = 0; i < n; ++i) {
@@ -785,7 +779,6 @@ static bool paint_water (
     if (!hit) {
         delete[] q;
         delete[] par;
-        Whiteboard::release(vis);
         return false;
     }
     for (u32 c = gi; c != si; c = par[c]) {
@@ -799,7 +792,6 @@ static bool paint_water (
     mark_riv(ov, terrain, glob_wat, w, h, x1, y1);
     delete[] q;
     delete[] par;
-    Whiteboard::release(vis);
     return true;
 }
 
@@ -907,19 +899,18 @@ static bool find_nearest_water (
         return false;
     }
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
-    u16* vis = Whiteboard::alloc(static_cast<i32>(n));
-    if (vis == nullptr) {
+    Whiteboard_2B wb_vis("P1_Gen_RiverLines", "near_wat_vis", 0u);
+    Whiteboard_2B wb_qd("P1_Gen_RiverLines", "near_wat_qd", 0u);
+    if (!wb_vis.ok() || !wb_qd.ok()) {
         return false;
     }
+    u16* vis = wb_vis.get_iter_ptr();
     for (u32 i = 0; i < n; ++i) {
         vis[i] = 0;
     }
-    u16* qd = Whiteboard::alloc(static_cast<i32>(n));
+    u16* qd = wb_qd.get_iter_ptr();
     u32* q = new u32[n];
-    if (qd == nullptr || q == nullptr) {
-        delete[] q;
-        Whiteboard::release(qd);
-        Whiteboard::release(vis);
+    if (q == nullptr) {
         return false;
     }
     for (u32 i = 0; i < n; ++i) {
@@ -967,8 +958,6 @@ static bool find_nearest_water (
         }
     }
     delete[] q;
-    Whiteboard::release(qd);
-    Whiteboard::release(vis);
     if (bd == -1) {
         return false;
     }

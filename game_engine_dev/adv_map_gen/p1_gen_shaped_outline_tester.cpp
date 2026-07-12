@@ -6,127 +6,97 @@
 #include <cstring>
 #include <ctime>
 
-#include "p1_adj_outline_fill.h"
-#include "p1_gen_land_depth.h"
-#include "p1_gen_cont_outlines.h"
+#include "game_map_defs.h"
+#include "generator_constants.h"
 #include "p1_gen_shaped_outline.h"
-#include "game_primitives.h"
-#include "map_terrain_data.h"
+#include "p1_gen_shaped_outline_view.h"
+#include "p1_rprint.h"
+#include "p1_tester_harness.h"
 #include "p1_tester_util.h"
 
 //================================================================================================================================
 //=> - Test helpers -
 //================================================================================================================================
 
-static bool save_terrain (cstr path, u8* terrain, u16 w, u16 h) {
-    MapTerrainData map;
-    if (!map.assign_raw(w, h, terrain)) {
-        return false;
-    }
-    return map.save_terrain_ppm(path);
+static inline bool ov_is_shelf (const u8* ov, u32 i) {
+    return ov[i] == WL_OVERLAY_LAND_GRAY;
 }
 
-static bool run_shaped_layer (
-    const P1_RunPrm& prm,
-    f32 radial,
-    u32 step_n,
-    cstr suffix,
-    u8* base_ter,
-    u16 w,
-    u16 h,
-    const u8* ov,
-    const u16* land_depth) 
-{
-    char out_path[320];
-    if (!p1_tester_make_step_out(prm.m_seed, step_n, suffix, out_path, sizeof(out_path))) {
-        std::printf("failed to ensure output dir\n");
+static u32 count_shelf_plains (const u8* terrain, const u8* ov, u32 n) {
+    u32 c = 0u;
+    if (terrain == nullptr || ov == nullptr) {
+        return 0u;
+    }
+    for (u32 i = 0; i < n; ++i) {
+        if (ov_is_shelf(ov, i) && terrain[i] == TERR_PLAINS[0]) {
+            ++c;
+        }
+    }
+    return c;
+}
+
+static u32 count_shelf (const u8* ov, u32 n) {
+    u32 c = 0u;
+    if (ov == nullptr) {
+        return 0u;
+    }
+    for (u32 i = 0; i < n; ++i) {
+        if (ov_is_shelf(ov, i)) {
+            ++c;
+        }
+    }
+    return c;
+}
+
+static bool save_near_far (u32 seed, const u8* near_ter, const u8* far_ter, u16 w, u16 h) {
+    char path[320];
+    char obuf[384];
+    if (near_ter == nullptr || far_ter == nullptr) {
         return false;
     }
-    const u32 npx = static_cast<u32>(w) * static_cast<u32>(h);
-    u8* terrain = new u8[npx];
-    if (terrain == nullptr) {
+    if (!p1_make_out_path(seed, "05_shaped_outline_near.ppm", path, sizeof(path))) {
         return false;
     }
-    std::memcpy(terrain, base_ter, static_cast<size_t>(npx));
-    P1_Gen_ShapedOutline gen(prm);
-    const clock_t t0 = clock();
-    const bool ok = gen.generate_layer(terrain, w, h, ov, land_depth, radial);
-    const clock_t t1 = clock();
-    const double sec = static_cast<double>(t1 - t0) / static_cast<double>(CLOCKS_PER_SEC);
-    if (!ok || !gen.is_valid()) {
-        std::printf("P1_Gen_ShapedOutline failed radial=%.2f\n", static_cast<f64>(radial));
-        delete[] terrain;
+    if (!P1_Gen_ShapedOutlineView::save_near(path, near_ter, w, h)) {
         return false;
     }
-    std::printf("P1_Gen_ShapedOutline radial=%.2f time: %.6f s (%u x %u)\n",
-        static_cast<f64>(radial),
-        sec,
-        static_cast<u32>(w),
-        static_cast<u32>(h));
-    if (!save_terrain(out_path, terrain, w, h)) {
-        std::printf("failed to save map: %s\n", out_path);
-        delete[] terrain;
+    std::snprintf(obuf, sizeof(obuf), "Output: %s", path);
+    P1_RPrint::rprint_info(obuf);
+    if (!p1_make_out_path(seed, "06_shaped_outline_far.ppm", path, sizeof(path))) {
         return false;
     }
-    delete[] terrain;
-    std::printf("saved: %s\n", out_path);
+    if (!P1_Gen_ShapedOutlineView::save_far(path, far_ter, w, h)) {
+        return false;
+    }
+    std::snprintf(obuf, sizeof(obuf), "Output: %s", path);
+    P1_RPrint::rprint_info(obuf);
     return true;
 }
 
-i32 test_p1_gen_shaped_outline_basic (const P1_RunPrm& prm) {
-    P1_Gen_ShapedOutlinePrm sp = p1_gen_shaped_outline_prm_def();
-    const clock_t t0o = clock();
-    MapArrayOverlay ov_map;
-    if (!p1_gen_step01_ov(prm, &ov_map)) {
-        std::printf("P1_Gen_ContOutlines failed for shaped outline input\n");
+//================================================================================================================================
+//=> - Test body -
+//================================================================================================================================
+
+i32 test_p1_gen_shaped_outline_basic (P1_TesterHarness& h) {
+    if (!h.run_input()) {
+        P1_RPrint::rprint_info("Failed to build step 4 input");
         return -1;
     }
-    const u16 w = ov_map.width();
-    const u16 h = ov_map.height();
-    const u8* ov = ov_map.data();
-    if (ov == nullptr || w == 0 || h == 0) {
-        std::printf("invalid outline overlay\n");
+    char ibuf[64];
+    std::snprintf(ibuf, sizeof(ibuf), "Input: %.6f s", h.input_sec());
+    P1_RPrint::rprint_info(ibuf);
+    const P1_EarlyChainRslt& ec = h.early();
+    const u16 w = ec.m_w;
+    const u16 ht = ec.m_h;
+    const u8* ov = ec.m_ov.data();
+    const u16* land_depth = ec.m_ld_dist.data();
+    if (ov == nullptr || land_depth == nullptr || ec.m_fill_ter == nullptr
+        || ec.m_perlin_f32 == nullptr || w == 0 || ht == 0) {
+        P1_RPrint::rprint_info("Invalid early chain input for shaped outline");
         return -1;
     }
-    const u32 npx = static_cast<u32>(w) * static_cast<u32>(h);
-    u8* base_ter = new u8[npx];
-    if (base_ter == nullptr) {
-        return -1;
-    }
-    P1_Adj_OutlineFill fill(prm);
-    if (!fill.adjust(base_ter, w, h, ov) || !fill.is_valid()) {
-        std::printf("P1_Adj_OutlineFill failed for shaped outline input\n");
-        delete[] base_ter;
-        return -1;
-    }
-    P1_Gen_LandDepth depth_gen(prm);
-    if (!depth_gen.generate(ov, w, h) || !depth_gen.is_valid()) {
-        std::printf("P1_Gen_LandDepth failed for shaped outline input\n");
-        delete[] base_ter;
-        return -1;
-    }
-    const u16* land_depth = depth_gen.result().m_dist.data();
-    if (land_depth == nullptr) {
-        std::printf("invalid land depth data\n");
-        delete[] base_ter;
-        return -1;
-    }
-    const clock_t t1o = clock();
-    const double sec_o = static_cast<double>(t1o - t0o) / static_cast<double>(CLOCKS_PER_SEC);
-    std::printf("P1 steps 1-4 input time: %.6f s\n", sec_o);
-    if (!run_shaped_layer(prm, sp.m_radial_near, p1_tester_step(), "shaped_outline_near", base_ter, w, h, ov, land_depth)) {
-        delete[] base_ter;
-        return -1;
-    }
-    if (!run_shaped_layer(prm, sp.m_radial_far, p1_tester_step() + 1u, "shaped_outline_far", base_ter, w, h, ov, land_depth)) {
-        delete[] base_ter;
-        return -1;
-    }
-    char merge_path[320];
-    if (!p1_tester_make_out(prm.m_seed, merge_path, sizeof(merge_path))) {
-        delete[] base_ter;
-        return -1;
-    }
+    const P1_Gen_ShapedOutlinePrm sp = p1_gen_shaped_outline_prm_from_cfg(h.cfg());
+    const u32 npx = static_cast<u32>(w) * static_cast<u32>(ht);
     u8* near_ter = new u8[npx];
     u8* far_ter = new u8[npx];
     u8* merged = new u8[npx];
@@ -134,45 +104,64 @@ i32 test_p1_gen_shaped_outline_basic (const P1_RunPrm& prm) {
         delete[] merged;
         delete[] far_ter;
         delete[] near_ter;
-        delete[] base_ter;
         return -1;
     }
-    std::memcpy(near_ter, base_ter, static_cast<size_t>(npx));
-    std::memcpy(far_ter, base_ter, static_cast<size_t>(npx));
-    std::memcpy(merged, base_ter, static_cast<size_t>(npx));
-    P1_Gen_ShapedOutline gen(prm);
-    const clock_t t0m = clock();
-    const bool ok_near = gen.generate_layer(near_ter, w, h, ov, land_depth, sp.m_radial_near);
-    const bool ok_far = gen.generate_layer(far_ter, w, h, ov, land_depth, sp.m_radial_far);
+    std::memcpy(near_ter, ec.m_fill_ter, static_cast<size_t>(npx));
+    std::memcpy(far_ter, ec.m_fill_ter, static_cast<size_t>(npx));
+    std::memcpy(merged, ec.m_fill_ter, static_cast<size_t>(npx));
+    P1_Gen_ShapedOutline gen(h.prm());
+    gen.bind_perlin_field(ec.m_perlin_f32, w, ht);
+    const clock_t t0 = clock();
+    const bool ok_near = gen.generate_layer(near_ter, w, ht, ov, land_depth, sp.m_radial_near, sp.m_shelf_near);
+    const bool ok_far = gen.generate_layer(far_ter, w, ht, ov, land_depth, sp.m_radial_far, sp.m_shelf_far);
     const bool ok_merge = ok_near && ok_far
-        && gen.merge_layers(merged, w, h, ov, land_depth, near_ter, far_ter);
-    const clock_t t1m = clock();
-    const double sec_m = static_cast<double>(t1m - t0m) / static_cast<double>(CLOCKS_PER_SEC);
-    if (!ok_merge || !gen.is_valid()) {
-        std::printf("P1_Gen_ShapedOutline merge failed\n");
+        && gen.merge_layers(merged, w, ht, ov, land_depth, near_ter, far_ter);
+    const clock_t t1 = clock();
+    const double sec = static_cast<double>(t1 - t0) / static_cast<double>(CLOCKS_PER_SEC);
+    const u32 shelf_n = count_shelf(ov, npx);
+    const u32 plains_n = count_shelf_plains(merged, ov, npx);
+    if (!ok_merge || !gen.is_valid() || shelf_n == 0u) {
+        P1_RPrint::rprint_result_u32("P1_Gen_ShapedOutline", "Shelf", shelf_n, false);
         delete[] merged;
         delete[] far_ter;
         delete[] near_ter;
-        delete[] base_ter;
         return -1;
     }
-    std::printf("P1_Gen_ShapedOutline merge time: %.6f s (%u x %u)\n",
-        sec_m,
-        static_cast<u32>(w),
-        static_cast<u32>(h));
-    if (!save_terrain(merge_path, merged, w, h)) {
-        std::printf("failed to save map: %s\n", merge_path);
+    char tbuf[64];
+    std::snprintf(tbuf, sizeof(tbuf), "Timing: %.6f s", sec);
+    P1_RPrint::rprint_info(tbuf);
+    P1_RPrint::rprint_state_u32("P1_Gen_ShapedOutline", "Shelf", shelf_n);
+    P1_RPrint::rprint_state_u32("P1_Gen_ShapedOutline", "Plains", plains_n);
+    P1_RPrint::rprint_state("Map", "W", w);
+    P1_RPrint::rprint_state("Map", "H", ht);
+    char pri_path[320];
+    if (!h.path_pri(pri_path, sizeof(pri_path))) {
+        P1_RPrint::rprint_info("Failed to ensure primary output path");
         delete[] merged;
         delete[] far_ter;
         delete[] near_ter;
-        delete[] base_ter;
         return -1;
     }
-    std::printf("saved: %s\n", merge_path);
+    if (!P1_Gen_ShapedOutlineView::save_pri(pri_path, merged, w, ht)) {
+        P1_RPrint::rprint_info("Failed to save primary output");
+        delete[] merged;
+        delete[] far_ter;
+        delete[] near_ter;
+        return -1;
+    }
+    char obuf[384];
+    std::snprintf(obuf, sizeof(obuf), "Output: %s", pri_path);
+    P1_RPrint::rprint_info(obuf);
+    if (h.full() && !save_near_far(h.seed(), near_ter, far_ter, w, ht)) {
+        P1_RPrint::rprint_info("Failed to save near/far outputs");
+        delete[] merged;
+        delete[] far_ter;
+        delete[] near_ter;
+        return -1;
+    }
     delete[] merged;
     delete[] far_ter;
     delete[] near_ter;
-    delete[] base_ter;
     return 0;
 }
 
@@ -181,12 +170,18 @@ i32 test_p1_gen_shaped_outline_basic (const P1_RunPrm& prm) {
 //================================================================================================================================
 
 i32 main (i32 argc, char* argv[]) {
-    if (!p1_tester_checkout(argc, argv)) {
+    P1_TesterHarness h;
+    if (!h.begin(argc, argv)) {
         return -1;
     }
-    P1_RunPrm prm;
-    p1_resolve_run_prm(argc, argv, &prm);
-    return test_p1_gen_shaped_outline_basic(prm);
+    const i32 rc = test_p1_gen_shaped_outline_basic(h);
+    if (rc != 0) {
+        return rc;
+    }
+    if (!h.finish()) {
+        return -1;
+    }
+    return 0;
 }
 
 //================================================================================================================================

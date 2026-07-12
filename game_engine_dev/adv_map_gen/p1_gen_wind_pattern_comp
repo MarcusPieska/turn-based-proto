@@ -2,6 +2,10 @@
 
 INC="-I. -I.. -I../map_loader"
 
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+cd "$ROOT"
+source p1_build_tester_cli_obj.sh
+
 g++ -std=c++11 $INC -c whiteboard.cpp -o whiteboard.o
 g++ -std=c++11 $INC -c wb_sheet.cpp -o wb_sheet.o
 g++ -std=c++11 $INC -c wb_que_xy.cpp -o wb_que_xy.o
@@ -14,6 +18,7 @@ g++ -std=c++11 $INC -c p1_gen_wind_pattern.cpp -o p1_gen_wind_pattern.o
 g++ -std=c++11 $INC -c p1_gen_wind_pattern_tester.cpp -o p1_gen_wind_pattern_tester.o
 
 g++ -std=c++11 -o p1_gen_wind_pattern_tester \
+    p1_tester_cli.o \
     whiteboard.o \
     wb_sheet.o \
     wb_que_xy.o \
@@ -34,4 +39,5 @@ rm whiteboard.o \
     map_terrain_data.o \
     map_loader.o \
     p1_gen_wind_pattern.o \
+    p1_tester_cli.o \
     p1_gen_wind_pattern_tester.o

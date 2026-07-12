@@ -13,6 +13,7 @@
 *.pyc
 RESULTS_*
 *.trace
+*.o
 
 map_driver
 map_driver.exe

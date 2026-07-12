@@ -3,18 +3,22 @@
 //================================================================================================================================
 
 #include <cmath>
-#include <cstdio>
 #include <cstring>
 
 #include "p1_gen_river_sectors.h"
 #include "generator_constants.h"
-#include "whiteboard.h"
+#include "p1_step_log.h"
+#include "p1_wb_util.h"
+
+#define RS_ABORT(msg) P1_STEP_ABORT("P1_Gen_RiverSectors", msg)
 
 //================================================================================================================================
 //=> - Private generation helpers -
 //================================================================================================================================
 
 static const i32 k_ring_w = 3;
+static const u16 k_sb_conn_lim = 16u;
+static const u32 k_sq_slot = 256u;
 
 struct Rng32 {
     u32 m_s;
@@ -46,8 +50,7 @@ struct SectBuild {
     u16 m_cy;
     u8 m_terr;
     u16 m_conn_n;
-    u16 m_conn_cap;
-    u16* m_conn;
+    u16 m_conn[k_sb_conn_lim];
 };
 
 static bool is_water (u8 cls) {
@@ -90,25 +93,15 @@ static void glob_seed (const u8* terrain, u16 w, u16 h, u32 x, u32 y, u8* mask, 
     }
     mask[i] = 1;
     q[*qn] = i;
-    *qn = *qn + 1u;
+    *qn = *qn + 1u; 
 }
 
-static u8* build_glob_ocn_mask (const u8* terrain, u16 w, u16 h) {
-    if (terrain == nullptr || w == 0 || h == 0) {
-        return nullptr;
+static bool fill_glob_ocn_mask (const u8* terrain, u16 w, u16 h, u8* mask, u32* q) {
+    if (terrain == nullptr || mask == nullptr || q == nullptr || w == 0 || h == 0) {
+        return false;
     }
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
-    u8* mask = new u8[n];
-    if (mask == nullptr) {
-        return nullptr;
-    }
     std::memset(mask, 0, n);
-    const u32 qcap = n;
-    u32* q = new u32[qcap];
-    if (q == nullptr) {
-        delete[] mask;
-        return nullptr;
-    }
     u32 qn = 0;
     const u32 wi = static_cast<u32>(w);
     const u32 hi = static_cast<u32>(h);
@@ -145,42 +138,13 @@ static u8* build_glob_ocn_mask (const u8* terrain, u16 w, u16 h) {
             q[qn++] = ni;
         }
     }
-    delete[] q;
-    return mask;
+    return true;
 }
 
-static bool sq_init (SectQ* q, u32 cap) {
-    q->m_a = new QItem[cap];
-    if (q->m_a == nullptr) {
-        q->m_n = 0;
-        q->m_cap = 0;
-        return false;
-    }
+static void sq_bind (SectQ* q, QItem* base, u32 cap) {
+    q->m_a = base;
     q->m_n = 0;
     q->m_cap = cap;
-    return true;
-}
-
-static void sq_free (SectQ* q) {
-    delete[] q->m_a;
-    q->m_a = nullptr;
-    q->m_n = 0;
-    q->m_cap = 0;
-}
-
-static bool sq_grow (SectQ* q) {
-    const u32 nc = q->m_cap < 64u ? 64u : q->m_cap * 2u;
-    QItem* na = new QItem[nc];
-    if (na == nullptr) {
-        return false;
-    }
-    for (u32 i = 0; i < q->m_n; ++i) {
-        na[i] = q->m_a[i];
-    }
-    delete[] q->m_a;
-    q->m_a = na;
-    q->m_cap = nc;
-    return true;
 }
 
 static bool sq_has_xy (const SectQ* q, u16 x, u16 y) {
@@ -196,7 +160,7 @@ static bool sq_push_sorted (SectQ* q, QItem it) {
     if (sq_has_xy(q, it.m_x, it.m_y)) {
         return true;
     }
-    if (q->m_n >= q->m_cap && !sq_grow(q)) {
+    if (q->m_n >= q->m_cap) {
         return false;
     }
     u32 pos = q->m_n;
@@ -224,20 +188,6 @@ static void sq_erase_at (SectQ* q, u32 idx) {
     q->m_n--;
 }
 
-static bool sb_init (SectBuild* s) {
-    s->m_conn_n = 0;
-    s->m_conn_cap = 8;
-    s->m_conn = new u16[s->m_conn_cap];
-    return s->m_conn != nullptr;
-}
-
-static void sb_free (SectBuild* s) {
-    delete[] s->m_conn;
-    s->m_conn = nullptr;
-    s->m_conn_n = 0;
-    s->m_conn_cap = 0;
-}
-
 static bool sb_add_conn (SectBuild* a, SectBuild* b, u16 ai, u16 bi) {
     bool fnd = false;
     for (u16 i = 0; i < a->m_conn_n; ++i) {
@@ -247,18 +197,8 @@ static bool sb_add_conn (SectBuild* a, SectBuild* b, u16 ai, u16 bi) {
         }
     }
     if (!fnd) {
-        if (a->m_conn_n >= a->m_conn_cap) {
-            const u16 nc = static_cast<u16>(a->m_conn_cap * 2u);
-            u16* na = new u16[nc];
-            if (na == nullptr) {
-                return false;
-            }
-            for (u16 i = 0; i < a->m_conn_n; ++i) {
-                na[i] = a->m_conn[i];
-            }
-            delete[] a->m_conn;
-            a->m_conn = na;
-            a->m_conn_cap = nc;
+        if (a->m_conn_n >= k_sb_conn_lim) {
+            return false;
         }
         a->m_conn[a->m_conn_n++] = bi;
     }
@@ -270,18 +210,8 @@ static bool sb_add_conn (SectBuild* a, SectBuild* b, u16 ai, u16 bi) {
         }
     }
     if (!fnd) {
-        if (b->m_conn_n >= b->m_conn_cap) {
-            const u16 nc = static_cast<u16>(b->m_conn_cap * 2u);
-            u16* na = new u16[nc];
-            if (na == nullptr) {
-                return false;
-            }
-            for (u16 i = 0; i < b->m_conn_n; ++i) {
-                na[i] = b->m_conn[i];
-            }
-            delete[] b->m_conn;
-            b->m_conn = na;
-            b->m_conn_cap = nc;
+        if (b->m_conn_n >= k_sb_conn_lim) {
+            return false;
         }
         b->m_conn[b->m_conn_n++] = ai;
     }
@@ -294,50 +224,50 @@ static bool claim_river_sectors (
     u16 h,
     const P1_Gen_RiverPtsRslt& pts,
     P1_Gen_RiverSectorsRslt* out) {
-    if (terrain == nullptr || out == nullptr || pts.m_n == 0 || pts.m_pts == nullptr) {
-        return false;
+    if (terrain == nullptr || out == nullptr || pts.m_n == 0 || !pts.m_que.ok()) {
+        RS_ABORT("claim_river_sectors null args or empty pts");
     }
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
-    u8* glob = build_glob_ocn_mask(terrain, w, h);
-    if (glob == nullptr) {
-        return false;
+    Whiteboard_1B wb_glob("P1_Gen_RiverSectors", "glob", 0u);
+    Whiteboard_4B wb_q("P1_Gen_RiverSectors", "glob_q", 0u);
+    P1_WB_CHK(wb_glob);
+    P1_WB_CHK(wb_q);
+    u8* glob = wb_glob.raw();
+    u32* q = reinterpret_cast<u32*>(wb_q.get_iter_ptr());
+    if (!fill_glob_ocn_mask(terrain, w, h, glob, q)) {
+        RS_ABORT("claim_river_sectors glob ocean mask failed");
     }
     const u32 sector_n = pts.m_n;
+    if (sector_n * k_sq_slot > WhiteboardMng::tile_n()) {
+        RS_ABORT("claim_river_sectors sq pool overflow");
+    }
+    Whiteboard_8B wb_sq("P1_Gen_RiverSectors", "sq_pool", 0u);
+    Whiteboard_4B wb_act("P1_Gen_RiverSectors", "act", 0u);
+    P1_WB_CHK(wb_sq);
+    P1_WB_CHK(wb_act);
+    QItem* sq_pool = reinterpret_cast<QItem*>(wb_sq.get_iter_ptr());
+    i32* act = reinterpret_cast<i32*>(wb_act.get_iter_ptr());
     SectBuild* secs = new SectBuild[sector_n];
     SectQ* qs = new SectQ[sector_n];
     if (secs == nullptr || qs == nullptr) {
-        delete[] glob;
         delete[] secs;
         delete[] qs;
-        return false;
+        RS_ABORT("claim_river_sectors sector alloc failed");
     }
     for (u32 si = 0; si < sector_n; ++si) {
-        if (!sb_init(&secs[si]) || !sq_init(&qs[si], 64u)) {
-            for (u32 j = 0; j <= si; ++j) {
-                sb_free(&secs[j]);
-                sq_free(&qs[j]);
-            }
-            delete[] glob;
-            delete[] secs;
-            delete[] qs;
-            return false;
-        }
-        secs[si].m_cx = pts.m_pts[si].m_x;
-        secs[si].m_cy = pts.m_pts[si].m_y;
+        secs[si].m_conn_n = 0;
+        sq_bind(&qs[si], sq_pool + si * k_sq_slot, k_sq_slot);
+        secs[si].m_cx = pts.m_que.x_at(si);
+        secs[si].m_cy = pts.m_que.y_at(si);
     }
-    u16* clm = Whiteboard::alloc(static_cast<i32>(n));
+    Whiteboard_2B wb_clm("P1_Gen_RiverSectors", "clm", 0u);
+    P1_WB_CHK(wb_clm);
     u16* overlay = new u16[n];
-    if (clm == nullptr || overlay == nullptr) {
-        Whiteboard::release(clm);
-        delete[] overlay;
-        for (u32 si = 0; si < sector_n; ++si) {
-            sb_free(&secs[si]);
-            sq_free(&qs[si]);
-        }
-        delete[] glob;
+    u16* clm = wb_clm.get_iter_ptr();
+    if (overlay == nullptr) {
         delete[] secs;
         delete[] qs;
-        return false;
+        RS_ABORT("claim_river_sectors overlay alloc failed");
     }
     for (u32 i = 0; i < n; ++i) {
         clm[i] = 0;
@@ -371,7 +301,9 @@ static bool claim_river_sectors (
             if (clm[ni] != 0) {
                 const u16 oid = overlay[ni];
                 if (oid != static_cast<u16>(P1_RIVER_SECTOR_NONE) && oid != static_cast<u16>(si)) {
-                    sb_add_conn(&secs[si], &secs[oid], static_cast<u16>(si), oid);
+                    if (!sb_add_conn(&secs[si], &secs[oid], static_cast<u16>(si), oid)) {
+                        RS_ABORT("claim_river_sectors sector conn overflow");
+                    }
                 }
                 continue;
             }
@@ -383,21 +315,10 @@ static bool claim_river_sectors (
                 + (ny - static_cast<i32>(py)) * (ny - static_cast<i32>(py));
             e.m_x = static_cast<u16>(nx);
             e.m_y = static_cast<u16>(ny);
-            sq_push_sorted(&qs[si], e);
+            if (!sq_push_sorted(&qs[si], e)) {
+                RS_ABORT("claim_river_sectors sector queue overflow");
+            }
         }
-    }
-    i32* act = new i32[sector_n];
-    if (act == nullptr) {
-        Whiteboard::release(clm);
-        delete[] overlay;
-        for (u32 si = 0; si < sector_n; ++si) {
-            sb_free(&secs[si]);
-            sq_free(&qs[si]);
-        }
-        delete[] glob;
-        delete[] secs;
-        delete[] qs;
-        return false;
     }
     u32 act_n = 0;
     for (u32 si = 0; si < sector_n; ++si) {
@@ -469,7 +390,9 @@ static bool claim_river_sectors (
                     if (clm[ni] != 0) {
                         const u16 oid = overlay[ni];
                         if (oid != static_cast<u16>(P1_RIVER_SECTOR_NONE) && oid != static_cast<u16>(si)) {
-                            sb_add_conn(&secs[static_cast<u32>(si)], &secs[oid], static_cast<u16>(si), oid);
+                            if (!sb_add_conn(&secs[static_cast<u32>(si)], &secs[oid], static_cast<u16>(si), oid)) {
+                                RS_ABORT("claim_river_sectors sector conn overflow");
+                            }
                         }
                         continue;
                     }
@@ -481,7 +404,9 @@ static bool claim_river_sectors (
                         + (ny - static_cast<i32>(py)) * (ny - static_cast<i32>(py));
                     ne.m_x = static_cast<u16>(nx);
                     ne.m_y = static_cast<u16>(ny);
-                    sq_push_sorted(&qs[static_cast<u32>(si)], ne);
+                    if (!sq_push_sorted(&qs[static_cast<u32>(si)], ne)) {
+                        RS_ABORT("claim_river_sectors sector queue overflow");
+                    }
                 }
                 break;
             }
@@ -490,7 +415,7 @@ static bool claim_river_sectors (
                 const QItem& e = qs[static_cast<u32>(si)].m_a[qi];
                 const u32 ti = static_cast<u32>(e.m_y) * static_cast<u32>(w) + static_cast<u32>(e.m_x);
                 if (clm[ti] == 0) {
-                    has_unclaimed = true;
+                    has_unclaimed = true; 
                     break;
                 }
             }
@@ -503,19 +428,12 @@ static bool claim_river_sectors (
         }
         act_n = new_act_n;
     }
-    delete[] act;
-    Whiteboard::release(clm);
-    delete[] glob;
     P1_RiverSectorNode* nodes = new P1_RiverSectorNode[sector_n];
     if (nodes == nullptr) {
         delete[] overlay;
-        for (u32 si = 0; si < sector_n; ++si) {
-            sb_free(&secs[si]);
-            sq_free(&qs[si]);
-        }
         delete[] secs;
         delete[] qs;
-        return false;
+        RS_ABORT("claim_river_sectors nodes alloc failed");
     }
     for (u32 si = 0; si < sector_n; ++si) {
         nodes[si].m_cx = secs[si].m_cx;
@@ -531,20 +449,14 @@ static bool claim_river_sectors (
                 }
                 delete[] nodes;
                 delete[] overlay;
-                for (u32 sj = 0; sj < sector_n; ++sj) {
-                    sb_free(&secs[sj]);
-                    sq_free(&qs[sj]);
-                }
                 delete[] secs;
                 delete[] qs;
-                return false;
+                RS_ABORT("claim_river_sectors node conn alloc failed");
             }
             for (u16 c = 0; c < nodes[si].m_conn_n; ++c) {
                 nodes[si].m_conn[c] = secs[si].m_conn[c];
             }
         }
-        sb_free(&secs[si]);
-        sq_free(&qs[si]);
     }
     delete[] secs;
     delete[] qs;
@@ -554,30 +466,6 @@ static bool claim_river_sectors (
     out->m_ov = overlay;
     out->m_nodes = nodes;
     return true;
-}
-
-static bool save_rgb_ppm (cstr path, const u8* rgb, u16 wi, u16 hi) {
-    if (path == nullptr || rgb == nullptr) {
-        return false;
-    }
-    FILE* fp = std::fopen(path, "wb");
-    if (fp == nullptr) {
-        return false;
-    }
-    std::fprintf(fp, "P6\n%u %u\n255\n", (unsigned)wi, (unsigned)hi);
-    const size_t nbytes = static_cast<size_t>(wi) * static_cast<size_t>(hi) * 3u;
-    std::fwrite(rgb, 1, nbytes, fp);
-    std::fclose(fp);
-    return true;
-}
-
-static bool color_used (const u8* clr, u32 sector_n, u8 r, u8 g, u8 b) {
-    for (u32 si = 0; si < sector_n; ++si) {
-        if (clr[si * 3u + 0] == r && clr[si * 3u + 1] == g && clr[si * 3u + 2] == b) {
-            return true;
-        }
-    }
-    return false;
 }
 
 //================================================================================================================================
@@ -617,11 +505,17 @@ void P1_Gen_RiverSectors::clear_rslt () {
 bool P1_Gen_RiverSectors::generate (const u8* terrain, u16 w, u16 h, const P1_Gen_RiverPtsRslt& pts) {
     m_valid_generation = false;
     clear_rslt();
-    if (terrain == nullptr || !p1_map_size_ok(w, h) || pts.m_n == 0) {
-        return false;
+    if (terrain == nullptr || !p1_map_size_ok(w, h) || pts.m_n == 0 || !pts.m_que.ok()) {
+        if (terrain == nullptr) {
+            RS_ABORT("null terrain");
+        }
+        if (!p1_map_size_ok(w, h)) {
+            RS_ABORT("invalid map size");
+        }
+        RS_ABORT("empty river pts");
     }
     if (w != m_prm.m_w || h != m_prm.m_h) {
-        return false;
+        RS_ABORT("size mismatch");
     }
     if (!claim_river_sectors(terrain, w, h, pts, &m_rslt)) {
         return false;
@@ -636,79 +530,6 @@ bool P1_Gen_RiverSectors::is_valid () const {
 
 const P1_Gen_RiverSectorsRslt& P1_Gen_RiverSectors::result () const {
     return m_rslt;
-}
-
-void P1_Gen_RiverSectors::save_output (cstr path, const u8* terrain) const {
-    if (!m_valid_generation || path == nullptr || terrain == nullptr || m_rslt.m_ov == nullptr) {
-        return;
-    }
-    const u16 w = m_rslt.m_w;
-    const u16 h = m_rslt.m_h;
-    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
-    const u32 sector_n = static_cast<u32>(m_rslt.m_sector_n);
-    u8* rgb = new u8[static_cast<size_t>(n) * 3u];
-    if (rgb == nullptr) {
-        return;
-    }
-    for (u32 i = 0; i < n; ++i) {
-        u8 r = 0;
-        u8 g = 0;
-        u8 b = 0;
-        const u8 cls = terrain[i];
-        if (cls == TERR_OCEAN[0]) {
-            r = TERR_OCEAN[1]; g = TERR_OCEAN[2]; b = TERR_OCEAN[3];
-        } else if (cls == TERR_SEA[0]) {
-            r = TERR_SEA[1]; g = TERR_SEA[2]; b = TERR_SEA[3];
-        } else if (cls == TERR_COASTAL[0]) {
-            r = TERR_COASTAL[1]; g = TERR_COASTAL[2]; b = TERR_COASTAL[3];
-        } else if (cls == TERR_PLAINS[0]) {
-            r = TERR_PLAINS[1]; g = TERR_PLAINS[2]; b = TERR_PLAINS[3];
-        } else if (cls == TERR_HILLS[0]) {
-            r = TERR_HILLS[1]; g = TERR_HILLS[2]; b = TERR_HILLS[3];
-        } else if (cls == TERR_MOUNTAINS[0]) {
-            r = TERR_MOUNTAINS[1]; g = TERR_MOUNTAINS[2]; b = TERR_MOUNTAINS[3];
-        }
-        rgb[i * 3u + 0] = r;
-        rgb[i * 3u + 1] = g;
-        rgb[i * 3u + 2] = b;
-    }
-    u8* clr = new u8[sector_n * 3u];
-    if (clr == nullptr) {
-        delete[] rgb;
-        return;
-    }
-    Rng32 rng;
-    rng_seed(&rng, m_prm.m_seed);
-    for (u32 si = 0; si < sector_n; ++si) {
-        u8 cr = 0;
-        u8 cg = 0;
-        u8 cb = 0;
-        for (i32 tries = 0; tries < 256; ++tries) {
-            cr = static_cast<u8>(50u + (rng_next(&rng) % 151u));
-            cg = static_cast<u8>(50u + (rng_next(&rng) % 151u));
-            cb = static_cast<u8>(50u + (rng_next(&rng) % 151u));
-            if (!color_used(clr, si, cr, cg, cb)) {
-                break;
-            }
-        }
-        clr[si * 3u + 0] = cr;
-        clr[si * 3u + 1] = cg;
-        clr[si * 3u + 2] = cb;
-    }
-    for (u32 i = 0; i < n; ++i) {
-        const u16 sid = m_rslt.m_ov[i];
-        if (sid == static_cast<u16>(P1_RIVER_SECTOR_NONE)) {
-            continue;
-        }
-        const u32 p = i * 3u;
-        const u32 c = static_cast<u32>(sid) * 3u;
-        rgb[p + 0] = clr[c + 0];
-        rgb[p + 1] = clr[c + 1];
-        rgb[p + 2] = clr[c + 2];
-    }
-    delete[] clr;
-    save_rgb_ppm(path, rgb, w, h);
-    delete[] rgb;
 }
 
 //================================================================================================================================

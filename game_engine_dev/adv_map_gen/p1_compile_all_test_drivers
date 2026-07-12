@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 cd "$ROOT"
 
@@ -11,13 +13,16 @@ COMPS=(
     p1_gen_shaped_outline_comp
     p1_gen_river_pts_comp
     p1_gen_river_sectors_comp
+    p1_gen_coastal_mtn_limits_comp
     p1_gen_river_network_comp
     p1_gen_river_lines_comp
+    p1_adj_coastal_mtn_rivers_comp
     p1_adj_river_lakes_comp
     p1_adj_river_inlets_comp
     p1_gen_watershed_mountains_comp
     p1_gen_watershed_mountain_line_sets_comp
     p1_gen_distance_to_river_comp
+    p1_gen_river_dist_comp
     p1_gen_nearness_to_watershed_mtn_comp
     p1_adj_land_altitude_comp
     p1_adj_ensure_coasts_comp
@@ -31,6 +36,11 @@ COMPS=(
     p1_gen_loess_boost_comp
     p1_adj_grassland_loess_tiles_comp
     p1_gen_rain_orographic_comp
+    p1_gen_rich_coast_fertility_comp
+    p1_adj_coast_fertility_comp
+    p1_adj_ensure_adj_rules_comp
+    p1_gen_forest_overlay_comp
+    p1_adj_delta_swamps_comp
 )
 
 failed=()

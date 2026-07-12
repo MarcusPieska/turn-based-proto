@@ -7,9 +7,8 @@
 
 #include "p1_gen_rain_orographic.h"
 #include "game_map_defs.h"
+#include "p1_wb_util.h"
 #include "wb_que_xy.h"
-#include "wb_sheet.h"
-#include "whiteboard.h"
 
 //================================================================================================================================
 //=> - Private constants -
@@ -711,28 +710,34 @@ bool P1_Gen_RainOrographic::generate (
         return false;
     }
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
-    const i32 wb_n = static_cast<i32>(n * 2u);
-    WbSheet sh_d1(wb_n);
-    WbSheet sh_d2(wb_n);
-    WbSheet sh_glob(wb_n);
-    WbSheet sh_ht(wb_n);
-    WbSheet sh_smag(wb_n);
-    WbSheet sh_gx(wb_n);
-    WbSheet sh_gy(wb_n);
-    WbSheet sh_tmp(wb_n);
-    WB_QueXY que(wb_n);
-    if (!sh_d1.ok() || !sh_d2.ok() || !sh_glob.ok() || !sh_ht.ok() || !sh_smag.ok() || !sh_gx.ok() || !sh_gy.ok()
-        || !sh_tmp.ok() || !que.ok()) {
+    Whiteboard_2B wb_d1("P1_Gen_RainOrographic", "d1", m_prm.m_seed);
+    P1_WB_CHK(wb_d1);
+    Whiteboard_2B wb_d2("P1_Gen_RainOrographic", "d2", m_prm.m_seed);
+    P1_WB_CHK(wb_d2);
+    Whiteboard_2B wb_glob("P1_Gen_RainOrographic", "glob", m_prm.m_seed);
+    P1_WB_CHK(wb_glob);
+    Whiteboard_2B wb_ht("P1_Gen_RainOrographic", "ht", m_prm.m_seed);
+    P1_WB_CHK(wb_ht);
+    Whiteboard_2B wb_smag("P1_Gen_RainOrographic", "smag", m_prm.m_seed);
+    P1_WB_CHK(wb_smag);
+    Whiteboard_2B wb_gx("P1_Gen_RainOrographic", "gx", m_prm.m_seed);
+    P1_WB_CHK(wb_gx);
+    Whiteboard_2B wb_gy("P1_Gen_RainOrographic", "gy", m_prm.m_seed);
+    P1_WB_CHK(wb_gy);
+    Whiteboard_2B wb_tmp("P1_Gen_RainOrographic", "tmp", m_prm.m_seed);
+    P1_WB_CHK(wb_tmp);
+    WB_QueXY que;
+    if (!que.ok()) {
         return false;
     }
-    u16* h1 = sh_d1.get();
-    u16* h2 = sh_d2.get();
-    u16* ht = sh_ht.get();
-    u16* smag = sh_smag.get();
-    i16* gx = reinterpret_cast<i16*>(sh_gx.get());
-    i16* gy = reinterpret_cast<i16*>(sh_gy.get());
-    i16* gx_tmp = reinterpret_cast<i16*>(sh_tmp.get());
-    if (!dist_flood_from_coast(w, h, terrain, h1, sh_glob.get(), que)
+    u16* h1 = wb_d1.get_iter_ptr();
+    u16* h2 = wb_d2.get_iter_ptr();
+    u16* ht = wb_ht.get_iter_ptr();
+    u16* smag = wb_smag.get_iter_ptr();
+    i16* gx = reinterpret_cast<i16*>(wb_gx.get_iter_ptr());
+    i16* gy = reinterpret_cast<i16*>(wb_gy.get_iter_ptr());
+    i16* gx_tmp = reinterpret_cast<i16*>(wb_tmp.get_iter_ptr());
+    if (!dist_flood_from_coast(w, h, terrain, h1, wb_glob.get_iter_ptr(), que)
         || !dist_flood_from_mtn(w, h, terrain, h2, que)) {
         return false;
     }
@@ -757,13 +762,18 @@ bool P1_Gen_RainOrographic::generate (
         pack_height_u8(n, h1, m_rslt.m_flood_coast.data_w());
         pack_height_u8(n, h2, m_rslt.m_flood_mtn.data_w());
     }
-    u32* rain = reinterpret_cast<u32*>(sh_d1.get());
-    u32* rain_tmp = reinterpret_cast<u32*>(sh_d2.get());
+    u32* rain = new u32[n];
+    u32* rain_tmp = new u32[n];
+    if (rain == nullptr || rain_tmp == nullptr) {
+        delete[] rain_tmp;
+        delete[] rain;
+        return false;
+    }
     height_slope(w, h, ht, smag, gx, gy);
     smooth_i16(w, h, m_sp.m_smooth_n, ht, gx, gx_tmp);
     smooth_i16(w, h, m_sp.m_smooth_n, ht, gy, gx_tmp);
     u16 s_max = 0;
-    smooth_u16(w, h, m_sp.m_smooth_n, ht, smag, sh_tmp.get(), &s_max);
+    smooth_u16(w, h, m_sp.m_smooth_n, ht, smag, wb_tmp.get_iter_ptr(), &s_max);
     u32 pf = 0u;
     if (m_sp.m_slp_full > 0.0) {
         if (m_sp.m_slp_full > 1.0) {
@@ -782,14 +792,16 @@ bool P1_Gen_RainOrographic::generate (
     }
     smooth_u32(w, h, m_rain_finish, ht, rain, rain_tmp);
     if (m_sp.m_pack_dbg != 0u) {
-        std::memcpy(sh_gy.get(), ht, static_cast<size_t>(n) * sizeof(u16));
-        smooth_u16(w, h, m_sp.m_smooth_n, ht, sh_gy.get(), sh_tmp.get(), nullptr);
-        pack_height_u8(n, sh_gy.get(), m_rslt.m_height.data_w());
-        std::memcpy(sh_tmp.get(), smag, static_cast<size_t>(n) * sizeof(u16));
-        smooth_u16(w, h, m_slope_finish, ht, sh_tmp.get(), sh_glob.get(), nullptr);
-        pack_u16_u8(n, sh_tmp.get(), m_rslt.m_slope.data_w(), 0.55f, 1.f);
+        std::memcpy(wb_gy.get_iter_ptr(), ht, static_cast<size_t>(n) * sizeof(u16));
+        smooth_u16(w, h, m_sp.m_smooth_n, ht, wb_gy.get_iter_ptr(), wb_tmp.get_iter_ptr(), nullptr);
+        pack_height_u8(n, wb_gy.get_iter_ptr(), m_rslt.m_height.data_w());
+        std::memcpy(wb_tmp.get_iter_ptr(), smag, static_cast<size_t>(n) * sizeof(u16));
+        smooth_u16(w, h, m_slope_finish, ht, wb_tmp.get_iter_ptr(), wb_glob.get_iter_ptr(), nullptr);
+        pack_u16_u8(n, wb_tmp.get_iter_ptr(), m_rslt.m_slope.data_w(), 0.55f, 1.f);
     }
     pack_u32_u8(n, rain, m_rslt.m_rain.data_w(), m_sp.m_gamma, m_sp.m_peak);
+    delete[] rain_tmp;
+    delete[] rain;
     m_rslt.m_w = w;
     m_rslt.m_h = h;
     m_valid_generation = true;

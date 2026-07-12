@@ -16,7 +16,7 @@ class P1_Adj_EnsureRiverValleys {
 public:
     explicit P1_Adj_EnsureRiverValleys (const P1_RunPrm& prm);
 
-    bool adjust (u8* terrain, u16 w, u16 h, const u8* riv);
+    bool adjust (u8* terrain, u16 w, u16 h, const u8* riv, const u16* dist_dn);
     bool is_valid () const;
 
 private:

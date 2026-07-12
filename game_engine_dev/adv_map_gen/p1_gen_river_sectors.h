@@ -51,7 +51,6 @@ public:
     bool generate (const u8* terrain, u16 w, u16 h, const P1_Gen_RiverPtsRslt& pts);
     bool is_valid () const;
     const P1_Gen_RiverSectorsRslt& result () const;
-    void save_output (cstr path, const u8* terrain) const;
 
 private:
     P1_Gen_RiverSectors (const P1_Gen_RiverSectors& other) = delete;

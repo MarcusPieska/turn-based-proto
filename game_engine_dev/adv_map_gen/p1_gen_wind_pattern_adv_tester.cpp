@@ -7,19 +7,13 @@
 #include <cmath>
 
 #include "game_primitives.h"
-#include "map_loader.h"
-#include "map_terrain_data.h"
 #include "p1_gen_wind_pattern_adv.h"
-#include "p1_make_map.h"
-#include "p1_tester_chain_core.h"
-#include "p1_tester_util.h"
+#include "p1_tester_harness.h"
 
 //================================================================================================================================
 //=> - Globals -
 //================================================================================================================================
 
-static const char* g_map_path = "/home/w/Projects/simple-map-gen/p1-seed-042/24_make_map_terrain.ppm";
-static const u32 g_seed = 42u;
 static const u16 g_arrow_blk = 20u;
 
 //================================================================================================================================
@@ -215,42 +209,36 @@ static bool save_str_viz (cstr path, const u8* dir, const u8* str, u16 w, u16 h)
     return ok;
 }
 
-static bool make_out (cstr fname, char* out, size_t cap) {
-    if (fname == nullptr || out == nullptr || cap == 0) {
-        return false;
-    }
-    char dir[256];
-    std::snprintf(dir, sizeof(dir), "%s/p1-seed-%03u", P1_OUT_ROOT, static_cast<unsigned>(g_seed));
-    if (!p1_ensure_dir(P1_OUT_ROOT) || !p1_ensure_dir(dir)) {
-        return false;
-    }
-    std::snprintf(out, cap, "%s/%s", dir, fname);
-    return true;
-}
-
 static bool run_chunk (
-    const P1_RunPrm& prm,
+    P1_TesterHarness& h,
     const u8* terrain,
     u16 w,
-    u16 h,
+    u16 hgt,
     u16 chunk_sz) 
 {
     char dir_path[320];
     char str_path[320];
-    char dir_fname[160];
-    char str_fname[160];
-    std::snprintf(dir_fname, sizeof(dir_fname), "wind_pattern_adv_dir_c%02u", static_cast<unsigned>(chunk_sz));
-    std::snprintf(str_fname, sizeof(str_fname), "wind_pattern_adv_str_c%02u", static_cast<unsigned>(chunk_sz));
-    if (!p1_tester_make_step_out(prm.m_seed, k_p1_step_wind, dir_fname, dir_path, sizeof(dir_path))
-        || !p1_tester_make_step_out(prm.m_seed, k_p1_step_wind, str_fname, str_path, sizeof(str_path))) {
+    char dir_suffix[160];
+    char str_suffix[160];
+    std::snprintf(dir_suffix, sizeof(dir_suffix), "wind_pattern_adv_dir_c%02u", static_cast<unsigned>(chunk_sz));
+    std::snprintf(str_suffix, sizeof(str_suffix), "wind_pattern_adv_str_c%02u", static_cast<unsigned>(chunk_sz));
+    const u16 def_chunk = p1_gen_wind_pattern_adv_prm_def().m_chunk_sz;
+    const bool is_def = chunk_sz == def_chunk;
+    if (is_def) {
+        if (!h.path_pri(dir_path, sizeof(dir_path)) || !h.path_sec(str_path, sizeof(str_path))) {
+            std::printf("failed to ensure output dir for chunk %u\n", static_cast<unsigned>(chunk_sz));
+            return false;
+        }
+    } else if (!h.path_extra(dir_suffix, dir_path, sizeof(dir_path))
+        || !h.path_extra(str_suffix, str_path, sizeof(str_path))) {
         std::printf("failed to ensure output dir for chunk %u\n", static_cast<unsigned>(chunk_sz));
         return false;
     }
     P1_Gen_WindPatternAdvPrm sp = p1_gen_wind_pattern_adv_prm_def();
     sp.m_chunk_sz = chunk_sz;
-    P1_Gen_WindPatternAdv gen(prm, sp);
+    P1_Gen_WindPatternAdv gen(h.prm(), sp);
     const clock_t t0 = clock();
-    const bool ok = gen.generate(terrain, w, h);
+    const bool ok = gen.generate(terrain, w, hgt);
     const clock_t t1 = clock();
     const double sec = static_cast<double>(t1 - t0) / static_cast<double>(CLOCKS_PER_SEC);
     if (!ok || !gen.is_valid()) {
@@ -268,12 +256,12 @@ static bool run_chunk (
         static_cast<unsigned>(chunk_sz),
         sec,
         static_cast<u32>(w),
-        static_cast<u32>(h));
-    if (!save_dir_viz(dir_path, dir, str, w, h)) {
+        static_cast<u32>(hgt));
+    if (!save_dir_viz(dir_path, dir, str, w, hgt)) {
         std::printf("failed to save dir viz: %s\n", dir_path);
         return false;
     }
-    if (!save_str_viz(str_path, dir, str, w, h)) {
+    if (!save_str_viz(str_path, dir, str, w, hgt)) {
         std::printf("failed to save str viz: %s\n", str_path);
         return false;
     }
@@ -282,30 +270,26 @@ static bool run_chunk (
     return true;
 }
 
-i32 test_p1_gen_wind_pattern_adv_basic (const P1_RunPrm& prm) {
-    P1_MakeMapRslt chain = {};
-    double sec_i = 0.0;
-    if (!p1_build_chain_core(prm, k_p1_step_foothills, &chain, &sec_i)) {
+i32 test_p1_gen_wind_pattern_adv_basic (P1_TesterHarness& h) {
+    if (!h.run_input()) {
         std::printf("P1 steps 1-21 input failed for step 22\n");
         return -1;
     }
+    const P1_MakeMapRslt& chain = h.mk();
     const u16 w = chain.m_w;
-    const u16 h = chain.m_h;
+    const u16 ht = chain.m_h;
     const u8* terrain = chain.m_terrain;
-    if (terrain == nullptr || w == 0 || h == 0) {
+    if (terrain == nullptr || w == 0 || ht == 0) {
         std::printf("invalid chain terrain\n");
-        P1_MakeMap::free_rslt(&chain);
         return -1;
     }
-    std::printf("P1 steps 1-21 input time: %.6f s\n", sec_i);
+    std::printf("P1 steps 1-21 input time: %.6f s\n", h.input_sec());
     static const u16 k_chunks[] = {10u};
     for (size_t i = 0; i < sizeof(k_chunks) / sizeof(k_chunks[0]); ++i) {
-        if (!run_chunk(prm, terrain, w, h, k_chunks[i])) {
-            P1_MakeMap::free_rslt(&chain);
+        if (!run_chunk(h, terrain, w, ht, k_chunks[i])) {
             return -1;
         }
     }
-    P1_MakeMap::free_rslt(&chain);
     return 0;
 }
 
@@ -314,16 +298,18 @@ i32 test_p1_gen_wind_pattern_adv_basic (const P1_RunPrm& prm) {
 //================================================================================================================================
 
 i32 main (i32 argc, char* argv[]) {
-    if (!p1_tester_checkout(argc, argv)) {
+    P1_TesterHarness h;
+    if (!h.begin(argc, argv)) {
         return -1;
     }
-    P1_RunPrm prm;
-    p1_resolve_run_prm(argc, argv, &prm);
-    const i32 rc = test_p1_gen_wind_pattern_adv_basic(prm);
-    if (!p1_tester_whiteboard_chk()) {
+    const i32 rc = test_p1_gen_wind_pattern_adv_basic(h);
+    if (rc != 0) {
+        return rc;
+    }
+    if (!h.finish()) {
         return -1;
     }
-    return rc;
+    return 0;
 }
 
 //================================================================================================================================

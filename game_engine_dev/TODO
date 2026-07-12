@@ -119,5 +119,38 @@ Rain sources:
  - Orographic Lift (Wind Going Uphill)
  - Convective Rainfall (The Sun-Baked Engine):
  - Frontal / Cyclonic Rainfall (The Air Mass Clash): At around 40° to 60° where cold and hot air collide 
- - 
+ - Convergence Rainfall
+ 
+ 
+ 1. Orographic Lift (Wind Going Uphill) This rain engine triggers concentrated water drops when horizontal wind forces moist air up a mountain slope. As the rising air cools, its water vapor rapidly condenses and unleashes heavy precipitation on the mountain's windward side. This creates an intense localized wet zone while leaving a dry rain shadow on the opposite side of the peak.
+ 
+ 2. Convective Rainfall (The Sun-Baked Engine) Driven entirely by intense solar heat, this system dominates flat equatorial landscapes and tropical regions. The baking sun heats the ground, forcing the air directly above it to bubble rapidly upward into the colder upper atmosphere. This vertical ascent causes massive moisture condensation, triggering violent and highly predictable daily thunderstorms.
+ 
+ 3. Frontal / Cyclonic Rainfall (The Air Mass Clash) This mechanism serves as the primary water source for vast temperate flatlands away from mountain ranges. It occurs when two sprawling global air currents—typically a warm maritime air mass and a cold polar air mass—collide on the map. The denser cold air slides underneath the warm air, shoving it skyward to create massive, long-lasting bands of steady rain.
+ 
+ 4. Convergence Rainfall (The Wind Bottleneck) This process generates massive seasonal rainfall patterns, such as monsoons, when global wind systems blow toward the same low-pressure point. Because the incoming air currents physically bottleneck, the trapped air is forced vertically upward into the sky. As the rising air mass cools simultaneously over a huge territory, it unloads vast volumes of rain across the region.
+ 
+ 
+ 
+ 
+ 
+1. Climate Factors (Multipliers)
+   Polar: 0.0 (Ice-covered)
+   Cold: 1.2 (High oxygen)
+   Temperate: 1.0 (Standard baseline)
+   Tropical: 0.7 (Low oxygen)
+    
+2. Depth Factors (Multipliers)
+   Coast / Shallow: 1.5 (High sunlight)
+   Ocean / Deep: 0.3 (Low sunlight)
+   
+3. Terrain Factors (Flat Additions)
+   River Mouth: +0.5 (Nutrient runoff)
+   Coral Reef: +0.4 (High shelter)
+   Volcanic / Seamount: +0.3 (Nutrient upwelling)
+   Desert Coast: -0.2 (Low runoff)
+ 
+ 
+ 
+ 
  

@@ -5,6 +5,7 @@
 #include <cstdio>
 
 #include "p1_gen_nearness_to_watershed_mtn.h"
+#include "p1_gen_coastal_mtn_limits.h"
 
 //================================================================================================================================
 //=> - Private generation helpers -
@@ -16,11 +17,19 @@ static bool is_land (u8 cls) {
     return cls == TERR_PLAINS[0] || cls == TERR_HILLS[0];
 }
 
+static bool is_mtn_border (
+    u16 wsh_brd,
+    u8 coast_lim) 
+{
+    return wsh_brd != 0 || coast_lim == static_cast<u8>(P1_COASTAL_MTN_OV_SEL);
+}
+
 static void bfs_land_to_border (
     u16 w,
     u16 h,
     const u8* terrain,
     const u16* border_ov,
+    const u8* coast_lim,
     u16* dist,
     u16* max_dist) 
 {
@@ -37,7 +46,10 @@ static void bfs_land_to_border (
     size_t qh = 0;
     size_t qn = 0;
     for (u32 i = 0; i < n; ++i) {
-        if (border_ov[i] == 0 || !is_land(terrain[i])) {
+        if (!is_land(terrain[i])) {
+            continue;
+        }
+        if (!is_mtn_border(border_ov[i], coast_lim[i])) {
             continue;
         }
         dist[i] = 0;
@@ -104,11 +116,16 @@ static bool build_near_watershed_mtn (
     u16 w,
     u16 h,
     const P1_Gen_WatershedMountainLineSetsRslt& line_sets,
+    const P1_Gen_CoastalMtnLimitsRslt& coast_lim,
     u8 start_val,
     u8 fall_step,
     P1_Gen_NearnessToWatershedMtnRslt* out) 
 {
     if (out == nullptr || terrain == nullptr || line_sets.m_ov == nullptr || !p1_map_size_ok(w, h)) {
+        return false;
+    }
+    const u8* coast_ov = coast_lim.m_limit_ov.data();
+    if (coast_ov == nullptr || coast_lim.m_w != w || coast_lim.m_h != h) {
         return false;
     }
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
@@ -117,7 +134,7 @@ static bool build_near_watershed_mtn (
         return false;
     }
     u16 max_dist = 0;
-    bfs_land_to_border(w, h, terrain, line_sets.m_ov, dist, &max_dist);
+    bfs_land_to_border(w, h, terrain, line_sets.m_ov, coast_ov, dist, &max_dist);
     if (!out->m_ov.resize(w, h)) {
         delete[] dist;
         return false;
@@ -157,7 +174,8 @@ bool P1_Gen_NearnessToWatershedMtn::generate (
     const u8* terrain,
     u16 w,
     u16 h,
-    const P1_Gen_WatershedMountainLineSetsRslt& line_sets) 
+    const P1_Gen_WatershedMountainLineSetsRslt& line_sets,
+    const P1_Gen_CoastalMtnLimitsRslt& coast_lim) 
 {
     m_valid_generation = false;
     m_rslt.m_ov.clear();
@@ -167,7 +185,7 @@ bool P1_Gen_NearnessToWatershedMtn::generate (
     if (terrain == nullptr || w != m_prm.m_w || h != m_prm.m_h) {
         return false;
     }
-    if (!build_near_watershed_mtn(terrain, w, h, line_sets, m_sp.m_start_val, m_sp.m_fall_step, &m_rslt)) {
+    if (!build_near_watershed_mtn(terrain, w, h, line_sets, coast_lim, m_sp.m_start_val, m_sp.m_fall_step, &m_rslt)) {
         m_rslt.m_ov.clear();
         return false;
     }

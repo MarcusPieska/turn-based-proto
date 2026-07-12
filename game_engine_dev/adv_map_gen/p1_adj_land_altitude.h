@@ -13,7 +13,7 @@
 //================================================================================================================================
 
 #define P1_LAND_ALT_W_NOISE_DEF 1.0f
-#define P1_LAND_ALT_W_NEAR_DEF 0.75f
+#define P1_LAND_ALT_W_NEAR_DEF 1.25f
 #define P1_LAND_ALT_W_RIV_DEF 0.35f
 #define P1_LAND_ALT_LIM_HILLS_DEF 0.88f
 #define P1_LAND_ALT_LIM_MTN_DEF 0.97f

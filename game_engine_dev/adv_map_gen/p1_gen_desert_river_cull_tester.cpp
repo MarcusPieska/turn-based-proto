@@ -11,9 +11,7 @@
 #include "game_primitives.h"
 #include "generator_constants.h"
 #include "map_terrain_validate.h"
-#include "p1_make_map.h"
-#include "p1_tester_chain_core.h"
-#include "p1_tester_util.h"
+#include "p1_tester_harness.h"
 
 //================================================================================================================================
 //=> - Test helpers -
@@ -109,27 +107,21 @@ static bool run_cull_case (
     return saved;
 }
 
-i32 test_p1_gen_desert_river_cull_basic (const P1_RunPrm& prm) {
+i32 test_p1_gen_desert_river_cull_basic (P1_TesterHarness& h) {
     char up_path[320];
     char dn_path[320];
-    if (!p1_tester_make_out(prm.m_seed, up_path, sizeof(up_path))) {
-        std::printf("failed to ensure upstream output dir\n");
+    if (!h.path_pri(up_path, sizeof(up_path)) || !h.path_sec(dn_path, sizeof(dn_path))) {
+        std::printf("failed to ensure output dir\n");
         return -1;
     }
-    if (!p1_tester_make_step_out(prm.m_seed, p1_tester_step(), "desert_river_cull_downstream", dn_path, sizeof(dn_path))) {
-        std::printf("failed to ensure downstream output dir\n");
-        return -1;
-    }
-    P1_MakeMapRslt chain = {};
-    double sec_i = 0.0;
-    if (!p1_build_chain_core(prm, k_p1_step_climate, &chain, &sec_i)) {
+    if (!h.run_input()) {
         std::printf("P1 steps 1-24 input failed for step 25\n");
         return -1;
     }
+    const P1_MakeMapRslt& chain = h.mk();
     if (chain.m_terrain == nullptr || chain.m_climate == nullptr || chain.m_rivers == nullptr
         || chain.m_w == 0 || chain.m_h == 0) {
         std::printf("invalid chain input for desert river cull\n");
-        P1_MakeMap::free_rslt(&chain);
         return -1;
     }
     const u8* climate = chain.m_climate;
@@ -137,9 +129,9 @@ i32 test_p1_gen_desert_river_cull_basic (const P1_RunPrm& prm) {
     double sec_dn = 0.0;
     u32 culled_up = 0;
     u32 culled_dn = 0;
-    std::printf("P1 steps 1-24 input time: %.6f s\n", sec_i);
+    std::printf("P1 steps 1-24 input time: %.6f s\n", h.input_sec());
     if (!run_cull_case(
-            prm,
+            h.prm(),
             chain.m_terrain,
             climate,
             chain.m_rivers,
@@ -150,7 +142,6 @@ i32 test_p1_gen_desert_river_cull_basic (const P1_RunPrm& prm) {
             &sec_up,
             &culled_up)) {
         std::printf("P1_Gen_DesertRiverCull upstream failed\n");
-        P1_MakeMap::free_rslt(&chain);
         return -1;
     }
     std::printf(
@@ -161,7 +152,7 @@ i32 test_p1_gen_desert_river_cull_basic (const P1_RunPrm& prm) {
         static_cast<u32>(chain.m_h));
     std::printf("saved: %s\n", up_path);
     if (!run_cull_case(
-            prm,
+            h.prm(),
             chain.m_terrain,
             climate,
             chain.m_rivers,
@@ -172,7 +163,6 @@ i32 test_p1_gen_desert_river_cull_basic (const P1_RunPrm& prm) {
             &sec_dn,
             &culled_dn)) {
         std::printf("P1_Gen_DesertRiverCull downstream failed\n");
-        P1_MakeMap::free_rslt(&chain);
         return -1;
     }
     std::printf(
@@ -182,7 +172,6 @@ i32 test_p1_gen_desert_river_cull_basic (const P1_RunPrm& prm) {
         static_cast<u32>(chain.m_w),
         static_cast<u32>(chain.m_h));
     std::printf("saved: %s\n", dn_path);
-    P1_MakeMap::free_rslt(&chain);
     return 0;
 }
 
@@ -191,16 +180,18 @@ i32 test_p1_gen_desert_river_cull_basic (const P1_RunPrm& prm) {
 //================================================================================================================================
 
 i32 main (i32 argc, char* argv[]) {
-    if (!p1_tester_checkout(argc, argv)) {
+    P1_TesterHarness h;
+    if (!h.begin(argc, argv)) {
         return -1;
     }
-    P1_RunPrm prm;
-    p1_resolve_run_prm(argc, argv, &prm);
-    const i32 rc = test_p1_gen_desert_river_cull_basic(prm);
-    if (!p1_tester_whiteboard_chk()) {
+    const i32 rc = test_p1_gen_desert_river_cull_basic(h);
+    if (rc != 0) {
+        return rc;
+    }
+    if (!h.finish()) {
         return -1;
     }
-    return rc;
+    return 0;
 }
 
 //================================================================================================================================

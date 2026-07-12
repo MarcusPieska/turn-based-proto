@@ -7,8 +7,7 @@
 
 #include "p1_gen_loess_boost.h"
 #include "game_map_defs.h"
-#include "wb_sheet.h"
-#include "whiteboard.h"
+#include "p1_wb_util.h"
 
 //================================================================================================================================
 //=> - Private constants -
@@ -328,22 +327,20 @@ bool P1_Gen_LoessBoost::generate (const u8* climate, const u8* wind_dir, const u
     grid_dims(w, h, chunk_sz, &gw, &gh);
     const u32 gn = static_cast<u32>(gw) * static_cast<u32>(gh);
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
-    const i32 wb_n = static_cast<i32>(n * 2u);
-    WbSheet sh_conc(wb_n);
-    WbSheet sh_next(wb_n);
-    if (!sh_conc.ok() || !sh_next.ok()) {
-        return false;
-    }
-    f32* conc = reinterpret_cast<f32*>(sh_conc.get());
-    f32* next = reinterpret_cast<f32*>(sh_next.get());
+    Whiteboard_4B wb_conc("P1_Gen_LoessBoost", "conc", m_prm.m_seed);
+    P1_WB_CHK(wb_conc);
+    Whiteboard_4B wb_next("P1_Gen_LoessBoost", "next", m_prm.m_seed);
+    P1_WB_CHK(wb_next);
+    f32* conc = reinterpret_cast<f32*>(wb_conc.get_iter_ptr());
+    f32* next = reinterpret_cast<f32*>(wb_next.get_iter_ptr());
     {
-        WbSheet sh_clim(wb_n);
-        WbSheet sh_wdir(wb_n);
-        WbSheet sh_wstr(wb_n);
-        if (!sh_clim.ok() || !sh_wdir.ok() || !sh_wstr.ok()) {
-            return false;
-        }
-        build_coarse(w, h, chunk_sz, gw, gh, climate, wind_dir, wind_str, sh_clim.get(), sh_wdir.get(), sh_wstr.get());
+        Whiteboard_2B wb_clim("P1_Gen_LoessBoost", "clim", m_prm.m_seed);
+        P1_WB_CHK(wb_clim);
+        Whiteboard_2B wb_wdir("P1_Gen_LoessBoost", "wdir", m_prm.m_seed);
+        P1_WB_CHK(wb_wdir);
+        Whiteboard_2B wb_wstr("P1_Gen_LoessBoost", "wstr", m_prm.m_seed);
+        P1_WB_CHK(wb_wstr);
+        build_coarse(w, h, chunk_sz, gw, gh, climate, wind_dir, wind_str, wb_clim.get_iter_ptr(), wb_wdir.get_iter_ptr(), wb_wstr.get_iter_ptr());
         for (u32 i = 0; i < gn; ++i) {
             conc[i] = 0.f;
         }
@@ -352,9 +349,9 @@ bool P1_Gen_LoessBoost::generate (const u8* climate, const u8* wind_dir, const u
         if (step_n == 0) {
             step_n = 1;
         }
-        u16* c_clim = sh_clim.get();
-        u16* c_wdir = sh_wdir.get();
-        u16* c_wstr = sh_wstr.get();
+        u16* c_clim = wb_clim.get_iter_ptr();
+        u16* c_wdir = wb_wdir.get_iter_ptr();
+        u16* c_wstr = wb_wstr.get_iter_ptr();
         f32* rd = conc;
         f32* wr = next;
         for (u16 step = 0; step < step_n; ++step) {
@@ -386,13 +383,20 @@ bool P1_Gen_LoessBoost::generate (const u8* climate, const u8* wind_dir, const u
     if (!m_rslt.m_ov.resize(w, h)) {
         return false;
     }
-    f32* fine = reinterpret_cast<f32*>(sh_next.get());
-    f32* sm_tmp = reinterpret_cast<f32*>(sh_conc.get());
+    f32* fine = new f32[n];
+    f32* sm_tmp = new f32[n];
+    if (fine == nullptr || sm_tmp == nullptr) {
+        delete[] sm_tmp;
+        delete[] fine;
+        return false;
+    }
     upsample_conc(w, h, chunk_sz, gw, gh, conc, fine);
     for (u8 pass = 0; pass < m_sp.m_smooth_n; ++pass) {
         blur_fine(w, h, fine, sm_tmp);
     }
     norm_pack(n, fine, m_rslt.m_ov.data_w(), m_sp.m_gamma, m_sp.m_peak);
+    delete[] sm_tmp;
+    delete[] fine;
     m_rslt.m_w = w;
     m_rslt.m_h = h;
     m_valid_generation = true;

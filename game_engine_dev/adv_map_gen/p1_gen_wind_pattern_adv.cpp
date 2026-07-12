@@ -5,8 +5,7 @@
 #include "p1_gen_wind_pattern_adv.h"
 
 #include "game_map_defs.h"
-#include "wb_sheet.h"
-#include "whiteboard.h"
+#include "p1_wb_util.h"
 
 #include <cmath>
 #include <cstring>
@@ -850,29 +849,26 @@ struct AdvCoreCtx {
 
 static bool adv_flu_body (void* vp, f32* fb[7], u32 fb_n) {
     AdvCoreCtx* c = static_cast<AdvCoreCtx*>(vp);
-    const i32 wb_n = static_cast<i32>(c->m_n * 2u);
     if (c->m_use_ter) {
-        WbSheet sh_blk(wb_n);
-        if (!sh_blk.ok()) {
-            return false;
-        }
-        build_tile_block(c->m_terrain, c->m_n, sh_blk.get());
+        Whiteboard_2B wb_blk("P1_Gen_WindPatternAdv", "blk", 0u);
+        P1_WB_CHK(wb_blk);
+        build_tile_block(c->m_terrain, c->m_n, wb_blk.get_iter_ptr());
         if (!build_chunk_block(c->m_terrain, c->m_w, c->m_h, c->m_chunk_sz, c->m_gw, c->m_gh, c->m_block)) {
             return false;
         }
         fluid_solve(c->m_w, c->m_h, c->m_chunk_sz, c->m_gw, c->m_gh, c->m_block, c->m_iter_n, c->m_jac_n,
             c->m_gvx, c->m_gvy, fb, fb_n, c->m_n);
-        WbSheet sh_vx(wb_n);
-        WbSheet sh_vy(wb_n);
-        WbSheet sh_mag(wb_n);
-        if (!sh_vx.ok() || !sh_vy.ok() || !sh_mag.ok()) {
+        f32* vx = new f32[c->m_n];
+        f32* vy = new f32[c->m_n];
+        f32* mag = new f32[c->m_n];
+        if (vx == nullptr || vy == nullptr || mag == nullptr) {
+            delete[] mag;
+            delete[] vy;
+            delete[] vx;
             return false;
         }
-        f32* vx = reinterpret_cast<f32*>(sh_vx.get());
-        f32* vy = reinterpret_cast<f32*>(sh_vy.get());
-        f32* mag = reinterpret_cast<f32*>(sh_mag.get());
         upsample_grid(c->m_w, c->m_h, c->m_chunk_sz, c->m_gw, c->m_gh, c->m_gvx, c->m_gvy, vx, vy, mag);
-        apply_ter_deflect(c->m_w, c->m_h, sh_blk.get(), vx, vy);
+        apply_ter_deflect(c->m_w, c->m_h, wb_blk.get_iter_ptr(), vx, vy);
         sync_mag(c->m_n, vx, vy, mag);
         downsample_wind(c->m_w, c->m_h, c->m_chunk_sz, c->m_gw, c->m_gh, vx, vy, c->m_gvx, c->m_gvy);
         f32* cshl = fb[0];
@@ -880,28 +876,40 @@ static bool adv_flu_body (void* vp, f32* fb[7], u32 fb_n) {
         apply_coarse_shelter(c->m_w, c->m_h, c->m_chunk_sz, c->m_gw, c->m_gh, cshl, mag);
         norm_mag_field(c->m_n, mag);
         if (!c->m_rslt->m_dir.resize(c->m_w, c->m_h) || !c->m_rslt->m_str.resize(c->m_w, c->m_h)) {
+            delete[] mag;
+            delete[] vy;
+            delete[] vx;
             return false;
         }
         pack_overlays(c->m_n, vx, vy, mag, c->m_rslt->m_dir.data_w(), c->m_rslt->m_str.data_w());
+        delete[] mag;
+        delete[] vy;
+        delete[] vx;
     } else {
         build_open_block(c->m_gw, c->m_gh, c->m_block);
         fluid_solve(c->m_w, c->m_h, c->m_chunk_sz, c->m_gw, c->m_gh, c->m_block, c->m_iter_n, c->m_jac_n,
             c->m_gvx, c->m_gvy, fb, fb_n, c->m_n);
-        WbSheet sh_vx(wb_n);
-        WbSheet sh_vy(wb_n);
-        WbSheet sh_mag(wb_n);
-        if (!sh_vx.ok() || !sh_vy.ok() || !sh_mag.ok()) {
+        f32* vx = new f32[c->m_n];
+        f32* vy = new f32[c->m_n];
+        f32* mag = new f32[c->m_n];
+        if (vx == nullptr || vy == nullptr || mag == nullptr) {
+            delete[] mag;
+            delete[] vy;
+            delete[] vx;
             return false;
         }
-        f32* vx = reinterpret_cast<f32*>(sh_vx.get());
-        f32* vy = reinterpret_cast<f32*>(sh_vy.get());
-        f32* mag = reinterpret_cast<f32*>(sh_mag.get());
         upsample_grid(c->m_w, c->m_h, c->m_chunk_sz, c->m_gw, c->m_gh, c->m_gvx, c->m_gvy, vx, vy, mag);
         norm_mag_field(c->m_n, mag);
         if (!c->m_rslt->m_dir.resize(c->m_w, c->m_h) || !c->m_rslt->m_str.resize(c->m_w, c->m_h)) {
+            delete[] mag;
+            delete[] vy;
+            delete[] vx;
             return false;
         }
         pack_overlays(c->m_n, vx, vy, mag, c->m_rslt->m_dir.data_w(), c->m_rslt->m_str.data_w());
+        delete[] mag;
+        delete[] vy;
+        delete[] vx;
     }
     c->m_rslt->m_w = c->m_w;
     c->m_rslt->m_h = c->m_h;
@@ -909,14 +917,12 @@ static bool adv_flu_body (void* vp, f32* fb[7], u32 fb_n) {
     return true;
 }
 
-static bool flu_wrap (i32 wb_n, u32 flu_need, u32 idx, f32* fb[7], void* ctx, bool (*body) (void*, f32* fb[7], u32 fb_n)) {
-    WbSheet sh(wb_n);
-    if (!sh.ok()) {
-        return false;
-    }
-    fb[idx] = reinterpret_cast<f32*>(sh.get());
+static bool flu_wrap (u32 flu_need, u32 idx, f32* fb[7], void* ctx, bool (*body) (void*, f32* fb[7], u32 fb_n)) {
+    Whiteboard_4B wb_flu("P1_Gen_WindPatternAdv", "flu", 0u);
+    P1_WB_CHK(wb_flu);
+    fb[idx] = reinterpret_cast<f32*>(wb_flu.get_iter_ptr());
     if (idx + 1u < flu_need) {
-        return flu_wrap(wb_n, flu_need, idx + 1u, fb, ctx, body);
+        return flu_wrap(flu_need, idx + 1u, fb, ctx, body);
     }
     return body(ctx, fb, flu_need);
 }
@@ -964,16 +970,15 @@ bool P1_Gen_WindPatternAdv::gen_core (const u8* terrain, u16 w, u16 h, bool use_
     }
     const u32 gn = static_cast<u32>(gw) * static_cast<u32>(gh);
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
-    const i32 wb_n = static_cast<i32>(n * 2u);
-    WbSheet sh_gvx(wb_n);
-    WbSheet sh_gvy(wb_n);
-    WbSheet sh_cblk(wb_n);
-    if (!sh_gvx.ok() || !sh_gvy.ok() || !sh_cblk.ok()) {
-        return false;
-    }
-    f32* gvx = reinterpret_cast<f32*>(sh_gvx.get());
-    f32* gvy = reinterpret_cast<f32*>(sh_gvy.get());
-    u8* block = reinterpret_cast<u8*>(sh_cblk.get());
+    Whiteboard_4B wb_gvx("P1_Gen_WindPatternAdv", "gvx", m_prm.m_seed);
+    P1_WB_CHK(wb_gvx);
+    Whiteboard_4B wb_gvy("P1_Gen_WindPatternAdv", "gvy", m_prm.m_seed);
+    P1_WB_CHK(wb_gvy);
+    Whiteboard_1B wb_cblk("P1_Gen_WindPatternAdv", "cblk", m_prm.m_seed);
+    P1_WB_CHK(wb_cblk);
+    f32* gvx = reinterpret_cast<f32*>(wb_gvx.get_iter_ptr());
+    f32* gvy = reinterpret_cast<f32*>(wb_gvy.get_iter_ptr());
+    u8* block = wb_cblk.get_iter_ptr();
     const u32 flu_need = (gn * 7u + n - 1u) / n;
     if (flu_need == 0u || flu_need > 7u) {
         return false;
@@ -995,7 +1000,7 @@ bool P1_Gen_WindPatternAdv::gen_core (const u8* terrain, u16 w, u16 h, bool use_
     ctx.m_rslt = &m_rslt;
     ctx.m_valid = &m_valid_generation;
     f32* fb[7] = {};
-    if (!flu_wrap(wb_n, flu_need, 0u, fb, &ctx, adv_flu_body)) {
+    if (!flu_wrap(flu_need, 0u, fb, &ctx, adv_flu_body)) {
         return false;
     }
     return true;

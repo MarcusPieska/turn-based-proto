@@ -7,6 +7,7 @@
 
 #include "game_primitives.h"
 #include "p1_map_size.h"
+#include "wb_que_xy.h"
 
 //================================================================================================================================
 //=> - P1 river pt limits -
@@ -32,7 +33,7 @@ struct P1_Gen_RiverPtsRslt {
     u16 m_w;
     u16 m_h;
     u32 m_n;
-    P1_RiverPt* m_pts;
+    WB_QueXY m_que;
 };
 
 //================================================================================================================================
@@ -48,7 +49,6 @@ public:
     bool generate (const u8* terrain, u16 w, u16 h);
     bool is_valid () const;
     const P1_Gen_RiverPtsRslt& result () const;
-    void save_output (cstr path, const u8* terrain) const;
 
 private:
     P1_Gen_RiverPts (const P1_Gen_RiverPts& other) = delete;

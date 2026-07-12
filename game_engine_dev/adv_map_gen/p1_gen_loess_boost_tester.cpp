@@ -9,75 +9,14 @@
 
 #include "game_map_defs.h"
 #include "game_primitives.h"
-#include "map_loader.h"
-#include "map_terrain_data.h"
 #include "map_terrain_validate.h"
 #include "p1_adj_grassland_loess_tiles.h"
 #include "p1_gen_loess_boost.h"
-#include "p1_make_map.h"
-#include "p1_tester_chain_core.h"
-#include "p1_tester_util.h"
-
-//================================================================================================================================
-//=> - Globals -
-//================================================================================================================================
-
-static const char* g_terr_path = "/home/w/Projects/simple-map-gen/p1-seed-042/24_make_map_terrain.ppm";
-static const char* g_clim_path = "/home/w/Projects/simple-map-gen/p1-seed-042/24_make_map_climate.ppm";
-static const u32 g_seed = 42u;
+#include "p1_tester_harness.h"
 
 //================================================================================================================================
 //=> - Test helpers -
 //================================================================================================================================
-
-static bool load_climate_ppm (cstr path, u16 ew, u16 eh, u8** out_cls) {
-    if (path == nullptr || out_cls == nullptr) {
-        return false;
-    }
-    std::FILE* fp = std::fopen(path, "rb");
-    if (fp == nullptr) {
-        return false;
-    }
-    u16 w = 0;
-    u16 h = 0;
-    if (std::fscanf(fp, "P6\n%u %u\n255\n", (unsigned*)&w, (unsigned*)&h) != 2) {
-        std::fclose(fp);
-        return false;
-    }
-    if (w != ew || h != eh) {
-        std::fclose(fp);
-        return false;
-    }
-    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
-    u8* rgb = new u8[static_cast<size_t>(n) * 3u];
-    u8* cls = new u8[n];
-    if (rgb == nullptr || cls == nullptr) {
-        delete[] cls;
-        delete[] rgb;
-        std::fclose(fp);
-        return false;
-    }
-    const size_t nbytes = static_cast<size_t>(n) * 3u;
-    if (std::fread(rgb, 1, nbytes, fp) != nbytes) {
-        delete[] cls;
-        delete[] rgb;
-        std::fclose(fp);
-        return false;
-    }
-    std::fclose(fp);
-    for (u32 i = 0; i < n; ++i) {
-        bool matched = false;
-        cls[i] = climate_from_rgb(rgb[i * 3u + 0], rgb[i * 3u + 1], rgb[i * 3u + 2], &matched);
-        if (!matched) {
-            delete[] cls;
-            delete[] rgb;
-            return false;
-        }
-    }
-    delete[] rgb;
-    *out_cls = cls;
-    return true;
-}
 
 static bool save_rgb_ppm (cstr path, const u8* rgb, u16 wi, u16 hi) {
     if (path == nullptr || rgb == nullptr || wi == 0 || hi == 0) {
@@ -249,91 +188,69 @@ static bool save_desert_viz (cstr path, const u8* climate, u16 w, u16 h) {
     return ok;
 }
 
-static bool make_out (cstr fname, char* out, size_t cap) {
-    if (fname == nullptr || out == nullptr || cap == 0) {
-        return false;
-    }
-    char dir[256];
-    std::snprintf(dir, sizeof(dir), "%s/p1-seed-%03u", P1_OUT_ROOT, static_cast<unsigned>(g_seed));
-    if (!p1_ensure_dir(P1_OUT_ROOT) || !p1_ensure_dir(dir)) {
-        return false;
-    }
-    std::snprintf(out, cap, "%s/%s", dir, fname);
-    return true;
-}
-
-i32 test_p1_gen_loess_boost_basic (const P1_RunPrm& prm) {
+i32 test_p1_gen_loess_boost_basic (P1_TesterHarness& h) {
     char conc_path[320];
     char desert_path[320];
     char grass_terr_path[320];
     char grass_clim_path[320];
     char fertile_path[320];
-    if (!p1_tester_make_step_out(prm.m_seed, k_p1_step_loess, "loess_boost", conc_path, sizeof(conc_path))
-        || !p1_tester_make_step_out(prm.m_seed, k_p1_step_loess, "loess_desert_src", desert_path, sizeof(desert_path))
-        || !p1_tester_make_step_out(prm.m_seed, k_p1_step_loess, "loess_grass_terrain", grass_terr_path, sizeof(grass_terr_path))
-        || !p1_tester_make_step_out(prm.m_seed, k_p1_step_loess, "loess_grass_climate", grass_clim_path, sizeof(grass_clim_path))
-        || !p1_tester_make_step_out(prm.m_seed, k_p1_step_loess, "loess_fertile_5pct", fertile_path, sizeof(fertile_path))) {
+    if (!h.path_pri(conc_path, sizeof(conc_path))
+        || !h.path_extra("loess_desert_src", desert_path, sizeof(desert_path))
+        || !h.path_extra("loess_grass_terrain", grass_terr_path, sizeof(grass_terr_path))
+        || !h.path_extra("loess_grass_climate", grass_clim_path, sizeof(grass_clim_path))
+        || !h.path_extra("loess_fertile_5pct", fertile_path, sizeof(fertile_path))) {
         std::printf("failed to ensure output dir\n");
         return -1;
     }
-    P1_MakeMapRslt chain = {};
-    double sec_i = 0.0;
-    if (!p1_build_chain_core(prm, k_p1_step_climate, &chain, &sec_i)) {
+    if (!h.run_input()) {
         std::printf("P1 steps 1-24 input failed for step 26\n");
         return -1;
     }
+    const P1_MakeMapRslt& chain = h.mk();
     const u16 w = chain.m_w;
-    const u16 h = chain.m_h;
+    const u16 ht = chain.m_h;
     if (chain.m_terrain == nullptr || chain.m_climate == nullptr || chain.m_rain == nullptr
-        || chain.m_wind_dir == nullptr || chain.m_wind_str == nullptr || w == 0 || h == 0) {
+        || chain.m_wind_dir == nullptr || chain.m_wind_str == nullptr || w == 0 || ht == 0) {
         std::printf("invalid chain input for loess\n");
-        P1_MakeMap::free_rslt(&chain);
         return -1;
     }
-    P1_Gen_LoessBoost loess(prm);
+    P1_Gen_LoessBoost loess(h.prm());
     const clock_t t0 = clock();
-    const bool ok = loess.generate(chain.m_climate, chain.m_wind_dir, chain.m_wind_str, w, h);
+    const bool ok = loess.generate(chain.m_climate, chain.m_wind_dir, chain.m_wind_str, w, ht);
     const clock_t t1 = clock();
     const double sec = static_cast<double>(t1 - t0) / static_cast<double>(CLOCKS_PER_SEC);
     if (!ok || !loess.is_valid()) {
         std::printf("P1_Gen_LoessBoost failed to generate\n");
-        P1_MakeMap::free_rslt(&chain);
         return -1;
     }
     const u8* conc = loess.result().m_ov.data();
     if (conc == nullptr) {
         std::printf("P1_Gen_LoessBoost missing overlay\n");
-        P1_MakeMap::free_rslt(&chain);
         return -1;
     }
-    std::printf("P1 steps 1-24 input time: %.6f s\n", sec_i);
+    std::printf("P1 steps 1-24 input time: %.6f s\n", h.input_sec());
     std::printf("P1_Gen_LoessBoost generate time: %.6f s (%u x %u)\n",
         sec,
         static_cast<u32>(w),
-        static_cast<u32>(h));
-    if (!save_loess_viz(conc_path, chain.m_terrain, conc, w, h)) {
+        static_cast<u32>(ht));
+    if (!save_loess_viz(conc_path, chain.m_terrain, conc, w, ht)) {
         std::printf("failed to save concentration: %s\n", conc_path);
-        P1_MakeMap::free_rslt(&chain);
         return -1;
     }
-    if (!save_desert_viz(desert_path, chain.m_climate, w, h)) {
+    if (!save_desert_viz(desert_path, chain.m_climate, w, ht)) {
         std::printf("failed to save desert src: %s\n", desert_path);
-        P1_MakeMap::free_rslt(&chain);
         return -1;
     }
-    if (!save_grass_loess_viz(grass_terr_path, chain.m_terrain, chain.m_climate, conc, w, h, false)) {
+    if (!save_grass_loess_viz(grass_terr_path, chain.m_terrain, chain.m_climate, conc, w, ht, false)) {
         std::printf("failed to save grass terrain: %s\n", grass_terr_path);
-        P1_MakeMap::free_rslt(&chain);
         return -1;
     }
-    if (!save_grass_loess_viz(grass_clim_path, chain.m_terrain, chain.m_climate, conc, w, h, true)) {
+    if (!save_grass_loess_viz(grass_clim_path, chain.m_terrain, chain.m_climate, conc, w, ht, true)) {
         std::printf("failed to save grass climate: %s\n", grass_clim_path);
-        P1_MakeMap::free_rslt(&chain);
         return -1;
     }
-    if (!save_fertile_adj_viz(fertile_path, chain.m_terrain, chain.m_climate, conc, chain.m_rain, w, h, prm)) {
+    if (!save_fertile_adj_viz(fertile_path, chain.m_terrain, chain.m_climate, conc, chain.m_rain, w, ht, h.prm())) {
         std::printf("failed to save fertile top: %s\n", fertile_path);
-        P1_MakeMap::free_rslt(&chain);
         return -1;
     }
     std::printf("saved: %s\n", conc_path);
@@ -341,7 +258,6 @@ i32 test_p1_gen_loess_boost_basic (const P1_RunPrm& prm) {
     std::printf("saved: %s\n", grass_terr_path);
     std::printf("saved: %s\n", grass_clim_path);
     std::printf("saved: %s\n", fertile_path);
-    P1_MakeMap::free_rslt(&chain);
     return 0;
 }
 
@@ -350,16 +266,18 @@ i32 test_p1_gen_loess_boost_basic (const P1_RunPrm& prm) {
 //================================================================================================================================
 
 i32 main (i32 argc, char* argv[]) {
-    if (!p1_tester_checkout(argc, argv)) {
+    P1_TesterHarness h;
+    if (!h.begin(argc, argv)) {
         return -1;
     }
-    P1_RunPrm prm;
-    p1_resolve_run_prm(argc, argv, &prm);
-    const i32 rc = test_p1_gen_loess_boost_basic(prm);
-    if (!p1_tester_whiteboard_chk()) {
+    const i32 rc = test_p1_gen_loess_boost_basic(h);
+    if (rc != 0) {
+        return rc;
+    }
+    if (!h.finish()) {
         return -1;
     }
-    return rc;
+    return 0;
 }
 
 //================================================================================================================================

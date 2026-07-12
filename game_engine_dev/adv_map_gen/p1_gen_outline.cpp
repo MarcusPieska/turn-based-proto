@@ -3,6 +3,7 @@
 //================================================================================================================================
 
 #include "p1_gen_outline.h"
+#include "p1_wb_util.h"
 
 #include <cmath>
 
@@ -164,7 +165,10 @@ static void remove_edge_ov (u8* ov, u32 npx) {
     }
 }
 
-static bool flood_fill_ov (u8* ov, u16 w, u16 h, i32 sx, i32 sy) {
+static bool flood_fill_ov (u8* ov, u16 w, u16 h, i32 sx, i32 sy, u32* st) {
+    if (st == nullptr) {
+        return false;
+    }
     if (sx < 0 || sy < 0 || sx >= static_cast<i32>(w) || sy >= static_cast<i32>(h)) {
         return false;
     }
@@ -172,10 +176,6 @@ static bool flood_fill_ov (u8* ov, u16 w, u16 h, i32 sx, i32 sy) {
     const u32 si = static_cast<u32>(sy) * static_cast<u32>(w) + static_cast<u32>(sx);
     if (ov[si] == k_ov_edge || ov[si] == k_ov_land) {
         return true;
-    }
-    u32* st = new u32[npx];
-    if (st == nullptr) {
-        return false;
     }
     u32 sp = 0;
     ov[si] = k_ov_land;
@@ -213,7 +213,6 @@ static bool flood_fill_ov (u8* ov, u16 w, u16 h, i32 sx, i32 sy) {
             }
         }
     }
-    delete[] st;
     return true;
 }
 
@@ -268,13 +267,16 @@ static bool build_outline_shape (OutlineShapeCtx& ctx, u32 seed, f64 scale) {
 
 static bool fill_outline_overlay (OutlineShapeCtx& ctx, u32 seed, f64 scale) {
     const u32 npx = static_cast<u32>(ctx.m_w) * static_cast<u32>(ctx.m_h);
+    Whiteboard_4B wb_st("P1_Gen_Outline", "flood_st", seed);
+    P1_WB_CHK(wb_st);
+    u32* st = wb_st.get_iter_ptr();
     for (u32 i = 0; i < npx; ++i) {
         ctx.m_ov[i] = k_ov_water;
     }
     if (!build_outline_shape(ctx, seed, scale)) {
         return false;
     }
-    if (!flood_fill_ov(ctx.m_ov, ctx.m_w, ctx.m_h, static_cast<i32>(ctx.m_cx), static_cast<i32>(ctx.m_cy))) {
+    if (!flood_fill_ov(ctx.m_ov, ctx.m_w, ctx.m_h, static_cast<i32>(ctx.m_cx), static_cast<i32>(ctx.m_cy), st)) {
         return false;
     }
     remove_edge_ov(ctx.m_ov, npx);

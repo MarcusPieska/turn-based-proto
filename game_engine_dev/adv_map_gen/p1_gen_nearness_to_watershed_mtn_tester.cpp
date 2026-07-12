@@ -4,9 +4,11 @@
 
 #include <cstdio>
 #include <ctime>
+#include <cstring>
 
 #include "p1_gen_shaped_outline.h"
 #include "p1_adj_outline_fill.h"
+#include "p1_adj_coastal_mtn_rivers.h"
 #include "p1_adj_river_inlets.h"
 #include "p1_adj_river_lakes.h"
 #include "p1_gen_land_depth.h"
@@ -17,6 +19,7 @@
 #include "p1_gen_river_network.h"
 #include "p1_gen_river_pts.h"
 #include "p1_gen_river_sectors.h"
+#include "p1_gen_coastal_mtn_limits.h"
 #include "p1_gen_watershed_mountains.h"
 #include "p1_gen_watershed_mountain_line_sets.h"
 #include "game_primitives.h"
@@ -41,13 +44,50 @@ static bool build_step5_terrain (
     return p1_apply_shaped_outline(prm, sp, terrain, w, h, ov, land_depth);
 }
 
+static bool copy_ov (u8** dst, const u8* src, u32 n) {
+    if (dst == nullptr || src == nullptr || n == 0) {
+        return false;
+    }
+    delete[] *dst;
+    *dst = new u8[n];
+    if (*dst == nullptr) {
+        return false;
+    }
+    std::memcpy(*dst, src, static_cast<size_t>(n));
+    return true;
+}
+
+static bool coast_lim_rslt_from_ov (
+    u16 w,
+    u16 h,
+    const u8* coast_lim,
+    P1_Gen_CoastalMtnLimitsRslt* out) 
+{
+    if (coast_lim == nullptr || out == nullptr || w == 0 || h == 0) {
+        return false;
+    }
+    if (!out->m_limit_ov.resize(w, h)) {
+        return false;
+    }
+    u8* dst = out->m_limit_ov.data_w();
+    if (dst == nullptr) {
+        return false;
+    }
+    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
+    std::memcpy(dst, coast_lim, static_cast<size_t>(n));
+    out->m_w = w;
+    out->m_h = h;
+    return true;
+}
+
 static bool build_step11_input (
     const P1_RunPrm& prm,
     u8* terrain,
     u16 w,
     u16 h,
     P1_Gen_RiverLines* lin_gen,
-    P1_Gen_RiverNetwork* net_gen) 
+    P1_Gen_RiverNetwork* net_gen,
+    u8** coast_lim_out) 
 {
     MapArrayOverlay ov_map;
     if (!p1_gen_step01_ov(prm, &ov_map)) {
@@ -79,11 +119,27 @@ static bool build_step11_input (
     if (!sec_gen.generate(terrain, w, h, pts_gen.result()) || !sec_gen.is_valid()) {
         return false;
     }
-    if (!net_gen->generate(terrain, w, h, sec_gen.result()) || !net_gen->is_valid()) {
+    P1_Gen_CoastalMtnLimits lim_gen(prm);
+    if (!lim_gen.generate(terrain, w, h, sec_gen.result()) || !lim_gen.is_valid()) {
+        return false;
+    }
+    if (coast_lim_out != nullptr) {
+        const u8* lim = lim_gen.result().m_limit_ov.data();
+        const u32 npx = static_cast<u32>(w) * static_cast<u32>(h);
+        if (lim == nullptr || !copy_ov(coast_lim_out, lim, npx)) {
+            return false;
+        }
+    }
+    if (!net_gen->generate(terrain, w, h, sec_gen.result(), lim_gen.result()) || !net_gen->is_valid()) {
         return false;
     }
     if (!lin_gen->generate(terrain, w, h, sec_gen.result(), net_gen->result())
         || !lin_gen->is_valid()) {
+        return false;
+    }
+    P1_Adj_CoastalMtnRivers cmr(prm);
+    if (!cmr.adjust(terrain, w, h, lin_gen->result().m_ov, sec_gen.result(), lim_gen.result())
+        || !cmr.is_valid()) {
         return false;
     }
     P1_Adj_RiverLakes lakes(prm);
@@ -123,8 +179,10 @@ i32 test_p1_gen_nearness_to_watershed_mtn_basic (const P1_RunPrm& prm) {
     }
     P1_Gen_RiverLines lin_gen(prm);
     P1_Gen_RiverNetwork net_gen(prm);
-    if (!build_step11_input(prm, terrain, w, h, &lin_gen, &net_gen)) {
+    u8* coast_lim = nullptr;
+    if (!build_step11_input(prm, terrain, w, h, &lin_gen, &net_gen, &coast_lim)) {
         std::printf("P1 steps 1-13 input failed for step 16\n");
+        delete[] coast_lim;
         delete[] terrain;
         return -1;
     }
@@ -142,13 +200,21 @@ i32 test_p1_gen_nearness_to_watershed_mtn_basic (const P1_RunPrm& prm) {
     }
     const clock_t t1i = clock();
     P1_Gen_NearnessToWatershedMtn gen(prm);
+    P1_Gen_CoastalMtnLimitsRslt coast_r;
+    if (!coast_lim_rslt_from_ov(w, h, coast_lim, &coast_r)) {
+        std::printf("failed to build coastal mtn input for step 16\n");
+        delete[] coast_lim;
+        delete[] terrain;
+        return -1;
+    }
     const clock_t t0 = clock();
-    const bool ok = gen.generate(terrain, w, h, line_gen.result());
+    const bool ok = gen.generate(terrain, w, h, line_gen.result(), coast_r);
     const clock_t t1 = clock();
     const double sec_i = static_cast<double>(t1i - t0i) / static_cast<double>(CLOCKS_PER_SEC);
     const double sec = static_cast<double>(t1 - t0) / static_cast<double>(CLOCKS_PER_SEC);
     if (!ok || !gen.is_valid()) {
         std::printf("P1_Gen_NearnessToWatershedMtn failed to generate\n");
+        delete[] coast_lim;
         delete[] terrain;
         return -1;
     }
@@ -171,6 +237,7 @@ i32 test_p1_gen_nearness_to_watershed_mtn_basic (const P1_RunPrm& prm) {
         static_cast<u32>(w),
         static_cast<u32>(h));
     gen.save_output(out_path);
+    delete[] coast_lim;
     delete[] terrain;
     std::printf("saved: %s\n", out_path);
     return 0;

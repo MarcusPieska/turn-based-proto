@@ -21,6 +21,16 @@ struct PerlinImgParams {
 };
 
 //================================================================================================================================
+//=> - PerlinLayerSpec -
+//================================================================================================================================
+
+struct PerlinLayerSpec {
+    f32 m_weight;
+    f32 m_frequency;
+    u32 m_seed;
+};
+
+//================================================================================================================================
 //=> - PerlinNoise -
 //================================================================================================================================
 
@@ -46,6 +56,15 @@ bool render_perlin_gray_u8 (u8* out_row_major, const PerlinImgParams& params, u3
 bool render_perlin_field_f32 (f32* out_row_major, const PerlinImgParams& params, u32 seed);
 
 bool accumulate_perlin_field_f32 (f32* acc_row_major, f32 weight, const PerlinImgParams& params, u32 seed);
+
+bool render_perlin_layers_f32 (
+    f32* out_row_major,
+    u8* out_gray_row_major,
+    u16 w,
+    u16 h,
+    f32 lacunarity,
+    const PerlinLayerSpec* layers,
+    i32 layer_n);
 
 bool save_perlin_gray_pgm (cstr path, const u8* pix, u16 w, u16 h);
 

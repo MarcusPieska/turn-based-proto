@@ -11,7 +11,7 @@
 #include "game_primitives.h"
 #include "generator_constants.h"
 #include "p1_gen_cont_outlines.h"
-#include "whiteboard.h"
+#include "p1_wb_util.h"
 
 //================================================================================================================================
 //=> - Test helpers -
@@ -62,6 +62,7 @@ i32 main () {
         return -1;
     }
     P1_RunPrm prm = p1_run_prm_def();
+    p1_wb_init(prm.m_w, prm.m_h);
     double tot = 0.0;
     for (u32 seed = 0; seed < k_seed_n; ++seed) {
         prm.m_seed = seed;
@@ -84,16 +85,12 @@ i32 main () {
             return -1;
         }
         std::printf("seed %u: %.6f s saved %s\n", seed, sec, path);
-        if (Whiteboard::chkout() == 0u) {
-            Whiteboard::dealloc();
-        }
     }
     std::printf("total: %.6f s (%u seeds)\n", tot, k_seed_n);
-    if (Whiteboard::chkout() != 0u) {
-        std::printf("Whiteboard checkout leak: %u\n", Whiteboard::chkout());
+    if (WhiteboardMng::chkout() != 0u) {
+        std::printf("Whiteboard checkout leak: %u\n", WhiteboardMng::chkout());
         return -1;
     }
-    Whiteboard::dealloc();
     return 0;
 }
 

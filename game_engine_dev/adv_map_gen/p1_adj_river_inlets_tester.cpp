@@ -7,6 +7,7 @@
 
 #include "p1_gen_shaped_outline.h"
 #include "p1_adj_outline_fill.h"
+#include "p1_adj_coastal_mtn_rivers.h"
 #include "p1_adj_river_inlets.h"
 #include "p1_adj_river_lakes.h"
 #include "p1_gen_land_depth.h"
@@ -15,7 +16,7 @@
 #include "p1_gen_river_network.h"
 #include "p1_gen_river_pts.h"
 #include "p1_gen_river_sectors.h"
-#include "game_primitives.h"
+#include "p1_gen_coastal_mtn_limits.h"
 #include "map_terrain_data.h"
 #include "p1_tester_util.h"
 
@@ -23,13 +24,7 @@
 //=> - Test helpers -
 //================================================================================================================================
 
-static bool build_step5_terrain (
-    const P1_RunPrm& prm,
-    u8* terrain,
-    u16 w,
-    u16 h,
-    const u8* ov,
-    const u16* land_depth) {
+static bool build_step5_terrain (const P1_RunPrm& prm, u8* terrain, u16 w, u16 h, const u8* ov, const u16* land_depth) {
     P1_Adj_OutlineFill fill(prm);
     if (!fill.adjust(terrain, w, h, ov) || !fill.is_valid()) {
         return false;
@@ -38,13 +33,7 @@ static bool build_step5_terrain (
     return p1_apply_shaped_outline(prm, sp, terrain, w, h, ov, land_depth);
 }
 
-static bool build_step9_input (
-    const P1_RunPrm& prm,
-    u8* terrain,
-    u16 w,
-    u16 h,
-    P1_Gen_RiverLines* lin_gen) 
-{
+static bool build_step9_input (const P1_RunPrm& prm, u8* terrain, u16 w, u16 h, P1_Gen_RiverLines* lin_gen) {
     MapArrayOverlay ov_map;
     if (!p1_gen_step01_ov(prm, &ov_map)) {
         return false;
@@ -75,12 +64,21 @@ static bool build_step9_input (
     if (!sec_gen.generate(terrain, w, h, pts_gen.result()) || !sec_gen.is_valid()) {
         return false;
     }
-    P1_Gen_RiverNetwork net_gen(prm);
-    if (!net_gen.generate(terrain, w, h, sec_gen.result()) || !net_gen.is_valid()) {
+    P1_Gen_CoastalMtnLimits lim_gen(prm);
+    if (!lim_gen.generate(terrain, w, h, sec_gen.result()) || !lim_gen.is_valid()) {
         return false;
     }
-    return lin_gen->generate(terrain, w, h, sec_gen.result(), net_gen.result())
-        && lin_gen->is_valid();
+    P1_Gen_RiverNetwork net_gen(prm);
+    if (!net_gen.generate(terrain, w, h, sec_gen.result(), lim_gen.result()) || !net_gen.is_valid()) {
+        return false;
+    }
+    if (!lin_gen->generate(terrain, w, h, sec_gen.result(), net_gen.result())
+        || !lin_gen->is_valid()) {
+        return false;
+    }
+    P1_Adj_CoastalMtnRivers cmr(prm);
+    return cmr.adjust(terrain, w, h, lin_gen->result().m_ov, sec_gen.result(), lim_gen.result())
+        && cmr.is_valid();
 }
 
 i32 test_p1_adj_river_inlets_basic (const P1_RunPrm& prm) {

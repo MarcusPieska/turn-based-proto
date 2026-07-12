@@ -6,9 +6,8 @@
 
 #include "game_map_defs.h"
 #include "perlin_noise.h"
+#include "p1_wb_util.h"
 #include "wb_que_xy.h"
-#include "wb_sheet.h"
-#include "whiteboard.h"
 
 #include <cmath>
 #include <cstring>
@@ -476,26 +475,27 @@ bool P1_Gen_WindPattern::gen_core (const u8* terrain, u16 w, u16 h, bool use_ter
         return false;
     }
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
-    const i32 wb_n = static_cast<i32>(n * 2u);
-    WbSheet sh_vx(wb_n);
-    WbSheet sh_vy(wb_n);
-    WbSheet sh_mag(wb_n);
-    WbSheet sh_tmp(wb_n);
-    WbSheet sh_mtn(wb_n);
-    WB_QueXY que(wb_n);
-    if (!sh_vx.ok() || !sh_vy.ok() || !sh_mag.ok() || !sh_tmp.ok()) {
-        return false;
-    }
-    f32* vx = reinterpret_cast<f32*>(sh_vx.get());
-    f32* vy = reinterpret_cast<f32*>(sh_vy.get());
-    f32* mag = reinterpret_cast<f32*>(sh_mag.get());
-    f32* tmp = reinterpret_cast<f32*>(sh_tmp.get());
+    Whiteboard_4B wb_vx("P1_Gen_WindPattern", "vx", m_prm.m_seed);
+    P1_WB_CHK(wb_vx);
+    Whiteboard_4B wb_vy("P1_Gen_WindPattern", "vy", m_prm.m_seed);
+    P1_WB_CHK(wb_vy);
+    Whiteboard_4B wb_mag("P1_Gen_WindPattern", "mag", m_prm.m_seed);
+    P1_WB_CHK(wb_mag);
+    Whiteboard_4B wb_tmp("P1_Gen_WindPattern", "tmp", m_prm.m_seed);
+    P1_WB_CHK(wb_tmp);
+    WB_QueXY que;
+    f32* vx = reinterpret_cast<f32*>(wb_vx.get_iter_ptr());
+    f32* vy = reinterpret_cast<f32*>(wb_vy.get_iter_ptr());
+    f32* mag = reinterpret_cast<f32*>(wb_mag.get_iter_ptr());
+    f32* tmp = reinterpret_cast<f32*>(wb_tmp.get_iter_ptr());
     build_lat_field(w, h, vx, vy, mag);
     if (use_ter) {
-        if (!sh_mtn.ok() || !que.ok() || !bfs_dist_from_mtn(w, h, terrain, sh_mtn.get(), que)) {
+        Whiteboard_2B wb_mtn("P1_Gen_WindPattern", "mtn", m_prm.m_seed);
+        P1_WB_CHK(wb_mtn);
+        if (!que.ok() || !bfs_dist_from_mtn(w, h, terrain, wb_mtn.get_iter_ptr(), que)) {
             return false;
         }
-        apply_terrain(w, h, terrain, sh_mtn.get(), m_prm.m_seed, vx, vy, mag);
+        apply_terrain(w, h, terrain, wb_mtn.get_iter_ptr(), m_prm.m_seed, vx, vy, mag);
     }
     smooth_field(w, h, m_sp.m_smooth_n, vx, vy, mag, tmp);
     if (!m_rslt.m_dir.resize(w, h) || !m_rslt.m_str.resize(w, h)) {
