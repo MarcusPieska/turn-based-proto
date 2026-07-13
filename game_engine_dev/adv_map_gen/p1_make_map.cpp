@@ -15,6 +15,7 @@
 #include "p1_adj_outline_fill.h"
 #include "p1_gen_shaped_outline.h"
 #include "p1_adj_coastal_mtn_rivers.h"
+#include "p1_adj_delta_swamps.h"
 #include "p1_adj_river_inlets.h"
 #include "p1_adj_river_lakes.h"
 #include "p1_gen_climate.h"
@@ -29,14 +30,20 @@
 #include "p1_gen_rain_orographic.h"
 #include "p1_gen_river_lines.h"
 #include "p1_gen_river_dist.h"
+#include "p1_gen_ocean_index.h"
 #include "p1_gen_river_network.h"
+#include "p1_gen_river_dynamic_pts.h"
+#include "p1_gen_river_prob.h"
 #include "p1_gen_river_pts.h"
 #include "p1_gen_river_sectors.h"
+#include "p1_gen_river_sect_adj.h"
 #include "p1_gen_coastal_mtn_limits.h"
+#include "p1_gen_forest_overlay.h"
 #include "p1_gen_watershed_mountains.h"
 #include "p1_gen_watershed_mountain_line_sets.h"
 #include "p1_gen_wind_pattern_adv.h"
 #include "map_terrain_data.h"
+#include "game_map_defs.h"
 #include "p1_tester_util.h"
 #include "p1_wb_util.h"
 
@@ -144,6 +151,7 @@ P1_MakeMap::P1_MakeMap (const P1_RunPrm& prm, const P1_MakeMapPrm& mp) :
     m_rslt.m_wind_str = nullptr;
     m_rslt.m_loess = nullptr;
     m_rslt.m_rain = nullptr;
+    m_rslt.m_overlay = nullptr;
 }
 
 void P1_MakeMap::free_rslt (P1_MakeMapRslt* rslt) {
@@ -158,6 +166,7 @@ void P1_MakeMap::free_rslt (P1_MakeMapRslt* rslt) {
     delete[] rslt->m_wind_str;
     delete[] rslt->m_loess;
     delete[] rslt->m_rain;
+    delete[] rslt->m_overlay;
     rslt->m_terrain = nullptr;
     rslt->m_climate = nullptr;
     rslt->m_rivers = nullptr;
@@ -166,6 +175,7 @@ void P1_MakeMap::free_rslt (P1_MakeMapRslt* rslt) {
     rslt->m_wind_str = nullptr;
     rslt->m_loess = nullptr;
     rslt->m_rain = nullptr;
+    rslt->m_overlay = nullptr;
     rslt->m_w = 0;
     rslt->m_h = 0;
 }
@@ -201,6 +211,10 @@ bool P1_MakeMap::copy_rslt (P1_MakeMapRslt* dst, const P1_MakeMapRslt& src) {
         return false;
     }
     if (src.m_rain != nullptr && !copy_u8_own(&dst->m_rain, src.m_rain, npx)) {
+        free_rslt(dst);
+        return false;
+    }
+    if (src.m_overlay != nullptr && !copy_u8_own(&dst->m_overlay, src.m_overlay, npx)) {
         free_rslt(dst);
         return false;
     }
@@ -348,36 +362,64 @@ bool P1_MakeMap::generate (u16 last_step) {
         delete[] terrain;
         return false;
     }
-    P1_Gen_RiverPts pts_gen(m_prm);
+    P1_Gen_RiverProb prob_gen(m_prm);
+    P1_Gen_RiverDynamicPts pts_gen(m_prm);
+    P1_Gen_OceanIndex ocn_gen(m_prm);
     P1_Gen_RiverSectors sec_gen(m_prm);
+    P1_Gen_RiverSectAdj adj_gen(m_prm);
     P1_Gen_CoastalMtnLimits coast_lim(m_prm);
     {
-        P1_MK_TIME("08 river_pts");
-        ok = pts_gen.generate(terrain, w, h) && pts_gen.is_valid();
+        P1_MK_TIME("08 river_prob");
+        ok = prob_gen.generate(terrain, w, h) && prob_gen.is_valid();
     }
     if (!ok) {
         delete[] terrain;
         return false;
     }
     {
-        P1_MK_TIME("09 river_sectors");
-        ok = sec_gen.generate(terrain, w, h, pts_gen.result()) && sec_gen.is_valid();
+        P1_MK_TIME("09 ocean_index");
+        ok = ocn_gen.generate(terrain, w, h) && ocn_gen.is_valid();
+    }
+    if (!ok) {
+        delete[] terrain;
+        return false;
+    }
+    const P1_OceanIndexRef ocn_ref = p1_ocean_ref_from_rslt(ocn_gen.result());
+    {
+        P1_MK_TIME("10 river_pts");
+        ok = pts_gen.generate(terrain, w, h, prob_gen.result(), ocn_ref) && pts_gen.is_valid();
     }
     if (!ok) {
         delete[] terrain;
         return false;
     }
     {
-        P1_MK_TIME("10 coastal_mtn_limits");
-        ok = coast_lim.generate(terrain, w, h, sec_gen.result()) && coast_lim.is_valid();
+        P1_MK_TIME("11 river_sectors");
+        ok = sec_gen.generate(terrain, w, h, pts_gen.result(), ocn_ref) && sec_gen.is_valid();
     }
     if (!ok) {
         delete[] terrain;
         return false;
     }
     {
-        P1_MK_TIME("11 river_network");
-        ok = net_gen.generate(terrain, w, h, sec_gen.result(), coast_lim.result()) && net_gen.is_valid();
+        P1_MK_TIME("12 river_sect_adj");
+        ok = adj_gen.generate(sec_gen.result()) && adj_gen.is_valid();
+    }
+    if (!ok) {
+        delete[] terrain;
+        return false;
+    }
+    {
+        P1_MK_TIME("13 coastal_mtn_limits");
+        ok = coast_lim.generate(terrain, w, h, sec_gen.result(), adj_gen.result()) && coast_lim.is_valid();
+    }
+    if (!ok) {
+        delete[] terrain;
+        return false;
+    }
+    {
+        P1_MK_TIME("14 river_network");
+        ok = net_gen.generate(terrain, w, h, pts_gen.result(), sec_gen.result(), adj_gen.result(), coast_lim.result(), ocn_ref) && net_gen.is_valid();
     }
     if (!ok) {
         delete[] terrain;
@@ -390,8 +432,8 @@ bool P1_MakeMap::generate (u16 last_step) {
     }
     std::memcpy(wshed, net_gen.result().m_ov, static_cast<size_t>(npx) * sizeof(u16));
     {
-        P1_MK_TIME("11 river_lines");
-        ok = lin_gen.generate(terrain, w, h, sec_gen.result(), net_gen.result())
+        P1_MK_TIME("15 river_lines");
+        ok = lin_gen.generate(terrain, w, h, const_cast<P1_Gen_RiverPtsRslt&>(pts_gen.result()), sec_gen.result(), net_gen.result(), ocn_ref)
             && lin_gen.is_valid();
     }
     if (!ok) {
@@ -405,7 +447,7 @@ bool P1_MakeMap::generate (u16 last_step) {
     }
     std::memcpy(river, lin_gen.result().m_ov, static_cast<size_t>(npx));
     {
-        P1_MK_TIME("12 coastal_mtn_rivers");
+        P1_MK_TIME("16 coastal_mtn_rivers");
         P1_Adj_CoastalMtnRivers cmr(m_prm);
         ok = cmr.adjust(terrain, w, h, river, sec_gen.result(), coast_lim.result()) && cmr.is_valid();
     }
@@ -414,7 +456,7 @@ bool P1_MakeMap::generate (u16 last_step) {
         return false;
     }
     {
-        P1_MK_TIME("13 river_lakes");
+        P1_MK_TIME("17 river_lakes");
         P1_Adj_RiverLakes lakes(m_prm);
         ok = lakes.adjust(terrain, w, h, river) && lakes.is_valid();
     }
@@ -423,9 +465,9 @@ bool P1_MakeMap::generate (u16 last_step) {
         return false;
     }
     {
-        P1_MK_TIME("14 river_inlets");
+        P1_MK_TIME("18 river_inlets");
         P1_Adj_RiverInlets inlets(m_prm);
-        ok = inlets.adjust(terrain, w, h, river, lin_gen.result()) && inlets.is_valid();
+        ok = inlets.adjust(terrain, w, h, river, wshed) && inlets.is_valid();
     }
     if (!ok) {
         free_mk_early(terrain, river, wshed);
@@ -433,7 +475,7 @@ bool P1_MakeMap::generate (u16 last_step) {
     }
     u8* dist_riv = nullptr;
     {
-        P1_MK_TIME("15 distance_to_river");
+        P1_MK_TIME("19 distance_to_river");
         ok = dist_gen.generate(terrain, w, h, river) && dist_gen.is_valid();
         if (ok) {
             dist_riv = const_cast<u8*>(dist_gen.result().m_ov.data());
@@ -448,15 +490,15 @@ bool P1_MakeMap::generate (u16 last_step) {
     P1_Gen_WatershedMountains border_gen(m_prm);
     P1_Gen_WatershedMountainLineSets line_gen(m_prm);
     {
-        P1_MK_TIME("14 watershed_mountains");
-        ok = border_gen.generate(terrain, w, h, net_gen.result(), noise) && border_gen.is_valid();
+        P1_MK_TIME("19 watershed_mountains");
+        ok = border_gen.generate(terrain, w, h, net_gen.result(), pts_gen.result(), noise) && border_gen.is_valid();
     }
     if (!ok) {
         free_mk_early(terrain, river, wshed);
         return false;
     }
     {
-        P1_MK_TIME("14 watershed_mountain_line_sets");
+        P1_MK_TIME("19 watershed_mountain_line_sets");
         ok = line_gen.generate(border_gen.result()) && line_gen.is_valid();
     }
     if (!ok) {
@@ -464,7 +506,7 @@ bool P1_MakeMap::generate (u16 last_step) {
         return false;
     }
     {
-        P1_MK_TIME("16 nearness_watershed_mtn");
+        P1_MK_TIME("22 nearness_watershed_mtn");
         ok = near_gen.generate(terrain, w, h, line_gen.result(), coast_lim.result()) && near_gen.is_valid();
         if (ok) {
             near_mtn = near_gen.result().m_ov.data();
@@ -476,7 +518,7 @@ bool P1_MakeMap::generate (u16 last_step) {
         return false;
     }
     {
-        P1_MK_TIME("17 land_altitude");
+        P1_MK_TIME("23 land_altitude");
         P1_Adj_LandAltitude alt_gen(m_prm, m_mp.m_lap);
         ok = alt_gen.adjust(terrain, w, h, noise, dist_riv, near_mtn) && alt_gen.is_valid();
     }
@@ -485,7 +527,7 @@ bool P1_MakeMap::generate (u16 last_step) {
         return false;
     }
     {
-        P1_MK_TIME("18 ensure_coasts");
+        P1_MK_TIME("23 ensure_coasts");
         P1_Adj_EnsureCoasts coasts(m_prm);
         ok = coasts.adjust(terrain, w, h) && coasts.is_valid();
     }
@@ -494,7 +536,7 @@ bool P1_MakeMap::generate (u16 last_step) {
         return false;
     }
     {
-        P1_MK_TIME("19 ensure_seas");
+        P1_MK_TIME("24 ensure_seas");
         P1_Adj_EnsureSeas seas(m_prm);
         ok = seas.adjust(terrain, w, h) && seas.is_valid();
     }
@@ -503,7 +545,7 @@ bool P1_MakeMap::generate (u16 last_step) {
         return false;
     }
     {
-        P1_MK_TIME("20 ensure_river_valleys");
+        P1_MK_TIME("25 ensure_river_valleys");
         P1_Gen_RiverDist riv_dist_gen(m_prm);
         ok = riv_dist_gen.generate(terrain, w, h, river, sec_gen.result(), net_gen.result())
             && riv_dist_gen.is_valid();
@@ -522,7 +564,7 @@ bool P1_MakeMap::generate (u16 last_step) {
         return false;
     }
     {
-        P1_MK_TIME("21 ensure_mtn_foothills");
+        P1_MK_TIME("26 ensure_mtn_foothills");
         P1_Adj_EnsureMtnFoothills foothills(m_prm);
         ok = foothills.adjust(terrain, w, h) && foothills.is_valid();
     }
@@ -541,7 +583,7 @@ bool P1_MakeMap::generate (u16 last_step) {
         return true;
     }
     if (last_step >= k_p1_step_wind) {
-        P1_MK_TIME("22 wind_pattern_adv");
+        P1_MK_TIME("27 wind_pattern_adv");
         P1_Gen_WindPatternAdv wind_gen(m_prm, m_mp.m_wind);
         ok = wind_gen.generate(terrain, w, h) && wind_gen.is_valid();
         if (ok) {
@@ -561,7 +603,7 @@ bool P1_MakeMap::generate (u16 last_step) {
         return true;
     }
     if (last_step >= k_p1_step_rain) {
-        P1_MK_TIME("23 rain_orographic");
+        P1_MK_TIME("28 rain_orographic");
         P1_Gen_RainOrographic rain_gen(m_prm, m_mp.m_rain_finish, m_mp.m_slope_finish, m_mp.m_rain);
         ok = rain_gen.generate(terrain, m_rslt.m_wind_dir, m_rslt.m_wind_str, w, h) && rain_gen.is_valid();
         if (ok) {
@@ -579,7 +621,7 @@ bool P1_MakeMap::generate (u16 last_step) {
     }
     const u8* climate = nullptr;
     if (last_step >= k_p1_step_climate) {
-        P1_MK_TIME("24 climate");
+        P1_MK_TIME("29 climate");
         P1_Gen_Climate climate_gen(m_prm, m_mp.m_climate);
         ok = climate_gen.generate(terrain, w, h, river, m_rslt.m_rain) && climate_gen.is_valid();
         if (ok) {
@@ -603,7 +645,7 @@ bool P1_MakeMap::generate (u16 last_step) {
         return true;
     }
     if (last_step >= k_p1_step_desert_cull) {
-        P1_MK_TIME("25 desert_river_cull");
+        P1_MK_TIME("30 desert_river_cull");
         P1_Gen_DesertRiverCull cull_gen(m_prm);
         ok = cull_gen.generate(river, w, h, terrain, climate, false) && cull_gen.is_valid();
     }
@@ -630,7 +672,7 @@ bool P1_MakeMap::generate (u16 last_step) {
     std::memcpy(climate_copy, climate, static_cast<size_t>(npx));
     m_rslt.m_climate = climate_copy;
     if (last_step >= k_p1_step_loess) {
-        P1_MK_TIME("26 loess_boost");
+        P1_MK_TIME("31 loess_boost");
         P1_Gen_LoessBoost loess_gen(m_prm, m_mp.m_loess);
         ok = loess_gen.generate(climate_copy, m_rslt.m_wind_dir, m_rslt.m_wind_str, w, h) && loess_gen.is_valid();
         if (ok) {
@@ -647,7 +689,7 @@ bool P1_MakeMap::generate (u16 last_step) {
         return true;
     }
     if (last_step >= k_p1_step_grass_loess) {
-        P1_MK_TIME("27 grassland_loess_tiles");
+        P1_MK_TIME("32 grassland_loess_tiles");
         P1_Adj_GrasslandLoessTiles grass_adj(m_prm, m_mp.m_grass_loess);
         ok = grass_adj.adjust(terrain, climate_copy, m_rslt.m_loess, m_rslt.m_rain, w, h) && grass_adj.is_valid();
     }
@@ -660,12 +702,12 @@ bool P1_MakeMap::generate (u16 last_step) {
         return true;
     }
     if (last_step >= k_p1_step_rich_coast_fert || last_step == k_p1_step_seed_export) {
-        P1_MK_TIME("30 rich_coast_fertility");
+        P1_MK_TIME("35 rich_coast_fertility");
         P1_Gen_RichCoastFertility fert_gen(m_prm, m_mp.m_rich_coast);
         ok = fert_gen.generate(terrain, w, h) && fert_gen.is_valid();
         const u16* coast_fert = ok ? fert_gen.result().m_ov : nullptr;
         if (ok && (last_step >= k_p1_step_coast_fert_adj || last_step == k_p1_step_seed_export)) {
-            P1_MK_TIME("31 coast_fertility_adj");
+            P1_MK_TIME("36 coast_fertility_adj");
             P1_Adj_CoastFertility cf_adj(m_prm, m_mp.m_coast_fert);
             ok = coast_fert != nullptr
                 && cf_adj.adjust(climate_copy, w, h, coast_fert) && cf_adj.is_valid();
@@ -680,7 +722,7 @@ bool P1_MakeMap::generate (u16 last_step) {
         return true;
     }
     if (last_step >= k_p1_step_ensure_adj || last_step == k_p1_step_seed_export) {
-        P1_MK_TIME("32 ensure_adj_rules");
+        P1_MK_TIME("37 ensure_adj_rules");
         P1_Adj_EnsureAdjRules adj_rules(m_prm);
         ok = adj_rules.adjust(terrain, climate_copy, river, w, h) && adj_rules.is_valid();
     }
@@ -692,9 +734,57 @@ bool P1_MakeMap::generate (u16 last_step) {
         m_valid_generation = true;
         return true;
     }
+    u8* overlay = nullptr;
+    if (last_step >= k_p1_step_forest_overlay || last_step == k_p1_step_seed_export) {
+        overlay = new u8[npx];
+        if (overlay == nullptr) {
+            free_rslt(&m_rslt);
+            return false;
+        }
+        for (u32 i = 0; i < npx; ++i) {
+            overlay[i] = OV_NONE[0];
+        }
+        {
+            P1_MK_TIME("39 forest_overlay");
+            P1_Gen_ForestOverlay forest_gen(m_prm);
+            ok = forest_gen.generate(terrain, climate_copy, overlay, w, h) && forest_gen.is_valid();
+        }
+    }
+    if (!ok) {
+        delete[] overlay;
+        free_rslt(&m_rslt);
+        return false;
+    }
+    if (last_step <= k_p1_step_forest_overlay && last_step != k_p1_step_seed_export) {
+        m_rslt.m_overlay = overlay;
+        m_valid_generation = true;
+        return true;
+    }
+    if (last_step >= k_p1_step_delta_swamps || last_step == k_p1_step_seed_export) {
+        P1_MK_TIME("40 delta_swamps");
+        P1_Adj_DeltaSwampsIn ds_in;
+        ds_in.m_wshed = wshed;
+        ds_in.m_terrain = terrain;
+        ds_in.m_climate = climate_copy;
+        ds_in.m_res_ov = overlay;
+        ds_in.m_riv = river;
+        P1_Adj_DeltaSwamps swamp_adj(m_prm, p1_adj_delta_swamps_prm_from_cfg(p1_map_config_def()));
+        ok = swamp_adj.adjust(ds_in, w, h) && swamp_adj.is_valid();
+    }
+    if (!ok) {
+        delete[] overlay;
+        free_rslt(&m_rslt);
+        return false;
+    }
+    if (last_step <= k_p1_step_delta_swamps && last_step != k_p1_step_seed_export) {
+        m_rslt.m_overlay = overlay;
+        m_valid_generation = true;
+        return true;
+    }
+    m_rslt.m_overlay = overlay;
     m_valid_generation = true;
     if (last_step >= k_p1_step_seed_export) {
-        P1_MK_TIME("29 seed_export");
+        P1_MK_TIME("34 seed_export");
         if (!save_seed_export()) {
             free_rslt(&m_rslt);
             m_valid_generation = false;
@@ -785,6 +875,31 @@ bool P1_MakeMap::save_rivers_ppm (cstr path) const {
     return ok;
 }
 
+bool P1_MakeMap::save_overlay_ppm (cstr path) const {
+    if (!m_valid_generation || path == nullptr || m_rslt.m_overlay == nullptr || m_rslt.m_terrain == nullptr) {
+        return false;
+    }
+    const u16 w = m_rslt.m_w;
+    const u16 h = m_rslt.m_h;
+    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
+    u8* rgb = new u8[static_cast<size_t>(n) * 3u];
+    if (rgb == nullptr) {
+        return false;
+    }
+    for (u32 i = 0; i < n; ++i) {
+        u8 r = 0;
+        u8 g = 0;
+        u8 b = 0;
+        overlay_viz_to_rgb(m_rslt.m_terrain[i], m_rslt.m_overlay[i], &r, &g, &b);
+        rgb[i * 3u + 0] = r;
+        rgb[i * 3u + 1] = g;
+        rgb[i * 3u + 2] = b;
+    }
+    const bool ok = save_rgb_ppm(path, rgb, w, h);
+    delete[] rgb;
+    return ok;
+}
+
 bool P1_MakeMap::save_seed_export () const {
     if (!m_valid_generation) {
         return false;
@@ -792,9 +907,11 @@ bool P1_MakeMap::save_seed_export () const {
     char terr_path[320];
     char clim_path[320];
     char riv_path[320];
+    char ov_path[320];
     if (!p1_make_seed_export_path(m_prm.m_seed, "terrain", terr_path, sizeof(terr_path))
         || !p1_make_seed_export_path(m_prm.m_seed, "climate", clim_path, sizeof(clim_path))
-        || !p1_make_seed_export_path(m_prm.m_seed, "rivers", riv_path, sizeof(riv_path))) {
+        || !p1_make_seed_export_path(m_prm.m_seed, "rivers", riv_path, sizeof(riv_path))
+        || !p1_make_seed_export_path(m_prm.m_seed, "overlays", ov_path, sizeof(ov_path))) {
         return false;
     }
     if (!save_terrain_ppm(terr_path)) {
@@ -812,6 +929,11 @@ bool P1_MakeMap::save_seed_export () const {
         return false;
     }
     std::printf("saved: %s\n", riv_path);
+    if (!save_overlay_ppm(ov_path)) {
+        std::printf("failed to save seed overlays: %s\n", ov_path);
+        return false;
+    }
+    std::printf("saved: %s\n", ov_path);
     return true;
 }
 

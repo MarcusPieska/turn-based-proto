@@ -4,45 +4,33 @@
 
 #include "wb_que_xy.h"
 
-#include "whiteboard_mng.h"
-
 //================================================================================================================================
 //=> - WB_QueXY -
 //================================================================================================================================
 
 WB_QueXY::WB_QueXY () :
-    m_wb0(nullptr),
-    m_wb1(nullptr),
+    m_wb0("WB_QueXY", "buf0", 0u),
+    m_wb1("WB_QueXY", "buf1", 0u),
     m_p(nullptr),
     m_p2(nullptr),
     m_ent_n(0u),
     m_head(0u),
     m_cnt(0u) {
-    m_wb0 = new Whiteboard_2B("WB_QueXY", "buf0", 0u);
-    m_wb1 = new Whiteboard_2B("WB_QueXY", "buf1", 0u);
-    if (m_wb0 == nullptr || m_wb1 == nullptr || !m_wb0->ok() || !m_wb1->ok()) {
-        delete m_wb1;
-        delete m_wb0;
-        m_wb1 = nullptr;
-        m_wb0 = nullptr;
+    if (!m_wb0.ok() || !m_wb1.ok()) {
         return;
     }
-    m_p = m_wb0->get_iter_ptr();
-    m_p2 = m_wb1->get_iter_ptr();
+    m_p = m_wb0.get_iter_ptr();
+    m_p2 = m_wb1.get_iter_ptr();
     m_ent_n = WhiteboardMng::tile_n();
 }
 
 WB_QueXY::~WB_QueXY () {
-    delete m_wb1;
-    delete m_wb0;
-    m_wb1 = nullptr;
-    m_wb0 = nullptr;
     m_p = nullptr;
     m_p2 = nullptr;
 }
 
 bool WB_QueXY::ok () const {
-    return m_wb0 != nullptr && m_wb1 != nullptr && m_p != nullptr && m_p2 != nullptr && m_ent_n > 0u;
+    return m_wb0.ok() && m_wb1.ok() && m_p != nullptr && m_p2 != nullptr && m_ent_n > 0u;
 }
 
 u32 WB_QueXY::cap () const {
@@ -101,6 +89,16 @@ u16 WB_QueXY::y_at (u32 i) const {
     return rd_u16(t * 2u + 1u);
 }
 
+void WB_QueXY::set_at (u32 i, u16 x, u16 y) {
+    if (i >= m_cnt) {
+        return;
+    }
+    const u32 t = slot(i);
+    const u32 w0 = t * 2u;
+    wr_u16(w0, x);
+    wr_u16(w0 + 1u, y);
+}
+
 void WB_QueXY::drop (u32 n) {
     if (n >= m_cnt) {
         clear();
@@ -111,12 +109,8 @@ void WB_QueXY::drop (u32 n) {
 }
 
 void WB_QueXY::swap (WB_QueXY& o) noexcept {
-    Whiteboard_2B* tb0 = m_wb0;
-    m_wb0 = o.m_wb0;
-    o.m_wb0 = tb0;
-    Whiteboard_2B* tb1 = m_wb1;
-    m_wb1 = o.m_wb1;
-    o.m_wb1 = tb1;
+    whiteboard_2b_swap(m_wb0, o.m_wb0);
+    whiteboard_2b_swap(m_wb1, o.m_wb1);
     u16* tp = m_p;
     m_p = o.m_p;
     o.m_p = tp;

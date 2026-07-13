@@ -8,7 +8,6 @@
 
 #include "game_map_defs.h"
 #include "perlin_noise.h"
-#include "res_placement_defs.h"
 #include "p1_wb_util.h"
 #include "wb_que_xy.h"
 
@@ -360,7 +359,7 @@ static bool build_forest_overlay (
         if (gd != k_inf && is_forest_terr_p1(terrain[i]) && res_ov_free(res_ov[i])) {
             const u16 ch = forest_chance_adj(grass_forest_chance(gd), mod_pix[i]);
             if (roll_forest(&rng_grass, ch)) {
-                res_ov[i] = static_cast<u8>(RES_OV_FORESTS);
+                res_ov[i] = OV_FOREST[0];
                 ++forest_n;
                 ++grass_n;
                 continue;
@@ -369,7 +368,7 @@ static bool build_forest_overlay (
         if (dd != k_inf && is_forest_terr_p2(terrain[i]) && res_ov_free(res_ov[i])) {
             const u16 ch = forest_chance_adj(plains_forest_chance(dd), mod_pix[i]);
             if (ch > 0 && roll_forest(&rng_plains, ch)) {
-                res_ov[i] = static_cast<u8>(RES_OV_FORESTS);
+                res_ov[i] = OV_FOREST[0];
                 ++forest_n;
                 ++plains_n;
             }

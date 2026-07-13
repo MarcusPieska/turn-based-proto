@@ -5,7 +5,6 @@
 #include <cstdio>
 #include <ctime>
 
-#include "p1_gen_river_pts.h"
 #include "p1_gen_river_sectors.h"
 #include "p1_gen_river_sectors_view.h"
 #include "p1_rprint.h"
@@ -22,6 +21,7 @@ static bool copy_pts_rslt (const P1_EarlyChainRslt& ec, P1_Gen_RiverPtsRslt* out
     out->m_w = ec.m_w;
     out->m_h = ec.m_h;
     out->m_n = ec.m_pts_n;
+    out->m_ocn_sec_n = ec.m_pts_ocn_sec_n;
     out->m_que.clear();
     for (u32 pi = 0; pi < ec.m_pts_n; ++pi) {
         if (!out->m_que.push(ec.m_pts_que->x_at(pi), ec.m_pts_que->y_at(pi))) {
@@ -37,14 +37,14 @@ static bool copy_pts_rslt (const P1_EarlyChainRslt& ec, P1_Gen_RiverPtsRslt* out
 
 i32 test_p1_gen_river_sectors_basic (P1_TesterHarness& h) {
     if (!h.run_input()) {
-        P1_RPrint::rprint_info("Failed to build step 8 input");
+        P1_RPrint::rprint_info("Failed to build step 10 input");
         return -1;
     }
     char ibuf[64];
     std::snprintf(ibuf, sizeof(ibuf), "Input: %.6f s", h.input_sec());
     P1_RPrint::rprint_info(ibuf);
     const P1_EarlyChainRslt& ec = h.early();
-    if (ec.m_ter == nullptr || ec.m_pts_que == nullptr || !ec.m_pts_que->ok() || ec.m_pts_n == 0u || ec.m_w == 0 || ec.m_h == 0) {
+    if (ec.m_ter == nullptr || ec.m_pts_que == nullptr || !ec.m_pts_que->ok() || ec.m_pts_n == 0u || ec.m_w == 0 || ec.m_h == 0 || !p1_early_has_ocean(ec)) {
         P1_RPrint::rprint_info("Invalid early chain input for river sectors");
         return -1;
     }
@@ -53,9 +53,10 @@ i32 test_p1_gen_river_sectors_basic (P1_TesterHarness& h) {
         P1_RPrint::rprint_info("Failed to copy river pts from early chain");
         return -1;
     }
+    const P1_OceanIndexRef ocn_ref = p1_early_ocean_ref(ec);
     P1_Gen_RiverSectors gen(h.prm());
     const clock_t t0 = clock();
-    const bool ok = gen.generate(ec.m_ter, ec.m_w, ec.m_h, pts_rslt);
+    const bool ok = gen.generate(ec.m_ter, ec.m_w, ec.m_h, pts_rslt, ocn_ref);
     const clock_t t1 = clock();
     const double sec = static_cast<double>(t1 - t0) / static_cast<double>(CLOCKS_PER_SEC);
     const P1_Gen_RiverSectorsRslt& r = gen.result();

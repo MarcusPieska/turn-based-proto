@@ -8,7 +8,8 @@
 #include "p1_gen_cont_outlines.h"
 #include "p1_gen_land_depth.h"
 #include "p1_gen_noise_perlin.h"
-#include "p1_gen_river_pts.h"
+#include "p1_gen_river_dynamic_pts.h"
+#include "p1_gen_river_prob.h"
 #include "p1_gen_shaped_outline.h"
 
 #include <ctime>
@@ -36,7 +37,14 @@ void p1_free_early_chain (P1_EarlyChainRslt* r) {
     delete r->m_pts_que;
     r->m_pts_que = nullptr;
     r->m_pts_n = 0u;
-    r->m_w = 0; 
+    r->m_pts_ocn_sec_n = 0u;
+    r->m_ocn.clear();
+    r->m_ocean_n = 0u;
+    r->m_largest_idx = 0u;
+    r->m_wat_n = 0u;
+    r->m_sec.clear();
+    r->m_sector_n = 0u;
+    r->m_w = 0;
     r->m_h = 0;
 }
 
@@ -56,6 +64,23 @@ static bool early_fill_ter (const P1_RunPrm& prm, const u8* ov, u16 w, u16 h, u8
     }
     *out_ter = ter;
     return true;
+}
+
+static bool early_pts_rslt (const P1_EarlyChainRslt& ec, P1_Gen_RiverPtsRslt* out) {
+    if (out == nullptr || ec.m_pts_que == nullptr || !ec.m_pts_que->ok() || ec.m_pts_n == 0u) {
+        return false;
+    }
+    out->m_w = ec.m_w;
+    out->m_h = ec.m_h;
+    out->m_n = ec.m_pts_n;
+    out->m_ocn_sec_n = ec.m_pts_ocn_sec_n;
+    out->m_que.clear();
+    for (u32 pi = 0; pi < ec.m_pts_n; ++pi) {
+        if (!out->m_que.push(ec.m_pts_que->x_at(pi), ec.m_pts_que->y_at(pi))) {
+            return false;
+        }
+    }
+    return out->m_que.ok();
 }
 
 bool p1_build_early_chain (const P1_RunPrm& prm, const P1_MapConfig& cfg, u16 last_step, P1_EarlyChainRslt* out, double* sec) {
@@ -147,13 +172,48 @@ bool p1_build_early_chain (const P1_RunPrm& prm, const P1_MapConfig& cfg, u16 la
         }
         out->m_ter = ter;
     }
-    if (last_step >= 8u) {
+    if (last_step >= P1_STEP_RIVER_PROB) {
         if (out->m_ter == nullptr) {
             p1_free_early_chain(out);
             return false;
         }
-        P1_Gen_RiverPts pts_gen(prm);
-        if (!pts_gen.generate(out->m_ter, w, h) || !pts_gen.is_valid()) {
+        P1_Gen_RiverProb prob_gen(prm);
+        if (!prob_gen.generate(out->m_ter, w, h) || !prob_gen.is_valid()) {
+            p1_free_early_chain(out);
+            return false;
+        }
+    }
+    if (last_step >= P1_STEP_OCEAN_INDEX) {
+        if (out->m_ter == nullptr) {
+            p1_free_early_chain(out);
+            return false;
+        }
+        P1_Gen_OceanIndex ocn_gen(prm);
+        if (!ocn_gen.generate(out->m_ter, w, h) || !ocn_gen.is_valid()) {
+            p1_free_early_chain(out);
+            return false;
+        }
+        const P1_Gen_OceanIndexRslt& ocn_r = ocn_gen.result();
+        if (ocn_r.m_ov.data() == nullptr || !out->m_ocn.assign_copy(w, h, ocn_r.m_ov.data())) {
+            p1_free_early_chain(out);
+            return false;
+        }
+        out->m_ocean_n = ocn_r.m_ocean_n;
+        out->m_largest_idx = ocn_r.m_largest_idx;
+        out->m_wat_n = ocn_r.m_wat_n;
+    }
+    if (last_step >= P1_STEP_RIVER_PTS) {
+        if (out->m_ter == nullptr || !p1_early_has_ocean(*out)) {
+            p1_free_early_chain(out);
+            return false;
+        }
+        P1_Gen_RiverProb prob_gen(prm);
+        if (!prob_gen.generate(out->m_ter, w, h) || !prob_gen.is_valid()) {
+            p1_free_early_chain(out);
+            return false;
+        }
+        P1_Gen_RiverDynamicPts pts_gen(prm);
+        if (!pts_gen.generate(out->m_ter, w, h, prob_gen.result(), p1_early_ocean_ref(*out)) || !pts_gen.is_valid()) {
             p1_free_early_chain(out);
             return false;
         }
@@ -176,6 +236,29 @@ bool p1_build_early_chain (const P1_RunPrm& prm, const P1_MapConfig& cfg, u16 la
             }
         }
         out->m_pts_n = pr.m_n;
+        out->m_pts_ocn_sec_n = pr.m_ocn_sec_n;
+    }
+    if (last_step >= P1_STEP_RIVER_SECTORS) {
+        if (out->m_ter == nullptr || out->m_pts_que == nullptr || !out->m_pts_que->ok() || out->m_pts_n == 0u || !p1_early_has_ocean(*out)) {
+            p1_free_early_chain(out);
+            return false;
+        }
+        P1_Gen_RiverPtsRslt pts_rslt;
+        if (!early_pts_rslt(*out, &pts_rslt)) {
+            p1_free_early_chain(out);
+            return false;
+        }
+        P1_Gen_RiverSectors sec_gen(prm);
+        if (!sec_gen.generate(out->m_ter, w, h, pts_rslt, p1_early_ocean_ref(*out)) || !sec_gen.is_valid()) {
+            p1_free_early_chain(out);
+            return false;
+        }
+        const P1_Gen_RiverSectorsRslt& sr = sec_gen.result();
+        if (sr.m_ov == nullptr || sr.m_sector_n == 0u || !out->m_sec.assign_copy(w, h, sr.m_ov)) {
+            p1_free_early_chain(out);
+            return false;
+        }
+        out->m_sector_n = sr.m_sector_n;
     }
     if (sec != nullptr) {
         const clock_t t1 = clock();

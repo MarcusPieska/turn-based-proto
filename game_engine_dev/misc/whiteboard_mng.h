@@ -144,6 +144,8 @@ public:
     u8 blk () const;
     u8 sub () const;
 
+    friend void whiteboard_2b_swap (Whiteboard_2B& a, Whiteboard_2B& b) noexcept;
+
 private:
     u8* m_p;
     u8 m_blk;

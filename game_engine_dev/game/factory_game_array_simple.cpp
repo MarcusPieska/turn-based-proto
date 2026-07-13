@@ -166,6 +166,34 @@ static bool load_res_ppm (cstr path, u16 ew, u16 eh, u16** out_res) {
     return true;
 }
 
+static bool load_ov_ppm (cstr path, u16 ew, u16 eh, u8** out_ov) {
+    u16 w = 0;
+    u16 h = 0;
+    u8* rgb = nullptr;
+    if (!rd_ppm_rgb(path, &w, &h, &rgb)) {
+        return false;
+    }
+    if (w != ew || h != eh) {
+        delete[] rgb;
+        return false;
+    }
+    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
+    u8* ov = new u8[n];
+    for (u32 i = 0; i < n; ++i) {
+        const u8* px = rgb + i * 3u;
+        bool matched = false;
+        ov[i] = overlay_class_from_rgb(px[0], px[1], px[2], &matched);
+        if (!matched) {
+            delete[] ov;
+            delete[] rgb;
+            return false;
+        }
+    }
+    delete[] rgb;
+    *out_ov = ov;
+    return true;
+}
+
 //================================================================================================================================
 //=> - Factory_GameArraySimple -
 //================================================================================================================================
@@ -174,7 +202,8 @@ bool Factory_GameArraySimple::load_map_gen_data (
     GameArraySimple* out,
     cstr terr_path,
     cstr clim_path,
-    cstr riv_path) 
+    cstr riv_path,
+    cstr ov_path) 
 {
     if (out == nullptr) {
         return false;
@@ -197,6 +226,12 @@ bool Factory_GameArraySimple::load_map_gen_data (
         delete[] clim;
         return false;
     }
+    u8* ov = nullptr;
+    if (ov_path != nullptr && !load_ov_ppm(ov_path, w, h, &ov)) {
+        delete[] riv;
+        delete[] clim;
+        return false;
+    }
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
     GameTileSimple* tiles = new GameTileSimple[n];
     for (u32 i = 0; i < n; ++i) {
@@ -206,10 +241,11 @@ bool Factory_GameArraySimple::load_map_gen_data (
         t->m_res = U16_KEY_NULL;
         t->m_terr = terr[i];
         t->m_clim = clim[i];
-        t->m_ov = OVERLAY_NONE;
+        t->m_ov = ov != nullptr ? ov[i] : OVERLAY_NONE;
         t->m_riv = riv[i];
         t->m_add_typ = 0;
     }
+    delete[] ov;
     delete[] riv;
     delete[] clim;
     out->m_w = w;

@@ -7,6 +7,7 @@
 
 #include "game_primitives.h"
 #include "p1_gen_river_network.h"
+#include "p1_gen_river_pts.h"
 #include "p1_map_size.h"
 
 //================================================================================================================================
@@ -89,6 +90,7 @@ public:
         u16 w,
         u16 h,
         const P1_Gen_RiverNetworkRslt& network,
+        const P1_Gen_RiverPtsRslt& pts,
         const u8* noise = nullptr);
     bool is_valid () const;
     const P1_Gen_WatershedMountainsRslt& result () const;

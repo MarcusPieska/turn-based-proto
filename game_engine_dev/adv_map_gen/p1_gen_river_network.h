@@ -7,35 +7,22 @@
 
 #include "game_primitives.h"
 #include "p1_gen_coastal_mtn_limits.h"
+#include "p1_gen_ocean_index.h"
+#include "p1_gen_river_pts.h"
+#include "p1_gen_river_sect_adj.h"
 #include "p1_gen_river_sectors.h"
-#include "p1_map_size.h" 
+#include "p1_map_size.h"
+
+class Whiteboard_2B;
 
 //================================================================================================================================
 //=> - P1 river network limits -
 //================================================================================================================================
 
-#define P1_RIVER_SYS_NONE 0xFFFFu
+#define P1_RIVER_DOWN_UNDEF 0xFFFFu
+#define P1_RIVER_DOWN_MOUTH 0xFFFEu
 #define P1_RIVER_BASIN_NONE 0u
-
-//================================================================================================================================
-//=> - P1_RiverConn -
-//================================================================================================================================
-
-struct P1_RiverConn {
-    u16 m_a;
-    u16 m_b;
-};
-
-//================================================================================================================================
-//=> - P1_RiverBasinEntry -
-//================================================================================================================================
-
-struct P1_RiverBasinEntry {
-    u16 m_idx;
-    u16 m_mouth_x;
-    u16 m_mouth_y;
-    u32 m_tile_n;
-};
+#define P1_RIVER_SYS_NONE 0xFFFFu 
 
 //================================================================================================================================
 //=> - P1_Gen_RiverNetworkRslt -
@@ -45,17 +32,18 @@ struct P1_Gen_RiverNetworkRslt {
     u16 m_w;
     u16 m_h;
     u16 m_sector_n;
-    u16 m_conn_n;
-    u16 m_basin_n;
-    P1_RiverConn* m_conns;
-    u16* m_river_sys;
-    bool* m_coastal;
+    u16 m_mouth_n;
+    u16 m_claim_n;
+    const u16* m_downstream;
     u16* m_ov;
-    P1_RiverBasinEntry* m_basins;
 };
 
 //================================================================================================================================
 //=> - P1_Gen_RiverNetwork -
+//================================================================================================================================
+//
+//  Per-sector downstream link; m_downstream[si] is next sector toward mouth, 0 mouth, 0xFFFF undefined.
+//
 //================================================================================================================================
 
 class P1_Gen_RiverNetwork {
@@ -67,11 +55,13 @@ public:
         const u8* terrain,
         u16 w,
         u16 h,
+        const P1_Gen_RiverPtsRslt& pts,
         const P1_Gen_RiverSectorsRslt& sectors,
-        const P1_Gen_CoastalMtnLimitsRslt& coast_lim);
+        const P1_Gen_RiverSectAdjRslt& sect_adj,
+        const P1_Gen_CoastalMtnLimitsRslt& coast_lim,
+        const P1_OceanIndexRef& ocean);
     bool is_valid () const;
     const P1_Gen_RiverNetworkRslt& result () const;
-    void save_output (cstr path, const u8* terrain, const P1_Gen_RiverSectorsRslt& sectors) const;
 
 private:
     P1_Gen_RiverNetwork (const P1_Gen_RiverNetwork& other) = delete;
@@ -82,6 +72,8 @@ private:
     P1_RunPrm m_prm;
     bool m_valid_generation;
     P1_Gen_RiverNetworkRslt m_rslt;
+    Whiteboard_2B* m_wb_down;
+    Whiteboard_2B* m_wb_basin;
 };
 
 #endif // P1_GEN_RIVER_NETWORK_H

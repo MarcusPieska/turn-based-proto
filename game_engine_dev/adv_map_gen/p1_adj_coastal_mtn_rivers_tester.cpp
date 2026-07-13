@@ -11,13 +11,16 @@
 #include "p1_adj_coastal_mtn_rivers.h"
 #include "p1_gen_land_depth.h"
 #include "p1_gen_cont_outlines.h"
+#include "p1_gen_ocean_index.h"
 #include "p1_gen_river_lines.h"
 #include "p1_gen_river_network.h"
 #include "p1_gen_river_pts.h"
 #include "p1_gen_river_sectors.h"
+#include "p1_gen_river_sect_adj.h"
 #include "p1_gen_coastal_mtn_limits.h"
 #include "generator_constants.h"
-#include "p1_tester_util.h" 
+#include "p1_tester_util.h"
+#include "p1_wb_util.h"
 
 //================================================================================================================================
 //=> - Test helpers -
@@ -156,23 +159,33 @@ i32 test_p1_adj_coastal_mtn_rivers_basic (const P1_RunPrm& prm) {
         delete[] terrain;
         return -1;
     }
+    P1_Gen_OceanIndex ocn_gen(prm);
+    if (!ocn_gen.generate(terrain, w, h) || !ocn_gen.is_valid()) {
+        delete[] terrain;
+        return -1;
+    }
     P1_Gen_RiverSectors sec_gen(prm);
-    if (!sec_gen.generate(terrain, w, h, pts_gen.result()) || !sec_gen.is_valid()) {
+    if (!sec_gen.generate(terrain, w, h, pts_gen.result(), p1_ocean_ref_from_rslt(ocn_gen.result())) || !sec_gen.is_valid()) {
+        delete[] terrain;
+        return -1;
+    }
+    P1_Gen_RiverSectAdj adj_gen(prm);
+    if (!adj_gen.generate(sec_gen.result()) || !adj_gen.is_valid()) {
         delete[] terrain;
         return -1;
     }
     P1_Gen_CoastalMtnLimits lim_gen(prm);
-    if (!lim_gen.generate(terrain, w, h, sec_gen.result()) || !lim_gen.is_valid()) {
+    if (!lim_gen.generate(terrain, w, h, sec_gen.result(), adj_gen.result()) || !lim_gen.is_valid()) {
         delete[] terrain;
         return -1;
     }
     P1_Gen_RiverNetwork net_gen(prm);
-    if (!net_gen.generate(terrain, w, h, sec_gen.result(), lim_gen.result()) || !net_gen.is_valid()) {
+    if (!net_gen.generate(terrain, w, h, pts_gen.result(), sec_gen.result(), adj_gen.result(), lim_gen.result(), p1_ocean_ref_from_rslt(ocn_gen.result())) || !net_gen.is_valid()) {
         delete[] terrain;
         return -1;
     }
     P1_Gen_RiverLines lin_gen(prm);
-    if (!lin_gen.generate(terrain, w, h, sec_gen.result(), net_gen.result()) || !lin_gen.is_valid()) {
+    if (!lin_gen.generate(terrain, w, h, const_cast<P1_Gen_RiverPtsRslt&>(pts_gen.result()), sec_gen.result(), net_gen.result(), p1_ocean_ref_from_rslt(ocn_gen.result())) || !lin_gen.is_valid()) {
         delete[] terrain;
         return -1;
     }
@@ -230,7 +243,11 @@ i32 main (i32 argc, char* argv[]) {
     }
     P1_RunPrm prm;
     p1_resolve_run_prm(argc, argv, &prm);
-    return test_p1_adj_coastal_mtn_rivers_basic(prm);
+    p1_wb_init(prm.m_w, prm.m_h);
+    const i32 rc = test_p1_adj_coastal_mtn_rivers_basic(prm);
+    const bool wb_ok = p1_tester_whiteboard_chk();
+    p1_wb_term();
+    return (rc == 0 && wb_ok) ? 0 : -1;
 }
 
 //================================================================================================================================

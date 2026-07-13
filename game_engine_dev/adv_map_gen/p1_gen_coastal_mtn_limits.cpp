@@ -136,15 +136,16 @@ static bool bfs_sec_coast_dist (
     u16 w,
     u16 h,
     const u16* ov,
-    u16 sector_n,
-    const P1_RiverSectorNode* nodes,
+    const P1_Gen_RiverSectAdjRslt& sect_adj,
     u16* sec_dist,
     u16* sec_que,
     u16* max_dist) 
 {
-    if (glob == nullptr || ov == nullptr || sec_dist == nullptr || sec_que == nullptr || max_dist == nullptr) {
+    if (glob == nullptr || ov == nullptr || sec_dist == nullptr || sec_que == nullptr || max_dist == nullptr
+        || sect_adj.m_nb == nullptr || sect_adj.m_nb_n == nullptr) {
         return false;
     }
+    const u16 sector_n = sect_adj.m_sector_n;
     *max_dist = 0;
     for (u32 si = 0; si < static_cast<u32>(sector_n); ++si) {
         sec_dist[si] = k_inf;
@@ -171,13 +172,13 @@ static bool bfs_sec_coast_dist (
     while (qh < qn) {
         const u16 sid = sec_que[qh++];
         const u16 cur = sec_dist[sid];
-        if (nodes == nullptr || sid >= sector_n) {
+        if (sid >= sector_n) {
             continue;
         }
-        const P1_RiverSectorNode& nd = nodes[sid];
         const u16 nxt = static_cast<u16>(cur + 1u);
-        for (u16 c = 0; c < nd.m_conn_n; ++c) {
-            const u16 nb = nd.m_conn[c];
+        const u8 nn = sect_adj.m_nb_n[sid];
+        for (u8 c = 0; c < nn; ++c) {
+            const u16 nb = p1_sect_adj_nb(sect_adj, sid, c);
             if (nb >= sector_n || sec_dist[nb] != k_inf) {
                 continue;
             }
@@ -809,17 +810,18 @@ static bool build_final_limit_ov (
     u16 w,
     u16 h,
     const u16* ov,
-    u16 sector_n,
+    const P1_Gen_RiverSectAdjRslt& sect_adj,
     const u16* sec_dist,
-    const P1_RiverSectorNode* nodes,
     const u8* sel,
     u16* sec_blk,
     u16* sec_z,
     u8* out) 
 {
-    if (ov == nullptr || sec_dist == nullptr || sel == nullptr || sec_blk == nullptr || out == nullptr) {
+    if (ov == nullptr || sec_dist == nullptr || sel == nullptr || sec_blk == nullptr || out == nullptr
+        || sect_adj.m_nb == nullptr || sect_adj.m_nb_n == nullptr) {
         return false;
     }
+    const u16 sector_n = sect_adj.m_sector_n;
     const u16 dep_lo = static_cast<u16>(P1_COASTAL_MTN_LIMIT_DEPTH);
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
     std::memset(out, 0, n);
@@ -873,7 +875,7 @@ static bool build_final_limit_ov (
             out[i] = static_cast<u8>(P1_COASTAL_MTN_OV_BLK);
         }
     }
-    if (dep_lo > 0u && nodes != nullptr && sec_z != nullptr) {
+    if (dep_lo > 0u && sec_z != nullptr) {
         for (u32 si = 0; si < static_cast<u32>(sector_n); ++si) {
             sec_z[si] = 0;
         }
@@ -881,9 +883,9 @@ static bool build_final_limit_ov (
             if (sec_blk[si] == 0 || si >= sector_n) {
                 continue;
             }
-            const P1_RiverSectorNode& nd = nodes[si];
-            for (u16 c = 0; c < nd.m_conn_n; ++c) {
-                const u16 nb = nd.m_conn[c];
+            const u8 nn = sect_adj.m_nb_n[si];
+            for (u8 c = 0; c < nn; ++c) {
+                const u16 nb = p1_sect_adj_nb(sect_adj, static_cast<u16>(si), c);
                 if (nb >= sector_n) {
                     continue;
                 }
@@ -914,6 +916,7 @@ static bool build_coastal_mtn_limits (
     u16 w,
     u16 h,
     const P1_Gen_RiverSectorsRslt& sectors,
+    const P1_Gen_RiverSectAdjRslt& sect_adj,
     P1_Gen_CoastalMtnLimitsRslt* out) 
 {
     if (out == nullptr || terrain == nullptr || sectors.m_ov == nullptr || !p1_map_size_ok(w, h)) {
@@ -921,6 +924,9 @@ static bool build_coastal_mtn_limits (
     }
     const u16 sector_n = sectors.m_sector_n;
     if (sector_n == 0) {
+        return false;
+    }
+    if (sect_adj.m_sector_n != sector_n || sect_adj.m_nb == nullptr || sect_adj.m_nb_n == nullptr) {
         return false;
     }
     const u32 tn = static_cast<u32>(w) * static_cast<u32>(h);
@@ -950,7 +956,7 @@ static bool build_coastal_mtn_limits (
         return false;
     }
     u16 max_dist = 0;
-    if (!bfs_sec_coast_dist(glob, w, h, sectors.m_ov, sector_n, sectors.m_nodes, sec_dist, sec_que, &max_dist)) {
+    if (!bfs_sec_coast_dist(glob, w, h, sectors.m_ov, sect_adj, sec_dist, sec_que, &max_dist)) {
         delete[] sec_dist;
         delete[] sec_que;
         return false;
@@ -1005,7 +1011,7 @@ static bool build_coastal_mtn_limits (
     }
     u16* sec_z = nullptr;
     const u16 dep_lo = static_cast<u16>(P1_COASTAL_MTN_LIMIT_DEPTH);
-    if (dep_lo > 0u && sectors.m_nodes != nullptr) {
+    if (dep_lo > 0u) {
         sec_z = new u16[static_cast<u32>(sector_n)];
         if (sec_z == nullptr) {
             delete[] sec_blk;
@@ -1014,7 +1020,7 @@ static bool build_coastal_mtn_limits (
             return false;
         }
     }
-    if (!build_final_limit_ov(w, h, sectors.m_ov, sector_n, sec_dist, sectors.m_nodes, sel,
+    if (!build_final_limit_ov(w, h, sectors.m_ov, sect_adj, sec_dist, sel,
             sec_blk, sec_z, out_ov)) {
         delete[] sec_z;
         delete[] sec_blk;
@@ -1073,7 +1079,13 @@ P1_Gen_CoastalMtnLimits::P1_Gen_CoastalMtnLimits (const P1_RunPrm& prm) :
     m_rslt.m_sel_n = 0;
 }
 
-bool P1_Gen_CoastalMtnLimits::generate (const u8* terrain, u16 w, u16 h, const P1_Gen_RiverSectorsRslt& sectors) {
+bool P1_Gen_CoastalMtnLimits::generate (
+    const u8* terrain,
+    u16 w,
+    u16 h,
+    const P1_Gen_RiverSectorsRslt& sectors,
+    const P1_Gen_RiverSectAdjRslt& sect_adj) 
+{
     m_valid_generation = false;
     m_rslt.m_limit_ov.clear();
     m_rslt.m_w = 0;
@@ -1088,7 +1100,7 @@ bool P1_Gen_CoastalMtnLimits::generate (const u8* terrain, u16 w, u16 h, const P
     if (w != m_prm.m_w || h != m_prm.m_h || w != sectors.m_w || h != sectors.m_h) {
         return false;
     }
-    if (!build_coastal_mtn_limits(m_prm.m_seed, terrain, w, h, sectors, &m_rslt)) {
+    if (!build_coastal_mtn_limits(m_prm.m_seed, terrain, w, h, sectors, sect_adj, &m_rslt)) {
         m_rslt.m_limit_ov.clear();
         return false;
     }

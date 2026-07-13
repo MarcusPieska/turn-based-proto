@@ -7,6 +7,7 @@
 
 #include "p1_gen_river_pts.h"
 #include "p1_gen_river_pts_view.h"
+#include "p1_gen_ocean_index.h"
 #include "p1_rprint.h"
 #include "p1_tester_harness.h"
 
@@ -30,9 +31,15 @@ i32 test_p1_gen_river_pts_basic (P1_TesterHarness& h) {
         P1_RPrint::rprint_info("Invalid shaped terrain from early chain");
         return -1;
     }
+    P1_Gen_OceanIndex ocn_gen(h.prm());
+    if (!ocn_gen.generate(ter, w, ht) || !ocn_gen.is_valid()) {
+        P1_RPrint::rprint_info("Failed to generate ocean index");
+        return -1;
+    }
+    const P1_OceanIndexRef ocn_ref = p1_ocean_ref_from_rslt(ocn_gen.result());
     P1_Gen_RiverPts gen(h.prm());
     const clock_t t0 = clock();
-    const bool ok = gen.generate(ter, w, ht);
+    const bool ok = gen.generate(ter, w, ht, ocn_ref);
     const clock_t t1 = clock();
     const double sec = static_cast<double>(t1 - t0) / static_cast<double>(CLOCKS_PER_SEC);
     const P1_Gen_RiverPtsRslt& r = gen.result();
@@ -44,6 +51,7 @@ i32 test_p1_gen_river_pts_basic (P1_TesterHarness& h) {
     std::snprintf(tbuf, sizeof(tbuf), "Timing: %.6f s", sec);
     P1_RPrint::rprint_info(tbuf);
     P1_RPrint::rprint_state_u32("P1_Gen_RiverPts", "Pts", r.m_n);
+    P1_RPrint::rprint_state("P1_Gen_RiverPts", "OcnSecs", r.m_ocn_sec_n);
     P1_RPrint::rprint_state("Map", "W", w);
     P1_RPrint::rprint_state("Map", "H", ht);
     char pri_path[320];

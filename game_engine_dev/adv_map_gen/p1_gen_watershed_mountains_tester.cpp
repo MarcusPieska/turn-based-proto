@@ -14,13 +14,16 @@
 #include "p1_gen_noise_perlin.h"
 #include "p1_gen_cont_outlines.h"
 #include "p1_gen_river_lines.h"
+#include "p1_gen_ocean_index.h"
 #include "p1_gen_river_network.h"
 #include "p1_gen_river_pts.h"
 #include "p1_gen_river_sectors.h"
+#include "p1_gen_river_sect_adj.h"
 #include "p1_gen_coastal_mtn_limits.h"
 #include "p1_gen_watershed_mountains.h"
 #include "game_primitives.h"
 #include "p1_tester_util.h"
+#include "p1_wb_util.h"
 
 //================================================================================================================================
 //=> - Test helpers -
@@ -46,6 +49,7 @@ static bool build_step11_input (
     u8* terrain,
     u16 w,
     u16 h,
+    P1_Gen_RiverPtsRslt* pts_out,
     P1_Gen_RiverLines* lin_gen,
     P1_Gen_RiverNetwork* net_gen) 
 {
@@ -75,18 +79,39 @@ static bool build_step11_input (
     if (!pts_gen.generate(terrain, w, h) || !pts_gen.is_valid()) {
         return false;
     }
+    if (pts_out == nullptr) {
+        return false;
+    }
+    pts_out->m_w = w;
+    pts_out->m_h = h;
+    pts_out->m_n = pts_gen.result().m_n;
+    pts_out->m_ocn_sec_n = pts_gen.result().m_ocn_sec_n;
+    pts_out->m_que.clear();
+    for (u32 pi = 0; pi < pts_gen.result().m_n; ++pi) {
+        if (!pts_out->m_que.push(pts_gen.result().m_que.x_at(pi), pts_gen.result().m_que.y_at(pi))) {
+            return false;
+        }
+    }
+    P1_Gen_OceanIndex ocn_gen(prm);
+    if (!ocn_gen.generate(terrain, w, h) || !ocn_gen.is_valid()) {
+        return false;
+    }
     P1_Gen_RiverSectors sec_gen(prm);
-    if (!sec_gen.generate(terrain, w, h, pts_gen.result()) || !sec_gen.is_valid()) {
+    if (!sec_gen.generate(terrain, w, h, pts_gen.result(), p1_ocean_ref_from_rslt(ocn_gen.result())) || !sec_gen.is_valid()) {
         return false;
     }
     P1_Gen_CoastalMtnLimits lim_gen(prm);
-    if (!lim_gen.generate(terrain, w, h, sec_gen.result()) || !lim_gen.is_valid()) {
+    P1_Gen_RiverSectAdj adj_gen(prm);
+    if (!adj_gen.generate(sec_gen.result()) || !adj_gen.is_valid()) {
         return false;
     }
-    if (!net_gen->generate(terrain, w, h, sec_gen.result(), lim_gen.result()) || !net_gen->is_valid()) {
+    if (!lim_gen.generate(terrain, w, h, sec_gen.result(), adj_gen.result()) || !lim_gen.is_valid()) {
         return false;
     }
-    if (!lin_gen->generate(terrain, w, h, sec_gen.result(), net_gen->result())
+    if (!net_gen->generate(terrain, w, h, pts_gen.result(), sec_gen.result(), adj_gen.result(), lim_gen.result(), p1_ocean_ref_from_rslt(ocn_gen.result())) || !net_gen->is_valid()) {
+        return false;
+    }
+    if (!lin_gen->generate(terrain, w, h, pts_gen.rslt_mut(), sec_gen.result(), net_gen->result(), p1_ocean_ref_from_rslt(ocn_gen.result()))
         || !lin_gen->is_valid()) {
         return false;
     }
@@ -100,7 +125,7 @@ static bool build_step11_input (
         return false;
     }
     P1_Adj_RiverInlets inlets(prm);
-    return inlets.adjust(terrain, w, h, lin_gen->result().m_ov, lin_gen->result())
+    return inlets.adjust(terrain, w, h, lin_gen->result().m_ov, net_gen->result().m_ov)
         && inlets.is_valid();
 }
 
@@ -132,7 +157,8 @@ i32 test_p1_gen_watershed_mountains_basic (const P1_RunPrm& prm) {
     }
     P1_Gen_RiverLines lin_gen(prm);
     P1_Gen_RiverNetwork net_gen(prm);
-    if (!build_step11_input(prm, terrain, w, h, &lin_gen, &net_gen)) {
+    P1_Gen_RiverPtsRslt pts_rslt;
+    if (!build_step11_input(prm, terrain, w, h, &pts_rslt, &lin_gen, &net_gen)) {
         std::printf("P1 steps 1-13 input failed for step 14\n");
         delete[] terrain;
         return -1;
@@ -140,7 +166,7 @@ i32 test_p1_gen_watershed_mountains_basic (const P1_RunPrm& prm) {
     const clock_t t1i = clock();
     P1_Gen_WatershedMountains gen(prm);
     const clock_t t0 = clock();
-    const bool ok = gen.generate(terrain, w, h, net_gen.result(), noise);
+    const bool ok = gen.generate(terrain, w, h, net_gen.result(), pts_rslt, noise);
     const clock_t t1 = clock();
     const double sec_i = static_cast<double>(t1i - t0i) / static_cast<double>(CLOCKS_PER_SEC);
     const double sec = static_cast<double>(t1 - t0) / static_cast<double>(CLOCKS_PER_SEC);
@@ -192,7 +218,10 @@ i32 main (i32 argc, char* argv[]) {
     }
     P1_RunPrm prm;
     p1_resolve_run_prm(argc, argv, &prm);
-    return test_p1_gen_watershed_mountains_basic(prm);
+    p1_wb_init(prm.m_w, prm.m_h);
+    const i32 rc = test_p1_gen_watershed_mountains_basic(prm);
+    p1_wb_term();
+    return rc;
 }
 
 //================================================================================================================================

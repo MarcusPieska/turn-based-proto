@@ -6,7 +6,6 @@
 #define P1_ADJ_RIVER_INLETS_H
 
 #include "game_primitives.h"
-#include "p1_gen_river_lines.h"
 #include "p1_map_size.h"
 
 //================================================================================================================================
@@ -45,7 +44,7 @@ public:
         u16 w,
         u16 h,
         u8* riv,
-        const P1_Gen_RiverLinesRslt& lines);
+        const u16* basin);
     bool is_valid () const;
 
 private:

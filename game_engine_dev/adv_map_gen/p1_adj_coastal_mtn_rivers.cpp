@@ -15,7 +15,7 @@
 static const u16 k_inf = 0xFFFFu;
 static const i32 k_dx4[4] = {-1, 1, 0, 0};
 static const i32 k_dy4[4] = {0, 0, -1, 1};
-#define P1_COASTAL_RIV_SECTOR_CAP 11000u
+#define P1_COASTAL_RIV_SECTOR_CAP 20000u
 
 //================================================================================================================================
 //=> - Private helpers -

@@ -9,7 +9,6 @@
 #include "game_map_defs.h"
 #include "p1_gen_river_network.h"
 #include "p1_wb_util.h"
-#include "res_placement_defs.h"
 
 //================================================================================================================================
 //=> - Delta swamp tuning -
@@ -290,7 +289,7 @@ static bool set_swamp_tile (
     if (wshed[i] != bidx || !is_plains_terr(terrain[i]) || !res_ov_free(res_ov[i])) {
         return false;
     }
-    res_ov[i] = static_cast<u8>(RES_OV_SWAMPS);
+    res_ov[i] = OV_SWAMP[0];
     if (climate[i] == CLIMATE_DESERT || climate[i] == CLIMATE_PLAINS) {
         climate[i] = CLIMATE_GRASSLAND;
     }

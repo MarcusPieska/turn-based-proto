@@ -178,7 +178,7 @@ bool GameSetup::setup_new_game (GameState* state, const MapPpmPaths& paths, u16 
     state->m_statics = g_rt_statics;
     state->m_civ_relations.reset(g_rt_statics->civ().get_item_count());
     SpgPickCoords starts = {};
-    if (!Factory_GameArraySimple::load_map_gen_data(&state->m_map, paths.m_terr, paths.m_clim, paths.m_riv)) {
+    if (!Factory_GameArraySimple::load_map_gen_data(&state->m_map, paths.m_terr, paths.m_clim, paths.m_riv, paths.m_ov)) {
         return false;
     }
     if (paths.m_res != nullptr && !Factory_GameArraySimple::load_res_dist_data(&state->m_map, paths.m_res)) {

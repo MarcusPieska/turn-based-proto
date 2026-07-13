@@ -169,11 +169,15 @@ static u32 rng_next (Rng32* g) {
     return g->m_s;
 }
 
-static u16 max_basin_idx (const P1_Gen_RiverNetworkRslt& network) {
+static u16 max_basin_idx_ov (u16 w, u16 h, const u16* ov) {
+    if (ov == nullptr || w == 0 || h == 0) {
+        return 0;
+    }
     u16 mx = 0;
-    for (u16 bi = 0; bi < network.m_basin_n; ++bi) {
-        if (network.m_basins[bi].m_idx > mx) {
-            mx = network.m_basins[bi].m_idx;
+    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
+    for (u32 i = 0; i < n; ++i) {
+        if (ov[i] > mx) {
+            mx = ov[i];
         }
     }
     return mx;
@@ -251,7 +255,7 @@ void P1_Gen_WatershedMountainLineSets::save_output (
         rgb[i * 3u + 1] = g;
         rgb[i * 3u + 2] = b;
     }
-    const u16 pal_cap = static_cast<u16>(max_basin_idx(network) + 1u);
+    const u16 pal_cap = static_cast<u16>(max_basin_idx_ov(network.m_w, network.m_h, network.m_ov) + 1u);
     u8* pal = new u8[static_cast<size_t>(pal_cap) * 3u];
     bool* pal_set = new bool[pal_cap];
     if (pal == nullptr || pal_set == nullptr) {

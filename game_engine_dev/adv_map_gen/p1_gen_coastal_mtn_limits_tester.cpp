@@ -9,8 +9,10 @@
 #include "p1_adj_outline_fill.h"
 #include "p1_gen_land_depth.h"
 #include "p1_gen_cont_outlines.h"
+#include "p1_gen_ocean_index.h"
 #include "p1_gen_river_pts.h"
 #include "p1_gen_river_sectors.h"
+#include "p1_gen_river_sect_adj.h"
 #include "p1_gen_coastal_mtn_limits.h"
 #include "game_map_defs.h"
 #include "game_primitives.h"
@@ -134,15 +136,16 @@ static bool dbg_bfs_sec_coast_dist (
     u16 w,
     u16 h,
     const u16* ov,
-    u16 sector_n,
-    const P1_RiverSectorNode* nodes,
+    const P1_Gen_RiverSectAdjRslt& sect_adj,
     u16* sec_dist,
     u16* sec_que,
     u16* max_dist) 
 {
-    if (glob == nullptr || ov == nullptr || sec_dist == nullptr || sec_que == nullptr || max_dist == nullptr) {
+    if (glob == nullptr || ov == nullptr || sec_dist == nullptr || sec_que == nullptr || max_dist == nullptr
+        || sect_adj.m_nb == nullptr || sect_adj.m_nb_n == nullptr) {
         return false;
     }
+    const u16 sector_n = sect_adj.m_sector_n;
     *max_dist = 0;
     for (u32 si = 0; si < static_cast<u32>(sector_n); ++si) {
         sec_dist[si] = k_dbg_inf;
@@ -169,13 +172,13 @@ static bool dbg_bfs_sec_coast_dist (
     while (qh < qn) {
         const u16 sid = sec_que[qh++];
         const u16 cur = sec_dist[sid];
-        if (nodes == nullptr || sid >= sector_n) {
+        if (sid >= sector_n) {
             continue;
         }
-        const P1_RiverSectorNode& nd = nodes[sid];
         const u16 nxt = static_cast<u16>(cur + 1u);
-        for (u16 c = 0; c < nd.m_conn_n; ++c) {
-            const u16 nb = nd.m_conn[c];
+        const u8 nn = sect_adj.m_nb_n[sid];
+        for (u8 c = 0; c < nn; ++c) {
+            const u16 nb = p1_sect_adj_nb(sect_adj, sid, c);
             if (nb >= sector_n || sec_dist[nb] != k_dbg_inf) {
                 continue;
             }
@@ -356,6 +359,7 @@ static bool tester_rebuild_circ_dbg (
     u16 w,
     u16 h,
     const P1_Gen_RiverSectorsRslt& sectors,
+    const P1_Gen_RiverSectAdjRslt& sect_adj,
     MapArrayOverlay* circ_ov,
     P1_TesterCoastalMtnCircuit* circ,
     u32* circ_n,
@@ -391,7 +395,7 @@ static bool tester_rebuild_circ_dbg (
         return false;
     }
     u16 max_dist = 0;
-    if (!dbg_bfs_sec_coast_dist(wb_glob.get_iter_ptr(), w, h, sectors.m_ov, sector_n, sectors.m_nodes,
+    if (!dbg_bfs_sec_coast_dist(wb_glob.get_iter_ptr(), w, h, sectors.m_ov, sect_adj,
             sec_dist, sec_que, &max_dist)) {
         delete[] sec_dist;
         delete[] sec_que;
@@ -688,7 +692,7 @@ i32 test_p1_gen_coastal_mtn_limits_basic (const P1_RunPrm& prm) {
     const clock_t t0i = clock();
     MapArrayOverlay ov_map;
     if (!p1_gen_step01_ov(prm, &ov_map)) {
-        std::printf("P1_Gen_ContOutlines failed for step 10 input\n");
+        std::printf("P1_Gen_ContOutlines failed for step 12 input\n");
         return -1;
     }
     const u16 w = ov_map.width();
@@ -700,7 +704,7 @@ i32 test_p1_gen_coastal_mtn_limits_basic (const P1_RunPrm& prm) {
     }
     P1_Gen_LandDepth depth_gen(prm);
     if (!depth_gen.generate(ov, w, h) || !depth_gen.is_valid()) {
-        std::printf("P1_Gen_LandDepth failed for step 10 input\n");
+        std::printf("P1_Gen_LandDepth failed for step 12 input\n");
         return -1;
     }
     const u16* land_depth = depth_gen.result().m_dist.data();
@@ -714,26 +718,38 @@ i32 test_p1_gen_coastal_mtn_limits_basic (const P1_RunPrm& prm) {
         return -1;
     }
     if (!build_step5_terrain(prm, terrain, w, h, ov, land_depth)) {
-        std::printf("P1_Gen_ShapedOutline failed for step 10 input\n");
+        std::printf("P1_Gen_ShapedOutline failed for step 12 input\n");
         delete[] terrain;
         return -1;
     }
     P1_Gen_RiverPts pts_gen(prm);
     if (!pts_gen.generate(terrain, w, h) || !pts_gen.is_valid()) {
-        std::printf("P1_Gen_RiverPts failed for step 10 input\n");
+        std::printf("P1_Gen_RiverPts failed for step 12 input\n");
+        delete[] terrain;
+        return -1;
+    }
+    P1_Gen_OceanIndex ocn_gen(prm);
+    if (!ocn_gen.generate(terrain, w, h) || !ocn_gen.is_valid()) {
+        std::printf("P1_Gen_OceanIndex failed for step 12 input\n");
         delete[] terrain;
         return -1;
     }
     P1_Gen_RiverSectors sec_gen(prm);
-    if (!sec_gen.generate(terrain, w, h, pts_gen.result()) || !sec_gen.is_valid()) {
-        std::printf("P1_Gen_RiverSectors failed for step 10 input\n");
+    if (!sec_gen.generate(terrain, w, h, pts_gen.result(), p1_ocean_ref_from_rslt(ocn_gen.result())) || !sec_gen.is_valid()) {
+        std::printf("P1_Gen_RiverSectors failed for step 12 input\n");
+        delete[] terrain;
+        return -1;
+    }
+    P1_Gen_RiverSectAdj adj_gen(prm);
+    if (!adj_gen.generate(sec_gen.result()) || !adj_gen.is_valid()) {
+        std::printf("P1_Gen_RiverSectAdj failed for step 12 input\n");
         delete[] terrain;
         return -1;
     }
     const clock_t t1i = clock();
     P1_Gen_CoastalMtnLimits lim_gen(prm);
     const clock_t t0 = clock();
-    const bool ok = lim_gen.generate(terrain, w, h, sec_gen.result());
+    const bool ok = lim_gen.generate(terrain, w, h, sec_gen.result(), adj_gen.result());
     const clock_t t1 = clock();
     const double sec_i = static_cast<double>(t1i - t0i) / static_cast<double>(CLOCKS_PER_SEC);
     const double sec = static_cast<double>(t1 - t0) / static_cast<double>(CLOCKS_PER_SEC);
@@ -747,7 +763,7 @@ i32 test_p1_gen_coastal_mtn_limits_basic (const P1_RunPrm& prm) {
     u32 dbg_circ_n = 0;
     u32 dbg_circ_found = 0;
     MapArrayOverlay circ_map;
-    if (!tester_rebuild_circ_dbg(terrain, w, h, sec_gen.result(), &circ_map, dbg_circ, &dbg_circ_n, &dbg_circ_found)) {
+    if (!tester_rebuild_circ_dbg(terrain, w, h, sec_gen.result(), adj_gen.result(), &circ_map, dbg_circ, &dbg_circ_n, &dbg_circ_found)) {
         std::printf("failed to rebuild circuit debug overlay\n");
         delete[] terrain;
         return -1;
@@ -789,9 +805,6 @@ i32 test_p1_gen_coastal_mtn_limits_basic (const P1_RunPrm& prm) {
     std::printf("saved: %s\n", out_path);
     std::printf("saved: %s\n", sel_sec_path);
     std::printf("saved: %s\n", out_ov_path);
-    if (!p1_tester_whiteboard_chk()) {
-        return -1;
-    }
     return 0;
 }
 
@@ -805,7 +818,11 @@ i32 main (i32 argc, char* argv[]) {
     }
     P1_RunPrm prm;
     p1_resolve_run_prm(argc, argv, &prm);
-    return test_p1_gen_coastal_mtn_limits_basic(prm); 
+    p1_wb_init(prm.m_w, prm.m_h);
+    const i32 rc = test_p1_gen_coastal_mtn_limits_basic(prm);
+    const bool wb_ok = p1_tester_whiteboard_chk();
+    p1_wb_term();
+    return (rc == 0 && wb_ok) ? 0 : -1;
 }
 
 //================================================================================================================================

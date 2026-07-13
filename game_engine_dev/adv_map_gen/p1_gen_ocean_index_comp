@@ -1,0 +1,19 @@
+#!/bin/bash
+
+INC="-I. -I.. -I../map_loader -I../static_state -I../misc"
+
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+cd "$ROOT"
+source p1_build_early_map_objs.sh
+
+g++ -std=c++11 $INC -c p1_gen_ocean_index.cpp -o p1_gen_ocean_index.o
+g++ -std=c++11 $INC -c p1_gen_ocean_index_view.cpp -o p1_gen_ocean_index_view.o
+g++ -std=c++11 $INC -c p1_gen_ocean_index_tester.cpp -o p1_gen_ocean_index_tester.o
+
+g++ -std=c++11 -o p1_gen_ocean_index_tester \
+    $EARLY_MAP_OBJS \
+    p1_gen_ocean_index.o \
+    p1_gen_ocean_index_view.o \
+    p1_gen_ocean_index_tester.o -lm
+
+rm p1_gen_ocean_index.o p1_gen_ocean_index_view.o p1_gen_ocean_index_tester.o

@@ -17,6 +17,7 @@
 #include "p1_gen_wind_pattern_adv.h"
 #include "p1_map_config.h"
 #include "p1_map_size.h"
+#include "p1_pipeline_steps.h"
 #include "p1_tester_util.h"
 
 //================================================================================================================================
@@ -55,20 +56,21 @@ static inline P1_MakeMapPrm p1_make_map_prm_def () {
     return p;
 }
 
-static const u16 k_p1_step_coastal_mtn_limits = 10u;
-static const u16 k_p1_step_foothills = 22u;
-static const u16 k_p1_step_wind = 23u;
-static const u16 k_p1_step_rain = 24u;
-static const u16 k_p1_step_climate = 25u;
-static const u16 k_p1_step_desert_cull = 26u;
-static const u16 k_p1_step_loess = 27u;
-static const u16 k_p1_step_grass_loess = 28u;
-static const u16 k_p1_step_core = 29u;
-static const u16 k_p1_step_seed_export = 30u;
-static const u16 k_p1_step_rich_coast_fert = 31u;
-static const u16 k_p1_step_coast_fert_adj = 32u;
-static const u16 k_p1_step_ensure_adj = 33u;
-static const u16 k_p1_step_forest_overlay = 34u;
+static const u16 k_p1_step_coastal_mtn_limits = P1_STEP_COASTAL_MTN_LIMITS;
+static const u16 k_p1_step_foothills = P1_STEP_ENSURE_MTN_FOOTHILLS;
+static const u16 k_p1_step_wind = P1_STEP_WIND;
+static const u16 k_p1_step_rain = P1_STEP_RAIN;
+static const u16 k_p1_step_climate = P1_STEP_CLIMATE;
+static const u16 k_p1_step_desert_cull = P1_STEP_DESERT_CULL;
+static const u16 k_p1_step_loess = P1_STEP_LOESS;
+static const u16 k_p1_step_grass_loess = P1_STEP_GRASS_LOESS;
+static const u16 k_p1_step_core = 33u;
+static const u16 k_p1_step_seed_export = P1_STEP_MAKE_MAP;
+static const u16 k_p1_step_rich_coast_fert = P1_STEP_RICH_COAST_FERT;
+static const u16 k_p1_step_coast_fert_adj = P1_STEP_COAST_FERT_ADJ;
+static const u16 k_p1_step_ensure_adj = P1_STEP_ENSURE_ADJ;
+static const u16 k_p1_step_forest_overlay = P1_STEP_FOREST_OVERLAY;
+static const u16 k_p1_step_delta_swamps = P1_STEP_DELTA_SWAMPS;
 
 //================================================================================================================================
 //=> - P1_MakeMapRslt -
@@ -85,6 +87,7 @@ struct P1_MakeMapRslt {
     u8* m_wind_str;
     u8* m_loess;
     u8* m_rain;
+    u8* m_overlay;
 };
 
 //================================================================================================================================
@@ -101,6 +104,7 @@ public:
     bool save_terrain_ppm (cstr path) const;
     bool save_climate_ppm (cstr path) const;
     bool save_rivers_ppm (cstr path) const;
+    bool save_overlay_ppm (cstr path) const;
     bool save_seed_export () const;
     static void free_rslt (P1_MakeMapRslt* rslt);
     static bool copy_rslt (P1_MakeMapRslt* dst, const P1_MakeMapRslt& src);

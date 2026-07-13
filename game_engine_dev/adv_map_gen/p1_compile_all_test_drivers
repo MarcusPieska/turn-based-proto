@@ -13,6 +13,7 @@ COMPS=(
     p1_gen_shaped_outline_comp
     p1_gen_river_pts_comp
     p1_gen_river_sectors_comp
+    p1_gen_river_sect_adj_comp
     p1_gen_coastal_mtn_limits_comp
     p1_gen_river_network_comp
     p1_gen_river_lines_comp

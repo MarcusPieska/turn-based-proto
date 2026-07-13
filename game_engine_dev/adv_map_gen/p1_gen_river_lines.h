@@ -6,26 +6,11 @@
 #define P1_GEN_RIVER_LINES_H
 
 #include "game_primitives.h"
+#include "p1_gen_ocean_index.h"
 #include "p1_gen_river_network.h"
+#include "p1_gen_river_pts.h"
 #include "p1_gen_river_sectors.h"
 #include "p1_map_size.h"
-
-//================================================================================================================================
-//=> - P1 river line limits -
-//================================================================================================================================
-
-#define P1_RIVER_LINE_SYS_NONE 0xFFFFu
-
-//================================================================================================================================
-//=> - P1_RiverSysEntry -
-//================================================================================================================================
-
-struct P1_RiverSysEntry {
-    u16 m_mx;
-    u16 m_my;
-    u16 m_max_d;
-    u32 m_tile_n;
-};
 
 //================================================================================================================================
 //=> - P1_Gen_RiverLinesRslt -
@@ -35,10 +20,7 @@ struct P1_Gen_RiverLinesRslt {
     u16 m_w;
     u16 m_h;
     u8* m_ov;
-    u16 m_sys_n;
-    P1_RiverSysEntry* m_sys;
-    u16* m_rdep;
-    u16* m_rsys;
+    u8* m_dov;
 };
 
 //================================================================================================================================
@@ -54,11 +36,12 @@ public:
         const u8* terrain,
         u16 w,
         u16 h,
+        P1_Gen_RiverPtsRslt& pts,
         const P1_Gen_RiverSectorsRslt& sectors,
-        const P1_Gen_RiverNetworkRslt& network);
+        const P1_Gen_RiverNetworkRslt& network,
+        const P1_OceanIndexRef& ocean);
     bool is_valid () const;
     const P1_Gen_RiverLinesRslt& result () const;
-    void save_output (cstr path, const u8* terrain) const;
 
 private:
     P1_Gen_RiverLines (const P1_Gen_RiverLines& other) = delete;

@@ -1,0 +1,16 @@
+#!/bin/bash
+
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+cd "$ROOT"
+
+source p1_build_early_map_objs.sh
+
+INC="-I. -I.. -I../map_loader -I../static_state -I../misc"
+
+g++ -std=c++11 $INC -c p1_gen_river_prob_tester.cpp -o p1_gen_river_prob_tester.o
+
+g++ -std=c++11 -o p1_gen_river_prob_tester \
+    $EARLY_MAP_OBJS \
+    p1_gen_river_prob_tester.o -lm
+
+rm $EARLY_MAP_OBJS p1_gen_river_prob_tester.o

@@ -7,6 +7,7 @@
 
 #include "game_primitives.h"
 #include "generator_constants.h"
+#include "p1_gen_river_sect_adj.h"
 #include "p1_gen_river_sectors.h"
 #include "p1_map_size.h"
 
@@ -47,7 +48,8 @@ public:
         const u8* terrain,
         u16 w,
         u16 h,
-        const P1_Gen_RiverSectorsRslt& sectors);
+        const P1_Gen_RiverSectorsRslt& sectors,
+        const P1_Gen_RiverSectAdjRslt& sect_adj);
     
     bool is_valid () const;
     const P1_Gen_CoastalMtnLimitsRslt& result () const;

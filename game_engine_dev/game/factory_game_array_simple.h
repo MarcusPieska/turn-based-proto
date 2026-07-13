@@ -23,7 +23,8 @@ public:
         GameArraySimple* out, // Destination grid; cleared then filled
         cstr terr_path, // Terrain PPM from adv_map_gen
         cstr clim_path, // Climate PPM from adv_map_gen
-        cstr riv_path); // River PPM from adv_map_gen
+        cstr riv_path, // River PPM from adv_map_gen
+        cstr ov_path = nullptr); // Overlay PPM from adv_map_gen
 
     static bool load_res_dist_data (
         GameArraySimple* out, // Grid from load_map_gen_data; must match res PPM size

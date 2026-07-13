@@ -15,9 +15,11 @@
 #include "p1_gen_land_depth.h"
 #include "p1_gen_cont_outlines.h"
 #include "p1_gen_river_lines.h"
+#include "p1_gen_ocean_index.h"
 #include "p1_gen_river_network.h"
 #include "p1_gen_river_pts.h"
 #include "p1_gen_river_sectors.h"
+#include "p1_gen_river_sect_adj.h"
 #include "p1_gen_coastal_mtn_limits.h"
 #include "generator_constants.h"
 #include "p1_tester_util.h"
@@ -79,18 +81,26 @@ static bool build_step13_input (
     if (sec_gen == nullptr || net_gen == nullptr) {
         return false;
     }
-    if (!sec_gen->generate(terrain, w, h, pts_gen.result()) || !sec_gen->is_valid()) {
+    P1_Gen_OceanIndex ocn_gen(prm);
+    if (!ocn_gen.generate(terrain, w, h) || !ocn_gen.is_valid()) {
+        return false;
+    }
+    if (!sec_gen->generate(terrain, w, h, pts_gen.result(), p1_ocean_ref_from_rslt(ocn_gen.result())) || !sec_gen->is_valid()) {
         return false;
     }
     P1_Gen_CoastalMtnLimits lim_gen(prm);
     if (!lim_gen.generate(terrain, w, h, sec_gen->result()) || !lim_gen.is_valid()) {
         return false;
     }
-    if (!net_gen->generate(terrain, w, h, sec_gen->result(), lim_gen.result()) || !net_gen->is_valid()) {
+    P1_Gen_RiverSectAdj adj_gen(prm);
+    if (!adj_gen.generate(sec_gen->result()) || !adj_gen.is_valid()) {
+        return false;
+    }
+    if (!net_gen->generate(terrain, w, h, pts_gen.result(), sec_gen->result(), adj_gen.result(), lim_gen.result(), p1_ocean_ref_from_rslt(ocn_gen.result())) || !net_gen->is_valid()) {
         return false;
     }
     P1_Gen_RiverLines lin_gen(prm);
-    if (!lin_gen.generate(terrain, w, h, sec_gen->result(), net_gen->result()) || !lin_gen.is_valid()) {
+    if (!lin_gen.generate(terrain, w, h, pts_gen.rslt_mut(), sec_gen->result(), net_gen->result(), p1_ocean_ref_from_rslt(ocn_gen.result())) || !lin_gen.is_valid()) {
         return false;
     }
     const u32 npx = static_cast<u32>(w) * static_cast<u32>(h);
@@ -104,7 +114,7 @@ static bool build_step13_input (
         return false;
     }
     P1_Adj_RiverInlets inlets(prm);
-    if (!inlets.adjust(terrain, w, h, riv, lin_gen.result()) || !inlets.is_valid()) {
+    if (!inlets.adjust(terrain, w, h, riv, net_gen->result().m_ov) || !inlets.is_valid()) {
         return false;
     }
     return true;

@@ -6,8 +6,7 @@
 #define WB_QUE_XY_H
 
 #include "game_primitives.h"
-
-class Whiteboard_2B;
+#include "whiteboard_mng.h"
 
 //================================================================================================================================
 //=> - WB_QueXY -
@@ -28,6 +27,7 @@ public:
     bool push (u16 x, u16 y);
     u16 x_at (u32 i) const;
     u16 y_at (u32 i) const;
+    void set_at (u32 i, u16 x, u16 y);
     void drop (u32 n);
     void swap (WB_QueXY& o) noexcept;
 
@@ -41,8 +41,8 @@ private:
     void wr_u16 (u32 wi, u16 v) const;
     u16 rd_u16 (u32 wi) const;
 
-    Whiteboard_2B* m_wb0;
-    Whiteboard_2B* m_wb1;
+    Whiteboard_2B m_wb0;
+    Whiteboard_2B m_wb1;
     u16* m_p;
     u16* m_p2;
     u32 m_ent_n;

@@ -35,11 +35,15 @@ static u32 mouth_dist_sq (u16 a, u16 b, const u16* mx, const u16* my, const u8* 
     return static_cast<u32>(dx * dx + dy * dy);
 }
 
-static u16 max_basin_idx (const P1_Gen_RiverNetworkRslt& network) {
+static u16 max_basin_idx_ov (u16 w, u16 h, const u16* ov) {
+    if (ov == nullptr || w == 0 || h == 0) {
+        return 0;
+    }
     u16 mx = 0;
-    for (u16 bi = 0; bi < network.m_basin_n; ++bi) {
-        if (network.m_basins[bi].m_idx > mx) {
-            mx = network.m_basins[bi].m_idx;
+    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
+    for (u32 i = 0; i < n; ++i) {
+        if (ov[i] > mx) {
+            mx = ov[i];
         }
     }
     return mx;
@@ -47,6 +51,8 @@ static u16 max_basin_idx (const P1_Gen_RiverNetworkRslt& network) {
 
 static void build_mouth_tbl (
     const P1_Gen_RiverNetworkRslt& network,
+    const P1_Gen_RiverPtsRslt& pts,
+    u16 w,
     u16 cap,
     u16* mx,
     u16* my,
@@ -55,14 +61,23 @@ static void build_mouth_tbl (
     for (u16 i = 0; i <= cap; ++i) {
         has[i] = 0;
     }
-    for (u16 bi = 0; bi < network.m_basin_n; ++bi) {
-        const P1_RiverBasinEntry& e = network.m_basins[bi];
-        if (e.m_idx == 0 || e.m_idx > cap) {
+    if (network.m_downstream == nullptr || network.m_ov == nullptr || !pts.m_que.ok() || network.m_sector_n == 0) {
+        return;
+    }
+    for (u16 si = 0; si < network.m_sector_n; ++si) {
+        if (network.m_downstream[si] != static_cast<u16>(P1_RIVER_DOWN_MOUTH)) {
             continue;
         }
-        has[e.m_idx] = 1;
-        mx[e.m_idx] = e.m_mouth_x;
-        my[e.m_idx] = e.m_mouth_y;
+        const u16 x = pts.m_que.x_at(static_cast<u32>(si));
+        const u16 y = pts.m_que.y_at(static_cast<u32>(si));
+        const u32 ti = static_cast<u32>(y) * static_cast<u32>(w) + static_cast<u32>(x);
+        const u16 bid = network.m_ov[ti];
+        if (bid == 0 || bid > cap) {
+            continue;
+        }
+        has[bid] = 1;
+        mx[bid] = x;
+        my[bid] = y;
     }
 }
 
@@ -337,6 +352,7 @@ static bool build_watershed_mtns (
     u16 w,
     u16 h,
     const P1_Gen_RiverNetworkRslt& network,
+    const P1_Gen_RiverPtsRslt& pts,
     const u8* noise,
     const P1_Gen_WatershedMountainsPrm& sp,
     P1_Gen_WatershedMountainsRslt* out) 
@@ -346,7 +362,7 @@ static bool build_watershed_mtns (
     }
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
     const u16* bov = network.m_ov;
-    const u16 cap = max_basin_idx(network);
+    const u16 cap = max_basin_idx_ov(w, h, bov);
     out->m_w = w;
     out->m_h = h;
     out->m_seg_n = 0;
@@ -373,7 +389,7 @@ static bool build_watershed_mtns (
         delete[] mx;
         return false;
     }
-    build_mouth_tbl(network, cap, mx, my, has);
+    build_mouth_tbl(network, pts, w, cap, mx, my, has);
     const u32 border_n = count_border_tiles(w, h, bov, mx, my, has, cap);
     if (border_n == 0) {
         delete[] has;
@@ -540,6 +556,7 @@ bool P1_Gen_WatershedMountains::generate (
     u16 w,
     u16 h,
     const P1_Gen_RiverNetworkRslt& network,
+    const P1_Gen_RiverPtsRslt& pts,
     const u8* noise) 
 {
     m_valid_generation = false;
@@ -550,7 +567,7 @@ bool P1_Gen_WatershedMountains::generate (
     if (w != m_prm.m_w || h != m_prm.m_h) {
         return false;
     }
-    if (!build_watershed_mtns(terrain, w, h, network, noise, m_sp, &m_rslt)) {
+    if (!build_watershed_mtns(terrain, w, h, network, pts, noise, m_sp, &m_rslt)) {
         clear_rslt();
         return false;
     }
@@ -592,7 +609,7 @@ void P1_Gen_WatershedMountains::save_output (
         rgb[i * 3u + 1] = g;
         rgb[i * 3u + 2] = b;
     }
-    const u16 pal_cap = static_cast<u16>(max_basin_idx(network) + 1u);
+    const u16 pal_cap = static_cast<u16>(max_basin_idx_ov(w, h, network.m_ov) + 1u);
     u8* pal = new u8[static_cast<size_t>(pal_cap) * 3u];
     bool* pal_set = new bool[pal_cap];
     if (pal == nullptr || pal_set == nullptr) {

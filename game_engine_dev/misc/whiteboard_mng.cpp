@@ -348,6 +348,36 @@ Whiteboard_2B::~Whiteboard_2B () {
     }
 }
 
+void whiteboard_2b_swap (Whiteboard_2B& a, Whiteboard_2B& b) noexcept {
+    u8* tp = a.m_p;
+    a.m_p = b.m_p;
+    b.m_p = tp;
+    u8 tb = a.m_blk;
+    a.m_blk = b.m_blk;
+    b.m_blk = tb;
+    tb = a.m_sub;
+    a.m_sub = b.m_sub;
+    b.m_sub = tb;
+    u16 tw = a.m_w;
+    a.m_w = b.m_w;
+    b.m_w = tw;
+    tw = a.m_h;
+    a.m_h = b.m_h;
+    b.m_h = tw;
+    cstr ts = a.m_cls;
+    a.m_cls = b.m_cls;
+    b.m_cls = ts;
+    ts = a.m_fn;
+    a.m_fn = b.m_fn;
+    b.m_fn = ts;
+    u32 tt = a.m_turn;
+    a.m_turn = b.m_turn;
+    b.m_turn = tt;
+    bool tok = a.m_ok;
+    a.m_ok = b.m_ok;
+    b.m_ok = tok;
+}
+
 bool Whiteboard_2B::ok () const { return m_ok; }
 u16 Whiteboard_2B::w () const { return m_w; }
 u16 Whiteboard_2B::h () const { return m_h; }

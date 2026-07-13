@@ -24,6 +24,7 @@ struct MapPpmPaths {
     cstr m_terr; // Terrain PPM from adv_map_gen
     cstr m_clim; // Climate PPM from adv_map_gen
     cstr m_riv;  // River PPM from adv_map_gen
+    cstr m_ov;   // Overlay PPM from adv_map_gen; may be null
     cstr m_res;  // Resource overlay PPM from res_dist; may be null
 };
 

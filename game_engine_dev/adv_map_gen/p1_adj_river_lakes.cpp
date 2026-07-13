@@ -18,7 +18,14 @@ static bool in_map (u16 w, u16 h, i32 x, i32 y) {
         && static_cast<u32>(y) < static_cast<u32>(h);
 }
 
-static bool is_coast_or_riv (const u8* terrain, const u8* riv, u32 i) {
+static bool is_water (u8 cls) {
+    return cls == TERR_OCEAN[0] || cls == TERR_SEA[0] || cls == TERR_COASTAL[0];
+}
+
+static bool is_land_riv_or_lake (const u8* terrain, const u8* riv, u32 i) {
+    if (is_water(terrain[i])) {
+        return false;
+    }
     return riv[i] != 0 || terrain[i] == TERR_INLAND_LAKE[0];
 }
 
@@ -33,10 +40,17 @@ static bool quad_ok (
     const u32 i1 = tidx(w, static_cast<u16>(x + 1u), y);
     const u32 i2 = tidx(w, x, static_cast<u16>(y + 1u));
     const u32 i3 = tidx(w, static_cast<u16>(x + 1u), static_cast<u16>(y + 1u));
-    return is_coast_or_riv(terrain, riv, i0)
-        && is_coast_or_riv(terrain, riv, i1)
-        && is_coast_or_riv(terrain, riv, i2)
-        && is_coast_or_riv(terrain, riv, i3);
+    return is_land_riv_or_lake(terrain, riv, i0)
+        && is_land_riv_or_lake(terrain, riv, i1)
+        && is_land_riv_or_lake(terrain, riv, i2)
+        && is_land_riv_or_lake(terrain, riv, i3);
+}
+
+static void stamp_land (u8* terrain, u16 w, u16 x, u16 y) {
+    const u32 i = tidx(w, x, y);
+    if (!is_water(terrain[i])) {
+        terrain[i] = TERR_INLAND_LAKE[0];
+    }
 }
 
 static void stamp_quad (
@@ -47,10 +61,10 @@ static void stamp_quad (
     u16 x,
     u16 y) 
 {
-    terrain[tidx(w, x, y)] = TERR_INLAND_LAKE[0];
-    terrain[tidx(w, static_cast<u16>(x + 1u), y)] = TERR_INLAND_LAKE[0];
-    terrain[tidx(w, x, static_cast<u16>(y + 1u))] = TERR_INLAND_LAKE[0];
-    terrain[tidx(w, static_cast<u16>(x + 1u), static_cast<u16>(y + 1u))] = TERR_INLAND_LAKE[0];
+    stamp_land(terrain, w, x, y);
+    stamp_land(terrain, w, static_cast<u16>(x + 1u), y);
+    stamp_land(terrain, w, x, static_cast<u16>(y + 1u));
+    stamp_land(terrain, w, static_cast<u16>(x + 1u), static_cast<u16>(y + 1u));
     static const i32 k_rdx[8] = {-1, -1, 2, 2, 0, 1, 0, 1};
     static const i32 k_rdy[8] = {0, 1, 0, 1, -1, -1, 2, 2};
     for (i32 k = 0; k < 8; ++k) {
@@ -61,7 +75,7 @@ static void stamp_quad (
         }
         const u32 ti = tidx(w, static_cast<u16>(nx), static_cast<u16>(ny));
         if (riv[ti] != 0) {
-            terrain[ti] = TERR_INLAND_LAKE[0];
+            stamp_land(terrain, w, static_cast<u16>(nx), static_cast<u16>(ny));
         }
     }
 }

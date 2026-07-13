@@ -13,10 +13,12 @@
 #include "p1_gen_distance_to_river.h"
 #include "p1_gen_land_depth.h"
 #include "p1_gen_cont_outlines.h"
+#include "p1_gen_ocean_index.h"
 #include "p1_gen_river_lines.h"
 #include "p1_gen_river_network.h"
 #include "p1_gen_river_pts.h"
 #include "p1_gen_river_sectors.h"
+#include "p1_gen_river_sect_adj.h"
 #include "p1_gen_coastal_mtn_limits.h"
 #include "p1_tester_util.h"
 
@@ -72,19 +74,27 @@ static bool build_step11_input (
     if (!pts_gen.generate(terrain, w, h) || !pts_gen.is_valid()) {
         return false;
     }
+    P1_Gen_OceanIndex ocn_gen(prm);
+    if (!ocn_gen.generate(terrain, w, h) || !ocn_gen.is_valid()) {
+        return false;
+    }
     P1_Gen_RiverSectors sec_gen(prm);
-    if (!sec_gen.generate(terrain, w, h, pts_gen.result()) || !sec_gen.is_valid()) {
+    if (!sec_gen.generate(terrain, w, h, pts_gen.result(), p1_ocean_ref_from_rslt(ocn_gen.result())) || !sec_gen.is_valid()) {
         return false;
     }
     P1_Gen_CoastalMtnLimits lim_gen(prm);
     if (!lim_gen.generate(terrain, w, h, sec_gen.result()) || !lim_gen.is_valid()) {
         return false;
     }
-    P1_Gen_RiverNetwork net_gen(prm);
-    if (!net_gen.generate(terrain, w, h, sec_gen.result(), lim_gen.result()) || !net_gen.is_valid()) {
+    P1_Gen_RiverSectAdj adj_gen(prm);
+    if (!adj_gen.generate(sec_gen.result()) || !adj_gen.is_valid()) {
         return false;
     }
-    if (!lin_gen->generate(terrain, w, h, sec_gen.result(), net_gen.result())
+    P1_Gen_RiverNetwork net_gen(prm);
+    if (!net_gen.generate(terrain, w, h, pts_gen.result(), sec_gen.result(), adj_gen.result(), lim_gen.result(), p1_ocean_ref_from_rslt(ocn_gen.result())) || !net_gen.is_valid()) {
+        return false;
+    }
+    if (!lin_gen->generate(terrain, w, h, pts_gen.rslt_mut(), sec_gen.result(), net_gen.result(), p1_ocean_ref_from_rslt(ocn_gen.result()))
         || !lin_gen->is_valid()) {
         return false;
     }
@@ -98,7 +108,7 @@ static bool build_step11_input (
         return false;
     }
     P1_Adj_RiverInlets inlets(prm);
-    return inlets.adjust(terrain, w, h, lin_gen->result().m_ov, lin_gen->result())
+    return inlets.adjust(terrain, w, h, lin_gen->result().m_ov, net_gen.result().m_ov)
         && inlets.is_valid();
 }
 

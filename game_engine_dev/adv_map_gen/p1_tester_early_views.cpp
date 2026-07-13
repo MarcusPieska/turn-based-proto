@@ -9,7 +9,9 @@
 #include "p1_gen_land_depth_view.h"
 #include "p1_gen_noise_perlin_view.h"
 #include "p1_gen_river_pts_view.h"
+#include "p1_gen_river_sectors_view.h"
 #include "p1_gen_shaped_outline_view.h"
+#include "p1_pipeline_steps.h"
 #include "p1_rprint.h"
 #include "p1_tester_util.h"
 
@@ -84,10 +86,21 @@ static bool save_shaped_ter (u32 seed, cstr fname, const u8* ter, u16 w, u16 h) 
 
 static bool save_river_pts (u32 seed, const u8* ter, const WB_QueXY& que, u16 w, u16 h) {
     char path[320];
-    if (ter == nullptr || !que.ok() || que.count() == 0u || !p1_make_out_path(seed, "08_river_pts.ppm", path, sizeof(path))) {
+    if (ter == nullptr || !que.ok() || que.count() == 0u || !p1_make_out_path(seed, "10_river_pts.ppm", path, sizeof(path))) {
         return false;
     }
     if (!P1_Gen_RiverPtsView::save_pri(path, ter, w, h, que)) {
+        return false;
+    }
+    return save_path_info(path);
+}
+
+static bool save_river_sectors (u32 seed, const u8* ter, u16 w, u16 h, const u16* sec_ov, u16 sector_n) {
+    char path[320];
+    if (ter == nullptr || sec_ov == nullptr || sector_n == 0u || !p1_make_out_path(seed, "11_river_sectors.ppm", path, sizeof(path))) {
+        return false;
+    }
+    if (!P1_Gen_RiverSectorsView::save_pri(path, ter, w, h, seed, sec_ov, sector_n)) {
         return false;
     }
     return save_path_info(path);
@@ -128,8 +141,13 @@ bool p1_tester_save_early_views (u32 seed, u16 through_step, const P1_EarlyChain
             return false;
         }
     }
-    if (through_step >= 8u && ec.m_ter != nullptr && ec.m_pts_que != nullptr && ec.m_pts_que->ok() && ec.m_pts_n > 0u) {
+    if (through_step >= P1_STEP_RIVER_PTS && ec.m_ter != nullptr && ec.m_pts_que != nullptr && ec.m_pts_que->ok() && ec.m_pts_n > 0u) {
         if (!save_river_pts(seed, ec.m_ter, *ec.m_pts_que, w, h)) {
+            return false;
+        }
+    }
+    if (through_step >= P1_STEP_RIVER_SECTORS && ec.m_ter != nullptr && p1_early_has_sectors(ec)) {
+        if (!save_river_sectors(seed, ec.m_ter, w, h, ec.m_sec.data(), ec.m_sector_n)) {
             return false;
         }
     }
