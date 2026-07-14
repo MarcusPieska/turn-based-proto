@@ -61,9 +61,14 @@ static void p1_mk_print_time (cstr step, double sec) {
     char lbl[128];
     std::snprintf(lbl, sizeof(lbl), "P1_MakeMap %s ", step);
     const size_t ll = std::strlen(lbl);
-    const size_t col_time = 59;
+    const size_t col_wb = 44;
+    const size_t col_time = 58;
     std::printf("%s", lbl);
-    for (size_t p = ll; p < col_time; ++p) {
+    for (size_t p = ll; p < col_wb; ++p) {
+        std::printf("-");
+    }
+    std::printf(" %03u / %03u", WhiteboardMng::slot_use(), WhiteboardMng::slab_n());
+    for (size_t p = col_wb + 10; p < col_time; ++p) {
         std::printf("-");
     }
     const double ms = sec * 1000.0;
@@ -721,19 +726,6 @@ bool P1_MakeMap::generate (u16 last_step) {
         m_valid_generation = true;
         return true;
     }
-    if (last_step >= k_p1_step_ensure_adj || last_step == k_p1_step_seed_export) {
-        P1_MK_TIME("37 ensure_adj_rules");
-        P1_Adj_EnsureAdjRules adj_rules(m_prm);
-        ok = adj_rules.adjust(terrain, climate_copy, river, w, h) && adj_rules.is_valid();
-    }
-    if (!ok) {
-        free_rslt(&m_rslt);
-        return false;
-    }
-    if (last_step <= k_p1_step_ensure_adj && last_step != k_p1_step_seed_export) {
-        m_valid_generation = true;
-        return true;
-    }
     u8* overlay = nullptr;
     if (last_step >= k_p1_step_forest_overlay || last_step == k_p1_step_seed_export) {
         overlay = new u8[npx];
@@ -782,6 +774,19 @@ bool P1_MakeMap::generate (u16 last_step) {
         return true;
     }
     m_rslt.m_overlay = overlay;
+    if (last_step >= k_p1_step_ensure_adj || last_step == k_p1_step_seed_export) {
+        P1_MK_TIME("41 ensure_adj_rules");
+        P1_Adj_EnsureAdjRules adj_rules(m_prm);
+        ok = adj_rules.adjust(terrain, climate_copy, river, w, h) && adj_rules.is_valid();
+    }
+    if (!ok) {
+        free_rslt(&m_rslt);
+        return false;
+    }
+    if (last_step <= k_p1_step_ensure_adj && last_step != k_p1_step_seed_export) {
+        m_valid_generation = true;
+        return true;
+    }
     m_valid_generation = true;
     if (last_step >= k_p1_step_seed_export) {
         P1_MK_TIME("34 seed_export");

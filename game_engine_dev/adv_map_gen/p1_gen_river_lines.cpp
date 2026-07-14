@@ -587,9 +587,6 @@ bool P1_Gen_RiverLines::generate (
         clear_rslt();
         return false;
     }
-    std::printf("P1_Gen_RiverLines flood: %.6f s (%u links, %u tiles)\n", prof.m_flood_sec, prof.m_flood_n, prof.m_flood_tiles);
-    std::printf("P1_Gen_RiverLines walk:  %.6f s (%u links)\n", prof.m_walk_sec, prof.m_walk_n);
-    const clock_t t0m = clock();
     if (!paint_mouth_stubs(
             m_rslt.m_ov,
             m_rslt.m_dov,
@@ -607,10 +604,6 @@ bool P1_Gen_RiverLines::generate (
         clear_rslt();
         return false;
     }
-    const double mouth_sec = clk_sec(t0m, clock());
-    std::printf("P1_Gen_RiverLines mouths: %u placed %u moved %u\n", mouth.m_n, mouth.m_placed, mouth.m_moved);
-    std::printf("P1_Gen_RiverLines mouth stubs: %.6f s (%u mouths)\n", mouth_sec, mouth.m_n);
-    std::printf("P1_Gen_RiverLines paint: %.6f s (flood+walk)\n", prof.m_flood_sec + prof.m_walk_sec);
     m_valid_generation = true;
     return true;
 }

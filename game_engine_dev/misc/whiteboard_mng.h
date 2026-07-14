@@ -19,6 +19,7 @@ class WhiteboardMngTestUtil;
 //
 //  Buddy allocator over u64-aligned wh8 slabs (w*h*8 bytes). Slab count capped at init; each u8 in m_slot tracks 8 wh1 sub-slots.
 //  Checkout prefers the fullest slab that still fits; returns null ptr on exhaustion (wrappers expose ok()).
+//  chkout() counts live RAII handles; slot_use() counts wh1 sub-slots set in m_slot (ones in the slot bitmap).
 //
 //================================================================================================================================
 
@@ -31,6 +32,8 @@ public:
     static u32 tile_n ();
     static u16 slab_lim ();
     static u32 chkout ();
+    static u16 slot_use ();
+    static u16 slab_n ();
 
 protected:
     struct WbOut {
@@ -59,6 +62,7 @@ private:
     static WbOut co (u8 sz_b);
     static WbOut fail_out ();
     static bool fit (u8 slot, u8 sz_b, u8* out_sub);
+    static u8 pop_slot (u8 slot);
     static u8 fill (u8 slot);
     static u8 msk (u8 sz_b, u8 sub);
     static u8* new_blk (u8 blk);

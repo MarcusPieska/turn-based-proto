@@ -7,15 +7,27 @@
 
 #include "p1_gen_watershed_mountains.h"
 #include "generator_constants.h"
+#include "p1_wb_util.h"
+#include "profile_time.h"
+#include "whiteboard_mng.h"
 
 //================================================================================================================================
 //=> - Private generation helpers -
 //================================================================================================================================
 
+#define P1_WSHED_STK_LIM 10240u
+#define P1_WSHED_MOUTH_STK_N 2048u
+
 struct BorderRec {
     u16 m_lo;
     u16 m_hi;
     u32 m_ti;
+};
+
+struct MouthTbl {
+    u16* m_mx;
+    u16* m_my;
+    u8* m_has;
 };
 
 static u16 basin_lo (u16 a, u16 b) {
@@ -58,10 +70,12 @@ static void build_mouth_tbl (
     u16* my,
     u8* has) 
 {
+    PTIME_START(__func__);
     for (u16 i = 0; i <= cap; ++i) {
         has[i] = 0;
     }
     if (network.m_downstream == nullptr || network.m_ov == nullptr || !pts.m_que.ok() || network.m_sector_n == 0) {
+        PTIME_STOP(__func__);
         return;
     }
     for (u16 si = 0; si < network.m_sector_n; ++si) {
@@ -79,6 +93,7 @@ static void build_mouth_tbl (
         mx[bid] = x;
         my[bid] = y;
     }
+    PTIME_STOP(__func__);
 }
 
 static bool is_water (u8 cls) {
@@ -189,6 +204,7 @@ static u32 count_border_tiles (
     const u8* has,
     u16 cap) 
 {
+    PTIME_START(__func__);
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
     u32 cnt = 0;
     for (u32 ti = 0; ti < n; ++ti) {
@@ -200,6 +216,7 @@ static u32 count_border_tiles (
             cnt++;
         }
     }
+    PTIME_STOP(__func__);
     return cnt;
 }
 
@@ -213,6 +230,7 @@ static void fill_border_recs (
     u16 cap,
     BorderRec* recs) 
 {
+    PTIME_START(__func__);
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
     u32 ri = 0;
     for (u32 ti = 0; ti < n; ++ti) {
@@ -229,6 +247,7 @@ static void fill_border_recs (
         recs[ri].m_ti = ti;
         ri++;
     }
+    PTIME_STOP(__func__);
 }
 
 static void swap_border_rec (BorderRec* a, BorderRec* b) {
@@ -247,14 +266,33 @@ static bool border_rec_lt (const BorderRec& a, const BorderRec& b) {
     return a.m_ti < b.m_ti;
 }
 
-static void sort_border_recs (BorderRec* recs, u32 n) {
-    for (u32 i = 1; i < n; ++i) {
-        u32 j = i;
-        while (j > 0 && border_rec_lt(recs[j], recs[j - 1])) {
-            swap_border_rec(&recs[j], &recs[j - 1]);
-            --j;
+static void qsort_border_recs (BorderRec* recs, u32 lo, u32 hi) {
+    if (lo >= hi) {
+        return;
+    }
+    const BorderRec piv = recs[hi];
+    u32 i = lo;
+    for (u32 j = lo; j < hi; ++j) {
+        if (border_rec_lt(recs[j], piv)) {
+            swap_border_rec(&recs[i], &recs[j]);
+            i++;
         }
     }
+    swap_border_rec(&recs[i], &recs[hi]);
+    if (i > 0u) {
+        qsort_border_recs(recs, lo, i - 1u);
+    }
+    qsort_border_recs(recs, i + 1u, hi);
+}
+
+static void sort_border_recs (BorderRec* recs, u32 n) {
+    PTIME_START(__func__);
+    if (n <= 1u) {
+        PTIME_STOP(__func__);
+        return;
+    }
+    qsort_border_recs(recs, 0u, n - 1u);
+    PTIME_STOP(__func__);
 }
 
 static void swap_seg (P1_WatershedBorderSeg* a, P1_WatershedBorderSeg* b) {
@@ -273,14 +311,33 @@ static bool seg_sort_lt (const P1_WatershedBorderSeg& a, const P1_WatershedBorde
     return a.m_basin_b < b.m_basin_b;
 }
 
-static void sort_segs (P1_WatershedBorderSeg* segs, u16 n) {
-    for (u16 i = 1; i < n; ++i) {
-        u16 j = i;
-        while (j > 0 && seg_sort_lt(segs[j], segs[j - 1])) {
-            swap_seg(&segs[j], &segs[j - 1]);
-            --j;
+static void qsort_segs (P1_WatershedBorderSeg* segs, u32 lo, u32 hi) {
+    if (lo >= hi) {
+        return;
+    }
+    const P1_WatershedBorderSeg piv = segs[hi];
+    u32 i = lo;
+    for (u32 j = lo; j < hi; ++j) {
+        if (seg_sort_lt(segs[j], piv)) {
+            swap_seg(&segs[i], &segs[j]);
+            i++;
         }
     }
+    swap_seg(&segs[i], &segs[hi]);
+    if (i > 0u) {
+        qsort_segs(segs, lo, i - 1u);
+    }
+    qsort_segs(segs, i + 1u, hi);
+}
+
+static void sort_segs (P1_WatershedBorderSeg* segs, u16 n) {
+    PTIME_START(__func__);
+    if (n <= 1u) {
+        PTIME_STOP(__func__);
+        return;
+    }
+    qsort_segs(segs, 0u, static_cast<u32>(n) - 1u);
+    PTIME_STOP(__func__);
 }
 
 static bool side_hills_ok (u16 pln, u16 hil, u8 perc) {
@@ -347,7 +404,7 @@ static bool seg_dist_too_short (u32 mouth_dist, u32 max_dist, u8 min_perc) {
     return mouth_dist * 100u < max_dist * static_cast<u32>(min_perc);
 }
 
-static bool build_watershed_mtns (
+static bool build_watershed_mtns_core (
     const u8* terrain,
     u16 w,
     u16 h,
@@ -355,56 +412,33 @@ static bool build_watershed_mtns (
     const P1_Gen_RiverPtsRslt& pts,
     const u8* noise,
     const P1_Gen_WatershedMountainsPrm& sp,
-    P1_Gen_WatershedMountainsRslt* out) 
+    u32 seed,
+    u16 cap,
+    u16* ov,
+    P1_WatershedBorderSeg* segs,
+    P1_Gen_WatershedMountainsRslt* out,
+    const MouthTbl& mt) 
 {
-    if (terrain == nullptr || network.m_ov == nullptr || out == nullptr) {
-        return false;
-    }
-    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
+    PTIME_START(__func__);
     const u16* bov = network.m_ov;
-    const u16 cap = max_basin_idx_ov(w, h, bov);
-    out->m_w = w;
-    out->m_h = h;
-    out->m_seg_n = 0;
-    out->m_pick_n = 0;
-    out->m_border_tile_n = 0;
-    out->m_pick_tile_n = 0;
-    out->m_segs = nullptr;
-    out->m_ov = new u16[n];
-    if (out->m_ov == nullptr) {
-        return false;
-    }
-    for (u32 i = 0; i < n; ++i) {
-        out->m_ov[i] = 0;
-    }
-    if (cap == 0) {
-        return true;
-    }
-    u16* mx = new u16[static_cast<size_t>(cap) + 1u];
-    u16* my = new u16[static_cast<size_t>(cap) + 1u];
-    u8* has = new u8[static_cast<size_t>(cap) + 1u];
-    if (mx == nullptr || my == nullptr || has == nullptr) {
-        delete[] has;
-        delete[] my;
-        delete[] mx;
-        return false;
-    }
-    build_mouth_tbl(network, pts, w, cap, mx, my, has);
-    const u32 border_n = count_border_tiles(w, h, bov, mx, my, has, cap);
+    build_mouth_tbl(network, pts, w, cap, mt.m_mx, mt.m_my, mt.m_has);
+    const u32 border_n = count_border_tiles(w, h, bov, mt.m_mx, mt.m_my, mt.m_has, cap);
     if (border_n == 0) {
-        delete[] has;
-        delete[] my;
-        delete[] mx;
+        PTIME_STOP(__func__);
         return true;
     }
-    BorderRec* recs = new BorderRec[border_n];
-    if (recs == nullptr) {
-        delete[] has;
-        delete[] my;
-        delete[] mx;
+    if (border_n > WhiteboardMng::tile_n()) {
+        PTIME_STOP(__func__);
         return false;
     }
-    fill_border_recs(w, h, bov, mx, my, has, cap, recs);
+    Whiteboard_8B wb_recs("P1_Gen_WatershedMountains", "recs", seed);
+    P1_WB_CHK(wb_recs);
+    BorderRec* recs = reinterpret_cast<BorderRec*>(wb_recs.get_iter_ptr());
+    if (recs == nullptr) {
+        PTIME_STOP(__func__);
+        return false;
+    }
+    fill_border_recs(w, h, bov, mt.m_mx, mt.m_my, mt.m_has, cap, recs);
     sort_border_recs(recs, border_n);
     u16 seg_n = 0;
     for (u32 ri = 0; ri < border_n; ++ri) {
@@ -414,19 +448,9 @@ static bool build_watershed_mtns (
             seg_n++;
         }
     }
-    P1_WatershedBorderSeg* segs = new P1_WatershedBorderSeg[seg_n];
-    u16* all_ov = new u16[n];
-    if (segs == nullptr || all_ov == nullptr) {
-        delete[] all_ov;
-        delete[] segs;
-        delete[] recs;
-        delete[] has;
-        delete[] my;
-        delete[] mx;
+    if (segs == nullptr) {
+        PTIME_STOP(__func__);
         return false;
-    }
-    for (u32 i = 0; i < n; ++i) {
-        all_ov[i] = 0;
     }
     u16 si = 0;
     u16 next_ov = 1;
@@ -437,11 +461,11 @@ static bool build_watershed_mtns (
         P1_WatershedBorderSeg s = {};
         s.m_basin_a = lo;
         s.m_basin_b = hi;
-        s.m_mouth_ax = mx[lo];
-        s.m_mouth_ay = my[lo];
-        s.m_mouth_bx = mx[hi];
-        s.m_mouth_by = my[hi];
-        s.m_mouth_dist = mouth_dist_sq(lo, hi, mx, my, has, cap);
+        s.m_mouth_ax = mt.m_mx[lo];
+        s.m_mouth_ay = mt.m_my[lo];
+        s.m_mouth_bx = mt.m_mx[hi];
+        s.m_mouth_by = mt.m_my[hi];
+        s.m_mouth_dist = mouth_dist_sq(lo, hi, mt.m_mx, mt.m_my, mt.m_has, cap);
         s.m_ov_idx = next_ov++;
         s.m_tile_n = 0;
         s.m_a_plains = 0;
@@ -451,7 +475,7 @@ static bool build_watershed_mtns (
         while (ri < border_n && recs[ri].m_lo == lo && recs[ri].m_hi == hi) {
             const u32 ti = recs[ri].m_ti;
             s.m_tile_n++;
-            all_ov[ti] = s.m_ov_idx;
+            ov[ti] = s.m_ov_idx;
             const u16 bid = bov[ti];
             const u8 t = terrain[ti];
             if (bid == lo) {
@@ -468,20 +492,73 @@ static bool build_watershed_mtns (
     out->m_seg_n = seg_n;
     out->m_pick_n = 0;
     out->m_pick_tile_n = 0;
-    out->m_segs = segs;
-    for (u32 i = 0; i < n; ++i) {
-        out->m_ov[i] = all_ov[i];
-    }
-    delete[] all_ov;
-    delete[] recs;
-    delete[] has;
-    delete[] my;
-    delete[] mx;
+    PTIME_STOP(__func__);
     return true;
 }
 
-static bool save_rgb_ppm (cstr path, const u8* rgb, u16 wi, u16 hi) {
-    if (path == nullptr || rgb == nullptr || wi == 0 || hi == 0) {
+static bool build_watershed_mtns (
+    const u8* terrain,
+    u16 w,
+    u16 h,
+    const P1_Gen_RiverNetworkRslt& network,
+    const P1_Gen_RiverPtsRslt& pts,
+    const u8* noise,
+    const P1_Gen_WatershedMountainsPrm& sp,
+    u32 seed,
+    u16* ov,
+    P1_WatershedBorderSeg* segs,
+    P1_Gen_WatershedMountainsRslt* out) 
+{
+    PTIME_START(__func__);
+    if (terrain == nullptr || network.m_ov == nullptr || out == nullptr || ov == nullptr) {
+        PTIME_STOP(__func__);
+        return false;
+    }
+    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
+    const u16 cap = max_basin_idx_ov(w, h, network.m_ov);
+    out->m_w = w;
+    out->m_h = h;
+    out->m_seg_n = 0;
+    out->m_pick_n = 0;
+    out->m_border_tile_n = 0;
+    out->m_pick_tile_n = 0;
+    out->m_segs = segs;
+    out->m_ov = ov;
+    for (u32 i = 0; i < n; ++i) {
+        ov[i] = 0;
+    }
+    if (cap == 0) {
+        PTIME_STOP(__func__);
+        return true;
+    }
+    const u32 tbl_n = static_cast<u32>(cap) + 1u;
+    u16 mx_stk[P1_WSHED_MOUTH_STK_N];
+    u16 my_stk[P1_WSHED_MOUTH_STK_N];
+    u8 has_stk[P1_WSHED_MOUTH_STK_N];
+    if (tbl_n * 5u <= P1_WSHED_STK_LIM && tbl_n <= P1_WSHED_MOUTH_STK_N) {
+        const MouthTbl mt = { mx_stk, my_stk, has_stk };
+        PTIME_STOP(__func__);
+        return build_watershed_mtns_core(
+            terrain, w, h, network, pts, noise, sp, seed, cap, ov, segs, out, mt);
+    }
+    Whiteboard_2B wb_mx("P1_Gen_WatershedMountains", "mx", seed);
+    Whiteboard_2B wb_my("P1_Gen_WatershedMountains", "my", seed);
+    Whiteboard_1B wb_has("P1_Gen_WatershedMountains", "has", seed);
+    P1_WB_CHK(wb_mx);
+    P1_WB_CHK(wb_my);
+    P1_WB_CHK(wb_has);
+    const MouthTbl mt = { wb_mx.get_iter_ptr(), wb_my.get_iter_ptr(), wb_has.raw() };
+    if (mt.m_mx == nullptr || mt.m_my == nullptr || mt.m_has == nullptr) {
+        PTIME_STOP(__func__);
+        return false;
+    }
+    PTIME_STOP(__func__);
+    return build_watershed_mtns_core(
+        terrain, w, h, network, pts, noise, sp, seed, cap, ov, segs, out, mt);
+}
+
+static bool save_rgb_ppm (cstr path, const u8* r, const u8* g, const u8* b, u16 wi, u16 hi) {
+    if (path == nullptr || r == nullptr || g == nullptr || b == nullptr || wi == 0 || hi == 0) {
         return false;
     }
     std::FILE* fp = std::fopen(path, "wb");
@@ -489,10 +566,19 @@ static bool save_rgb_ppm (cstr path, const u8* rgb, u16 wi, u16 hi) {
         return false;
     }
     std::fprintf(fp, "P6\n%u %u\n255\n", (unsigned)wi, (unsigned)hi);
-    const size_t nbytes = static_cast<size_t>(wi) * static_cast<size_t>(hi) * 3u;
-    const bool ok = std::fwrite(rgb, 1, nbytes, fp) == nbytes;
+    const u32 n = static_cast<u32>(wi) * static_cast<u32>(hi);
+    u8 px[3];
+    for (u32 i = 0; i < n; ++i) {
+        px[0] = r[i];
+        px[1] = g[i];
+        px[2] = b[i];
+        if (std::fwrite(px, 1, 3, fp) != 3) {
+            std::fclose(fp);
+            return false;
+        }
+    }
     std::fclose(fp);
-    return ok;
+    return true;
 }
 
 static void terr_rgb (u8 cls, u8* r, u8* g, u8* b) {
@@ -537,18 +623,34 @@ P1_Gen_WatershedMountains::P1_Gen_WatershedMountains (
     m_prm(prm),
     m_sp(sp),
     m_valid_generation(false),
-    m_rslt() {
+    m_rslt(),
+    m_wb_ov(nullptr),
+    m_wb_segs(nullptr) {
     std::memset(&m_rslt, 0, sizeof(m_rslt));
+    m_wb_ov = new Whiteboard_2B("P1_Gen_WatershedMountains", "ov", prm.m_seed);
+    m_wb_segs = new Whiteboard_8B("P1_Gen_WatershedMountains", "segs", prm.m_seed);
+    P1_WB_CHK(*m_wb_ov);
+    P1_WB_CHK(*m_wb_segs);
 }
 
 P1_Gen_WatershedMountains::~P1_Gen_WatershedMountains () {
     clear_rslt();
+    delete m_wb_segs;
+    delete m_wb_ov;
+    m_wb_segs = nullptr;
+    m_wb_ov = nullptr;
 }
 
 void P1_Gen_WatershedMountains::clear_rslt () {
-    delete[] m_rslt.m_segs;
-    delete[] m_rslt.m_ov;
-    std::memset(&m_rslt, 0, sizeof(m_rslt));
+    m_rslt.m_w = 0;
+    m_rslt.m_h = 0;
+    m_rslt.m_seg_n = 0;
+    m_rslt.m_pick_n = 0;
+    m_rslt.m_border_tile_n = 0;
+    m_rslt.m_pick_tile_n = 0;
+    m_rslt.m_segs = nullptr;
+    m_rslt.m_ov = nullptr;
+    m_valid_generation = false;
 }
 
 bool P1_Gen_WatershedMountains::generate (
@@ -559,18 +661,36 @@ bool P1_Gen_WatershedMountains::generate (
     const P1_Gen_RiverPtsRslt& pts,
     const u8* noise) 
 {
+    PTIME_INIT();
+    PTIME_START(__func__);
     m_valid_generation = false;
     clear_rslt();
     if (terrain == nullptr || !p1_map_size_ok(w, h) || network.m_ov == nullptr) {
+        PTIME_STOP(__func__);
         return false;
     }
     if (w != m_prm.m_w || h != m_prm.m_h) {
+        PTIME_STOP(__func__);
         return false;
     }
-    if (!build_watershed_mtns(terrain, w, h, network, pts, noise, m_sp, &m_rslt)) {
+    if (m_wb_ov == nullptr || m_wb_segs == nullptr || !m_wb_ov->ok() || !m_wb_segs->ok()) {
+        PTIME_STOP(__func__);
+        return false;
+    }
+    u16* ov = m_wb_ov->get_iter_ptr();
+    P1_WatershedBorderSeg* segs = reinterpret_cast<P1_WatershedBorderSeg*>(m_wb_segs->get_iter_ptr());
+    if (ov == nullptr || segs == nullptr) {
+        PTIME_STOP(__func__);
+        return false;
+    }
+    const bool ok = build_watershed_mtns(terrain, w, h, network, pts, noise, m_sp, m_prm.m_seed, ov, segs, &m_rslt);
+    if (!ok) {
         clear_rslt();
+        PTIME_STOP(__func__);
         return false;
     }
+    PTIME_STOP(__func__);
+    PTIME_PRINT();
     m_valid_generation = true;
     return true;
 }
@@ -594,8 +714,16 @@ void P1_Gen_WatershedMountains::save_output (
     const u16 w = m_rslt.m_w;
     const u16 h = m_rslt.m_h;
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
-    u8* rgb = new u8[static_cast<size_t>(n) * 3u];
-    if (rgb == nullptr) {
+    Whiteboard_1B wb_r("P1_Gen_WatershedMountains", "rgb_r", m_prm.m_seed);
+    Whiteboard_1B wb_g("P1_Gen_WatershedMountains", "rgb_g", m_prm.m_seed);
+    Whiteboard_1B wb_b("P1_Gen_WatershedMountains", "rgb_b", m_prm.m_seed);
+    P1_WB_CHK(wb_r);
+    P1_WB_CHK(wb_g);
+    P1_WB_CHK(wb_b);
+    u8* rr = wb_r.raw();
+    u8* gg = wb_g.raw();
+    u8* bb = wb_b.raw();
+    if (rr == nullptr || gg == nullptr || bb == nullptr) {
         return;
     }
     for (u32 i = 0; i < n; ++i) {
@@ -605,46 +733,67 @@ void P1_Gen_WatershedMountains::save_output (
         if (terrain != nullptr) {
             terr_rgb(terrain[i], &r, &g, &b);
         }
-        rgb[i * 3u + 0] = r;
-        rgb[i * 3u + 1] = g;
-        rgb[i * 3u + 2] = b;
+        rr[i] = r;
+        gg[i] = g;
+        bb[i] = b;
     }
-    const u16 pal_cap = static_cast<u16>(max_basin_idx_ov(w, h, network.m_ov) + 1u);
-    u8* pal = new u8[static_cast<size_t>(pal_cap) * 3u];
-    bool* pal_set = new bool[pal_cap];
-    if (pal == nullptr || pal_set == nullptr) {
-        delete[] pal_set;
-        delete[] pal;
-        delete[] rgb;
+    u16 max_oid = 0;
+    for (u32 i = 0; i < n; ++i) {
+        if (m_rslt.m_ov[i] > max_oid) {
+            max_oid = m_rslt.m_ov[i];
+        }
+    }
+    if (max_oid == 0) {
+        save_rgb_ppm(path, rr, gg, bb, w, h);
         return;
     }
-    for (u16 i = 0; i < pal_cap; ++i) {
-        pal_set[i] = false;
+    const u32 pal_n = static_cast<u32>(max_oid) + 1u;
+    const u32 pal_b = pal_n * 3u;
+    u8* pal = nullptr;
+    u8 pal_stk[3072];
+    Whiteboard_1B wb_pal("P1_Gen_WatershedMountains", "pal", m_prm.m_seed);
+    if (pal_b <= sizeof(pal_stk)) {
+        pal = pal_stk;
+    } else {
+        P1_WB_CHK(wb_pal);
+        pal = wb_pal.raw();
+    }
+    u8 has_stk[1024];
+    u8* pal_set = nullptr;
+    Whiteboard_1B wb_pal_set("P1_Gen_WatershedMountains", "pal_set", m_prm.m_seed);
+    if (pal_n <= sizeof(has_stk)) {
+        pal_set = has_stk;
+    } else {
+        P1_WB_CHK(wb_pal_set);
+        pal_set = wb_pal_set.raw();
+    }
+    if (pal == nullptr || pal_set == nullptr) {
+        return;
+    }
+    for (u16 i = 0; i <= max_oid; ++i) {
+        pal_set[i] = 0;
     }
     Rng32 rng;
     rng_seed(&rng, m_prm.m_seed ^ 0xA5A5A5A5u);
     for (u32 i = 0; i < n; ++i) {
-        const u16 bid = network.m_ov[i];
-        if (bid == static_cast<u16>(P1_RIVER_BASIN_NONE) || bid >= pal_cap) {
+        const u16 oid = m_rslt.m_ov[i];
+        if (oid == 0) {
             continue;
         }
-        if (!pal_set[bid]) {
-            pal[bid * 3u + 0] = static_cast<u8>(50u + (rng_next(&rng) % 151u));
-            pal[bid * 3u + 1] = static_cast<u8>(50u + (rng_next(&rng) % 151u));
-            pal[bid * 3u + 2] = static_cast<u8>(50u + (rng_next(&rng) % 151u));
-            pal_set[bid] = true;
+        if (pal_set[oid] == 0) {
+            pal[oid * 3u + 0] = static_cast<u8>(50u + (rng_next(&rng) % 151u));
+            pal[oid * 3u + 1] = static_cast<u8>(50u + (rng_next(&rng) % 151u));
+            pal[oid * 3u + 2] = static_cast<u8>(50u + (rng_next(&rng) % 151u));
+            pal_set[oid] = 1;
         }
-        const u32 p = i * 3u;
-        rgb[p + 0] = pal[bid * 3u + 0];
-        rgb[p + 1] = pal[bid * 3u + 1];
-        rgb[p + 2] = pal[bid * 3u + 2];
+        rr[i] = pal[oid * 3u + 0];
+        gg[i] = pal[oid * 3u + 1];
+        bb[i] = pal[oid * 3u + 2];
     }
-    save_rgb_ppm(path, rgb, w, h);
-    delete[] pal_set;
-    delete[] pal;
-    delete[] rgb;
+    save_rgb_ppm(path, rr, gg, bb, w, h);
 }
 
 //================================================================================================================================
 //=> - End -
 //================================================================================================================================
+

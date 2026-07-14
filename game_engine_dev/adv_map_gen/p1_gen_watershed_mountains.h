@@ -10,6 +10,9 @@
 #include "p1_gen_river_pts.h"
 #include "p1_map_size.h"
 
+class Whiteboard_2B;
+class Whiteboard_8B;
+
 //================================================================================================================================
 //=> - P1 watershed mountain defaults -
 //================================================================================================================================
@@ -106,6 +109,8 @@ private:
     P1_Gen_WatershedMountainsPrm m_sp;
     bool m_valid_generation;
     P1_Gen_WatershedMountainsRslt m_rslt;
+    Whiteboard_2B* m_wb_ov;
+    Whiteboard_8B* m_wb_segs;
 };
 
 #endif // P1_GEN_WATERSHED_MOUNTAINS_H

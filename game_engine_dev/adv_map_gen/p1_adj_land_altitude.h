@@ -6,6 +6,7 @@
 #define P1_ADJ_LAND_ALTITUDE_H
 
 #include "game_primitives.h"
+#include "p1_map_config.h"
 #include "p1_map_size.h"
 
 //================================================================================================================================
@@ -15,8 +16,6 @@
 #define P1_LAND_ALT_W_NOISE_DEF 1.0f
 #define P1_LAND_ALT_W_NEAR_DEF 1.25f
 #define P1_LAND_ALT_W_RIV_DEF 0.35f
-#define P1_LAND_ALT_LIM_HILLS_DEF 0.88f
-#define P1_LAND_ALT_LIM_MTN_DEF 0.97f
 
 //================================================================================================================================
 //=> - P1_Adj_LandAltitudePrm -
@@ -30,14 +29,18 @@ struct P1_Adj_LandAltitudePrm {
     f32 m_lim_mtn;
 };
 
-static inline P1_Adj_LandAltitudePrm p1_adj_land_altitude_prm_def () {
+static inline P1_Adj_LandAltitudePrm p1_adj_land_altitude_prm_from_cfg (const P1_MapConfig& cfg) {
     P1_Adj_LandAltitudePrm p;
     p.m_w_noise = P1_LAND_ALT_W_NOISE_DEF;
     p.m_w_near = P1_LAND_ALT_W_NEAR_DEF;
     p.m_w_riv = P1_LAND_ALT_W_RIV_DEF;
-    p.m_lim_hills = P1_LAND_ALT_LIM_HILLS_DEF;
-    p.m_lim_mtn = P1_LAND_ALT_LIM_MTN_DEF;
+    p.m_lim_hills = cfg.m_land_alt_lim_hills;
+    p.m_lim_mtn = cfg.m_land_alt_lim_mtn;
     return p;
+}
+
+static inline P1_Adj_LandAltitudePrm p1_adj_land_altitude_prm_def () {
+    return p1_adj_land_altitude_prm_from_cfg(p1_map_config_def());
 }
 
 //================================================================================================================================

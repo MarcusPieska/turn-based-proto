@@ -12,6 +12,7 @@
 #include "map_terrain_validate.h"
 #include "p1_tester_harness.h"
 #include "p1_tester_util.h"
+#include "profile_time.h"
 
 //================================================================================================================================
 //=> - Test helpers -
@@ -76,12 +77,14 @@ static bool run_rain_wt (
     const P1_MakeMapRslt& chain,
     u8 rain_wt) 
 {
+    PTIME_START(__func__);
     char out_path[320];
     char terr_path[320];
     char suffix[64];
     std::snprintf(suffix, sizeof(suffix), "climate_rain_wt_%02u", static_cast<unsigned>(rain_wt));
     if (!h.path_extra(suffix, out_path, sizeof(out_path)) || !h.path_sec(terr_path, sizeof(terr_path))) {
         std::printf("failed to ensure output path rain_wt=%u\n", static_cast<unsigned>(rain_wt));
+        PTIME_STOP(__func__);
         return false;
     }
     P1_Gen_ClimatePrm sp = p1_gen_climate_prm_def();
@@ -93,6 +96,7 @@ static bool run_rain_wt (
     const double sec = static_cast<double>(t1 - t0) / static_cast<double>(CLOCKS_PER_SEC);
     if (!ok || !gen.is_valid()) {
         std::printf("P1_Gen_Climate failed rain_wt=%u\n", static_cast<unsigned>(rain_wt));
+        PTIME_STOP(__func__);
         return false;
     }
     const u8* climate = gen.result().m_ov.data();
@@ -105,26 +109,31 @@ static bool run_rain_wt (
         char pri_path[320];
         if (!h.path_pri(pri_path, sizeof(pri_path))) {
             std::printf("failed to ensure primary output path\n");
+            PTIME_STOP(__func__);
             return false;
         }
         if (!save_climate_viz(pri_path, chain.m_terrain, chain.m_rivers, climate, chain.m_w, chain.m_h)) {
             std::printf("failed to save map: %s\n", pri_path);
+            PTIME_STOP(__func__);
             return false;
         }
         std::printf("saved: %s\n", pri_path);
     } else if (!save_climate_viz(out_path, chain.m_terrain, chain.m_rivers, climate, chain.m_w, chain.m_h)) {
         std::printf("failed to save map: %s\n", out_path);
+        PTIME_STOP(__func__);
         return false;
     } else {
         std::printf("saved: %s\n", out_path);
     }
     if (rain_wt == p1_gen_climate_prm_def().m_wts.m_w_rain && !save_climate_viz(terr_path, chain.m_terrain, nullptr, climate, chain.m_w, chain.m_h)) {
         std::printf("failed to save terrain map: %s\n", terr_path);
+        PTIME_STOP(__func__);
         return false;
     }
     if (rain_wt == p1_gen_climate_prm_def().m_wts.m_w_rain) {
         std::printf("saved: %s\n", terr_path);
     }
+    PTIME_STOP(__func__);
     return true;
 }
 
@@ -140,8 +149,10 @@ i32 test_p1_gen_climate_basic (P1_TesterHarness& h, u8 rain_wt_arg, bool rain_wt
         return -1;
     }
     std::printf("P1 steps 1-23 input time: %.6f s\n", h.input_sec());
+    PTIME_START(__func__);
     if (rain_wt_set) {
         if (!run_rain_wt(h, chain, rain_wt_arg)) {
+            PTIME_STOP(__func__);
             return -1;
         }
     } else {
@@ -151,10 +162,12 @@ i32 test_p1_gen_climate_basic (P1_TesterHarness& h, u8 rain_wt_arg, bool rain_wt
                 wt = static_cast<u8>(CLIMATE_WT_MAX);
             }
             if (!run_rain_wt(h, chain, wt)) {
+                PTIME_STOP(__func__);
                 return -1;
             }
         }
     }
+    PTIME_STOP(__func__);
     return 0;
 }
 

@@ -30,6 +30,10 @@ typedef struct EffectIndices {
     u16 indices[MAX_EFFECTS_PER_ENTITY];
 } EffectIndices;
 
+// ProfileTime toggles (misc/profile_time.h); uncomment to enable.
+//#define PTIME_ENABLE
+//#define PTIME_TRACE_ENABLE
+
 #endif // GAME_PRIMITIVES_H
 
 //================================================================================================================================

@@ -42,7 +42,7 @@ static inline P1_MakeMapPrm p1_make_map_prm_def () {
     P1_MakeMapPrm p;
     const P1_MapConfig cfg = p1_map_config_def();
     p.m_shaped = p1_gen_shaped_outline_prm_from_cfg(cfg);
-    p.m_lap = p1_tester_land_altitude_prm();
+    p.m_lap = p1_adj_land_altitude_prm_from_cfg(cfg);
     p.m_wind = p1_gen_wind_pattern_adv_prm_def();
     p.m_rain = p1_gen_rain_orographic_prm_def();
     p.m_climate = p1_gen_climate_prm_def();

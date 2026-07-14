@@ -312,7 +312,6 @@ static bool build_river_network (
             std::printf("P1_Gen_RiverNetwork: glob_ocn %u but no global coast sectors\n", static_cast<u32>(glob_ocn));
         }
     }
-    std::printf("P1_Gen_RiverNetwork glob_ocn %u coast_cand %u mouths %u\n", static_cast<u32>(glob_ocn), coast_n, mouth_i);
     std::memset(clmd, 0, sec_n);
     u32 q_n = 0;
     for (u32 si = 0; si < sec_n; ++si) {

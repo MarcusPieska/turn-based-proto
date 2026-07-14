@@ -92,9 +92,9 @@ static const P1_TesterCfg g_p1_tester_tbl[] = {
     {"p1_make_map_tester", P1_STEP_MAKE_MAP, P1_TIN_MK, P1_STEP_MAKE_MAP, "35_make_map_terrain.ppm", "35_make_map_climate.ppm"},
     {"p1_gen_rich_coast_fertility_tester", P1_STEP_RICH_COAST_FERT, P1_TIN_MK, P1_STEP_CLIMATE, "36_rich_coast_fertility.ppm", ""},
     {"p1_adj_coast_fertility_tester", P1_STEP_COAST_FERT_ADJ, P1_TIN_MK, P1_STEP_CLIMATE, "37_coast_fertility_adj.ppm", ""},
-    {"p1_adj_ensure_adj_rules_tester", P1_STEP_ENSURE_ADJ, P1_TIN_MK, P1_STEP_GRASS_LOESS, "38_ensure_adj_rules.ppm", "38_ensure_adj_rules_terrain.ppm"},
-    {"p1_gen_forest_overlay_tester", P1_STEP_FOREST_OVERLAY, P1_TIN_MK, P1_STEP_ENSURE_ADJ, "39_forest_overlay.ppm", ""},
-    {"p1_adj_delta_swamps_tester", P1_STEP_DELTA_SWAMPS, P1_TIN_MK, P1_STEP_ENSURE_ADJ, "40_delta_swamps.ppm", "40_delta_swamps_climate.ppm"},
+    {"p1_adj_ensure_adj_rules_tester", P1_STEP_ENSURE_ADJ, P1_TIN_MK, P1_STEP_DELTA_SWAMPS, "41_ensure_adj_rules.ppm", "41_ensure_adj_rules_terrain.ppm"},
+    {"p1_gen_forest_overlay_tester", P1_STEP_FOREST_OVERLAY, P1_TIN_MK, P1_STEP_COAST_FERT_ADJ, "39_forest_overlay.ppm", ""},
+    {"p1_adj_delta_swamps_tester", P1_STEP_DELTA_SWAMPS, P1_TIN_MK, P1_STEP_FOREST_OVERLAY, "40_delta_swamps.ppm", "40_delta_swamps_climate.ppm"},
 };
 
 static const P1_TesterCfg* g_p1_tester_cfg = nullptr;
@@ -180,7 +180,7 @@ static inline void p1_resolve_test_args (i32 argc, char* argv[], u32* seed, u16*
 }
 
 static inline P1_Adj_LandAltitudePrm p1_tester_land_altitude_prm () {
-    P1_Adj_LandAltitudePrm sp = p1_adj_land_altitude_prm_def();
+    P1_Adj_LandAltitudePrm sp = p1_adj_land_altitude_prm_from_cfg(p1_map_config_def());
     sp.m_w_noise = 0.7f;
     sp.m_w_near = 0.85f;
     sp.m_w_riv = 0.5f;

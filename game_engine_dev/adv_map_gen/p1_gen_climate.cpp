@@ -4,6 +4,8 @@
 
 #include "p1_gen_climate.h"
 
+#include "profile_time.h"
+
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -199,9 +201,11 @@ static bool has_adj_climate (u16 w, u16 h, u16 px, u16 py, const u8* terrain, co
 }
 
 static void assign_mountain_climate (u16 w, u16 h, const u8* terrain, u8* climate) {
+    PTIME_START(__func__);
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
     u32* q = new u32[n];
     if (q == nullptr) {
+        PTIME_STOP(__func__);
         return;
     }
     size_t qh = 0;
@@ -249,6 +253,7 @@ static void assign_mountain_climate (u16 w, u16 h, const u8* terrain, u8* climat
         }
     }
     delete[] q;
+    PTIME_STOP(__func__);
 }
 
 static bool bfs_land_to_river (
@@ -258,12 +263,14 @@ static bool bfs_land_to_river (
     const u8* river,
     u8* out) 
 {
+    PTIME_START(__func__);
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
     u16* dist = new u16[n];
-    u32* q = new u32[n / 4u + 64u];
+    u32* q = new u32[n];
     if (dist == nullptr || q == nullptr) {
         delete[] q;
         delete[] dist;
+        PTIME_STOP(__func__);
         return false;
     }
     u16 max_dist = 0;
@@ -340,16 +347,19 @@ static bool bfs_land_to_river (
     }
     delete[] q;
     delete[] dist;
+    PTIME_STOP(__func__);
     return true;
 }
 
 static bool bfs_open_land_to_water (u16 w, u16 h, const u8* terrain, u8* out) {
+    PTIME_START(__func__);
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
     u16* dist = new u16[n];
-    u32* q = new u32[n / 4u + 64u];
+    u32* q = new u32[n];
     if (dist == nullptr || q == nullptr) {
         delete[] q;
         delete[] dist;
+        PTIME_STOP(__func__);
         return false;
     }
     u16 max_dist = 0;
@@ -448,16 +458,19 @@ static bool bfs_open_land_to_water (u16 w, u16 h, const u8* terrain, u8* out) {
     }
     delete[] q;
     delete[] dist;
+    PTIME_STOP(__func__);
     return true;
 }
 
 static bool bfs_land_to_water (u16 w, u16 h, const u8* terrain, u8* out) {
+    PTIME_START(__func__);
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
     u16* dist = new u16[n];
-    u32* q = new u32[n / 4u + 64u];
+    u32* q = new u32[n];
     if (dist == nullptr || q == nullptr) {
         delete[] q;
         delete[] dist;
+        PTIME_STOP(__func__);
         return false;
     }
     u16 max_dist = 0;
@@ -552,10 +565,12 @@ static bool bfs_land_to_water (u16 w, u16 h, const u8* terrain, u8* out) {
     }
     delete[] q;
     delete[] dist;
+    PTIME_STOP(__func__);
     return true;
 }
 
 static bool build_latitude (u16 w, u16 h, u8* out) {
+    PTIME_START(__func__);
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
     const f32 d_tl = dist_to_equator(0.5f, 0.5f, w, h);
     const f32 d_br = dist_to_equator(static_cast<f32>(w) - 0.5f, static_cast<f32>(h) - 0.5f, w, h);
@@ -570,6 +585,7 @@ static bool build_latitude (u16 w, u16 h, u8* out) {
         }
     }
     (void)n;
+    PTIME_STOP(__func__);
     return true;
 }
 
@@ -586,14 +602,17 @@ P1_Gen_Climate::P1_Gen_Climate (const P1_RunPrm& prm, const P1_Gen_ClimatePrm& s
 }
 
 bool P1_Gen_Climate::generate (const u8* terrain, u16 w, u16 h, const u8* river_ov, const u8* rain_ov) {
+    PTIME_START(__func__);
     m_valid_generation = false;
     m_rslt.m_w = 0;
     m_rslt.m_h = 0;
     m_rslt.m_ov.clear();
     if (!p1_run_prm_ok(m_prm) || terrain == nullptr || river_ov == nullptr || w == 0 || h == 0) {
+        PTIME_STOP(__func__);
         return false;
     }
     if (w != m_prm.m_w || h != m_prm.m_h) {
+        PTIME_STOP(__func__);
         return false;
     }
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
@@ -606,6 +625,7 @@ bool P1_Gen_Climate::generate (const u8* terrain, u16 w, u16 h, const u8* river_
         delete[] latitude;
         delete[] open_dist_water;
         delete[] dist_river;
+        PTIME_STOP(__func__);
         return false;
     }
     if (!bfs_land_to_river(w, h, terrain, river_ov, dist_river)
@@ -616,6 +636,7 @@ bool P1_Gen_Climate::generate (const u8* terrain, u16 w, u16 h, const u8* river_
         delete[] latitude;
         delete[] open_dist_water;
         delete[] dist_river;
+        PTIME_STOP(__func__);
         return false;
     }
     u32 tile_n = 0;
@@ -629,6 +650,7 @@ bool P1_Gen_Climate::generate (const u8* terrain, u16 w, u16 h, const u8* river_
         delete[] latitude;
         delete[] open_dist_water;
         delete[] dist_river;
+        PTIME_STOP(__func__);
         return false;
     }
     u8* climate = m_rslt.m_ov.data_w();
@@ -639,6 +661,7 @@ bool P1_Gen_Climate::generate (const u8* terrain, u16 w, u16 h, const u8* river_
         delete[] latitude;
         delete[] open_dist_water;
         delete[] dist_river;
+        PTIME_STOP(__func__);
         return false;
     }
     u32 ti = 0;
@@ -690,6 +713,7 @@ bool P1_Gen_Climate::generate (const u8* terrain, u16 w, u16 h, const u8* river_
     m_rslt.m_w = w;
     m_rslt.m_h = h;
     m_valid_generation = true;
+    PTIME_STOP(__func__);
     return true;
 }
 

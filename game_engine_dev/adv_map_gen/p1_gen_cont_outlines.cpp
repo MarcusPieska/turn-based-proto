@@ -746,7 +746,21 @@ static bool stack_drag_cut_drag_rotate (
     clip_plc(plc, *dx, *dy, w, h, comp);
     bb = bbox_land(plc, w, h);
     if (!bb.m_ok) {
-        P1_STEP_ABORT("P1_Gen_ContOutlines", "stack_drag bbox invalid after clip");
+        std::memcpy(plc, src, static_cast<size_t>(n));
+        bb = bbox_land(plc, w, h);
+        if (!bb.m_ok) {
+            P1_STEP_ABORT("P1_Gen_ContOutlines", "stack_drag bbox invalid after clip restore");
+        }
+        const u8 fall_corner = static_cast<u8>((corner0 + 2u) % 4u);
+        if (!place_corner(fall_corner, w, h, mx, my, bb, dx, dy)) {
+            P1_STEP_ABORT("P1_Gen_ContOutlines", "stack_drag corner fallback failed");
+        }
+        drag_n = 0;
+        clip_plc(plc, *dx, *dy, w, h, comp);
+        bb = bbox_land(plc, w, h);
+        if (!bb.m_ok) {
+            P1_STEP_ABORT("P1_Gen_ContOutlines", "stack_drag bbox invalid after clip fallback");
+        }
     }
     i32 pull_n = 0;
     if (pull_pct > 0u && drag_n > 0) {
@@ -810,9 +824,12 @@ bool P1_Gen_ContOutlines::generate () {
     P1_WB_CHK(wb_qlo);
     Whiteboard_2B wb_qhi("P1_Gen_ContOutlines", "qhi", m_prm.m_seed);
     P1_WB_CHK(wb_qhi);
+    Whiteboard_1B wb_bak("P1_Gen_ContOutlines", "bak", m_prm.m_seed);
+    P1_WB_CHK(wb_bak);
     u8* cur = wb_cur.get_iter_ptr();
     u8* p0 = wb_p0.get_iter_ptr();
     u8* p1 = wb_p1.get_iter_ptr();
+    u8* bak = wb_bak.get_iter_ptr();
     u16* qlo = wb_qlo.get_iter_ptr();
     u16* qhi = wb_qhi.get_iter_ptr();
     Mt19937 rng = {};
@@ -868,6 +885,7 @@ bool P1_Gen_ContOutlines::generate () {
         Mt19937 rng_i = {};
         mt_seed(&rng_i, m_prm.m_seed + static_cast<u32>(i) * 1000u + 313u);
         const u8* par_src = pid == 0u ? p0 : p1;
+        std::memcpy(bak, cur, static_cast<size_t>(n));
         if (!stack_drag_cut_drag_rotate(
                 i,
                 pid,
@@ -878,7 +896,7 @@ bool P1_Gen_ContOutlines::generate () {
                 my,
                 m_sp.m_ovlp_pct,
                 m_sp.m_sz.m_ent[i].m_pull_pct,
-                cur,
+                bak,
                 bb,
                 comp,
                 off_x[pid],

@@ -104,6 +104,18 @@ u32 WhiteboardMng::chkout () {
     return m_chkout;
 }
 
+u16 WhiteboardMng::slot_use () {
+    u16 n = 0;
+    for (u16 i = 0; i < m_alloc_n; ++i) {
+        n = (u16)(n + pop_slot(m_slot[i]));
+    }
+    return n;
+}
+
+u16 WhiteboardMng::slab_n () {
+    return m_alloc_n;
+}
+
 u16 WhiteboardMng::slab_lim () {
     return m_slab_lim;
 }
@@ -136,14 +148,18 @@ u8 WhiteboardMng::msk (u8 sz_b, u8 sub) {
     return m;
 }
 
-u8 WhiteboardMng::fill (u8 slot) {
+u8 WhiteboardMng::pop_slot (u8 slot) {
     u8 n = 0;
-    for (u8 b = 0; b < 8; ++b) {
+    for (u8 b = 0; b < 8u; ++b) {
         if ((slot & (u8)(1u << b)) != 0) {
             ++n;
         }
     }
     return n;
+}
+
+u8 WhiteboardMng::fill (u8 slot) {
+    return pop_slot(slot);
 }
 
 bool WhiteboardMng::fit (u8 slot, u8 sz_b, u8* out_sub) {

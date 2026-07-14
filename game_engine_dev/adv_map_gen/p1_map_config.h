@@ -32,6 +32,9 @@ struct P1_MapConfig {
     u8 m_shaped_far_sea; // Step 06 far shelf: target sea class share (percent of shelf land)
     u8 m_shaped_far_coastal; // Step 06 far shelf: target coastal class share (percent of shelf land)
 
+    f32 m_land_alt_lim_hills; // Step 23 land altitude: hills class cutoff on joint land score
+    f32 m_land_alt_lim_mtn; // Step 23 land altitude: mountain class cutoff on joint land score
+
     u16 m_delta_flood_perc; // Step 35 delta swamps: target flooded land share (percent)
 };
 
@@ -53,6 +56,9 @@ static inline P1_MapConfig p1_map_config_def () {
     c.m_shaped_far_ocean = 10u; // Step 06 far shelf: target ocean class share (percent of shelf land)
     c.m_shaped_far_sea = 20u; // Step 06 far shelf: target sea class share (percent of shelf land)
     c.m_shaped_far_coastal = 10u; // Step 06 far shelf: target coastal class share (percent of shelf land)
+
+    c.m_land_alt_lim_hills = 0.30f; // Step 23 land altitude: hills class cutoff on joint land score
+    c.m_land_alt_lim_mtn = 0.70f; // Step 23 land altitude: mountain class cutoff on joint land score
 
     c.m_delta_flood_perc = 3u; // Step 35 delta swamps: target flooded land share (percent)
 

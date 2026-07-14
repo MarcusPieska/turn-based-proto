@@ -3,14 +3,15 @@
 //================================================================================================================================
 
 #include <cmath>
-#include <cstdio>
 #include <cstring>
 
 #include "p1_gen_rich_coast_fertility.h"
+#include "p1_gen_rich_coast_fertility_view.h"
 #include "game_map_defs.h"
 #include "perlin_noise.h"
 #include "wb_que_xy.h"
 #include "p1_wb_util.h"
+#include "profile_time.h" 
 
 //================================================================================================================================
 //=> - Private generation helpers -
@@ -21,8 +22,7 @@ static const u32 k_brush_cap = static_cast<u32>(P1_RICH_COAST_BRUSH_MAX_RAD * 2u
     * static_cast<u32>(P1_RICH_COAST_BRUSH_MAX_RAD * 2u + 1u);
 
 static bool in_map (u16 w, u16 h, i32 x, i32 y) {
-    return x >= 0 && y >= 0 && static_cast<u32>(x) < static_cast<u32>(w)
-        && static_cast<u32>(y) < static_cast<u32>(h);
+    return x >= 0 && y >= 0 && static_cast<u32>(x) < static_cast<u32>(w) && static_cast<u32>(y) < static_cast<u32>(h);
 }
 
 static bool is_land (u8 cls) {
@@ -63,7 +63,9 @@ static bool bfs_land_dist_coast (
     u16* dist,
     WB_QueXY& q) 
 {
+    PTIME_START(__func__);
     if (terrain == nullptr || dist == nullptr || !q.ok()) {
+        PTIME_STOP(__func__);
         return false;
     }
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
@@ -79,6 +81,7 @@ static bool bfs_land_dist_coast (
             }
             dist[i] = 0;
             if (!q.push(x, y)) {
+                PTIME_STOP(__func__);
                 return false;
             }
         }
@@ -98,6 +101,7 @@ static bool bfs_land_dist_coast (
             if (is_land(terrain[j]) && dist[j] == k_dist_inf) {
                 dist[j] = nxt;
                 if (!q.push(static_cast<u16>(px - 1), py)) {
+                    PTIME_STOP(__func__);
                     return false;
                 }
             }
@@ -107,6 +111,7 @@ static bool bfs_land_dist_coast (
             if (is_land(terrain[j]) && dist[j] == k_dist_inf) {
                 dist[j] = nxt;
                 if (!q.push(static_cast<u16>(px + 1), py)) {
+                    PTIME_STOP(__func__);
                     return false;
                 }
             }
@@ -116,6 +121,7 @@ static bool bfs_land_dist_coast (
             if (is_land(terrain[j]) && dist[j] == k_dist_inf) {
                 dist[j] = nxt;
                 if (!q.push(px, static_cast<u16>(py - 1))) {
+                    PTIME_STOP(__func__);
                     return false;
                 }
             }
@@ -125,11 +131,13 @@ static bool bfs_land_dist_coast (
             if (is_land(terrain[j]) && dist[j] == k_dist_inf) {
                 dist[j] = nxt;
                 if (!q.push(px, static_cast<u16>(py + 1))) {
+                    PTIME_STOP(__func__);
                     return false;
                 }
             }
         }
     }
+    PTIME_STOP(__func__);
     return true;
 }
 
@@ -138,84 +146,61 @@ static u16 sat_add (u16 a, u16 b) {
     return s > 65535u ? static_cast<u16>(65535u) : static_cast<u16>(s);
 }
 
-static u16 build_fert_ov (
+static u16 sat_mul (u16 v, u16 f) {
+    const u32 p = static_cast<u32>(v) * static_cast<u32>(f);
+    return p > 65535u ? static_cast<u16>(65535u) : static_cast<u16>(p);
+}
+
+static u16 count_shallow_box (const u8* terrain, u16 w, u16 h, u16 bx, u16 by) {
+    const u16 x1 = static_cast<u16>(bx + P1_RICH_COAST_BLK_SZ > w ? w : bx + P1_RICH_COAST_BLK_SZ);
+    const u16 y1 = static_cast<u16>(by + P1_RICH_COAST_BLK_SZ > h ? h : by + P1_RICH_COAST_BLK_SZ);
+    u16 cnt = 0;
+    for (u16 y = by; y < y1; ++y) {
+        for (u16 x = bx; x < x1; ++x) {
+            const u32 i = static_cast<u32>(y) * static_cast<u32>(w) + static_cast<u32>(x);
+            if (is_shallow_src(terrain[i])) {
+                cnt++;
+            }
+        }
+    }
+    return cnt;
+}
+
+static void apply_fac_stamp (
     const u8* terrain,
     u16 w,
     u16 h,
-    i32 brush_rad,
     u16 stamp_lim,
+    i32 sx,
+    i32 sy,
     u16 brush_sp_n,
     const i8* brush_sp_dx,
     const i8* brush_sp_dy,
-    const u16* brush_sp_v,
+    const u16* fac_sp_v,
     const u16* dist_coast,
-    u16* ov) 
+    u16* ov,
+    u16* peak) 
 {
-    if (terrain == nullptr || brush_sp_dx == nullptr || brush_sp_dy == nullptr
-        || brush_sp_v == nullptr || dist_coast == nullptr || ov == nullptr || brush_rad < 0) {
-        return 0;
-    }
-    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
-    for (u32 i = 0; i < n; ++i) {
-        ov[i] = 0;
-    }
-    u16 peak = 0;
-    for (u16 y = 0; y < h; ++y) {
-        for (u16 x = 0; x < w; ++x) {
-            const u32 si = static_cast<u32>(y) * static_cast<u32>(w) + static_cast<u32>(x);
-            if (!is_shallow_src(terrain[si])) {
-                continue;
-            }
-            const i32 sx = static_cast<i32>(x);
-            const i32 sy = static_cast<i32>(y);
-            for (u16 k = 0; k < brush_sp_n; ++k) {
-                const i32 tx = sx + static_cast<i32>(brush_sp_dx[k]);
-                const i32 ty = sy + static_cast<i32>(brush_sp_dy[k]);
-                if (!in_map(w, h, tx, ty)) {
-                    continue;
-                }
-                const u32 ti = static_cast<u32>(ty) * static_cast<u32>(w) + static_cast<u32>(tx);
-                if (!is_land(terrain[ti])) {
-                    continue;
-                }
-                const u16 dc = dist_coast[ti];
-                if (dc == k_dist_inf || dc > stamp_lim) {
-                    continue;
-                }
-                const u16 nv = sat_add(ov[ti], brush_sp_v[k]);
-                ov[ti] = nv;
-                if (nv > peak) {
-                    peak = nv;
-                }
-            }
+    for (u16 k = 0; k < brush_sp_n; ++k) {
+        const i32 tx = sx + static_cast<i32>(brush_sp_dx[k]);
+        const i32 ty = sy + static_cast<i32>(brush_sp_dy[k]);
+        if (!in_map(w, h, tx, ty)) {
+            continue;
+        }
+        const u32 ti = static_cast<u32>(ty) * static_cast<u32>(w) + static_cast<u32>(tx);
+        if (!is_land(terrain[ti])) {
+            continue;
+        }
+        const u16 dc = dist_coast[ti];
+        if (dc == k_dist_inf || dc > stamp_lim) {
+            continue;
+        }
+        const u16 nv = sat_add(ov[ti], fac_sp_v[k]);
+        ov[ti] = nv;
+        if (nv > *peak) {
+            *peak = nv;
         }
     }
-    return peak;
-}
-
-static bool save_ov_gray_pgm (cstr path, const u16* ov, u16 w, u16 h, u16 peak) {
-    if (path == nullptr || ov == nullptr || w == 0 || h == 0) {
-        return false;
-    }
-    std::FILE* fp = std::fopen(path, "wb");
-    if (fp == nullptr) {
-        return false;
-    }
-    std::fprintf(fp, "P5\n%u %u\n255\n", (unsigned)w, (unsigned)h);
-    const u32 pk = static_cast<u32>(peak > 0 ? peak : 1u);
-    u8 row[4096];
-    for (u16 y = 0; y < h; ++y) {
-        for (u16 x = 0; x < w; ++x) {
-            const u32 i = static_cast<u32>(y) * static_cast<u32>(w) + static_cast<u32>(x);
-            row[x] = static_cast<u8>((static_cast<u32>(ov[i]) * 255u) / pk);
-        }
-        if (std::fwrite(row, 1, static_cast<size_t>(w), fp) != static_cast<size_t>(w)) {
-            std::fclose(fp);
-            return false;
-        }
-    }
-    std::fclose(fp);
-    return true;
 }
 
 //================================================================================================================================
@@ -229,7 +214,7 @@ P1_Gen_RichCoastFertility::P1_Gen_RichCoastFertility (
     m_sp(sp),
     m_valid_generation(false),
     m_rslt(),
-    m_ov_wb(nullptr),
+    m_ov_wb("P1_Gen_RichCoastFertility", "ov", prm.m_seed),
     m_brush_w(0),
     m_brush_h(0),
     m_brush_sp_n(0) {
@@ -237,23 +222,19 @@ P1_Gen_RichCoastFertility::P1_Gen_RichCoastFertility (
     m_rslt.m_h = 0;
     m_rslt.m_peak = 0;
     m_rslt.m_ov = nullptr;
-    m_ov_wb = new Whiteboard_2B("P1_Gen_RichCoastFertility", "ov", prm.m_seed);
-    P1_WB_CHK(*m_ov_wb);
+    P1_WB_CHK(m_ov_wb);
     build_brush();
 }
 
-P1_Gen_RichCoastFertility::~P1_Gen_RichCoastFertility () {
-    delete m_ov_wb;
-    m_ov_wb = nullptr;
-}
-
 bool P1_Gen_RichCoastFertility::build_brush () {
+    PTIME_START(__func__);
     m_brush_w = 0;
     m_brush_h = 0;
     m_brush_sp_n = 0;
     const u16 rad = m_sp.m_brush_rad;
     const u16 peak = m_sp.m_brush_peak;
     if (rad == 0 || peak == 0 || rad > static_cast<u16>(P1_RICH_COAST_BRUSH_MAX_RAD)) {
+        PTIME_STOP(__func__);
         return false;
     }
     const u16 bw = static_cast<u16>(rad * 2u + 1u);
@@ -282,41 +263,102 @@ bool P1_Gen_RichCoastFertility::build_brush () {
     m_brush_w = bw;
     m_brush_h = bw;
     m_brush_sp_n = sp_n;
+    PTIME_STOP(__func__);
+    return build_fac_stamps();
+}
+
+bool P1_Gen_RichCoastFertility::build_fac_stamps () {
+    PTIME_START(__func__);
+    if (m_brush_sp_n == 0) {
+        PTIME_STOP(__func__);
+        return false;
+    }
+    for (u32 f = 1; f <= P1_RICH_COAST_FAC_N; ++f) {
+        const u16 fac = static_cast<u16>(f);
+        u16* dst = m_fac_sp_v[f - 1u];
+        for (u16 k = 0; k < m_brush_sp_n; ++k) {
+            dst[k] = sat_mul(m_brush_sp_v[k], fac);
+        }
+    }
+    PTIME_STOP(__func__);
     return true;
 }
 
+u16 P1_Gen_RichCoastFertility::build_fert_ov_blk (
+    const u8* terrain,
+    u16 w,
+    u16 h,
+    u16 stamp_lim,
+    const u16* dist_coast,
+    u16* ov) 
+{
+    PTIME_START(__func__);
+    if (terrain == nullptr || dist_coast == nullptr || ov == nullptr) {
+        PTIME_STOP(__func__);
+        return 0;
+    }
+    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
+    for (u32 i = 0; i < n; ++i) {
+        ov[i] = 0;
+    }
+    u16 peak = 0;
+    for (u16 by = 0; by < h; by = static_cast<u16>(by + P1_RICH_COAST_BLK_SZ)) {
+        for (u16 bx = 0; bx < w; bx = static_cast<u16>(bx + P1_RICH_COAST_BLK_SZ)) {
+            const u16 cnt = count_shallow_box(terrain, w, h, bx, by);
+            if (cnt == 0) {
+                continue;
+            }
+            u16 fac_i = cnt;
+            if (fac_i > P1_RICH_COAST_FAC_N) {
+                fac_i = static_cast<u16>(P1_RICH_COAST_FAC_N);
+            }
+            apply_fac_stamp(terrain, w, h, stamp_lim, static_cast<i32>(bx), static_cast<i32>(by),
+                m_brush_sp_n, m_brush_sp_dx, m_brush_sp_dy, m_fac_sp_v[fac_i - 1u], dist_coast, ov, &peak);
+        }
+    }
+    PTIME_STOP(__func__);
+    return peak;
+}
+
 bool P1_Gen_RichCoastFertility::generate (const u8* terrain, u16 w, u16 h) {
+    PTIME_INIT();
+    PTIME_START(__func__);
     m_valid_generation = false;
     m_rslt.m_w = 0;
     m_rslt.m_h = 0;
     m_rslt.m_peak = 0;
     m_rslt.m_ov = nullptr;
     if (terrain == nullptr || !p1_map_size_ok(w, h) || m_brush_w == 0 || m_brush_sp_n == 0 || m_sp.m_brush_rad == 0) {
+        PTIME_STOP(__func__);
         return false;
     }
     if (w != m_prm.m_w || h != m_prm.m_h) {
+        PTIME_STOP(__func__);
         return false;
     }
-    if (m_ov_wb == nullptr || !m_ov_wb->ok()) {
+    if (!m_ov_wb.ok()) {
         p1_wb_fail("P1_Gen_RichCoastFertility", "ov");
     }
     Whiteboard_2B wb_dist("P1_Gen_RichCoastFertility", "dist", m_prm.m_seed);
     P1_WB_CHK(wb_dist);
     WB_QueXY que;
     if (!que.ok()) {
+        PTIME_STOP(__func__);
         return false;
     }
     u16* dist_coast = wb_dist.get_iter_ptr();
-    u16* ov = m_ov_wb->get_iter_ptr();
+    u16* ov = m_ov_wb.get_iter_ptr();
     if (!bfs_land_dist_coast(w, h, terrain, m_sp.m_stamp_lim, dist_coast, que)) {
+        PTIME_STOP(__func__);
         return false;
     }
-    const u16 peak = build_fert_ov(terrain, w, h, static_cast<i32>(m_sp.m_brush_rad), m_sp.m_stamp_lim,
-        m_brush_sp_n, m_brush_sp_dx, m_brush_sp_dy, m_brush_sp_v, dist_coast, ov);
+    const u16 peak = build_fert_ov_blk(terrain, w, h, m_sp.m_stamp_lim, dist_coast, ov);
     m_rslt.m_w = w;
     m_rslt.m_h = h;
     m_rslt.m_peak = peak;
     m_rslt.m_ov = ov;
+    PTIME_STOP(__func__);
+    PTIME_PRINT();
     m_valid_generation = true;
     return true;
 }
@@ -345,16 +387,7 @@ void P1_Gen_RichCoastFertility::save_brush (cstr path) const {
     if (path == nullptr || m_brush_w == 0 || m_brush_h == 0 || m_sp.m_brush_peak == 0) {
         return;
     }
-    const u32 n = static_cast<u32>(m_brush_w) * static_cast<u32>(m_brush_h);
-    const u32 pk = static_cast<u32>(m_sp.m_brush_peak);
-    u8 gray[65u * 65u];
-    if (n > k_brush_cap) {
-        return;
-    }
-    for (u32 i = 0; i < n; ++i) {
-        gray[i] = static_cast<u8>((static_cast<u32>(m_brush[i]) * 255u) / pk);
-    }
-    save_perlin_gray_pgm(path, gray, m_brush_w, m_brush_h);
+    P1_Gen_RichCoastFertilityView::save_brush_extra(path, m_brush, m_brush_w, m_brush_h, m_sp.m_brush_peak);
 }
 
 void P1_Gen_RichCoastFertility::save_output (cstr path) const {
@@ -370,7 +403,7 @@ void P1_Gen_RichCoastFertility::save_output (cstr path) const {
         pgm_path[len - 2] = 'g';
         pgm_path[len - 1] = 'm';
     }
-    save_ov_gray_pgm(pgm_path, m_rslt.m_ov, m_rslt.m_w, m_rslt.m_h, m_rslt.m_peak);
+    P1_Gen_RichCoastFertilityView::save_fert_gray(pgm_path, m_rslt.m_ov, m_rslt.m_w, m_rslt.m_h, m_rslt.m_peak);
 }
 
 //================================================================================================================================
