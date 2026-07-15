@@ -50,6 +50,7 @@ public:
     u32 get_bit (u32 index) const;
     void set_bit (u32 index);
     void clear_bit (u32 index);
+    void clear_all ();
 
     void serialize (std::ostream& os) const;
     static BitArrayCL* deserialize (std::istream& is);

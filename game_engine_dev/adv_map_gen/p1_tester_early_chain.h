@@ -12,7 +12,7 @@
 #include "p1_gen_river_prob.h"
 #include "p1_gen_river_pts.h"
 #include "p1_gen_river_sectors.h"
-#include "p1_map_config.h"
+#include "map_config.h"
 #include "p1_map_size.h"
 #include "p1_pipeline_steps.h"
 
@@ -73,7 +73,7 @@ inline P1_OceanIndexRef p1_early_ocean_ref (const P1_EarlyChainRslt& ec) {
 }
 
 void p1_free_early_chain (P1_EarlyChainRslt* r);
-bool p1_build_early_chain (const P1_RunPrm& prm, const P1_MapConfig& cfg, u16 last_step, P1_EarlyChainRslt* out, double* sec);
+bool p1_build_early_chain (const P1_RunPrm& prm, const MapConfig& cfg, u16 last_step, P1_EarlyChainRslt* out, double* sec);
 
 #endif // P1_TESTER_EARLY_CHAIN_H
 

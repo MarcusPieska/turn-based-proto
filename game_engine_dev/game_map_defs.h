@@ -59,6 +59,16 @@ static const u8 OV_JUNGLE[4] = {3, 0, 90, 40};
 static const u8 OV_GLACIER[4] = {4, 230, 242, 255};
 
 //================================================================================================================================
+//=> - Placement rule wildcards (config tokens, not tile class ids) -
+//================================================================================================================================
+
+#define PLC_TERR_ALL 250
+#define PLC_CLIM_ALL 251
+#define PLC_OV_ALL 200
+#define PLC_OV_REQ_NONE 201
+#define PLC_OV_RIVERS 4
+
+//================================================================================================================================
 //=> - Path costs (TM movement) -
 //================================================================================================================================
 
@@ -148,12 +158,7 @@ static inline bool overlay_is_water_terr (u8 terr_cls) {
 }
 
 static inline void overlay_rgb_from_class (u8 ov_cls, u8* r, u8* g, u8* b) {
-    static const u8* const k_ov_rows[] = {
-        OV_NONE,
-        OV_FOREST,
-        OV_SWAMP,
-        OV_JUNGLE,
-        OV_GLACIER};
+    static const u8* const k_ov_rows[] = {OV_NONE, OV_FOREST, OV_SWAMP, OV_JUNGLE, OV_GLACIER};
     for (unsigned i = 0; i < sizeof(k_ov_rows) / sizeof(k_ov_rows[0]); ++i) {
         const u8* row = k_ov_rows[i];
         if (row[0] == ov_cls) {

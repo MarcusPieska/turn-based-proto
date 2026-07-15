@@ -1,89 +1,46 @@
 #!/bin/bash
+set -e
 
-# Define the include path for the compiler
+cd "$(dirname "$0")"
+
+LIB_SO="../data_io/runtime_static_loader_lib.so"
+if [ ! -f "$LIB_SO" ]; then
+    echo "missing $LIB_SO - run ../data_io/runtime_static_loader_lib_comp first"
+    exit 1
+fi
+
 INC="-I../ \
      -I../misc \
      -I../data_io \
-     -I../wonders \
+     -I../static_state \
      -I../city \
-     -I../small_wonders \
-     -I../units \
-     -I../buildings"
+     -I../dyn_state \
+     -I../gen_bit_banks \
+     -I../game"
+CXXFLAGS="-std=c++17 -Wall -Wextra"
 
-# Compile dependencies
-g++ $INC -c ../misc/str_mng.cpp -o str_mng.o
-g++ $INC -c ../misc/bit_array.cpp -o bit_array.o
-g++ $INC -c ../data_io/tech_data.cpp -o tech_data.o
-g++ $INC -c ../data_io/resource_data.cpp -o resource_data.o
-g++ $INC -c ../data_io/building_data.cpp -o building_data.o
-g++ $INC -c ../data_io/city_flags.cpp -o city_flags.o
-g++ $INC -c ../data_io/wonder_data.cpp -o wonder_data.o
-g++ $INC -c ../data_io/small_wonder_data.cpp -o small_wonder_data.o
-g++ $INC -c ../data_io/unit_data.cpp -o unit_data.o
-g++ $INC -c ../data_io/unit_types.cpp -o unit_types.o
-g++ $INC -c ../data_io/civ_trait_data.cpp -o civ_trait_data.o
-g++ $INC -c ../data_io/civ_data.cpp -o civ_data.o
-g++ $INC -c ../buildings/building_vector.cpp -o building_vector.o
-g++ $INC -c ../wonders/wonder_vector.cpp -o wonder_vector.o
-g++ $INC -c ../small_wonders/small_wonder_vector.cpp -o small_wonder_vector.o
-g++ $INC -c ../units/unit_vector.cpp -o unit_vector.o
-g++ $INC -c ../city/building_assessor.cpp -o building_assessor.o
-g++ $INC -c ../city/wonder_assessor.cpp -o wonder_assessor.o
-g++ $INC -c ../city/small_wonder_assessor.cpp -o small_wonder_assessor.o
-g++ $INC -c ../city/unit_assessor.cpp -o unit_assessor.o
-g++ $INC -c ../city/city.cpp -o city.o
-g++ $INC -c city_array.cpp -o city_array.o
-g++ $INC -c city_array_tester.cpp -o city_array_tester.o
+g++ $CXXFLAGS $INC -c ../data_io/runtime_static_loader.cpp -o runtime_static_loader.o
+g++ $CXXFLAGS $INC -c ../misc/bit_array.cpp -o bit_array.o
+g++ $CXXFLAGS $INC -c ../gen_bit_banks/general_bit_bank.cpp -o general_bit_bank.o
+g++ $CXXFLAGS $INC -c ../city/general_assessor.cpp -o general_assessor.o
+g++ $CXXFLAGS $INC -c ../dyn_state/unit_add_vector.cpp -o unit_add_vector.o
+g++ $CXXFLAGS $INC -c player_ledger.cpp -o player_ledger.o
+g++ $CXXFLAGS $INC -c ../city/city.cpp -o city.o
+g++ $CXXFLAGS $INC -c city_array.cpp -o city_array.o
+g++ $CXXFLAGS $INC -c city_array_tester.cpp -o city_array_tester.o
 
-# Link everything into the final tester
-g++ -o \
-    city_array_tester \
-    str_mng.o \
+g++ $CXXFLAGS -o city_array_tester \
+    runtime_static_loader.o \
     bit_array.o \
-    tech_data.o \
-    resource_data.o \
-    building_data.o \
-    city_flags.o \
-    wonder_data.o \
-    small_wonder_data.o \
-    unit_data.o \
-    unit_types.o \
-    civ_trait_data.o \
-    civ_data.o \
-    building_vector.o \
-    wonder_vector.o \
-    small_wonder_vector.o \
-    unit_vector.o \
-    building_assessor.o \
-    wonder_assessor.o \
-    small_wonder_assessor.o \
-    unit_assessor.o \
+    general_bit_bank.o \
+    general_assessor.o \
+    unit_add_vector.o \
+    player_ledger.o \
     city.o \
     city_array.o \
-    city_array_tester.o
+    city_array_tester.o \
+    -ldl \
+    $LIB_SO \
+    -Wl,-rpath,'$ORIGIN/../data_io'
 
-# Clean up
-rm \
-    str_mng.o \
-    bit_array.o \
-    tech_data.o \
-    resource_data.o \
-    building_data.o \
-    city_flags.o \
-    wonder_data.o \
-    small_wonder_data.o \
-    unit_data.o \
-    unit_types.o \
-    civ_trait_data.o \
-    civ_data.o \
-    building_vector.o \
-    wonder_vector.o \
-    small_wonder_vector.o \
-    unit_vector.o \
-    building_assessor.o \
-    wonder_assessor.o \
-    small_wonder_assessor.o \
-    unit_assessor.o \
-    city.o \
-    city_array.o \
-    city_array_tester.o
+rm runtime_static_loader.o bit_array.o general_bit_bank.o general_assessor.o unit_add_vector.o player_ledger.o city.o city_array.o city_array_tester.o

@@ -16,6 +16,7 @@
 #include "game_primitives.h"
 
 class BitArrayCL;
+class GeneralBitBank;
 
 [ASSESS_STRUCT_FWD_TAG]
 

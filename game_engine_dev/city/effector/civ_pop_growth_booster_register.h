@@ -1,0 +1,49 @@
+//================================================================================================================================
+//=> - Include guards -
+//================================================================================================================================
+
+#ifndef CIV_POP_GROWTH_BOOSTER_REGISTER_H
+#define CIV_POP_GROWTH_BOOSTER_REGISTER_H
+
+#include "booster_effect_register.h"
+#include "effect_enabler.h"
+
+struct EffectCtx;
+
+//================================================================================================================================
+//=> - CivPopGrowthBoosterRegister -
+//================================================================================================================================
+//
+//  Static CIV-scoped POP_GROWTH booster register.
+//
+//================================================================================================================================
+
+class CivPopGrowthBoosterRegister : public BoosterEffectRegister {
+public:
+    static constexpr u16 ENTRY_N = 1;
+
+    static BoosterRegisterResult determine_effect (const EffectCtx& ctx) {
+        return accum_entries(s_entry, ENTRY_N, effect_enabler_active_civ, ctx);
+    }
+
+private:
+    CivPopGrowthBoosterRegister () = delete;
+    CivPopGrowthBoosterRegister (const CivPopGrowthBoosterRegister& other) = delete;
+    CivPopGrowthBoosterRegister (CivPopGrowthBoosterRegister&& other) = delete;
+
+    static constexpr ItemEffectBoosterType booster_type () {
+        return ItemEffectBoosterType::POP_GROWTH;
+    }
+
+    static constexpr ItemEffectsScope scope () {
+        return ItemEffectsScope::CIV;
+    }
+
+    static const BoosterRegisterEntry s_entry[ENTRY_N];
+};
+
+#endif // CIV_POP_GROWTH_BOOSTER_REGISTER_H
+
+//================================================================================================================================
+//=> - End of file -
+//================================================================================================================================

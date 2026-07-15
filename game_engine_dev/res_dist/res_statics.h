@@ -29,9 +29,15 @@ public:
     bool res_has_plc (u16 i) const;
     const ResPlacement& res_plc (u16 i) const;
 
+    static bool ensure_loaded (const char* lib_path, const char* data_root);
+    static bool is_ready ();
+    static const RuntimeStatics& shared ();
+
 private:
     RuntimeStaticLoader m_loader;
 };
+
+void res_statics_session_reset ();
 
 #endif // RES_STATICS_H
 

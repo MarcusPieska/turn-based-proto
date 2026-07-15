@@ -11,7 +11,6 @@
 #include "map_terrain_validate.h"
 #include "p1_gen_forest_overlay.h"
 #include "p1_tester_harness.h"
-#include "res_placement_defs.h"
 
 static bool save_rgb_ppm (cstr path, const u8* rgb, u16 wi, u16 hi) {
     if (path == nullptr || rgb == nullptr || wi == 0 || hi == 0) {
@@ -50,15 +49,15 @@ static bool save_res_climate_viz (
         u8 bg = 0;
         u8 bb = 0;
         climate_to_rgb(climate[i], &br, &bg, &bb);
-        if (res_ov[i] == static_cast<u8>(RES_OV_FORESTS)) {
+        if (res_ov[i] == OV_FOREST[0]) {
             br = 0;
             bg = 100;
             bb = 0;
-        } else if (res_ov[i] == static_cast<u8>(RES_OV_SWAMPS)) {
+        } else if (res_ov[i] == OV_SWAMP[0]) {
             br = 255;
             bg = 0;
             bb = 0;
-        } else if (res_ov[i] == static_cast<u8>(RES_OV_JUNGLES)) {
+        } else if (res_ov[i] == OV_JUNGLE[0]) {
             br = 0;
             bg = 160;
             bb = 40;

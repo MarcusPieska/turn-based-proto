@@ -33,7 +33,17 @@ static void join_path (char* dst, u16 n, cstr base, cstr suffix) {
     if (!suffix) {
         suffix = "";
     }
-    std::snprintf(dst, n, "%s/%s", base, suffix);
+    const u32 bl = (u32)std::strlen(base);
+    const u32 sl = (u32)std::strlen(suffix);
+    if (n == 0 || bl + 1u + sl >= n) {
+        if (n > 0) {
+            dst[0] = '\0';
+        }
+        return;
+    }
+    std::memcpy(dst, base, bl);
+    dst[bl] = '/';
+    std::memcpy(dst + bl + 1, suffix, sl + 1);
 }
 
 static bool does_file_exist (cstr path) {
@@ -53,7 +63,7 @@ static bool does_file_exist (cstr path) {
 //================================================================================================================================
 
 PathMng::PathMng (cstr path_offset) {
-    copy_path(m_path_offset, PATH_MNG_PATH_N, path_offset);
+    copy_path(m_path_offset, PATH_MNG_OFFSET_BUF_N, path_offset);
     build_paths();
     validate_paths_or_exit();
 }

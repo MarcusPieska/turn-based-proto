@@ -48,6 +48,7 @@ static const u16 P1_STEP_COAST_FERT_ADJ = 37u;
 static const u16 P1_STEP_FOREST_OVERLAY = 39u;
 static const u16 P1_STEP_DELTA_SWAMPS = 40u;
 static const u16 P1_STEP_ENSURE_ADJ = 41u;
+static const u16 P1_STEP_RESOURCES = 42u;
 
 #endif // P1_PIPELINE_STEPS_H
 

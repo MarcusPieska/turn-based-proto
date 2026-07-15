@@ -7,6 +7,10 @@
 
 #include "game_primitives.h"
 
+class City;
+class CityArray;
+class GeneralAssessor;
+
 //================================================================================================================================
 //=> - GeneralBitBank class -
 //================================================================================================================================
@@ -15,8 +19,14 @@ class GeneralBitBank {
 public:
     GeneralBitBank (u16 batch_size);
 
+    bool is_flagged (u16 batch_idx, u16 flag_idx) const;
+    void set_flag (u16 batch_idx, u16 flag_idx);
+    void clear_flag (u16 batch_idx, u16 flag_idx);
+
 private:
     friend class City;
+    friend class CityArray;
+    friend class GeneralAssessor;
 
     GeneralBitBank (const GeneralBitBank& other) = delete;
     GeneralBitBank (GeneralBitBank&& other) = delete;
@@ -26,9 +36,6 @@ private:
     static const u16 GENERAL_BATCHES_PER_PAGE = 256;
 
     u16 claim_batch ();
-    bool is_flagged (u16 batch_idx, u16 flag_idx) const;
-    void set_flag (u16 batch_idx, u16 flag_idx);
-    void clear_flag (u16 batch_idx, u16 flag_idx);
 
     u8* m_pages[MAX_PAGES];
     u16 m_batch_size;

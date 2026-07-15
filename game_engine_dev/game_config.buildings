@@ -28,7 +28,7 @@ SAM Missile Battery         :  800 : tech(Rocketry)                   : resource
 Recycling Center            :  900 : tech(Ecology)
 Offshore Platform           :  900 : tech(Refining)                   : resource(Oil) : flag(isCoastal)
 Civil Defense               :  900 : tech(Atomic Theory)
-Wall                        :  100 : tech(Masonry)                    : resource(Stone)
+Walls                       :  100 : tech(Masonry)                    : resource(Stone)
 Intelligence Agency         : 1000 : tech(Computers)                  : building(Police Station, 1)
 Solar Plant                 : 1000 : tech(Superconductor)             : resource(Aluminum)
 Capitalization              : 1200 : tech(The Corporation)            : building(Stock Exchange, 1)

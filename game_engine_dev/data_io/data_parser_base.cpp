@@ -9,7 +9,6 @@
 #include "data_parser_base.h"
 #include "game_map_defs.h"
 #include "item_effect_handler.h"
-#include "res_placement_defs.h"
 
 typedef struct PlcTokRow {
     cstr m_tok;
@@ -17,7 +16,7 @@ typedef struct PlcTokRow {
 } PlcTokRow;
 
 static const PlcTokRow k_terr_tok[] = {
-    {"ALL_TERRAINS", RES_TERR_ALL},
+    {"ALL_TERRAINS", PLC_TERR_ALL},
     {"TERR_OCEAN", TERR_OCEAN[0]},
     {"TERR_SEA", TERR_SEA[0]},
     {"TERR_COASTAL", TERR_COASTAL[0]},
@@ -27,20 +26,19 @@ static const PlcTokRow k_terr_tok[] = {
 };
 
 static const PlcTokRow k_clim_tok[] = {
-    {"ALL_CLIMATES", RES_CLIM_ALL},
-    {"CLIMATE_TUNDRA", CLIMATE_TUNDRA},
+    {"ALL_CLIMATES", PLC_CLIM_ALL},
     {"CLIMATE_GRASSLAND", CLIMATE_GRASSLAND},
     {"CLIMATE_PLAINS", CLIMATE_PLAINS},
     {"CLIMATE_DESERT", CLIMATE_DESERT},
 };
 
 static const PlcTokRow k_ov_tok[] = {
-    {"ALL_OVERLAYS", RES_OV_ALL},
-    {"NO_OVERLAYS", RES_OV_NONE},
-    {"OVERLAY_SWAMPS", RES_OV_SWAMPS},
-    {"OVERLAY_FORESTS", RES_OV_FORESTS},
-    {"OVERLAY_JUNGLES", RES_OV_JUNGLES},
-    {"OVERLAY_RIVERS", RES_OV_RIVERS},
+    {"ALL_OVERLAYS", PLC_OV_ALL},
+    {"NO_OVERLAYS", PLC_OV_REQ_NONE},
+    {"OVERLAY_SWAMPS", OV_SWAMP[0]},
+    {"OVERLAY_FORESTS", OV_FOREST[0]},
+    {"OVERLAY_JUNGLES", OV_JUNGLE[0]},
+    {"OVERLAY_RIVERS", PLC_OV_RIVERS},
 };
 
 namespace {
@@ -364,6 +362,50 @@ ItemEffectsStruct DataParserBase::parse_item_effects (const StringManager& line_
     }
     if (s_item_effect_handler == 0) {
         printf("ERROR: DataParserBase parse_item_effects: call DataParserBase::set_item_effect_handler first\n");
+        ++m_error_count;
+        return effects;
+    }
+    s_item_effect_handler->reset_error_count();
+    effects = s_item_effect_handler->parse_effects_line(effect_line);
+    m_error_count += s_item_effect_handler->get_error_count();
+    return effects;
+}
+
+ItemEffectsStruct DataParserBase::parse_item_effects_optional (const StringManager& line_items, u16 start_idx) const {
+    (void)start_idx;
+    ItemEffectsStruct effects = {};
+    if (s_effect_definition_items == 0 || s_effect_definition_items->get_string_count() == 0) {
+        return effects;
+    }
+    if (line_items.get_string_count() == 0) {
+        printf("ERROR: DataParserBase parse_item_effects_optional: empty line_items\n");
+        ++m_error_count;
+        return effects;
+    }
+    StringManager item_name_m;
+    item_name_m.load_cstr_content(line_items.get_string_content(0));
+    trim_ws_idx(item_name_m, 0);
+    cstr item_name = item_name_m.get_string_content(0);
+    if (item_name[0] == '\0') {
+        printf("ERROR: DataParserBase parse_item_effects_optional: empty item name\n");
+        ++m_error_count;
+        return effects;
+    }
+
+    cstr effect_line = 0;
+    for (u32 i = 0; i < s_effect_definition_items->get_string_count(); ++i) {
+        StringManager parts;
+        get_line_items(s_effect_definition_items->get_string_content(i), parts);
+        if (streq_trimmed(parts.get_string_content(0), item_name)) {
+            effect_line = s_effect_definition_items->get_string_content(i);
+            break;
+        }
+    }
+    if (effect_line == 0) {
+        return effects;
+    }
+    if (s_item_effect_handler == 0) {
+        printf("ERROR: DataParserBase parse_item_effects_optional: call DataParserBase::set_item_effect_handler first\n");
         ++m_error_count;
         return effects;
     }

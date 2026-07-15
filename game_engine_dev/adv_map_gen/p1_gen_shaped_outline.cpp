@@ -299,7 +299,7 @@ bool P1_Gen_ShapedOutline::generate_layer (
         Whiteboard_4B wb_perlin("P1_Gen_ShapedOutline", "perlin", m_prm.m_seed);
         P1_WB_CHK(wb_perlin);
         f32* combo = reinterpret_cast<f32*>(wb_perlin.get_iter_ptr());
-        const P1_Gen_NoisePerlinPrm nprm = p1_gen_noise_perlin_prm_from_cfg(p1_map_config_def(), w, h);
+        const P1_Gen_NoisePerlinPrm nprm = p1_gen_noise_perlin_prm_from_cfg(map_config_def(), w, h);
         if (!p1_build_perlin_field_f32(m_prm.m_seed, nprm, combo, nullptr)) {
             P1_STEP_ABORT("P1_Gen_ShapedOutline", "generate_layer perlin build failed");
         }

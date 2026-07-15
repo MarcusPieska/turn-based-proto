@@ -137,7 +137,7 @@ static i32 test_p1_adj_land_altitude_basic (const P1_RunPrm& prm, const P1_Adj_L
         delete[] terrain;
         return -1;
     }
-    const P1_MapConfig cfg = p1_map_config_def();
+    const MapConfig cfg = map_config_def();
     const P1_Gen_NoisePerlinPrm nprm = p1_gen_noise_perlin_prm_from_cfg(cfg, w, h);
     f32* perlin_f32 = new f32[static_cast<size_t>(npx)];
     if (perlin_f32 == nullptr) {

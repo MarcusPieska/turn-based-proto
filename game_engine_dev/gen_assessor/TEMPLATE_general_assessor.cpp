@@ -10,7 +10,9 @@
 //================================================================================================================================
 
 #include "bit_array.h"
+#include "assert_log.h"
 #include "general_assessor.h"
+#include "general_bit_bank.h"
 [ASSESS_INCLUDES_TAG]
 
 //================================================================================================================================
@@ -25,6 +27,34 @@ static bool chk_bit (const BitArrayCL* ba, u16 idx) {
         return false;
     }
     return ba->get_bit(idx) == 1;
+}
+
+static bool chk_bank (const GeneralBitBank* bank, u16 city_idx, u16 flag_idx) {
+    if (bank == nullptr) {
+        return false;
+    }
+    return bank->is_flagged(city_idx, flag_idx);
+}
+
+static bool chk_resource (const AssessorCtx& ctx, u16 idx) {
+    if (ctx.m_resource_bank != nullptr) {
+        return chk_bank(ctx.m_resource_bank, ctx.m_city_idx, idx);
+    }
+    return chk_bit(ctx.m_resource, idx);
+}
+
+static bool chk_building (const AssessorCtx& ctx, u16 idx) {
+    if (ctx.m_building_bank != nullptr) {
+        return chk_bank(ctx.m_building_bank, ctx.m_city_idx, idx);
+    }
+    return chk_bit(ctx.m_building, idx);
+}
+
+static bool chk_city_flag (const AssessorCtx& ctx, u16 idx) {
+    if (ctx.m_city_flag_bank != nullptr) {
+        return chk_bank(ctx.m_city_flag_bank, ctx.m_city_idx, idx);
+    }
+    return chk_bit(ctx.m_city_flag, idx);
 }
 
 bool GeneralAssessor::chk (const ItemReqsStruct& reqs, const AssessorCtx& ctx) {

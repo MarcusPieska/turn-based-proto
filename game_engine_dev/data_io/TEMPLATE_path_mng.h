@@ -14,7 +14,10 @@
 
 #include "game_primitives.h"
 
-static const u16 PATH_MNG_PATH_N = 384;
+static const u16 PATH_MNG_PATH_N = 512;
+static const u16 PATH_MNG_SUFFIX_MAX_N = [PATH_MNG_SUFFIX_MAX_N_TAG];
+static const u16 PATH_MNG_OFFSET_MAX_N = PATH_MNG_PATH_N - PATH_MNG_SUFFIX_MAX_N - 1;
+static const u16 PATH_MNG_OFFSET_BUF_N = PATH_MNG_OFFSET_MAX_N + 1;
 
 //================================================================================================================================
 //=> - PathMng class -

@@ -4,10 +4,13 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 
 #include "game_setup.h"
 #include "game_state.h"
+#include "game_loop.h"
 #include "config_settings_static.h"
+#include "map_config.h"
 #include "runtime_statics.h"
 #include "unit_add_vector_key.h"
 
@@ -17,10 +20,13 @@
 
 typedef const char* cstr;
 
-static const char* G_SETUP_TERR = "/home/w/Projects/simple-map-gen/p1-seed-042/24_make_map_terrain.ppm";
-static const char* G_SETUP_CLIM = "/home/w/Projects/simple-map-gen/p1-seed-042/24_make_map_climate.ppm";
-static const char* G_SETUP_RIV = "/home/w/Projects/simple-map-gen/p1-seed-042/24_make_map_rivers.ppm";
-static const char* G_SETUP_RES = "/home/w/Projects/simple-map-gen/p1-seed-042/25_res_overlay.ppm";
+static const char* G_MAP_ROOT = "/home/w/Projects/simple-map-gen";
+static const char* G_TRACE_PATH = "game_setup_loop.trace";
+static u32 g_setup_seed = 101u;
+static char g_setup_terr[320];
+static char g_setup_clim[320];
+static char g_setup_riv[320];
+static char g_setup_res[320];
 
 int test_count = 0;
 int test_pass = 0;
@@ -60,12 +66,36 @@ void summarize_test_results () {
     test_pass = 0;
 }
 
+static bool build_setup_paths (u32 seed) {
+    char dir[256];
+    if (std::snprintf(dir, sizeof(dir), "%s/p1-seed-%u", G_MAP_ROOT, seed) <= 0) {
+        return false;
+    }
+    if (std::snprintf(g_setup_terr, sizeof(g_setup_terr), "%s/terrain.ppm", dir) <= 0) {
+        return false;
+    }
+    if (std::snprintf(g_setup_clim, sizeof(g_setup_clim), "%s/climate.ppm", dir) <= 0) {
+        return false;
+    }
+    if (std::snprintf(g_setup_riv, sizeof(g_setup_riv), "%s/rivers.ppm", dir) <= 0) {
+        return false;
+    }
+    if (std::snprintf(g_setup_res, sizeof(g_setup_res), "%s/resources.ppm", dir) <= 0) {
+        return false;
+    }
+    return true;
+}
+
 static MapPpmPaths make_paths () {
     MapPpmPaths paths = {};
-    paths.m_terr = G_SETUP_TERR;
-    paths.m_clim = G_SETUP_CLIM;
-    paths.m_riv = G_SETUP_RIV;
-    paths.m_res = G_SETUP_RES;
+    if (!build_setup_paths(g_setup_seed)) {
+        return paths;
+    }
+    paths.m_terr = g_setup_terr;
+    paths.m_clim = g_setup_clim;
+    paths.m_riv = g_setup_riv;
+    paths.m_ov = nullptr;
+    paths.m_res = g_setup_res;
     return paths;
 }
 
@@ -139,10 +169,15 @@ static void print_unit_vector_state (const GameState& state) {
 void test_setup_new_game () {
     GameSetup setup;
     GameState state;
-    const MapPpmPaths paths = make_paths();
+    MapGenReq req = {};
+    req.m_seed = g_setup_seed;
+    req.m_type = MAP_CONTINENTAL;
+    req.m_w = 1000u;
+    req.m_h = 1000u;
+    req.m_cfg = map_config_def();
     const u16 players = 4;
-    const bool ok = setup.setup_new_game(&state, paths, players);
-    note_result(ok, "setup_new_game");
+    const bool ok = setup.setup_new_game(&state, req, players);
+    note_result(ok, "setup_new_game generated");
     note_result(state.m_map.width() > 0, "map width");
     note_result(state.m_map.height() > 0, "map height");
     note_result(state.m_player_n == players, "player count");
@@ -156,6 +191,89 @@ void test_setup_new_game () {
     if (ok && print_level > 0) {
         print_unit_vector_state(state);
     }
+    state.clear();
+    summarize_test_results();
+}
+
+void test_setup_new_game_sequential () {
+    GameSetup setup;
+    GameState state_a;
+    GameState state_b;
+    MapGenReq req = {};
+    req.m_seed = g_setup_seed;
+    req.m_type = MAP_CONTINENTAL;
+    req.m_w = 1000u;
+    req.m_h = 1000u;
+    req.m_cfg = map_config_def();
+    const u16 players = 2;
+    note_result(setup.setup_new_game(&state_a, req, players), "first sequential setup");
+    note_result(setup.setup_new_game(&state_b, req, players), "second sequential setup");
+    state_a.clear();
+    state_b.clear();
+    setup.release_map_gen();
+    summarize_test_results();
+}
+
+static bool ppm_setup_paths_exist () {
+    FILE* fp = std::fopen(g_setup_terr, "rb");
+    if (fp == nullptr) {
+        return false;
+    }
+    std::fclose(fp);
+    return true;
+}
+
+static u32 count_trace_prefix (cstr path, cstr prefix) {
+    std::FILE* f = std::fopen(path, "r");
+    if (f == nullptr) {
+        return 0;
+    }
+    char buf[256];
+    u32 n = 0;
+    const size_t pre_len = std::strlen(prefix);
+    while (std::fgets(buf, static_cast<int>(sizeof(buf)), f) != nullptr) {
+        if (std::strncmp(buf, prefix, pre_len) == 0) {
+            n = n + 1u;
+        }
+    }
+    std::fclose(f);
+    return n;
+}
+
+void test_setup_and_game_loop () {
+    std::remove(G_TRACE_PATH);
+    GameSetup setup;
+    GameState state;
+    MapGenReq req = {};
+    req.m_seed = g_setup_seed;
+    req.m_type = MAP_CONTINENTAL;
+    req.m_w = 1000u;
+    req.m_h = 1000u;
+    req.m_cfg = map_config_def();
+    const u16 players = 4;
+    note_result(setup.setup_new_game(&state, req, players), "setup before loop");
+    setup.release_map_gen();
+    GameLoop loop;
+    note_result(loop.run(&state, G_TRACE_PATH), "game loop run");
+    note_result(state.m_current_turn == state.m_turn_limit, "loop reached turn limit");
+    note_result(count_trace_prefix(G_TRACE_PATH, "NEW_TURN:") == state.m_turn_limit, "trace new turn count");
+    state.clear();
+    summarize_test_results();
+}
+
+void test_setup_new_game_from_ppm () {
+    if (!build_setup_paths(g_setup_seed) || !ppm_setup_paths_exist()) {
+        if (print_level > 0) {
+            std::printf("--- skip ppm setup test (files missing) ---\n");
+        }
+        return;
+    }
+    GameSetup setup;
+    GameState state;
+    const MapPpmPaths paths = make_paths();
+    const u16 players = 4;
+    const bool ok = setup.setup_new_game(&state, paths, players);
+    note_result(ok, "setup_new_game from ppm");
     state.clear();
     summarize_test_results();
 }
@@ -184,8 +302,14 @@ int main (int argc, char* argv[]) {
     if (argc > 1) {
         print_level = std::atoi(argv[1]);
     }
+    if (argc > 2) {
+        g_setup_seed = static_cast<u32>(std::strtoul(argv[2], nullptr, 10));
+    }
     test_setup_new_game_needs_paths();
     test_setup_new_game();
+    test_setup_new_game_sequential();
+    test_setup_and_game_loop();
+    test_setup_new_game_from_ppm();
     test_save_load_stubs();
     std::printf("=======================================================\n");
     std::printf(" TESTING GAME SETUP: TOTAL FAILURES: %d/%d\n", total_test_fails, total_tests_run);

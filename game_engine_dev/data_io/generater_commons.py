@@ -169,20 +169,19 @@ def lines_tester_map_tests ():
     lines = []
     for map_base, row_stem, col_stem in get_map_specs():
         col_getter = map_col_getter_method_suffix(col_stem)
-        bank_fn = "get_%s_bank" % map_base
         lines.append("note_result(statics.%s().get_%s_count() == parser.get_%s_count(), \"%s map row count\");" % (
             map_base, row_stem, row_stem, map_base))
         lines.append("note_result(statics.%s().get_%s_count() == parser.get_%s_count(), \"%s map col count\");" % (
             map_base, col_getter, col_stem, map_base))
-        lines.append("note_result(parser.%s()->get_array_count() == parser.get_%s_count(), \"%s bank array_count\");" % (
-            bank_fn, row_stem, map_base))
-        lines.append("note_result(parser.%s()->get_array_size() == parser.get_%s_count(), \"%s bank array_size\");" % (
-            bank_fn, col_stem, map_base))
+        lines.append("note_result(statics.%s().get_%s_count() == statics.%s().get_item_count(), \"%s row match\");" % (
+            map_base, row_stem, row_stem, map_base))
+        lines.append("note_result(statics.%s().get_%s_count() == statics.%s().get_item_count(), \"%s col match\");" % (
+            map_base, col_getter, col_stem, map_base))
     lines.append("if (print_level >= 1) {")
     for map_base, row_stem, col_stem in get_map_specs():
-        bank_fn = "get_%s_bank" % map_base
-        lines.append("    printf(\" %s bank: array_count=%%u array_size=%%u\\n\", parser.%s()->get_array_count(), parser.%s()->get_array_size());" % (
-            map_base, bank_fn, bank_fn))
+        col_getter = map_col_getter_method_suffix(col_stem)
+        lines.append("    printf(\" %s: row_count=%%u col_count=%%u\\n\", statics.%s().get_%s_count(), statics.%s().get_%s_count());" % (
+            map_base, map_base, row_stem, map_base, col_getter))
     lines.append("}")
     return lines
 

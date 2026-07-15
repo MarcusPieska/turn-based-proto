@@ -17,20 +17,19 @@ sys.dont_write_bytecode = True
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 OUT_ROOT = "/home/w/Projects/simple-map-gen"
-MAPS_ROOT = os.path.join(OUT_ROOT, "maps")
 MAKE_MAP_MOD = "p1_make_map"
 MAP_W_DEF = 1000
 MAP_H_DEF = 1000
 SEED_START_DEF = 0
 SEED_END_DEF = 100
-EXPORT_KINDS = ("terrain", "climate", "rivers")
+EXPORT_KINDS = ("terrain", "climate", "rivers", "overlay")
 
 #================================================================================================================================#
 #=> - Functions -
 #================================================================================================================================#
 
 def map_export_path(seed, kind):
-    return os.path.join(MAPS_ROOT, "seed-%04d-%s.ppm" % (seed, kind))
+    return os.path.join(OUT_ROOT, "p1-seed-%d" % seed, "%s.ppm" % kind)
 
 def map_exports_ok(seed):
     return all(os.path.isfile(map_export_path(seed, k)) for k in EXPORT_KINDS)
@@ -80,14 +79,14 @@ def main():
     if args.width <= 0 or args.height <= 0:
         print("invalid map size: %d x %d" % (args.width, args.height))
         return 1
-    os.makedirs(MAPS_ROOT, exist_ok=True)
+    os.makedirs(OUT_ROOT, exist_ok=True)
     print("compiling %s ..." % MAKE_MAP_MOD)
     ok, msg = compile_make_map()
     if not ok:
         print("FAILED compile: %s" % msg)
         return 1
     seeds = list(range(args.start, args.end + 1))
-    print("generating maps for seeds %d..%d -> %s" % (args.start, args.end, MAPS_ROOT))
+    print("generating maps for seeds %d..%d -> %s/p1-seed-*/{terrain,climate,rivers,overlay}.ppm" % (args.start, args.end, OUT_ROOT))
     failed = []
     skipped = 0
     for seed in seeds:
@@ -99,7 +98,7 @@ def main():
         if ok:
             if msg:
                 for line in msg.splitlines():
-                    if line.startswith("saved:") and "/maps/" in line:
+                    if line.startswith("saved:") and line.endswith(".ppm"):
                         print(line)
         else:
             print("FAILED seed %d: %s" % (seed, msg))

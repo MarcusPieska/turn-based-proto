@@ -9,24 +9,27 @@
 #
 #================================================================================================================================
 
-# Define the include path for the compiler
-INC="-I../ -I../misc -I../static_state"
+INC="-I. -I.. -I../misc -I../static_state -I../gen_effector"
+CXXFLAGS="-std=c++17"
 OPT="-O3 -DNDEBUG"
 
 # Compile objects
-g++ $INC -c ../misc/opt_str_mng.cpp -o opt_str_mng.o
-g++ $INC -c path_mng.cpp -o path_mng.o
-g++ $INC -c data_parser_base.cpp -o data_parser_base.o
-g++ $INC -c item_effect_handler.cpp -o item_effect_handler.o
-g++ $INC -c item_effect_helpers.cpp -o item_effect_helpers.o
-g++ $INC -c ../static_state/static_bit_bank.cpp -o static_bit_bank.o
+g++ $INC $CXXFLAGS -c ../misc/opt_str_mng.cpp -o opt_str_mng.o
+g++ $INC $CXXFLAGS -c path_mng.cpp -o path_mng.o
+g++ $INC $CXXFLAGS -c data_parser_base.cpp -o data_parser_base.o
+g++ $INC $CXXFLAGS -c item_effect_handler.cpp -o item_effect_handler.o
+g++ $INC $CXXFLAGS -c item_effect_helpers.cpp -o item_effect_helpers.o
+g++ $INC $CXXFLAGS -c ../static_state/static_bit_bank.cpp -o static_bit_bank.o
 [STATIC_PARSE_COMP_COMPILE_MAPS_TAG]
 [STATIC_PARSE_COMP_COMPILE_PARSERS_TAG]
-g++ $INC -c static_parsing_manager.cpp -o static_parsing_manager.o
-g++ $INC -c static_parsing_manager_tester.cpp -o static_parsing_manager_tester.o
+[STATIC_PARSE_COMP_COMPILE_HOLDERS_TAG]
+[STATIC_PARSE_COMP_COMPILE_EFFECTORS_TAG]
+[STATIC_PARSE_COMP_COMPILE_RUNTIME_TAG]
+g++ $INC $CXXFLAGS -c static_parsing_manager.cpp -o static_parsing_manager.o
+g++ $INC $CXXFLAGS -c static_parsing_manager_tester.cpp -o static_parsing_manager_tester.o
 
 # Link everything into the final tester
-g++ -o static_parsing_manager_tester \
+g++ $CXXFLAGS -o static_parsing_manager_tester \
     opt_str_mng.o \
     path_mng.o \
     item_effect_handler.o \
@@ -35,23 +38,29 @@ g++ -o static_parsing_manager_tester \
     static_bit_bank.o \
     [STATIC_PARSE_COMP_LINK_MAPS_TAG]
     [STATIC_PARSE_COMP_LINK_PARSERS_TAG]
+    [STATIC_PARSE_COMP_LINK_HOLDERS_TAG]
+    [STATIC_PARSE_COMP_LINK_EFFECTORS_TAG]
+    [STATIC_PARSE_COMP_LINK_RUNTIME_TAG]
     static_parsing_manager.o \
     static_parsing_manager_tester.o
 
 # Rebuild objects with optimization flags
-g++ $INC $OPT -c ../misc/opt_str_mng.cpp -o opt_str_mng.o
-g++ $INC $OPT -c path_mng.cpp -o path_mng.o
-g++ $INC $OPT -c data_parser_base.cpp -o data_parser_base.o
-g++ $INC $OPT -c item_effect_handler.cpp -o item_effect_handler.o
-g++ $INC $OPT -c item_effect_helpers.cpp -o item_effect_helpers.o
-g++ $INC $OPT -c ../static_state/static_bit_bank.cpp -o static_bit_bank.o
+g++ $INC $CXXFLAGS $OPT -c ../misc/opt_str_mng.cpp -o opt_str_mng.o
+g++ $INC $CXXFLAGS $OPT -c path_mng.cpp -o path_mng.o
+g++ $INC $CXXFLAGS $OPT -c data_parser_base.cpp -o data_parser_base.o
+g++ $INC $CXXFLAGS $OPT -c item_effect_handler.cpp -o item_effect_handler.o
+g++ $INC $CXXFLAGS $OPT -c item_effect_helpers.cpp -o item_effect_helpers.o
+g++ $INC $CXXFLAGS $OPT -c ../static_state/static_bit_bank.cpp -o static_bit_bank.o
 [STATIC_PARSE_COMP_COMPILE_MAPS_TAG]
 [STATIC_PARSE_COMP_COMPILE_PARSERS_TAG]
-g++ $INC $OPT -c static_parsing_manager.cpp -o static_parsing_manager.o
-g++ $INC $OPT -c static_parsing_manager_tester.cpp -o static_parsing_manager_tester.o
+[STATIC_PARSE_COMP_COMPILE_HOLDERS_TAG]
+[STATIC_PARSE_COMP_COMPILE_EFFECTORS_TAG]
+[STATIC_PARSE_COMP_COMPILE_RUNTIME_TAG]
+g++ $INC $CXXFLAGS $OPT -c static_parsing_manager.cpp -o static_parsing_manager.o
+g++ $INC $CXXFLAGS $OPT -c static_parsing_manager_tester.cpp -o static_parsing_manager_tester.o
 
 # Link everything into the optimized tester
-g++ -o static_parsing_manager_opt_tester \
+g++ $CXXFLAGS $OPT -o static_parsing_manager_opt_tester \
     opt_str_mng.o \
     path_mng.o \
     item_effect_handler.o \
@@ -60,6 +69,9 @@ g++ -o static_parsing_manager_opt_tester \
     static_bit_bank.o \
     [STATIC_PARSE_COMP_LINK_MAPS_TAG]
     [STATIC_PARSE_COMP_LINK_PARSERS_TAG]
+    [STATIC_PARSE_COMP_LINK_HOLDERS_TAG]
+    [STATIC_PARSE_COMP_LINK_EFFECTORS_TAG]
+    [STATIC_PARSE_COMP_LINK_RUNTIME_TAG]
     static_parsing_manager.o \
     static_parsing_manager_tester.o
 
@@ -73,5 +85,8 @@ rm \
     static_bit_bank.o \
     [STATIC_PARSE_COMP_CLEAN_MAPS_TAG]
     [STATIC_PARSE_COMP_CLEAN_PARSERS_TAG]
+    [STATIC_PARSE_COMP_CLEAN_HOLDERS_TAG]
+    [STATIC_PARSE_COMP_CLEAN_EFFECTORS_TAG]
+    [STATIC_PARSE_COMP_CLEAN_RUNTIME_TAG]
     static_parsing_manager.o \
     static_parsing_manager_tester.o

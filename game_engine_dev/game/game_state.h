@@ -20,6 +20,7 @@
 #include "unit_add_vector.h"
 #include "unit_add_vector_key.h"
 #include "civ_relations.h"
+#include "city_array.h"
 
 #include "game_primitives.h"
 
@@ -35,11 +36,14 @@ class RuntimeStatics;
 
 class PlayerState {
 public:
+    u16* m_small_wonder_city = nullptr; // Built small wonder city index per catalog row; U16_KEY_NULL if none
+    MapBitOverlay* m_explored_overlay = nullptr; // Fog/explored bit grid; same size as map
+    BitArrayCL* m_techs_researched = nullptr; // Researched-tech bitset for this seat
+    u32 m_commerce = 0; // Accumulated commerce treasury for this seat
+    u32 m_research = 0; // Accumulated research beakers for this seat
     u16 m_ai_controlled = UINT16_MAX; // Nonzero if seat is AI-controlled
     u16 m_is_active = UINT16_MAX; // Nonzero if seat is still in the game
     u16 m_civ_index = UINT16_MAX; // Civ roster index for this seat
-    MapBitOverlay* m_explored_overlay = nullptr; // Fog/explored bit grid; same size as map
-    BitArrayCL* m_techs_researched = nullptr; // Researched-tech bitset for this seat
 };
 
 //================================================================================================================================
@@ -60,6 +64,7 @@ public:
     bool spawn (u16 x, u16 y, u16 player_idx, const u16* typ_idxs, u16 typ_n);
 
     u32 m_current_turn = 0; // Turn counter; incremented by GameLoop
+    u32 m_turn_limit = 1000; // Turns to run; GameLoop stops when m_current_turn reaches this
     u16 m_player_n = 0; // Seat count in m_player_states; size of m_player_states array
     u16 m_players_remaining = 0; // Seats not eliminated
     PlayerState* m_player_states = nullptr; // Array of length m_player_n
@@ -67,8 +72,11 @@ public:
     const RuntimeStatics* m_statics = nullptr; // Process-wide static data; not owned by GameState
     CivRelations m_civ_relations; // Civ-vs-civ relation matrix for ally checks
     MapBitArrayOverlay* m_tile_ownership_array = nullptr; // Owner id per tile; sized to map
-    BitArrayCL* m_built_wonders = nullptr; // World wonders built; shared across seats
+    u16* m_wonder_city = nullptr; // Built world wonder city index per catalog row; U16_KEY_NULL if none
+    u16 m_wonder_count = 0; // Length of m_wonder_city
+    u16 m_small_wonder_count = 0; // Length of each player's m_small_wonder_city
     UnitAddVector m_units; // Unit pool; tile stacks linked via UnitAddStruct::m_next_unit
+    CityArray m_cities; // City pool; map tiles link via m_add_idx when m_add_typ is city
     GameArraySimple m_map; // World grid; terrain, rivers, tile handles
 
     // Adds on map, owned by tile owner, per m_tile_ownership_array

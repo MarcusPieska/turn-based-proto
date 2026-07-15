@@ -1,0 +1,14 @@
+#!/bin/bash
+
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+cd "$ROOT"
+
+source p1_build_map_gen_lib_objs.sh
+
+g++ -std=c++11 -shared -o map_gen.so \
+    $MAP_GEN_LIB_OBJS \
+    -ldl \
+    ../data_io/runtime_static_loader_lib.so \
+    -Wl,-rpath,'$ORIGIN/../data_io' -Wl,--no-undefined -lm
+
+rm $MAP_GEN_LIB_OBJS

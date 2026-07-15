@@ -29,6 +29,15 @@ from generater_commons import (
     path_from_stem,
     to_pascal,
 )
+from generate_runtime_statics import (
+    lines_comp_compile_runtime_statics_bundle,
+    lines_comp_clean_effectors,
+    lines_comp_link_effectors,
+    lines_comp_link_runtime_statics_bundle,
+    lines_comp_link_static_holders,
+    lines_lib_comp_compile_effectors,
+    lines_lib_comp_compile_holders,
+)
 
 entries = get_entries()
 req_test_stems = get_req_test_stems()
@@ -277,10 +286,19 @@ def build_static_parse_sub_pairs ():
     sub_pairs.append(("[STATIC_PARSE_TESTER_MAP_TESTS_TAG]", join_tag_lines(lines_tester_map_tests(), "\n    ")))
     sub_pairs.append(("[STATIC_PARSE_COMP_COMPILE_MAPS_TAG]", join_tag_lines(lines_comp_compile_maps(), "\n")))
     sub_pairs.append(("[STATIC_PARSE_COMP_COMPILE_PARSERS_TAG]", join_tag_lines(lines_comp_compile_parsers(), "\n")))
+    sub_pairs.append(("[STATIC_PARSE_COMP_COMPILE_HOLDERS_TAG]", join_tag_lines(lines_lib_comp_compile_holders(), "\n")))
+    sub_pairs.append(("[STATIC_PARSE_COMP_COMPILE_EFFECTORS_TAG]", join_tag_lines(lines_lib_comp_compile_effectors(), "\n")))
+    sub_pairs.append(("[STATIC_PARSE_COMP_COMPILE_RUNTIME_TAG]", join_tag_lines(lines_comp_compile_runtime_statics_bundle(), "\n")))
     sub_pairs.append(("[STATIC_PARSE_COMP_LINK_MAPS_TAG]", join_tag_lines(lines_comp_link_maps(), "\n    ")))
     sub_pairs.append(("[STATIC_PARSE_COMP_LINK_PARSERS_TAG]", join_tag_lines(lines_comp_link_parsers(), "\n    ")))
+    sub_pairs.append(("[STATIC_PARSE_COMP_LINK_HOLDERS_TAG]", join_tag_lines(lines_comp_link_static_holders(), "\n    ")))
+    sub_pairs.append(("[STATIC_PARSE_COMP_LINK_EFFECTORS_TAG]", join_tag_lines(lines_comp_link_effectors(), "\n    ")))
+    sub_pairs.append(("[STATIC_PARSE_COMP_LINK_RUNTIME_TAG]", join_tag_lines(lines_comp_link_runtime_statics_bundle(), "\n    ")))
     sub_pairs.append(("[STATIC_PARSE_COMP_CLEAN_MAPS_TAG]", join_tag_lines(lines_comp_clean_maps(), "\n    ")))
     sub_pairs.append(("[STATIC_PARSE_COMP_CLEAN_PARSERS_TAG]", join_tag_lines(lines_comp_clean_parsers(), "\n    ")))
+    sub_pairs.append(("[STATIC_PARSE_COMP_CLEAN_HOLDERS_TAG]", join_tag_lines(lines_comp_link_static_holders(), "\n    ")))
+    sub_pairs.append(("[STATIC_PARSE_COMP_CLEAN_EFFECTORS_TAG]", join_tag_lines(lines_comp_clean_effectors(), "\n    ")))
+    sub_pairs.append(("[STATIC_PARSE_COMP_CLEAN_RUNTIME_TAG]", join_tag_lines(lines_comp_link_runtime_statics_bundle(), "\n    ")))
     return sub_pairs
 
 #================================================================================================================================#

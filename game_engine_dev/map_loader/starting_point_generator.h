@@ -48,7 +48,9 @@ struct SpgPickCoords {
 
 struct StartingPointGeneratorParams {
     const MapTerrainData* map;
-    u16 pick_n;
+    const u8* climate = nullptr; // Per-tile climate; same w*h as map; null skips climate check
+    const u8* overlay = nullptr; // Per-tile overlay; same w*h as map; null skips overlay check
+    u16 pick_n; 
 
     u16 latt_rows = 100;
     u16 latt_cols = 100;
@@ -89,7 +91,7 @@ private:
     bool chk_par () const;
     bool is_water (u8 cls) const;
     bool is_land (u8 cls) const;
-    bool is_start_land (u8 cls) const;
+    bool is_start_tile (u8 terr, u8 clim, u8 ov) const;
     bool adj_water (u16 px, u16 py) const;
     bool bfs_dist ();
     void mk_gray ();
@@ -104,6 +106,8 @@ private:
     u16 m_w;
     u16 m_h;
     const u8* m_cls;
+    const u8* m_clim;
+    const u8* m_ov;
     u16* m_dist;
     u8* m_gray;
     u16 m_dist_max;

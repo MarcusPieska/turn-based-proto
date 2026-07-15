@@ -59,6 +59,7 @@ ItemEffectBoosterType ItemEffectHelper::booster_type_str_to_enum (cstr s) {
     if (s && std::strcmp(s, "UNIT_EXP") == 0) { return ItemEffectBoosterType::UNIT_EXP; }
     if (s && std::strcmp(s, "UPGRADE_COST") == 0) { return ItemEffectBoosterType::UPGRADE_COST; }
     if (s && std::strcmp(s, "WAR_WEAR") == 0) { return ItemEffectBoosterType::WAR_WEAR; }
+    if (s && std::strcmp(s, "CULTURE") == 0) { return ItemEffectBoosterType::CULTURE; }
     return ItemEffectBoosterType::NONE;
 }
 
@@ -85,6 +86,7 @@ cstr ItemEffectHelper::booster_type_enum_to_str (ItemEffectBoosterType v) {
         case ItemEffectBoosterType::UNIT_EXP : return "UNIT_EXP";
         case ItemEffectBoosterType::UPGRADE_COST : return "UPGRADE_COST";
         case ItemEffectBoosterType::WAR_WEAR : return "WAR_WEAR";
+        case ItemEffectBoosterType::CULTURE : return "CULTURE";
         default: return "NONE";
     }
 }

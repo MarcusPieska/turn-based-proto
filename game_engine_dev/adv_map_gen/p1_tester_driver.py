@@ -21,6 +21,7 @@ OUT_ROOT = "/home/w/Projects/simple-map-gen"
 SEED_FILE = os.path.join(ROOT, "seed.txt")
 MAP_W_DEF = 1000
 MAP_H_DEF = 1000
+BATCH_KINDS = ("terrain", "climate", "rivers", "overlay", "resources")
 
 #================================================================================================================================#
 #=> - Functions -
@@ -30,11 +31,20 @@ def read_seed_file():
     with open(SEED_FILE, "r", encoding="utf-8") as f:
         return int(f.read().strip())
 
+def final_export_path(seed, out_image):
+    return os.path.join(OUT_ROOT, "p1-seed-%d" % seed, out_image)
+
+def batch_export_path(seed, kind):
+    return os.path.join(OUT_ROOT, "maps", "seed-%04d-%s.ppm" % (seed, kind))
+
 def image_path(out_image, seed=None):
     if seed is None:
         s = read_seed_file()
-        return os.path.join(OUT_ROOT, "p1-seed-%03d" % s, out_image)
-    return os.path.join(OUT_ROOT, "p1_seed_%03d_%s" % (seed, out_image))
+        return os.path.join(OUT_ROOT, "p1-seed-%d" % s, out_image)
+    return final_export_path(seed, out_image)
+
+def batch_exports_ok(seed):
+    return all(os.path.isfile(batch_export_path(seed, k)) for k in BATCH_KINDS)
 
 def _run_comp(comp_script):
     comp = os.path.join(ROOT, comp_script)
@@ -46,7 +56,22 @@ def _run_comp(comp_script):
         return False, msg
     return True, ""
 
-def run_tester(tester_mod, out_image, seed=None, map_w=MAP_W_DEF, map_h=MAP_H_DEF):
+def _proc_fail_msg(proc, fallback):
+    if proc.stderr and proc.stderr.strip():
+        lines = [ln.strip() for ln in proc.stderr.strip().splitlines() if ln.strip()]
+        if lines:
+            return lines[-1]
+    if proc.stdout and proc.stdout.strip():
+        lines = [ln.strip() for ln in proc.stdout.strip().splitlines() if ln.strip()]
+        for line in reversed(lines):
+            low = line.lower()
+            if "failed" in low or "error" in low or "abort:" in low:
+                return line
+        if lines:
+            return lines[-1]
+    return fallback
+
+def run_tester(tester_mod, out_image, seed=None, map_w=MAP_W_DEF, map_h=MAP_H_DEF, batch=False):
     tester_exe = "%s_tester" % tester_mod
     comp_script = "%s_comp" % tester_mod
     exe = os.path.join(ROOT, tester_exe)
@@ -58,11 +83,21 @@ def run_tester(tester_mod, out_image, seed=None, map_w=MAP_W_DEF, map_h=MAP_H_DE
         args = [exe]
     else:
         args = [exe, str(seed), str(map_w), str(map_h)]
+    if batch:
+        args.append("batch")
     proc = subprocess.run(args, cwd=ROOT, capture_output=True, text=True)
     if proc.returncode != 0:
-        msg = proc.stderr.strip() or proc.stdout.strip() or "tester failed"
-        return False, msg
-    path = image_path(out_image, seed)
+        return False, _proc_fail_msg(proc, "tester failed")
+    if batch:
+        if not batch_exports_ok(seed):
+            missing = [batch_export_path(seed, k) for k in BATCH_KINDS
+                       if not os.path.isfile(batch_export_path(seed, k))]
+            return False, "missing batch export(s): %s" % ", ".join(missing)
+        return True, ""
+    if seed is None:
+        path = image_path(out_image, seed)
+    else:
+        path = final_export_path(seed, out_image)
     if not os.path.isfile(path):
         return False, "missing image: %s" % path
     return True, path

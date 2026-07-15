@@ -6,7 +6,10 @@
 #define CITY_ARRAY_H
 
 #include "game_primitives.h"
-#include "city.h"
+
+class City;
+class RuntimeStatics;
+class GeneralBitBank;
 
 //================================================================================================================================
 //=> - CityArray class -
@@ -17,6 +20,8 @@ public:
     CityArray();
     ~CityArray();
 
+    bool bind_statics (const RuntimeStatics& st);
+
     City* get_city(u16 city_idx);
     const City* get_city(u16 city_idx) const;
     u16 get_next_new_city_idx();
@@ -24,14 +29,22 @@ public:
     u16 get_city_count() const;
     City* get_page(u16 page_idx);
     const City* get_page(u16 page_idx) const;
+    GeneralBitBank* get_bld_bank ();
+    const GeneralBitBank* get_bld_bank () const;
+    void set_building_flag (u16 city_idx, u16 bld_idx);
 
     static const u16 MAX_PAGES = 256;
     static const u16 CITIES_PER_PAGE = 256;
 
 private:
+    void clear_banks ();
+
     City* m_pages[MAX_PAGES];
     u16 m_city_count;
     u16 m_page_count;
+    GeneralBitBank* m_flag_bank;
+    GeneralBitBank* m_res_bank;
+    GeneralBitBank* m_bld_bank;
 };
 
 #endif // CITY_ARRAY_H

@@ -14,7 +14,6 @@
 #include "map_bit_overlay.h"
 #include "map_terrain_validate.h"
 #include "runtime_static_loader.h"
-#include "res_placement_defs.h"
 #include "unit_movement_mng.h"
 #include "unit_add_vector_key.h"
 #include "unit_static_key.h"
@@ -238,16 +237,16 @@ static bool is_water (u8 terr) {
 }
 
 static u16 ov_slot (u8 ov) {
-    if (ov == 0u || ov == OVERLAY_NONE || ov == RES_OV_NONE) {
+    if (ov == 0u || ov == OVERLAY_NONE) {
         return 0u;
     }
-    if (ov == RES_OV_SWAMPS) {
+    if (ov == OV_SWAMP[0]) {
         return 1u;
     }
-    if (ov == RES_OV_FORESTS) {
+    if (ov == OV_FOREST[0]) {
         return 2u;
     }
-    if (ov == RES_OV_JUNGLES) {
+    if (ov == OV_JUNGLE[0]) {
         return 3u;
     }
     return 4u;

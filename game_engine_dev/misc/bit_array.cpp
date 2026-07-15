@@ -106,6 +106,12 @@ void BitArrayCL::clear_bit (u32 index) {
     m_arrays[array_idx].clear_bit(bit_idx);
 }
 
+void BitArrayCL::clear_all () {
+    for (u32 i = 0; i < m_num_arrays; ++i) {
+        m_arrays[i] = BitArray32(0);
+    }
+}
+
 void BitArrayCL::serialize (std::ostream& os) const {
     os.write(reinterpret_cast<const char*>(&m_num_bits), sizeof(u32));
     for (u32 i = 0; i < m_num_arrays; i++) {

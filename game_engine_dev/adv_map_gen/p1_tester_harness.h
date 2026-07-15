@@ -10,7 +10,7 @@
 #include "p1_make_map.h"
 #include "p1_map_size.h"
 #include "p1_tester_early_chain.h"
-#include "p1_map_config.h"
+#include "map_config.h"
 #include "p1_tester_cli.h"
 
 //================================================================================================================================
@@ -35,7 +35,7 @@ public:
     u8 rain_wt () const;
     bool rain_wt_set () const;
     const P1_RunPrm& prm () const;
-    const P1_MapConfig& cfg () const;
+    const MapConfig& cfg () const;
     u32 seed () const;
     u32 step () const;
     double input_sec () const;
@@ -59,7 +59,7 @@ private:
     void free_all ();
 
     P1_RunPrm m_prm;
-    P1_MapConfig m_cfg;
+    MapConfig m_cfg;
     P1_TesterCli m_cli;
     P1_MakeMapRslt m_mk;
     P1_EarlyChainRslt m_early;

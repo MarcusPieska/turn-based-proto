@@ -65,7 +65,7 @@ static bool unlink_flat_seed_ppms (u32 seed) {
         return p1_ensure_dir(P1_OUT_ROOT);
     }
     char prefix[64];
-    std::snprintf(prefix, sizeof(prefix), "p1_seed_%03u_", static_cast<unsigned>(seed));
+    std::snprintf(prefix, sizeof(prefix), "p1_seed_%u_", static_cast<unsigned>(seed));
     const size_t prefix_n = std::strlen(prefix);
     bool ok = true;
     while (true) {
@@ -95,7 +95,7 @@ bool p1_tester_clear_out (u32 seed) {
     }
     if (p1_tester_out_subdir()) {
         char dir[256];
-        std::snprintf(dir, sizeof(dir), "%s/p1-seed-%03u", P1_OUT_ROOT, static_cast<unsigned>(seed));
+        std::snprintf(dir, sizeof(dir), "%s/p1-seed-%u", P1_OUT_ROOT, static_cast<unsigned>(seed));
         return unlink_in_dir(dir);
     }
     return unlink_flat_seed_ppms(seed);
@@ -144,15 +144,19 @@ bool P1_TesterHarness::begin (i32 argc, char* argv[]) {
         return false;
     }
     m_prm = m_cli.prm();
-    m_cfg = p1_map_config_def();
+    m_cfg = map_config_def();
     if (!p1_run_prm_ok(m_prm)) {
         std::printf("P1 tester invalid run prm\n");
+        return false;
+    }
+    if (!p1_map_gen_init()) {
+        std::printf("P1 map generator static init failed\n");
         return false;
     }
     const u32 tile_n = static_cast<u32>(m_prm.m_w) * static_cast<u32>(m_prm.m_h);
     (void)tile_n;
     p1_wb_init(m_prm.m_w, m_prm.m_h);
-    if (!m_cli.keep()) {
+    if (!m_cli.keep() && !m_cli.batch()) {
         if (!p1_tester_clear_out(m_prm.m_seed)) {
             std::printf("P1 tester failed to clear output for seed %u\n", m_prm.m_seed);
             return false;
@@ -210,7 +214,7 @@ const P1_RunPrm& P1_TesterHarness::prm () const {
     return m_prm;
 }
 
-const P1_MapConfig& P1_TesterHarness::cfg () const {
+const MapConfig& P1_TesterHarness::cfg () const {
     return m_cfg;
 }
 

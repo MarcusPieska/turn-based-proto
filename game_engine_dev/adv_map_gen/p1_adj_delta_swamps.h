@@ -6,7 +6,7 @@
 #define P1_ADJ_DELTA_SWAMPS_H
 
 #include "game_primitives.h"
-#include "p1_map_config.h"
+#include "map_config.h"
 #include "p1_map_size.h"
 
 //================================================================================================================================
@@ -29,7 +29,7 @@ static inline P1_Adj_DeltaSwampsPrm p1_adj_delta_swamps_prm_def () {
     return p;
 }
 
-static inline P1_Adj_DeltaSwampsPrm p1_adj_delta_swamps_prm_from_cfg (const P1_MapConfig& cfg) {
+static inline P1_Adj_DeltaSwampsPrm p1_adj_delta_swamps_prm_from_cfg (const MapConfig& cfg) {
     P1_Adj_DeltaSwampsPrm p = p1_adj_delta_swamps_prm_def();
     p.m_tgt_pct = cfg.m_delta_flood_perc;
     return p;

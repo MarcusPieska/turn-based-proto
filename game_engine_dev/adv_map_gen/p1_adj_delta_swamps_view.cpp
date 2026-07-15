@@ -10,7 +10,6 @@
 #include "game_map_defs.h"
 #include "map_terrain_validate.h"
 #include "p1_gen_river_network.h"
-#include "res_placement_defs.h"
 
 //================================================================================================================================
 //=> - Private view helpers -
@@ -68,15 +67,15 @@ static bool fill_pri_rgb (
         if (cl != CLIMATE_NONE) {
             climate_to_rgb(cl, &r, &g, &b);
         }
-        if (res_ov[i] == static_cast<u8>(RES_OV_SWAMPS)) {
+        if (res_ov[i] == OV_SWAMP[0]) {
             r = 255;
             g = 0;
             b = 0;
-        } else if (res_ov[i] == static_cast<u8>(RES_OV_FORESTS)) {
+        } else if (res_ov[i] == OV_FOREST[0]) {
             r = 0;
             g = 100;
             b = 0;
-        } else if (res_ov[i] == static_cast<u8>(RES_OV_JUNGLES)) {
+        } else if (res_ov[i] == OV_JUNGLE[0]) {
             r = 0;
             g = 160;
             b = 40;

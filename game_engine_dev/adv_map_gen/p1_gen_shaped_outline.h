@@ -6,7 +6,7 @@
 #define P1_GEN_SHAPED_OUTLINE_H
 
 #include "game_primitives.h"
-#include "p1_map_config.h"
+#include "map_config.h"
 #include "p1_map_size.h"
 
 //================================================================================================================================
@@ -58,7 +58,7 @@ static inline P1_Gen_ShapedOutlinePrm p1_gen_shaped_outline_prm_def () {
     return p;
 }
 
-static inline P1_Gen_ShapedOutlinePrm p1_gen_shaped_outline_prm_from_cfg (const P1_MapConfig& cfg) {
+static inline P1_Gen_ShapedOutlinePrm p1_gen_shaped_outline_prm_from_cfg (const MapConfig& cfg) {
     P1_Gen_ShapedOutlinePrm p = p1_gen_shaped_outline_prm_def();
     p.m_radial_near = cfg.m_shaped_radial_near;
     p.m_radial_far = cfg.m_shaped_radial_far;

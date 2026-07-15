@@ -3,24 +3,19 @@
 //================================================================================================================================
 
 #include <cstdio>
-#include <cstdint>
 #include <cstdlib>
-#include <string>
 
 #include "bit_array.h"
-#include "tech_data.h"
-#include "resource_data.h"
-#include "building_data.h"
-#include "city_flags.h"
-#include "wonder_data.h"
-#include "wonder_vector.h"
-#include "small_wonder_vector.h"
 #include "city.h"
+#include "city_array.h"
+#include "game_state.h"
+#include "player_ledger.h"
+#include "runtime_static_loader.h"
+
+static RuntimeStaticLoader g_rt_loader;
+static RuntimeStatics* g_rt_statics = nullptr;
 
 typedef const char* cstr;
-typedef std::string str;
-typedef uint32_t u32;
-typedef uint16_t u16;
 
 int test_count = 0;
 int test_pass = 0;
@@ -29,7 +24,7 @@ int total_tests_run = 0;
 int print_level = 0;
 
 //================================================================================================================================
-//=> - Helper functions -
+//=> - Helpers -
 //================================================================================================================================
 
 void note_result (bool cond, cstr msg) {
@@ -46,11 +41,6 @@ void note_result (bool cond, cstr msg) {
     }
 }
 
-void note_result (bool cond, cstr msg1, cstr msg2) {
-    str msg = str(msg1) + str(msg2);
-    note_result(cond, msg.c_str());
-}
-
 void summarize_test_results () {
     if (print_level > 0) {
         std::printf("--------------------------------\n");
@@ -63,131 +53,98 @@ void summarize_test_results () {
     test_pass = 0;
 }
 
-static u16 find_tech_index (const char* tech_name) {
-    const TechTypeStats* tech_array = TechData::get_tech_data_array();
-    u16 tech_count = TechData::get_tech_data_count();
-    for (u16 i = 0; i < tech_count; ++i) {
-        if (tech_array[i].name == tech_name) {
-            return i;
-        }
+static bool ensure_statics () {
+    if (g_rt_statics != nullptr) {
+        return true;
     }
-    return static_cast<u16>(UINT16_MAX);
+    if (!g_rt_loader.load("../data_io/runtime_static_loader_lib.so", "../")) {
+        return false;
+    }
+    g_rt_statics = &g_rt_loader.statics();
+    return true;
 }
 
-static u16 find_building_index (const char* building_name) {
-    const BuildingTypeStats* building_array = BuildingData::get_building_data_array();
-    u16 building_count = BuildingData::get_building_data_count();
-    for (u16 i = 0; i < building_count; ++i) {
-        if (building_array[i].name == building_name) {
-            return i;
+struct CityTestEnv {
+    CityArray m_array;
+    BitArrayCL* m_techs = nullptr;
+    BitArrayCL* m_civ = nullptr;
+    u16* m_wonder_city = nullptr;
+    GameState m_state = {};
+    PlayerState m_seat = {};
+
+    ~CityTestEnv () {
+        delete m_techs;
+        delete m_civ;
+        delete[] m_wonder_city;
+        delete[] m_seat.m_small_wonder_city;
+        PlayerLedger::bind_state(nullptr);
+        City::bind_wonder_cities(nullptr);
+        City::bind_player_states(nullptr, 0);
+    }
+
+    bool bind () {
+        if (!ensure_statics()) {
+            return false;
         }
-    }
-    return static_cast<u16>(UINT16_MAX);
-}
-
-static u16 find_resource_index (const char* resource_name) {
-    const ResourceTypeStats* resource_array = ResourceData::get_resource_data_array();
-    u16 resource_count = ResourceData::get_resource_data_count();
-    for (u16 i = 0; i < resource_count; ++i) {
-        if (resource_array[i].name == resource_name) {
-            return i;
+        const RuntimeStatics& st = *g_rt_statics;
+        if (!m_array.bind_statics(st)) {
+            return false;
         }
-    }
-    return static_cast<u16>(UINT16_MAX);
-}
-
-static u16 find_flag_index (const char* flag_name) {
-    const CityFlagStats* flag_array = CityFlagData::get_flag_data_array();
-    u16 flag_count = CityFlagData::get_flag_count();
-    for (u16 i = 0; i < flag_count; ++i) {
-        if (flag_array[i].name == flag_name) {
-            return i;
+        m_techs = new BitArrayCL(st.tech().get_item_count());
+        m_civ = new BitArrayCL(st.civ().get_item_count());
+        const u16 wonder_n = st.wonder().get_item_count();
+        const u16 sw_n = st.small_wonder().get_item_count();
+        if (wonder_n > 0) {
+            m_wonder_city = new u16[wonder_n];
+            for (u16 i = 0; i < wonder_n; ++i) {
+                m_wonder_city[i] = U16_KEY_NULL;
+            }
         }
-    }
-    return static_cast<u16>(UINT16_MAX);
-}
-
-static u16 find_wonder_index (const char* wonder_name) {
-    const WonderTypeStats* wonders = WonderData::get_wonder_data_array();
-    u16 wonder_count = WonderData::get_wonder_data_count();
-    for (u16 i = 0; i < wonder_count; ++i) {
-        if (wonders[i].name == wonder_name) {
-            return i;
+        m_seat = {};
+        if (sw_n > 0) {
+            m_seat.m_small_wonder_city = new u16[sw_n];
+            for (u16 i = 0; i < sw_n; ++i) {
+                m_seat.m_small_wonder_city[i] = U16_KEY_NULL;
+            }
         }
-    }
-    return static_cast<u16>(UINT16_MAX);
-}
-
-//================================================================================================================================
-//=> - Test setup -
-//================================================================================================================================
-
-struct WonderTestSetup {
-    BitArrayCL* techs;
-    BitArrayCL* buildings;
-    BitArrayCL* resources;
-    BitArrayCL* flags;
-    u32 tech_count;
-    u32 building_count;
-    u32 resource_count;
-    u32 flag_count;
-
-    WonderTestSetup () :
-        techs(nullptr),
-        buildings(nullptr),
-        resources(nullptr),
-        flags(nullptr),
-        tech_count(0),
-        building_count(0),
-        resource_count(0),
-        flag_count(0) {
-    }
-
-    ~WonderTestSetup () {
-        delete techs;
-        delete buildings;
-        delete resources;
-        delete flags;
+        City::bind_wonder_cities(m_wonder_city);
+        m_state.m_player_n = 1;
+        m_state.m_player_states = &m_seat;
+        m_state.m_small_wonder_count = sw_n;
+        City::bind_player_states(m_state.m_player_states, m_state.m_player_n);
+        PlayerLedger::bind_state(&m_state);
+        return true;
     }
 };
 
-static WonderTestSetup create_wonder_test_setup () {
-    WonderTestSetup setup;
-    setup.tech_count = TechData::get_tech_data_count();
-    setup.building_count = BuildingData::get_building_data_count();
-    setup.resource_count = ResourceData::get_resource_data_count();
-    setup.flag_count = CityFlagData::get_flag_count();
+//================================================================================================================================
+//=> - Tests -
+//================================================================================================================================
 
-    setup.techs = new BitArrayCL(setup.tech_count);
-    setup.buildings = new BitArrayCL(setup.building_count);
-    setup.resources = new BitArrayCL(setup.resource_count);
-    setup.flags = new BitArrayCL(setup.flag_count);
-
-    return setup;
-}
-
-static void clear_all_built_wonders () {
-    u16 wonder_count = WonderData::get_wonder_data_count();
-    for (u16 i = 0; i < wonder_count; ++i) {
-        BuiltWonders::set_owning_city(i, 0);
+void test_city_init () {
+    CityTestEnv env;
+    if (!env.bind()) {
+        note_result(false, "City test env bind");
+        summarize_test_results();
+        return;
     }
-}
-
-//================================================================================================================================
-//=> - Test functions -
-//================================================================================================================================
-
-void test_city_constructor () {
     City city;
-    note_result(true, "City constructor");
+    city.init(0, 10, 20);
+    bool ok = city.get_owner() == 0
+        && city.get_x() == 10
+        && city.get_y() == 20
+        && city.get_current_food_store() == 0
+        && city.get_current_shields_store() == 0
+        && city.get_current_population() == 1;
+    note_result(ok, "City init fields");
     summarize_test_results();
 }
 
 void test_city_add_food () {
     City city;
-    city.add_food(10);
-    city.add_food(5);
-    note_result(true, "City add_food");
+    city.init(0, 0, 0);
+    city.add_food(25);
+    note_result(city.get_current_food_store() == 5 && city.get_current_population() == 2, "City add_food growth");
     summarize_test_results();
 }
 
@@ -195,75 +152,34 @@ void test_city_add_shields () {
     City city;
     city.add_shields(20);
     city.add_shields(15);
-    note_result(true, "City add_shields");
-    summarize_test_results();
-}
-
-void test_city_build_functions () {
-    City city;
-    u16 building_idx = find_building_index("Barracks");
-    u16 wonder_idx = find_wonder_index("Pyramids");
-    
-    if (building_idx != UINT16_MAX) {
-        city.build_building(building_idx);
-        note_result(true, "City build_building");
-    }
-    
-    if (wonder_idx != UINT16_MAX) {
-        city.build_wonder(wonder_idx);
-        note_result(true, "City build_wonder");
-    }
-    
-    city.build_small_wonder(0);
-    city.build_unit(0);
-    note_result(true, "City build_small_wonder and build_unit");
+    note_result(city.get_current_shields_store() == 35, "City add_shields");
     summarize_test_results();
 }
 
 void test_city_get_buildable_buildings () {
+    CityTestEnv env;
+    if (!env.bind()) {
+        note_result(false, "City test env bind");
+        summarize_test_results();
+        return;
+    }
     City city;
-    BitArrayCL* techs = new BitArrayCL(TechData::get_tech_data_count());
-    BuildableBuildings* buildings = city.get_buildable_buildings(techs);
-    
-    note_result(buildings != nullptr, "City get_buildable_buildings returns nullptr");
-    delete techs;
+    city.init(0, 0, 0);
+    BitArrayCL* r = city.get_buildable_buildings(0, env.m_techs, env.m_civ);
+    note_result(r != nullptr, "City get_buildable_buildings scratch");
     summarize_test_results();
 }
 
-void test_city_get_buildable_wonders () {
+void test_city_accumulate_commerce_mode () {
     City city;
-    BitArrayCL* techs = new BitArrayCL(TechData::get_tech_data_count());
-    BuildableWonders* wonders = city.get_buildable_wonders(techs);
-    
-    note_result(wonders != nullptr, "City get_buildable_wonders returns nullptr");
-    delete techs;
-    summarize_test_results();
-}
-
-void test_city_get_buildable_small_wonders () {
-    City city;
-    BuiltSmallWonders* built_small_wonders = new BuiltSmallWonders();
-    BitArrayCL* techs = new BitArrayCL(TechData::get_tech_data_count());
-    BuildableSmallWonders* small_wonders = city.get_buildable_small_wonders(techs, built_small_wonders);
-    
-    note_result(small_wonders != nullptr, "City get_buildable_small_wonders returns nullptr");
-    delete techs;
-    delete built_small_wonders;
-    summarize_test_results();
-}
-
-void test_city_get_trainable_units () {
-    City city;
-    BitArrayCL* techs = new BitArrayCL(TechData::get_tech_data_count());
-    BuildableUnits* units = city.get_trainable_units(techs);
-    
-    note_result(units != nullptr, "City get_trainable_units returns nullptr");
-    delete techs;
+    city.accumulate_commerce();
+    city.add_shields(10);
+    note_result(city.get_current_shields_store() == 10, "City accumulate_commerce mode");
     summarize_test_results();
 }
 
 //================================================================================================================================
-//=> - Main function -
+//=> - Main -
 //================================================================================================================================
 
 int main (int argc, char* argv[]) {
@@ -271,21 +187,11 @@ int main (int argc, char* argv[]) {
         print_level = std::atoi(argv[1]);
     }
 
-    TechData::load_static_data("../game_config.techs");
-    ResourceData::load_static_data("../game_config.resources");
-    CityFlagData::load_static_data("../game_config.city_flags");
-    BuildingData::load_static_data("../game_config.buildings");
-    WonderData::load_static_data("../game_config.wonders");
-    BuiltWonders::allocate_static_array();
-
-    test_city_constructor();
+    test_city_init();
     test_city_add_food();
     test_city_add_shields();
-    test_city_build_functions();
     test_city_get_buildable_buildings();
-    test_city_get_buildable_wonders();
-    test_city_get_buildable_small_wonders();
-    test_city_get_trainable_units();
+    test_city_accumulate_commerce_mode();
 
     std::printf("=======================================================\n");
     std::printf(" TESTING CITY: TOTAL FAILURES: %d/%d\n", total_test_fails, total_tests_run);
@@ -295,5 +201,5 @@ int main (int argc, char* argv[]) {
 }
 
 //================================================================================================================================
-//=> - End of file -
+//=> - End -
 //================================================================================================================================

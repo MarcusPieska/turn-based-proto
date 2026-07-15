@@ -83,7 +83,7 @@ static bool early_pts_rslt (const P1_EarlyChainRslt& ec, P1_Gen_RiverPtsRslt* ou
     return out->m_que.ok();
 }
 
-bool p1_build_early_chain (const P1_RunPrm& prm, const P1_MapConfig& cfg, u16 last_step, P1_EarlyChainRslt* out, double* sec) {
+bool p1_build_early_chain (const P1_RunPrm& prm, const MapConfig& cfg, u16 last_step, P1_EarlyChainRslt* out, double* sec) {
     if (out == nullptr || !p1_run_prm_ok(prm) || last_step < 1u) {
         return false;
     }

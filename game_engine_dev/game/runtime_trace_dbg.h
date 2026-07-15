@@ -16,6 +16,8 @@
 
 #define ENABLED_TRACE_SETUP
 #define ENABLED_TRACE_CITY_FOUNDATION
+#define ENABLED_TRACE_CIV_SPAWN_PT
+#define ENABLED_TRACE_UNIT_SPAWN
 #define ENABLED_TRACE_NEW_TURN
 #define ENABLED_TRACE_EXPLORE_DISCOVER
 #define ENABLED_TRACE_PATH_FAILURE
@@ -40,6 +42,20 @@
 #define TRACE_CITY_FOUNDATION(args) trace_city_foundation args
 #else
     #define TRACE_CITY_FOUNDATION(args) ((void)0)
+#endif
+
+#if defined(RUNTIME_TRACE_DBG) && defined(ENABLED_TRACE_CIV_SPAWN_PT)
+    void trace_civ_spawn_pt (u16 x, u16 y, u16 civ_idx);
+#define TRACE_CIV_SPAWN_PT(args) trace_civ_spawn_pt args
+#else
+    #define TRACE_CIV_SPAWN_PT(args) ((void)0)
+#endif
+
+#if defined(RUNTIME_TRACE_DBG) && defined(ENABLED_TRACE_UNIT_SPAWN)
+    void trace_unit_spawn (u16 typ_idx, u16 civ_idx, u16 x, u16 y);
+#define TRACE_UNIT_SPAWN(args) trace_unit_spawn args
+#else
+    #define TRACE_UNIT_SPAWN(args) ((void)0)
 #endif
 
 #if defined(RUNTIME_TRACE_DBG) && defined(ENABLED_TRACE_NEW_TURN)
@@ -80,8 +96,7 @@
 #endif
 
 #if defined(RUNTIME_TRACE_DBG) && defined(ENABLED_TRACE_P2P_MK4_WALK)
-    void trace_p2p_mk4_walk_step (
-        u16 ux, u16 uy, u16 vx, u16 vy, u16 cost, u16 mp, u32 turn);
+    void trace_p2p_mk4_walk_step (u16 ux, u16 uy, u16 vx, u16 vy, u16 cost, u16 mp, u32 turn);
     void trace_p2p_mk4_walk_stall (u16 x, u16 y, u16 mp, u32 turn);
     void trace_p2p_mk4_walk_done (u16 x, u16 y, u32 steps, u32 turns);
 #define TRACE_P2P_MK4_WALK_STEP(args) trace_p2p_mk4_walk_step args
@@ -94,8 +109,7 @@
 #endif
 
 #if defined(RUNTIME_TRACE_DBG) && defined(ENABLED_TRACE_P2P_MK3_WALK)
-    void trace_p2p_mk3_walk_step (
-        u16 ux, u16 uy, u16 vx, u16 vy, u16 cost, u16 mp, u32 turn);
+    void trace_p2p_mk3_walk_step (u16 ux, u16 uy, u16 vx, u16 vy, u16 cost, u16 mp, u32 turn);
     void trace_p2p_mk3_walk_stall (u16 x, u16 y, u16 mp, u32 turn);
     void trace_p2p_mk3_walk_done (u16 x, u16 y, u32 steps, u32 turns);
 #define TRACE_P2P_MK3_WALK_STEP(args) trace_p2p_mk3_walk_step args

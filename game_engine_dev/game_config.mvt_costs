@@ -10,7 +10,6 @@ CLIMATE_NONE                    : 0
 CLIMATE_GRASSLAND               : 0
 CLIMATE_PLAINS                  : 0
 CLIMATE_DESERT                  : 0
-CLIMATE_TUNDRA                  : 1000
 
 OVERLAY_NONE                    : 0
 NO_OVERLAYS                     : 0

@@ -34,6 +34,9 @@ typedef struct EffectIndices {
 //#define PTIME_ENABLE
 //#define PTIME_TRACE_ENABLE
 
+// AssertLog toggles (misc/assert_log.h); uncomment to enable.
+//#define GAME_ASSERT_ENABLE
+
 #endif // GAME_PRIMITIVES_H
 
 //================================================================================================================================

@@ -208,8 +208,15 @@ def derive_run_bitarray_decl ():
 
 def derive_run_ctx_snap ():
     lines = []
-    for name, section, tok, cls in PREREQ_TYPES:
-        lines.append("ctx.m_%s = &%s;" % (name, name))
+    lines.append("ctx.m_tech = &tech;")
+    lines.append("ctx.m_civ = &civ;")
+    lines.append("ctx.m_city_idx = 0;")
+    lines.append("ctx.m_resource_bank = nullptr;")
+    lines.append("ctx.m_building_bank = nullptr;")
+    lines.append("ctx.m_city_flag_bank = nullptr;")
+    lines.append("ctx.m_resource = &resource;")
+    lines.append("ctx.m_building = &building;")
+    lines.append("ctx.m_city_flag = &city_flag;")
     return join_tag(lines, "        ")
 
 def derive_ablation_loop_lines (name):
@@ -218,14 +225,14 @@ def derive_ablation_loop_lines (name):
     lines.append("    set_base();")
     lines.append("    %s.clear_bit(%s_i);" % (name, name))
     lines.append("    snap(ctx);")
-    lines.append("    BitArrayCL* cur = cfg.m_assess(cfg.m_item_count, ctx);")
+    lines.append("    BitArrayCL cur_scratch(cfg.m_item_count);")
+    lines.append("    cfg.m_assess(&cur_scratch, cfg.m_item_count, ctx);")
     lines.append("    for (u16 i = 0; i < cfg.m_item_count; ++i) {")
-    lines.append("        if (baseline->get_bit(i) == 1 && cur->get_bit(i) != 1) {")
+    lines.append("        if (baseline_scratch.get_bit(i) == 1 && cur_scratch.get_bit(i) != 1) {")
     lines.append("            add_u16(inferred[i].m_%s, &inferred[i].m_%s_n, (u16)%s_i);" % (name, name, name))
     lines.append("            add_en(en.m_%s[%s_i], i);" % (name, name))
     lines.append("        }")
     lines.append("    }")
-    lines.append("    delete cur;")
     lines.append("}")
     return lines
 
@@ -245,22 +252,22 @@ def derive_building_isolate ():
     lines.append("        }")
     lines.append("        building.clear_bit(b);")
     lines.append("        snap(ctx);")
-    lines.append("        BitArrayCL* bl = cfg.m_assess(cfg.m_item_count, ctx);")
+    lines.append("        BitArrayCL bl_scratch(cfg.m_item_count);")
+    lines.append("        cfg.m_assess(&bl_scratch, cfg.m_item_count, ctx);")
     lines.append("        for (u32 bb = 0; bb < building_count; ++bb) {")
     lines.append("            if (bb == b) {")
     lines.append("                continue;")
     lines.append("            }")
     lines.append("            building.clear_bit(bb);")
     lines.append("            snap(ctx);")
-    lines.append("            BitArrayCL* cur = cfg.m_assess(cfg.m_item_count, ctx);")
-    lines.append("            if (bl->get_bit(b) == 1 && cur->get_bit(b) != 1) {")
+    lines.append("            BitArrayCL cur_scratch(cfg.m_item_count);")
+    lines.append("            cfg.m_assess(&cur_scratch, cfg.m_item_count, ctx);")
+    lines.append("            if (bl_scratch.get_bit(b) == 1 && cur_scratch.get_bit(b) != 1) {")
     lines.append("                add_u16(inferred[b].m_building, &inferred[b].m_building_n, (u16)bb);")
     lines.append("                add_en(en.m_building[bb], b);")
     lines.append("            }")
-    lines.append("            delete cur;")
     lines.append("            building.set_bit(bb);")
     lines.append("        }")
-    lines.append("        delete bl;")
     lines.append("    }")
     lines.append("} else if (cfg.m_init_building_all) {")
     for ln in derive_ablation_loop_lines("building"):
@@ -271,14 +278,12 @@ def derive_building_isolate ():
 def derive_prereq_nm_funcs ():
     blocks = []
     for name, section, tok, cls in PREREQ_TYPES:
-        struct_name = cls + "StaticDataStruct"
         fn = []
         fn.append("static cstr %s_nm (const StaticParsingManager& mgr, u16 idx) {" % name)
-        fn.append("    const %s* a = mgr.get_%s_data();" % (struct_name, name))
-        fn.append("    if (a == nullptr || idx >= mgr.get_%s_count()) {" % name)
+        fn.append("    if (idx >= mgr.get_%s_count()) {" % name)
         fn.append('        return "";')
         fn.append("    }")
-        fn.append("    return a[idx].name.c_str();")
+        fn.append("    return mgr.get_%s_name_parser().idx_to_name(idx);" % name)
         fn.append("}")
         blocks.append("\n".join(fn))
     return "\n\n".join(blocks)
@@ -286,13 +291,11 @@ def derive_prereq_nm_funcs ():
 def derive_emit_reqs_loops ():
     lines = []
     for name, section, tok, cls in PREREQ_TYPES:
-        struct_name = cls + "StaticDataStruct"
         arg = "1" if name == "building" else "0"
-        lines.append("const %s* %s_items = mgr.get_%s_data();" % (struct_name, name, name))
         lines.append("for (u8 i = 0; i < ir.m_%s_n; ++i) {" % name)
         lines.append("    u16 ix = ir.m_%s[i];" % name)
-        lines.append("    if (%s_items != nullptr && ix < mgr.get_%s_count()) {" % (name, name))
-        lines.append('        emit_req_tok(out, "%s", %s_items[ix].name.c_str(), %s);' % (tok, name, arg))
+        lines.append("    if (ix < mgr.get_%s_count()) {" % name)
+        lines.append('        emit_req_tok(out, "%s", mgr.get_%s_name_parser().idx_to_name(ix), %s);' % (tok, name, arg))
         lines.append("    }")
         lines.append("}")
     return join_tag(lines)
@@ -305,8 +308,15 @@ def derive_write_readable_sections ():
 
 def derive_assessor_ctx_members ():
     lines = []
-    for name, section, tok, cls in PREREQ_TYPES:
-        lines.append("const BitArrayCL* m_%s;" % name)
+    lines.append("const BitArrayCL* m_tech;")
+    lines.append("const BitArrayCL* m_civ;")
+    lines.append("u16 m_city_idx;")
+    lines.append("const GeneralBitBank* m_resource_bank;")
+    lines.append("const GeneralBitBank* m_building_bank;")
+    lines.append("const GeneralBitBank* m_city_flag_bank;")
+    lines.append("const BitArrayCL* m_resource;")
+    lines.append("const BitArrayCL* m_building;")
+    lines.append("const BitArrayCL* m_city_flag;")
     return join_tag(lines)
 
 def derive_assess_struct_fwd ():
@@ -320,7 +330,7 @@ def derive_assess_declarations ():
     lines = []
     for prefix, class_name, parsing_instructions in ASSESSOR_SPECS:
         struct_name = class_name + "StaticDataStruct"
-        lines.append("static BitArrayCL* assess_%s (u16 item_count, const %s* items, const AssessorCtx& ctx);" % (prefix, struct_name))
+        lines.append("static void assess_%s (BitArrayCL* out, u16 item_count, const %s* items, const AssessorCtx& ctx);" % (prefix, struct_name))
     return join_tag(lines)
 
 def derive_assess_includes ():
@@ -334,17 +344,21 @@ def derive_assess_implementations ():
     for prefix, class_name, parsing_instructions in ASSESSOR_SPECS:
         struct_name = class_name + "StaticDataStruct"
         fn = []
-        fn.append("BitArrayCL* GeneralAssessor::assess_%s (u16 item_count, const %s* items, const AssessorCtx& ctx) {" % (prefix, struct_name))
-        fn.append("    BitArrayCL* result = new BitArrayCL(item_count);")
+        fn.append("void GeneralAssessor::assess_%s (BitArrayCL* out, u16 item_count, const %s* items, const AssessorCtx& ctx) {" % (prefix, struct_name))
+        fn.append("    if (out == nullptr) {")
+        fn.append("        GAME_EXPECT(false, \"GeneralAssessor assess_%s out\");" % prefix)
+        fn.append("        return;")
+        fn.append("    }")
+        fn.append("    out->clear_all();")
         fn.append("    if (items == nullptr) {")
-        fn.append("        return result;")
+        fn.append("        GAME_EXPECT(false, \"GeneralAssessor assess_%s items\");" % prefix)
+        fn.append("        return;")
         fn.append("    }")
         fn.append("    for (u16 i = 0; i < item_count; ++i) {")
         fn.append("        if (chk(items[i].reqs, ctx)) {")
-        fn.append("            result->set_bit(i);")
+        fn.append("            out->set_bit(i);")
         fn.append("        }")
         fn.append("    }")
-        fn.append("    return result;")
         fn.append("}")
         blocks.append("\n".join(fn))
     return "\n\n".join(blocks)
@@ -363,8 +377,8 @@ def derive_assessor_brute_block (prefix, class_name, parsing_instructions):
     lines = []
     lines.append("static const %s* s_%s_items;" % (struct_name, prefix))
     lines.append("")
-    lines.append("static BitArrayCL* s_assess_%s (u16 n, const AssessorCtx& ctx) {" % prefix)
-    lines.append("    return GeneralAssessor::assess_%s(n, s_%s_items, ctx);" % (prefix, prefix))
+    lines.append("static void s_assess_%s (BitArrayCL* out, u16 n, const AssessorCtx& ctx) {" % prefix)
+    lines.append("    GeneralAssessor::assess_%s(out, n, s_%s_items, ctx);" % (prefix, prefix))
     lines.append("}")
     lines.append("")
     lines.append("static u16 get_%s_cnt (const StaticParsingManager& mgr) {" % prefix)
@@ -372,11 +386,10 @@ def derive_assessor_brute_block (prefix, class_name, parsing_instructions):
     lines.append("}")
     lines.append("")
     lines.append("static const char* get_%s_nm (const StaticParsingManager& mgr, u16 idx) {" % prefix)
-    lines.append("    const %s* items = mgr.get_%s_data();" % (struct_name, prefix))
-    lines.append("    if (items == nullptr || idx >= get_%s_cnt(mgr)) {" % prefix)
+    lines.append("    if (idx >= get_%s_cnt(mgr)) {" % prefix)
     lines.append('        return "";')
     lines.append("    }")
-    lines.append("    return items[idx].name.c_str();")
+    lines.append("    return mgr.get_%s_name_parser().idx_to_name(idx);" % prefix)
     lines.append("}")
     lines.append("")
     lines.append("struct EmitUd_%s {" % macro)
@@ -445,11 +458,15 @@ def derive_assessor_main_body ():
     return join_tag(lines, "    ")
 
 def derive_chk_switch_cases ():
+    bank_names = {"resource", "building", "city_flag"}
     lines = []
     for name, section, tok, cls in PREREQ_TYPES:
         req_tp = item_req_type_enum(name)
         lines.append("case %s:" % req_tp)
-        lines.append("    if (!chk_bit(ctx.m_%s, ix)) {" % name)
+        if name in bank_names:
+            lines.append("    if (!chk_%s(ctx, ix)) {" % name)
+        else:
+            lines.append("    if (!chk_bit(ctx.m_%s, ix)) {" % name)
         lines.append("        return false;")
         lines.append("    }")
         lines.append("    break;")
@@ -537,7 +554,7 @@ def derive_building_flags (prefix):
 def derive_comp_compile_holders ():
     lines = []
     for prefix, class_name, parsing_instructions in PARSER_SPECS:
-        lines.append("g++ $INC -c ../static_state/%s_static_data.cpp -o %s_static_data.o" % (prefix, prefix))
+        lines.append("g++ $INC -c ../../static_state/%s_static_data.cpp -o %s_static_data.o" % (prefix, prefix))
     return lines
 
 def derive_comp_link_holders ():
@@ -547,12 +564,13 @@ def derive_comp_clean_holders ():
     return ["    %s_static_data.o \\" % prefix for prefix, class_name, parsing_instructions in PARSER_SPECS]
 
 def derive_spm_compile ():
-    dio = "../data_io"
+    dio = "../../data_io"
+    st = "../../static_state"
     lines = []
-    lines.append("g++ $INC -c %s/../static_state/static_bit_bank.cpp -o static_bit_bank.o" % dio)
-    lines.append("g++ $INC -c %s/../static_state/unit_type_action_map.cpp -o unit_type_action_map.o" % dio)
+    lines.append("g++ $INC -c %s/static_bit_bank.cpp -o static_bit_bank.o" % st)
+    lines.append("g++ $INC -c %s/unit_type_action_map.cpp -o unit_type_action_map.o" % st)
     lines.append("g++ $INC -c %s/unit_type_action_map_parsing.cpp -o unit_type_action_map_parsing.o" % dio)
-    lines.append("g++ $INC -c %s/../static_state/civ_bld_discount_map.cpp -o civ_bld_discount_map.o" % dio)
+    lines.append("g++ $INC -c %s/civ_bld_discount_map.cpp -o civ_bld_discount_map.o" % st)
     lines.append("g++ $INC -c %s/civ_bld_discount_map_parsing.cpp -o civ_bld_discount_map_parsing.o" % dio)
     for prefix, class_name, parsing_instructions in PARSER_SPECS:
         lines.append("g++ $INC -c %s/%s_parser.cpp -o %s_parser.o" % (dio, prefix, prefix))
@@ -672,25 +690,30 @@ def remove_executables (dir_path):
             os.remove(path)
             print("  removed:", path)
 
-def migrate_to_city (this_dir, generated_files=None):
-    city_dir = os.path.normpath(os.path.join(this_dir, "..", "city"))
-    os.makedirs(city_dir, exist_ok=True)
+def migrate_to_city_assessor (this_dir, generated_files=None):
+    assessor_dir = os.path.normpath(os.path.join(this_dir, "..", "city", "assessor"))
+    os.makedirs(assessor_dir, exist_ok=True)
     remove_executables(this_dir)
-    remove_executables(city_dir)
+    remove_executables(assessor_dir)
     names = generated_files if generated_files is not None else GENERATED_FILES
     for name in names:
         src = os.path.join(this_dir, name)
         if os.path.isfile(src):
-            dst = os.path.join(city_dir, name)
+            dst = os.path.join(assessor_dir, name)
             shutil.move(src, dst)
-            print("  moved:", name, "->", city_dir)
+            print("  moved:", name, "->", assessor_dir)
+
+def migrate_to_city (this_dir, generated_files=None):
+    migrate_to_city_assessor(this_dir, generated_files)
 
 #================================================================================================================================#
 #=> - Main -
 #================================================================================================================================#
 
 if __name__ == "__main__":
-    generate_all_files()
+    this_dir = os.path.dirname(os.path.abspath(__file__))
+    generated = generate_all_files()
+    migrate_to_city_assessor(this_dir, generated)
 
 #================================================================================================================================#
 #=> - End -

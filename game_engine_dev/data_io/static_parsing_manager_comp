@@ -9,17 +9,17 @@
 #
 #================================================================================================================================
 
-# Define the include path for the compiler
-INC="-I../ -I../misc -I../static_state"
+INC="-I. -I.. -I../misc -I../static_state -I../gen_effector"
+CXXFLAGS="-std=c++17"
 OPT="-O3 -DNDEBUG"
 
 # Compile objects
-g++ $INC -c ../misc/opt_str_mng.cpp -o opt_str_mng.o
-g++ $INC -c path_mng.cpp -o path_mng.o
-g++ $INC -c data_parser_base.cpp -o data_parser_base.o
-g++ $INC -c item_effect_handler.cpp -o item_effect_handler.o
-g++ $INC -c item_effect_helpers.cpp -o item_effect_helpers.o
-g++ $INC -c ../static_state/static_bit_bank.cpp -o static_bit_bank.o
+g++ $INC $CXXFLAGS -c ../misc/opt_str_mng.cpp -o opt_str_mng.o
+g++ $INC $CXXFLAGS -c path_mng.cpp -o path_mng.o
+g++ $INC $CXXFLAGS -c data_parser_base.cpp -o data_parser_base.o
+g++ $INC $CXXFLAGS -c item_effect_handler.cpp -o item_effect_handler.o
+g++ $INC $CXXFLAGS -c item_effect_helpers.cpp -o item_effect_helpers.o
+g++ $INC $CXXFLAGS -c ../static_state/static_bit_bank.cpp -o static_bit_bank.o
 g++ $INC -c ../static_state/unit_type_action_map.cpp -o unit_type_action_map.o
 g++ $INC -c unit_type_action_map_parsing.cpp -o unit_type_action_map_parsing.o
 g++ $INC -c ../static_state/civ_bld_discount_map.cpp -o civ_bld_discount_map.o
@@ -37,11 +37,47 @@ g++ $INC -c unit_parser.cpp -o unit_parser.o
 g++ $INC -c unit_action_parser.cpp -o unit_action_parser.o
 g++ $INC -c unit_type_parser.cpp -o unit_type_parser.o
 g++ $INC -c wonder_parser.cpp -o wonder_parser.o
-g++ $INC -c static_parsing_manager.cpp -o static_parsing_manager.o
-g++ $INC -c static_parsing_manager_tester.cpp -o static_parsing_manager_tester.o
+g++ $INC $CXXFLAGS -c ../misc/static_string_pool.cpp -o static_string_pool.o
+g++ $INC $CXXFLAGS -c ../static_state/building_static_data.cpp -o building_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/building_static_data_load.cpp -o building_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/city_flag_static_data.cpp -o city_flag_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/city_flag_static_data_load.cpp -o city_flag_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/civ_static_data.cpp -o civ_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/civ_static_data_load.cpp -o civ_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/civ_trait_static_data.cpp -o civ_trait_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/civ_trait_static_data_load.cpp -o civ_trait_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/mvt_cost_static_data.cpp -o mvt_cost_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/mvt_cost_static_data_load.cpp -o mvt_cost_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/resource_static_data.cpp -o resource_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/resource_static_data_load.cpp -o resource_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/res_dist_static_data.cpp -o res_dist_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/res_dist_static_data_load.cpp -o res_dist_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/small_wonder_static_data.cpp -o small_wonder_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/small_wonder_static_data_load.cpp -o small_wonder_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/tech_static_data.cpp -o tech_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/tech_static_data_load.cpp -o tech_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/unit_static_data.cpp -o unit_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/unit_static_data_load.cpp -o unit_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/unit_action_static_data.cpp -o unit_action_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/unit_action_static_data_load.cpp -o unit_action_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/unit_type_static_data.cpp -o unit_type_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/unit_type_static_data_load.cpp -o unit_type_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/wonder_static_data.cpp -o wonder_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/wonder_static_data_load.cpp -o wonder_static_data_load.o
+g++ $INC $CXXFLAGS -c ../gen_effector/effect_scoper_common.cpp -o effect_scoper_common.o
+g++ $INC $CXXFLAGS -c ../gen_effector/effect_rev_mapper.cpp -o effect_rev_mapper.o
+g++ $INC $CXXFLAGS -c ../gen_effector/local_effector.cpp -o local_effector.o
+g++ $INC $CXXFLAGS -c ../gen_effector/city_effector.cpp -o city_effector.o
+g++ $INC $CXXFLAGS -c ../gen_effector/civ_effector.cpp -o civ_effector.o
+g++ $INC $CXXFLAGS -c ../gen_effector/global_effector.cpp -o global_effector.o
+g++ $INC $CXXFLAGS -c ../static_state/config_settings_static.cpp -o config_settings_static.o
+g++ $INC $CXXFLAGS -c ../static_state/config_settings_parse.cpp -o config_settings_parse.o
+g++ $INC $CXXFLAGS -c runtime_statics.cpp -o runtime_statics.o
+g++ $INC $CXXFLAGS -c static_parsing_manager.cpp -o static_parsing_manager.o
+g++ $INC $CXXFLAGS -c static_parsing_manager_tester.cpp -o static_parsing_manager_tester.o
 
 # Link everything into the final tester
-g++ -o static_parsing_manager_tester \
+g++ $CXXFLAGS -o static_parsing_manager_tester \
     opt_str_mng.o \
     path_mng.o \
     item_effect_handler.o \
@@ -65,16 +101,52 @@ g++ -o static_parsing_manager_tester \
     unit_action_parser.o \
     unit_type_parser.o \
     wonder_parser.o \
+    building_static_data.o \
+    building_static_data_load.o \
+    city_flag_static_data.o \
+    city_flag_static_data_load.o \
+    civ_static_data.o \
+    civ_static_data_load.o \
+    civ_trait_static_data.o \
+    civ_trait_static_data_load.o \
+    mvt_cost_static_data.o \
+    mvt_cost_static_data_load.o \
+    resource_static_data.o \
+    resource_static_data_load.o \
+    res_dist_static_data.o \
+    res_dist_static_data_load.o \
+    small_wonder_static_data.o \
+    small_wonder_static_data_load.o \
+    tech_static_data.o \
+    tech_static_data_load.o \
+    unit_static_data.o \
+    unit_static_data_load.o \
+    unit_action_static_data.o \
+    unit_action_static_data_load.o \
+    unit_type_static_data.o \
+    unit_type_static_data_load.o \
+    wonder_static_data.o \
+    wonder_static_data_load.o \
+    static_string_pool.o \
+    effect_scoper_common.o \
+    effect_rev_mapper.o \
+    local_effector.o \
+    city_effector.o \
+    civ_effector.o \
+    global_effector.o \
+    config_settings_static.o \
+    config_settings_parse.o \
+    runtime_statics.o \
     static_parsing_manager.o \
     static_parsing_manager_tester.o
 
 # Rebuild objects with optimization flags
-g++ $INC $OPT -c ../misc/opt_str_mng.cpp -o opt_str_mng.o
-g++ $INC $OPT -c path_mng.cpp -o path_mng.o
-g++ $INC $OPT -c data_parser_base.cpp -o data_parser_base.o
-g++ $INC $OPT -c item_effect_handler.cpp -o item_effect_handler.o
-g++ $INC $OPT -c item_effect_helpers.cpp -o item_effect_helpers.o
-g++ $INC $OPT -c ../static_state/static_bit_bank.cpp -o static_bit_bank.o
+g++ $INC $CXXFLAGS $OPT -c ../misc/opt_str_mng.cpp -o opt_str_mng.o
+g++ $INC $CXXFLAGS $OPT -c path_mng.cpp -o path_mng.o
+g++ $INC $CXXFLAGS $OPT -c data_parser_base.cpp -o data_parser_base.o
+g++ $INC $CXXFLAGS $OPT -c item_effect_handler.cpp -o item_effect_handler.o
+g++ $INC $CXXFLAGS $OPT -c item_effect_helpers.cpp -o item_effect_helpers.o
+g++ $INC $CXXFLAGS $OPT -c ../static_state/static_bit_bank.cpp -o static_bit_bank.o
 g++ $INC -c ../static_state/unit_type_action_map.cpp -o unit_type_action_map.o
 g++ $INC -c unit_type_action_map_parsing.cpp -o unit_type_action_map_parsing.o
 g++ $INC -c ../static_state/civ_bld_discount_map.cpp -o civ_bld_discount_map.o
@@ -92,11 +164,47 @@ g++ $INC -c unit_parser.cpp -o unit_parser.o
 g++ $INC -c unit_action_parser.cpp -o unit_action_parser.o
 g++ $INC -c unit_type_parser.cpp -o unit_type_parser.o
 g++ $INC -c wonder_parser.cpp -o wonder_parser.o
-g++ $INC $OPT -c static_parsing_manager.cpp -o static_parsing_manager.o
-g++ $INC $OPT -c static_parsing_manager_tester.cpp -o static_parsing_manager_tester.o
+g++ $INC $CXXFLAGS -c ../misc/static_string_pool.cpp -o static_string_pool.o
+g++ $INC $CXXFLAGS -c ../static_state/building_static_data.cpp -o building_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/building_static_data_load.cpp -o building_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/city_flag_static_data.cpp -o city_flag_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/city_flag_static_data_load.cpp -o city_flag_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/civ_static_data.cpp -o civ_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/civ_static_data_load.cpp -o civ_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/civ_trait_static_data.cpp -o civ_trait_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/civ_trait_static_data_load.cpp -o civ_trait_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/mvt_cost_static_data.cpp -o mvt_cost_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/mvt_cost_static_data_load.cpp -o mvt_cost_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/resource_static_data.cpp -o resource_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/resource_static_data_load.cpp -o resource_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/res_dist_static_data.cpp -o res_dist_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/res_dist_static_data_load.cpp -o res_dist_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/small_wonder_static_data.cpp -o small_wonder_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/small_wonder_static_data_load.cpp -o small_wonder_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/tech_static_data.cpp -o tech_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/tech_static_data_load.cpp -o tech_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/unit_static_data.cpp -o unit_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/unit_static_data_load.cpp -o unit_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/unit_action_static_data.cpp -o unit_action_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/unit_action_static_data_load.cpp -o unit_action_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/unit_type_static_data.cpp -o unit_type_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/unit_type_static_data_load.cpp -o unit_type_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/wonder_static_data.cpp -o wonder_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/wonder_static_data_load.cpp -o wonder_static_data_load.o
+g++ $INC $CXXFLAGS -c ../gen_effector/effect_scoper_common.cpp -o effect_scoper_common.o
+g++ $INC $CXXFLAGS -c ../gen_effector/effect_rev_mapper.cpp -o effect_rev_mapper.o
+g++ $INC $CXXFLAGS -c ../gen_effector/local_effector.cpp -o local_effector.o
+g++ $INC $CXXFLAGS -c ../gen_effector/city_effector.cpp -o city_effector.o
+g++ $INC $CXXFLAGS -c ../gen_effector/civ_effector.cpp -o civ_effector.o
+g++ $INC $CXXFLAGS -c ../gen_effector/global_effector.cpp -o global_effector.o
+g++ $INC $CXXFLAGS -c ../static_state/config_settings_static.cpp -o config_settings_static.o
+g++ $INC $CXXFLAGS -c ../static_state/config_settings_parse.cpp -o config_settings_parse.o
+g++ $INC $CXXFLAGS -c runtime_statics.cpp -o runtime_statics.o
+g++ $INC $CXXFLAGS $OPT -c static_parsing_manager.cpp -o static_parsing_manager.o
+g++ $INC $CXXFLAGS $OPT -c static_parsing_manager_tester.cpp -o static_parsing_manager_tester.o
 
 # Link everything into the optimized tester
-g++ -o static_parsing_manager_opt_tester \
+g++ $CXXFLAGS $OPT -o static_parsing_manager_opt_tester \
     opt_str_mng.o \
     path_mng.o \
     item_effect_handler.o \
@@ -120,6 +228,42 @@ g++ -o static_parsing_manager_opt_tester \
     unit_action_parser.o \
     unit_type_parser.o \
     wonder_parser.o \
+    building_static_data.o \
+    building_static_data_load.o \
+    city_flag_static_data.o \
+    city_flag_static_data_load.o \
+    civ_static_data.o \
+    civ_static_data_load.o \
+    civ_trait_static_data.o \
+    civ_trait_static_data_load.o \
+    mvt_cost_static_data.o \
+    mvt_cost_static_data_load.o \
+    resource_static_data.o \
+    resource_static_data_load.o \
+    res_dist_static_data.o \
+    res_dist_static_data_load.o \
+    small_wonder_static_data.o \
+    small_wonder_static_data_load.o \
+    tech_static_data.o \
+    tech_static_data_load.o \
+    unit_static_data.o \
+    unit_static_data_load.o \
+    unit_action_static_data.o \
+    unit_action_static_data_load.o \
+    unit_type_static_data.o \
+    unit_type_static_data_load.o \
+    wonder_static_data.o \
+    wonder_static_data_load.o \
+    static_string_pool.o \
+    effect_scoper_common.o \
+    effect_rev_mapper.o \
+    local_effector.o \
+    city_effector.o \
+    civ_effector.o \
+    global_effector.o \
+    config_settings_static.o \
+    config_settings_parse.o \
+    runtime_statics.o \
     static_parsing_manager.o \
     static_parsing_manager_tester.o
 
@@ -148,5 +292,41 @@ rm \
     unit_action_parser.o \
     unit_type_parser.o \
     wonder_parser.o \
+    building_static_data.o \
+    building_static_data_load.o \
+    city_flag_static_data.o \
+    city_flag_static_data_load.o \
+    civ_static_data.o \
+    civ_static_data_load.o \
+    civ_trait_static_data.o \
+    civ_trait_static_data_load.o \
+    mvt_cost_static_data.o \
+    mvt_cost_static_data_load.o \
+    resource_static_data.o \
+    resource_static_data_load.o \
+    res_dist_static_data.o \
+    res_dist_static_data_load.o \
+    small_wonder_static_data.o \
+    small_wonder_static_data_load.o \
+    tech_static_data.o \
+    tech_static_data_load.o \
+    unit_static_data.o \
+    unit_static_data_load.o \
+    unit_action_static_data.o \
+    unit_action_static_data_load.o \
+    unit_type_static_data.o \
+    unit_type_static_data_load.o \
+    wonder_static_data.o \
+    wonder_static_data_load.o \
+    static_string_pool.o \
+    effect_scoper_common.o \
+    effect_rev_mapper.o \
+    local_effector.o \
+    city_effector.o \
+    civ_effector.o \
+    global_effector.o \
+    config_settings_static.o \
+    config_settings_parse.o \
+    runtime_statics.o \
     static_parsing_manager.o \
     static_parsing_manager_tester.o

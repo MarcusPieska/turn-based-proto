@@ -13,14 +13,14 @@ sys.dont_write_bytecode = True
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
 
-from p1_tester_driver import image_path, run_tester
+from p1_tester_driver import run_tester
 
 #================================================================================================================================#
 #=> - Constants -
 #================================================================================================================================#
 
 TESTER_MOD = "p1_make_map"
-OUT_IMAGE = "35_make_map_terrain.ppm"
+OUT_IMAGE = "terrain.ppm"
 COMP_SCRIPT = "p1_make_map_comp"
 
 #================================================================================================================================#
@@ -61,21 +61,21 @@ def main():
     if not ok:
         print("FAILED compile: %s" % msg)
         return 1
-    print("compiled %s, running seeds %u..%u" % (TESTER_MOD, lo, hi))
     failed = []
+    ok_n = 0
+    total = hi - lo + 1
     for seed in range(lo, hi + 1):
-        print("--- seed %u ---" % seed)
-        ok, msg = run_tester(TESTER_MOD, OUT_IMAGE, seed=seed)
+        ok, msg = run_tester(TESTER_MOD, OUT_IMAGE, seed=seed, batch=True)
         if ok:
-            if msg:
-                print(msg)
+            ok_n += 1
+            print("seed %u: ok" % seed, flush=True)
         else:
-            print("FAILED: %s" % msg)
+            print("seed %u: FAILED: %s" % (seed, msg), flush=True)
             failed.append(seed)
+    print("done: %u ok, %u failed (of %u)" % (ok_n, len(failed), total))
     if failed:
-        print("failed (%d): %s" % (len(failed), ", ".join(str(s) for s in failed)))
+        print("failed seeds: %s" % ", ".join(str(s) for s in failed))
         return 1
-    print("all maps saved (%u seeds)" % (hi - lo + 1))
     return 0
 
 #================================================================================================================================#

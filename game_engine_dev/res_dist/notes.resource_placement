@@ -21,7 +21,6 @@ Terrain tokens:
 
 Climate tokens:
  - ALL_CLIMATES
- - CLIMATE_TUNDRA
  - CLIMATE_GRASSLAND
  - CLIMATE_PLAINS
  - CLIMATE_DESERT

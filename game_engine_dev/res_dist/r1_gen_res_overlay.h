@@ -39,7 +39,6 @@ public:
         u16 w,
         u16 h,
         u16 res_max);
-    static bool make_out_path (u32 seed, cstr fname, char* out, u32 cap);
 
 private:
     bool m_valid;

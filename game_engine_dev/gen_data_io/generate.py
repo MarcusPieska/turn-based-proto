@@ -23,7 +23,7 @@ PARSER_SPECS.append(("mvt_cost", "MvtCost", "cost,1,u16"))
 PARSER_SPECS.append(("resource", "Resource", "food,1,u16:shields,2,u16:commerce,3,u16:reqs,4,ItemReqsStruct:res_dist_idx,0,ResDistIdx"))
 PARSER_SPECS.append(("res_dist", "ResDist", "plc,1,ResPlacement"))
 PARSER_SPECS.append(("small_wonder", "SmallWonder", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStruct"))
-PARSER_SPECS.append(("tech", "Tech", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStruct"))
+PARSER_SPECS.append(("tech", "Tech", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStructOpt"))
 PARSER_SPECS.append(("unit", "Unit", "type,1,UnitType:cost,2,u32:attack,3,u16:defense,4,u16:mvt_pts,5,u16:sight,6,u16:reqs,7,ItemReqsStruct"))
 PARSER_SPECS.append(("unit_action", "UnitAction", ""))
 PARSER_SPECS.append(("unit_type", "UnitType", ""))
@@ -61,6 +61,8 @@ def get_function_name_from_output_type(output_type):
         return "parse_item_reqs"
     elif output_type == "ItemEffectsStruct":
         return "parse_item_effects"
+    elif output_type == "ItemEffectsStructOpt":
+        return "parse_item_effects_optional"
     elif output_type == "CivTraitStruct":
         return "parse_civ_traits"
     elif output_type == "ResPlacement":
@@ -96,7 +98,7 @@ def derive_member_print_lines(parsing_instructions):
             lines.append('pr_u32("%s", item.%s);' % (mem, mem))
         elif data_type == "ItemReqsStruct":
             lines.append('pr_reqs("%s", item.%s);' % (mem, mem))
-        elif data_type == "ItemEffectsStruct":
+        elif data_type in ["ItemEffectsStruct", "ItemEffectsStructOpt"]:
             lines.append('pr_fx("%s", item.%s);' % (mem, mem))
         elif data_type == "CivTraitStruct":
             lines.append('pr_traits("%s", item.%s);' % (mem, mem))

@@ -6,6 +6,7 @@
 #define FACTORY_GAME_ARRAY_SIMPLE_H
 
 #include "game_array_simple.h"
+#include "map_gen_api.h"
 
 //================================================================================================================================
 //=> - Factory_GameArraySimple -
@@ -29,6 +30,12 @@ public:
     static bool load_res_dist_data (
         GameArraySimple* out, // Grid from load_map_gen_data; must match res PPM size
         cstr res_path); // Resource overlay PPM from res_dist
+
+    static bool load_from_rslt (
+        GameArraySimple* out, // Destination grid; cleared then filled
+        const MakeMapRslt& rslt); // In-memory map from map_gen_generate
+
+    static bool init_test_grid (GameArraySimple* out, u16 w, u16 h); // Blank grid for unit tests
 
 private:
     Factory_GameArraySimple () = delete;

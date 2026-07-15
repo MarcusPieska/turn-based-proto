@@ -24,6 +24,7 @@ public:
     const P1_RunPrm& prm () const;
     bool full () const;
     bool keep () const;
+    bool batch () const;
     bool out_subdir () const;
     const P1_Adj_LandAltitudePrm& lap () const;
     P1_Adj_LandAltitudePrm& lap_mut ();
@@ -34,6 +35,7 @@ private:
     P1_RunPrm m_prm;
     bool m_full;
     bool m_keep;
+    bool m_batch;
     bool m_out_subdir;
     P1_Adj_LandAltitudePrm m_lap;
     u8 m_rain_wt;
@@ -42,6 +44,8 @@ private:
 
 bool p1_tester_out_subdir ();
 void p1_tester_set_out_subdir (bool v);
+bool p1_tester_batch_export ();
+void p1_tester_set_batch_export (bool v);
 
 #endif // P1_TESTER_CLI_H
 

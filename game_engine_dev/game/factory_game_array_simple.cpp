@@ -275,6 +275,55 @@ bool Factory_GameArraySimple::load_res_dist_data (GameArraySimple* out, cstr res
     return true;
 }
 
+bool Factory_GameArraySimple::load_from_rslt (GameArraySimple* out, const MakeMapRslt& rslt) {
+    if (out == nullptr || !rslt.m_ok || rslt.m_terrain == nullptr || rslt.m_climate == nullptr
+        || rslt.m_rivers == nullptr || rslt.m_overlay == nullptr || rslt.m_resources == nullptr) {
+        return false;
+    }
+    const u16 w = rslt.m_w;
+    const u16 h = rslt.m_h;
+    if (w == 0 || h == 0) {
+        return false;
+    }
+    out->clear();
+    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
+    GameTileSimple* tiles = new GameTileSimple[n];
+    for (u32 i = 0; i < n; ++i) {
+        GameTileSimple* t = &tiles[i];
+        t->m_unit_hd = U16_KEY_NULL;
+        t->m_add_idx = U16_KEY_NULL;
+        t->m_res = rslt.m_resources[i];
+        t->m_terr = rslt.m_terrain[i];
+        t->m_clim = rslt.m_climate[i];
+        t->m_ov = rslt.m_overlay[i];
+        t->m_riv = rslt.m_rivers[i];
+        t->m_add_typ = 0;
+    }
+    out->m_w = w;
+    out->m_h = h;
+    out->m_tiles = tiles;
+    return true;
+}
+
+bool Factory_GameArraySimple::init_test_grid (GameArraySimple* out, u16 w, u16 h) {
+    if (out == nullptr || w == 0 || h == 0) {
+        return false;
+    }
+    out->clear();
+    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
+    GameTileSimple* tiles = new GameTileSimple[n];
+    for (u32 i = 0; i < n; ++i) {
+        tiles[i] = {};
+        tiles[i].m_unit_hd = U16_KEY_NULL;
+        tiles[i].m_add_idx = U16_KEY_NULL;
+        tiles[i].m_res = UINT16_MAX;
+    }
+    out->m_w = w;
+    out->m_h = h;
+    out->m_tiles = tiles;
+    return true;
+}
+
 //================================================================================================================================
 //=> - End of file -
 //================================================================================================================================

@@ -6,7 +6,30 @@
 #include <cstdlib>
 #include <stdexcept>
 
+#include "city.h"
 #include "city_array.h"
+#include "runtime_static_loader.h"
+
+static RuntimeStaticLoader g_rt_loader;
+static RuntimeStatics* g_rt_statics = nullptr;
+
+static bool ensure_statics () {
+    if (g_rt_statics != nullptr) {
+        return true;
+    }
+    if (!g_rt_loader.load("../data_io/runtime_static_loader_lib.so", "../")) {
+        return false;
+    }
+    g_rt_statics = &g_rt_loader.statics();
+    return true;
+}
+
+static bool bind_array (CityArray& array) {
+    if (!ensure_statics()) {
+        return false;
+    }
+    return array.bind_statics(*g_rt_statics);
+}
 
 //================================================================================================================================
 //=> - GLOBALS -
@@ -58,33 +81,17 @@ void summarize_test_results () {
 
 void test_first_city_zero_initialized () {
     CityArray array;
+    if (!bind_array(array)) {
+        note_result(false, "bind_statics for city array");
+        summarize_test_results();
+        return;
+    }
     u16 idx = array.get_next_new_city_idx();
     City* city = array.get_city(idx);
 
-    bool ok = true;
-    if (city == nullptr) {
-        ok = false;
-    } else {
-        struct CityHeader {
-            u16 accumulated_food;
-            u16 accumulated_shields;
-            u8  build_type;
-            u16 bld_idx;
-        };
-        CityHeader* header = reinterpret_cast<CityHeader*>(city);
-        if (header->accumulated_food != 0) {
-            ok = false;
-        }
-        if (header->accumulated_shields != 0) {
-            ok = false;
-        }
-        if (header->build_type != 0) {
-            ok = false;
-        }
-        if (header->bld_idx != 0) {
-            ok = false;
-        }
-    }
+    bool ok = city != nullptr
+        && city->get_current_food_store() == 0
+        && city->get_current_shields_store() == 0;
 
     note_result(ok, "First city zero-initialized header fields");
     summarize_test_results();
@@ -92,6 +99,11 @@ void test_first_city_zero_initialized () {
 
 void test_city_array_unique_ids () {
     CityArray array;
+    if (!bind_array(array)) {
+        note_result(false, "bind_statics for city array");
+        summarize_test_results();
+        return;
+    }
     const u16 target_count = 1000;
 
     bool ok_ids = true;
@@ -106,7 +118,7 @@ void test_city_array_unique_ids () {
             ok_ids = false;
             break;
         }
-        city->add_food(idx);
+        city->add_shields(idx);
     }
 
     if (ok_ids) {
@@ -120,7 +132,7 @@ void test_city_array_unique_ids () {
                     ok_ids = false;
                     break;
                 }
-                if (city->get_current_food_store() != i) {
+                if (city->get_current_shields_store() != i) {
                     ok_ids = false;
                     break;
                 }
@@ -134,6 +146,11 @@ void test_city_array_unique_ids () {
 
 void test_city_array_page_allocation () {
     CityArray array;
+    if (!bind_array(array)) {
+        note_result(false, "bind_statics for city array");
+        summarize_test_results();
+        return;
+    }
     const u16 target_count = 1000;
 
     for (u16 i = 0; i < target_count; ++i) {

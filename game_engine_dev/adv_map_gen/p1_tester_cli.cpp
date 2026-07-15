@@ -16,6 +16,7 @@ static const char* k_seed_file = "seed.txt";
 //================================================================================================================================
 
 static bool g_out_subdir = true;
+static bool g_batch_export = false;
 
 static u32 rd_seed_file () {
     FILE* f = std::fopen(k_seed_file, "r");
@@ -58,6 +59,10 @@ static bool tok_rain_wt (cstr s, u8* wt) {
     return true;
 }
 
+static bool tok_is_batch (cstr s) {
+    return s != nullptr && std::strcmp(s, "batch") == 0;
+}
+
 static bool tok_u32 (cstr s, u32* v) {
     if (s == nullptr || v == nullptr || s[0] == '\0') {
         return false;
@@ -92,6 +97,14 @@ void p1_tester_set_out_subdir (bool v) {
     g_out_subdir = v;
 }
 
+bool p1_tester_batch_export () {
+    return g_batch_export;
+}
+
+void p1_tester_set_batch_export (bool v) {
+    g_batch_export = v;
+}
+
 //================================================================================================================================
 //=> - P1_TesterCli -
 //================================================================================================================================
@@ -100,6 +113,7 @@ P1_TesterCli::P1_TesterCli () :
     m_prm(),
     m_full(false),
     m_keep(false),
+    m_batch(false),
     m_out_subdir(true),
     m_lap(),
     m_rain_wt(0),
@@ -113,6 +127,7 @@ bool P1_TesterCli::parse (i32 argc, char* argv[]) {
     m_prm = p1_run_prm_def();
     m_full = false;
     m_keep = false;
+    m_batch = false;
     m_out_subdir = true;
     m_lap = lap_def();
     m_rain_wt = p1_gen_climate_prm_def().m_wts.m_w_rain;
@@ -129,6 +144,10 @@ bool P1_TesterCli::parse (i32 argc, char* argv[]) {
         }
         if (tok_is_keep(argv[a])) {
             m_keep = true;
+            continue;
+        }
+        if (tok_is_batch(argv[a])) {
+            m_batch = true;
             continue;
         }
         u8 rw = 0;
@@ -192,6 +211,7 @@ bool P1_TesterCli::parse (i32 argc, char* argv[]) {
         }
     }
     p1_tester_set_out_subdir(m_out_subdir);
+    p1_tester_set_batch_export(m_batch);
     return true;
 }
 
@@ -205,6 +225,10 @@ bool P1_TesterCli::full () const {
 
 bool P1_TesterCli::keep () const {
     return m_keep;
+}
+
+bool P1_TesterCli::batch () const {
+    return m_batch;
 }
 
 bool P1_TesterCli::out_subdir () const {

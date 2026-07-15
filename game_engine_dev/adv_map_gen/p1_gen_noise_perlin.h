@@ -7,7 +7,7 @@
 
 #include "game_primitives.h"
 #include "generator_constants.h"
-#include "p1_map_config.h"
+#include "map_config.h"
 #include "p1_map_size.h"
 
 //================================================================================================================================
@@ -24,7 +24,7 @@ struct P1_Gen_NoisePerlinPrm {
     i32 m_layer_count; // High cost: linear cost; each layer adds 9 noise2() calls per pixel
 };
 
-static inline P1_Gen_NoisePerlinPrm p1_gen_noise_perlin_prm_from_cfg (const P1_MapConfig& cfg, u16 w, u16 h) {
+static inline P1_Gen_NoisePerlinPrm p1_gen_noise_perlin_prm_from_cfg (const MapConfig& cfg, u16 w, u16 h) {
     P1_Gen_NoisePerlinPrm p;
     p.m_w = w;
     p.m_h = h;
@@ -43,7 +43,7 @@ static inline P1_Gen_NoisePerlinPrm p1_gen_noise_perlin_prm_from_cfg (const P1_M
 }
 
 static inline P1_Gen_NoisePerlinPrm p1_gen_noise_perlin_prm_def (u16 w, u16 h) {
-    return p1_gen_noise_perlin_prm_from_cfg(p1_map_config_def(), w, h);
+    return p1_gen_noise_perlin_prm_from_cfg(map_config_def(), w, h);
 }
 
 //================================================================================================================================

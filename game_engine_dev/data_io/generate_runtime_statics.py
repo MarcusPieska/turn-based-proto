@@ -163,6 +163,28 @@ def lines_lib_comp_compile_holders ():
         lines.append("g++ $INC $CXXFLAGS -c ../static_state/%s_static_data_load.cpp -o %s_static_data_load.o" % (stem, stem))
     return lines
 
+def lines_comp_link_static_holders ():
+    lines = []
+    for stem in entries:
+        lines.append("%s_static_data.o \\" % stem)
+        lines.append("%s_static_data_load.o \\" % stem)
+    lines.append("static_string_pool.o \\")
+    return lines
+
+def lines_comp_compile_runtime_statics_bundle ():
+    return [
+        "g++ $INC $CXXFLAGS -c ../static_state/config_settings_static.cpp -o config_settings_static.o",
+        "g++ $INC $CXXFLAGS -c ../static_state/config_settings_parse.cpp -o config_settings_parse.o",
+        "g++ $INC $CXXFLAGS -c runtime_statics.cpp -o runtime_statics.o",
+    ]
+
+def lines_comp_link_runtime_statics_bundle ():
+    return [
+        "config_settings_static.o \\",
+        "config_settings_parse.o \\",
+        "runtime_statics.o \\",
+    ]
+
 def lines_lib_comp_compile_effectors ():
     lines = []
     for name in EFFECTOR_COMMON:

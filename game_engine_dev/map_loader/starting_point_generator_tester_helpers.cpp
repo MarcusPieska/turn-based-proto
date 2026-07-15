@@ -23,7 +23,7 @@ static bool validate_results (const StartingPointGenerator& gen) {
         return false;
     }
     if (!gen.picks_are_start_land()) {
-        std::printf("\n*** VALIDATE FAILED: pick not on plains/hills\n");
+        std::printf("\n*** VALIDATE FAILED: pick not on valid start tile\n");
         return false;
     }
     return true;

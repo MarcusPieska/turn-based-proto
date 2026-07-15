@@ -55,7 +55,8 @@ enum class ItemEffectBoosterType : u16 {
     SHIP_TRAINING = 17,
     UNIT_EXP = 18,
     UPGRADE_COST = 19,
-    WAR_WEAR = 20
+    WAR_WEAR = 20,
+    CULTURE = 21
 };
 
 enum class ItemTerrainYield : u8 {

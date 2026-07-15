@@ -6,7 +6,6 @@
 #include <cstdlib>
 
 #include "game_map_defs.h"
-#include "res_placement_defs.h"
 #include "runtime_static_loader.h"
 #include "runtime_statics.h"
 #include "mvt_cost_static_key.h"
@@ -105,8 +104,8 @@ static cstr clim_lbl (u8 id) {
     if (id == CLIMATE_DESERT) {
         return "CLIMATE_DESERT";
     }
-    if (id == CLIMATE_TUNDRA) {
-        return "CLIMATE_TUNDRA";
+    if (id == CLIMATE_BLACK_SOIL) {
+        return "CLIMATE_BLACK_SOIL";
     }
     return "CLIMATE_OTHER";
 }
@@ -115,13 +114,13 @@ static cstr ov_lbl (u8 id) {
     if (id == OVERLAY_NONE) {
         return "OVERLAY_NONE";
     }
-    if (id == RES_OV_SWAMPS) {
+    if (id == OV_SWAMP[0]) {
         return "OVERLAY_SWAMPS";
     }
-    if (id == RES_OV_FORESTS) {
+    if (id == OV_FOREST[0]) {
         return "OVERLAY_FORESTS";
     }
-    if (id == RES_OV_JUNGLES) {
+    if (id == OV_JUNGLE[0]) {
         return "OVERLAY_JUNGLES";
     }
     return "OVERLAY_OTHER";
@@ -174,14 +173,14 @@ static void print_tbl (const UnitMovementMngMvtTbl& t) {
         std::printf("  id=%u(%s) cost=%u\n", id, terr_lbl(id), UnitMovementMng::mvt_cost_terr(id));
     }
     std::printf("--- climate cost table ---\n");
-    for (u8 id = 0u; id <= CLIMATE_TUNDRA; ++id) {
+    for (u8 id = 0u; id <= CLIMATE_BLACK_SOIL; ++id) {
         std::printf("  id=%u(%s) cost=%u\n", id, clim_lbl(id), UnitMovementMng::mvt_cost_clim(id));
     }
     std::printf("--- overlay cost table ---\n");
     std::printf("  id=%u(%s) cost=%u\n", OVERLAY_NONE, ov_lbl(OVERLAY_NONE), UnitMovementMng::mvt_cost_ov(OVERLAY_NONE));
-    std::printf("  id=%u(%s) cost=%u\n", RES_OV_SWAMPS, ov_lbl(RES_OV_SWAMPS), UnitMovementMng::mvt_cost_ov(RES_OV_SWAMPS));
-    std::printf("  id=%u(%s) cost=%u\n", RES_OV_FORESTS, ov_lbl(RES_OV_FORESTS), UnitMovementMng::mvt_cost_ov(RES_OV_FORESTS));
-    std::printf("  id=%u(%s) cost=%u\n", RES_OV_JUNGLES, ov_lbl(RES_OV_JUNGLES), UnitMovementMng::mvt_cost_ov(RES_OV_JUNGLES));
+    std::printf("  id=%u(%s) cost=%u\n", OV_SWAMP[0], ov_lbl(OV_SWAMP[0]), UnitMovementMng::mvt_cost_ov(OV_SWAMP[0]));
+    std::printf("  id=%u(%s) cost=%u\n", OV_FOREST[0], ov_lbl(OV_FOREST[0]), UnitMovementMng::mvt_cost_ov(OV_FOREST[0]));
+    std::printf("  id=%u(%s) cost=%u\n", OV_JUNGLE[0], ov_lbl(OV_JUNGLE[0]), UnitMovementMng::mvt_cost_ov(OV_JUNGLE[0]));
     std::printf("--- transport cost ---\n");
     std::printf("  river cost=%u\n", t.m_riv);
     std::printf("  road cost=%u\n", t.m_road);

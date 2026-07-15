@@ -7,7 +7,7 @@ sys.dont_write_bytecode = True
 
 import os
 
-from generate import ASSESSOR_SPECS, GAME_CONFIG_PATHS
+from generate import ASSESSOR_SPECS, game_config_plural
 
 #================================================================================================================================#
 #=> - Constants -
@@ -140,34 +140,34 @@ def print_res (out_prefix, inf_name, ref_path, plvl, ok, only_inf_names, only_re
 
 if __name__ == "__main__":
     this_dir = os.path.dirname(os.path.abspath(__file__))
-    os.chdir(this_dir)
+    repo_root = os.path.normpath(os.path.join(this_dir, ".."))
 
     plvl = 0
+    results_dir = this_dir
     if len(sys.argv) > 1:
         plvl = int(sys.argv[1])
+    if len(sys.argv) > 2:
+        results_dir = os.path.abspath(sys.argv[2])
 
     total_failures = 0
 
     for out_prefix, class_name, parsing_instructions in ASSESSOR_SPECS:
         macro = out_prefix.upper()
         inf_name = RESULTS_TO_MATCH_PREFIX + macro
-        if out_prefix not in GAME_CONFIG_PATHS:
-            print("WARN: no game_config path for", out_prefix)
-            total_failures += 1
-            continue
-        ref_path = GAME_CONFIG_PATHS[out_prefix]
-        if not os.path.isfile(inf_name):
-            print("WARN: missing", inf_name)
+        ref_path = os.path.join(repo_root, "game_config." + game_config_plural(out_prefix))
+        inf_path = os.path.join(results_dir, inf_name)
+        if not os.path.isfile(inf_path):
+            print("WARN: missing", inf_path)
             total_failures += 1
             continue
         if not os.path.isfile(ref_path):
             print("WARN: missing", ref_path)
             total_failures += 1
             continue
-        ok, only_inf_names, only_ref_names, line_mismatches, inf, ref = compare_pair(inf_name, ref_path)
+        ok, only_inf_names, only_ref_names, line_mismatches, inf, ref = compare_pair(inf_path, ref_path)
         if not ok:
             total_failures += 1
-        print_res(out_prefix, inf_name, ref_path, plvl, ok, only_inf_names, only_ref_names, line_mismatches, inf, ref)
+        print_res(out_prefix, inf_path, ref_path, plvl, ok, only_inf_names, only_ref_names, line_mismatches, inf, ref)
 
     print("")
     print("TOTAL FAILURES:", total_failures)

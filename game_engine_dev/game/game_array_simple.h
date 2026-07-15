@@ -40,6 +40,7 @@ struct GameTileSimple {
 //================================================================================================================================
 
 class Factory_GameArraySimple;
+class GameLoopCache;
 
 class GameArraySimple {
 public:
@@ -59,9 +60,11 @@ public:
     u8 get_add_typ (u16 x, u16 y) const; // Improvement type tag at tile
     u16 get_res (u16 x, u16 y) const;  // Resource index at tile
     bool set_unit_hd (u16 x, u16 y, u16 unit_hd); // Unit handle at tile; U16_KEY_NULL clears
+    bool set_tile_add (u16 x, u16 y, u16 add_idx, u8 add_typ); // Improvement handle at tile
 
 private:
     friend class Factory_GameArraySimple;
+    friend class GameLoopCache;
     GameArraySimple (const GameArraySimple& other) = delete;
     GameArraySimple& operator= (const GameArraySimple& other) = delete;
     GameArraySimple (GameArraySimple&& other) = delete;

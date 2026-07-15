@@ -11,7 +11,6 @@
 
 #include "resource_placement.h"
 #include "r1_adj_res_place.h"
-#include "res_placement_defs.h"
 #include "game_map_defs.h"
 #include "generator_constants.h"
 #include "map_terrain_validate.h"
@@ -26,25 +25,28 @@ static const char* RES_PLC_OUT_SUBDIR = "resource_placement";
 //================================================================================================================================
 
 static bool terr_ok (u8 tile, u8 req) {
-    if (req == RES_TERR_ALL) {
+    if (req == PLC_TERR_ALL) {
         return true;
     }
     return tile == req;
 }
 
 static bool clim_ok (u8 tile, u8 req) {
-    if (req == RES_CLIM_ALL) {
+    if (req == PLC_CLIM_ALL) {
         return true;
     }
     return tile == req;
 }
 
-static bool ov_ok (u8 tile, u8 req) {
-    if (req == RES_OV_ALL) {
+static bool ov_ok (const ResPlcMapCtx& ctx, u32 idx, u8 tile, u8 req) {
+    if (req == PLC_OV_ALL) {
         return true;
     }
-    if (req == RES_OV_NONE) {
+    if (req == PLC_OV_REQ_NONE) {
         return tile == 0;
+    }
+    if (req == PLC_OV_RIVERS) {
+        return ctx.m_river != nullptr && ctx.m_river[idx] != 0;
     }
     return tile == req;
 }
@@ -61,7 +63,7 @@ bool ResPlcMatch::tile_ok (
     const u8 cl = ctx.m_climate != nullptr ? ctx.m_climate[idx] : CLIMATE_NONE;
     return terr_ok(ctx.m_terrain[idx], q.m_terr)
         && clim_ok(cl, q.m_clim)
-        && ov_ok(ov, q.m_ov);
+        && ov_ok(ctx, idx, ov, q.m_ov);
 }
 
 static const ResDistStaticDataStruct* res_rd (
@@ -157,7 +159,6 @@ u8* ResPlcOverlay::build_stub (
     }
     for (u32 i = 0; i < n; ++i) {
         if (river != nullptr && river[i] != 0) {
-            ov[i] = RES_OV_RIVERS;
             continue;
         }
         const u8 t = terrain[i];
@@ -165,15 +166,15 @@ u8* ResPlcOverlay::build_stub (
         if (c == CLIMATE_GRASSLAND
             && (t == TERR_PLAINS[0] || t == TERR_HILLS[0])
             && (i % 7u) != 0u) {
-            ov[i] = RES_OV_FORESTS;
+            ov[i] = OV_FOREST[0];
             continue;
         }
         if (c == CLIMATE_GRASSLAND && t == TERR_PLAINS[0] && (i % 11u) == 0u) {
-            ov[i] = RES_OV_JUNGLES;
+            ov[i] = OV_JUNGLE[0];
             continue;
         }
         if (c == CLIMATE_GRASSLAND && t == TERR_PLAINS[0] && (i % 13u) == 0u) {
-            ov[i] = RES_OV_SWAMPS;
+            ov[i] = OV_SWAMP[0];
         }
     }
     return ov;
@@ -465,7 +466,7 @@ bool ResPlcViz::make_out_path (u32 seed, cstr fname, char* out, u32 cap) {
         return false;
     }
     char seed_dir[384];
-    const int seed_n = std::snprintf(seed_dir, sizeof(seed_dir), "%s/p1-seed-%03u",
+    const int seed_n = std::snprintf(seed_dir, sizeof(seed_dir), "%s/p1-seed-%u",
         RES_PLC_OUT_ROOT, seed);
     if (seed_n < 0 || (u32)seed_n >= sizeof(seed_dir)) {
         return false;

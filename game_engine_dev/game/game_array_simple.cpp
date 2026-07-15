@@ -88,6 +88,13 @@ bool GameArraySimple::set_unit_hd (u16 x, u16 y, u16 unit_hd) {
     return true;
 }
 
+bool GameArraySimple::set_tile_add (u16 x, u16 y, u16 add_idx, u8 add_typ) {
+    CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
+    m_tiles[tidx(x, y)].m_add_idx = add_idx;
+    m_tiles[tidx(x, y)].m_add_typ = add_typ;
+    return true;
+}
+
 //================================================================================================================================
 //=> - End of file -
 //================================================================================================================================

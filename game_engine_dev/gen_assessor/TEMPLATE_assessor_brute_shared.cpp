@@ -88,13 +88,13 @@ int AssessorBrute::run (const StaticParsingManager& mgr, const BruteRunCfg& cfg)
     AssessorCtx ctx = {};
     snap(ctx);
     set_base();
-    BitArrayCL* baseline = cfg.m_assess(cfg.m_item_count, ctx);
+    BitArrayCL baseline_scratch(cfg.m_item_count);
+    cfg.m_assess(&baseline_scratch, cfg.m_item_count, ctx);
 
     [ABLATION_LOOPS_TAG]
 
     [BUILDING_ISOLATE_TAG]
 
-    delete baseline;
     int rc_out = 0;
     if (cfg.m_results_to_match_path != nullptr) {
         FILE* out = std::fopen(cfg.m_results_to_match_path, "w");

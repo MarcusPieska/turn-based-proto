@@ -4,13 +4,13 @@
 
 #include "unit_movement_mng.h"
 
+#include "assert_log.h"
 #include "civ_relations.h"
 #include "unit_add_vector.h"
 #include "civ_static_key.h"
 #include "game_map_defs.h"
 #include "game_state.h"
 #include "mvt_cost_static_data.h"
-#include "res_placement_defs.h"
 #include "runtime_statics.h"
 #include "unit_static_data.h"
 #include "unit_static_key.h"
@@ -40,6 +40,7 @@ static u16 g_road_cost = 0u;
 static bool g_mvt_ready = false;
 static u16 g_mvt_mapped_n = 0u;
 static u16 g_mvt_cost_n = 0u;
+static GameState* s_state = nullptr;
 
 static const u16 k_act_is_land = 0u;
 static const u16 k_act_is_sea = 2u;
@@ -123,11 +124,6 @@ static bool resolve_mvt_name (cstr name, u8* out_id, u8* out_kind) {
         *out_kind = k_mvt_kind_clim;
         return true;
     }
-    if (std::strcmp(name, "CLIMATE_TUNDRA") == 0) {
-        *out_id = static_cast<u8>(CLIMATE_TUNDRA);
-        *out_kind = k_mvt_kind_clim;
-        return true;
-    }
     if (std::strcmp(name, "OVERLAY_NONE") == 0) {
         *out_id = static_cast<u8>(OVERLAY_NONE);
         *out_kind = k_mvt_kind_ov;
@@ -139,17 +135,17 @@ static bool resolve_mvt_name (cstr name, u8* out_id, u8* out_kind) {
         return true;
     }
     if (std::strcmp(name, "OVERLAY_SWAMPS") == 0) {
-        *out_id = static_cast<u8>(RES_OV_SWAMPS);
+        *out_id = OV_SWAMP[0];
         *out_kind = k_mvt_kind_ov;
         return true;
     }
     if (std::strcmp(name, "OVERLAY_FORESTS") == 0) {
-        *out_id = static_cast<u8>(RES_OV_FORESTS);
+        *out_id = OV_FOREST[0];
         *out_kind = k_mvt_kind_ov;
         return true;
     }
     if (std::strcmp(name, "OVERLAY_JUNGLES") == 0) {
-        *out_id = static_cast<u8>(RES_OV_JUNGLES);
+        *out_id = OV_JUNGLE[0];
         *out_kind = k_mvt_kind_ov;
         return true;
     }
@@ -704,6 +700,29 @@ bool UnitMovementMng::apply_step (GameState& s, UnitAddKey key, u16 dest_x, u16 
     return true;
 }
 
+void UnitMovementMng::bind_state (GameState* state) {
+    s_state = state;
+}
+
+bool UnitMovementMng::finish_unit_spawn (UnitAddKey key, u16 x, u16 y, u16 player_idx) {
+    GAME_EXPECT_RET(s_state != nullptr, false, "UnitMovementMng state");
+    GAME_EXPECT_RET(s_state->m_player_n > 0, false, "UnitMovementMng player n");
+    GAME_EXPECT_RET(player_idx < s_state->m_player_n, false, "UnitMovementMng seat");
+    GAME_EXPECT_RET(in_bounds(*s_state, x, y), false, "UnitMovementMng spawn bounds");
+    UnitAddStruct* unit = u_get(*s_state, key);
+    GAME_EXPECT_RET(unit != nullptr, false, "UnitMovementMng unit");
+    const u16 hd = s_state->m_map.get_unit_hd(x, y);
+    if (hd != U16_KEY_NULL) {
+        const UnitAddStruct* eu = u_get(*s_state, UnitAddKey::from_raw(hd));
+        if (eu == nullptr || !seats_ally(*s_state, player_idx, eu->m_player_idx)) {
+            return false;
+        }
+    }
+    unit->m_player_idx = player_idx;
+    init_mvt_pts(*s_state, unit);
+    return tile_stack_append(*s_state, key, x, y);
+}
+
 bool UnitMovementMng::place_on_tile (GameState& s, u16 x, u16 y, u16 player_idx, u16 typ_idx, UnitAddKey* out) {
     if (out == nullptr || s.m_player_n == 0 || player_idx >= s.m_player_n) {
         return false;
@@ -729,7 +748,7 @@ bool UnitMovementMng::place_on_tile (GameState& s, u16 x, u16 y, u16 player_idx,
     }
     unit->m_player_idx = player_idx;
     unit->m_unit_typ_idx = typ_idx;
-    unit->m_health = 0;
+    unit->m_health = UNIT_HEALTH;
     unit->m_level = 0;
     unit->m_next_unit_in_group = U16_KEY_NULL;
     init_mvt_pts(s, unit);

@@ -8,10 +8,15 @@
 #include <cstdio>
 
 //================================================================================================================================
-//=> - P1 step abort logging -
+//=> - P1 step batch export -
 //================================================================================================================================
 
+bool p1_tester_batch_export ();
+
 static inline void p1_step_abort (cstr stage, cstr msg) {
+    if (p1_tester_batch_export()) {
+        return;
+    }
     std::printf("%s abort: %s\n", stage, msg);
 }
 

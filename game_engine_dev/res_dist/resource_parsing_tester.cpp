@@ -7,7 +7,6 @@
 
 #include "res_statics.h"
 #include "item_reqs.h"
-#include "res_placement_defs.h"
 #include "game_map_defs.h"
 #include "resource_static_key.h"
 #include "res_dist_static_key.h"
@@ -27,7 +26,7 @@ static int g_plvl = 0;
 //================================================================================================================================
 
 static cstr terr_tok (u8 v) {
-    if (v == RES_TERR_ALL) return "ALL_TERRAINS";
+    if (v == PLC_TERR_ALL) return "ALL_TERRAINS";
     if (v == TERR_OCEAN[0]) return "TERR_OCEAN";
     if (v == TERR_SEA[0]) return "TERR_SEA";
     if (v == TERR_COASTAL[0]) return "TERR_COASTAL";
@@ -38,8 +37,7 @@ static cstr terr_tok (u8 v) {
 }
 
 static cstr clim_tok (u8 v) {
-    if (v == RES_CLIM_ALL) return "ALL_CLIMATES";
-    if (v == CLIMATE_TUNDRA) return "CLIMATE_TUNDRA";
+    if (v == PLC_CLIM_ALL) return "ALL_CLIMATES";
     if (v == CLIMATE_GRASSLAND) return "CLIMATE_GRASSLAND";
     if (v == CLIMATE_PLAINS) return "CLIMATE_PLAINS";
     if (v == CLIMATE_DESERT) return "CLIMATE_DESERT";
@@ -47,12 +45,12 @@ static cstr clim_tok (u8 v) {
 }
 
 static cstr ov_tok (u8 v) {
-    if (v == RES_OV_ALL) return "ALL_OVERLAYS";
-    if (v == RES_OV_NONE) return "NO_OVERLAYS";
-    if (v == RES_OV_SWAMPS) return "OVERLAY_SWAMPS";
-    if (v == RES_OV_FORESTS) return "OVERLAY_FORESTS";
-    if (v == RES_OV_JUNGLES) return "OVERLAY_JUNGLES";
-    if (v == RES_OV_RIVERS) return "OVERLAY_RIVERS";
+    if (v == PLC_OV_ALL) return "ALL_OVERLAYS";
+    if (v == PLC_OV_REQ_NONE) return "NO_OVERLAYS";
+    if (v == OV_SWAMP[0]) return "OVERLAY_SWAMPS";
+    if (v == OV_FOREST[0]) return "OVERLAY_FORESTS";
+    if (v == OV_JUNGLE[0]) return "OVERLAY_JUNGLES";
+    if (v == PLC_OV_RIVERS) return "OVERLAY_RIVERS";
     return "?";
 }
 

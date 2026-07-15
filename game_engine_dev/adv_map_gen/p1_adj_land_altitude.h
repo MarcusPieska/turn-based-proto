@@ -6,7 +6,7 @@
 #define P1_ADJ_LAND_ALTITUDE_H
 
 #include "game_primitives.h"
-#include "p1_map_config.h"
+#include "map_config.h"
 #include "p1_map_size.h"
 
 //================================================================================================================================
@@ -29,7 +29,7 @@ struct P1_Adj_LandAltitudePrm {
     f32 m_lim_mtn;
 };
 
-static inline P1_Adj_LandAltitudePrm p1_adj_land_altitude_prm_from_cfg (const P1_MapConfig& cfg) {
+static inline P1_Adj_LandAltitudePrm p1_adj_land_altitude_prm_from_cfg (const MapConfig& cfg) {
     P1_Adj_LandAltitudePrm p;
     p.m_w_noise = P1_LAND_ALT_W_NOISE_DEF;
     p.m_w_near = P1_LAND_ALT_W_NEAR_DEF;
@@ -40,7 +40,7 @@ static inline P1_Adj_LandAltitudePrm p1_adj_land_altitude_prm_from_cfg (const P1
 }
 
 static inline P1_Adj_LandAltitudePrm p1_adj_land_altitude_prm_def () {
-    return p1_adj_land_altitude_prm_from_cfg(p1_map_config_def());
+    return p1_adj_land_altitude_prm_from_cfg(map_config_def());
 }
 
 //================================================================================================================================

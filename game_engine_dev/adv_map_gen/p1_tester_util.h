@@ -5,7 +5,7 @@
 #ifndef P1_TESTER_UTIL_H
 #define P1_TESTER_UTIL_H
 
-#include "p1_map_config.h"
+#include "map_config.h"
 
 #include <cerrno>
 #include <cstdio>
@@ -95,6 +95,7 @@ static const P1_TesterCfg g_p1_tester_tbl[] = {
     {"p1_adj_ensure_adj_rules_tester", P1_STEP_ENSURE_ADJ, P1_TIN_MK, P1_STEP_DELTA_SWAMPS, "41_ensure_adj_rules.ppm", "41_ensure_adj_rules_terrain.ppm"},
     {"p1_gen_forest_overlay_tester", P1_STEP_FOREST_OVERLAY, P1_TIN_MK, P1_STEP_COAST_FERT_ADJ, "39_forest_overlay.ppm", ""},
     {"p1_adj_delta_swamps_tester", P1_STEP_DELTA_SWAMPS, P1_TIN_MK, P1_STEP_FOREST_OVERLAY, "40_delta_swamps.ppm", "40_delta_swamps_climate.ppm"},
+    {"r1_gen_res_overlay_tester", P1_STEP_RESOURCES, P1_TIN_MK, P1_STEP_DELTA_SWAMPS, "42_resources.ppm", ""},
 };
 
 static const P1_TesterCfg* g_p1_tester_cfg = nullptr;
@@ -180,7 +181,7 @@ static inline void p1_resolve_test_args (i32 argc, char* argv[], u32* seed, u16*
 }
 
 static inline P1_Adj_LandAltitudePrm p1_tester_land_altitude_prm () {
-    P1_Adj_LandAltitudePrm sp = p1_adj_land_altitude_prm_from_cfg(p1_map_config_def());
+    P1_Adj_LandAltitudePrm sp = p1_adj_land_altitude_prm_from_cfg(map_config_def());
     sp.m_w_noise = 0.7f;
     sp.m_w_near = 0.85f;
     sp.m_w_riv = 0.5f;
@@ -218,7 +219,7 @@ static bool p1_ensure_dir (cstr path) {
     return false;
 }
 
-static bool p1_make_seed_export_path (u32 seed, cstr kind, char* out, size_t cap) {
+static bool p1_make_batch_export_path (u32 seed, cstr kind, char* out, size_t cap) {
     if (kind == nullptr || out == nullptr || cap == 0) {
         return false;
     }
@@ -226,6 +227,22 @@ static bool p1_make_seed_export_path (u32 seed, cstr kind, char* out, size_t cap
         return false;
     }
     std::snprintf(out, cap, "%s/seed-%04u-%s.ppm", P1_MAPS_ROOT, static_cast<unsigned>(seed), kind);
+    return true;
+}
+
+static bool p1_make_final_export_path (u32 seed, cstr layer, char* out, size_t cap) {
+    if (layer == nullptr || out == nullptr || cap == 0) {
+        return false;
+    }
+    if (!p1_ensure_dir(P1_OUT_ROOT)) {
+        return false;
+    }
+    char dir[256];
+    std::snprintf(dir, sizeof(dir), "%s/p1-seed-%u", P1_OUT_ROOT, static_cast<unsigned>(seed));
+    if (!p1_ensure_dir(dir)) {
+        return false;
+    }
+    std::snprintf(out, cap, "%s/%s.ppm", dir, layer);
     return true;
 }
 
@@ -238,14 +255,14 @@ static bool p1_make_out_path (u32 seed, cstr fname, char* out, size_t cap) {
     }
     if (p1_tester_out_subdir()) {
         char dir[256];
-        std::snprintf(dir, sizeof(dir), "%s/p1-seed-%03u", P1_OUT_ROOT, static_cast<unsigned>(seed));
+        std::snprintf(dir, sizeof(dir), "%s/p1-seed-%u", P1_OUT_ROOT, static_cast<unsigned>(seed));
         if (!p1_ensure_dir(dir)) {
             return false;
         }
         std::snprintf(out, cap, "%s/%s", dir, fname);
         return true;
     }
-    std::snprintf(out, cap, "%s/p1_seed_%03u_%s", P1_OUT_ROOT, static_cast<unsigned>(seed), fname);
+    std::snprintf(out, cap, "%s/p1_seed_%u_%s", P1_OUT_ROOT, static_cast<unsigned>(seed), fname);
     return true;
 }
 

@@ -24,7 +24,7 @@
 #include "p1_gen_shaped_outline.h"
 #include "p1_gen_watershed_mountains.h"
 #include "p1_make_map.h"
-#include "p1_map_config.h"
+#include "map_config.h"
 #include "p1_rprint.h"
 #include "p1_tester_harness.h"
 
@@ -66,7 +66,7 @@ static bool build_mk_watershed_input (
         return false;
     }
     const u32 npx = static_cast<u32>(w) * static_cast<u32>(h);
-    const P1_MapConfig cfg = p1_map_config_def();
+    const MapConfig cfg = map_config_def();
     const P1_Gen_NoisePerlinPrm nprm = p1_gen_noise_perlin_prm_from_cfg(cfg, w, h);
     f32* perlin_f32 = new f32[npx];
     if (perlin_f32 == nullptr) {

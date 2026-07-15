@@ -53,6 +53,8 @@ StartingPointGenerator::StartingPointGenerator (const StartingPointGeneratorPara
     m_w(0),
     m_h(0),
     m_cls(nullptr),
+    m_clim(nullptr),
+    m_ov(nullptr),
     m_dist(nullptr),
     m_gray(nullptr),
     m_dist_max(0),
@@ -69,7 +71,7 @@ StartingPointGenerator::StartingPointGenerator (const StartingPointGeneratorPara
     m_latt = new SpgPt[SPG_MAX_LATT_PTS];
     m_land = new SpgPt[SPG_MAX_LATT_PTS];
     m_cand = new SpgPt[SPG_MAX_LATT_PTS];
-    m_pick = new SpgPt[SPG_MAX_PICK_PTS];
+    m_pick = new SpgPt[SPG_MAX_PICK_PTS]; 
 }
 
 StartingPointGenerator::~StartingPointGenerator () {
@@ -157,8 +159,10 @@ bool StartingPointGenerator::picks_are_start_land () const {
         if (px >= m_w || py >= m_h) {
             return false;
         }
-        const u8 cls = m_cls[static_cast<u32>(py) * static_cast<u32>(m_w) + static_cast<u32>(px)];
-        if (!is_start_land(cls)) {
+        const u8 terr = m_cls[static_cast<u32>(py) * static_cast<u32>(m_w) + static_cast<u32>(px)];
+        const u8 clim = m_clim != nullptr ? m_clim[static_cast<u32>(py) * static_cast<u32>(m_w) + static_cast<u32>(px)] : 0;
+        const u8 ov = m_ov != nullptr ? m_ov[static_cast<u32>(py) * static_cast<u32>(m_w) + static_cast<u32>(px)] : OVERLAY_NONE;
+        if (!is_start_tile(terr, clim, ov)) {
             return false;
         }
     }
@@ -200,8 +204,21 @@ bool StartingPointGenerator::is_land (u8 cls) const {
     return !is_water(cls);
 }
 
-bool StartingPointGenerator::is_start_land (u8 cls) const {
-    return cls == TERR_PLAINS[0] || cls == TERR_HILLS[0];
+bool StartingPointGenerator::is_start_tile (u8 terr, u8 clim, u8 ov) const {
+    if (terr != TERR_PLAINS[0] && terr != TERR_HILLS[0]) {
+        return false;
+    }
+    if (m_clim != nullptr) {
+        if (clim != CLIMATE_GRASSLAND && clim != CLIMATE_PLAINS && clim != CLIMATE_BLACK_SOIL) {
+            return false;
+        }
+    }
+    if (m_ov != nullptr) {
+        if (ov != OVERLAY_NONE && ov != OV_FOREST[0]) {
+            return false;
+        }
+    }
+    return true;
 }
 
 bool StartingPointGenerator::adj_water (u16 px, u16 py) const {
@@ -358,8 +375,10 @@ void StartingPointGenerator::filt_land () {
         if (px < 0 || py < 0 || px >= static_cast<i32>(m_w) || py >= static_cast<i32>(m_h)) {
             continue;
         }
-        const u8 cls = m_cls[static_cast<u32>(py) * static_cast<u32>(m_w) + static_cast<u32>(px)];
-        if (is_start_land(cls)) {
+        const u8 terr = m_cls[static_cast<u32>(py) * static_cast<u32>(m_w) + static_cast<u32>(px)];
+        const u8 clim = m_clim != nullptr ? m_clim[static_cast<u32>(py) * static_cast<u32>(m_w) + static_cast<u32>(px)] : 0;
+        const u8 ov = m_ov != nullptr ? m_ov[static_cast<u32>(py) * static_cast<u32>(m_w) + static_cast<u32>(px)] : OVERLAY_NONE;
+        if (is_start_tile(terr, clim, ov)) {
             m_land[m_land_n++] = p;
         }
     }
@@ -444,6 +463,8 @@ bool StartingPointGenerator::generate () {
     m_w = m_p.map->width();
     m_h = m_p.map->height();
     m_cls = m_p.map->data();
+    m_clim = m_p.climate;
+    m_ov = m_p.overlay;
     if (m_cls == nullptr || m_w == 0 || m_h == 0) {
         return false;
     }

@@ -15,8 +15,6 @@
 #include "generator_constants.h"
 #include "resource_static_key.h"
 
-static const char* R1_GEN_RES_OV_OUT_ROOT = "/home/w/Projects/simple-map-gen";
-
 //================================================================================================================================
 //=> - Private helpers -
 //================================================================================================================================
@@ -163,7 +161,7 @@ bool R1_Gen_ResOverlay::save_ppm (
     if (rgb == nullptr) {
         return false;
     }
-    const u16 denom = res_max > 0 ? res_max : 1u;
+    (void)res_max;
     for (u32 i = 0; i < n; ++i) {
         u8 r = 80;
         u8 g = 160;
@@ -174,11 +172,10 @@ bool R1_Gen_ResOverlay::save_ppm (
             b = 192;
         }
         const u16 key = res_ov[i];
-        if (key != U16_KEY_NULL) {
-            const u32 gray = ((u32)key * 255u) / (u32)denom;
-            r = (u8)gray;
-            g = (u8)gray;
-            b = (u8)gray;
+        if (key != U16_KEY_NULL && key <= 255u) {
+            r = (u8)key;
+            g = (u8)key;
+            b = (u8)key;
         }
         const u16 x = (u16)(i % (u32)w);
         const u16 y = (u16)(i / (u32)w);
@@ -187,29 +184,6 @@ bool R1_Gen_ResOverlay::save_ppm (
     const bool ok = save_rgb_ppm(path, rgb, w, h);
     delete[] rgb;
     return ok;
-}
-
-bool R1_Gen_ResOverlay::make_out_path (u32 seed, cstr fname, char* out, u32 cap) {
-    if (fname == nullptr || out == nullptr || cap == 0) {
-        return false;
-    }
-    if (!ensure_dir(R1_GEN_RES_OV_OUT_ROOT)) {
-        return false;
-    }
-    char seed_dir[384];
-    const int seed_n = std::snprintf(seed_dir, sizeof(seed_dir), "%s/p1-seed-%03u",
-        R1_GEN_RES_OV_OUT_ROOT, seed);
-    if (seed_n < 0 || (u32)seed_n >= sizeof(seed_dir)) {
-        return false;
-    }
-    if (!ensure_dir(seed_dir)) {
-        return false;
-    }
-    const int out_n = std::snprintf(out, cap, "%s/%s", seed_dir, fname);
-    if (out_n < 0 || (u32)out_n >= cap) {
-        return false;
-    }
-    return true;
 }
 
 //================================================================================================================================

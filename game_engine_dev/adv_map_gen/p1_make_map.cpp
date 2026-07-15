@@ -44,8 +44,12 @@
 #include "p1_gen_wind_pattern_adv.h"
 #include "map_terrain_data.h"
 #include "game_map_defs.h"
+#include "p1_tester_cli.h"
 #include "p1_tester_util.h"
 #include "p1_wb_util.h"
+#include "r1_gen_res_overlay.h"
+#include "res_statics.h"
+#include "runtime_statics.h"
 
 #include <cstdio>
 #include <ctime>
@@ -58,6 +62,9 @@
 #ifdef P1_ENABLE_TIMING
 
 static void p1_mk_print_time (cstr step, double sec) {
+    if (p1_tester_batch_export()) {
+        return;
+    }
     char lbl[128];
     std::snprintf(lbl, sizeof(lbl), "P1_MakeMap %s ", step);
     const size_t ll = std::strlen(lbl);
@@ -139,11 +146,64 @@ static void free_mk_early (u8* terrain, u8* river, u16* wshed) {
 }
 
 //================================================================================================================================
+//=> - Map-gen statics session -
+//================================================================================================================================
+
+static const RuntimeStatics* g_p1_inj_statics = nullptr;
+
+void p1_map_gen_set_statics (const RuntimeStatics* statics) {
+    g_p1_inj_statics = statics;
+}
+
+static bool p1_rt_statics_ok () {
+    if (g_p1_inj_statics != nullptr) {
+        return true;
+    }
+    return ResStatics::is_ready();
+}
+
+static const RuntimeStatics& p1_rt_statics () {
+    if (g_p1_inj_statics != nullptr) {
+        return *g_p1_inj_statics;
+    }
+    return ResStatics::shared();
+}
+
+bool p1_map_gen_init (const RuntimeStatics* statics) {
+    if (statics != nullptr) {
+        p1_map_gen_set_statics(statics);
+        return true;
+    }
+    p1_map_gen_set_statics(nullptr);
+    return ResStatics::ensure_loaded(G_RT_LIB, G_RT_DATA);
+}
+
+//================================================================================================================================
 //=> - P1_MakeMap -
 //================================================================================================================================
 
-P1_MakeMap::P1_MakeMap (const P1_RunPrm& prm, const P1_MakeMapPrm& mp) :
+P1_MakeMap::P1_MakeMap (const P1_RunPrm& prm, const MapConfig& cfg) :
     m_prm(prm),
+    m_cfg(cfg),
+    m_mp(p1_make_map_prm_from_cfg(cfg)),
+    m_valid_generation(false) {
+    m_rslt.m_w = 0;
+    m_rslt.m_h = 0;
+    m_rslt.m_terrain = nullptr;
+    m_rslt.m_climate = nullptr;
+    m_rslt.m_rivers = nullptr;
+    m_rslt.m_wshed = nullptr;
+    m_rslt.m_wind_dir = nullptr;
+    m_rslt.m_wind_str = nullptr;
+    m_rslt.m_loess = nullptr;
+    m_rslt.m_rain = nullptr;
+    m_rslt.m_overlay = nullptr;
+    m_rslt.m_resources = nullptr;
+}
+
+P1_MakeMap::P1_MakeMap (const P1_RunPrm& prm, const MapConfig& cfg, const P1_MakeMapPrm& mp) :
+    m_prm(prm),
+    m_cfg(cfg),
     m_mp(mp),
     m_valid_generation(false) {
     m_rslt.m_w = 0;
@@ -157,6 +217,11 @@ P1_MakeMap::P1_MakeMap (const P1_RunPrm& prm, const P1_MakeMapPrm& mp) :
     m_rslt.m_loess = nullptr;
     m_rslt.m_rain = nullptr;
     m_rslt.m_overlay = nullptr;
+    m_rslt.m_resources = nullptr;
+}
+
+P1_MakeMap::~P1_MakeMap () {
+    free_rslt(&m_rslt);
 }
 
 void P1_MakeMap::free_rslt (P1_MakeMapRslt* rslt) {
@@ -172,6 +237,7 @@ void P1_MakeMap::free_rslt (P1_MakeMapRslt* rslt) {
     delete[] rslt->m_loess;
     delete[] rslt->m_rain;
     delete[] rslt->m_overlay;
+    delete[] rslt->m_resources;
     rslt->m_terrain = nullptr;
     rslt->m_climate = nullptr;
     rslt->m_rivers = nullptr;
@@ -181,6 +247,7 @@ void P1_MakeMap::free_rslt (P1_MakeMapRslt* rslt) {
     rslt->m_loess = nullptr;
     rslt->m_rain = nullptr;
     rslt->m_overlay = nullptr;
+    rslt->m_resources = nullptr;
     rslt->m_w = 0;
     rslt->m_h = 0;
 }
@@ -223,6 +290,10 @@ bool P1_MakeMap::copy_rslt (P1_MakeMapRslt* dst, const P1_MakeMapRslt& src) {
         free_rslt(dst);
         return false;
     }
+    if (src.m_resources != nullptr && !copy_u16_own(&dst->m_resources, src.m_resources, npx)) {
+        free_rslt(dst);
+        return false;
+    }
     dst->m_w = src.m_w;
     dst->m_h = src.m_h;
     return true;
@@ -260,7 +331,7 @@ bool P1_MakeMap::generate (u16 last_step) {
         P1_Gen_NearnessToWatershedMtn near_gen(m_prm);
         P1_Gen_RiverLines lin_gen(m_prm);
         P1_Gen_RiverNetwork net_gen(m_prm);
-        const P1_Gen_NoisePerlinPrm nprm = p1_gen_noise_perlin_prm_from_cfg(p1_map_config_def(), w, h);
+        const P1_Gen_NoisePerlinPrm nprm = p1_gen_noise_perlin_prm_from_cfg(m_cfg, w, h);
         perlin_f32 = new f32[npx];
         if (perlin_f32 == nullptr) {
             delete[] terrain;
@@ -760,7 +831,7 @@ bool P1_MakeMap::generate (u16 last_step) {
         ds_in.m_climate = climate_copy;
         ds_in.m_res_ov = overlay;
         ds_in.m_riv = river;
-        P1_Adj_DeltaSwamps swamp_adj(m_prm, p1_adj_delta_swamps_prm_from_cfg(p1_map_config_def()));
+        P1_Adj_DeltaSwamps swamp_adj(m_prm, p1_adj_delta_swamps_prm_from_cfg(m_cfg));
         ok = swamp_adj.adjust(ds_in, w, h) && swamp_adj.is_valid();
     }
     if (!ok) {
@@ -784,6 +855,33 @@ bool P1_MakeMap::generate (u16 last_step) {
         return false;
     }
     if (last_step <= k_p1_step_ensure_adj && last_step != k_p1_step_seed_export) {
+        m_valid_generation = true;
+        return true;
+    }
+    if (last_step >= k_p1_step_resources || last_step == k_p1_step_seed_export) {
+        P1_MK_TIME("42 resources");
+        if (!p1_rt_statics_ok()) {
+            ok = false;
+        } else {
+            ResPlcMapCtx ctx = {};
+            ctx.m_w = w;
+            ctx.m_h = h;
+            ctx.m_terrain = terrain;
+            ctx.m_climate = climate_copy;
+            ctx.m_river = river;
+            ctx.m_overlay = overlay;
+            R1_Gen_ResOverlay res_gen;
+            ok = res_gen.generate(ctx, p1_rt_statics(), m_mp.m_res_base_n, m_prm.m_seed) && res_gen.is_valid();
+            if (ok) {
+                m_rslt.m_resources = res_gen.take_overlay();
+            }
+        }
+    }
+    if (!ok) {
+        free_rslt(&m_rslt);
+        return false;
+    }
+    if (last_step <= k_p1_step_resources && last_step != k_p1_step_seed_export) {
         m_valid_generation = true;
         return true;
     }
@@ -905,40 +1003,102 @@ bool P1_MakeMap::save_overlay_ppm (cstr path) const {
     return ok;
 }
 
+bool P1_MakeMap::save_resources_ppm (cstr path) const {
+    if (!m_valid_generation || path == nullptr || m_rslt.m_resources == nullptr || m_rslt.m_terrain == nullptr) {
+        return false;
+    }
+    ResPlcMapCtx ctx = {};
+    ctx.m_w = m_rslt.m_w;
+    ctx.m_h = m_rslt.m_h;
+    ctx.m_terrain = m_rslt.m_terrain;
+    ctx.m_climate = m_rslt.m_climate;
+    ctx.m_river = m_rslt.m_rivers;
+    ctx.m_overlay = m_rslt.m_overlay;
+    return R1_Gen_ResOverlay::save_ppm(path, ctx, m_rslt.m_resources, m_rslt.m_w, m_rslt.m_h, 255u);
+}
+
 bool P1_MakeMap::save_seed_export () const {
     if (!m_valid_generation) {
         return false;
     }
+    const bool batch = p1_tester_batch_export();
     char terr_path[320];
     char clim_path[320];
     char riv_path[320];
     char ov_path[320];
-    if (!p1_make_seed_export_path(m_prm.m_seed, "terrain", terr_path, sizeof(terr_path))
-        || !p1_make_seed_export_path(m_prm.m_seed, "climate", clim_path, sizeof(clim_path))
-        || !p1_make_seed_export_path(m_prm.m_seed, "rivers", riv_path, sizeof(riv_path))
-        || !p1_make_seed_export_path(m_prm.m_seed, "overlays", ov_path, sizeof(ov_path))) {
-        return false;
+    char res_path[320];
+    if (batch) {
+        if (!p1_make_batch_export_path(m_prm.m_seed, "terrain", terr_path, sizeof(terr_path))
+            || !p1_make_batch_export_path(m_prm.m_seed, "climate", clim_path, sizeof(clim_path))
+            || !p1_make_batch_export_path(m_prm.m_seed, "rivers", riv_path, sizeof(riv_path))
+            || !p1_make_batch_export_path(m_prm.m_seed, "overlay", ov_path, sizeof(ov_path))
+            || !p1_make_batch_export_path(m_prm.m_seed, "resources", res_path, sizeof(res_path))) {
+            return false;
+        }
+    } else {
+        if (!p1_make_final_export_path(m_prm.m_seed, "terrain", terr_path, sizeof(terr_path))
+            || !p1_make_final_export_path(m_prm.m_seed, "climate", clim_path, sizeof(clim_path))
+            || !p1_make_final_export_path(m_prm.m_seed, "rivers", riv_path, sizeof(riv_path))
+            || !p1_make_final_export_path(m_prm.m_seed, "overlay", ov_path, sizeof(ov_path))
+            || !p1_make_final_export_path(m_prm.m_seed, "resources", res_path, sizeof(res_path))) {
+            return false;
+        }
     }
     if (!save_terrain_ppm(terr_path)) {
-        std::printf("failed to save seed terrain: %s\n", terr_path);
+        if (batch) {
+            std::fprintf(stderr, "failed to save terrain: %s\n", terr_path);
+        } else {
+            std::printf("failed to save terrain: %s\n", terr_path);
+        }
         return false;
     }
-    std::printf("saved: %s\n", terr_path);
+    if (!batch) {
+        std::printf("saved: %s\n", terr_path);
+    }
     if (!save_climate_ppm(clim_path)) {
-        std::printf("failed to save seed climate: %s\n", clim_path);
+        if (batch) {
+            std::fprintf(stderr, "failed to save climate: %s\n", clim_path);
+        } else {
+            std::printf("failed to save climate: %s\n", clim_path);
+        }
         return false;
     }
-    std::printf("saved: %s\n", clim_path);
+    if (!batch) {
+        std::printf("saved: %s\n", clim_path);
+    }
     if (!save_rivers_ppm(riv_path)) {
-        std::printf("failed to save seed rivers: %s\n", riv_path);
+        if (batch) {
+            std::fprintf(stderr, "failed to save rivers: %s\n", riv_path);
+        } else {
+            std::printf("failed to save rivers: %s\n", riv_path);
+        }
         return false;
     }
-    std::printf("saved: %s\n", riv_path);
+    if (!batch) {
+        std::printf("saved: %s\n", riv_path);
+    }
     if (!save_overlay_ppm(ov_path)) {
-        std::printf("failed to save seed overlays: %s\n", ov_path);
+        if (batch) {
+            std::fprintf(stderr, "failed to save overlay: %s\n", ov_path);
+        } else {
+            std::printf("failed to save overlay: %s\n", ov_path);
+        }
         return false;
     }
-    std::printf("saved: %s\n", ov_path);
+    if (!batch) {
+        std::printf("saved: %s\n", ov_path);
+    }
+    if (!save_resources_ppm(res_path)) {
+        if (batch) {
+            std::fprintf(stderr, "failed to save resources: %s\n", res_path);
+        } else {
+            std::printf("failed to save resources: %s\n", res_path);
+        }
+        return false;
+    }
+    if (!batch) {
+        std::printf("saved: %s\n", res_path);
+    }
     return true;
 }
 

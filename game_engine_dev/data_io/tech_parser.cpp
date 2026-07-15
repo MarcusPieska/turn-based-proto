@@ -25,7 +25,7 @@ TechStaticDataStruct* TechParser::parse_data_dependencies () {
         get_line_items(get_raw_lines().get_string_content(i), line_items);
         parsed_data[i].cost = parse_u32(line_items, 1);
         parsed_data[i].reqs = parse_item_reqs(line_items, 2);
-        parsed_data[i].effects = parse_item_effects(line_items, 3);
+        parsed_data[i].effects = parse_item_effects_optional(line_items, 3);
     }
     return parsed_data;
 }

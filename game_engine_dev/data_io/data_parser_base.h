@@ -43,6 +43,7 @@ protected:
     u16 parse_unit_type (const StringManager& line_items, u16 start_idx) const;
     ItemReqsStruct parse_item_reqs (const StringManager& line_items, u16 start_idx) const;
     ItemEffectsStruct parse_item_effects (const StringManager& line_items, u16 start_idx) const;
+    ItemEffectsStruct parse_item_effects_optional (const StringManager& line_items, u16 start_idx) const;
     CivTraitStruct parse_civ_traits (const StringManager& line_items, u16 start_idx) const;
     bool parse_res_placement (const StringManager& line_items, ResPlacement& plc) const;
 

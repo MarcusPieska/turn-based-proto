@@ -1,0 +1,5 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")"
+python3 ../../gen_assessor/assessor_results_validate.py 1 .

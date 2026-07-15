@@ -159,15 +159,15 @@ void run_req_bounds_tests (const StaticParsingManager& parser) {
 void run_map_tests (const StaticParsingManager& parser, const RuntimeStatics& statics) {
     note_result(statics.unit_type_action_map().get_unit_type_count() == parser.get_unit_type_count(), "unit_type_action_map map row count");
     note_result(statics.unit_type_action_map().get_action_count() == parser.get_unit_action_count(), "unit_type_action_map map col count");
-    note_result(parser.get_unit_type_action_map_bank()->get_array_count() == parser.get_unit_type_count(), "unit_type_action_map bank array_count");
-    note_result(parser.get_unit_type_action_map_bank()->get_array_size() == parser.get_unit_action_count(), "unit_type_action_map bank array_size");
+    note_result(statics.unit_type_action_map().get_unit_type_count() == statics.unit_type().get_item_count(), "unit_type_action_map row match");
+    note_result(statics.unit_type_action_map().get_action_count() == statics.unit_action().get_item_count(), "unit_type_action_map col match");
     note_result(statics.civ_bld_discount_map().get_civ_trait_count() == parser.get_civ_trait_count(), "civ_bld_discount_map map row count");
     note_result(statics.civ_bld_discount_map().get_building_count() == parser.get_building_count(), "civ_bld_discount_map map col count");
-    note_result(parser.get_civ_bld_discount_map_bank()->get_array_count() == parser.get_civ_trait_count(), "civ_bld_discount_map bank array_count");
-    note_result(parser.get_civ_bld_discount_map_bank()->get_array_size() == parser.get_building_count(), "civ_bld_discount_map bank array_size");
+    note_result(statics.civ_bld_discount_map().get_civ_trait_count() == statics.civ_trait().get_item_count(), "civ_bld_discount_map row match");
+    note_result(statics.civ_bld_discount_map().get_building_count() == statics.building().get_item_count(), "civ_bld_discount_map col match");
     if (print_level >= 1) {
-        printf(" unit_type_action_map bank: array_count=%u array_size=%u\n", parser.get_unit_type_action_map_bank()->get_array_count(), parser.get_unit_type_action_map_bank()->get_array_size());
-        printf(" civ_bld_discount_map bank: array_count=%u array_size=%u\n", parser.get_civ_bld_discount_map_bank()->get_array_count(), parser.get_civ_bld_discount_map_bank()->get_array_size());
+        printf(" unit_type_action_map: row_count=%u col_count=%u\n", statics.unit_type_action_map().get_unit_type_count(), statics.unit_type_action_map().get_action_count());
+        printf(" civ_bld_discount_map: row_count=%u col_count=%u\n", statics.civ_bld_discount_map().get_civ_trait_count(), statics.civ_bld_discount_map().get_building_count());
     }
 }
 

@@ -15,7 +15,7 @@
 #include "p1_gen_rain_orographic.h"
 #include "p1_gen_shaped_outline.h"
 #include "p1_gen_wind_pattern_adv.h"
-#include "p1_map_config.h"
+#include "map_config.h"
 #include "p1_map_size.h"
 #include "p1_pipeline_steps.h"
 #include "p1_tester_util.h"
@@ -36,11 +36,11 @@ struct P1_MakeMapPrm {
     P1_Adj_CoastFertilityPrm m_coast_fert;
     u16 m_rain_finish;
     u16 m_slope_finish;
+    u32 m_res_base_n;
 };
 
-static inline P1_MakeMapPrm p1_make_map_prm_def () {
+static inline P1_MakeMapPrm p1_make_map_prm_from_cfg (const MapConfig& cfg) {
     P1_MakeMapPrm p;
-    const P1_MapConfig cfg = p1_map_config_def();
     p.m_shaped = p1_gen_shaped_outline_prm_from_cfg(cfg);
     p.m_lap = p1_adj_land_altitude_prm_from_cfg(cfg);
     p.m_wind = p1_gen_wind_pattern_adv_prm_def();
@@ -53,8 +53,18 @@ static inline P1_MakeMapPrm p1_make_map_prm_def () {
     p.m_coast_fert = p1_adj_coast_fertility_prm_def();
     p.m_rain_finish = 3;
     p.m_slope_finish = 100;
+    p.m_res_base_n = 100u;
     return p;
 }
+
+static inline P1_MakeMapPrm p1_make_map_prm_def () {
+    return p1_make_map_prm_from_cfg(map_config_def());
+}
+
+struct RuntimeStatics;
+
+void p1_map_gen_set_statics (const RuntimeStatics* statics);
+bool p1_map_gen_init (const RuntimeStatics* statics = nullptr);
 
 static const u16 k_p1_step_coastal_mtn_limits = P1_STEP_COASTAL_MTN_LIMITS;
 static const u16 k_p1_step_foothills = P1_STEP_ENSURE_MTN_FOOTHILLS;
@@ -71,10 +81,10 @@ static const u16 k_p1_step_coast_fert_adj = P1_STEP_COAST_FERT_ADJ;
 static const u16 k_p1_step_ensure_adj = P1_STEP_ENSURE_ADJ;
 static const u16 k_p1_step_forest_overlay = P1_STEP_FOREST_OVERLAY;
 static const u16 k_p1_step_delta_swamps = P1_STEP_DELTA_SWAMPS;
+static const u16 k_p1_step_resources = P1_STEP_RESOURCES;
 
-//================================================================================================================================
-//=> - P1_MakeMapRslt -
-//================================================================================================================================
+static const char* G_RT_LIB = "../data_io/runtime_static_loader_lib.so";
+static const char* G_RT_DATA = "../";
 
 struct P1_MakeMapRslt {
     u16 m_w;
@@ -88,6 +98,7 @@ struct P1_MakeMapRslt {
     u8* m_loess;
     u8* m_rain;
     u8* m_overlay;
+    u16* m_resources;
 };
 
 //================================================================================================================================
@@ -96,7 +107,9 @@ struct P1_MakeMapRslt {
 
 class P1_MakeMap {
 public:
-    explicit P1_MakeMap (const P1_RunPrm& prm, const P1_MakeMapPrm& mp = p1_make_map_prm_def ());
+    explicit P1_MakeMap (const P1_RunPrm& prm, const MapConfig& cfg = map_config_def());
+    P1_MakeMap (const P1_RunPrm& prm, const MapConfig& cfg, const P1_MakeMapPrm& mp);
+    ~P1_MakeMap ();
 
     bool generate (u16 last_step = k_p1_step_seed_export);
     bool is_valid () const;
@@ -105,6 +118,7 @@ public:
     bool save_climate_ppm (cstr path) const;
     bool save_rivers_ppm (cstr path) const;
     bool save_overlay_ppm (cstr path) const;
+    bool save_resources_ppm (cstr path) const;
     bool save_seed_export () const;
     static void free_rslt (P1_MakeMapRslt* rslt);
     static bool copy_rslt (P1_MakeMapRslt* dst, const P1_MakeMapRslt& src);
@@ -114,6 +128,7 @@ private:
     P1_MakeMap (P1_MakeMap&& other) = delete;
 
     P1_RunPrm m_prm;
+    MapConfig m_cfg;
     P1_MakeMapPrm m_mp;
     bool m_valid_generation;
     P1_MakeMapRslt m_rslt;

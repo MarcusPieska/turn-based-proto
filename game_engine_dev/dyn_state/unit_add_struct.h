@@ -8,6 +8,20 @@
 #include "game_primitives.h"
 
 //================================================================================================================================
+//=> - Constants -
+//================================================================================================================================
+
+#define UNIT_HEALTH 100 // Default unit health at spawn and training
+
+#define VERY_GREEN 0
+#define GREEN 1 // Default unit skill level
+#define DISCIPLINED 2
+#define HARDENED 3
+#define VETERAN 4
+#define COMMANDO 5
+#define ELITE 6
+
+//================================================================================================================================
 //=> - UnitAddStruct -
 //================================================================================================================================
 //
@@ -39,7 +53,7 @@ struct UnitAddStruct {
     u16 m_next_unit_in_group; // Group link: next UnitAddKey raw value, or U16_KEY_NULL
     
     i16 m_mvt_points; // Remaining movement budget (static mvt_pts x 1000 scale)
-    u8 m_health; // Reduced via combat and attrition; increased when healing
+    u8 m_health; // Reduced via combat and attrition; increased when healing; UNIT_HEALTH at full
     u8 m_level; // Nerf or boost to damage dealt and taken; green, regular, elite, etc
 };
 

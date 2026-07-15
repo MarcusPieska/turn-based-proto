@@ -39,6 +39,26 @@ void trace_city_foundation(u16 x, u16 y, u16 player) {
     #endif
 }
 
+void trace_civ_spawn_pt (u16 x, u16 y, u16 civ_idx) {
+    if (s_trace_file == nullptr) {
+        return;
+    }
+    std::fprintf(s_trace_file, "CIV_SPAWN_PT:%u:%u:%u\n", x, y, civ_idx);
+    #if defined(ENABLE_FLUSH_AFTER_PRINT)
+        std::fflush(s_trace_file);
+    #endif
+}
+
+void trace_unit_spawn (u16 typ_idx, u16 civ_idx, u16 x, u16 y) {
+    if (s_trace_file == nullptr) {
+        return;
+    }
+    std::fprintf(s_trace_file, "UNIT_SPAWN:%u:%u:%u:%u\n", typ_idx, civ_idx, x, y);
+    #if defined(ENABLE_FLUSH_AFTER_PRINT)
+        std::fflush(s_trace_file);
+    #endif
+}
+
 void trace_new_turn(u16 turn) {
     if (s_trace_file == nullptr) {
         return;

@@ -33,6 +33,12 @@ path_config_endings.append("settings")
 #=> - Helpers -
 #================================================================================================================================#
 
+def max_game_config_suffix_n (stems):
+    return max(len("game_config.%s" % s) for s in stems)
+
+PATH_MNG_PATH_N = 512
+PATH_MNG_SUFFIX_MAX_N = max_game_config_suffix_n(path_config_endings)
+
 def join_tag_lines(lines, indent_between="\n    "):
     return indent_between.join(lines)
 
@@ -107,6 +113,7 @@ if __name__ == "__main__":
     this_dir = os.path.dirname(os.path.abspath(__file__))
     sub_pairs = []
 
+    sub_pairs.append(("[PATH_MNG_SUFFIX_MAX_N_TAG]", str(PATH_MNG_SUFFIX_MAX_N)))
     sub_pairs.append(("[PATH_MNG_HEADER_GETTERS_TAG]", unroll_path_header_getters(path_config_endings)))
     sub_pairs.append(("[PATH_MNG_HEADER_MEMBERS_TAG]", unroll_path_header_members(path_config_endings)))
     sub_pairs.append(("[PATH_MNG_CPP_GETTERS_TAG]", unroll_path_cpp_getters(path_config_endings)))

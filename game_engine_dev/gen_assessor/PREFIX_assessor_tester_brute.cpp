@@ -23,8 +23,8 @@
 
 static const [STRUCT_TAG]* s_items;
 
-static BitArrayCL* s_assess (u16 n, const AssessorCtx& ctx) {
-    return GeneralAssessor::assess_[FILE_TAG](n, s_items, ctx);
+static void s_assess (BitArrayCL* out, u16 n, const AssessorCtx& ctx) {
+    GeneralAssessor::assess_[FILE_TAG](out, n, s_items, ctx);
 }
 
 static u16 get_cnt (const StaticParsingManager& mgr) {
@@ -32,11 +32,10 @@ static u16 get_cnt (const StaticParsingManager& mgr) {
 }
 
 static const char* get_nm (const StaticParsingManager& mgr, u16 idx) {
-    const [STRUCT_TAG]* items = mgr.get_[FILE_TAG]_data();
-    if (items == nullptr || idx >= get_cnt(mgr)) {
+    if (idx >= get_cnt(mgr)) {
         return "";
     }
-    return items[idx].name.c_str();
+    return mgr.get_[FILE_TAG]_name_parser().idx_to_name(idx);
 }
 
 //================================================================================================================================
@@ -63,7 +62,7 @@ static void emit_ln (FILE* out, u16 idx, const InferredReqs& ir, void* ud) {
 //================================================================================================================================
 
 int run_[FILE_TAG]_assessor_brute () {
-    StaticParsingManager mgr("../");
+    StaticParsingManager mgr("../../");
     u16 n = get_cnt(mgr);
     if (n == 0) {
         return 0;

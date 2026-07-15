@@ -13,7 +13,6 @@ Heroic Epic                    :  200 : tech(Military Tradition)  : flag(victori
 Oxford University              :  400 : tech(Education)           : building(University, 5)
 Hermitage                      :  400 : tech(Nationalism)
 Circus Maximus                 :  200 : tech(Mathematics)         : building(Colosseum, 5)
-Grand Temple                   :  300 : tech(Theology)            : building(Temple, 5)
 East India Company             :  400 : tech(Navigation)          : building(Harbor, 3) : flag(luxaries)
 National Intelligence Agency   :  500 : tech(Radio)               : building(Police Station, 8)
 Red Cross                      :  600 : tech(Electricity)         : building(Hospital, 8)

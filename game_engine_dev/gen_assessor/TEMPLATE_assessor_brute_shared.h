@@ -55,7 +55,7 @@ struct EnablesMap {
 //=> - BruteRunCfg -
 //================================================================================================================================
 
-typedef BitArrayCL* (*AssessFn) (u16 item_count, const AssessorCtx& ctx);
+typedef void (*AssessFn) (BitArrayCL* out, u16 item_count, const AssessorCtx& ctx);
 
 struct BruteRunCfg {
     u16 m_item_count;
