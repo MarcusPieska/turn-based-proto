@@ -71,7 +71,6 @@ public:
     bool m_age_of_exploration = true; // If true, fog/explore rules apply; else, all see all 
     const RuntimeStatics* m_statics = nullptr; // Process-wide static data; not owned by GameState
     CivRelations m_civ_relations; // Civ-vs-civ relation matrix for ally checks
-    MapBitArrayOverlay* m_tile_ownership_array = nullptr; // Owner id per tile; sized to map
     u16* m_wonder_city = nullptr; // Built world wonder city index per catalog row; U16_KEY_NULL if none
     u16 m_wonder_count = 0; // Length of m_wonder_city
     u16 m_small_wonder_count = 0; // Length of each player's m_small_wonder_city
@@ -79,7 +78,7 @@ public:
     CityArray m_cities; // City pool; map tiles link via m_add_idx when m_add_typ is city
     GameArraySimple m_map; // World grid; terrain, rivers, tile handles
 
-    // Adds on map, owned by tile owner, per m_tile_ownership_array
+    // Adds on map, owned by tile owner via GameTileSimple::m_civ_owner
     FortAddVector m_adds_fort; 
     MineAddVector m_adds_mine; 
     MonasteryAddVector m_adds_monastery; 

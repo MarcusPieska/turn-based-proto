@@ -15,7 +15,7 @@
 //=> - CityPollutionBoosterRegister data -
 //================================================================================================================================
 
-const BoosterRegisterEntry CityPollutionBoosterRegister::s_entry[CityPollutionBoosterRegister::ENTRY_N] = {
+const BoosterRegisterEntry CityPollutionBoosterRegister::s_entry[3] = {
     { { EffectEnablerKind::BUILDING, 17 }, 0, -50 }, // Mass Transit (building)
     { { EffectEnablerKind::BUILDING, 19 }, 4, 0 }, // Coal Plant (building)
     { { EffectEnablerKind::BUILDING, 27 }, 0, 25 }, // Recycling Center (building)

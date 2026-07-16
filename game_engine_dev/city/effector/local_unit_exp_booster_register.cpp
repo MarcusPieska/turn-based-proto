@@ -15,7 +15,7 @@
 //=> - LocalUnitExpBoosterRegister data -
 //================================================================================================================================
 
-const BoosterRegisterEntry LocalUnitExpBoosterRegister::s_entry[LocalUnitExpBoosterRegister::ENTRY_N] = {
+const BoosterRegisterEntry LocalUnitExpBoosterRegister::s_entry[1] = {
     { { EffectEnablerKind::BUILDING, 0 }, 1, 0 }, // Barracks (building)
 };
 

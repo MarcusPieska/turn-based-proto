@@ -182,7 +182,6 @@ void test_setup_new_game () {
     note_result(state.m_map.height() > 0, "map height");
     note_result(state.m_player_n == players, "player count");
     note_result(state.m_player_states != nullptr, "player states");
-    note_result(state.m_tile_ownership_array != nullptr, "ownership overlay");
     if (state.m_player_states != nullptr && state.m_player_n > 0) {
         note_result(state.m_player_states[0].m_explored_overlay != nullptr, "explore overlay");
     }

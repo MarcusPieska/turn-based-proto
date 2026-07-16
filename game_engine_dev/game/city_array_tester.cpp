@@ -91,7 +91,7 @@ void test_first_city_zero_initialized () {
 
     bool ok = city != nullptr
         && city->get_current_food_store() == 0
-        && city->get_current_shields_store() == 0;
+        && city->get_current_production_store() == 0;
 
     note_result(ok, "First city zero-initialized header fields");
     summarize_test_results();
@@ -118,7 +118,7 @@ void test_city_array_unique_ids () {
             ok_ids = false;
             break;
         }
-        city->add_shields(idx);
+        city->add_production(idx, idx);
     }
 
     if (ok_ids) {
@@ -132,7 +132,7 @@ void test_city_array_unique_ids () {
                     ok_ids = false;
                     break;
                 }
-                if (city->get_current_shields_store() != i) {
+                if (city->get_current_production_store() != i) {
                     ok_ids = false;
                     break;
                 }

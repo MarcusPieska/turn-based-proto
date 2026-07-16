@@ -24,6 +24,7 @@ typedef double f64;
 
 #define U16_KEY_NULL 0xFFFF
 #define U16_KEY_INVALID 0xFFFF - 1
+#define U8_KEY_NULL 0xFF
 
 #define MAX_EFFECTS_PER_ENTITY 4
 typedef struct EffectIndices {

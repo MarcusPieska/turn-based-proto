@@ -14,7 +14,7 @@ int main () {
         return 1;
     }
 
-    std::printf("=== city commerce booster driver ===\n");
+    std::printf("=== city commerce booster tester ===\n");
 
     const u16 market = env.find_bld_idx("Marketplace");
     const u16 bank = env.find_bld_idx("Bank");
@@ -29,7 +29,7 @@ int main () {
     }
 
     city->accumulate_commerce();
-    city->add_shields(100);
+    city->add_production(env.m_city_idx, 100);
     if (!city->finish_if_ready(env.m_city_idx)) {
         std::printf("ERROR: baseline commerce finish failed\n");
         return 1;
@@ -42,7 +42,7 @@ int main () {
     env.m_seat.m_commerce = 0;
     env.m_array.set_building_flag(env.m_city_idx, market);
     city->accumulate_commerce();
-    city->add_shields(100);
+    city->add_production(env.m_city_idx, 100);
     if (!city->finish_if_ready(env.m_city_idx)) {
         std::printf("ERROR: marketplace commerce finish failed\n");
         return 1;
@@ -55,7 +55,7 @@ int main () {
     env.m_seat.m_commerce = 0;
     env.m_array.set_building_flag(env.m_city_idx, bank);
     city->accumulate_commerce();
-    city->add_shields(100);
+    city->add_production(env.m_city_idx, 100);
     if (!city->finish_if_ready(env.m_city_idx)) {
         std::printf("ERROR: stacked commerce finish failed\n");
         return 1;

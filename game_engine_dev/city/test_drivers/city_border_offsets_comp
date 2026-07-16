@@ -1,0 +1,12 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")"
+
+INC="-I.. -I../.. -I../../game"
+CXXFLAGS="-std=c++17 -Wall -Wextra"
+
+g++ $CXXFLAGS $INC -c ../circular_tile_areas.cpp -o circular_tile_areas.o
+g++ $CXXFLAGS $INC -c city_border_offsets_tester.cpp -o city_border_offsets_tester.o
+g++ $CXXFLAGS -o city_border_offsets_tester circular_tile_areas.o city_border_offsets_tester.o
+rm circular_tile_areas.o city_border_offsets_tester.o

@@ -15,7 +15,7 @@
 //=> - CityCultureBoosterRegister data -
 //================================================================================================================================
 
-const BoosterRegisterEntry CityCultureBoosterRegister::s_entry[CityCultureBoosterRegister::ENTRY_N] = {
+const BoosterRegisterEntry CityCultureBoosterRegister::s_entry[49] = {
     { { EffectEnablerKind::BUILDING, 2 }, 3, 0 }, // Library (building)
     { { EffectEnablerKind::BUILDING, 3 }, 2, 0 }, // Temple (building)
     { { EffectEnablerKind::BUILDING, 9 }, 3, 0 }, // Cathedral (building)

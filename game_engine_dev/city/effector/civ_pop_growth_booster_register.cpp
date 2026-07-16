@@ -15,7 +15,7 @@
 //=> - CivPopGrowthBoosterRegister data -
 //================================================================================================================================
 
-const BoosterRegisterEntry CivPopGrowthBoosterRegister::s_entry[CivPopGrowthBoosterRegister::ENTRY_N] = {
+const BoosterRegisterEntry CivPopGrowthBoosterRegister::s_entry[1] = {
     { { EffectEnablerKind::WONDER, 24 }, 0, 100 }, // Longevity (wonder)
 };
 

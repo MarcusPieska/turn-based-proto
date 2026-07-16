@@ -15,7 +15,7 @@
 //=> - CityHappinessBoosterRegister data -
 //================================================================================================================================
 
-const BoosterRegisterEntry CityHappinessBoosterRegister::s_entry[CityHappinessBoosterRegister::ENTRY_N] = {
+const BoosterRegisterEntry CityHappinessBoosterRegister::s_entry[7] = {
     { { EffectEnablerKind::BUILDING, 3 }, 1, 0 }, // Temple (building)
     { { EffectEnablerKind::BUILDING, 9 }, 2, 0 }, // Cathedral (building)
     { { EffectEnablerKind::BUILDING, 11 }, 2, 0 }, // Colosseum (building)

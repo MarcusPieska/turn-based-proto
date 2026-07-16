@@ -23,6 +23,10 @@ public:
     static constexpr u16 ENTRY_N = 1;
 
     static BoosterRegisterResult determine_effect (const EffectCtx& ctx) {
+        if (ENTRY_N == 0) {
+            (void)ctx;
+            return {};
+        }
         return accum_entries(s_entry, ENTRY_N, effect_enabler_active_local, ctx);
     }
 
@@ -39,7 +43,7 @@ private:
         return ItemEffectsScope::LOCAL;
     }
 
-    static const BoosterRegisterEntry s_entry[ENTRY_N];
+    static const BoosterRegisterEntry s_entry[1];
 };
 
 #endif // LOCAL_UNIT_EXP_BOOSTER_REGISTER_H

@@ -3,47 +3,171 @@ set -e
 
 cd "$(dirname "$0")"
 
+./local_air_defense_booster_register_comp
+
 ./city_air_defense_booster_register_comp
+
+./civ_air_defense_booster_register_comp
+
+./global_air_defense_booster_register_comp
+
+./local_air_range_booster_register_comp
 
 ./city_air_range_booster_register_comp
 
+./civ_air_range_booster_register_comp
+
+./global_air_range_booster_register_comp
+
+./local_commerce_booster_register_comp
+
 ./city_commerce_booster_register_comp
+
+./civ_commerce_booster_register_comp
+
+./global_commerce_booster_register_comp
+
+./local_corruption_booster_register_comp
 
 ./city_corruption_booster_register_comp
 
+./civ_corruption_booster_register_comp
+
+./global_corruption_booster_register_comp
+
+./local_culture_booster_register_comp
+
 ./city_culture_booster_register_comp
+
+./civ_culture_booster_register_comp
+
+./global_culture_booster_register_comp
+
+./local_defense_booster_register_comp
 
 ./city_defense_booster_register_comp
 
+./civ_defense_booster_register_comp
+
+./global_defense_booster_register_comp
+
+./local_espionage_booster_register_comp
+
 ./city_espionage_booster_register_comp
+
+./civ_espionage_booster_register_comp
+
+./global_espionage_booster_register_comp
+
+./local_happiness_booster_register_comp
 
 ./city_happiness_booster_register_comp
 
+./civ_happiness_booster_register_comp
+
+./global_happiness_booster_register_comp
+
+./local_movement_booster_register_comp
+
+./city_movement_booster_register_comp
+
 ./civ_movement_booster_register_comp
+
+./global_movement_booster_register_comp
+
+./local_nuke_defense_booster_register_comp
 
 ./city_nuke_defense_booster_register_comp
 
+./civ_nuke_defense_booster_register_comp
+
+./global_nuke_defense_booster_register_comp
+
+./local_pollution_booster_register_comp
+
 ./city_pollution_booster_register_comp
+
+./civ_pollution_booster_register_comp
+
+./global_pollution_booster_register_comp
+
+./local_pop_growth_booster_register_comp
 
 ./city_pop_growth_booster_register_comp
 
 ./civ_pop_growth_booster_register_comp
 
+./global_pop_growth_booster_register_comp
+
+./local_production_booster_register_comp
+
 ./city_production_booster_register_comp
+
+./civ_production_booster_register_comp
+
+./global_production_booster_register_comp
+
+./local_science_booster_register_comp
 
 ./city_science_booster_register_comp
 
+./civ_science_booster_register_comp
+
+./global_science_booster_register_comp
+
+./local_sea_trade_booster_register_comp
+
 ./city_sea_trade_booster_register_comp
+
+./civ_sea_trade_booster_register_comp
+
+./global_sea_trade_booster_register_comp
+
+./local_ship_defense_booster_register_comp
 
 ./city_ship_defense_booster_register_comp
 
+./civ_ship_defense_booster_register_comp
+
+./global_ship_defense_booster_register_comp
+
+./local_ship_movement_booster_register_comp
+
+./city_ship_movement_booster_register_comp
+
 ./civ_ship_movement_booster_register_comp
+
+./global_ship_movement_booster_register_comp
+
+./local_ship_training_booster_register_comp
+
+./city_ship_training_booster_register_comp
 
 ./civ_ship_training_booster_register_comp
 
+./global_ship_training_booster_register_comp
+
 ./local_unit_exp_booster_register_comp
+
+./city_unit_exp_booster_register_comp
+
+./civ_unit_exp_booster_register_comp
+
+./global_unit_exp_booster_register_comp
+
+./local_upgrade_cost_booster_register_comp
+
+./city_upgrade_cost_booster_register_comp
 
 ./civ_upgrade_cost_booster_register_comp
 
+./global_upgrade_cost_booster_register_comp
+
+./local_war_wear_booster_register_comp
+
+./city_war_wear_booster_register_comp
+
 ./civ_war_wear_booster_register_comp
+
+./global_war_wear_booster_register_comp
 

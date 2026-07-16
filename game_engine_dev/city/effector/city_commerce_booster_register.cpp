@@ -15,7 +15,7 @@
 //=> - CityCommerceBoosterRegister data -
 //================================================================================================================================
 
-const BoosterRegisterEntry CityCommerceBoosterRegister::s_entry[CityCommerceBoosterRegister::ENTRY_N] = {
+const BoosterRegisterEntry CityCommerceBoosterRegister::s_entry[6] = {
     { { EffectEnablerKind::BUILDING, 4 }, 0, 50 }, // Marketplace (building)
     { { EffectEnablerKind::BUILDING, 8 }, 0, 100 }, // Bank (building)
     { { EffectEnablerKind::BUILDING, 24 }, 0, 200 }, // Stock Exchange (building)

@@ -15,7 +15,7 @@
 //=> - CityScienceBoosterRegister data -
 //================================================================================================================================
 
-const BoosterRegisterEntry CityScienceBoosterRegister::s_entry[CityScienceBoosterRegister::ENTRY_N] = {
+const BoosterRegisterEntry CityScienceBoosterRegister::s_entry[8] = {
     { { EffectEnablerKind::BUILDING, 2 }, 0, 50 }, // Library (building)
     { { EffectEnablerKind::BUILDING, 10 }, 0, 100 }, // University (building)
     { { EffectEnablerKind::BUILDING, 22 }, 0, 200 }, // Research Lab (building)

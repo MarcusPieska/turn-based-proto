@@ -82,6 +82,16 @@ u16 GameArraySimple::get_res (u16 x, u16 y) const {
     return m_tiles[tidx(x, y)].m_res;
 }
 
+u16 GameArraySimple::get_city_worker (u16 x, u16 y) const {
+    CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
+    return m_tiles[tidx(x, y)].m_city_worker;
+}
+
+u8 GameArraySimple::get_civ_owner (u16 x, u16 y) const {
+    CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
+    return static_cast<u8>(m_tiles[tidx(x, y)].m_civ_owner);
+}
+
 bool GameArraySimple::set_unit_hd (u16 x, u16 y, u16 unit_hd) {
     CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
     m_tiles[tidx(x, y)].m_unit_hd = unit_hd;
@@ -92,6 +102,18 @@ bool GameArraySimple::set_tile_add (u16 x, u16 y, u16 add_idx, u8 add_typ) {
     CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
     m_tiles[tidx(x, y)].m_add_idx = add_idx;
     m_tiles[tidx(x, y)].m_add_typ = add_typ;
+    return true;
+}
+
+bool GameArraySimple::set_city_worker (u16 x, u16 y, u16 city_idx) {
+    CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
+    m_tiles[tidx(x, y)].m_city_worker = city_idx;
+    return true;
+}
+
+bool GameArraySimple::set_civ_owner (u16 x, u16 y, u8 owner) {
+    CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
+    m_tiles[tidx(x, y)].m_civ_owner = owner;
     return true;
 }
 

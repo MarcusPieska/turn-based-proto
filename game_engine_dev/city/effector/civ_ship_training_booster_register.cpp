@@ -15,7 +15,7 @@
 //=> - CivShipTrainingBoosterRegister data -
 //================================================================================================================================
 
-const BoosterRegisterEntry CivShipTrainingBoosterRegister::s_entry[CivShipTrainingBoosterRegister::ENTRY_N] = {
+const BoosterRegisterEntry CivShipTrainingBoosterRegister::s_entry[1] = {
     { { EffectEnablerKind::WONDER, 4 }, 1, 0 }, // Great Lighthouse (wonder)
 };
 

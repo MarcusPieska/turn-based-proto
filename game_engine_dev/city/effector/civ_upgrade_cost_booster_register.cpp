@@ -15,7 +15,7 @@
 //=> - CivUpgradeCostBoosterRegister data -
 //================================================================================================================================
 
-const BoosterRegisterEntry CivUpgradeCostBoosterRegister::s_entry[CivUpgradeCostBoosterRegister::ENTRY_N] = {
+const BoosterRegisterEntry CivUpgradeCostBoosterRegister::s_entry[1] = {
     { { EffectEnablerKind::WONDER, 9 }, 0, -50 }, // Leonardo's Workshop (wonder)
 };
 

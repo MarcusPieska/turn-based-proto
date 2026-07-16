@@ -8,6 +8,16 @@
 #include "game_primitives.h"
 
 //================================================================================================================================
+//=> - Road types -
+//================================================================================================================================
+
+#define ROAD_NONE 0
+#define ROAD_PATH 1
+#define ROAD_COBBLE 2
+#define ROAD_ASPHALT 3
+#define ROAD_RAIL 4
+
+//================================================================================================================================
 //=> - Climate classes -
 //================================================================================================================================
 
@@ -16,7 +26,8 @@
 #define CLIMATE_PLAINS 2
 #define CLIMATE_DESERT 3
 #define CLIMATE_BLACK_SOIL 4
-#define CLIMATE_WT_MAX 99
+
+#define CLIMATE_WT_MAX 15 // Sentinel value, needs to fit in 4 bits
 
 //================================================================================================================================
 //=> - Overlay -
@@ -46,7 +57,7 @@ static const u8 TERR_MOUNTAINS[4] = {6, 76, 48, 30};
 static const u8 TERR_INLAND_SEA[4] = {7, 39, 103, 189};
 static const u8 TERR_INLAND_LAKE[4] = {8, 119, 183, 243};
 
-static const u8 TERR_TILE_SENTINEL[4] = {255, 50, 50, 50};
+static const u8 TERR_TILE_SENTINEL[4] = {15, 50, 50, 50}; // Sentinel value, needs to fit in 4 bits
 
 //================================================================================================================================
 //=> - Overlay rows: [0]=class id, [1..3]=RGB at save -
@@ -57,6 +68,8 @@ static const u8 OV_FOREST[4] = {1, 34, 139, 34};
 static const u8 OV_SWAMP[4] = {2, 170, 210, 170};
 static const u8 OV_JUNGLE[4] = {3, 0, 90, 40};
 static const u8 OV_GLACIER[4] = {4, 230, 242, 255};
+
+static const u8 OV_MAX[4] = {15, 255, 255, 255}; // Sentinel value, needs to fit in 4 bits
 
 //================================================================================================================================
 //=> - Placement rule wildcards (config tokens, not tile class ids) -

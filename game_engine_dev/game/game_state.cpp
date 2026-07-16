@@ -8,6 +8,10 @@
 #include "unit_movement_mng.h"
 #include "player_ledger.h"
 #include "city.h"
+#include "tile_yields.h"
+#include "tile_working.h"
+#include "city_tile_manager.h"
+#include "city_border.h"
 
 //================================================================================================================================
 //=> - GameState -
@@ -28,8 +32,6 @@ void GameState::clear () {
         delete[] m_player_states;
         m_player_states = nullptr;
     }
-    delete m_tile_ownership_array;
-    m_tile_ownership_array = nullptr;
     
     delete[] m_wonder_city;
     m_wonder_city = nullptr;
@@ -44,6 +46,10 @@ void GameState::clear () {
     new (&m_cities) CityArray();
     UnitMovementMng::bind_state(nullptr);
     PlayerLedger::bind_state(nullptr);
+    TileYields::bind_map(nullptr);
+    TileWorking::bind_map(nullptr);
+    CityTileManager::bind_cities(nullptr);
+    CityBorder::bind_map(nullptr);
     City::bind_wonder_cities(nullptr);
     City::bind_player_states(nullptr, 0);
     m_statics = nullptr;

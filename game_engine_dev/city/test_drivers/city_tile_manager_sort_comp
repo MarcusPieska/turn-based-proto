@@ -1,0 +1,59 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")"
+
+LIB_SO="../../data_io/runtime_static_loader_lib.so"
+if [ ! -f "$LIB_SO" ]; then
+    echo "missing $LIB_SO - run ../../data_io/runtime_static_loader_lib_comp first"
+    exit 1
+fi
+
+INC="-I../.. \
+     -I../../misc \
+     -I../../map_loader \
+     -I../../simple_map_gen \
+     -I../../adv_map_gen \
+     -I../../dyn_state \
+     -I../../data_io \
+     -I../../static_state \
+     -I../../gen_bit_banks \
+     -I../../game \
+     -I.. \
+     -I../assessor \
+     -I../effector"
+CXXFLAGS="-std=c++17 -Wall -Wextra"
+
+g++ $CXXFLAGS $INC -c ../../data_io/runtime_static_loader.cpp -o runtime_static_loader.o
+g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
+g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_data.cpp -o map_terrain_data.o
+g++ $CXXFLAGS $INC -c ../../map_loader/map_loader.cpp -o map_loader.o
+g++ $CXXFLAGS $INC -c ../../misc/map_bit_overlay.cpp -o map_bit_overlay.o
+g++ $CXXFLAGS $INC -c ../../misc/map_bit_array_overlay.cpp -o map_bit_array_overlay.o
+g++ $CXXFLAGS $INC -c ../../misc/bit_array.cpp -o bit_array.o
+g++ $CXXFLAGS $INC -c ../../game/runtime_trace_dbg.cpp -o runtime_trace_dbg.o
+g++ $CXXFLAGS $INC -c ../../game/game_array_simple.cpp -o game_array_simple.o
+g++ $CXXFLAGS $INC -c ../../game/factory_game_array_simple.cpp -o factory_game_array_simple.o
+g++ $CXXFLAGS $INC -c ../../game/tile_yields.cpp -o tile_yields.o
+g++ $CXXFLAGS $INC -c city_tile_manager_sort_tester.cpp -o city_tile_manager_sort_tester.o
+
+g++ $CXXFLAGS -o city_tile_manager_sort_tester \
+    runtime_static_loader.o \
+    map_terrain_validate.o \
+    map_terrain_data.o \
+    map_loader.o \
+    map_bit_overlay.o \
+    map_bit_array_overlay.o \
+    bit_array.o \
+    runtime_trace_dbg.o \
+    game_array_simple.o \
+    factory_game_array_simple.o \
+    tile_yields.o \
+    city_tile_manager_sort_tester.o \
+    -ldl \
+    $LIB_SO \
+    -Wl,-rpath,'$ORIGIN/../../data_io'
+
+rm runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.o map_bit_overlay.o \
+    map_bit_array_overlay.o bit_array.o runtime_trace_dbg.o game_array_simple.o \
+    factory_game_array_simple.o tile_yields.o city_tile_manager_sort_tester.o

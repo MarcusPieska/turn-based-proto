@@ -15,7 +15,7 @@
 //=> - CityPopGrowthBoosterRegister data -
 //================================================================================================================================
 
-const BoosterRegisterEntry CityPopGrowthBoosterRegister::s_entry[CityPopGrowthBoosterRegister::ENTRY_N] = {
+const BoosterRegisterEntry CityPopGrowthBoosterRegister::s_entry[4] = {
     { { EffectEnablerKind::BUILDING, 1 }, 0, 50 }, // Granary (building)
     { { EffectEnablerKind::BUILDING, 5 }, 0, 100 }, // Aqueduct (building)
     { { EffectEnablerKind::BUILDING, 18 }, 0, 150 }, // Hospital (building)

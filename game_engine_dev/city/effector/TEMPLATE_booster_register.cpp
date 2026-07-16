@@ -15,7 +15,7 @@
 //=> - [REGISTER_CLASS] data -
 //================================================================================================================================
 
-const BoosterRegisterEntry [REGISTER_CLASS]::s_entry[[REGISTER_CLASS]::ENTRY_N] = {
+const BoosterRegisterEntry [REGISTER_CLASS]::s_entry[[ENTRY_ARR_N]] = {
 [ENTRY_ROWS]
 };
 

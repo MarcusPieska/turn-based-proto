@@ -15,7 +15,7 @@
 //=> - CivMovementBoosterRegister data -
 //================================================================================================================================
 
-const BoosterRegisterEntry CivMovementBoosterRegister::s_entry[CivMovementBoosterRegister::ENTRY_N] = {
+const BoosterRegisterEntry CivMovementBoosterRegister::s_entry[1] = {
     { { EffectEnablerKind::BUILDING, 25 }, 1, 0 }, // Superhighways (building)
 };
 

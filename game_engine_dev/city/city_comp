@@ -40,6 +40,18 @@ g++ $CXXFLAGS $INC -c effector/booster_effect_register.cpp -o booster_effect_reg
 g++ $CXXFLAGS $INC -c effector/local_unit_exp_booster_register.cpp -o local_unit_exp_booster_register.o
 g++ $CXXFLAGS $INC -c effector/civ_ship_training_booster_register.cpp -o civ_ship_training_booster_register.o
 g++ $CXXFLAGS $INC -c effector/city_commerce_booster_register.cpp -o city_commerce_booster_register.o
+g++ $CXXFLAGS $INC -c effector/city_production_booster_register.cpp -o city_production_booster_register.o
+g++ $CXXFLAGS $INC -c effector/city_pop_growth_booster_register.cpp -o city_pop_growth_booster_register.o
+g++ $CXXFLAGS $INC -c effector/civ_pop_growth_booster_register.cpp -o civ_pop_growth_booster_register.o
+g++ $CXXFLAGS $INC -c effector/city_culture_booster_register.cpp -o city_culture_booster_register.o
+g++ $CXXFLAGS $INC -c effector/local_commerce_booster_register.cpp -o local_commerce_booster_register.o
+g++ $CXXFLAGS $INC -c effector/local_pop_growth_booster_register.cpp -o local_pop_growth_booster_register.o
+g++ $CXXFLAGS $INC -c effector/local_production_booster_register.cpp -o local_production_booster_register.o
+g++ $CXXFLAGS $INC -c city_border.cpp -o city_border.o
+g++ $CXXFLAGS $INC -c circular_tile_areas.cpp -o circular_tile_areas.o
+g++ $CXXFLAGS $INC -c ../game/tile_yields.cpp -o tile_yields.o
+g++ $CXXFLAGS $INC -c ../game/tile_working.cpp -o tile_working.o
+g++ $CXXFLAGS $INC -c city_tile_manager.cpp -o city_tile_manager.o
 g++ $CXXFLAGS $INC -c ../dyn_state/fort_add_vector.cpp -o fort_add_vector.o
 g++ $CXXFLAGS $INC -c ../dyn_state/mine_add_vector.cpp -o mine_add_vector.o
 g++ $CXXFLAGS $INC -c ../dyn_state/monastery_add_vector.cpp -o monastery_add_vector.o
@@ -75,6 +87,18 @@ g++ $CXXFLAGS -o city_tester \
     local_unit_exp_booster_register.o \
     civ_ship_training_booster_register.o \
     city_commerce_booster_register.o \
+    city_production_booster_register.o \
+    city_pop_growth_booster_register.o \
+    civ_pop_growth_booster_register.o \
+    city_culture_booster_register.o \
+    local_commerce_booster_register.o \
+    local_pop_growth_booster_register.o \
+    local_production_booster_register.o \
+    city_border.o \
+    circular_tile_areas.o \
+    tile_yields.o \
+    tile_working.o \
+    city_tile_manager.o \
     fort_add_vector.o \
     mine_add_vector.o \
     monastery_add_vector.o \
@@ -100,6 +124,10 @@ rm runtime_static_loader.o bit_array.o map_bit_overlay.o map_bit_array_overlay.o
     map_terrain_validate.o map_terrain_data.o map_loader.o runtime_trace_dbg.o \
     general_bit_bank.o general_assessor.o effect_ctx.o effect_enabler.o booster_effect_register.o \
     local_unit_exp_booster_register.o civ_ship_training_booster_register.o city_commerce_booster_register.o \
+    city_production_booster_register.o city_pop_growth_booster_register.o civ_pop_growth_booster_register.o \
+    city_culture_booster_register.o local_commerce_booster_register.o local_pop_growth_booster_register.o \
+    local_production_booster_register.o city_border.o circular_tile_areas.o tile_yields.o \
+    tile_working.o city_tile_manager.o \
     fort_add_vector.o mine_add_vector.o \
     monastery_add_vector.o outpost_add_vector.o plantation_add_vector.o \
     shipyard_add_vector.o trade_post_add_vector.o unit_add_vector.o unit_movement_mng.o \

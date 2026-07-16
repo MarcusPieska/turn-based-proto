@@ -23,6 +23,10 @@ public:
     static constexpr u16 ENTRY_N = [ENTRY_NUM];
 
     static BoosterRegisterResult determine_effect (const EffectCtx& ctx) {
+        if (ENTRY_N == 0) {
+            (void)ctx;
+            return {};
+        }
         return accum_entries(s_entry, ENTRY_N, [ACTIVE_FN], ctx);
     }
 
@@ -39,7 +43,7 @@ private:
         return ItemEffectsScope::[SCOPE_ENUM];
     }
 
-    static const BoosterRegisterEntry s_entry[ENTRY_N];
+    static const BoosterRegisterEntry s_entry[[ENTRY_ARR_N]];
 };
 
 #endif // [REGISTER_GUARD]

@@ -105,15 +105,15 @@ link_driver () {
 
 compile_core
 
-link_driver city_unit_level_booster_driver.cpp city_unit_level_booster_driver
-link_driver city_sea_training_booster_driver.cpp city_sea_training_booster_driver
-link_driver city_commerce_booster_driver.cpp city_commerce_booster_driver
+link_driver city_unit_level_booster_tester.cpp city_unit_level_booster_tester
+link_driver city_sea_training_booster_tester.cpp city_sea_training_booster_tester
+link_driver city_commerce_booster_tester.cpp city_commerce_booster_tester
 
-echo "--- running city_unit_level_booster_driver ---"
-./city_unit_level_booster_driver
-echo "--- running city_sea_training_booster_driver ---"
-./city_sea_training_booster_driver
-echo "--- running city_commerce_booster_driver ---"
-./city_commerce_booster_driver
+echo "--- running city_unit_level_booster_tester ---"
+./city_unit_level_booster_tester
+echo "--- running city_sea_training_booster_tester ---"
+./city_sea_training_booster_tester
+echo "--- running city_commerce_booster_tester ---"
+./city_commerce_booster_tester
 
 rm "${OBJS[@]}"

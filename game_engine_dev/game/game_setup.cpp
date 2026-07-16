@@ -15,6 +15,10 @@
 #include "city.h"
 #include "unit_movement_mng.h"
 #include "player_ledger.h"
+#include "tile_yields.h"
+#include "tile_working.h"
+#include "city_tile_manager.h"
+#include "city_border.h"
 
 //================================================================================================================================
 //=> - Static runtime data -
@@ -51,7 +55,6 @@ static bool ensure_map_gen_loader () {
 //================================================================================================================================
 
 static const u16 k_latt_div = 10;
-static const u8 k_own_bpv = 4u;
 
 static void latt_for_map (u16 w, u16 h, u16* rows, u16* cols) {
     u16 r = h / k_latt_div;
@@ -207,21 +210,10 @@ bool GameSetup::init_players (GameState* state, u16 player_n, u16 small_wonder_n
             return false;
         }
     }
-    MapBitArrayOverlay* own = new MapBitArrayOverlay(w, h, k_own_bpv);
-    if (own == nullptr || own->width() == 0) {
-        for (u16 i = 0; i < player_n; ++i) {
-            delete[] seats[i].m_small_wonder_city;
-            delete seats[i].m_explored_overlay;
-        }
-        delete[] seats;
-        delete own;
-        return false;
-    }
     state->m_player_states = seats;
     state->m_player_n = player_n;
     state->m_players_remaining = player_n;
     state->m_small_wonder_count = small_wonder_n;
-    state->m_tile_ownership_array = own;
     return true;
 }
 
@@ -256,6 +248,10 @@ bool GameSetup::finish_with_starts (GameState* state, const SpgPickCoords& start
     City::bind_wonder_cities(state->m_wonder_city);
     UnitMovementMng::bind_state(state);
     PlayerLedger::bind_state(state);
+    TileYields::bind_map(&state->m_map);
+    TileWorking::bind_map(&state->m_map);
+    CityBorder::bind_map(&state->m_map);
+    CityTileManager::bind_cities(&state->m_cities);
     if (!init_players(state, player_n, sw_n)) {
         state->clear();
         return false;

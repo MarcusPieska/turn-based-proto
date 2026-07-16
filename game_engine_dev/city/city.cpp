@@ -27,6 +27,15 @@
 #include "local_unit_exp_booster_register.h"
 #include "civ_ship_training_booster_register.h"
 #include "city_commerce_booster_register.h"
+#include "city_production_booster_register.h"
+#include "city_pop_growth_booster_register.h"
+#include "civ_pop_growth_booster_register.h"
+#include "city_culture_booster_register.h"
+#include "local_commerce_booster_register.h"
+#include "local_pop_growth_booster_register.h"
+#include "local_production_booster_register.h"
+#include "city_border.h"
+#include "tile_yields.h"
 
 #include <cstring>
 
@@ -164,7 +173,8 @@ City::City () : m_owner(U16_KEY_NULL),
     m_bld_idx(U16_KEY_NULL),
     m_pop_count(0),
     m_build_cost(0),
-    m_accumulated_shields(0),
+    m_accumulated_production(0),
+    m_culture(0),
     m_accumulated_food(0),
     m_build_type(BUILD_TYPE_NONE) {
 }
@@ -177,7 +187,8 @@ void City::init (u16 owner, u16 x, u16 y) {
     m_x = x;
     m_y = y;
     m_accumulated_food = 0;
-    m_accumulated_shields = 0;
+    m_accumulated_production = 0;
+    m_culture = 0;
     m_bld_idx = U16_KEY_NULL;
     m_build_cost = 0;
     m_build_type = BUILD_TYPE_NONE;
@@ -310,6 +321,10 @@ BitArrayCL* City::get_trainable_units (u16 city_idx, BitArrayCL* techs, BitArray
     return r;
 }
 
+//================================================================================================================================
+//=> - City build instructions -
+//================================================================================================================================
+
 void City::build_building (u16 building_idx) {
     m_build_type = BUILD_TYPE_BUILDING;
     m_bld_idx = building_idx;
@@ -340,28 +355,92 @@ void City::accumulate_commerce () {
     m_build_cost = 0;
 }
 
-void City::add_food (u16 amount) {
-    m_accumulated_food = static_cast<u16>(m_accumulated_food + amount);
-    while (m_accumulated_food >= 20) {
+//================================================================================================================================
+//=> - City add yields in furtherance of builds / bank -
+//================================================================================================================================
+
+bool City::add_food (u16 city_idx, u16 amount) {
+    const EffectCtx ctx = make_city_effect_ctx(*this, city_idx);
+
+    // Pull local tile food yield, and apply local boosters
+    const TileYield cy = TileYields::get(m_x, m_y);
+    const u16 local = apply_booster_u16(cy.m_food, LocalPopGrowthBoosterRegister::determine_effect(ctx));
+    amount = static_cast<u16>(local + amount);
+
+    // Handle the remaining food, and the non-local boosters
+    u16 boosted = apply_booster_u16(amount, CityPopGrowthBoosterRegister::determine_effect(ctx));
+    boosted = apply_booster_u16(boosted, CivPopGrowthBoosterRegister::determine_effect(ctx));
+    m_accumulated_food = static_cast<u16>(m_accumulated_food + boosted);
+    
+    // Handle population growth
+    bool grew = false;
+    if (m_accumulated_food >= 20) {
         m_accumulated_food = static_cast<u16>(m_accumulated_food - 20);
         m_pop_count++;
+        grew = true;
+    }
+    return grew;
+}
+
+bool City::add_production (u16 city_idx, u16 amount) {
+    const EffectCtx ctx = make_city_effect_ctx(*this, city_idx);
+
+    // Pull local tile production yield, and apply local boosters
+    const TileYield cy = TileYields::get(m_x, m_y);
+    const u16 local = apply_booster_u16(cy.m_production, LocalProductionBoosterRegister::determine_effect(ctx));
+    amount = static_cast<u16>(amount + local);
+
+    // Handle the remaining production, and the non-local boosters
+    const u16 boosted = apply_booster_u16(amount, CityProductionBoosterRegister::determine_effect(ctx));
+    m_accumulated_production = static_cast<u16>(m_accumulated_production + boosted);
+    
+    // Do not trigger build-is-done if we are not building a building, or if we are converting production to commerce
+    if (m_build_type == BUILD_TYPE_NONE || m_build_type == ACCUMULATE_COMMERCE) {
+        return false;
+    }
+
+    // Trigger build-is-done if we are missing a building, or if we have enough production to build the building
+    return m_bld_idx == U16_KEY_NULL || m_accumulated_production >= m_build_cost;
+}
+
+void City::add_commerce (u16 city_idx, u16 amount) {
+    const EffectCtx ctx = make_city_effect_ctx(*this, city_idx);
+
+    // Pull local tile commerce yield, and apply local boosters
+    const TileYield cy = TileYields::get(m_x, m_y);
+    const u16 local = apply_booster_u16(cy.m_commerce, LocalCommerceBoosterRegister::determine_effect(ctx));
+    amount = static_cast<u16>(amount + local);
+
+    // Handle the remaining commerce, and the non-local boosters
+    const BoosterRegisterResult boost = CityCommerceBoosterRegister::determine_effect(ctx);
+    const u16 commerce = apply_booster_u16(amount, boost);
+
+    // Add the commerce to the player ledger
+    if (!PlayerLedger::add_commerce(m_owner, commerce)) {
+        GAME_EXPECT(false, "City commerce ledger");
     }
 }
 
-void City::add_shields (u16 amount) {
-    m_accumulated_shields = static_cast<u16>(m_accumulated_shields + amount);
+void City::add_culture (u16 city_idx, u16 amount) {
+    const EffectCtx ctx = make_city_effect_ctx(*this, city_idx);
+    const u16 boosted = apply_booster_u16(amount, CityCultureBoosterRegister::determine_effect(ctx));
+    const u16 new_culture = static_cast<u16>(m_culture + boosted);
+    if (CityBorder::will_expand(m_culture, new_culture)) {
+        CityBorder::claim_expand(m_x, m_y, m_culture, new_culture, static_cast<u8>(m_owner));
+    }
+    m_culture = new_culture;
 }
 
-void City::add_culture (u16 amount) {
-    m_culture = static_cast<u16>(m_culture + amount);
-}
+//================================================================================================================================
+//=> - City getters -
+//================================================================================================================================
 
 u16 City::get_current_food_store () const {
     return m_accumulated_food;
 }
 
-u16 City::get_current_shields_store () const {
-    return m_accumulated_shields;
+u16 City::get_current_production_store () const {
+    return m_accumulated_production;
 }
 
 u16 City::get_current_culture () const {
@@ -370,6 +449,10 @@ u16 City::get_current_culture () const {
 
 u16 City::get_current_population () const {
     return m_pop_count;
+}
+
+void City::set_population (u16 pop) {
+    m_pop_count = pop;
 }
 
 u16 City::get_owner () const {
@@ -384,6 +467,10 @@ u16 City::get_y () const {
     return m_y;
 }
 
+//================================================================================================================================
+//=> - City finish build -
+//================================================================================================================================
+
 bool City::finish_if_ready (u16 city_idx) {
     if (m_build_type == BUILD_TYPE_NONE) {
         return false;
@@ -392,14 +479,14 @@ bool City::finish_if_ready (u16 city_idx) {
         if (m_bld_idx == U16_KEY_NULL) {
             return false;
         }
-        if (m_accumulated_shields < m_build_cost) {
+        if (m_accumulated_production < m_build_cost) {
             return false;
         }
     }
     switch (m_build_type) {
         case BUILD_TYPE_BUILDING: {
             GAME_EXPECT_RET(s_bld_bank != nullptr, false, "City building bank");
-            m_accumulated_shields = static_cast<u16>(m_accumulated_shields - m_build_cost);
+            m_accumulated_production = static_cast<u16>(m_accumulated_production - m_build_cost);
             s_bld_bank->set_flag(city_idx, m_bld_idx);
             m_build_type = BUILD_TYPE_NONE;
             m_bld_idx = U16_KEY_NULL;
@@ -408,7 +495,7 @@ bool City::finish_if_ready (u16 city_idx) {
         }
         case BUILD_TYPE_WONDER: {
             GAME_EXPECT_RET(s_wonder_city != nullptr, false, "City wonder cities");
-            m_accumulated_shields = static_cast<u16>(m_accumulated_shields - m_build_cost);
+            m_accumulated_production = static_cast<u16>(m_accumulated_production - m_build_cost);
             s_wonder_city[m_bld_idx] = city_idx;
             set_city_flag(city_idx, s_flag_has_wonder);
             m_build_type = BUILD_TYPE_NONE;
@@ -419,7 +506,7 @@ bool City::finish_if_ready (u16 city_idx) {
         case BUILD_TYPE_SMALL_WONDER: {
             u16* built = small_wonder_row(m_owner);
             GAME_EXPECT_RET(built != nullptr, false, "City small wonder cities");
-            m_accumulated_shields = static_cast<u16>(m_accumulated_shields - m_build_cost);
+            m_accumulated_production = static_cast<u16>(m_accumulated_production - m_build_cost);
             built[m_bld_idx] = city_idx;
             set_city_flag(city_idx, s_flag_has_wonder_small);
             m_build_type = BUILD_TYPE_NONE;
@@ -446,7 +533,7 @@ bool City::finish_if_ready (u16 city_idx) {
             unit->m_mvt_points = 0;
             unit->m_health = UNIT_HEALTH;
             unit->m_level = spawn_unit_level(*this, city_idx, m_bld_idx);
-            m_accumulated_shields = static_cast<u16>(m_accumulated_shields - m_build_cost);
+            m_accumulated_production = static_cast<u16>(m_accumulated_production - m_build_cost);
             m_build_type = BUILD_TYPE_NONE;
             m_bld_idx = U16_KEY_NULL;
             m_build_cost = 0;
@@ -454,27 +541,28 @@ bool City::finish_if_ready (u16 city_idx) {
             return true;
         }
         case ACCUMULATE_COMMERCE: {
-            const u16 base = static_cast<u16>(m_accumulated_shields / 2);
-            if (base == 0) {
-                return true;
+            if (m_accumulated_production < 2) {
+                return false;
             }
+            const u16 base = static_cast<u16>(m_accumulated_production / 2);
             const EffectCtx ctx = make_city_effect_ctx(*this, city_idx);
             const BoosterRegisterResult boost = CityCommerceBoosterRegister::determine_effect(ctx);
             const u16 commerce = apply_booster_u16(base, boost);
             if (commerce == 0) {
-                m_accumulated_shields = 0;
-                return true;
+                m_accumulated_production = 0;
+                return false;
             }
             if (!PlayerLedger::add_commerce(m_owner, commerce)) {
                 GAME_EXPECT(false, "City commerce ledger");
             }
-            m_accumulated_shields = 0;
-            return true;
+            m_accumulated_production = 0;
+            return false;
         }
         default: {
             return false;
         }
     }
+    return false;
 }
 
 bool City::has_building (u16 city_idx, u16 building_idx) const {

@@ -15,7 +15,7 @@
 //=> - CivWarWearBoosterRegister data -
 //================================================================================================================================
 
-const BoosterRegisterEntry CivWarWearBoosterRegister::s_entry[CivWarWearBoosterRegister::ENTRY_N] = {
+const BoosterRegisterEntry CivWarWearBoosterRegister::s_entry[2] = {
     { { EffectEnablerKind::WONDER, 15 }, 0, -50 }, // J.S. Bach's Cathedral (wonder)
     { { EffectEnablerKind::WONDER, 19 }, 0, 0 }, // Eiffel Tower (wonder)
 };

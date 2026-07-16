@@ -15,7 +15,7 @@
 //=> - CitySeaTradeBoosterRegister data -
 //================================================================================================================================
 
-const BoosterRegisterEntry CitySeaTradeBoosterRegister::s_entry[CitySeaTradeBoosterRegister::ENTRY_N] = {
+const BoosterRegisterEntry CitySeaTradeBoosterRegister::s_entry[3] = {
     { { EffectEnablerKind::BUILDING, 7 }, 1, 0 }, // Harbor (building)
     { { EffectEnablerKind::BUILDING, 16 }, 0, 100 }, // Commercial Dock (building)
     { { EffectEnablerKind::BUILDING, 28 }, 0, 50 }, // Offshore Platform (building)

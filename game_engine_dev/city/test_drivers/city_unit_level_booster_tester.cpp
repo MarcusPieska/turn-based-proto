@@ -14,7 +14,7 @@ int main () {
         return 1;
     }
 
-    std::printf("=== city unit level booster driver ===\n");
+    std::printf("=== city unit level booster tester ===\n");
 
     const u16 warrior = env.find_unit_idx("Warrior");
     const u16 barracks = env.find_bld_idx("Barracks");

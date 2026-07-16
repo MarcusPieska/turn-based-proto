@@ -197,22 +197,26 @@ def build_pairs (booster_tp, scope, entries):
     pairs.append(("[TYPE_LABEL]", booster_tp))
     pairs.append(("[ACTIVE_FN]", SCOPE_ACTIVE_FN[scope]))
     pairs.append(("[ENTRY_NUM]", str(entry_n)))
-    pairs.append(("[ENTRY_ROWS]", entry_rows_text(entries)))
+    pairs.append(("[ENTRY_ARR_N]", str(entry_n if entry_n > 0 else 1)))
+    if entry_n == 0:
+        pairs.append(("[ENTRY_ROWS]", "    // no effects for this scope/type"))
+    else:
+        pairs.append(("[ENTRY_ROWS]", entry_rows_text(entries)))
     return pairs, stem, entry_n
 
 def generate_one (booster_tp, scope):
     if scope not in SCOPE_ACTIVE_FN:
         raise SystemExit("unknown scope: %s" % scope)
     entries = find_entries(booster_tp, scope)
-    if not entries:
-        print("skip %s: no entries in game_config.effects" % register_stem(booster_tp, scope))
-        return False
     pairs, stem, entry_n = build_pairs(booster_tp, scope, entries)
     write_from_template("booster_register.h", "%s_booster_register.h" % stem, pairs)
     write_from_template("booster_register.cpp", "%s_booster_register.cpp" % stem, pairs)
     write_from_template("booster_register_tester.cpp", "%s_booster_register_tester.cpp" % stem, pairs)
     write_from_template("booster_register_comp", "%s_booster_register_comp" % stem, pairs)
-    print("wrote %s (%u entries)" % (stem, entry_n))
+    if entry_n == 0:
+        print("wrote %s (0 entries)" % stem)
+    else:
+        print("wrote %s (%u entries)" % (stem, entry_n))
     return True
 
 def cleanup_stale_generated (stems_written):
@@ -250,16 +254,13 @@ def write_all_comp (stems):
 def main ():
     specs = derive_register_specs()
     written = []
-    skipped = 0
     for booster_tp, scope in specs:
         if generate_one(booster_tp, scope):
             written.append(register_stem(booster_tp, scope))
-        else:
-            skipped += 1
     cleanup_stale_generated(written)
     if written:
         write_all_comp(written)
-    print("done: %u registers written, %u skipped (of %u specs)" % (len(written), skipped, len(specs)))
+    print("done: %u registers written (of %u specs)" % (len(written), len(specs)))
 
 if __name__ == "__main__":
     main()

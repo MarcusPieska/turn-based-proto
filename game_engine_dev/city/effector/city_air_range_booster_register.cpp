@@ -15,7 +15,7 @@
 //=> - CityAirRangeBoosterRegister data -
 //================================================================================================================================
 
-const BoosterRegisterEntry CityAirRangeBoosterRegister::s_entry[CityAirRangeBoosterRegister::ENTRY_N] = {
+const BoosterRegisterEntry CityAirRangeBoosterRegister::s_entry[1] = {
     { { EffectEnablerKind::BUILDING, 15 }, 2, 0 }, // Airport (building)
 };
 

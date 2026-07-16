@@ -15,7 +15,7 @@
 //=> - CityProductionBoosterRegister data -
 //================================================================================================================================
 
-const BoosterRegisterEntry CityProductionBoosterRegister::s_entry[CityProductionBoosterRegister::ENTRY_N] = {
+const BoosterRegisterEntry CityProductionBoosterRegister::s_entry[9] = {
     { { EffectEnablerKind::BUILDING, 12 }, 0, 50 }, // Factory (building)
     { { EffectEnablerKind::BUILDING, 19 }, 0, 100 }, // Coal Plant (building)
     { { EffectEnablerKind::BUILDING, 20 }, 0, 100 }, // Hydro Plant (building)

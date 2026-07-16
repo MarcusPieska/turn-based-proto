@@ -14,7 +14,7 @@ int main () {
         return 1;
     }
 
-    std::printf("=== city sea training booster driver ===\n");
+    std::printf("=== city sea training booster tester ===\n");
 
     const u16 galley = env.find_unit_idx("Galley");
     const u16 lighthouse = env.find_wonder_idx("Great Lighthouse");

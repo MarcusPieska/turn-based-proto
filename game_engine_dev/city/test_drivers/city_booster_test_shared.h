@@ -151,7 +151,7 @@ struct CityBoosterTestEnv {
         }
         c->build_unit(unit_idx);
         const u32 cost = m_st->unit().get_item(UnitStaticDataKey::from_raw(unit_idx)).cost;
-        c->add_shields(static_cast<u16>(cost));
+        c->add_production(m_city_idx, static_cast<u16>(cost));
         return c->finish_if_ready(m_city_idx);
     }
 

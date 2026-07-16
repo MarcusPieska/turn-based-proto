@@ -80,6 +80,7 @@ struct CityTestEnv {
         PlayerLedger::bind_state(nullptr);
         City::bind_wonder_cities(nullptr);
         City::bind_player_states(nullptr, 0);
+        City::bind_banks(nullptr, nullptr, nullptr);
     }
 
     bool bind () {
@@ -134,25 +135,50 @@ void test_city_init () {
         && city.get_x() == 10
         && city.get_y() == 20
         && city.get_current_food_store() == 0
-        && city.get_current_shields_store() == 0
+        && city.get_current_production_store() == 0
         && city.get_current_population() == 1;
     note_result(ok, "City init fields");
     summarize_test_results();
 }
 
 void test_city_add_food () {
-    City city;
-    city.init(0, 0, 0);
-    city.add_food(25);
-    note_result(city.get_current_food_store() == 5 && city.get_current_population() == 2, "City add_food growth");
+    CityTestEnv env;
+    if (!env.bind()) {
+        note_result(false, "City test env bind");
+        summarize_test_results();
+        return;
+    }
+    const u16 city_idx = env.m_array.get_next_new_city_idx();
+    City* city = env.m_array.get_city(city_idx);
+    if (city == nullptr) {
+        note_result(false, "City add_food spawn");
+        summarize_test_results();
+        return;
+    }
+    city->init(0, 0, 0);
+    const bool grew = city->add_food(city_idx, 25);
+    note_result(grew && city->get_current_food_store() == 5 && city->get_current_population() == 2, "City add_food growth");
     summarize_test_results();
 }
 
-void test_city_add_shields () {
-    City city;
-    city.add_shields(20);
-    city.add_shields(15);
-    note_result(city.get_current_shields_store() == 35, "City add_shields");
+void test_city_add_production () {
+    CityTestEnv env;
+    if (!env.bind()) {
+        note_result(false, "City test env bind");
+        summarize_test_results();
+        return;
+    }
+    const u16 city_idx = env.m_array.get_next_new_city_idx();
+    City* city = env.m_array.get_city(city_idx);
+    if (city == nullptr) {
+        note_result(false, "City add_production spawn");
+        summarize_test_results();
+        return;
+    }
+    city->init(0, 0, 0);
+    city->add_production(city_idx, 20);
+    city->add_production(city_idx, 15);
+    note_result(city->get_current_production_store() == 35, "City add_production");
     summarize_test_results();
 }
 
@@ -163,18 +189,37 @@ void test_city_get_buildable_buildings () {
         summarize_test_results();
         return;
     }
-    City city;
-    city.init(0, 0, 0);
-    BitArrayCL* r = city.get_buildable_buildings(0, env.m_techs, env.m_civ);
+    const u16 city_idx = env.m_array.get_next_new_city_idx();
+    City* city = env.m_array.get_city(city_idx);
+    if (city == nullptr) {
+        note_result(false, "City get_buildable spawn");
+        summarize_test_results();
+        return;
+    }
+    city->init(0, 0, 0);
+    BitArrayCL* r = city->get_buildable_buildings(city_idx, env.m_techs, env.m_civ);
     note_result(r != nullptr, "City get_buildable_buildings scratch");
     summarize_test_results();
 }
 
 void test_city_accumulate_commerce_mode () {
-    City city;
-    city.accumulate_commerce();
-    city.add_shields(10);
-    note_result(city.get_current_shields_store() == 10, "City accumulate_commerce mode");
+    CityTestEnv env;
+    if (!env.bind()) {
+        note_result(false, "City test env bind");
+        summarize_test_results();
+        return;
+    }
+    const u16 city_idx = env.m_array.get_next_new_city_idx();
+    City* city = env.m_array.get_city(city_idx);
+    if (city == nullptr) {
+        note_result(false, "City accumulate_commerce spawn");
+        summarize_test_results();
+        return;
+    }
+    city->init(0, 0, 0);
+    city->accumulate_commerce();
+    city->add_production(city_idx, 10);
+    note_result(city->get_current_production_store() == 10, "City accumulate_commerce mode");
     summarize_test_results();
 }
 
@@ -189,7 +234,7 @@ int main (int argc, char* argv[]) {
 
     test_city_init();
     test_city_add_food();
-    test_city_add_shields();
+    test_city_add_production();
     test_city_get_buildable_buildings();
     test_city_accumulate_commerce_mode();
 
