@@ -22,7 +22,7 @@ class StaticBitBank;
 #include "city_flag_parser.h"
 #include "civ_parser.h"
 #include "civ_trait_parser.h"
-#include "mvt_cost_parser.h"
+#include "tile_attribute_parser.h"
 #include "resource_parser.h"
 #include "res_dist_parser.h"
 #include "small_wonder_parser.h"
@@ -36,7 +36,7 @@ class StaticBitBank;
 #include "city_flag_static_data.h"
 #include "civ_static_data.h"
 #include "civ_trait_static_data.h"
-#include "mvt_cost_static_data.h"
+#include "tile_attribute_static_data.h"
 #include "resource_static_data.h"
 #include "res_dist_static_data.h"
 #include "small_wonder_static_data.h"
@@ -71,9 +71,9 @@ public:
 
     u16 get_civ_trait_count () const;
 
-    const MvtCostStaticDataStruct* get_mvt_cost_data () const;
+    const TileAttributeStaticDataStruct* get_tile_attribute_data () const;
 
-    u16 get_mvt_cost_count () const;
+    u16 get_tile_attribute_count () const;
 
     const ResourceStaticDataStruct* get_resource_data () const;
 
@@ -114,7 +114,7 @@ public:
 
     const DataParserBase& get_civ_trait_name_parser () const;
 
-    const DataParserBase& get_mvt_cost_name_parser () const;
+    const DataParserBase& get_tile_attribute_name_parser () const;
 
     const DataParserBase& get_resource_name_parser () const;
 
@@ -159,7 +159,7 @@ private:
     StringManager m_city_flag_items;
     StringManager m_civ_items;
     StringManager m_civ_trait_items;
-    StringManager m_mvt_cost_items;
+    StringManager m_tile_attribute_items;
     StringManager m_resource_items;
     StringManager m_res_dist_items;
     StringManager m_small_wonder_items;
@@ -173,7 +173,7 @@ private:
     DataParserBase* m_city_flag_name_parser;
     DataParserBase* m_civ_name_parser;
     DataParserBase* m_civ_trait_name_parser;
-    DataParserBase* m_mvt_cost_name_parser;
+    DataParserBase* m_tile_attribute_name_parser;
     DataParserBase* m_resource_name_parser;
     DataParserBase* m_res_dist_name_parser;
     DataParserBase* m_small_wonder_name_parser;
@@ -193,7 +193,7 @@ private:
     CityFlagStaticDataStruct* m_city_flag_data;
     CivStaticDataStruct* m_civ_data;
     CivTraitStaticDataStruct* m_civ_trait_data;
-    MvtCostStaticDataStruct* m_mvt_cost_data;
+    TileAttributeStaticDataStruct* m_tile_attribute_data;
     ResourceStaticDataStruct* m_resource_data;
     ResDistStaticDataStruct* m_res_dist_data;
     SmallWonderStaticDataStruct* m_small_wonder_data;

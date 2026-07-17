@@ -15,7 +15,7 @@
 #include "game_primitives.h"
 
 static const u16 PATH_MNG_PATH_N = 512;
-static const u16 PATH_MNG_SUFFIX_MAX_N = 25;
+static const u16 PATH_MNG_SUFFIX_MAX_N = 27;
 static const u16 PATH_MNG_OFFSET_MAX_N = PATH_MNG_PATH_N - PATH_MNG_SUFFIX_MAX_N - 1;
 static const u16 PATH_MNG_OFFSET_BUF_N = PATH_MNG_OFFSET_MAX_N + 1;
 
@@ -33,7 +33,7 @@ public:
     cstr get_path_to_civs () const;
     cstr get_path_to_effects () const;
     cstr get_path_to_governments () const;
-    cstr get_path_to_mvt_costs () const;
+    cstr get_path_to_tile_attributes () const;
     cstr get_path_to_resources () const;
     cstr get_path_to_res_dists () const;
     cstr get_path_to_small_wonders () const;
@@ -60,7 +60,7 @@ private:
     char m_path_civs[PATH_MNG_PATH_N];
     char m_path_effects[PATH_MNG_PATH_N];
     char m_path_governments[PATH_MNG_PATH_N];
-    char m_path_mvt_costs[PATH_MNG_PATH_N];
+    char m_path_tile_attributes[PATH_MNG_PATH_N];
     char m_path_resources[PATH_MNG_PATH_N];
     char m_path_res_dists[PATH_MNG_PATH_N];
     char m_path_small_wonders[PATH_MNG_PATH_N];

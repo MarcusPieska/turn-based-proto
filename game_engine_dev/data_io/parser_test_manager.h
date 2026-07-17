@@ -16,7 +16,7 @@
 #include "city_flag_parser_tester.h"
 #include "civ_parser_tester.h"
 #include "civ_trait_parser_tester.h"
-#include "mvt_cost_parser_tester.h"
+#include "tile_attribute_parser_tester.h"
 #include "resource_parser_tester.h"
 #include "res_dist_parser_tester.h"
 #include "small_wonder_parser_tester.h"
@@ -41,7 +41,7 @@ public:
     CityFlagParserTester& city_flag () { return m_city_flag; }
     CivParserTester& civ () { return m_civ; }
     CivTraitParserTester& civ_trait () { return m_civ_trait; }
-    MvtCostParserTester& mvt_cost () { return m_mvt_cost; }
+    TileAttributeParserTester& tile_attribute () { return m_tile_attribute; }
     ResourceParserTester& resource () { return m_resource; }
     ResDistParserTester& res_dist () { return m_res_dist; }
     SmallWonderParserTester& small_wonder () { return m_small_wonder; }
@@ -58,7 +58,7 @@ private:
     CityFlagParserTester m_city_flag;
     CivParserTester m_civ;
     CivTraitParserTester m_civ_trait;
-    MvtCostParserTester m_mvt_cost;
+    TileAttributeParserTester m_tile_attribute;
     ResourceParserTester m_resource;
     ResDistParserTester m_res_dist;
     SmallWonderParserTester m_small_wonder;

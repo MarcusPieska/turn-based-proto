@@ -92,8 +92,8 @@ cstr PathMng::get_path_to_governments () const {
     return m_path_governments;
 }
 
-cstr PathMng::get_path_to_mvt_costs () const {
-    return m_path_mvt_costs;
+cstr PathMng::get_path_to_tile_attributes () const {
+    return m_path_tile_attributes;
 }
 
 cstr PathMng::get_path_to_resources () const {
@@ -139,7 +139,7 @@ void PathMng::build_paths () {
     join_path(m_path_civs, PATH_MNG_PATH_N, m_path_offset, "game_config.civs");
     join_path(m_path_effects, PATH_MNG_PATH_N, m_path_offset, "game_config.effects");
     join_path(m_path_governments, PATH_MNG_PATH_N, m_path_offset, "game_config.governments");
-    join_path(m_path_mvt_costs, PATH_MNG_PATH_N, m_path_offset, "game_config.mvt_costs");
+    join_path(m_path_tile_attributes, PATH_MNG_PATH_N, m_path_offset, "game_config.tile_attributes");
     join_path(m_path_resources, PATH_MNG_PATH_N, m_path_offset, "game_config.resources");
     join_path(m_path_res_dists, PATH_MNG_PATH_N, m_path_offset, "game_config.res_dists");
     join_path(m_path_small_wonders, PATH_MNG_PATH_N, m_path_offset, "game_config.small_wonders");
@@ -178,8 +178,8 @@ void PathMng::validate_paths_or_exit () const {
         printf("ERROR: Missing file: %s\n", m_path_governments);
         ++error_count;
     }
-    if (!does_file_exist(m_path_mvt_costs)) {
-        printf("ERROR: Missing file: %s\n", m_path_mvt_costs);
+    if (!does_file_exist(m_path_tile_attributes)) {
+        printf("ERROR: Missing file: %s\n", m_path_tile_attributes);
         ++error_count;
     }
     if (!does_file_exist(m_path_resources)) {

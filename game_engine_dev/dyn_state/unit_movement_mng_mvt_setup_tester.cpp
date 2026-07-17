@@ -8,7 +8,8 @@
 #include "game_map_defs.h"
 #include "runtime_static_loader.h"
 #include "runtime_statics.h"
-#include "mvt_cost_static_key.h"
+#include "tile_attr_tables.h"
+#include "tile_attribute_static_key.h"
 #include "unit_movement_mng.h"
 
 //================================================================================================================================
@@ -111,28 +112,31 @@ static cstr clim_lbl (u8 id) {
 }
 
 static cstr ov_lbl (u8 id) {
-    if (id == OVERLAY_NONE) {
-        return "OVERLAY_NONE";
+    if (id == OV_NONE[0]) {
+        return "OV_NONE";
     }
     if (id == OV_SWAMP[0]) {
-        return "OVERLAY_SWAMPS";
+        return "OV_SWAMPS";
     }
     if (id == OV_FOREST[0]) {
-        return "OVERLAY_FORESTS";
+        return "OV_FORESTS";
     }
     if (id == OV_JUNGLE[0]) {
-        return "OVERLAY_JUNGLES";
+        return "OV_JUNGLES";
     }
-    return "OVERLAY_OTHER";
+    if (id == OV_GLACIER[0]) {
+        return "OV_GLACIER";
+    }
+    return "OV_OTHER";
 }
 
 static bool print_map_rows (const RuntimeStatics& st, u16* out_mapped) {
     std::printf("--- mvt_cost config -> game class mapping ---\n");
     u16 mapped = 0u;
-    const u16 n = st.mvt_cost().get_item_count();
+    const u16 n = st.tile_attribute().get_item_count();
     for (u16 i = 0; i < n; ++i) {
-        cstr nm = st.mvt_cost().get_name(MvtCostStaticDataKey::from_raw(i));
-        const u16 cost = st.mvt_cost().get_item(MvtCostStaticDataKey::from_raw(i)).cost;
+        cstr nm = st.tile_attribute().get_name(TileAttributeStaticDataKey::from_raw(i));
+        const u16 cost = st.tile_attribute().get_item(TileAttributeStaticDataKey::from_raw(i)).mvt_cost;
         u8 gid = 0u;
         u8 kind = 0u;
         if (nm == nullptr || !UnitMovementMng::map_mvt_cost_name(nm, &gid, &kind)) {
@@ -142,16 +146,16 @@ static bool print_map_rows (const RuntimeStatics& st, u16* out_mapped) {
             continue;
         }
         mapped = static_cast<u16>(mapped + 1u);
-        if (kind == 0u) {
+        if (kind == TileAttrTables::k_kind_terr) {
             std::printf("  %s -> %s id=%u cost=%u\n", nm, terr_lbl(gid), gid, cost);
-        } else if (kind == 1u) {
+        } else if (kind == TileAttrTables::k_kind_clim) {
             std::printf("  %s -> %s id=%u cost=%u\n", nm, clim_lbl(gid), gid, cost);
-        } else if (kind == 2u) {
+        } else if (kind == TileAttrTables::k_kind_ov) {
             std::printf("  %s -> %s id=%u cost=%u\n", nm, ov_lbl(gid), gid, cost);
-        } else if (kind == 3u) {
+        } else if (kind == TileAttrTables::k_kind_riv) {
             std::printf("  %s -> river transport cost=%u\n", nm, cost);
-        } else if (kind == 4u) {
-            std::printf("  %s -> road transport cost=%u\n", nm, cost);
+        } else if (kind == TileAttrTables::k_kind_road) {
+            std::printf("  %s -> road id=%u cost=%u\n", nm, gid, cost);
         }
     }
     *out_mapped = mapped;

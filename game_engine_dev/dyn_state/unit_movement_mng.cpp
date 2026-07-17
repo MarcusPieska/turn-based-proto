@@ -10,8 +10,8 @@
 #include "civ_static_key.h"
 #include "game_map_defs.h"
 #include "game_state.h"
-#include "mvt_cost_static_data.h"
 #include "runtime_statics.h"
+#include "tile_attr_tables.h"
 #include "unit_static_data.h"
 #include "unit_static_key.h"
 #include "unit_type_static_key.h"
@@ -20,23 +20,9 @@
 #include <cstring>
 
 //================================================================================================================================
-//=> - Mvt cost tables -
+//=> - Mvt cost state -
 //================================================================================================================================
 
-static const u8 k_mvt_kind_terr = 0u;
-static const u8 k_mvt_kind_clim = 1u;
-static const u8 k_mvt_kind_ov = 2u;
-static const u8 k_mvt_kind_riv = 3u;
-static const u8 k_mvt_kind_road = 4u;
-
-static u16* g_terr_cost = nullptr;
-static u16* g_clim_cost = nullptr;
-static u16* g_ov_cost = nullptr;
-static u16 g_terr_n = 0u;
-static u16 g_clim_n = 0u;
-static u16 g_ov_n = 0u;
-static u16 g_riv_cost = 0u;
-static u16 g_road_cost = 0u;
 static bool g_mvt_ready = false;
 static u16 g_mvt_mapped_n = 0u;
 static u16 g_mvt_cost_n = 0u;
@@ -55,192 +41,6 @@ static UnitAddStruct* u_get (GameState& s, UnitAddKey key) {
 
 static const UnitAddStruct* u_get (const GameState& s, UnitAddKey key) {
     return s.m_units.get_unit_add(key);
-}
-
-static u16 mvt_cost_at (const RuntimeStatics& st, u16 idx) {
-    const u16 n = st.mvt_cost().get_item_count();
-    if (idx >= n) {
-        return 0u;
-    }
-    return st.mvt_cost().get_item(MvtCostStaticDataKey::from_raw(idx)).cost;
-}
-
-static bool resolve_mvt_name (cstr name, u8* out_id, u8* out_kind) {
-    if (name == nullptr || out_id == nullptr || out_kind == nullptr) {
-        return false;
-    }
-    if (std::strcmp(name, "TERR_NONE") == 0) {
-        *out_id = TERR_NONE[0];
-        *out_kind = k_mvt_kind_terr;
-        return true;
-    }
-    if (std::strcmp(name, "TERR_OCEAN") == 0) {
-        *out_id = TERR_OCEAN[0];
-        *out_kind = k_mvt_kind_terr;
-        return true;
-    }
-    if (std::strcmp(name, "TERR_SEA") == 0) {
-        *out_id = TERR_SEA[0];
-        *out_kind = k_mvt_kind_terr;
-        return true;
-    }
-    if (std::strcmp(name, "TERR_COASTAL") == 0) {
-        *out_id = TERR_COASTAL[0];
-        *out_kind = k_mvt_kind_terr;
-        return true;
-    }
-    if (std::strcmp(name, "TERR_PLAINS") == 0) {
-        *out_id = TERR_PLAINS[0];
-        *out_kind = k_mvt_kind_terr;
-        return true;
-    }
-    if (std::strcmp(name, "TERR_HILLS") == 0) {
-        *out_id = TERR_HILLS[0];
-        *out_kind = k_mvt_kind_terr;
-        return true;
-    }
-    if (std::strcmp(name, "TERR_MOUNTAINS") == 0) {
-        *out_id = TERR_MOUNTAINS[0];
-        *out_kind = k_mvt_kind_terr;
-        return true;
-    }
-    if (std::strcmp(name, "CLIMATE_NONE") == 0) {
-        *out_id = static_cast<u8>(CLIMATE_NONE);
-        *out_kind = k_mvt_kind_clim;
-        return true;
-    }
-    if (std::strcmp(name, "CLIMATE_GRASSLAND") == 0) {
-        *out_id = static_cast<u8>(CLIMATE_GRASSLAND);
-        *out_kind = k_mvt_kind_clim;
-        return true;
-    }
-    if (std::strcmp(name, "CLIMATE_PLAINS") == 0) {
-        *out_id = static_cast<u8>(CLIMATE_PLAINS);
-        *out_kind = k_mvt_kind_clim;
-        return true;
-    }
-    if (std::strcmp(name, "CLIMATE_DESERT") == 0) {
-        *out_id = static_cast<u8>(CLIMATE_DESERT);
-        *out_kind = k_mvt_kind_clim;
-        return true;
-    }
-    if (std::strcmp(name, "OVERLAY_NONE") == 0) {
-        *out_id = static_cast<u8>(OVERLAY_NONE);
-        *out_kind = k_mvt_kind_ov;
-        return true;
-    }
-    if (std::strcmp(name, "NO_OVERLAYS") == 0) {
-        *out_id = static_cast<u8>(OVERLAY_NONE);
-        *out_kind = k_mvt_kind_ov;
-        return true;
-    }
-    if (std::strcmp(name, "OVERLAY_SWAMPS") == 0) {
-        *out_id = OV_SWAMP[0];
-        *out_kind = k_mvt_kind_ov;
-        return true;
-    }
-    if (std::strcmp(name, "OVERLAY_FORESTS") == 0) {
-        *out_id = OV_FOREST[0];
-        *out_kind = k_mvt_kind_ov;
-        return true;
-    }
-    if (std::strcmp(name, "OVERLAY_JUNGLES") == 0) {
-        *out_id = OV_JUNGLE[0];
-        *out_kind = k_mvt_kind_ov;
-        return true;
-    }
-    if (std::strcmp(name, "OVERLAY_RIVERS") == 0) {
-        *out_id = 0u;
-        *out_kind = k_mvt_kind_riv;
-        return true;
-    }
-    if (std::strcmp(name, "OVERLAY_ROADS") == 0) {
-        *out_id = 0u;
-        *out_kind = k_mvt_kind_road;
-        return true;
-    }
-    return false;
-}
-
-static u16 mvt_lookup (const u16* tbl, u16 n, u8 id) {
-    if (tbl == nullptr || id >= n) {
-        return 0u;
-    }
-    return tbl[id];
-}
-
-static void mvt_free_tables () {
-    delete[] g_terr_cost;
-    delete[] g_clim_cost;
-    delete[] g_ov_cost;
-    g_terr_cost = nullptr;
-    g_clim_cost = nullptr;
-    g_ov_cost = nullptr;
-    g_terr_n = 0u;
-    g_clim_n = 0u;
-    g_ov_n = 0u;
-}
-
-static u32 mvt_heap_sz () {
-    return static_cast<u32>(g_terr_n) * 2u
-        + static_cast<u32>(g_clim_n) * 2u
-        + static_cast<u32>(g_ov_n) * 2u;
-}
-
-static bool mvt_pass_scan (const RuntimeStatics& st, u8* max_terr, u8* max_clim, u8* max_ov, u16* mapped_n) {
-    *max_terr = 0u;
-    *max_clim = 0u;
-    *max_ov = 0u;
-    *mapped_n = 0u;
-    const u16 n = st.mvt_cost().get_item_count();
-    for (u16 i = 0; i < n; ++i) {
-        cstr nm = st.mvt_cost().get_name(MvtCostStaticDataKey::from_raw(i));
-        if (nm == nullptr) {
-            continue;
-        }
-        u8 gid = 0u;
-        u8 kind = 0u;
-        if (!resolve_mvt_name(nm, &gid, &kind)) {
-            continue;
-        }
-        *mapped_n = static_cast<u16>(*mapped_n + 1u);
-        if (kind == k_mvt_kind_terr && gid > *max_terr) {
-            *max_terr = gid;
-        } else if (kind == k_mvt_kind_clim && gid > *max_clim) {
-            *max_clim = gid;
-        } else if (kind == k_mvt_kind_ov && gid > *max_ov) {
-            *max_ov = gid;
-        }
-    }
-    return *mapped_n == n;
-}
-
-static bool mvt_pass_fill (const RuntimeStatics& st) {
-    const u16 n = st.mvt_cost().get_item_count();
-    for (u16 i = 0; i < n; ++i) {
-        cstr nm = st.mvt_cost().get_name(MvtCostStaticDataKey::from_raw(i));
-        if (nm == nullptr) {
-            continue;
-        }
-        u8 gid = 0u;
-        u8 kind = 0u;
-        if (!resolve_mvt_name(nm, &gid, &kind)) {
-            continue;
-        }
-        const u16 cost = mvt_cost_at(st, i);
-        if (kind == k_mvt_kind_terr) {
-            g_terr_cost[gid] = cost;
-        } else if (kind == k_mvt_kind_clim) {
-            g_clim_cost[gid] = cost;
-        } else if (kind == k_mvt_kind_ov) {
-            g_ov_cost[gid] = cost;
-        } else if (kind == k_mvt_kind_riv) {
-            g_riv_cost = cost;
-        } else if (kind == k_mvt_kind_road) {
-            g_road_cost = cost;
-        }
-    }
-    return true;
 }
 
 static bool tile_has_river (const GameState& s, u16 x, u16 y) {
@@ -507,17 +307,21 @@ static i16 pair_transport_cost (const GameState& s, u16 fx, u16 fy, u16 tx, u16 
     bool hit = false;
     const bool fr = tile_has_river(s, fx, fy);
     const bool tr = tile_has_river(s, tx, ty);
-    if (fr && tr && g_riv_cost > 0u) {
-        best = static_cast<i16>(g_riv_cost);
+    const u16 riv_cost = TileAttrTables::riv().mvt_cost;
+    if (fr && tr && riv_cost > 0u) {
+        best = static_cast<i16>(riv_cost);
         hit = true;
     }
     const bool frd = tile_has_road(s, fx, fy);
     const bool trd = tile_has_road(s, tx, ty);
-    if (frd && trd && g_road_cost > 0u) {
-        const i16 ic = static_cast<i16>(g_road_cost);
-        if (!hit || ic < best) {
-            best = ic;
-            hit = true;
+    if (frd && trd) {
+        const u16 road_cost = TileAttrTables::road(ROAD_PATH).mvt_cost;
+        if (road_cost > 0u) {
+            const i16 ic = static_cast<i16>(road_cost);
+            if (!hit || ic < best) {
+                best = ic;
+                hit = true;
+            }
         }
     }
     return hit ? best : 0;
@@ -528,16 +332,16 @@ static i16 land_tile_cost (const GameState& s, u16 x, u16 y) {
         return 0;
     }
     const u8 terr = s.m_map.get_terrain(x, y);
-    const u16 terr_cost = mvt_lookup(g_terr_cost, g_terr_n, terr);
+    const u16 terr_cost = TileAttrTables::terr(terr).mvt_cost;
     if (terr_cost == 0u) {
         return 0;
     }
     i16 sum = static_cast<i16>(terr_cost);
-    const u16 clim_cost = mvt_lookup(g_clim_cost, g_clim_n, s.m_map.get_climate(x, y));
+    const u16 clim_cost = TileAttrTables::clim(s.m_map.get_climate(x, y)).mvt_cost;
     if (clim_cost > 0u) {
         sum = static_cast<i16>(sum + static_cast<i16>(clim_cost));
     }
-    const u16 ov_cost = mvt_lookup(g_ov_cost, g_ov_n, s.m_map.get_overlay(x, y));
+    const u16 ov_cost = TileAttrTables::ov(s.m_map.get_overlay(x, y)).mvt_cost;
     if (ov_cost > 0u) {
         sum = static_cast<i16>(sum + static_cast<i16>(ov_cost));
     }
@@ -549,31 +353,13 @@ static i16 land_tile_cost (const GameState& s, u16 x, u16 y) {
 //================================================================================================================================
 
 bool UnitMovementMng::setup_mvt_costs (const RuntimeStatics& st) {
-    mvt_free_tables();
     g_mvt_ready = false;
     g_mvt_mapped_n = 0u;
-    g_riv_cost = 0u;
-    g_road_cost = 0u;
-    g_mvt_cost_n = st.mvt_cost().get_item_count();
-    u8 max_terr = 0u;
-    u8 max_clim = 0u;
-    u8 max_ov = 0u;
-    if (!mvt_pass_scan(st, &max_terr, &max_clim, &max_ov, &g_mvt_mapped_n)) {
+    g_mvt_cost_n = st.tile_attribute().get_item_count();
+    if (!TileAttrTables::setup(st)) {
         return false;
     }
-    g_terr_n = static_cast<u16>(max_terr + 1u);
-    g_clim_n = static_cast<u16>(max_clim + 1u);
-    g_ov_n = static_cast<u16>(max_ov + 1u);
-    if (g_terr_n > 0u) {
-        g_terr_cost = new u16[g_terr_n]();
-    }
-    if (g_clim_n > 0u) {
-        g_clim_cost = new u16[g_clim_n]();
-    }
-    if (g_ov_n > 0u) {
-        g_ov_cost = new u16[g_ov_n]();
-    }
-    mvt_pass_fill(st);
+    g_mvt_mapped_n = g_mvt_cost_n;
     g_mvt_ready = true;
     return true;
 }
@@ -594,32 +380,32 @@ void UnitMovementMng::mvt_tables (UnitMovementMngMvtTbl* out) {
     if (out == nullptr) {
         return;
     }
-    out->m_terr_n = g_terr_n;
-    out->m_clim_n = g_clim_n;
-    out->m_ov_n = g_ov_n;
-    out->m_riv = g_riv_cost;
-    out->m_road = g_road_cost;
-    out->m_bytes = mvt_heap_sz();
+    out->m_terr_n = TileAttrTables::terr_n();
+    out->m_clim_n = TileAttrTables::clim_n();
+    out->m_ov_n = TileAttrTables::ov_n();
+    out->m_riv = TileAttrTables::riv().mvt_cost;
+    out->m_road = TileAttrTables::road(ROAD_PATH).mvt_cost;
+    out->m_bytes = 0u;
 }
 
 u32 UnitMovementMng::mvt_heap_bytes () {
-    return mvt_heap_sz();
+    return 0u;
 }
 
 u16 UnitMovementMng::mvt_cost_terr (u8 id) {
-    return mvt_lookup(g_terr_cost, g_terr_n, id);
+    return TileAttrTables::terr(id).mvt_cost;
 }
 
 u16 UnitMovementMng::mvt_cost_clim (u8 id) {
-    return mvt_lookup(g_clim_cost, g_clim_n, id);
+    return TileAttrTables::clim(id).mvt_cost;
 }
 
 u16 UnitMovementMng::mvt_cost_ov (u8 id) {
-    return mvt_lookup(g_ov_cost, g_ov_n, id);
+    return TileAttrTables::ov(id).mvt_cost;
 }
 
 bool UnitMovementMng::map_mvt_cost_name (cstr name, u8* out_id, u8* out_kind) {
-    return resolve_mvt_name(name, out_id, out_kind);
+    return TileAttrTables::map_name(name, out_kind, out_id);
 }
 
 i16 UnitMovementMng::tile_cost (const GameState& s, u16 from_x, u16 from_y, u16 to_x, u16 to_y) {

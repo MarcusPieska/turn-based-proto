@@ -39,6 +39,7 @@ protected:
     void derive_names_from_raw_lines (const StringManager& raw_lines, StringManager& out_names) const;
 
     u16 parse_u16 (const StringManager& line_items, u16 start_idx) const;
+    i16 parse_i16 (const StringManager& line_items, u16 start_idx) const;
     u32 parse_u32 (const StringManager& line_items, u16 start_idx) const;
     u16 parse_unit_type (const StringManager& line_items, u16 start_idx) const;
     ItemReqsStruct parse_item_reqs (const StringManager& line_items, u16 start_idx) const;

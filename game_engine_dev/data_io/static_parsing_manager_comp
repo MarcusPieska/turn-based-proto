@@ -28,7 +28,7 @@ g++ $INC -c building_parser.cpp -o building_parser.o
 g++ $INC -c city_flag_parser.cpp -o city_flag_parser.o
 g++ $INC -c civ_parser.cpp -o civ_parser.o
 g++ $INC -c civ_trait_parser.cpp -o civ_trait_parser.o
-g++ $INC -c mvt_cost_parser.cpp -o mvt_cost_parser.o
+g++ $INC -c tile_attribute_parser.cpp -o tile_attribute_parser.o
 g++ $INC -c resource_parser.cpp -o resource_parser.o
 g++ $INC -c res_dist_parser.cpp -o res_dist_parser.o
 g++ $INC -c small_wonder_parser.cpp -o small_wonder_parser.o
@@ -46,8 +46,8 @@ g++ $INC $CXXFLAGS -c ../static_state/civ_static_data.cpp -o civ_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/civ_static_data_load.cpp -o civ_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/civ_trait_static_data.cpp -o civ_trait_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/civ_trait_static_data_load.cpp -o civ_trait_static_data_load.o
-g++ $INC $CXXFLAGS -c ../static_state/mvt_cost_static_data.cpp -o mvt_cost_static_data.o
-g++ $INC $CXXFLAGS -c ../static_state/mvt_cost_static_data_load.cpp -o mvt_cost_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/tile_attribute_static_data.cpp -o tile_attribute_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/tile_attribute_static_data_load.cpp -o tile_attribute_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/resource_static_data.cpp -o resource_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/resource_static_data_load.cpp -o resource_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/res_dist_static_data.cpp -o res_dist_static_data.o
@@ -92,7 +92,7 @@ g++ $CXXFLAGS -o static_parsing_manager_tester \
     city_flag_parser.o \
     civ_parser.o \
     civ_trait_parser.o \
-    mvt_cost_parser.o \
+    tile_attribute_parser.o \
     resource_parser.o \
     res_dist_parser.o \
     small_wonder_parser.o \
@@ -109,8 +109,8 @@ g++ $CXXFLAGS -o static_parsing_manager_tester \
     civ_static_data_load.o \
     civ_trait_static_data.o \
     civ_trait_static_data_load.o \
-    mvt_cost_static_data.o \
-    mvt_cost_static_data_load.o \
+    tile_attribute_static_data.o \
+    tile_attribute_static_data_load.o \
     resource_static_data.o \
     resource_static_data_load.o \
     res_dist_static_data.o \
@@ -155,7 +155,7 @@ g++ $INC -c building_parser.cpp -o building_parser.o
 g++ $INC -c city_flag_parser.cpp -o city_flag_parser.o
 g++ $INC -c civ_parser.cpp -o civ_parser.o
 g++ $INC -c civ_trait_parser.cpp -o civ_trait_parser.o
-g++ $INC -c mvt_cost_parser.cpp -o mvt_cost_parser.o
+g++ $INC -c tile_attribute_parser.cpp -o tile_attribute_parser.o
 g++ $INC -c resource_parser.cpp -o resource_parser.o
 g++ $INC -c res_dist_parser.cpp -o res_dist_parser.o
 g++ $INC -c small_wonder_parser.cpp -o small_wonder_parser.o
@@ -173,8 +173,8 @@ g++ $INC $CXXFLAGS -c ../static_state/civ_static_data.cpp -o civ_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/civ_static_data_load.cpp -o civ_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/civ_trait_static_data.cpp -o civ_trait_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/civ_trait_static_data_load.cpp -o civ_trait_static_data_load.o
-g++ $INC $CXXFLAGS -c ../static_state/mvt_cost_static_data.cpp -o mvt_cost_static_data.o
-g++ $INC $CXXFLAGS -c ../static_state/mvt_cost_static_data_load.cpp -o mvt_cost_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/tile_attribute_static_data.cpp -o tile_attribute_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/tile_attribute_static_data_load.cpp -o tile_attribute_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/resource_static_data.cpp -o resource_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/resource_static_data_load.cpp -o resource_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/res_dist_static_data.cpp -o res_dist_static_data.o
@@ -219,7 +219,7 @@ g++ $CXXFLAGS $OPT -o static_parsing_manager_opt_tester \
     city_flag_parser.o \
     civ_parser.o \
     civ_trait_parser.o \
-    mvt_cost_parser.o \
+    tile_attribute_parser.o \
     resource_parser.o \
     res_dist_parser.o \
     small_wonder_parser.o \
@@ -236,8 +236,8 @@ g++ $CXXFLAGS $OPT -o static_parsing_manager_opt_tester \
     civ_static_data_load.o \
     civ_trait_static_data.o \
     civ_trait_static_data_load.o \
-    mvt_cost_static_data.o \
-    mvt_cost_static_data_load.o \
+    tile_attribute_static_data.o \
+    tile_attribute_static_data_load.o \
     resource_static_data.o \
     resource_static_data_load.o \
     res_dist_static_data.o \
@@ -283,7 +283,7 @@ rm \
     city_flag_parser.o \
     civ_parser.o \
     civ_trait_parser.o \
-    mvt_cost_parser.o \
+    tile_attribute_parser.o \
     resource_parser.o \
     res_dist_parser.o \
     small_wonder_parser.o \
@@ -300,8 +300,8 @@ rm \
     civ_static_data_load.o \
     civ_trait_static_data.o \
     civ_trait_static_data_load.o \
-    mvt_cost_static_data.o \
-    mvt_cost_static_data_load.o \
+    tile_attribute_static_data.o \
+    tile_attribute_static_data_load.o \
     resource_static_data.o \
     resource_static_data_load.o \
     res_dist_static_data.o \

@@ -20,7 +20,7 @@ class StaticParsingManager;
 #include "city_flag_static_data.h"
 #include "civ_static_data.h"
 #include "civ_trait_static_data.h"
-#include "mvt_cost_static_data.h"
+#include "tile_attribute_static_data.h"
 #include "resource_static_data.h"
 #include "res_dist_static_data.h"
 #include "small_wonder_static_data.h"
@@ -63,9 +63,9 @@ public:
 
     const CivTraitStaticData& civ_trait () const;
 
-    MvtCostStaticData& mvt_cost ();
+    TileAttributeStaticData& tile_attribute ();
 
-    const MvtCostStaticData& mvt_cost () const;
+    const TileAttributeStaticData& tile_attribute () const;
 
     ResourceStaticData& resource ();
 
@@ -129,7 +129,7 @@ private:
     CityFlagStaticData m_city_flag;
     CivStaticData m_civ;
     CivTraitStaticData m_civ_trait;
-    MvtCostStaticData m_mvt_cost;
+    TileAttributeStaticData m_tile_attribute;
     ResourceStaticData m_resource;
     ResDistStaticData m_res_dist;
     SmallWonderStaticData m_small_wonder;

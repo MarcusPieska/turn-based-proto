@@ -55,6 +55,7 @@ private:
 
     bool ld_sm (StringManager& sm, cstr path);
     void pr_u16 (cstr label, u16 value);
+    void pr_i16 (cstr label, i16 value);
     void pr_u32 (cstr label, u32 value);
     void pr_reqs (cstr label, const ItemReqsStruct& reqs);
     void pr_fx (cstr label, const ItemEffectsStruct& e);

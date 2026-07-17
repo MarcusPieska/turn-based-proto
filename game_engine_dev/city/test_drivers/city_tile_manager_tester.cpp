@@ -6,6 +6,7 @@
 #include <cassert>
 #include <chrono>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <vector>
 
@@ -29,18 +30,12 @@ static const char* G_MAP_ROOT = "/home/w/Projects/simple-map-gen";
 static const char* G_OUT_DIR = "/home/w/Projects/simple-map-gen/city-tile-manager-test";
 static const u32 G_SEED = 43u;
 static const u16 G_POP = 15;
-static const u16 G_IMG = 61;
+static const u16 G_IMG = 201;
 static const u16 G_REACH_R = 4;
 static const u16 G_EDGE_PAD = 4;
 static char g_terr[320];
 static char g_clim[320];
 static char g_riv[320];
-
-enum BgMode {
-    BG_FOOD = 0,
-    BG_PRODUCTION = 1,
-    BG_COMMERCE = 2
-};
 
 //================================================================================================================================
 //=> - Helpers -
@@ -82,13 +77,9 @@ static void terr_rgb (u8 cls, u8* r, u8* g, u8* b) {
     }
 }
 
-static void bg_rgb (const GameArraySimple& map, u16 x, u16 y, BgMode mode, u8* r, u8* g, u8* b) {
-    if (mode == BG_FOOD) {
-        climate_to_rgb(map.get_climate(x, y), r, g, b);
-        return;
-    }
+static void map_rgb (const GameArraySimple& map, u16 x, u16 y, u8* r, u8* g, u8* b) {
     terr_rgb(map.get_terrain(x, y), r, g, b);
-    if (mode == BG_COMMERCE && map.get_river(x, y) != 0) {
+    if (map.get_river(x, y) != 0) {
         *r = 0;
         *g = 180;
         *b = 255;
@@ -108,7 +99,7 @@ static bool wr_ppm (cstr path, const u8* rgb, u16 w, u16 h) {
 }
 
 static const u16 G_TRY_N = 1000;
-static const u16 G_IMG_R = 30;
+static const u16 G_IMG_R = 100;
 
 struct SpotCand {
     u16 m_x; // Map column
@@ -192,7 +183,13 @@ static void collect_spots (const GameArraySimple& map, std::vector<SpotCand>& ou
     std::sort(out.begin(), out.end(), cmp_spot);
 }
 
-static void wr_sel_img (const GameArraySimple& map, u16 cx, u16 cy, u16 city_idx, BgMode mode, cstr path) {
+static bool in_reach (u16 cx, u16 cy, u16 x, u16 y) {
+    const i32 dx = static_cast<i32>(x) - static_cast<i32>(cx);
+    const i32 dy = static_cast<i32>(y) - static_cast<i32>(cy);
+    return dx * dx + dy * dy < static_cast<i32>(G_REACH_R) * static_cast<i32>(G_REACH_R);
+}
+
+static void wr_sel_img (const GameArraySimple& map, u16 cx, u16 cy, u16 city_idx, cstr path) {
     u8 rgb[G_IMG * G_IMG * 3];
     for (u16 py = 0; py < G_IMG; ++py) {
         for (u16 px = 0; px < G_IMG; ++px) {
@@ -207,23 +204,23 @@ static void wr_sel_img (const GameArraySimple& map, u16 cx, u16 cy, u16 city_idx
             }
             const u16 ux = static_cast<u16>(mx);
             const u16 uy = static_cast<u16>(my);
-            bg_rgb(map, ux, uy, mode, &p[0], &p[1], &p[2]);
-            if (TileWorking::get_worker(ux, uy) == city_idx) {
-                p[0] = 255;
-                p[1] = 0;
-                p[2] = 0;
-            }
             if (ux == cx && uy == cy) {
                 p[0] = 0;
                 p[1] = 0;
                 p[2] = 0;
+            } else if (in_reach(cx, cy, ux, uy) && TileWorking::get_worker(ux, uy) == city_idx) {
+                p[0] = 255;
+                p[1] = 0;
+                p[2] = 0;
+            } else {
+                map_rgb(map, ux, uy, &p[0], &p[1], &p[2]);
             }
         }
     }
     wr_ppm(path, rgb, G_IMG, G_IMG);
 }
 
-static void run_sel (cstr lbl, cstr img, BgMode mode, u16 player, u16 city_idx, u16 pop,
+static void run_sel (cstr lbl, cstr img, u16 player, u16 city_idx, u16 pop,
     const GameArraySimple& map, u16 cx, u16 cy, TotalTileYield (*fn)(u16, u16)) {
     CityTileManager::clear(cx, cy, city_idx);
     const auto t0 = std::chrono::high_resolution_clock::now();
@@ -234,7 +231,7 @@ static void run_sel (cstr lbl, cstr img, BgMode mode, u16 player, u16 city_idx, 
     std::printf("%s: %.2f us food=%u production=%u commerce=%u worked=%u pop=%u\n",
         lbl, us, tot.m_food, tot.m_production, tot.m_commerce, worked, (unsigned)pop);
     assert(worked == static_cast<u32>(pop));
-    wr_sel_img(map, cx, cy, city_idx, mode, img);
+    wr_sel_img(map, cx, cy, city_idx, img);
     std::printf("wrote %s\n", img);
 }
 
@@ -242,7 +239,19 @@ static void run_sel (cstr lbl, cstr img, BgMode mode, u16 player, u16 city_idx, 
 //=> - main -
 //================================================================================================================================
 
-int main () {
+int main (int argc, char** argv) {
+    bool use_rnd = false;
+    u32 rnd_seed = 0;
+    if (argc >= 2) {
+        char* end = nullptr;
+        const unsigned long v = std::strtoul(argv[1], &end, 10);
+        if (end == argv[1] || *end != '\0') {
+            std::printf("usage: %s [seed]\n", argv[0]);
+            return 1;
+        }
+        use_rnd = true;
+        rnd_seed = static_cast<u32>(v);
+    }
     if (!build_paths()) {
         std::printf("fail build paths\n");
         return 1;
@@ -253,6 +262,10 @@ int main () {
         return 1;
     }
     RuntimeStatics& st = loader.statics();
+    if (!TileYields::setup(st)) {
+        std::printf("fail setup tile yields\n");
+        return 1;
+    }
     GameArraySimple map;
     if (!Factory_GameArraySimple::load_map_gen_data(&map, g_terr, g_clim, g_riv, nullptr)) {
         std::printf("fail load map\n");
@@ -279,45 +292,61 @@ int main () {
         std::printf("fail get city\n");
         return 1;
     }
-    const u16 try_n = static_cast<u16>(spots.size() < G_TRY_N ? spots.size() : G_TRY_N);
-    std::printf("spots=%zu trying=%u\n", spots.size(), (unsigned)try_n);
-    u16 hit_run = try_n;
     u16 hit_x = 0;
     u16 hit_y = 0;
     u32 hit_score = 0;
     TotalTileYield hit_f = {};
     TotalTileYield hit_s = {};
     TotalTileYield hit_c = {};
-    bool found_diff = false;
-    for (u16 run = 0; run < try_n; ++run) {
-        const SpotCand& sp = spots[run];
-        city->init(player, sp.m_x, sp.m_y);
-        city->set_population(G_POP);
-        const TotalTileYield tot_f = CityTileManager::maximize_food(player, city_idx);
-        const TotalTileYield tot_s = CityTileManager::maximize_production(player, city_idx);
-        const TotalTileYield tot_c = CityTileManager::maximize_commerce(player, city_idx);
-        if (!strong_tots_differ(tot_f, tot_s, tot_c)) {
-            continue;
-        }
-        found_diff = true;
-        hit_run = run;
+    if (use_rnd) {
+        std::srand(rnd_seed);
+        const size_t i = static_cast<size_t>(std::rand()) % spots.size();
+        const SpotCand& sp = spots[i];
         hit_x = sp.m_x;
         hit_y = sp.m_y;
         hit_score = sp.m_score;
-        hit_f = tot_f;
-        hit_s = tot_s;
-        hit_c = tot_c;
-        break;
+        city->init(player, hit_x, hit_y);
+        city->set_population(G_POP);
+        hit_f = CityTileManager::maximize_food(player, city_idx);
+        hit_s = CityTileManager::maximize_production(player, city_idx);
+        hit_c = CityTileManager::maximize_commerce(player, city_idx);
+        std::printf("rnd_seed=%u spot_i=%zu spot=(%u,%u) reach_score=%u\n",
+            (unsigned)rnd_seed, i, (unsigned)hit_x, (unsigned)hit_y, hit_score);
+    } else {
+        const u16 try_n = static_cast<u16>(spots.size() < G_TRY_N ? spots.size() : G_TRY_N);
+        std::printf("spots=%zu trying=%u\n", spots.size(), (unsigned)try_n);
+        u16 hit_run = try_n;
+        bool found_diff = false;
+        for (u16 run = 0; run < try_n; ++run) {
+            const SpotCand& sp = spots[run];
+            city->init(player, sp.m_x, sp.m_y);
+            city->set_population(G_POP);
+            const TotalTileYield tot_f = CityTileManager::maximize_food(player, city_idx);
+            const TotalTileYield tot_s = CityTileManager::maximize_production(player, city_idx);
+            const TotalTileYield tot_c = CityTileManager::maximize_commerce(player, city_idx);
+            if (!strong_tots_differ(tot_f, tot_s, tot_c)) {
+                continue;
+            }
+            found_diff = true;
+            hit_run = run;
+            hit_x = sp.m_x;
+            hit_y = sp.m_y;
+            hit_score = sp.m_score;
+            hit_f = tot_f;
+            hit_s = tot_s;
+            hit_c = tot_c;
+            break;
+        }
+        if (!found_diff) {
+            std::printf("no selector diff after %u spots\n", (unsigned)try_n);
+            TileYields::bind_map(nullptr);
+            TileWorking::bind_map(nullptr);
+            CityTileManager::bind_cities(nullptr);
+            return 0;
+        }
+        std::printf("diff at run=%u spot=(%u,%u) reach_score=%u\n",
+            (unsigned)hit_run, (unsigned)hit_x, (unsigned)hit_y, hit_score);
     }
-    if (!found_diff) {
-        std::printf("no selector diff after %u spots\n", (unsigned)try_n);
-        TileYields::bind_map(nullptr);
-        TileWorking::bind_map(nullptr);
-        CityTileManager::bind_cities(nullptr);
-        return 0;
-    }
-    std::printf("diff at run=%u spot=(%u,%u) reach_score=%u\n",
-        (unsigned)hit_run, (unsigned)hit_x, (unsigned)hit_y, hit_score);
     std::printf("  food_sel     food=%u production=%u commerce=%u\n", hit_f.m_food, hit_f.m_production, hit_f.m_commerce);
     std::printf("  production_sel  food=%u production=%u commerce=%u\n", hit_s.m_food, hit_s.m_production, hit_s.m_commerce);
     std::printf("  commerce_sel food=%u production=%u commerce=%u\n", hit_c.m_food, hit_c.m_production, hit_c.m_commerce);
@@ -325,11 +354,11 @@ int main () {
     city->set_population(G_POP);
     char path[512];
     std::snprintf(path, sizeof(path), "%s/food.ppm", G_OUT_DIR);
-    run_sel("maximize_food", path, BG_FOOD, player, city_idx, G_POP, map, hit_x, hit_y, CityTileManager::maximize_food);
+    run_sel("maximize_food", path, player, city_idx, G_POP, map, hit_x, hit_y, CityTileManager::maximize_food);
     std::snprintf(path, sizeof(path), "%s/production.ppm", G_OUT_DIR);
-    run_sel("maximize_production", path, BG_PRODUCTION, player, city_idx, G_POP, map, hit_x, hit_y, CityTileManager::maximize_production);
+    run_sel("maximize_production", path, player, city_idx, G_POP, map, hit_x, hit_y, CityTileManager::maximize_production);
     std::snprintf(path, sizeof(path), "%s/commerce.ppm", G_OUT_DIR);
-    run_sel("maximize_commerce", path, BG_COMMERCE, player, city_idx, G_POP, map, hit_x, hit_y, CityTileManager::maximize_commerce);
+    run_sel("maximize_commerce", path, player, city_idx, G_POP, map, hit_x, hit_y, CityTileManager::maximize_commerce);
     TileYields::bind_map(nullptr);
     TileWorking::bind_map(nullptr);
     CityTileManager::bind_cities(nullptr);

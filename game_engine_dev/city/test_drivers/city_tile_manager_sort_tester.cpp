@@ -311,6 +311,10 @@ int main () {
         std::printf("fail load runtime statics\n");
         return 1;
     }
+    if (!TileYields::setup(loader.statics())) {
+        std::printf("fail setup tile yields\n");
+        return 1;
+    }
     GameArraySimple map;
     if (!Factory_GameArraySimple::load_map_gen_data(&map, g_terr, g_clim, g_riv, nullptr)) {
         std::printf("fail load map\n");

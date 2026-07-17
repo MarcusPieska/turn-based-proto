@@ -22,9 +22,9 @@
 //================================================================================================================================
 
 #define CLIMATE_NONE 0
-#define CLIMATE_GRASSLAND 1
-#define CLIMATE_PLAINS 2
-#define CLIMATE_DESERT 3
+#define CLIMATE_PLAINS 1
+#define CLIMATE_DESERT 2
+#define CLIMATE_GRASSLAND 3
 #define CLIMATE_BLACK_SOIL 4
 
 #define CLIMATE_WT_MAX 15 // Sentinel value, needs to fit in 4 bits
@@ -53,9 +53,10 @@ static const u8 TERR_COASTAL[4] = {3, 118, 182, 242};
 static const u8 TERR_PLAINS[4] = {4, 34, 112, 48};
 static const u8 TERR_HILLS[4] = {5, 50, 140, 78};
 static const u8 TERR_MOUNTAINS[4] = {6, 76, 48, 30};
+static const u8 TERR_VOLCANO[4] = {7, 255, 0, 0};
 
-static const u8 TERR_INLAND_SEA[4] = {7, 39, 103, 189};
-static const u8 TERR_INLAND_LAKE[4] = {8, 119, 183, 243};
+static const u8 TERR_INLAND_SEA[4] = {8, 39, 103, 189};
+static const u8 TERR_INLAND_LAKE[4] = {9, 119, 183, 243};
 
 static const u8 TERR_TILE_SENTINEL[4] = {15, 50, 50, 50}; // Sentinel value, needs to fit in 4 bits
 

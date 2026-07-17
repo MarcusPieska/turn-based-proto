@@ -19,7 +19,7 @@ PARSER_SPECS.append(("building", "Building", "cost,1,u32:reqs,2,ItemReqsStruct:e
 PARSER_SPECS.append(("city_flag", "CityFlag", ""))
 PARSER_SPECS.append(("civ", "Civ", "traits,1,CivTraitStruct"))
 PARSER_SPECS.append(("civ_trait", "CivTrait", ""))
-PARSER_SPECS.append(("mvt_cost", "MvtCost", "cost,1,u16"))
+PARSER_SPECS.append(("tile_attribute", "TileAttribute", "mvt_cost,1,u16:food,2,i16:production,3,u16:commerce,4,u16:culture,5,u16:science,6,u16:religion,7,u16:attack_mod,8,u16:defense_mod,9,u16"))
 PARSER_SPECS.append(("resource", "Resource", "food,1,u16:shields,2,u16:commerce,3,u16:reqs,4,ItemReqsStruct:res_dist_idx,0,ResDistIdx"))
 PARSER_SPECS.append(("res_dist", "ResDist", "plc,1,ResPlacement"))
 PARSER_SPECS.append(("small_wonder", "SmallWonder", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStruct"))
@@ -53,6 +53,8 @@ REF_PARSER_DEPS = derive_ref_parser_deps()
 def get_function_name_from_output_type(output_type):
     if output_type =="u16":
         return "parse_u16"
+    elif output_type == "i16":
+        return "parse_i16"
     elif output_type == "u32":
         return "parse_u32"
     elif output_type == "UnitType":
@@ -94,6 +96,8 @@ def derive_member_print_lines(parsing_instructions):
         mem, idx, data_type = [part.strip() for part in instruction.strip().split(",")]
         if data_type in ["u16", "UnitType", "ResDistIdx"]:
             lines.append('pr_u16("%s", item.%s);' % (mem, mem))
+        elif data_type == "i16":
+            lines.append('pr_i16("%s", item.%s);' % (mem, mem))
         elif data_type == "u32":
             lines.append('pr_u32("%s", item.%s);' % (mem, mem))
         elif data_type == "ItemReqsStruct":

@@ -44,6 +44,17 @@ public:
     u16 m_ai_controlled = UINT16_MAX; // Nonzero if seat is AI-controlled
     u16 m_is_active = UINT16_MAX; // Nonzero if seat is still in the game
     u16 m_civ_index = UINT16_MAX; // Civ roster index for this seat
+
+    // State for procedural AI; pathing, long-term goals, asset tracking, etc.
+    u16 m_target_settlements = 0;
+    u16 m_settler_1_idx = U16_KEY_NULL;
+    u16 m_settler_2_idx = U16_KEY_NULL;
+    u16 m_settler_3_idx = U16_KEY_NULL;
+    u16 m_settler_4_idx = U16_KEY_NULL;
+    u16 m_scout_1_idx = U16_KEY_NULL;
+    u16 m_scout_2_idx = U16_KEY_NULL;
+    u16 m_scout_3_idx = U16_KEY_NULL;
+    u16 m_scout_4_idx = U16_KEY_NULL;
 };
 
 //================================================================================================================================

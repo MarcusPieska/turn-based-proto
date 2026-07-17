@@ -72,6 +72,10 @@ void [CLASS_TAG]ParserTester::pr_u16 (cstr label, u16 value) {
     fprintf(out(), "  %s: %u\n", label, value);
 }
 
+void [CLASS_TAG]ParserTester::pr_i16 (cstr label, i16 value) {
+    fprintf(out(), "  %s: %d\n", label, (int)value);
+}
+
 void [CLASS_TAG]ParserTester::pr_u32 (cstr label, u32 value) {
     fprintf(out(), "  %s: %u\n", label, value);
 }

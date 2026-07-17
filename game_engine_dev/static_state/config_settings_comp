@@ -29,7 +29,7 @@ g++ $CXXFLAGS $INC -c $DIO/building_parser.cpp -o building_parser.o
 g++ $CXXFLAGS $INC -c $DIO/city_flag_parser.cpp -o city_flag_parser.o
 g++ $CXXFLAGS $INC -c $DIO/civ_parser.cpp -o civ_parser.o
 g++ $CXXFLAGS $INC -c $DIO/civ_trait_parser.cpp -o civ_trait_parser.o
-g++ $CXXFLAGS $INC -c $DIO/mvt_cost_parser.cpp -o mvt_cost_parser.o
+g++ $CXXFLAGS $INC -c $DIO/tile_attribute_parser.cpp -o tile_attribute_parser.o
 g++ $CXXFLAGS $INC -c $DIO/resource_parser.cpp -o resource_parser.o
 g++ $CXXFLAGS $INC -c $DIO/res_dist_parser.cpp -o res_dist_parser.o
 g++ $CXXFLAGS $INC -c $DIO/small_wonder_parser.cpp -o small_wonder_parser.o
@@ -58,7 +58,7 @@ g++ $CXXFLAGS -o config_settings_tester \
     city_flag_parser.o \
     civ_parser.o \
     civ_trait_parser.o \
-    mvt_cost_parser.o \
+    tile_attribute_parser.o \
     resource_parser.o \
     res_dist_parser.o \
     small_wonder_parser.o \
@@ -87,7 +87,7 @@ rm -f \
     city_flag_parser.o \
     civ_parser.o \
     civ_trait_parser.o \
-    mvt_cost_parser.o \
+    tile_attribute_parser.o \
     resource_parser.o \
     res_dist_parser.o \
     small_wonder_parser.o \

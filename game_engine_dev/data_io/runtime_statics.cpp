@@ -51,8 +51,8 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_civ.load_names_from(p.get_civ_name_parser(), p.get_civ_count());
     m_civ_trait.set_items(const_cast<CivTraitStaticDataStruct*>(p.get_civ_trait_data()), p.get_civ_trait_count());
     m_civ_trait.load_names_from(p.get_civ_trait_name_parser(), p.get_civ_trait_count());
-    m_mvt_cost.set_items(const_cast<MvtCostStaticDataStruct*>(p.get_mvt_cost_data()), p.get_mvt_cost_count());
-    m_mvt_cost.load_names_from(p.get_mvt_cost_name_parser(), p.get_mvt_cost_count());
+    m_tile_attribute.set_items(const_cast<TileAttributeStaticDataStruct*>(p.get_tile_attribute_data()), p.get_tile_attribute_count());
+    m_tile_attribute.load_names_from(p.get_tile_attribute_name_parser(), p.get_tile_attribute_count());
     m_resource.set_items(const_cast<ResourceStaticDataStruct*>(p.get_resource_data()), p.get_resource_count());
     m_resource.load_names_from(p.get_resource_name_parser(), p.get_resource_count());
     m_res_dist.set_items(const_cast<ResDistStaticDataStruct*>(p.get_res_dist_data()), p.get_res_dist_count());
@@ -86,7 +86,7 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_city_flag.take_ownership();
     m_civ.take_ownership();
     m_civ_trait.take_ownership();
-    m_mvt_cost.take_ownership();
+    m_tile_attribute.take_ownership();
     m_resource.take_ownership();
     m_res_dist.take_ownership();
     m_small_wonder.take_ownership();
@@ -147,12 +147,12 @@ const CivTraitStaticData& RuntimeStatics::civ_trait () const {
     return m_civ_trait;
 }
 
-MvtCostStaticData& RuntimeStatics::mvt_cost () {
-    return m_mvt_cost;
+TileAttributeStaticData& RuntimeStatics::tile_attribute () {
+    return m_tile_attribute;
 }
 
-const MvtCostStaticData& RuntimeStatics::mvt_cost () const {
-    return m_mvt_cost;
+const TileAttributeStaticData& RuntimeStatics::tile_attribute () const {
+    return m_tile_attribute;
 }
 
 ResourceStaticData& RuntimeStatics::resource () {

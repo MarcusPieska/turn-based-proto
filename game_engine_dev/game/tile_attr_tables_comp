@@ -1,0 +1,27 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")"
+
+LIB_SO="../data_io/runtime_static_loader_lib.so"
+if [ ! -f "$LIB_SO" ]; then
+    echo "missing $LIB_SO - run ../data_io/runtime_static_loader_lib_comp first"
+    exit 1
+fi
+
+INC="-I. -I.. -I../misc -I../data_io -I../static_state"
+CXXFLAGS="-std=c++17 -Wall -Wextra"
+
+g++ $CXXFLAGS $INC -c ../data_io/runtime_static_loader.cpp -o runtime_static_loader.o
+g++ $CXXFLAGS $INC -c tile_attr_tables.cpp -o tile_attr_tables.o
+g++ $CXXFLAGS $INC -c tile_attr_tables_tester.cpp -o tile_attr_tables_tester.o
+
+g++ $CXXFLAGS -o tile_attr_tables_tester \
+    runtime_static_loader.o \
+    tile_attr_tables.o \
+    tile_attr_tables_tester.o \
+    -ldl \
+    $LIB_SO \
+    -Wl,-rpath,'$ORIGIN/../data_io'
+
+rm runtime_static_loader.o tile_attr_tables.o tile_attr_tables_tester.o

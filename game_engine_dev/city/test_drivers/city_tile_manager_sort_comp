@@ -35,6 +35,7 @@ g++ $CXXFLAGS $INC -c ../../game/runtime_trace_dbg.cpp -o runtime_trace_dbg.o
 g++ $CXXFLAGS $INC -c ../../game/game_array_simple.cpp -o game_array_simple.o
 g++ $CXXFLAGS $INC -c ../../game/factory_game_array_simple.cpp -o factory_game_array_simple.o
 g++ $CXXFLAGS $INC -c ../../game/tile_yields.cpp -o tile_yields.o
+g++ $CXXFLAGS $INC -c ../../game/tile_attr_tables.cpp -o tile_attr_tables.o
 g++ $CXXFLAGS $INC -c city_tile_manager_sort_tester.cpp -o city_tile_manager_sort_tester.o
 
 g++ $CXXFLAGS -o city_tile_manager_sort_tester \
@@ -49,6 +50,7 @@ g++ $CXXFLAGS -o city_tile_manager_sort_tester \
     game_array_simple.o \
     factory_game_array_simple.o \
     tile_yields.o \
+    tile_attr_tables.o \
     city_tile_manager_sort_tester.o \
     -ldl \
     $LIB_SO \
@@ -56,4 +58,4 @@ g++ $CXXFLAGS -o city_tile_manager_sort_tester \
 
 rm runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.o map_bit_overlay.o \
     map_bit_array_overlay.o bit_array.o runtime_trace_dbg.o game_array_simple.o \
-    factory_game_array_simple.o tile_yields.o city_tile_manager_sort_tester.o
+    factory_game_array_simple.o tile_yields.o tile_attr_tables.o city_tile_manager_sort_tester.o

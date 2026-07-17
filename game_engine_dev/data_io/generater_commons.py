@@ -17,7 +17,7 @@ def get_entries ():
         "city_flag",
         "civ",
         "civ_trait",
-        "mvt_cost",
+        "tile_attribute",
         "resource",
         "res_dist",
         "small_wonder",

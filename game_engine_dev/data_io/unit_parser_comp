@@ -23,7 +23,7 @@ g++ $INC -c ../static_state/building_static_data.cpp -o building_static_data.o
 g++ $INC -c ../static_state/city_flag_static_data.cpp -o city_flag_static_data.o
 g++ $INC -c ../static_state/civ_static_data.cpp -o civ_static_data.o
 g++ $INC -c ../static_state/civ_trait_static_data.cpp -o civ_trait_static_data.o
-g++ $INC -c ../static_state/mvt_cost_static_data.cpp -o mvt_cost_static_data.o
+g++ $INC -c ../static_state/tile_attribute_static_data.cpp -o tile_attribute_static_data.o
 g++ $INC -c ../static_state/resource_static_data.cpp -o resource_static_data.o
 g++ $INC -c ../static_state/res_dist_static_data.cpp -o res_dist_static_data.o
 g++ $INC -c ../static_state/small_wonder_static_data.cpp -o small_wonder_static_data.o
@@ -48,7 +48,7 @@ g++ -o unit_parser_tester \
     city_flag_static_data.o \
     civ_static_data.o \
     civ_trait_static_data.o \
-    mvt_cost_static_data.o \
+    tile_attribute_static_data.o \
     resource_static_data.o \
     res_dist_static_data.o \
     small_wonder_static_data.o \
@@ -73,7 +73,7 @@ rm \
     city_flag_static_data.o \
     civ_static_data.o \
     civ_trait_static_data.o \
-    mvt_cost_static_data.o \
+    tile_attribute_static_data.o \
     resource_static_data.o \
     res_dist_static_data.o \
     small_wonder_static_data.o \

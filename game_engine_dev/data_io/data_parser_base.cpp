@@ -315,6 +315,10 @@ u16 DataParserBase::parse_u16 (const StringManager& line_items, u16 start_idx) c
     return (u16)std::strtoul(line_items.get_string_content(start_idx), 0, 10);
 }
 
+i16 DataParserBase::parse_i16 (const StringManager& line_items, u16 start_idx) const {
+    return (i16)std::strtol(line_items.get_string_content(start_idx), 0, 10);
+}
+
 u32 DataParserBase::parse_u32 (const StringManager& line_items, u16 start_idx) const {
     return (u32)std::strtoul(line_items.get_string_content(start_idx), 0, 10);
 }

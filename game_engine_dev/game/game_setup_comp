@@ -47,6 +47,7 @@ g++ $CXXFLAGS $INC -c ../dyn_state/shipyard_add_vector.cpp -o shipyard_add_vecto
 g++ $CXXFLAGS $INC -c ../dyn_state/trade_post_add_vector.cpp -o trade_post_add_vector.o
 g++ $CXXFLAGS $INC -c ../dyn_state/unit_add_vector.cpp -o unit_add_vector.o
 g++ $CXXFLAGS $INC -c ../dyn_state/unit_movement_mng.cpp -o unit_movement_mng.o
+g++ $CXXFLAGS $INC -c tile_attr_tables.cpp -o tile_attr_tables.o
 g++ $CXXFLAGS $INC -c game_array_simple.cpp -o game_array_simple.o
 g++ $CXXFLAGS $INC -c factory_game_array_simple.cpp -o factory_game_array_simple.o
 g++ $CXXFLAGS $INC -c game_state.cpp -o game_state.o
@@ -100,6 +101,7 @@ g++ $CXXFLAGS -o game_setup_tester \
     trade_post_add_vector.o \
     unit_add_vector.o \
     unit_movement_mng.o \
+    tile_attr_tables.o \
     game_array_simple.o \
     factory_game_array_simple.o \
     game_state.o \
@@ -142,7 +144,7 @@ rm runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.
     map_bit_array_overlay.o bit_array.o \
     fort_add_vector.o mine_add_vector.o monastery_add_vector.o \
     outpost_add_vector.o plantation_add_vector.o shipyard_add_vector.o \
-    trade_post_add_vector.o unit_add_vector.o unit_movement_mng.o \
+    trade_post_add_vector.o unit_add_vector.o unit_movement_mng.o tile_attr_tables.o \
     game_array_simple.o factory_game_array_simple.o game_state.o player_ledger.o tile_yields.o tile_working.o \
     civ_relations.o game_setup.o city_tile_manager.o circular_tile_areas.o city_border.o game_setup_tester.o map_gen_loader.o \
     city.o general_bit_bank.o general_assessor.o effect_ctx.o effect_enabler.o booster_effect_register.o \

@@ -1,0 +1,36 @@
+TERR_NONE          :   0    : 0  : 0  : 0  : 0  : 0  : 0    : 0   : 0   
+TERR_OCEAN         :   1000 : 0  : 0  : 0  : 0  : 0  : 0    : 0   : 0   
+TERR_SEA           :   1000 : 1  : 0  : 1  : 0  : 0  : 0    : 0   : 0   
+TERR_COASTAL       :   1000 : 1  : 0  : 1  : 0  : 0  : 0    : 0   : 0   
+TERR_PLAINS        :   1000 : 0  : 0  : 0  : 0  : 0  : 0    : 50  : 0   
+TERR_HILLS         :   2000 :-1  : 1  : 0  : 0  : 0  : 0    : 0   : 100  
+TERR_MOUNTAINS     :   4000 :-10 : 2  : 0  : 0  : 0  : 0    : 0   : 200 
+TERR_VOLCANO       :   4000 :-10 : 5  : 0  : 0  : 0  : 0    : 0   : 0   
+TERR_INLAND_SEA    :   1000 : 2  : 0  : 1  : 0  : 0  : 0    : 0   : 0   
+TERR_INLAND_LAKE   :   1000 : 2  : 0  : 1  : 0  : 0  : 0    : 0   : 0   
+TERR_TILE_SENTINEL :   0    : 0  : 0  : 0  : 0  : 0  : 0    : 0   : 0   
+
+CLIMATE_NONE       :   0    : 0  : 0  : 0  : 0  : 0  : 0    : 0   : 0   
+CLIMATE_DESERT     :   1000 : 0  : 0  : 0  : 0  : 0  : 0    : 0   : 0   
+CLIMATE_PLAINS     :   0    : 2  : 0  : 0  : 0  : 0  : 0    : 0   : 0   
+CLIMATE_GRASSLAND  :   0    : 3  : 0  : 0  : 0  : 0  : 0    : 0   : 0   
+CLIMATE_BLACK_SOIL :   0    : 4  : 0  : 1  : 0  : 0  : 0    : 0   : 0   
+
+OV_NONE            :   0    : 0  : 0  : 0  : 0  : 0  : 0    : 0   : 0   
+OV_FORESTS         :   1000 :-1  : 2  : 0  : 0  : 0  : 0    : 0   : 100   
+OV_SWAMPS          :   4000 : 0  : 0  : 0  : 0  : 0  : 0    : 0   : 200   
+OV_JUNGLES         :   4000 :-1  : 0  : 0  : 0  : 0  : 0    : 0   : 200  
+OV_GLACIER         :   4000 : 0  : 0  : 0  : 0  : 0  : 0    : 0   : 0   
+OV_RIVERS          :   500  : 1  : 0  : 1  : 0  : 0  : 0    : 0   : 200  
+
+ROAD_NONE          :   0    : 0  : 0  : 0  : 0  : 0  : 0    : 0   : 0   
+ROAD_PATH          :   1000 : 0  : 0  : 0  : 0  : 0  : 0    : 0   : 0   
+ROAD_COBBLE        :   500  : 0  : 0  : 0  : 0  : 0  : 0    : 0   : 0   
+ROAD_ASPHALT       :   250  : 0  : 0  : 0  : 0  : 0  : 0    : 0   : 0   
+ROAD_RAIL          :   100  : 0  : 0  : 0  : 0  : 0  : 0    : 0   : 0   
+
+
+
+
+
+

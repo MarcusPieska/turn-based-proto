@@ -73,7 +73,7 @@ void print_item_counts (const StaticParsingManager& parser) {
     print_u16_member("city_flag", parser.get_city_flag_count());
     print_u16_member("civ", parser.get_civ_count());
     print_u16_member("civ_trait", parser.get_civ_trait_count());
-    print_u16_member("mvt_cost", parser.get_mvt_cost_count());
+    print_u16_member("tile_attribute", parser.get_tile_attribute_count());
     print_u16_member("resource", parser.get_resource_count());
     print_u16_member("res_dist", parser.get_res_dist_count());
     print_u16_member("small_wonder", parser.get_small_wonder_count());

@@ -46,8 +46,8 @@ static u16 st_civ_trait_n2i (cstr name) {
     return g_st->get_civ_trait_name_parser().name_to_idx(name);
 }
 
-static u16 st_mvt_cost_n2i (cstr name) {
-    return g_st->get_mvt_cost_name_parser().name_to_idx(name);
+static u16 st_tile_attribute_n2i (cstr name) {
+    return g_st->get_tile_attribute_name_parser().name_to_idx(name);
 }
 
 static u16 st_resource_n2i (cstr name) {
@@ -87,7 +87,7 @@ static void fill_cbs (NameToIdxCbs* cbs) {
     cbs->city_flag_name_to_idx = st_city_flag_n2i;
     cbs->civ_name_to_idx = st_civ_n2i;
     cbs->civ_trait_name_to_idx = st_civ_trait_n2i;
-    cbs->mvt_cost_name_to_idx = st_mvt_cost_n2i;
+    cbs->tile_attribute_name_to_idx = st_tile_attribute_n2i;
     cbs->resource_name_to_idx = st_resource_n2i;
     cbs->res_dist_name_to_idx = st_res_dist_n2i;
     cbs->small_wonder_name_to_idx = st_small_wonder_n2i;

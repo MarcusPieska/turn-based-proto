@@ -27,7 +27,7 @@ void ParserTestManager::set_plvl (int lvl) {
     m_city_flag.set_plvl(lvl);
     m_civ.set_plvl(lvl);
     m_civ_trait.set_plvl(lvl);
-    m_mvt_cost.set_plvl(lvl);
+    m_tile_attribute.set_plvl(lvl);
     m_resource.set_plvl(lvl);
     m_res_dist.set_plvl(lvl);
     m_small_wonder.set_plvl(lvl);
@@ -43,7 +43,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_building.set_city_flag_sd(&statics.city_flag());
     m_building.set_civ_sd(&statics.civ());
     m_building.set_civ_trait_sd(&statics.civ_trait());
-    m_building.set_mvt_cost_sd(&statics.mvt_cost());
+    m_building.set_tile_attribute_sd(&statics.tile_attribute());
     m_building.set_resource_sd(&statics.resource());
     m_building.set_res_dist_sd(&statics.res_dist());
     m_building.set_small_wonder_sd(&statics.small_wonder());
@@ -56,7 +56,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_city_flag.set_city_flag_sd(&statics.city_flag());
     m_city_flag.set_civ_sd(&statics.civ());
     m_city_flag.set_civ_trait_sd(&statics.civ_trait());
-    m_city_flag.set_mvt_cost_sd(&statics.mvt_cost());
+    m_city_flag.set_tile_attribute_sd(&statics.tile_attribute());
     m_city_flag.set_resource_sd(&statics.resource());
     m_city_flag.set_res_dist_sd(&statics.res_dist());
     m_city_flag.set_small_wonder_sd(&statics.small_wonder());
@@ -69,7 +69,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_civ.set_city_flag_sd(&statics.city_flag());
     m_civ.set_civ_sd(&statics.civ());
     m_civ.set_civ_trait_sd(&statics.civ_trait());
-    m_civ.set_mvt_cost_sd(&statics.mvt_cost());
+    m_civ.set_tile_attribute_sd(&statics.tile_attribute());
     m_civ.set_resource_sd(&statics.resource());
     m_civ.set_res_dist_sd(&statics.res_dist());
     m_civ.set_small_wonder_sd(&statics.small_wonder());
@@ -82,7 +82,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_civ_trait.set_city_flag_sd(&statics.city_flag());
     m_civ_trait.set_civ_sd(&statics.civ());
     m_civ_trait.set_civ_trait_sd(&statics.civ_trait());
-    m_civ_trait.set_mvt_cost_sd(&statics.mvt_cost());
+    m_civ_trait.set_tile_attribute_sd(&statics.tile_attribute());
     m_civ_trait.set_resource_sd(&statics.resource());
     m_civ_trait.set_res_dist_sd(&statics.res_dist());
     m_civ_trait.set_small_wonder_sd(&statics.small_wonder());
@@ -91,24 +91,24 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_civ_trait.set_unit_action_sd(&statics.unit_action());
     m_civ_trait.set_unit_type_sd(&statics.unit_type());
     m_civ_trait.set_wonder_sd(&statics.wonder());
-    m_mvt_cost.set_building_sd(&statics.building());
-    m_mvt_cost.set_city_flag_sd(&statics.city_flag());
-    m_mvt_cost.set_civ_sd(&statics.civ());
-    m_mvt_cost.set_civ_trait_sd(&statics.civ_trait());
-    m_mvt_cost.set_mvt_cost_sd(&statics.mvt_cost());
-    m_mvt_cost.set_resource_sd(&statics.resource());
-    m_mvt_cost.set_res_dist_sd(&statics.res_dist());
-    m_mvt_cost.set_small_wonder_sd(&statics.small_wonder());
-    m_mvt_cost.set_tech_sd(&statics.tech());
-    m_mvt_cost.set_unit_sd(&statics.unit());
-    m_mvt_cost.set_unit_action_sd(&statics.unit_action());
-    m_mvt_cost.set_unit_type_sd(&statics.unit_type());
-    m_mvt_cost.set_wonder_sd(&statics.wonder());
+    m_tile_attribute.set_building_sd(&statics.building());
+    m_tile_attribute.set_city_flag_sd(&statics.city_flag());
+    m_tile_attribute.set_civ_sd(&statics.civ());
+    m_tile_attribute.set_civ_trait_sd(&statics.civ_trait());
+    m_tile_attribute.set_tile_attribute_sd(&statics.tile_attribute());
+    m_tile_attribute.set_resource_sd(&statics.resource());
+    m_tile_attribute.set_res_dist_sd(&statics.res_dist());
+    m_tile_attribute.set_small_wonder_sd(&statics.small_wonder());
+    m_tile_attribute.set_tech_sd(&statics.tech());
+    m_tile_attribute.set_unit_sd(&statics.unit());
+    m_tile_attribute.set_unit_action_sd(&statics.unit_action());
+    m_tile_attribute.set_unit_type_sd(&statics.unit_type());
+    m_tile_attribute.set_wonder_sd(&statics.wonder());
     m_resource.set_building_sd(&statics.building());
     m_resource.set_city_flag_sd(&statics.city_flag());
     m_resource.set_civ_sd(&statics.civ());
     m_resource.set_civ_trait_sd(&statics.civ_trait());
-    m_resource.set_mvt_cost_sd(&statics.mvt_cost());
+    m_resource.set_tile_attribute_sd(&statics.tile_attribute());
     m_resource.set_resource_sd(&statics.resource());
     m_resource.set_res_dist_sd(&statics.res_dist());
     m_resource.set_small_wonder_sd(&statics.small_wonder());
@@ -121,7 +121,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_res_dist.set_city_flag_sd(&statics.city_flag());
     m_res_dist.set_civ_sd(&statics.civ());
     m_res_dist.set_civ_trait_sd(&statics.civ_trait());
-    m_res_dist.set_mvt_cost_sd(&statics.mvt_cost());
+    m_res_dist.set_tile_attribute_sd(&statics.tile_attribute());
     m_res_dist.set_resource_sd(&statics.resource());
     m_res_dist.set_res_dist_sd(&statics.res_dist());
     m_res_dist.set_small_wonder_sd(&statics.small_wonder());
@@ -134,7 +134,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_small_wonder.set_city_flag_sd(&statics.city_flag());
     m_small_wonder.set_civ_sd(&statics.civ());
     m_small_wonder.set_civ_trait_sd(&statics.civ_trait());
-    m_small_wonder.set_mvt_cost_sd(&statics.mvt_cost());
+    m_small_wonder.set_tile_attribute_sd(&statics.tile_attribute());
     m_small_wonder.set_resource_sd(&statics.resource());
     m_small_wonder.set_res_dist_sd(&statics.res_dist());
     m_small_wonder.set_small_wonder_sd(&statics.small_wonder());
@@ -147,7 +147,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_tech.set_city_flag_sd(&statics.city_flag());
     m_tech.set_civ_sd(&statics.civ());
     m_tech.set_civ_trait_sd(&statics.civ_trait());
-    m_tech.set_mvt_cost_sd(&statics.mvt_cost());
+    m_tech.set_tile_attribute_sd(&statics.tile_attribute());
     m_tech.set_resource_sd(&statics.resource());
     m_tech.set_res_dist_sd(&statics.res_dist());
     m_tech.set_small_wonder_sd(&statics.small_wonder());
@@ -160,7 +160,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_unit.set_city_flag_sd(&statics.city_flag());
     m_unit.set_civ_sd(&statics.civ());
     m_unit.set_civ_trait_sd(&statics.civ_trait());
-    m_unit.set_mvt_cost_sd(&statics.mvt_cost());
+    m_unit.set_tile_attribute_sd(&statics.tile_attribute());
     m_unit.set_resource_sd(&statics.resource());
     m_unit.set_res_dist_sd(&statics.res_dist());
     m_unit.set_small_wonder_sd(&statics.small_wonder());
@@ -173,7 +173,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_unit_action.set_city_flag_sd(&statics.city_flag());
     m_unit_action.set_civ_sd(&statics.civ());
     m_unit_action.set_civ_trait_sd(&statics.civ_trait());
-    m_unit_action.set_mvt_cost_sd(&statics.mvt_cost());
+    m_unit_action.set_tile_attribute_sd(&statics.tile_attribute());
     m_unit_action.set_resource_sd(&statics.resource());
     m_unit_action.set_res_dist_sd(&statics.res_dist());
     m_unit_action.set_small_wonder_sd(&statics.small_wonder());
@@ -186,7 +186,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_unit_type.set_city_flag_sd(&statics.city_flag());
     m_unit_type.set_civ_sd(&statics.civ());
     m_unit_type.set_civ_trait_sd(&statics.civ_trait());
-    m_unit_type.set_mvt_cost_sd(&statics.mvt_cost());
+    m_unit_type.set_tile_attribute_sd(&statics.tile_attribute());
     m_unit_type.set_resource_sd(&statics.resource());
     m_unit_type.set_res_dist_sd(&statics.res_dist());
     m_unit_type.set_small_wonder_sd(&statics.small_wonder());
@@ -199,7 +199,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_wonder.set_city_flag_sd(&statics.city_flag());
     m_wonder.set_civ_sd(&statics.civ());
     m_wonder.set_civ_trait_sd(&statics.civ_trait());
-    m_wonder.set_mvt_cost_sd(&statics.mvt_cost());
+    m_wonder.set_tile_attribute_sd(&statics.tile_attribute());
     m_wonder.set_resource_sd(&statics.resource());
     m_wonder.set_res_dist_sd(&statics.res_dist());
     m_wonder.set_small_wonder_sd(&statics.small_wonder());
@@ -233,11 +233,11 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     }
     m_civ_trait.close_writer();
     
-    m_mvt_cost.open_writer();
-    for (u16 i = 0; i < statics.mvt_cost().get_item_count(); ++i) {
-        m_mvt_cost.pr_item(statics.mvt_cost().get_name(MvtCostStaticDataKey::from_raw(i)), statics.mvt_cost().get_item(MvtCostStaticDataKey::from_raw(i)));
+    m_tile_attribute.open_writer();
+    for (u16 i = 0; i < statics.tile_attribute().get_item_count(); ++i) {
+        m_tile_attribute.pr_item(statics.tile_attribute().get_name(TileAttributeStaticDataKey::from_raw(i)), statics.tile_attribute().get_item(TileAttributeStaticDataKey::from_raw(i)));
     }
-    m_mvt_cost.close_writer();
+    m_tile_attribute.close_writer();
     
     m_resource.open_writer();
     for (u16 i = 0; i < statics.resource().get_item_count(); ++i) {
@@ -291,7 +291,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_building.set_city_flag_sd(NULL);
     m_building.set_civ_sd(NULL);
     m_building.set_civ_trait_sd(NULL);
-    m_building.set_mvt_cost_sd(NULL);
+    m_building.set_tile_attribute_sd(NULL);
     m_building.set_resource_sd(NULL);
     m_building.set_res_dist_sd(NULL);
     m_building.set_small_wonder_sd(NULL);
@@ -304,7 +304,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_city_flag.set_city_flag_sd(NULL);
     m_city_flag.set_civ_sd(NULL);
     m_city_flag.set_civ_trait_sd(NULL);
-    m_city_flag.set_mvt_cost_sd(NULL);
+    m_city_flag.set_tile_attribute_sd(NULL);
     m_city_flag.set_resource_sd(NULL);
     m_city_flag.set_res_dist_sd(NULL);
     m_city_flag.set_small_wonder_sd(NULL);
@@ -317,7 +317,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_civ.set_city_flag_sd(NULL);
     m_civ.set_civ_sd(NULL);
     m_civ.set_civ_trait_sd(NULL);
-    m_civ.set_mvt_cost_sd(NULL);
+    m_civ.set_tile_attribute_sd(NULL);
     m_civ.set_resource_sd(NULL);
     m_civ.set_res_dist_sd(NULL);
     m_civ.set_small_wonder_sd(NULL);
@@ -330,7 +330,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_civ_trait.set_city_flag_sd(NULL);
     m_civ_trait.set_civ_sd(NULL);
     m_civ_trait.set_civ_trait_sd(NULL);
-    m_civ_trait.set_mvt_cost_sd(NULL);
+    m_civ_trait.set_tile_attribute_sd(NULL);
     m_civ_trait.set_resource_sd(NULL);
     m_civ_trait.set_res_dist_sd(NULL);
     m_civ_trait.set_small_wonder_sd(NULL);
@@ -339,24 +339,24 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_civ_trait.set_unit_action_sd(NULL);
     m_civ_trait.set_unit_type_sd(NULL);
     m_civ_trait.set_wonder_sd(NULL);
-    m_mvt_cost.set_building_sd(NULL);
-    m_mvt_cost.set_city_flag_sd(NULL);
-    m_mvt_cost.set_civ_sd(NULL);
-    m_mvt_cost.set_civ_trait_sd(NULL);
-    m_mvt_cost.set_mvt_cost_sd(NULL);
-    m_mvt_cost.set_resource_sd(NULL);
-    m_mvt_cost.set_res_dist_sd(NULL);
-    m_mvt_cost.set_small_wonder_sd(NULL);
-    m_mvt_cost.set_tech_sd(NULL);
-    m_mvt_cost.set_unit_sd(NULL);
-    m_mvt_cost.set_unit_action_sd(NULL);
-    m_mvt_cost.set_unit_type_sd(NULL);
-    m_mvt_cost.set_wonder_sd(NULL);
+    m_tile_attribute.set_building_sd(NULL);
+    m_tile_attribute.set_city_flag_sd(NULL);
+    m_tile_attribute.set_civ_sd(NULL);
+    m_tile_attribute.set_civ_trait_sd(NULL);
+    m_tile_attribute.set_tile_attribute_sd(NULL);
+    m_tile_attribute.set_resource_sd(NULL);
+    m_tile_attribute.set_res_dist_sd(NULL);
+    m_tile_attribute.set_small_wonder_sd(NULL);
+    m_tile_attribute.set_tech_sd(NULL);
+    m_tile_attribute.set_unit_sd(NULL);
+    m_tile_attribute.set_unit_action_sd(NULL);
+    m_tile_attribute.set_unit_type_sd(NULL);
+    m_tile_attribute.set_wonder_sd(NULL);
     m_resource.set_building_sd(NULL);
     m_resource.set_city_flag_sd(NULL);
     m_resource.set_civ_sd(NULL);
     m_resource.set_civ_trait_sd(NULL);
-    m_resource.set_mvt_cost_sd(NULL);
+    m_resource.set_tile_attribute_sd(NULL);
     m_resource.set_resource_sd(NULL);
     m_resource.set_res_dist_sd(NULL);
     m_resource.set_small_wonder_sd(NULL);
@@ -369,7 +369,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_res_dist.set_city_flag_sd(NULL);
     m_res_dist.set_civ_sd(NULL);
     m_res_dist.set_civ_trait_sd(NULL);
-    m_res_dist.set_mvt_cost_sd(NULL);
+    m_res_dist.set_tile_attribute_sd(NULL);
     m_res_dist.set_resource_sd(NULL);
     m_res_dist.set_res_dist_sd(NULL);
     m_res_dist.set_small_wonder_sd(NULL);
@@ -382,7 +382,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_small_wonder.set_city_flag_sd(NULL);
     m_small_wonder.set_civ_sd(NULL);
     m_small_wonder.set_civ_trait_sd(NULL);
-    m_small_wonder.set_mvt_cost_sd(NULL);
+    m_small_wonder.set_tile_attribute_sd(NULL);
     m_small_wonder.set_resource_sd(NULL);
     m_small_wonder.set_res_dist_sd(NULL);
     m_small_wonder.set_small_wonder_sd(NULL);
@@ -395,7 +395,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_tech.set_city_flag_sd(NULL);
     m_tech.set_civ_sd(NULL);
     m_tech.set_civ_trait_sd(NULL);
-    m_tech.set_mvt_cost_sd(NULL);
+    m_tech.set_tile_attribute_sd(NULL);
     m_tech.set_resource_sd(NULL);
     m_tech.set_res_dist_sd(NULL);
     m_tech.set_small_wonder_sd(NULL);
@@ -408,7 +408,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_unit.set_city_flag_sd(NULL);
     m_unit.set_civ_sd(NULL);
     m_unit.set_civ_trait_sd(NULL);
-    m_unit.set_mvt_cost_sd(NULL);
+    m_unit.set_tile_attribute_sd(NULL);
     m_unit.set_resource_sd(NULL);
     m_unit.set_res_dist_sd(NULL);
     m_unit.set_small_wonder_sd(NULL);
@@ -421,7 +421,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_unit_action.set_city_flag_sd(NULL);
     m_unit_action.set_civ_sd(NULL);
     m_unit_action.set_civ_trait_sd(NULL);
-    m_unit_action.set_mvt_cost_sd(NULL);
+    m_unit_action.set_tile_attribute_sd(NULL);
     m_unit_action.set_resource_sd(NULL);
     m_unit_action.set_res_dist_sd(NULL);
     m_unit_action.set_small_wonder_sd(NULL);
@@ -434,7 +434,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_unit_type.set_city_flag_sd(NULL);
     m_unit_type.set_civ_sd(NULL);
     m_unit_type.set_civ_trait_sd(NULL);
-    m_unit_type.set_mvt_cost_sd(NULL);
+    m_unit_type.set_tile_attribute_sd(NULL);
     m_unit_type.set_resource_sd(NULL);
     m_unit_type.set_res_dist_sd(NULL);
     m_unit_type.set_small_wonder_sd(NULL);
@@ -447,7 +447,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_wonder.set_city_flag_sd(NULL);
     m_wonder.set_civ_sd(NULL);
     m_wonder.set_civ_trait_sd(NULL);
-    m_wonder.set_mvt_cost_sd(NULL);
+    m_wonder.set_tile_attribute_sd(NULL);
     m_wonder.set_resource_sd(NULL);
     m_wonder.set_res_dist_sd(NULL);
     m_wonder.set_small_wonder_sd(NULL);

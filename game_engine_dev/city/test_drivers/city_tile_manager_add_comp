@@ -44,6 +44,7 @@ g++ $CXXFLAGS $INC -c ../../dyn_state/shipyard_add_vector.cpp -o shipyard_add_ve
 g++ $CXXFLAGS $INC -c ../../dyn_state/trade_post_add_vector.cpp -o trade_post_add_vector.o
 g++ $CXXFLAGS $INC -c ../../dyn_state/unit_add_vector.cpp -o unit_add_vector.o
 g++ $CXXFLAGS $INC -c ../../dyn_state/unit_movement_mng.cpp -o unit_movement_mng.o
+g++ $CXXFLAGS $INC -c ../../game/tile_attr_tables.cpp -o tile_attr_tables.o
 g++ $CXXFLAGS $INC -c ../../game/player_ledger.cpp -o player_ledger.o
 g++ $CXXFLAGS $INC -c ../../game/game_state.cpp -o game_state.o
 g++ $CXXFLAGS $INC -c ../../game/tile_yields.cpp -o tile_yields.o
@@ -90,6 +91,7 @@ g++ $CXXFLAGS -o city_tile_manager_add_tester \
     trade_post_add_vector.o \
     unit_add_vector.o \
     unit_movement_mng.o \
+    tile_attr_tables.o \
     player_ledger.o \
     civ_relations.o \
     game_state.o \
@@ -123,7 +125,7 @@ g++ $CXXFLAGS -o city_tile_manager_add_tester \
 rm runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.o map_bit_overlay.o \
     map_bit_array_overlay.o bit_array.o runtime_trace_dbg.o game_array_simple.o factory_game_array_simple.o \
     fort_add_vector.o mine_add_vector.o monastery_add_vector.o outpost_add_vector.o plantation_add_vector.o \
-    shipyard_add_vector.o trade_post_add_vector.o unit_add_vector.o unit_movement_mng.o player_ledger.o \
+    shipyard_add_vector.o trade_post_add_vector.o unit_add_vector.o unit_movement_mng.o tile_attr_tables.o player_ledger.o \
     civ_relations.o game_state.o tile_yields.o tile_working.o \
     city_array.o general_bit_bank.o general_assessor.o effect_ctx.o effect_enabler.o \
     booster_effect_register.o local_unit_exp_booster_register.o civ_ship_training_booster_register.o \

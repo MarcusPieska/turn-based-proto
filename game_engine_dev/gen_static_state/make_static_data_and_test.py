@@ -22,7 +22,7 @@ if __name__ == "__main__":
     specs.append(("city_flag", "CityFlag", std_members + "ItemEffectsStruct effects;", "effects.items[0].type", "effects.items[1].type"))
     specs.append(("civ", "Civ", "CivTraitStruct traits;", "traits.indices[0]", "traits.indices[1]"))
     specs.append(("civ_trait", "CivTrait", "", "None", "None"))
-    specs.append(("mvt_cost", "MvtCost", "u16 cost;", "None", "None"))
+    specs.append(("tile_attribute", "TileAttribute", "u16 mvt_cost; i16 food; u16 production; u16 commerce; u16 culture; u16 science; u16 religion; u16 attack_mod; u16 defense_mod;", "None", "None"))
     specs.append(("resource", "Resource", std_members + "u16 food; u16 shields; u16 commerce; u16 res_dist_idx;", "food", "shields"))
     specs.append(("res_dist", "ResDist", "u8 has_plc; ResPlacement plc;", "None", "None"))
     

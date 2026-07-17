@@ -24,10 +24,10 @@
 
 typedef const char* cstr;
 
-static const char* G_TERR = "/home/w/Projects/simple-map-gen/p1-seed-042/24_make_map_terrain.ppm";
-static const char* G_CLIM = "/home/w/Projects/simple-map-gen/p1-seed-042/24_make_map_climate.ppm";
-static const char* G_RIV = "/home/w/Projects/simple-map-gen/p1-seed-042/24_make_map_rivers.ppm";
-static const char* G_RES = "/home/w/Projects/simple-map-gen/p1-seed-042/25_res_overlay.ppm";
+static const char* G_TERR = "/home/w/Projects/simple-map-gen/p1-seed-42/terrain.ppm";
+static const char* G_CLIM = "/home/w/Projects/simple-map-gen/p1-seed-42/climate.ppm";
+static const char* G_RIV = "/home/w/Projects/simple-map-gen/p1-seed-42/rivers.ppm";
+static const char* G_RES = "/home/w/Projects/simple-map-gen/p1-seed-42/overlay.ppm";
 static const char* G_VIS_SCOUT_OUT = "/home/w/Projects/simple-map-gen/unit_movement_mng_land_scout_cost_visits.ppm";
 static const char* G_VIS_SPEAR_OUT = "/home/w/Projects/simple-map-gen/unit_movement_mng_land_spearman_cost_visits.ppm";
 static const char* G_VIS_EXPL_OUT = "/home/w/Projects/simple-map-gen/unit_movement_mng_land_explorer_cost_visits.ppm";
@@ -824,6 +824,7 @@ void test_land_cost_scout () {
         map_center(tmp, &sx, &sy);
         tmp.clear();
     }
+    sx -= 100;
     run_cost_walk(sx, sy, k_scout_typ, "place scout", "map center",
         "land cost table (scout)", G_VIS_SCOUT_OUT, record_step);
 }
@@ -836,6 +837,7 @@ void test_land_cost_spearman () {
         map_center(tmp, &sx, &sy);
         tmp.clear();
     }
+    sx -= 100;
     run_cost_walk(sx, sy, k_spearman_typ, "place spearman", "map center",
         "land cost table (spearman)", G_VIS_SPEAR_OUT, record_step);
 }
@@ -848,6 +850,7 @@ void test_land_cost_explorer () {
         map_center(tmp, &sx, &sy);
         tmp.clear();
     }
+    sx -= 100;
     run_cost_walk(sx, sy, k_explorer_typ, "place explorer", "map center", "land cost table (explorer)", G_VIS_EXPL_OUT, record_step);
 }
 

@@ -73,7 +73,7 @@ void print_holder_counts (const RuntimeStatics& s) {
     print_u16_member("city_flag", s.city_flag().get_item_count());
     print_u16_member("civ", s.civ().get_item_count());
     print_u16_member("civ_trait", s.civ_trait().get_item_count());
-    print_u16_member("mvt_cost", s.mvt_cost().get_item_count());
+    print_u16_member("tile_attribute", s.tile_attribute().get_item_count());
     print_u16_member("resource", s.resource().get_item_count());
     print_u16_member("res_dist", s.res_dist().get_item_count());
     print_u16_member("small_wonder", s.small_wonder().get_item_count());
@@ -129,7 +129,7 @@ void run_load_tests (const RuntimeStaticLoader& loader) {
     note_result(s.city_flag().get_item_count() > 0, "city_flag holder has items");
     note_result(s.civ().get_item_count() > 0, "civ holder has items");
     note_result(s.civ_trait().get_item_count() > 0, "civ_trait holder has items");
-    note_result(s.mvt_cost().get_item_count() > 0, "mvt_cost holder has items");
+    note_result(s.tile_attribute().get_item_count() > 0, "tile_attribute holder has items");
     note_result(s.resource().get_item_count() > 0, "resource holder has items");
     note_result(s.res_dist().get_item_count() > 0, "res_dist holder has items");
     note_result(s.small_wonder().get_item_count() > 0, "small_wonder holder has items");

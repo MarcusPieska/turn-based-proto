@@ -30,7 +30,7 @@ BuildingParserTester::BuildingParserTester () :
     m_city_flag_sd(NULL),
     m_civ_sd(NULL),
     m_civ_trait_sd(NULL),
-    m_mvt_cost_sd(NULL),
+    m_tile_attribute_sd(NULL),
     m_resource_sd(NULL),
     m_res_dist_sd(NULL),
     m_small_wonder_sd(NULL),
@@ -43,7 +43,7 @@ BuildingParserTester::BuildingParserTester () :
     m_city_flag_psr(NULL),
     m_civ_psr(NULL),
     m_civ_trait_psr(NULL),
-    m_mvt_cost_psr(NULL),
+    m_tile_attribute_psr(NULL),
     m_resource_psr(NULL),
     m_res_dist_psr(NULL),
     m_small_wonder_psr(NULL),
@@ -79,9 +79,9 @@ void BuildingParserTester::set_civ_trait_sd (const CivTraitStaticData* sd) {
 
 }
 
-void BuildingParserTester::set_mvt_cost_sd (const MvtCostStaticData* sd) {
+void BuildingParserTester::set_tile_attribute_sd (const TileAttributeStaticData* sd) {
 
-    m_mvt_cost_sd = sd;
+    m_tile_attribute_sd = sd;
 
 }
 
@@ -195,11 +195,11 @@ u16 BuildingParserTester::st_civ_trait_n2i (cstr name) {
     return s_inst->m_civ_trait_psr->name_to_idx(name);
 }
 
-u16 BuildingParserTester::st_mvt_cost_n2i (cstr name) {
-    if (s_inst == NULL || s_inst->m_mvt_cost_psr == NULL) {
+u16 BuildingParserTester::st_tile_attribute_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_tile_attribute_psr == NULL) {
         return U16_KEY_NULL;
     }
-    return s_inst->m_mvt_cost_psr->name_to_idx(name);
+    return s_inst->m_tile_attribute_psr->name_to_idx(name);
 }
 
 u16 BuildingParserTester::st_resource_n2i (cstr name) {
@@ -260,6 +260,10 @@ u16 BuildingParserTester::st_wonder_n2i (cstr name) {
 
 void BuildingParserTester::pr_u16 (cstr label, u16 value) {
     fprintf(out(), "  %s: %u\n", label, value);
+}
+
+void BuildingParserTester::pr_i16 (cstr label, i16 value) {
+    fprintf(out(), "  %s: %d\n", label, (int)value);
 }
 
 void BuildingParserTester::pr_u32 (cstr label, u32 value) {
@@ -497,7 +501,7 @@ int BuildingParserTester::run () {
     cbs.city_flag_name_to_idx = st_city_flag_n2i;
     cbs.civ_name_to_idx = st_civ_n2i;
     cbs.civ_trait_name_to_idx = st_civ_trait_n2i;
-    cbs.mvt_cost_name_to_idx = st_mvt_cost_n2i;
+    cbs.tile_attribute_name_to_idx = st_tile_attribute_n2i;
     cbs.resource_name_to_idx = st_resource_n2i;
     cbs.res_dist_name_to_idx = st_res_dist_n2i;
     cbs.small_wonder_name_to_idx = st_small_wonder_n2i;
@@ -513,7 +517,7 @@ int BuildingParserTester::run () {
     StringManager city_flag_items;
     StringManager civ_items;
     StringManager civ_trait_items;
-    StringManager mvt_cost_items;
+    StringManager tile_attribute_items;
     StringManager resource_items;
     StringManager res_dist_items;
     StringManager small_wonder_items;
@@ -529,7 +533,7 @@ int BuildingParserTester::run () {
     ld_sm(city_flag_items, paths.get_path_to_city_flags());
     ld_sm(civ_items, paths.get_path_to_civs());
     ld_sm(civ_trait_items, paths.get_path_to_civ_traits());
-    ld_sm(mvt_cost_items, paths.get_path_to_mvt_costs());
+    ld_sm(tile_attribute_items, paths.get_path_to_tile_attributes());
     ld_sm(resource_items, paths.get_path_to_resources());
     ld_sm(res_dist_items, paths.get_path_to_res_dists());
     ld_sm(small_wonder_items, paths.get_path_to_small_wonders());
@@ -548,7 +552,7 @@ int BuildingParserTester::run () {
     DataParserBase city_flag_parser(city_flag_items, cbs);
     DataParserBase civ_parser(civ_items, cbs);
     DataParserBase civ_trait_parser(civ_trait_items, cbs);
-    DataParserBase mvt_cost_parser(mvt_cost_items, cbs);
+    DataParserBase tile_attribute_parser(tile_attribute_items, cbs);
     DataParserBase resource_parser(resource_items, cbs);
     DataParserBase res_dist_parser(res_dist_items, cbs);
     DataParserBase small_wonder_parser(small_wonder_items, cbs);
@@ -562,7 +566,7 @@ int BuildingParserTester::run () {
     m_city_flag_psr = &city_flag_parser;
     m_civ_psr = &civ_parser;
     m_civ_trait_psr = &civ_trait_parser;
-    m_mvt_cost_psr = &mvt_cost_parser;
+    m_tile_attribute_psr = &tile_attribute_parser;
     m_resource_psr = &resource_parser;
     m_res_dist_psr = &res_dist_parser;
     m_small_wonder_psr = &small_wonder_parser;

@@ -14,7 +14,12 @@ INC="-I. \
      -I../misc \
      -I../data_io \
      -I../static_state \
-     -I../game"
+     -I../game \
+     -I../city \
+     -I../city/assessor \
+     -I../city/effector \
+     -I../gen_bit_banks \
+     -I../gen_effector"
 CXXFLAGS="-std=c++17 -Wall -Wextra"
 
 g++ $CXXFLAGS $INC -c ../data_io/runtime_static_loader.cpp -o runtime_static_loader.o
@@ -31,9 +36,33 @@ g++ $CXXFLAGS $INC -c shipyard_add_vector.cpp -o shipyard_add_vector.o
 g++ $CXXFLAGS $INC -c trade_post_add_vector.cpp -o trade_post_add_vector.o
 g++ $CXXFLAGS $INC -c unit_add_vector.cpp -o unit_add_vector.o
 g++ $CXXFLAGS $INC -c unit_movement_mng.cpp -o unit_movement_mng.o
+g++ $CXXFLAGS $INC -c ../game/tile_attr_tables.cpp -o tile_attr_tables.o
 g++ $CXXFLAGS $INC -c ../game/game_array_simple.cpp -o game_array_simple.o
 g++ $CXXFLAGS $INC -c ../game/game_state.cpp -o game_state.o
+g++ $CXXFLAGS $INC -c ../game/player_ledger.cpp -o player_ledger.o
 g++ $CXXFLAGS $INC -c ../game/civ_relations.cpp -o civ_relations.o
+g++ $CXXFLAGS $INC -c ../game/tile_yields.cpp -o tile_yields.o
+g++ $CXXFLAGS $INC -c ../game/tile_working.cpp -o tile_working.o
+g++ $CXXFLAGS $INC -c ../game/city_array.cpp -o city_array.o
+g++ $CXXFLAGS $INC -c ../gen_bit_banks/general_bit_bank.cpp -o general_bit_bank.o
+g++ $CXXFLAGS $INC -c ../city/assessor/general_assessor.cpp -o general_assessor.o
+g++ $CXXFLAGS $INC -c ../city/effect_ctx.cpp -o effect_ctx.o
+g++ $CXXFLAGS $INC -c ../city/effector/effect_enabler.cpp -o effect_enabler.o
+g++ $CXXFLAGS $INC -c ../city/effector/booster_effect_register.cpp -o booster_effect_register.o
+g++ $CXXFLAGS $INC -c ../city/effector/local_unit_exp_booster_register.cpp -o local_unit_exp_booster_register.o
+g++ $CXXFLAGS $INC -c ../city/effector/civ_ship_training_booster_register.cpp -o civ_ship_training_booster_register.o
+g++ $CXXFLAGS $INC -c ../city/effector/city_commerce_booster_register.cpp -o city_commerce_booster_register.o
+g++ $CXXFLAGS $INC -c ../city/effector/city_production_booster_register.cpp -o city_production_booster_register.o
+g++ $CXXFLAGS $INC -c ../city/effector/local_production_booster_register.cpp -o local_production_booster_register.o
+g++ $CXXFLAGS $INC -c ../city/effector/local_pop_growth_booster_register.cpp -o local_pop_growth_booster_register.o
+g++ $CXXFLAGS $INC -c ../city/effector/local_commerce_booster_register.cpp -o local_commerce_booster_register.o
+g++ $CXXFLAGS $INC -c ../city/effector/city_pop_growth_booster_register.cpp -o city_pop_growth_booster_register.o
+g++ $CXXFLAGS $INC -c ../city/effector/civ_pop_growth_booster_register.cpp -o civ_pop_growth_booster_register.o
+g++ $CXXFLAGS $INC -c ../city/effector/city_culture_booster_register.cpp -o city_culture_booster_register.o
+g++ $CXXFLAGS $INC -c ../city/city.cpp -o city.o
+g++ $CXXFLAGS $INC -c ../city/city_tile_manager.cpp -o city_tile_manager.o
+g++ $CXXFLAGS $INC -c ../city/circular_tile_areas.cpp -o circular_tile_areas.o
+g++ $CXXFLAGS $INC -c ../city/city_border.cpp -o city_border.o
 g++ $CXXFLAGS $INC -c unit_movement_mng_mvt_setup_tester.cpp -o unit_movement_mng_mvt_setup_tester.o
 
 g++ $CXXFLAGS -o unit_movement_mng_mvt_setup_tester \
@@ -51,17 +80,36 @@ g++ $CXXFLAGS -o unit_movement_mng_mvt_setup_tester \
     trade_post_add_vector.o \
     unit_add_vector.o \
     unit_movement_mng.o \
+    tile_attr_tables.o \
     game_array_simple.o \
     game_state.o \
+    player_ledger.o \
     civ_relations.o \
+    tile_yields.o \
+    tile_working.o \
+    city_array.o \
+    general_bit_bank.o \
+    general_assessor.o \
+    effect_ctx.o \
+    effect_enabler.o \
+    booster_effect_register.o \
+    local_unit_exp_booster_register.o \
+    civ_ship_training_booster_register.o \
+    city_commerce_booster_register.o \
+    city_production_booster_register.o \
+    local_production_booster_register.o \
+    local_pop_growth_booster_register.o \
+    local_commerce_booster_register.o \
+    city_pop_growth_booster_register.o \
+    civ_pop_growth_booster_register.o \
+    city_culture_booster_register.o \
+    city.o \
+    city_tile_manager.o \
+    circular_tile_areas.o \
+    city_border.o \
     unit_movement_mng_mvt_setup_tester.o \
     -ldl \
     $LIB_SO \
     -Wl,-rpath,'$ORIGIN/../data_io'
 
-rm runtime_static_loader.o runtime_trace_dbg.o map_bit_overlay.o map_bit_array_overlay.o bit_array.o \
-    fort_add_vector.o mine_add_vector.o monastery_add_vector.o \
-    outpost_add_vector.o plantation_add_vector.o shipyard_add_vector.o \
-    trade_post_add_vector.o unit_add_vector.o unit_movement_mng.o \
-    game_array_simple.o game_state.o civ_relations.o \
-    unit_movement_mng_mvt_setup_tester.o
+rm -f *.o

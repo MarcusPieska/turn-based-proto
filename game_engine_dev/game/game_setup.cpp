@@ -248,6 +248,10 @@ bool GameSetup::finish_with_starts (GameState* state, const SpgPickCoords& start
     City::bind_wonder_cities(state->m_wonder_city);
     UnitMovementMng::bind_state(state);
     PlayerLedger::bind_state(state);
+    if (!TileYields::setup(*g_rt_statics)) {
+        state->clear();
+        return false;
+    }
     TileYields::bind_map(&state->m_map);
     TileWorking::bind_map(&state->m_map);
     CityBorder::bind_map(&state->m_map);

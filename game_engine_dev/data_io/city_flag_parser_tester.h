@@ -26,7 +26,7 @@
 #include "city_flag_static_data.h"
 #include "civ_static_data.h"
 #include "civ_trait_static_data.h"
-#include "mvt_cost_static_data.h"
+#include "tile_attribute_static_data.h"
 #include "resource_static_data.h"
 #include "res_dist_static_data.h"
 #include "small_wonder_static_data.h"
@@ -53,7 +53,7 @@ public:
     void set_city_flag_sd (const CityFlagStaticData* sd);
     void set_civ_sd (const CivStaticData* sd);
     void set_civ_trait_sd (const CivTraitStaticData* sd);
-    void set_mvt_cost_sd (const MvtCostStaticData* sd);
+    void set_tile_attribute_sd (const TileAttributeStaticData* sd);
     void set_resource_sd (const ResourceStaticData* sd);
     void set_res_dist_sd (const ResDistStaticData* sd);
     void set_small_wonder_sd (const SmallWonderStaticData* sd);
@@ -73,7 +73,7 @@ private:
     const CityFlagStaticData* m_city_flag_sd;
     const CivStaticData* m_civ_sd;
     const CivTraitStaticData* m_civ_trait_sd;
-    const MvtCostStaticData* m_mvt_cost_sd;
+    const TileAttributeStaticData* m_tile_attribute_sd;
     const ResourceStaticData* m_resource_sd;
     const ResDistStaticData* m_res_dist_sd;
     const SmallWonderStaticData* m_small_wonder_sd;
@@ -87,7 +87,7 @@ private:
     const DataParserBase* m_city_flag_psr;
     const DataParserBase* m_civ_psr;
     const DataParserBase* m_civ_trait_psr;
-    const DataParserBase* m_mvt_cost_psr;
+    const DataParserBase* m_tile_attribute_psr;
     const DataParserBase* m_resource_psr;
     const DataParserBase* m_res_dist_psr;
     const DataParserBase* m_small_wonder_psr;
@@ -103,7 +103,7 @@ private:
     static u16 st_city_flag_n2i (cstr name);
     static u16 st_civ_n2i (cstr name);
     static u16 st_civ_trait_n2i (cstr name);
-    static u16 st_mvt_cost_n2i (cstr name);
+    static u16 st_tile_attribute_n2i (cstr name);
     static u16 st_resource_n2i (cstr name);
     static u16 st_res_dist_n2i (cstr name);
     static u16 st_small_wonder_n2i (cstr name);
@@ -115,6 +115,7 @@ private:
 
     bool ld_sm (StringManager& sm, cstr path);
     void pr_u16 (cstr label, u16 value);
+    void pr_i16 (cstr label, i16 value);
     void pr_u32 (cstr label, u32 value);
     void pr_reqs (cstr label, const ItemReqsStruct& reqs);
     void pr_fx (cstr label, const ItemEffectsStruct& e);

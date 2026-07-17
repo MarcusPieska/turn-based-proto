@@ -8,12 +8,13 @@
 #include "game_primitives.h"
 
 class GameArraySimple;
+class RuntimeStatics;
 
 //================================================================================================================================
 //=> - TileYield -
 //================================================================================================================================
 //
-//  Per-tile production yields returned by TileYields::get. Placeholder fields until game data drives yields.
+//  Per-tile production yields returned by TileYields::get from TileAttrTables (terr+clim+ov, plus riv if present).
 //
 //================================================================================================================================
 
@@ -27,13 +28,14 @@ struct TileYield {
 //=> - TileYields -
 //================================================================================================================================
 //
-//  Static read-only lookup of tile yields from the bound GameArraySimple map. bind_map wires the active match tile grid.
-//  Internals are temporary hard-coded rules; later replaced by game data tables.
+//  Static read-only yield lookup on the bound GameArraySimple map. setup unpacks RuntimeStatics into TileAttrTables;
+//  get indexes those tables by map cell class ids (no name scan on the hot path).
 //
 //================================================================================================================================
 
 class TileYields {
 public:
+    static bool setup (const RuntimeStatics& st);
     static void bind_map (const GameArraySimple* map);
     static TileYield get (u16 x, u16 y);
     static bool in_bounds (u16 x, u16 y);
