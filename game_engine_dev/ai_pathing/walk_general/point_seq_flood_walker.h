@@ -12,9 +12,9 @@
 //=> - PointSeqFloodWalker -
 //================================================================================================================================
 //
-//  Walk along a SectorPath with one local flood per sector waypoint: BFS in a 15x15 window from
-//  the waypoint (clamped in-window) to the walker, stash the tile path, then step along it.
-//  Parent, queue, and path buffers are fixed members (no heap / no per-tile flood).
+//  Point-to-point land walk. If src and dst fit in one PSF_WIN window, path with a single local
+//  flood; otherwise hop SectorPath waypoints, each with a local window flood. Parent, queue, and
+//  path buffers are fixed members (no heap / no per-tile flood).
 //
 //================================================================================================================================
 
@@ -43,6 +43,7 @@ private:
 
     void clear ();
     bool pass (u16 x, u16 y) const;
+    bool win_fit (u16 x0, u16 y0, u16 x1, u16 y1) const;
     void aim_next ();
     bool plan ();
 

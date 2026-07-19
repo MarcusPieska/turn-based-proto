@@ -92,6 +92,11 @@ u8 GameArraySimple::get_civ_owner (u16 x, u16 y) const {
     return static_cast<u8>(m_tiles[tidx(x, y)].m_civ_owner);
 }
 
+u8 GameArraySimple::get_settler_blocked (u16 x, u16 y) const {
+    CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
+    return static_cast<u8>(m_tiles[tidx(x, y)].m_settler_blocked);
+}
+
 bool GameArraySimple::set_unit_hd (u16 x, u16 y, u16 unit_hd) {
     CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
     m_tiles[tidx(x, y)].m_unit_hd = unit_hd;
@@ -114,6 +119,12 @@ bool GameArraySimple::set_city_worker (u16 x, u16 y, u16 city_idx) {
 bool GameArraySimple::set_civ_owner (u16 x, u16 y, u8 owner) {
     CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
     m_tiles[tidx(x, y)].m_civ_owner = owner;
+    return true;
+}
+
+bool GameArraySimple::set_settler_blocked (u16 x, u16 y, u8 blocked) {
+    CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
+    m_tiles[tidx(x, y)].m_settler_blocked = blocked != 0 ? 1u : 0u;
     return true;
 }
 

@@ -1,35 +1,47 @@
 #!/bin/bash
 
-# Define the include path for the compiler
+cd "$(dirname "$0")"
+
 INC="-I.. \
      -I../misc \
      -I../gen_bit_banks \
      -I../data_io \
      -I../static_state \
-     -I../dyn_state"
+     -I../dyn_state \
+     -I../ai_pathing/walk_general \
+     -I../map_loader \
+     -I../simple_map_gen \
+     -I../game"
+CXXFLAGS="-std=c++17 -Wall -Wextra"
 
-# Compile dependencies
-g++ $INC -c ../misc/bit_array.cpp -o bit_array.o
-g++ $INC -c ../misc/str_mng.cpp -o str_mng.o
-g++ $INC -c ../gen_bit_banks/general_bit_bank.cpp -o general_bit_bank.o
-g++ $INC -c ../data_io/wonder_data.cpp -o wonder_data.o
-g++ $INC -c ../static_state/wonder_vector.cpp -o wonder_vector.o
-g++ $INC -c ../dyn_state/fort_add_vector.cpp -o fort_add_vector.o
-g++ $INC -c ../dyn_state/mine_add_vector.cpp -o mine_add_vector.o
-g++ $INC -c ../dyn_state/monastery_add_vector.cpp -o monastery_add_vector.o
-g++ $INC -c ../dyn_state/outpost_add_vector.cpp -o outpost_add_vector.o
-g++ $INC -c ../dyn_state/plantation_add_vector.cpp -o plantation_add_vector.o
-g++ $INC -c ../dyn_state/shipyard_add_vector.cpp -o shipyard_add_vector.o
-g++ $INC -c ../dyn_state/trade_post_add_vector.cpp -o trade_post_add_vector.o
-g++ $INC -c ../dyn_state/unit_add_vector.cpp -o unit_add_vector.o
-g++ $INC -c game_state.cpp -o game_state.o
-g++ $INC -c game_state_tester.cpp -o game_state_tester.o
+g++ $CXXFLAGS $INC -c ../misc/bit_array.cpp -o bit_array.o
+g++ $CXXFLAGS $INC -c ../misc/str_mng.cpp -o str_mng.o
+g++ $CXXFLAGS $INC -c ../misc/map_bit_overlay.cpp -o map_bit_overlay.o
+g++ $CXXFLAGS $INC -c ../misc/map_bit_array_overlay.cpp -o map_bit_array_overlay.o
+g++ $CXXFLAGS $INC -c ../gen_bit_banks/general_bit_bank.cpp -o general_bit_bank.o
+g++ $CXXFLAGS $INC -c ../data_io/wonder_data.cpp -o wonder_data.o
+g++ $CXXFLAGS $INC -c ../static_state/wonder_vector.cpp -o wonder_vector.o
+g++ $CXXFLAGS $INC -c ../dyn_state/fort_add_vector.cpp -o fort_add_vector.o
+g++ $CXXFLAGS $INC -c ../dyn_state/mine_add_vector.cpp -o mine_add_vector.o
+g++ $CXXFLAGS $INC -c ../dyn_state/monastery_add_vector.cpp -o monastery_add_vector.o
+g++ $CXXFLAGS $INC -c ../dyn_state/outpost_add_vector.cpp -o outpost_add_vector.o
+g++ $CXXFLAGS $INC -c ../dyn_state/plantation_add_vector.cpp -o plantation_add_vector.o
+g++ $CXXFLAGS $INC -c ../dyn_state/shipyard_add_vector.cpp -o shipyard_add_vector.o
+g++ $CXXFLAGS $INC -c ../dyn_state/trade_post_add_vector.cpp -o trade_post_add_vector.o
+g++ $CXXFLAGS $INC -c ../dyn_state/unit_add_vector.cpp -o unit_add_vector.o
+g++ $CXXFLAGS $INC -c ../ai_pathing/walk_general/sector_network.cpp -o sector_network.o
+g++ $CXXFLAGS $INC -c ../ai_pathing/walk_general/sector_network_router.cpp -o sector_network_router.o
+g++ $CXXFLAGS $INC -c civ_relations.cpp -o civ_relations.o
+g++ $CXXFLAGS $INC -c city_array.cpp -o city_array.o
+g++ $CXXFLAGS $INC -c game_array_simple.cpp -o game_array_simple.o
+g++ $CXXFLAGS $INC -c game_state.cpp -o game_state.o
+g++ $CXXFLAGS $INC -c game_state_tester.cpp -o game_state_tester.o
 
-# Link everything into the final tester
-g++ -o \
-    game_state_tester \
+g++ $CXXFLAGS -o game_state_tester \
     bit_array.o \
     str_mng.o \
+    map_bit_overlay.o \
+    map_bit_array_overlay.o \
     general_bit_bank.o \
     wonder_data.o \
     wonder_vector.o \
@@ -41,23 +53,18 @@ g++ -o \
     shipyard_add_vector.o \
     trade_post_add_vector.o \
     unit_add_vector.o \
+    sector_network.o \
+    sector_network_router.o \
+    civ_relations.o \
+    city_array.o \
+    game_array_simple.o \
     game_state.o \
     game_state_tester.o
 
-# Clean up
-rm \
-    bit_array.o \
-    str_mng.o \
-    general_bit_bank.o \
-    wonder_data.o \
-    wonder_vector.o \
-    fort_add_vector.o \
-    mine_add_vector.o \
-    monastery_add_vector.o \
-    outpost_add_vector.o \
-    plantation_add_vector.o \
-    shipyard_add_vector.o \
-    trade_post_add_vector.o \
-    unit_add_vector.o \
-    game_state.o \
-    game_state_tester.o
+rm bit_array.o str_mng.o map_bit_overlay.o map_bit_array_overlay.o \
+    general_bit_bank.o wonder_data.o wonder_vector.o \
+    fort_add_vector.o mine_add_vector.o monastery_add_vector.o \
+    outpost_add_vector.o plantation_add_vector.o shipyard_add_vector.o \
+    trade_post_add_vector.o unit_add_vector.o \
+    sector_network.o sector_network_router.o \
+    civ_relations.o city_array.o game_array_simple.o game_state.o game_state_tester.o

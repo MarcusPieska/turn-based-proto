@@ -15,6 +15,7 @@ if [ ! -f "$MAP_SO" ]; then
 fi
 
 INC="-I.. \
+     -I. \
      -I../misc \
      -I../map_loader \
      -I../simple_map_gen \
@@ -35,7 +36,7 @@ g++ $CXXFLAGS $INC -c ../map_loader/map_terrain_validate.cpp -o map_terrain_vali
 g++ $CXXFLAGS $INC -c ../map_loader/map_terrain_data.cpp -o map_terrain_data.o
 g++ $CXXFLAGS $INC -c ../map_loader/map_loader.cpp -o map_loader.o
 g++ $CXXFLAGS $INC -c ../map_loader/starting_point_generator.cpp -o starting_point_generator.o
-g++ $CXXFLAGS $INC -c runtime_trace_dbg.cpp -o runtime_trace_dbg.o
+g++ $CXXFLAGS $INC -c ../game/runtime_trace_dbg.cpp -o runtime_trace_dbg.o
 g++ $CXXFLAGS $INC -c ../misc/map_bit_overlay.cpp -o map_bit_overlay.o
 g++ $CXXFLAGS $INC -c ../misc/map_bit_array_overlay.cpp -o map_bit_array_overlay.o
 g++ $CXXFLAGS $INC -c ../misc/bit_array.cpp -o bit_array.o
@@ -48,16 +49,17 @@ g++ $CXXFLAGS $INC -c ../dyn_state/shipyard_add_vector.cpp -o shipyard_add_vecto
 g++ $CXXFLAGS $INC -c ../dyn_state/trade_post_add_vector.cpp -o trade_post_add_vector.o
 g++ $CXXFLAGS $INC -c ../dyn_state/unit_add_vector.cpp -o unit_add_vector.o
 g++ $CXXFLAGS $INC -c ../dyn_state/unit_movement_mng.cpp -o unit_movement_mng.o
-g++ $CXXFLAGS $INC -c tile_attr_tables.cpp -o tile_attr_tables.o
+g++ $CXXFLAGS $INC -c ../game/tile_attr_tables.cpp -o tile_attr_tables.o
 g++ $CXXFLAGS $INC -c ../ai_pathing/walk_general/sector_network.cpp -o sector_network.o
 g++ $CXXFLAGS $INC -c ../ai_pathing/walk_general/sector_network_router.cpp -o sector_network_router.o
-g++ $CXXFLAGS $INC -c game_array_simple.cpp -o game_array_simple.o
-g++ $CXXFLAGS $INC -c factory_game_array_simple.cpp -o factory_game_array_simple.o
-g++ $CXXFLAGS $INC -c game_state.cpp -o game_state.o
-g++ $CXXFLAGS $INC -c player_ledger.cpp -o player_ledger.o
-g++ $CXXFLAGS $INC -c tile_yields.cpp -o tile_yields.o
-g++ $CXXFLAGS $INC -c tile_working.cpp -o tile_working.o
-g++ $CXXFLAGS $INC -c civ_relations.cpp -o civ_relations.o
+g++ $CXXFLAGS $INC -c ../ai_pathing/walk_general/point_seq_flood_walker.cpp -o point_seq_flood_walker.o
+g++ $CXXFLAGS $INC -c ../game/game_array_simple.cpp -o game_array_simple.o
+g++ $CXXFLAGS $INC -c ../game/factory_game_array_simple.cpp -o factory_game_array_simple.o
+g++ $CXXFLAGS $INC -c ../game/game_state.cpp -o game_state.o
+g++ $CXXFLAGS $INC -c ../game/player_ledger.cpp -o player_ledger.o
+g++ $CXXFLAGS $INC -c ../game/tile_yields.cpp -o tile_yields.o
+g++ $CXXFLAGS $INC -c ../game/tile_working.cpp -o tile_working.o
+g++ $CXXFLAGS $INC -c ../game/civ_relations.cpp -o civ_relations.o
 g++ $CXXFLAGS $INC -c ../adv_map_gen/map_gen_loader.cpp -o map_gen_loader.o
 g++ $CXXFLAGS $INC -c ../gen_bit_banks/general_bit_bank.cpp -o general_bit_bank.o
 g++ $CXXFLAGS $INC -c ../city/assessor/general_assessor.cpp -o general_assessor.o
@@ -75,17 +77,24 @@ g++ $CXXFLAGS $INC -c ../city/effector/city_pop_growth_booster_register.cpp -o c
 g++ $CXXFLAGS $INC -c ../city/effector/civ_pop_growth_booster_register.cpp -o civ_pop_growth_booster_register.o
 g++ $CXXFLAGS $INC -c ../city/effector/city_culture_booster_register.cpp -o city_culture_booster_register.o
 g++ $CXXFLAGS $INC -c ../city/city.cpp -o city.o
-g++ $CXXFLAGS $INC -c city_array.cpp -o city_array.o
-g++ $CXXFLAGS $INC -c game_helpers/civ_spawner.cpp -o civ_spawner.o
-g++ $CXXFLAGS $INC -c game_loop_cache.cpp -o game_loop_cache.o
-g++ $CXXFLAGS $INC -c game_loop.cpp -o game_loop.o
-g++ $CXXFLAGS $INC -c game_setup.cpp -o game_setup.o
+g++ $CXXFLAGS $INC -c ../game/city_array.cpp -o city_array.o
+g++ $CXXFLAGS $INC -c ../game/game_helpers/civ_spawner.cpp -o civ_spawner.o
+g++ $CXXFLAGS $INC -c ../game/game_loop_cache.cpp -o game_loop_cache.o
+g++ $CXXFLAGS $INC -c ../game/game_loop.cpp -o game_loop.o
+g++ $CXXFLAGS $INC -c ../game/game_setup.cpp -o game_setup.o
 g++ $CXXFLAGS $INC -c ../city/city_tile_manager.cpp -o city_tile_manager.o
 g++ $CXXFLAGS $INC -c ../city/circular_tile_areas.cpp -o circular_tile_areas.o
+g++ $CXXFLAGS $INC -c ../city/city_blocking_mask.cpp -o city_blocking_mask.o
 g++ $CXXFLAGS $INC -c ../city/city_border.cpp -o city_border.o
-g++ $CXXFLAGS $INC -c game_setup_tester.cpp -o game_setup_tester.o
+g++ $CXXFLAGS $INC -c ../simple_map_gen/perlin_noise.cpp -o perlin_noise.o
+g++ $CXXFLAGS $INC -c ../simple_map_gen/generator_constants.cpp -o generator_constants.o
+g++ $CXXFLAGS $INC -c ../misc/whiteboard_mng.cpp -o whiteboard_mng.o
+g++ $CXXFLAGS $INC -c sense_settling_pts_opt.cpp -o sense_settling_pts_opt.o
+g++ $CXXFLAGS $INC -c settler_turn_mng.cpp -o settler_turn_mng.o
+g++ $CXXFLAGS $INC -c ../game/city_turn_handler.cpp -o city_turn_handler.o
+g++ $CXXFLAGS $INC -c settler_turn_mng_tester.cpp -o settler_turn_mng_tester.o
 
-g++ $CXXFLAGS -o game_setup_tester \
+g++ $CXXFLAGS -o settler_turn_mng_tester \
     runtime_static_loader.o \
     map_terrain_validate.o \
     map_terrain_data.o \
@@ -107,6 +116,7 @@ g++ $CXXFLAGS -o game_setup_tester \
     tile_attr_tables.o \
     sector_network.o \
     sector_network_router.o \
+    point_seq_flood_walker.o \
     game_array_simple.o \
     factory_game_array_simple.o \
     game_state.o \
@@ -138,23 +148,35 @@ g++ $CXXFLAGS -o game_setup_tester \
     game_setup.o \
     city_tile_manager.o \
     circular_tile_areas.o \
+    city_blocking_mask.o \
     city_border.o \
-    game_setup_tester.o \
+    perlin_noise.o \
+    generator_constants.o \
+    whiteboard_mng.o \
+    sense_settling_pts_opt.o \
+    settler_turn_mng.o \
+    city_turn_handler.o \
+    settler_turn_mng_tester.o \
     -ldl \
     $LIB_SO \
-    -Wl,-rpath,'$ORIGIN/../data_io'
+    -Wl,-rpath,'$ORIGIN/../data_io' \
+    -lm
 
-rm runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.o \
+./settler_turn_mng_tester
+
+rm -f runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.o \
     starting_point_generator.o runtime_trace_dbg.o map_bit_overlay.o \
     map_bit_array_overlay.o bit_array.o \
     fort_add_vector.o mine_add_vector.o monastery_add_vector.o \
     outpost_add_vector.o plantation_add_vector.o shipyard_add_vector.o \
-    trade_post_add_vector.o unit_add_vector.o unit_movement_mng.o tile_attr_tables.o \
-    sector_network.o sector_network_router.o \
+    trade_post_add_vector.o unit_add_vector.o unit_movement_mng.o \
+    tile_attr_tables.o sector_network.o sector_network_router.o point_seq_flood_walker.o \
     game_array_simple.o factory_game_array_simple.o game_state.o player_ledger.o tile_yields.o tile_working.o \
-    civ_relations.o game_setup.o city_tile_manager.o circular_tile_areas.o city_border.o game_setup_tester.o map_gen_loader.o \
-    city.o general_bit_bank.o general_assessor.o effect_ctx.o effect_enabler.o booster_effect_register.o \
-    local_unit_exp_booster_register.o civ_ship_training_booster_register.o city_commerce_booster_register.o \
-    city_production_booster_register.o local_production_booster_register.o local_pop_growth_booster_register.o \
-    local_commerce_booster_register.o city_pop_growth_booster_register.o civ_pop_growth_booster_register.o \
-    city_culture_booster_register.o city_array.o civ_spawner.o game_loop_cache.o game_loop.o
+    civ_relations.o game_setup.o city_tile_manager.o circular_tile_areas.o city_blocking_mask.o city_border.o \
+    map_gen_loader.o city.o general_bit_bank.o general_assessor.o effect_ctx.o effect_enabler.o \
+    booster_effect_register.o local_unit_exp_booster_register.o civ_ship_training_booster_register.o \
+    city_commerce_booster_register.o city_production_booster_register.o local_production_booster_register.o \
+    local_pop_growth_booster_register.o local_commerce_booster_register.o city_pop_growth_booster_register.o \
+    civ_pop_growth_booster_register.o city_culture_booster_register.o city_array.o civ_spawner.o \
+    game_loop_cache.o game_loop.o perlin_noise.o generator_constants.o whiteboard_mng.o sense_settling_pts_opt.o \
+    settler_turn_mng.o city_turn_handler.o settler_turn_mng_tester.o

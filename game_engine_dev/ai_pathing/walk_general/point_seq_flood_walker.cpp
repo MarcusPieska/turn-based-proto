@@ -89,6 +89,12 @@ bool PointSeqFloodWalker::pass (u16 x, u16 y) const {
     return land_ok(m_terr[static_cast<u32>(y) * static_cast<u32>(m_w) + static_cast<u32>(x)]);
 }
 
+bool PointSeqFloodWalker::win_fit (u16 x0, u16 y0, u16 x1, u16 y1) const {
+    const u16 dx = x0 >= x1 ? static_cast<u16>(x0 - x1) : static_cast<u16>(x1 - x0);
+    const u16 dy = y0 >= y1 ? static_cast<u16>(y0 - y1) : static_cast<u16>(y1 - y0);
+    return dx < PSF_WIN && dy < PSF_WIN;
+}
+
 void PointSeqFloodWalker::aim_next () {
     if (m_pi < m_path.m_n) {
         const u16 nxt = m_net->nbr(m_sid, m_path.get(m_pi));
@@ -126,25 +132,54 @@ bool PointSeqFloodWalker::plan () {
     }
     const i32 bw = (static_cast<i32>(m_w) < W) ? static_cast<i32>(m_w) : W;
     const i32 bh = (static_cast<i32>(m_h) < W) ? static_cast<i32>(m_h) : W;
-    i32 x0 = static_cast<i32>(m_x) - HALF;
-    i32 y0 = static_cast<i32>(m_y) - HALF;
-    if (x0 < 0) {
-        x0 = 0;
-    }
-    if (y0 < 0) {
-        y0 = 0;
-    }
-    if (x0 + bw > static_cast<i32>(m_w)) {
-        x0 = static_cast<i32>(m_w) - bw;
-    }
-    if (y0 + bh > static_cast<i32>(m_h)) {
-        y0 = static_cast<i32>(m_h) - bh;
-    }
-    if (x0 < 0) {
-        x0 = 0;
-    }
-    if (y0 < 0) {
-        y0 = 0;
+    const i32 minx = static_cast<i32>(m_x < m_tx ? m_x : m_tx);
+    const i32 maxx = static_cast<i32>(m_x > m_tx ? m_x : m_tx);
+    const i32 miny = static_cast<i32>(m_y < m_ty ? m_y : m_ty);
+    const i32 maxy = static_cast<i32>(m_y > m_ty ? m_y : m_ty);
+    i32 x0 = 0;
+    i32 y0 = 0;
+    if (maxx - minx < bw && maxy - miny < bh) {
+        x0 = minx - (bw - (maxx - minx + 1)) / 2;
+        y0 = miny - (bh - (maxy - miny + 1)) / 2;
+        if (x0 < 0) {
+            x0 = 0;
+        }
+        if (y0 < 0) {
+            y0 = 0;
+        }
+        if (x0 + bw > static_cast<i32>(m_w)) {
+            x0 = static_cast<i32>(m_w) - bw;
+        }
+        if (y0 + bh > static_cast<i32>(m_h)) {
+            y0 = static_cast<i32>(m_h) - bh;
+        }
+        if (x0 < 0) {
+            x0 = 0;
+        }
+        if (y0 < 0) {
+            y0 = 0;
+        }
+    } else {
+        x0 = static_cast<i32>(m_x) - HALF;
+        y0 = static_cast<i32>(m_y) - HALF;
+        if (x0 < 0) {
+            x0 = 0;
+        }
+        if (y0 < 0) {
+            y0 = 0;
+        }
+        if (x0 + bw > static_cast<i32>(m_w)) {
+            x0 = static_cast<i32>(m_w) - bw;
+        }
+        if (y0 + bh > static_cast<i32>(m_h)) {
+            y0 = static_cast<i32>(m_h) - bh;
+        }
+        if (x0 < 0) {
+            x0 = 0;
+        }
+        if (y0 < 0) {
+            y0 = 0;
+        }
     }
     const i32 sx = static_cast<i32>(m_x) - x0;
     const i32 sy = static_cast<i32>(m_y) - y0;
@@ -263,28 +298,44 @@ bool PointSeqFloodWalker::start (u16 x0, u16 y0, u16 x1, u16 y1) {
     if (!pass(x0, y0) || !pass(x1, y1)) {
         return false;
     }
-    const u16 a = m_net->id_at(x0, y0);
-    const u16 b = m_net->id_at(x1, y1);
-    if (a == U16_KEY_NULL || b == U16_KEY_NULL) {
-        return false;
-    }
-    if (!m_rt->find(a, b, &m_path)) {
-        return false;
-    }
     m_x = x0;
     m_y = y0;
     m_gx = x1;
     m_gy = y1;
+    m_tx = x1;
+    m_ty = y1;
+    m_pi = 0;
+    m_fn = 0;
+    m_fi = 0;
+    m_path.m_n = 0;
+    m_act = true;
+    m_fin = (x0 == x1 && y0 == y1);
+    m_need = !m_fin;
+    m_sid = U16_KEY_NULL;
+    if (m_fin) {
+        return true;
+    }
+    if (win_fit(x0, y0, x1, y1)) {
+        if (plan()) {
+            return true;
+        }
+    }
+    const u16 a = m_net->id_at(x0, y0);
+    const u16 b = m_net->id_at(x1, y1);
+    if (a == U16_KEY_NULL || b == U16_KEY_NULL) {
+        m_act = false;
+        return false;
+    }
+    if (!m_rt->find(a, b, &m_path)) {
+        m_act = false;
+        return false;
+    }
     m_sid = a;
     m_pi = 0;
     m_fn = 0;
     m_fi = 0;
-    m_act = true;
-    m_fin = (x0 == x1 && y0 == y1);
-    m_need = !m_fin;
-    if (!m_fin) {
-        aim_next();
-    }
+    m_need = true;
+    aim_next();
     return true;
 }
 

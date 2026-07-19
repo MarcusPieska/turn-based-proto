@@ -26,6 +26,7 @@ INC="-I.. \
      -I../city/effector \
      -I../gen_bit_banks \
      -I../adv_map_gen \
+     -I../ai_pathing/walk_general \
      -I../game"
 CXXFLAGS="-std=c++17 -Wall -Wextra"
 
@@ -47,6 +48,9 @@ g++ $CXXFLAGS $INC -c ../dyn_state/shipyard_add_vector.cpp -o shipyard_add_vecto
 g++ $CXXFLAGS $INC -c ../dyn_state/trade_post_add_vector.cpp -o trade_post_add_vector.o
 g++ $CXXFLAGS $INC -c ../dyn_state/unit_add_vector.cpp -o unit_add_vector.o
 g++ $CXXFLAGS $INC -c ../dyn_state/unit_movement_mng.cpp -o unit_movement_mng.o
+g++ $CXXFLAGS $INC -c tile_attr_tables.cpp -o tile_attr_tables.o
+g++ $CXXFLAGS $INC -c ../ai_pathing/walk_general/sector_network.cpp -o sector_network.o
+g++ $CXXFLAGS $INC -c ../ai_pathing/walk_general/sector_network_router.cpp -o sector_network_router.o
 g++ $CXXFLAGS $INC -c game_array_simple.cpp -o game_array_simple.o
 g++ $CXXFLAGS $INC -c factory_game_array_simple.cpp -o factory_game_array_simple.o
 g++ $CXXFLAGS $INC -c game_state.cpp -o game_state.o
@@ -101,6 +105,9 @@ g++ $CXXFLAGS -o city_turn_handler_tester \
     trade_post_add_vector.o \
     unit_add_vector.o \
     unit_movement_mng.o \
+    tile_attr_tables.o \
+    sector_network.o \
+    sector_network_router.o \
     game_array_simple.o \
     factory_game_array_simple.o \
     game_state.o \
@@ -147,6 +154,7 @@ rm runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.
     fort_add_vector.o mine_add_vector.o monastery_add_vector.o \
     outpost_add_vector.o plantation_add_vector.o shipyard_add_vector.o \
     trade_post_add_vector.o unit_add_vector.o unit_movement_mng.o \
+    tile_attr_tables.o sector_network.o sector_network_router.o \
     game_array_simple.o factory_game_array_simple.o game_state.o player_ledger.o tile_yields.o tile_working.o \
     civ_relations.o game_setup.o city_tile_manager.o circular_tile_areas.o city_border.o \
     city_turn_handler.o city_turn_handler_tester.o map_gen_loader.o \

@@ -244,6 +244,10 @@ bool Factory_GameArraySimple::load_map_gen_data (
         t->m_ov = ov != nullptr ? ov[i] : OVERLAY_NONE;
         t->m_riv = riv[i];
         t->m_add_typ = 0;
+        t->m_civ_owner = U8_KEY_NULL;
+        t->m_city_worker = U16_KEY_NULL;
+        t->m_road_typ = 0;
+        t->m_settler_blocked = 0;
     }
     delete[] ov;
     delete[] riv;
@@ -298,6 +302,10 @@ bool Factory_GameArraySimple::load_from_rslt (GameArraySimple* out, const MakeMa
         t->m_ov = rslt.m_overlay[i];
         t->m_riv = rslt.m_rivers[i];
         t->m_add_typ = 0;
+        t->m_civ_owner = U8_KEY_NULL;
+        t->m_city_worker = U16_KEY_NULL;
+        t->m_road_typ = 0;
+        t->m_settler_blocked = 0;
     }
     out->m_w = w;
     out->m_h = h;
@@ -317,6 +325,7 @@ bool Factory_GameArraySimple::init_test_grid (GameArraySimple* out, u16 w, u16 h
         tiles[i].m_unit_hd = U16_KEY_NULL;
         tiles[i].m_add_idx = U16_KEY_NULL;
         tiles[i].m_res = UINT16_MAX;
+        tiles[i].m_civ_owner = U8_KEY_NULL;
     }
     out->m_w = w;
     out->m_h = h;

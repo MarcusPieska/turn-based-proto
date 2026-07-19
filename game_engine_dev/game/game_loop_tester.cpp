@@ -193,7 +193,12 @@ void test_game_loop_fast_path () {
     note_result(state.m_map.width() > 0, "map loaded");
     note_result(state.m_player_n == g_players, "players ready");
     GameLoop loop;
-    note_result(loop.run(&state, G_TRACE_PATH), "game loop run");
+    note_result(loop.begin(&state, G_TRACE_PATH), "game loop begin");
+    while (state.m_current_turn < state.m_turn_limit) {
+        if (!loop.step()) {
+            break;
+        }
+    }
     note_result(state.m_current_turn == state.m_turn_limit, "turn limit reached");
     note_result(count_trace_prefix(G_TRACE_PATH, "NEW_TURN:") == state.m_turn_limit, "trace new turn count");
     if (print_level > 0) {

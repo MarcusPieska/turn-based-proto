@@ -11,15 +11,17 @@
 #include <errno.h>
 #include <sys/stat.h>
 
+#include "city.h"
+#include "city_array.h"
 #include "city_blocking_mask.h"
 #include "factory_game_array_simple.h"
 #include "game_array_simple.h"
+#include "game_map_defs.h"
 #include "generator_constants.h"
 #include "map_loader.h"
-#include "map_terrain_validate.h"
+#include "sense_settling_pts_opt.h"
 #include "starting_point_generator.h"
-#include "generate_distance_land_to_water.h"
-#include "sense_making_settler_pts.h"
+#include "whiteboard_mng.h" 
 
 //================================================================================================================================
 //=> - Globals -
@@ -35,8 +37,6 @@ static const u16 k_iter_m = 200;
 static const u32 k_samp_cap = static_cast<u32>(k_iter_n) * static_cast<u32>(k_iter_m);
 
 static const u16 k_latt_div = 10;
-static const u16 k_min_dist = 6;
-static const u16 k_max_dist = 10;
 static const i16 k_mask_rad = 2;
 
 int total_test_fails = 0;
@@ -52,17 +52,14 @@ struct ChronoFn {
     u64 total_ns;
 };
 
-static ChronoFn g_tm_sel = {"SenseMakingSettlerPt::select", nullptr, 0, 0};
-static ChronoFn g_tm_pick = {"SenseMakingSettlerPt::pick", nullptr, 0, 0};
+static ChronoFn g_tm_sel = {"SenseSettlingPtsOpt::select_and_pick_pts", nullptr, 0, 0};
 
 //================================================================================================================================
 //=> - IterPlayer -
 //================================================================================================================================
 
 struct IterPlayer {
-    SpgCoordPair cap;
-    SpgCoordPair cities[k_iter_m];
-    u16 city_n;
+    CityArray cities;
 };
 
 //================================================================================================================================
@@ -70,7 +67,6 @@ struct IterPlayer {
 //================================================================================================================================
 
 struct IterFrame {
-    SmSettlerPtResult cand[k_iter_n];
     SmSettlerPt pick[k_iter_n];
 };
 
@@ -152,13 +148,14 @@ static void set_px_rgb (u8* rgb, u16 w, u16 h, u16 x, u16 y, u8 r, u8 g, u8 b) {
 }
 
 static void apply_claim_mask (
-    u8* own_buf,
+    GameArraySimple& gmap,
+    const u8* cls,
     u16 w,
     u16 h,
-    const u8* cls,
     u16 cx,
     u16 cy,
-    u8 player) {
+    u8 player)
+{
     for (i16 dy = -k_mask_rad; dy <= k_mask_rad; ++dy) {
         for (i16 dx = -k_mask_rad; dx <= k_mask_rad; ++dx) {
             const i32 tx = static_cast<i32>(cx) + static_cast<i32>(dx);
@@ -169,114 +166,15 @@ static void apply_claim_mask (
             const u16 px = static_cast<u16>(tx);
             const u16 py = static_cast<u16>(ty);
             const u32 i = tile_idx(w, px, py);
-            if (own_buf[i] != 0) {
+            if (gmap.get_civ_owner(px, py) != U8_KEY_NULL) {
                 continue;
             }
             if (!can_claim(cls[i])) {
                 continue;
             }
-            own_buf[i] = player;
+            gmap.set_civ_owner(px, py, player);
         }
     }
-}
-
-static void sync_blk (const GameArraySimple& gmap, u8* blk_buf, u16 w, u16 h) {
-    for (u16 y = 0; y < h; ++y) {
-        for (u16 x = 0; x < w; ++x) {
-            blk_buf[tile_idx(w, x, y)] = gmap.get_settler_blocked(x, y) != 0 ? 1u : 0u;
-        }
-    }
-}
-
-static void stamp_city (GameArraySimple& gmap, u8* blk_buf, u16 w, u16 h, u16 cx, u16 cy) {
-    CityBlockingMask::stamp(gmap, cx, cy);
-    sync_blk(gmap, blk_buf, w, h);
-}
-
-static u16 build_src (
-    const IterPlayer& pl,
-    SpgCoordPair* src,
-    u16 src_cap) {
-    u16 n = 0;
-    if (n < src_cap) {
-        src[n] = pl.cap;
-        n = static_cast<u16>(n + 1u);
-    }
-    for (u16 i = 0; i < pl.city_n; ++i) {
-        bool dup = false;
-        for (u16 j = 0; j < n; ++j) {
-            if (src[j].x == pl.cities[i].x && src[j].y == pl.cities[i].y) {
-                dup = true;
-                break;
-            }
-        }
-        if (dup) {
-            continue;
-        }
-        if (n >= src_cap) {
-            break;
-        }
-        src[n] = pl.cities[i];
-        n = static_cast<u16>(n + 1u);
-    }
-    return n;
-}
-
-static bool save_iter_ppm (
-    cstr path,
-    const MapTerrainData& map,
-    const u8* own_buf,
-    u32 player_n,
-    const IterPlayer* players,
-    const IterFrame& frame) {
-    if (path == nullptr || map.data() == nullptr || own_buf == nullptr || players == nullptr) {
-        return false;
-    }
-    const u16 w = map.width();
-    const u16 h = map.height();
-    if (w == 0 || h == 0) {
-        return false;
-    }
-    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
-    u8* rgb = new u8[static_cast<size_t>(n) * 3u];
-    for (u32 i = 0; i < n; ++i) {
-        u8 r = 0;
-        u8 g = 0;
-        u8 b = 0;
-        const u8 own = own_buf[i];
-        if (own > 0 && static_cast<u32>(own) <= player_n) {
-            player_rgb(static_cast<u32>(own) - 1u, player_n, &r, &g, &b);
-        } else {
-            MapTerrainValidate::rgb_from_class(map.data()[i], &r, &g, &b);
-        }
-        rgb[i * 3u + 0] = r;
-        rgb[i * 3u + 1] = g;
-        rgb[i * 3u + 2] = b;
-    }
-    for (u32 p = 0; p < player_n; ++p) {
-        for (u32 i = 0; i < frame.cand[p].n; ++i) {
-            set_px_rgb(rgb, w, h, frame.cand[p].pts[i].x, frame.cand[p].pts[i].y, 128, 128, 128);
-        }
-    }
-    for (u32 p = 0; p < player_n; ++p) {
-        set_px_rgb(rgb, w, h, players[p].cap.x, players[p].cap.y, 0, 0, 0);
-    }
-    for (u32 p = 0; p < player_n; ++p) {
-        if (frame.pick[p].x != U16_KEY_NULL) {
-            set_px_rgb(rgb, w, h, frame.pick[p].x, frame.pick[p].y, 0, 0, 0);
-        }
-    }
-    std::FILE* fp = std::fopen(path, "wb");
-    if (fp == nullptr) {
-        delete[] rgb;
-        return false;
-    }
-    std::fprintf(fp, "P6\n%u %u\n255\n", (unsigned)w, (unsigned)h);
-    const size_t nbytes = static_cast<size_t>(n) * 3u;
-    const bool ok = std::fwrite(rgb, 1, nbytes, fp) == nbytes;
-    std::fclose(fp);
-    delete[] rgb;
-    return ok;
 }
 
 static bool ensure_dir (cstr path) {
@@ -294,43 +192,6 @@ static double secs_since (const std::chrono::steady_clock::time_point& t0) {
     return std::chrono::duration<double>(t1 - t0).count();
 }
 
-static bool mk_l2w (const MapTerrainData& map, Generate_DistanceLandToWater& gen) {
-    if (map.data() == nullptr || map.width() == 0 || map.height() == 0) {
-        return false;
-    }
-    const u16 w = map.width();
-    const u16 h = map.height();
-    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
-    u8* wl = new u8[n];
-    for (u32 i = 0; i < n; ++i) {
-        const u8 cls = map.data()[i];
-        if (cls == TERR_OCEAN[0] || cls == TERR_SEA[0] || cls == TERR_COASTAL[0]) {
-            wl[i] = WL_OVERLAY_WATER_GRAY;
-        } else {
-            wl[i] = WL_OVERLAY_LAND_GRAY;
-        }
-    }
-    const bool ok = gen.generate(wl, w, h);
-    delete[] wl;
-    return ok;
-}
-
-static i32 l2w_at (
-    const MapArrayDistance& l2w,
-    const MapTerrainData& map,
-    u16 px,
-    u16 py) {
-    if (l2w.data() == nullptr || l2w.width() != map.width() || l2w.height() != map.height()) {
-        return 0;
-    }
-    const u32 i = static_cast<u32>(py) * static_cast<u32>(map.width()) + static_cast<u32>(px);
-    const u16 raw = l2w.data()[i];
-    if (raw == 0xFFFFu) {
-        return -1;
-    }
-    return static_cast<i32>(raw);
-}
-
 static void tm_add (ChronoFn* t, u64 ns) {
     if (t == nullptr || t->samp == nullptr || t->n >= k_samp_cap) {
         return;
@@ -341,28 +202,99 @@ static void tm_add (ChronoFn* t, u64 ns) {
 }
 
 static void tm_report (const ChronoFn& t) {
-    const double total_ms = static_cast<double>(t.total_ns) / 1.0e6;
-    const double avg_us = (t.n == 0) ? 0.0 : (static_cast<double>(t.total_ns) / static_cast<double>(t.n)) / 1.0e3;
-    std::printf("  %-32s calls=%u  total=%.3f ms  avg=%.3f us\n", t.name, t.n, total_ms, avg_us);
+    const double total_us = static_cast<double>(t.total_ns) / 1.0e3;
+    const double avg_us = (t.n == 0) ? 0.0 : total_us / static_cast<double>(t.n);
+    std::printf("  %-40s calls=%u  total=%.2f us  avg=%.2f us\n", t.name, t.n, total_us, avg_us);
 }
 
-static bool tm_write (cstr path, const ChronoFn& a, const ChronoFn& b) {
+static bool tm_write (cstr path, const ChronoFn& a) {
     std::FILE* fp = std::fopen(path, "wb");
     if (fp == nullptr) {
         return false;
     }
-    const ChronoFn* rows[2] = {&a, &b};
-    for (u32 r = 0; r < 2u; ++r) {
-        const ChronoFn& t = *rows[r];
-        std::fprintf(fp, "%s", t.name);
-        for (u32 i = 0; i < t.n; ++i) {
-            const double us = static_cast<double>(t.samp[i]) / 1.0e3;
-            std::fprintf(fp, " %.3f", us);
-        }
-        std::fprintf(fp, "\n");
+    std::fprintf(fp, "%s", a.name);
+    for (u32 i = 0; i < a.n; ++i) {
+        const double us = static_cast<double>(a.samp[i]) / 1.0e3;
+        std::fprintf(fp, " %.2f", us);
     }
+    std::fprintf(fp, "\n");
     std::fclose(fp);
     return true;
+}
+
+static bool save_iter_ppm (
+    cstr path,
+    const GameArraySimple& gmap,
+    u32 player_n,
+    const IterPlayer* players,
+    const IterFrame& frame)
+{
+    if (path == nullptr || players == nullptr) {
+        return false;
+    }
+    const u16 w = gmap.width();
+    const u16 h = gmap.height();
+    if (w == 0 || h == 0) {
+        return false;
+    }
+    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
+    u8* rgb = new u8[static_cast<size_t>(n) * 3u];
+    for (u16 y = 0; y < h; ++y) {
+        for (u16 x = 0; x < w; ++x) {
+            u8 r = 0;
+            u8 g = 0;
+            u8 b = 0;
+            climate_to_rgb(gmap.get_climate(x, y), &r, &g, &b);
+            if (gmap.get_river(x, y) != 0) {
+                r = 40;
+                g = 100;
+                b = 220;
+            }
+            if (gmap.get_terrain(x, y) == TERR_MOUNTAINS[0]) {
+                r = 120;
+                g = 72;
+                b = 40;
+            }
+            const u8 own = gmap.get_civ_owner(x, y);
+            if (own != U8_KEY_NULL && static_cast<u32>(own) <= player_n
+                && gmap.get_river(x, y) == 0 && gmap.get_terrain(x, y) != TERR_MOUNTAINS[0]) {
+                u8 pr = 0;
+                u8 pg = 0;
+                u8 pb = 0;
+                player_rgb(static_cast<u32>(own) - 1u, player_n, &pr, &pg, &pb);
+                r = static_cast<u8>((static_cast<u16>(r) + static_cast<u16>(pr)) / 2u);
+                g = static_cast<u8>((static_cast<u16>(g) + static_cast<u16>(pg)) / 2u);
+                b = static_cast<u8>((static_cast<u16>(b) + static_cast<u16>(pb)) / 2u);
+            }
+            set_px_rgb(rgb, w, h, x, y, r, g, b);
+        }
+    }
+    for (u32 p = 0; p < player_n; ++p) {
+        const u16 cn = players[p].cities.get_city_count();
+        for (u16 i = 0; i < cn; ++i) {
+            const City* c = players[p].cities.get_city(i);
+            if (c == nullptr) {
+                continue;
+            }
+            set_px_rgb(rgb, w, h, c->get_x(), c->get_y(), 0, 0, 0);
+        }
+    }
+    for (u32 p = 0; p < player_n; ++p) {
+        if (frame.pick[p].x != U16_KEY_NULL) {
+            set_px_rgb(rgb, w, h, frame.pick[p].x, frame.pick[p].y, 255, 255, 255);
+        }
+    }
+    std::FILE* fp = std::fopen(path, "wb");
+    if (fp == nullptr) {
+        delete[] rgb;
+        return false;
+    }
+    std::fprintf(fp, "P6\n%u %u\n255\n", (unsigned)w, (unsigned)h);
+    const size_t nbytes = static_cast<size_t>(n) * 3u;
+    const bool ok = std::fwrite(rgb, 1, nbytes, fp) == nbytes;
+    std::fclose(fp);
+    delete[] rgb;
+    return ok;
 }
 
 //================================================================================================================================
@@ -392,6 +324,8 @@ int main () {
         return 1;
     }
 
+    WhiteboardMng::init(gmap.width(), gmap.height());
+
     u16 latt_rows = 0;
     u16 latt_cols = 0;
     latt_for_map(map.width(), map.height(), &latt_rows, &latt_cols);
@@ -405,6 +339,7 @@ int main () {
     StartingPointGenerator gen(par);
     if (!gen.generate() || !gen.picks_are_start_land()) {
         std::printf("*** FAILED generate starting points\n");
+        WhiteboardMng::terminate();
         gmap.clear();
         return 1;
     }
@@ -412,74 +347,51 @@ int main () {
     SpgPickCoords starts = gen.picks_coords();
     if (starts.n != static_cast<u32>(k_iter_n)) {
         std::printf("*** FAILED start count: got %u expected %u\n", starts.n, k_iter_n);
+        WhiteboardMng::terminate();
         gmap.clear();
         return 1;
     }
 
     const u16 w = map.width();
     const u16 h = map.height();
-    const u32 px_n = static_cast<u32>(w) * static_cast<u32>(h);
-    u8* own_buf = new u8[px_n];
-    u8* blk_buf = new u8[px_n];
     g_tm_sel.samp = new u64[k_samp_cap];
-    g_tm_pick.samp = new u64[k_samp_cap];
-    if (own_buf == nullptr || blk_buf == nullptr || g_tm_sel.samp == nullptr || g_tm_pick.samp == nullptr) {
-        delete[] own_buf;
-        delete[] blk_buf;
-        delete[] g_tm_sel.samp;
-        delete[] g_tm_pick.samp;
+    if (g_tm_sel.samp == nullptr) {
+        WhiteboardMng::terminate();
         gmap.clear();
         std::printf("*** FAILED alloc\n");
         return 1;
     }
-    for (u32 i = 0; i < px_n; ++i) {
-        own_buf[i] = 0;
-        blk_buf[i] = 0;
-    }
 
-    MapTerrainData own;
-    MapTerrainData blk;
-    if (!own.assign_raw(w, h, own_buf) || !blk.assign_raw(w, h, blk_buf)) {
-        delete[] own_buf;
-        delete[] blk_buf;
+    IterPlayer* players = new IterPlayer[k_iter_n];
+    if (players == nullptr) {
         delete[] g_tm_sel.samp;
-        delete[] g_tm_pick.samp;
+        WhiteboardMng::terminate();
         gmap.clear();
-        std::printf("*** FAILED ownership/block map init\n");
+        std::printf("*** FAILED players alloc\n");
         return 1;
     }
 
-    IterPlayer players[k_iter_n];
     for (u16 p = 0; p < k_iter_n; ++p) {
-        players[p].cap = starts.pts[p];
-        players[p].city_n = 0;
-        apply_claim_mask(own_buf, w, h, map.data(), players[p].cap.x, players[p].cap.y, static_cast<u8>(p + 1u));
-        stamp_city(gmap, blk_buf, w, h, players[p].cap.x, players[p].cap.y);
+        const u16 idx = players[p].cities.get_next_new_city_idx();
+        City* c = players[p].cities.get_city(idx);
+        if (c == nullptr) {
+            total_test_fails += 1;
+            continue;
+        }
+        c->init(static_cast<u16>(p + 1u), starts.pts[p].x, starts.pts[p].y);
+        apply_claim_mask(gmap, map.data(), w, h, starts.pts[p].x, starts.pts[p].y, static_cast<u8>(p + 1u));
+        CityBlockingMask::stamp(gmap, starts.pts[p].x, starts.pts[p].y);
     }
 
-    SpgCoordPair src_buf[k_iter_m + 1u];
     char out_dir[512];
     char path[640];
-
-    std::snprintf(out_dir, sizeof(out_dir), "%s/iter-m%u-n%u", g_out_base, k_iter_m, k_iter_n);
+    std::snprintf(out_dir, sizeof(out_dir), "%s/iter-sso-m%u-n%u", g_out_base, k_iter_m, k_iter_n);
     if (!ensure_dir(g_out_base) || !ensure_dir(out_dir)) {
-        delete[] own_buf;
-        delete[] blk_buf;
+        delete[] players;
         delete[] g_tm_sel.samp;
-        delete[] g_tm_pick.samp;
+        WhiteboardMng::terminate();
         gmap.clear();
         std::printf("*** FAILED output dir: %s\n", out_dir);
-        return 1;
-    }
-
-    Generate_DistanceLandToWater l2w_gen(0);
-    if (!mk_l2w(map, l2w_gen)) {
-        delete[] own_buf;
-        delete[] blk_buf;
-        delete[] g_tm_sel.samp;
-        delete[] g_tm_pick.samp;
-        gmap.clear();
-        std::printf("*** FAILED land-to-water distance overlay\n");
         return 1;
     }
 
@@ -487,94 +399,59 @@ int main () {
         const auto t0 = std::chrono::steady_clock::now();
         IterFrame frame = {};
 
-        if (!own.assign_raw(w, h, own_buf) || !blk.assign_raw(w, h, blk_buf)) {
-            total_test_fails += 1;
-            std::printf("*** FAILED own/blk sync iter %u\n", static_cast<u32>(m + 1u));
-            continue;
-        }
-
         for (u16 p = 0; p < k_iter_n; ++p) {
             const u16 player = static_cast<u16>(p + 1u);
-            const u16 src_n = build_src(players[p], src_buf, static_cast<u16>(k_iter_m + 1u));
-            if (!blk.assign_raw(w, h, blk_buf)) {
-                total_test_fails += 1;
-                continue;
-            }
             const auto ts0 = std::chrono::steady_clock::now();
-            frame.cand[p] = SenseMakingSettlerPt::select(
-                map,
-                own,
-                blk,
-                player,
-                k_min_dist,
-                k_max_dist,
-                src_buf,
-                src_n);
+            const SmSettlerBestPts best = SenseSettlingPtsOpt::select_and_pick_pts(gmap, players[p].cities, player);
             const auto ts1 = std::chrono::steady_clock::now();
             tm_add(&g_tm_sel, static_cast<u64>(std::chrono::duration_cast<std::chrono::nanoseconds>(ts1 - ts0).count()));
-
-            const auto tp0 = std::chrono::steady_clock::now();
-            const SmSettlerBestPts best = SenseMakingSettlerPt::pick(
-                map, frame.cand[p], players[p].cap, l2w_gen.distance(), &gmap);
-            const auto tp1 = std::chrono::steady_clock::now();
-            tm_add(&g_tm_pick, static_cast<u64>(std::chrono::duration_cast<std::chrono::nanoseconds>(tp1 - tp0).count()));
 
             frame.pick[p] = best.n > 0 ? best.pts[0] : SmSettlerPt{U16_KEY_NULL, U16_KEY_NULL};
             if (frame.pick[p].x == U16_KEY_NULL) {
                 continue;
             }
-            if (players[p].city_n < k_iter_m) {
-                players[p].cities[players[p].city_n].x = frame.pick[p].x;
-                players[p].cities[players[p].city_n].y = frame.pick[p].y;
-                players[p].city_n = static_cast<u16>(players[p].city_n + 1u);
+            const u16 idx = players[p].cities.get_next_new_city_idx();
+            City* c = players[p].cities.get_city(idx);
+            if (c == nullptr) {
+                total_test_fails += 1;
+                continue;
             }
-            apply_claim_mask(
-                own_buf,
-                w,
-                h,
-                map.data(),
-                frame.pick[p].x,
-                frame.pick[p].y,
-                static_cast<u8>(player));
-            stamp_city(gmap, blk_buf, w, h, frame.pick[p].x, frame.pick[p].y);
+            c->init(player, frame.pick[p].x, frame.pick[p].y);
+            apply_claim_mask(gmap, map.data(), w, h, frame.pick[p].x, frame.pick[p].y, static_cast<u8>(player));
+            CityBlockingMask::stamp(gmap, frame.pick[p].x, frame.pick[p].y);
         }
 
-        std::snprintf(path, sizeof(path), "%s/%04u_sms_iter.ppm", out_dir, static_cast<u32>(m + 1u));
-        if (!save_iter_ppm(path, map, own_buf, k_iter_n, players, frame)) {
+        std::snprintf(path, sizeof(path), "%s/%04u_sso_iter.ppm", out_dir, static_cast<u32>(m + 1u));
+        if (!save_iter_ppm(path, gmap, k_iter_n, players, frame)) {
             total_test_fails += 1;
             std::printf("*** FAILED save: %s\n", path);
         }
 
         const double dt = secs_since(t0);
-        if (frame.pick[0].x != U16_KEY_NULL) {
-            std::printf("*** Iter %04u: %.1f ms  p0 l2w=%d  saved %s\n",
-                static_cast<u32>(m + 1u),
-                dt * 1000.0,
-                l2w_at(l2w_gen.distance(), map, frame.pick[0].x, frame.pick[0].y),
-                path);
-        } else {
-            std::printf("*** Iter %04u: %.1f ms  saved %s\n", static_cast<u32>(m + 1u), dt * 1000.0, path);
-        }
+        std::printf("*** Iter %04u: %.1f ms  saved %s\n", static_cast<u32>(m + 1u), dt * 1000.0, path);
     }
 
     char tpath[640];
-    std::snprintf(tpath, sizeof(tpath), "%s/sms_iter_timings.txt", out_dir);
-    if (!tm_write(tpath, g_tm_sel, g_tm_pick)) {
+    std::snprintf(tpath, sizeof(tpath), "%s/sso_iter_timings.txt", out_dir);
+    if (!tm_write(tpath, g_tm_sel)) {
         total_test_fails += 1;
         std::printf("*** FAILED write timings: %s\n", tpath);
     }
 
+    if (WhiteboardMng::chkout() != 0) {
+        total_test_fails += 1;
+        std::printf("*** FAILED whiteboard leak: %u\n", WhiteboardMng::chkout());
+    }
+
     std::printf("=======================================================\n");
-    std::printf(" ITER TEST FAILURES: %d\n", total_test_fails);
+    std::printf(" SSO ITER TEST FAILURES: %d\n", total_test_fails);
     std::printf(" hot-path timings (us samples in %s):\n", tpath);
     tm_report(g_tm_sel);
-    tm_report(g_tm_pick);
     std::printf("=======================================================\n");
 
-    delete[] own_buf;
-    delete[] blk_buf;
+    delete[] players;
     delete[] g_tm_sel.samp;
-    delete[] g_tm_pick.samp;
+    WhiteboardMng::terminate();
     gmap.clear();
 
     return total_test_fails;

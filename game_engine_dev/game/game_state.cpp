@@ -40,10 +40,20 @@ void GameState::clear () {
     m_small_wonder_count = 0;
     m_civ_relations.reset(0);
     m_map.clear();
+
+    // These are the arrays over which the game loop iterates, and does most of its work.
     m_units.~UnitAddVector();
     new (&m_units) UnitAddVector();
     m_cities.~CityArray();
     new (&m_cities) CityArray();
+
+    // These are used for fast but suboptimal pathing, and should be used most of the time,
+    m_sector_rt.~SectorNetworkRouter();
+    new (&m_sector_rt) SectorNetworkRouter();
+    m_sector_net.~SectorNetwork();
+    new (&m_sector_net) SectorNetwork();
+
+    // Some static helper classes need access to the game state to be able to do anything useful.
     UnitMovementMng::bind_state(nullptr);
     PlayerLedger::bind_state(nullptr);
     TileYields::bind_map(nullptr);

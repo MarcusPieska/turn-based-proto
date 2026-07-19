@@ -4,6 +4,9 @@
 
 #include "sense_making_settler_pts.h"
 
+#include "circular_tile_areas.h"
+#include "city_blocking_mask.h"
+#include "game_array_simple.h"
 #include "../simple_map_gen/generator_constants.h"
 
 //================================================================================================================================
@@ -20,8 +23,8 @@ static bool is_own_ok (u8 own, u16 player) {
     return own == 0 || static_cast<u16>(own) == player;
 }
 
-static bool tile_ok (u8 cls, u8 own, u16 player) {
-    return is_settle_land(cls) && is_own_ok(own, player);
+static bool tile_ok (u8 cls, u8 own, u8 blk, u16 player) {
+    return is_settle_land(cls) && is_own_ok(own, player) && blk == 0;
 }
 
 static u32 tile_idx (u16 w, u16 px, u16 py) {
@@ -110,6 +113,7 @@ static void expand_nbr (
     u16 h,
     const u8* cls,
     const u8* own,
+    const u8* blk,
     u16 player,
     u16* dist,
     u32* q,
@@ -126,7 +130,7 @@ static void expand_nbr (
     const u16 px = static_cast<u16>(i - static_cast<u32>(py) * static_cast<u32>(w));
     if (px > 0) {
         const u32 j = i - 1u;
-        if (tile_ok(cls[j], own[j], player) && dist[j] == k_u16_inf) {
+        if (tile_ok(cls[j], own[j], blk[j], player) && dist[j] == k_u16_inf) {
             dist[j] = nxt;
             q[*qt] = j;
             *qt = *qt + 1u;
@@ -134,7 +138,7 @@ static void expand_nbr (
     }
     if (static_cast<u32>(px) + 1u < static_cast<u32>(w)) {
         const u32 j = i + 1u;
-        if (tile_ok(cls[j], own[j], player) && dist[j] == k_u16_inf) {
+        if (tile_ok(cls[j], own[j], blk[j], player) && dist[j] == k_u16_inf) {
             dist[j] = nxt;
             q[*qt] = j;
             *qt = *qt + 1u;
@@ -142,7 +146,7 @@ static void expand_nbr (
     }
     if (py > 0) {
         const u32 j = i - static_cast<u32>(w);
-        if (tile_ok(cls[j], own[j], player) && dist[j] == k_u16_inf) {
+        if (tile_ok(cls[j], own[j], blk[j], player) && dist[j] == k_u16_inf) {
             dist[j] = nxt;
             q[*qt] = j;
             *qt = *qt + 1u;
@@ -150,7 +154,7 @@ static void expand_nbr (
     }
     if (static_cast<u32>(py) + 1u < static_cast<u32>(h)) {
         const u32 j = i + static_cast<u32>(w);
-        if (tile_ok(cls[j], own[j], player) && dist[j] == k_u16_inf) {
+        if (tile_ok(cls[j], own[j], blk[j], player) && dist[j] == k_u16_inf) {
             dist[j] = nxt;
             q[*qt] = j;
             *qt = *qt + 1u;
@@ -165,6 +169,7 @@ static void expand_nbr (
 SmSettlerPtResult SenseMakingSettlerPt::select (
     const MapTerrainData& map,
     const MapTerrainData& own,
+    const MapTerrainData& blk,
     u16 player,
     u16 min_dist,
     u16 max_dist,
@@ -178,6 +183,9 @@ SmSettlerPtResult SenseMakingSettlerPt::select (
     if (own.data() == nullptr || own.width() != map.width() || own.height() != map.height()) {
         return out;
     }
+    if (blk.data() == nullptr || blk.width() != map.width() || blk.height() != map.height()) {
+        return out;
+    }
     if (min_dist > max_dist || src == nullptr || src_n == 0) {
         return out;
     }
@@ -185,6 +193,7 @@ SmSettlerPtResult SenseMakingSettlerPt::select (
     const u16 h = map.height();
     const u8* cls = map.data();
     const u8* own_rows = own.data();
+    const u8* blk_rows = blk.data();
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
     u16* dist = new u16[n];
     u32* q = new u32[n];
@@ -200,7 +209,7 @@ SmSettlerPtResult SenseMakingSettlerPt::select (
             continue;
         }
         const u32 i = tile_idx(w, px, py);
-        if (!tile_ok(cls[i], own_rows[i], player)) {
+        if (!is_settle_land(cls[i]) || !is_own_ok(own_rows[i], player)) {
             continue;
         }
         if (dist[i] != k_u16_inf) {
@@ -220,52 +229,89 @@ SmSettlerPtResult SenseMakingSettlerPt::select (
             const u16 px = static_cast<u16>(i - static_cast<u32>(py) * static_cast<u32>(w));
             push_pt(&out, px, py);
         }
-        expand_nbr(w, h, cls, own_rows, player, dist, q, &qt, i, cur, max_dist);
+        expand_nbr(w, h, cls, own_rows, blk_rows, player, dist, q, &qt, i, cur, max_dist);
     }
     delete[] dist;
     delete[] q;
     return out;
 }
 
-SmSettlerPt SenseMakingSettlerPt::pick (
+SmSettlerBestPts SenseMakingSettlerPt::pick (
     MapTerrainData& map,
     const SmSettlerPtResult& cand,
     const SpgCoordPair& cap,
-    const MapArrayDistance& l2w) 
+    const MapArrayDistance& l2w,
+    const GameArraySimple* gmap)
 {
-    SmSettlerPt out = {};
-    out.x = U16_KEY_NULL;
-    out.y = U16_KEY_NULL;
-    if (map.data() == nullptr || map.width() == 0 || map.height() == 0) {
-        return out;
+    SmSettlerBestPts out = {};
+    out.n = 0;
+    for (u16 i = 0; i < SMS_BEST_N; ++i) {
+        out.pts[i].x = U16_KEY_NULL;
+        out.pts[i].y = U16_KEY_NULL;
     }
-    if (cand.n == 0) {
+    if (map.data() == nullptr || map.width() == 0 || map.height() == 0 || cand.n == 0) {
         return out;
     }
     const u16 w = map.width();
     const u16 h = map.height();
     const u8* cls = map.data();
-    i32 best_cost = 2147483647;
-    u32 best_i = 0;
-    bool has_best = false;
-    for (u32 i = 0; i < cand.n; ++i) {
-        const u16 px = cand.pts[i].x;
-        const u16 py = cand.pts[i].y;
-        if (px >= w || py >= h) {
-            continue;
+    const CircArea geo = CircularTileAreas::get(3u);
+    const u16 half = static_cast<u16>(CityBlockingMask::m_side / 2u);
+    for (u16 k = 0; k < SMS_BEST_N; ++k) {
+        i32 best_cost = 2147483647;
+        u32 best_i = 0;
+        bool has_best = false;
+        for (u32 i = 0; i < cand.n; ++i) {
+            const u16 px = cand.pts[i].x;
+            const u16 py = cand.pts[i].y;
+            if (px >= w || py >= h) {
+                continue;
+            }
+            bool blocked = false;
+            for (u16 j = 0; j < out.n; ++j) {
+                const i32 dx = static_cast<i32>(px) - static_cast<i32>(out.pts[j].x);
+                const i32 dy = static_cast<i32>(py) - static_cast<i32>(out.pts[j].y);
+                if (gmap != nullptr) {
+                    const u8* m = CityBlockingMask::preview(*gmap, out.pts[j].x, out.pts[j].y);
+                    if (dx < -static_cast<i32>(half) || dy < -static_cast<i32>(half)
+                        || dx > static_cast<i32>(half) || dy > static_cast<i32>(half)) {
+                        continue;
+                    }
+                    const u32 mi = static_cast<u32>(dy + static_cast<i32>(half)) * static_cast<u32>(CityBlockingMask::m_side)
+                        + static_cast<u32>(dx + static_cast<i32>(half));
+                    if (m[mi] != 0) {
+                        blocked = true;
+                        break;
+                    }
+                } else {
+                    for (u16 b = 0; b < geo.m_lim; ++b) {
+                        if (static_cast<i32>(geo.m_brd[b][0]) == dx && static_cast<i32>(geo.m_brd[b][1]) == dy) {
+                            blocked = true;
+                            break;
+                        }
+                    }
+                    if (blocked) {
+                        break;
+                    }
+                }
+            }
+            if (blocked) {
+                continue;
+            }
+            const i32 cost = pt_cost(w, h, cls, l2w, px, py, cap.x, cap.y);
+            if (!has_best || cost < best_cost) {
+                best_cost = cost;
+                best_i = i;
+                has_best = true;
+            }
         }
-        const i32 cost = pt_cost(w, h, cls, l2w, px, py, cap.x, cap.y);
-        if (!has_best || cost < best_cost) {
-            best_cost = cost;
-            best_i = i;
-            has_best = true;
+        if (!has_best) {
+            break;
         }
+        out.pts[out.n].x = cand.pts[best_i].x;
+        out.pts[out.n].y = cand.pts[best_i].y;
+        out.n = static_cast<u16>(out.n + 1u);
     }
-    if (!has_best) {
-        return out;
-    }
-    out.x = cand.pts[best_i].x;
-    out.y = cand.pts[best_i].y;
     return out;
 }
 

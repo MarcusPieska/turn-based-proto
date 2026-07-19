@@ -1,11 +1,8 @@
 #!/bin/bash
 
-MK=mk2
-
 INC="-I.. -I../map_loader -I../simple_map_gen -I../city -I../game -I../misc -I../adv_map_gen \
      -I../dyn_state -I../data_io -I../static_state -I../ai_pathing/walk_general -I../gen_bit_banks"
 CXXFLAGS="-std=c++17 -Wall -Wextra"
-SMS_SRC="sense_making_settler_pts_${MK}.cpp"
 
 DEPS=(
     map_terrain_validate.o
@@ -16,12 +13,12 @@ DEPS=(
     generator_constants.o
     generate_terrain_cont_pn.o
     generate_overlay_water_land.o
-    generate_distance_land_to_water.o
     circular_tile_areas.o
     city_blocking_mask.o
     runtime_trace_dbg.o
     game_array_simple.o
     factory_game_array_simple.o
+    whiteboard_mng.o
 )
 
 g++ $CXXFLAGS $INC -c ../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
@@ -32,27 +29,30 @@ g++ $CXXFLAGS $INC -c ../simple_map_gen/perlin_noise.cpp -o perlin_noise.o
 g++ $CXXFLAGS $INC -c ../simple_map_gen/generator_constants.cpp -o generator_constants.o
 g++ $CXXFLAGS $INC -c ../simple_map_gen/generate_terrain_cont_pn.cpp -o generate_terrain_cont_pn.o
 g++ $CXXFLAGS $INC -c ../simple_map_gen/generate_overlay_water_land.cpp -o generate_overlay_water_land.o
-g++ $CXXFLAGS $INC -c ../simple_map_gen/generate_distance_land_to_water.cpp -o generate_distance_land_to_water.o
 g++ $CXXFLAGS $INC -c ../city/circular_tile_areas.cpp -o circular_tile_areas.o
 g++ $CXXFLAGS $INC -c ../city/city_blocking_mask.cpp -o city_blocking_mask.o
 g++ $CXXFLAGS $INC -c ../game/runtime_trace_dbg.cpp -o runtime_trace_dbg.o
 g++ $CXXFLAGS $INC -c ../game/game_array_simple.cpp -o game_array_simple.o
 g++ $CXXFLAGS $INC -c ../game/factory_game_array_simple.cpp -o factory_game_array_simple.o
-g++ $CXXFLAGS $INC -c "$SMS_SRC" -o sense_making_settler_pts.o
-g++ $CXXFLAGS $INC -c sense_making_settler_pts_tester.cpp -o sense_making_settler_pts_tester.o
-g++ $CXXFLAGS $INC -c sense_making_settler_pts_iter_tester.cpp -o sense_making_settler_pts_iter_tester.o
+g++ $CXXFLAGS $INC -c ../misc/whiteboard_mng.cpp -o whiteboard_mng.o
+g++ $CXXFLAGS $INC -c sense_settling_pts_opt.cpp -o sense_settling_pts_opt.o
+g++ $CXXFLAGS $INC -c sense_settling_pts_opt_stubs.cpp -o sense_settling_pts_opt_stubs.o
+g++ $CXXFLAGS $INC -c sense_settling_pts_opt_tester.cpp -o sense_settling_pts_opt_tester.o
+g++ $CXXFLAGS $INC -c sense_settling_pts_opt_iter_tester.cpp -o sense_settling_pts_opt_iter_tester.o
 
-g++ $CXXFLAGS -o sense_making_settler_pts_tester \
+g++ $CXXFLAGS -o sense_settling_pts_opt_tester \
     "${DEPS[@]}" \
-    sense_making_settler_pts.o \
-    sense_making_settler_pts_tester.o \
+    sense_settling_pts_opt.o \
+    sense_settling_pts_opt_stubs.o \
+    sense_settling_pts_opt_tester.o \
     -lm
 
-g++ $CXXFLAGS -o sense_making_settler_pts_iter_tester \
+g++ $CXXFLAGS -o sense_settling_pts_opt_iter_tester \
     "${DEPS[@]}" \
-    sense_making_settler_pts.o \
-    sense_making_settler_pts_iter_tester.o \
+    sense_settling_pts_opt.o \
+    sense_settling_pts_opt_stubs.o \
+    sense_settling_pts_opt_iter_tester.o \
     -lm
 
-rm "${DEPS[@]}" sense_making_settler_pts.o \
-    sense_making_settler_pts_tester.o sense_making_settler_pts_iter_tester.o
+rm "${DEPS[@]}" sense_settling_pts_opt.o sense_settling_pts_opt_stubs.o \
+    sense_settling_pts_opt_tester.o sense_settling_pts_opt_iter_tester.o

@@ -4,376 +4,17 @@
 
 #include "sense_making_settler_pts.h"
 
+#include "circular_tile_areas.h"
+#include "city_blocking_mask.h"
+#include "game_array_simple.h"
 #include "../simple_map_gen/generator_constants.h"
 
 //================================================================================================================================
-//=> - Mask -
+//=> - Circ band -
 //================================================================================================================================
 
-#define SMS_MASK_MAX_DIST 10
+static const u32 k_band_stamp_per_src = 256u;
 
-struct SmMaskEntry {
-    u32 dist;
-    i16 dx;
-    i16 dy;
-};
-
-static const SmMaskEntry k_mask[] = {
-    { static_cast<u32>(0), static_cast<i16>(0), static_cast<i16>(0) },
-    { static_cast<u32>(1), static_cast<i16>(-1), static_cast<i16>(-1) },
-    { static_cast<u32>(1), static_cast<i16>(-1), static_cast<i16>(0) },
-    { static_cast<u32>(1), static_cast<i16>(-1), static_cast<i16>(1) },
-    { static_cast<u32>(1), static_cast<i16>(0), static_cast<i16>(-1) },
-    { static_cast<u32>(1), static_cast<i16>(0), static_cast<i16>(1) },
-    { static_cast<u32>(1), static_cast<i16>(1), static_cast<i16>(-1) },
-    { static_cast<u32>(1), static_cast<i16>(1), static_cast<i16>(0) },
-    { static_cast<u32>(1), static_cast<i16>(1), static_cast<i16>(1) },
-    { static_cast<u32>(2), static_cast<i16>(-2), static_cast<i16>(-1) },
-    { static_cast<u32>(2), static_cast<i16>(-2), static_cast<i16>(0) },
-    { static_cast<u32>(2), static_cast<i16>(-2), static_cast<i16>(1) },
-    { static_cast<u32>(2), static_cast<i16>(-1), static_cast<i16>(-2) },
-    { static_cast<u32>(2), static_cast<i16>(-1), static_cast<i16>(2) },
-    { static_cast<u32>(2), static_cast<i16>(0), static_cast<i16>(-2) },
-    { static_cast<u32>(2), static_cast<i16>(0), static_cast<i16>(2) },
-    { static_cast<u32>(2), static_cast<i16>(1), static_cast<i16>(-2) },
-    { static_cast<u32>(2), static_cast<i16>(1), static_cast<i16>(2) },
-    { static_cast<u32>(2), static_cast<i16>(2), static_cast<i16>(-1) },
-    { static_cast<u32>(2), static_cast<i16>(2), static_cast<i16>(0) },
-    { static_cast<u32>(2), static_cast<i16>(2), static_cast<i16>(1) },
-    { static_cast<u32>(3), static_cast<i16>(-3), static_cast<i16>(-1) },
-    { static_cast<u32>(3), static_cast<i16>(-3), static_cast<i16>(0) },
-    { static_cast<u32>(3), static_cast<i16>(-3), static_cast<i16>(1) },
-    { static_cast<u32>(3), static_cast<i16>(-2), static_cast<i16>(-2) },
-    { static_cast<u32>(3), static_cast<i16>(-2), static_cast<i16>(2) },
-    { static_cast<u32>(3), static_cast<i16>(-1), static_cast<i16>(-3) },
-    { static_cast<u32>(3), static_cast<i16>(-1), static_cast<i16>(3) },
-    { static_cast<u32>(3), static_cast<i16>(0), static_cast<i16>(-3) },
-    { static_cast<u32>(3), static_cast<i16>(0), static_cast<i16>(3) },
-    { static_cast<u32>(3), static_cast<i16>(1), static_cast<i16>(-3) },
-    { static_cast<u32>(3), static_cast<i16>(1), static_cast<i16>(3) },
-    { static_cast<u32>(3), static_cast<i16>(2), static_cast<i16>(-2) },
-    { static_cast<u32>(3), static_cast<i16>(2), static_cast<i16>(2) },
-    { static_cast<u32>(3), static_cast<i16>(3), static_cast<i16>(-1) },
-    { static_cast<u32>(3), static_cast<i16>(3), static_cast<i16>(0) },
-    { static_cast<u32>(3), static_cast<i16>(3), static_cast<i16>(1) },
-    { static_cast<u32>(4), static_cast<i16>(-4), static_cast<i16>(-2) },
-    { static_cast<u32>(4), static_cast<i16>(-4), static_cast<i16>(-1) },
-    { static_cast<u32>(4), static_cast<i16>(-4), static_cast<i16>(0) },
-    { static_cast<u32>(4), static_cast<i16>(-4), static_cast<i16>(1) },
-    { static_cast<u32>(4), static_cast<i16>(-4), static_cast<i16>(2) },
-    { static_cast<u32>(4), static_cast<i16>(-3), static_cast<i16>(-3) },
-    { static_cast<u32>(4), static_cast<i16>(-3), static_cast<i16>(-2) },
-    { static_cast<u32>(4), static_cast<i16>(-3), static_cast<i16>(2) },
-    { static_cast<u32>(4), static_cast<i16>(-3), static_cast<i16>(3) },
-    { static_cast<u32>(4), static_cast<i16>(-2), static_cast<i16>(-4) },
-    { static_cast<u32>(4), static_cast<i16>(-2), static_cast<i16>(-3) },
-    { static_cast<u32>(4), static_cast<i16>(-2), static_cast<i16>(3) },
-    { static_cast<u32>(4), static_cast<i16>(-2), static_cast<i16>(4) },
-    { static_cast<u32>(4), static_cast<i16>(-1), static_cast<i16>(-4) },
-    { static_cast<u32>(4), static_cast<i16>(-1), static_cast<i16>(4) },
-    { static_cast<u32>(4), static_cast<i16>(0), static_cast<i16>(-4) },
-    { static_cast<u32>(4), static_cast<i16>(0), static_cast<i16>(4) },
-    { static_cast<u32>(4), static_cast<i16>(1), static_cast<i16>(-4) },
-    { static_cast<u32>(4), static_cast<i16>(1), static_cast<i16>(4) },
-    { static_cast<u32>(4), static_cast<i16>(2), static_cast<i16>(-4) },
-    { static_cast<u32>(4), static_cast<i16>(2), static_cast<i16>(-3) },
-    { static_cast<u32>(4), static_cast<i16>(2), static_cast<i16>(3) },
-    { static_cast<u32>(4), static_cast<i16>(2), static_cast<i16>(4) },
-    { static_cast<u32>(4), static_cast<i16>(3), static_cast<i16>(-3) },
-    { static_cast<u32>(4), static_cast<i16>(3), static_cast<i16>(-2) },
-    { static_cast<u32>(4), static_cast<i16>(3), static_cast<i16>(2) },
-    { static_cast<u32>(4), static_cast<i16>(3), static_cast<i16>(3) },
-    { static_cast<u32>(4), static_cast<i16>(4), static_cast<i16>(-2) },
-    { static_cast<u32>(4), static_cast<i16>(4), static_cast<i16>(-1) },
-    { static_cast<u32>(4), static_cast<i16>(4), static_cast<i16>(0) },
-    { static_cast<u32>(4), static_cast<i16>(4), static_cast<i16>(1) },
-    { static_cast<u32>(4), static_cast<i16>(4), static_cast<i16>(2) },
-    { static_cast<u32>(5), static_cast<i16>(-5), static_cast<i16>(-2) },
-    { static_cast<u32>(5), static_cast<i16>(-5), static_cast<i16>(-1) },
-    { static_cast<u32>(5), static_cast<i16>(-5), static_cast<i16>(0) },
-    { static_cast<u32>(5), static_cast<i16>(-5), static_cast<i16>(1) },
-    { static_cast<u32>(5), static_cast<i16>(-5), static_cast<i16>(2) },
-    { static_cast<u32>(5), static_cast<i16>(-4), static_cast<i16>(-3) },
-    { static_cast<u32>(5), static_cast<i16>(-4), static_cast<i16>(3) },
-    { static_cast<u32>(5), static_cast<i16>(-3), static_cast<i16>(-4) },
-    { static_cast<u32>(5), static_cast<i16>(-3), static_cast<i16>(4) },
-    { static_cast<u32>(5), static_cast<i16>(-2), static_cast<i16>(-5) },
-    { static_cast<u32>(5), static_cast<i16>(-2), static_cast<i16>(5) },
-    { static_cast<u32>(5), static_cast<i16>(-1), static_cast<i16>(-5) },
-    { static_cast<u32>(5), static_cast<i16>(-1), static_cast<i16>(5) },
-    { static_cast<u32>(5), static_cast<i16>(0), static_cast<i16>(-5) },
-    { static_cast<u32>(5), static_cast<i16>(0), static_cast<i16>(5) },
-    { static_cast<u32>(5), static_cast<i16>(1), static_cast<i16>(-5) },
-    { static_cast<u32>(5), static_cast<i16>(1), static_cast<i16>(5) },
-    { static_cast<u32>(5), static_cast<i16>(2), static_cast<i16>(-5) },
-    { static_cast<u32>(5), static_cast<i16>(2), static_cast<i16>(5) },
-    { static_cast<u32>(5), static_cast<i16>(3), static_cast<i16>(-4) },
-    { static_cast<u32>(5), static_cast<i16>(3), static_cast<i16>(4) },
-    { static_cast<u32>(5), static_cast<i16>(4), static_cast<i16>(-3) },
-    { static_cast<u32>(5), static_cast<i16>(4), static_cast<i16>(3) },
-    { static_cast<u32>(5), static_cast<i16>(5), static_cast<i16>(-2) },
-    { static_cast<u32>(5), static_cast<i16>(5), static_cast<i16>(-1) },
-    { static_cast<u32>(5), static_cast<i16>(5), static_cast<i16>(0) },
-    { static_cast<u32>(5), static_cast<i16>(5), static_cast<i16>(1) },
-    { static_cast<u32>(5), static_cast<i16>(5), static_cast<i16>(2) },
-    { static_cast<u32>(6), static_cast<i16>(-6), static_cast<i16>(-2) },
-    { static_cast<u32>(6), static_cast<i16>(-6), static_cast<i16>(-1) },
-    { static_cast<u32>(6), static_cast<i16>(-6), static_cast<i16>(0) },
-    { static_cast<u32>(6), static_cast<i16>(-6), static_cast<i16>(1) },
-    { static_cast<u32>(6), static_cast<i16>(-6), static_cast<i16>(2) },
-    { static_cast<u32>(6), static_cast<i16>(-5), static_cast<i16>(-4) },
-    { static_cast<u32>(6), static_cast<i16>(-5), static_cast<i16>(-3) },
-    { static_cast<u32>(6), static_cast<i16>(-5), static_cast<i16>(3) },
-    { static_cast<u32>(6), static_cast<i16>(-5), static_cast<i16>(4) },
-    { static_cast<u32>(6), static_cast<i16>(-4), static_cast<i16>(-5) },
-    { static_cast<u32>(6), static_cast<i16>(-4), static_cast<i16>(-4) },
-    { static_cast<u32>(6), static_cast<i16>(-4), static_cast<i16>(4) },
-    { static_cast<u32>(6), static_cast<i16>(-4), static_cast<i16>(5) },
-    { static_cast<u32>(6), static_cast<i16>(-3), static_cast<i16>(-5) },
-    { static_cast<u32>(6), static_cast<i16>(-3), static_cast<i16>(5) },
-    { static_cast<u32>(6), static_cast<i16>(-2), static_cast<i16>(-6) },
-    { static_cast<u32>(6), static_cast<i16>(-2), static_cast<i16>(6) },
-    { static_cast<u32>(6), static_cast<i16>(-1), static_cast<i16>(-6) },
-    { static_cast<u32>(6), static_cast<i16>(-1), static_cast<i16>(6) },
-    { static_cast<u32>(6), static_cast<i16>(0), static_cast<i16>(-6) },
-    { static_cast<u32>(6), static_cast<i16>(0), static_cast<i16>(6) },
-    { static_cast<u32>(6), static_cast<i16>(1), static_cast<i16>(-6) },
-    { static_cast<u32>(6), static_cast<i16>(1), static_cast<i16>(6) },
-    { static_cast<u32>(6), static_cast<i16>(2), static_cast<i16>(-6) },
-    { static_cast<u32>(6), static_cast<i16>(2), static_cast<i16>(6) },
-    { static_cast<u32>(6), static_cast<i16>(3), static_cast<i16>(-5) },
-    { static_cast<u32>(6), static_cast<i16>(3), static_cast<i16>(5) },
-    { static_cast<u32>(6), static_cast<i16>(4), static_cast<i16>(-5) },
-    { static_cast<u32>(6), static_cast<i16>(4), static_cast<i16>(-4) },
-    { static_cast<u32>(6), static_cast<i16>(4), static_cast<i16>(4) },
-    { static_cast<u32>(6), static_cast<i16>(4), static_cast<i16>(5) },
-    { static_cast<u32>(6), static_cast<i16>(5), static_cast<i16>(-4) },
-    { static_cast<u32>(6), static_cast<i16>(5), static_cast<i16>(-3) },
-    { static_cast<u32>(6), static_cast<i16>(5), static_cast<i16>(3) },
-    { static_cast<u32>(6), static_cast<i16>(5), static_cast<i16>(4) },
-    { static_cast<u32>(6), static_cast<i16>(6), static_cast<i16>(-2) },
-    { static_cast<u32>(6), static_cast<i16>(6), static_cast<i16>(-1) },
-    { static_cast<u32>(6), static_cast<i16>(6), static_cast<i16>(0) },
-    { static_cast<u32>(6), static_cast<i16>(6), static_cast<i16>(1) },
-    { static_cast<u32>(6), static_cast<i16>(6), static_cast<i16>(2) },
-    { static_cast<u32>(7), static_cast<i16>(-7), static_cast<i16>(-2) },
-    { static_cast<u32>(7), static_cast<i16>(-7), static_cast<i16>(-1) },
-    { static_cast<u32>(7), static_cast<i16>(-7), static_cast<i16>(0) },
-    { static_cast<u32>(7), static_cast<i16>(-7), static_cast<i16>(1) },
-    { static_cast<u32>(7), static_cast<i16>(-7), static_cast<i16>(2) },
-    { static_cast<u32>(7), static_cast<i16>(-6), static_cast<i16>(-4) },
-    { static_cast<u32>(7), static_cast<i16>(-6), static_cast<i16>(-3) },
-    { static_cast<u32>(7), static_cast<i16>(-6), static_cast<i16>(3) },
-    { static_cast<u32>(7), static_cast<i16>(-6), static_cast<i16>(4) },
-    { static_cast<u32>(7), static_cast<i16>(-5), static_cast<i16>(-5) },
-    { static_cast<u32>(7), static_cast<i16>(-5), static_cast<i16>(5) },
-    { static_cast<u32>(7), static_cast<i16>(-4), static_cast<i16>(-6) },
-    { static_cast<u32>(7), static_cast<i16>(-4), static_cast<i16>(6) },
-    { static_cast<u32>(7), static_cast<i16>(-3), static_cast<i16>(-6) },
-    { static_cast<u32>(7), static_cast<i16>(-3), static_cast<i16>(6) },
-    { static_cast<u32>(7), static_cast<i16>(-2), static_cast<i16>(-7) },
-    { static_cast<u32>(7), static_cast<i16>(-2), static_cast<i16>(7) },
-    { static_cast<u32>(7), static_cast<i16>(-1), static_cast<i16>(-7) },
-    { static_cast<u32>(7), static_cast<i16>(-1), static_cast<i16>(7) },
-    { static_cast<u32>(7), static_cast<i16>(0), static_cast<i16>(-7) },
-    { static_cast<u32>(7), static_cast<i16>(0), static_cast<i16>(7) },
-    { static_cast<u32>(7), static_cast<i16>(1), static_cast<i16>(-7) },
-    { static_cast<u32>(7), static_cast<i16>(1), static_cast<i16>(7) },
-    { static_cast<u32>(7), static_cast<i16>(2), static_cast<i16>(-7) },
-    { static_cast<u32>(7), static_cast<i16>(2), static_cast<i16>(7) },
-    { static_cast<u32>(7), static_cast<i16>(3), static_cast<i16>(-6) },
-    { static_cast<u32>(7), static_cast<i16>(3), static_cast<i16>(6) },
-    { static_cast<u32>(7), static_cast<i16>(4), static_cast<i16>(-6) },
-    { static_cast<u32>(7), static_cast<i16>(4), static_cast<i16>(6) },
-    { static_cast<u32>(7), static_cast<i16>(5), static_cast<i16>(-5) },
-    { static_cast<u32>(7), static_cast<i16>(5), static_cast<i16>(5) },
-    { static_cast<u32>(7), static_cast<i16>(6), static_cast<i16>(-4) },
-    { static_cast<u32>(7), static_cast<i16>(6), static_cast<i16>(-3) },
-    { static_cast<u32>(7), static_cast<i16>(6), static_cast<i16>(3) },
-    { static_cast<u32>(7), static_cast<i16>(6), static_cast<i16>(4) },
-    { static_cast<u32>(7), static_cast<i16>(7), static_cast<i16>(-2) },
-    { static_cast<u32>(7), static_cast<i16>(7), static_cast<i16>(-1) },
-    { static_cast<u32>(7), static_cast<i16>(7), static_cast<i16>(0) },
-    { static_cast<u32>(7), static_cast<i16>(7), static_cast<i16>(1) },
-    { static_cast<u32>(7), static_cast<i16>(7), static_cast<i16>(2) },
-    { static_cast<u32>(8), static_cast<i16>(-8), static_cast<i16>(-2) },
-    { static_cast<u32>(8), static_cast<i16>(-8), static_cast<i16>(-1) },
-    { static_cast<u32>(8), static_cast<i16>(-8), static_cast<i16>(0) },
-    { static_cast<u32>(8), static_cast<i16>(-8), static_cast<i16>(1) },
-    { static_cast<u32>(8), static_cast<i16>(-8), static_cast<i16>(2) },
-    { static_cast<u32>(8), static_cast<i16>(-7), static_cast<i16>(-4) },
-    { static_cast<u32>(8), static_cast<i16>(-7), static_cast<i16>(-3) },
-    { static_cast<u32>(8), static_cast<i16>(-7), static_cast<i16>(3) },
-    { static_cast<u32>(8), static_cast<i16>(-7), static_cast<i16>(4) },
-    { static_cast<u32>(8), static_cast<i16>(-6), static_cast<i16>(-6) },
-    { static_cast<u32>(8), static_cast<i16>(-6), static_cast<i16>(-5) },
-    { static_cast<u32>(8), static_cast<i16>(-6), static_cast<i16>(5) },
-    { static_cast<u32>(8), static_cast<i16>(-6), static_cast<i16>(6) },
-    { static_cast<u32>(8), static_cast<i16>(-5), static_cast<i16>(-6) },
-    { static_cast<u32>(8), static_cast<i16>(-5), static_cast<i16>(6) },
-    { static_cast<u32>(8), static_cast<i16>(-4), static_cast<i16>(-7) },
-    { static_cast<u32>(8), static_cast<i16>(-4), static_cast<i16>(7) },
-    { static_cast<u32>(8), static_cast<i16>(-3), static_cast<i16>(-7) },
-    { static_cast<u32>(8), static_cast<i16>(-3), static_cast<i16>(7) },
-    { static_cast<u32>(8), static_cast<i16>(-2), static_cast<i16>(-8) },
-    { static_cast<u32>(8), static_cast<i16>(-2), static_cast<i16>(8) },
-    { static_cast<u32>(8), static_cast<i16>(-1), static_cast<i16>(-8) },
-    { static_cast<u32>(8), static_cast<i16>(-1), static_cast<i16>(8) },
-    { static_cast<u32>(8), static_cast<i16>(0), static_cast<i16>(-8) },
-    { static_cast<u32>(8), static_cast<i16>(0), static_cast<i16>(8) },
-    { static_cast<u32>(8), static_cast<i16>(1), static_cast<i16>(-8) },
-    { static_cast<u32>(8), static_cast<i16>(1), static_cast<i16>(8) },
-    { static_cast<u32>(8), static_cast<i16>(2), static_cast<i16>(-8) },
-    { static_cast<u32>(8), static_cast<i16>(2), static_cast<i16>(8) },
-    { static_cast<u32>(8), static_cast<i16>(3), static_cast<i16>(-7) },
-    { static_cast<u32>(8), static_cast<i16>(3), static_cast<i16>(7) },
-    { static_cast<u32>(8), static_cast<i16>(4), static_cast<i16>(-7) },
-    { static_cast<u32>(8), static_cast<i16>(4), static_cast<i16>(7) },
-    { static_cast<u32>(8), static_cast<i16>(5), static_cast<i16>(-6) },
-    { static_cast<u32>(8), static_cast<i16>(5), static_cast<i16>(6) },
-    { static_cast<u32>(8), static_cast<i16>(6), static_cast<i16>(-6) },
-    { static_cast<u32>(8), static_cast<i16>(6), static_cast<i16>(-5) },
-    { static_cast<u32>(8), static_cast<i16>(6), static_cast<i16>(5) },
-    { static_cast<u32>(8), static_cast<i16>(6), static_cast<i16>(6) },
-    { static_cast<u32>(8), static_cast<i16>(7), static_cast<i16>(-4) },
-    { static_cast<u32>(8), static_cast<i16>(7), static_cast<i16>(-3) },
-    { static_cast<u32>(8), static_cast<i16>(7), static_cast<i16>(3) },
-    { static_cast<u32>(8), static_cast<i16>(7), static_cast<i16>(4) },
-    { static_cast<u32>(8), static_cast<i16>(8), static_cast<i16>(-2) },
-    { static_cast<u32>(8), static_cast<i16>(8), static_cast<i16>(-1) },
-    { static_cast<u32>(8), static_cast<i16>(8), static_cast<i16>(0) },
-    { static_cast<u32>(8), static_cast<i16>(8), static_cast<i16>(1) },
-    { static_cast<u32>(8), static_cast<i16>(8), static_cast<i16>(2) },
-    { static_cast<u32>(9), static_cast<i16>(-9), static_cast<i16>(-3) },
-    { static_cast<u32>(9), static_cast<i16>(-9), static_cast<i16>(-2) },
-    { static_cast<u32>(9), static_cast<i16>(-9), static_cast<i16>(-1) },
-    { static_cast<u32>(9), static_cast<i16>(-9), static_cast<i16>(0) },
-    { static_cast<u32>(9), static_cast<i16>(-9), static_cast<i16>(1) },
-    { static_cast<u32>(9), static_cast<i16>(-9), static_cast<i16>(2) },
-    { static_cast<u32>(9), static_cast<i16>(-9), static_cast<i16>(3) },
-    { static_cast<u32>(9), static_cast<i16>(-8), static_cast<i16>(-5) },
-    { static_cast<u32>(9), static_cast<i16>(-8), static_cast<i16>(-4) },
-    { static_cast<u32>(9), static_cast<i16>(-8), static_cast<i16>(-3) },
-    { static_cast<u32>(9), static_cast<i16>(-8), static_cast<i16>(3) },
-    { static_cast<u32>(9), static_cast<i16>(-8), static_cast<i16>(4) },
-    { static_cast<u32>(9), static_cast<i16>(-8), static_cast<i16>(5) },
-    { static_cast<u32>(9), static_cast<i16>(-7), static_cast<i16>(-6) },
-    { static_cast<u32>(9), static_cast<i16>(-7), static_cast<i16>(-5) },
-    { static_cast<u32>(9), static_cast<i16>(-7), static_cast<i16>(5) },
-    { static_cast<u32>(9), static_cast<i16>(-7), static_cast<i16>(6) },
-    { static_cast<u32>(9), static_cast<i16>(-6), static_cast<i16>(-7) },
-    { static_cast<u32>(9), static_cast<i16>(-6), static_cast<i16>(7) },
-    { static_cast<u32>(9), static_cast<i16>(-5), static_cast<i16>(-8) },
-    { static_cast<u32>(9), static_cast<i16>(-5), static_cast<i16>(-7) },
-    { static_cast<u32>(9), static_cast<i16>(-5), static_cast<i16>(7) },
-    { static_cast<u32>(9), static_cast<i16>(-5), static_cast<i16>(8) },
-    { static_cast<u32>(9), static_cast<i16>(-4), static_cast<i16>(-8) },
-    { static_cast<u32>(9), static_cast<i16>(-4), static_cast<i16>(8) },
-    { static_cast<u32>(9), static_cast<i16>(-3), static_cast<i16>(-9) },
-    { static_cast<u32>(9), static_cast<i16>(-3), static_cast<i16>(-8) },
-    { static_cast<u32>(9), static_cast<i16>(-3), static_cast<i16>(8) },
-    { static_cast<u32>(9), static_cast<i16>(-3), static_cast<i16>(9) },
-    { static_cast<u32>(9), static_cast<i16>(-2), static_cast<i16>(-9) },
-    { static_cast<u32>(9), static_cast<i16>(-2), static_cast<i16>(9) },
-    { static_cast<u32>(9), static_cast<i16>(-1), static_cast<i16>(-9) },
-    { static_cast<u32>(9), static_cast<i16>(-1), static_cast<i16>(9) },
-    { static_cast<u32>(9), static_cast<i16>(0), static_cast<i16>(-9) },
-    { static_cast<u32>(9), static_cast<i16>(0), static_cast<i16>(9) },
-    { static_cast<u32>(9), static_cast<i16>(1), static_cast<i16>(-9) },
-    { static_cast<u32>(9), static_cast<i16>(1), static_cast<i16>(9) },
-    { static_cast<u32>(9), static_cast<i16>(2), static_cast<i16>(-9) },
-    { static_cast<u32>(9), static_cast<i16>(2), static_cast<i16>(9) },
-    { static_cast<u32>(9), static_cast<i16>(3), static_cast<i16>(-9) },
-    { static_cast<u32>(9), static_cast<i16>(3), static_cast<i16>(-8) },
-    { static_cast<u32>(9), static_cast<i16>(3), static_cast<i16>(8) },
-    { static_cast<u32>(9), static_cast<i16>(3), static_cast<i16>(9) },
-    { static_cast<u32>(9), static_cast<i16>(4), static_cast<i16>(-8) },
-    { static_cast<u32>(9), static_cast<i16>(4), static_cast<i16>(8) },
-    { static_cast<u32>(9), static_cast<i16>(5), static_cast<i16>(-8) },
-    { static_cast<u32>(9), static_cast<i16>(5), static_cast<i16>(-7) },
-    { static_cast<u32>(9), static_cast<i16>(5), static_cast<i16>(7) },
-    { static_cast<u32>(9), static_cast<i16>(5), static_cast<i16>(8) },
-    { static_cast<u32>(9), static_cast<i16>(6), static_cast<i16>(-7) },
-    { static_cast<u32>(9), static_cast<i16>(6), static_cast<i16>(7) },
-    { static_cast<u32>(9), static_cast<i16>(7), static_cast<i16>(-6) },
-    { static_cast<u32>(9), static_cast<i16>(7), static_cast<i16>(-5) },
-    { static_cast<u32>(9), static_cast<i16>(7), static_cast<i16>(5) },
-    { static_cast<u32>(9), static_cast<i16>(7), static_cast<i16>(6) },
-    { static_cast<u32>(9), static_cast<i16>(8), static_cast<i16>(-5) },
-    { static_cast<u32>(9), static_cast<i16>(8), static_cast<i16>(-4) },
-    { static_cast<u32>(9), static_cast<i16>(8), static_cast<i16>(-3) },
-    { static_cast<u32>(9), static_cast<i16>(8), static_cast<i16>(3) },
-    { static_cast<u32>(9), static_cast<i16>(8), static_cast<i16>(4) },
-    { static_cast<u32>(9), static_cast<i16>(8), static_cast<i16>(5) },
-    { static_cast<u32>(9), static_cast<i16>(9), static_cast<i16>(-3) },
-    { static_cast<u32>(9), static_cast<i16>(9), static_cast<i16>(-2) },
-    { static_cast<u32>(9), static_cast<i16>(9), static_cast<i16>(-1) },
-    { static_cast<u32>(9), static_cast<i16>(9), static_cast<i16>(0) },
-    { static_cast<u32>(9), static_cast<i16>(9), static_cast<i16>(1) },
-    { static_cast<u32>(9), static_cast<i16>(9), static_cast<i16>(2) },
-    { static_cast<u32>(9), static_cast<i16>(9), static_cast<i16>(3) },
-    { static_cast<u32>(10), static_cast<i16>(-10), static_cast<i16>(-3) },
-    { static_cast<u32>(10), static_cast<i16>(-10), static_cast<i16>(-2) },
-    { static_cast<u32>(10), static_cast<i16>(-10), static_cast<i16>(-1) },
-    { static_cast<u32>(10), static_cast<i16>(-10), static_cast<i16>(0) },
-    { static_cast<u32>(10), static_cast<i16>(-10), static_cast<i16>(1) },
-    { static_cast<u32>(10), static_cast<i16>(-10), static_cast<i16>(2) },
-    { static_cast<u32>(10), static_cast<i16>(-10), static_cast<i16>(3) },
-    { static_cast<u32>(10), static_cast<i16>(-9), static_cast<i16>(-5) },
-    { static_cast<u32>(10), static_cast<i16>(-9), static_cast<i16>(-4) },
-    { static_cast<u32>(10), static_cast<i16>(-9), static_cast<i16>(4) },
-    { static_cast<u32>(10), static_cast<i16>(-9), static_cast<i16>(5) },
-    { static_cast<u32>(10), static_cast<i16>(-8), static_cast<i16>(-6) },
-    { static_cast<u32>(10), static_cast<i16>(-8), static_cast<i16>(6) },
-    { static_cast<u32>(10), static_cast<i16>(-7), static_cast<i16>(-7) },
-    { static_cast<u32>(10), static_cast<i16>(-7), static_cast<i16>(7) },
-    { static_cast<u32>(10), static_cast<i16>(-6), static_cast<i16>(-8) },
-    { static_cast<u32>(10), static_cast<i16>(-6), static_cast<i16>(8) },
-    { static_cast<u32>(10), static_cast<i16>(-5), static_cast<i16>(-9) },
-    { static_cast<u32>(10), static_cast<i16>(-5), static_cast<i16>(9) },
-    { static_cast<u32>(10), static_cast<i16>(-4), static_cast<i16>(-9) },
-    { static_cast<u32>(10), static_cast<i16>(-4), static_cast<i16>(9) },
-    { static_cast<u32>(10), static_cast<i16>(-3), static_cast<i16>(-10) },
-    { static_cast<u32>(10), static_cast<i16>(-3), static_cast<i16>(10) },
-    { static_cast<u32>(10), static_cast<i16>(-2), static_cast<i16>(-10) },
-    { static_cast<u32>(10), static_cast<i16>(-2), static_cast<i16>(10) },
-    { static_cast<u32>(10), static_cast<i16>(-1), static_cast<i16>(-10) },
-    { static_cast<u32>(10), static_cast<i16>(-1), static_cast<i16>(10) },
-    { static_cast<u32>(10), static_cast<i16>(0), static_cast<i16>(-10) },
-    { static_cast<u32>(10), static_cast<i16>(0), static_cast<i16>(10) },
-    { static_cast<u32>(10), static_cast<i16>(1), static_cast<i16>(-10) },
-    { static_cast<u32>(10), static_cast<i16>(1), static_cast<i16>(10) },
-    { static_cast<u32>(10), static_cast<i16>(2), static_cast<i16>(-10) },
-    { static_cast<u32>(10), static_cast<i16>(2), static_cast<i16>(10) },
-    { static_cast<u32>(10), static_cast<i16>(3), static_cast<i16>(-10) },
-    { static_cast<u32>(10), static_cast<i16>(3), static_cast<i16>(10) },
-    { static_cast<u32>(10), static_cast<i16>(4), static_cast<i16>(-9) },
-    { static_cast<u32>(10), static_cast<i16>(4), static_cast<i16>(9) },
-    { static_cast<u32>(10), static_cast<i16>(5), static_cast<i16>(-9) },
-    { static_cast<u32>(10), static_cast<i16>(5), static_cast<i16>(9) },
-    { static_cast<u32>(10), static_cast<i16>(6), static_cast<i16>(-8) },
-    { static_cast<u32>(10), static_cast<i16>(6), static_cast<i16>(8) },
-    { static_cast<u32>(10), static_cast<i16>(7), static_cast<i16>(-7) },
-    { static_cast<u32>(10), static_cast<i16>(7), static_cast<i16>(7) },
-    { static_cast<u32>(10), static_cast<i16>(8), static_cast<i16>(-6) },
-    { static_cast<u32>(10), static_cast<i16>(8), static_cast<i16>(6) },
-    { static_cast<u32>(10), static_cast<i16>(9), static_cast<i16>(-5) },
-    { static_cast<u32>(10), static_cast<i16>(9), static_cast<i16>(-4) },
-    { static_cast<u32>(10), static_cast<i16>(9), static_cast<i16>(4) },
-    { static_cast<u32>(10), static_cast<i16>(9), static_cast<i16>(5) },
-    { static_cast<u32>(10), static_cast<i16>(10), static_cast<i16>(-3) },
-    { static_cast<u32>(10), static_cast<i16>(10), static_cast<i16>(-2) },
-    { static_cast<u32>(10), static_cast<i16>(10), static_cast<i16>(-1) },
-    { static_cast<u32>(10), static_cast<i16>(10), static_cast<i16>(0) },
-    { static_cast<u32>(10), static_cast<i16>(10), static_cast<i16>(1) },
-    { static_cast<u32>(10), static_cast<i16>(10), static_cast<i16>(2) },
-    { static_cast<u32>(10), static_cast<i16>(10), static_cast<i16>(3) },
-};
-
-static const u32 k_dist_inf = 0xFFFFFFFFu;
-static const u32 k_mask_stamp_per_src = 160u;
-
-static u32* g_dist = nullptr;
 static u32* g_tag = nullptr;
 static u32 g_px_n = 0;
 static u32 g_pass = 0;
@@ -382,16 +23,11 @@ static bool scratch_resize (u32 n) {
     if (g_px_n >= n) {
         return true;
     }
-    u32* nd = new u32[n];
     u32* nt = new u32[n];
-    if (nd == nullptr || nt == nullptr) {
-        delete[] nd;
-        delete[] nt;
+    if (nt == nullptr) {
         return false;
     }
-    delete[] g_dist;
     delete[] g_tag;
-    g_dist = nd;
     g_tag = nt;
     g_px_n = n;
     return true;
@@ -425,8 +61,8 @@ static bool is_own_ok (u8 own, u16 player) {
     return own == 0 || static_cast<u16>(own) == player;
 }
 
-static bool tile_ok (u8 cls, u8 own, u16 player) {
-    return is_settle_land(cls) && is_own_ok(own, player);
+static bool tile_ok (u8 cls, u8 own, u8 blk, u16 player) {
+    return is_settle_land(cls) && is_own_ok(own, player) && blk == 0;
 }
 
 static u32 tile_idx (u16 w, u16 px, u16 py) {
@@ -510,46 +146,45 @@ static void push_pt (SmSettlerPtResult* out, u16 px, u16 py) {
     out->n = out->n + 1u;
 }
 
-static void stamp_mask (
+static void stamp_band (
     u16 w,
     u16 h,
     const u8* cls,
     const u8* own,
+    const u8* blk,
     u16 player,
     u16 sx,
     u16 sy,
-    u16 max_dist,
+    u16 inner_r,
+    u16 outer_r,
     u32 pass,
-    u32* dist,
     u32* tag,
     u32* touched,
-    u32* touched_n) 
+    u32* touched_n,
+    u32 touched_cap)
 {
-    const u32 max_d = static_cast<u32>(max_dist);
-    const u32 mask_n = sizeof(k_mask) / sizeof(k_mask[0]);
-    for (u32 m = 0; m < mask_n; ++m) {
-        const u32 d = k_mask[m].dist;
-        if (d > max_d) {
-            break;
-        }
-        const i32 px = static_cast<i32>(sx) + static_cast<i32>(k_mask[m].dx);
-        const i32 py = static_cast<i32>(sy) + static_cast<i32>(k_mask[m].dy);
+    const CircArea inner = CircularTileAreas::get(inner_r);
+    const CircArea outer = CircularTileAreas::get(outer_r);
+    if (outer.m_lim == 0 || outer.m_brd == nullptr || inner.m_lim > outer.m_lim) {
+        return;
+    }
+    for (u16 i = inner.m_lim; i < outer.m_lim; ++i) {
+        const i32 px = static_cast<i32>(sx) + static_cast<i32>(outer.m_brd[i][0]);
+        const i32 py = static_cast<i32>(sy) + static_cast<i32>(outer.m_brd[i][1]);
         if (px < 0 || py < 0 || static_cast<u32>(px) >= static_cast<u32>(w) || static_cast<u32>(py) >= static_cast<u32>(h)) {
             continue;
         }
         const u32 ti = tile_idx(w, static_cast<u16>(px), static_cast<u16>(py));
-        if (!tile_ok(cls[ti], own[ti], player)) {
+        if (!tile_ok(cls[ti], own[ti], blk[ti], player)) {
             continue;
         }
-        const u32 cur = tag[ti] == pass ? dist[ti] : k_dist_inf;
-        if (d < cur) {
-            const bool fresh = tag[ti] != pass;
-            dist[ti] = d;
-            tag[ti] = pass;
-            if (fresh) {
-                touched[*touched_n] = ti;
-                *touched_n = *touched_n + 1u;
-            }
+        if (tag[ti] == pass) {
+            continue;
+        }
+        tag[ti] = pass;
+        if (*touched_n < touched_cap) {
+            touched[*touched_n] = ti;
+            *touched_n = *touched_n + 1u;
         }
     }
 }
@@ -558,28 +193,20 @@ static void collect_touched (
     u16 w,
     const u8* cls,
     const u8* own,
+    const u8* blk,
     u16 player,
-    u16 min_dist,
-    u16 max_dist,
     u32 pass,
-    const u32* dist,
     const u32* tag,
     const u32* touched,
     u32 touched_n,
-    SmSettlerPtResult* out) 
+    SmSettlerPtResult* out)
 {
-    const u32 min_d = static_cast<u32>(min_dist);
-    const u32 max_d = static_cast<u32>(max_dist);
     for (u32 k = 0; k < touched_n; ++k) {
         const u32 ti = touched[k];
         if (tag[ti] != pass) {
             continue;
         }
-        const u32 d = dist[ti];
-        if (d < min_d || d > max_d) {
-            continue;
-        }
-        if (!tile_ok(cls[ti], own[ti], player)) {
+        if (!tile_ok(cls[ti], own[ti], blk[ti], player)) {
             continue;
         }
         const u16 px = static_cast<u16>(ti % static_cast<u32>(w));
@@ -595,11 +222,12 @@ static void collect_touched (
 SmSettlerPtResult SenseMakingSettlerPt::select (
     const MapTerrainData& map,
     const MapTerrainData& own,
+    const MapTerrainData& blk,
     u16 player,
     u16 min_dist,
     u16 max_dist,
     const SpgCoordPair* src,
-    u32 src_n) 
+    u32 src_n)
 {
     SmSettlerPtResult out = {};
     if (map.data() == nullptr || map.width() == 0 || map.height() == 0) {
@@ -608,19 +236,28 @@ SmSettlerPtResult SenseMakingSettlerPt::select (
     if (own.data() == nullptr || own.width() != map.width() || own.height() != map.height()) {
         return out;
     }
-    if (min_dist > max_dist || src == nullptr || src_n == 0) {
+    if (blk.data() == nullptr || blk.width() != map.width() || blk.height() != map.height()) {
+        return out;
+    }
+    if (min_dist >= max_dist || src == nullptr || src_n == 0) {
+        return out;
+    }
+    const CircArea inner = CircularTileAreas::get(min_dist);
+    const CircArea outer = CircularTileAreas::get(max_dist);
+    if (outer.m_lim == 0 || inner.m_lim > outer.m_lim) {
         return out;
     }
     const u16 w = map.width();
     const u16 h = map.height();
     const u8* cls = map.data();
     const u8* own_rows = own.data();
+    const u8* blk_rows = blk.data();
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
     const u32 pass = scratch_pass(n);
     if (pass == 0) {
         return out;
     }
-    const u32 touched_cap = src_n * k_mask_stamp_per_src + 64u;
+    const u32 touched_cap = src_n * k_band_stamp_per_src + 64u;
     u32* touched = new u32[touched_cap];
     if (touched == nullptr) {
         return out;
@@ -633,55 +270,93 @@ SmSettlerPtResult SenseMakingSettlerPt::select (
             continue;
         }
         const u32 si = tile_idx(w, sx, sy);
-        if (!tile_ok(cls[si], own_rows[si], player)) {
+        if (!is_settle_land(cls[si]) || !is_own_ok(own_rows[si], player)) {
             continue;
         }
-        stamp_mask(w, h, cls, own_rows, player, sx, sy, max_dist, pass, g_dist, g_tag, touched, &touched_n);
+        stamp_band(w, h, cls, own_rows, blk_rows, player, sx, sy, min_dist, max_dist, pass, g_tag, touched,
+            &touched_n, touched_cap);
     }
-    collect_touched(w, cls, own_rows, player, min_dist, max_dist, pass, g_dist, g_tag, touched, touched_n, &out);
+    collect_touched(w, cls, own_rows, blk_rows, player, pass, g_tag, touched, touched_n, &out);
     delete[] touched;
     return out;
 }
 
-SmSettlerPt SenseMakingSettlerPt::pick (
+SmSettlerBestPts SenseMakingSettlerPt::pick (
     MapTerrainData& map,
     const SmSettlerPtResult& cand,
     const SpgCoordPair& cap,
-    const MapArrayDistance& l2w) 
+    const MapArrayDistance& l2w,
+    const GameArraySimple* gmap)
 {
-    SmSettlerPt out = {};
-    out.x = U16_KEY_NULL;
-    out.y = U16_KEY_NULL;
-    if (map.data() == nullptr || map.width() == 0 || map.height() == 0) {
-        return out;
+    SmSettlerBestPts out = {};
+    out.n = 0;
+    for (u16 i = 0; i < SMS_BEST_N; ++i) {
+        out.pts[i].x = U16_KEY_NULL;
+        out.pts[i].y = U16_KEY_NULL;
     }
-    if (cand.n == 0) {
+    if (map.data() == nullptr || map.width() == 0 || map.height() == 0 || cand.n == 0) {
         return out;
     }
     const u16 w = map.width();
     const u16 h = map.height();
     const u8* cls = map.data();
-    i32 best_cost = 2147483647;
-    u32 best_i = 0;
-    bool has_best = false;
-    for (u32 i = 0; i < cand.n; ++i) {
-        const u16 px = cand.pts[i].x;
-        const u16 py = cand.pts[i].y;
-        if (px >= w || py >= h) {
-            continue;
+    const CircArea geo = CircularTileAreas::get(3u);
+    const u16 half = static_cast<u16>(CityBlockingMask::m_side / 2u);
+    for (u16 k = 0; k < SMS_BEST_N; ++k) {
+        i32 best_cost = 2147483647;
+        u32 best_i = 0;
+        bool has_best = false;
+        for (u32 i = 0; i < cand.n; ++i) {
+            const u16 px = cand.pts[i].x;
+            const u16 py = cand.pts[i].y;
+            if (px >= w || py >= h) {
+                continue;
+            }
+            bool blocked = false;
+            for (u16 j = 0; j < out.n; ++j) {
+                const i32 dx = static_cast<i32>(px) - static_cast<i32>(out.pts[j].x);
+                const i32 dy = static_cast<i32>(py) - static_cast<i32>(out.pts[j].y);
+                if (gmap != nullptr) {
+                    const u8* m = CityBlockingMask::preview(*gmap, out.pts[j].x, out.pts[j].y);
+                    if (dx < -static_cast<i32>(half) || dy < -static_cast<i32>(half)
+                        || dx > static_cast<i32>(half) || dy > static_cast<i32>(half)) {
+                        continue;
+                    }
+                    const u32 mi = static_cast<u32>(dy + static_cast<i32>(half)) * static_cast<u32>(CityBlockingMask::m_side)
+                        + static_cast<u32>(dx + static_cast<i32>(half));
+                    if (m[mi] != 0) {
+                        blocked = true;
+                        break;
+                    }
+                } else {
+                    for (u16 b = 0; b < geo.m_lim; ++b) {
+                        if (static_cast<i32>(geo.m_brd[b][0]) == dx && static_cast<i32>(geo.m_brd[b][1]) == dy) {
+                            blocked = true;
+                            break;
+                        }
+                    }
+                    if (blocked) {
+                        break;
+                    }
+                }
+            }
+            if (blocked) {
+                continue;
+            }
+            const i32 cost = pt_cost(w, h, cls, l2w, px, py, cap.x, cap.y);
+            if (!has_best || cost < best_cost) {
+                best_cost = cost;
+                best_i = i;
+                has_best = true;
+            }
         }
-        const i32 cost = pt_cost(w, h, cls, l2w, px, py, cap.x, cap.y);
-        if (!has_best || cost < best_cost) {
-            best_cost = cost;
-            best_i = i;
-            has_best = true;
+        if (!has_best) {
+            break;
         }
+        out.pts[out.n].x = cand.pts[best_i].x;
+        out.pts[out.n].y = cand.pts[best_i].y;
+        out.n = static_cast<u16>(out.n + 1u);
     }
-    if (!has_best) {
-        return out;
-    }
-    out.x = cand.pts[best_i].x;
-    out.y = cand.pts[best_i].y;
     return out;
 }
 

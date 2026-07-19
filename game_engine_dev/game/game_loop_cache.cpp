@@ -112,6 +112,7 @@ bool GameLoopCache::load_map (cstr path, GameArraySimple* out) {
         t->m_civ_owner = U8_KEY_NULL;
         t->m_add_typ = 0;
         t->m_road_typ = 0;
+        t->m_settler_blocked = 0;
         u8 terr = 0;
         u8 clim = 0;
         u8 ov = 0;

@@ -193,6 +193,7 @@ void City::init (u16 owner, u16 x, u16 y) {
     m_build_cost = 0;
     m_build_type = BUILD_TYPE_NONE;
     m_pop_count = 1;
+    m_is_frontier_city = 1; // Presumed true until proven otherwise by AI settler sensing logic
 }
 
 void City::bind_statics (const RuntimeStatics& st) {
@@ -465,6 +466,14 @@ u16 City::get_x () const {
 
 u16 City::get_y () const {
     return m_y;
+}
+
+bool City::is_frontier () const {
+    return m_is_frontier_city != 0;
+}
+
+void City::city_no_longer_frontier () {
+    m_is_frontier_city = 0;
 }
 
 //================================================================================================================================

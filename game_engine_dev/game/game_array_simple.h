@@ -40,7 +40,8 @@ struct GameTileSimple {
     u64 m_city_worker : 16; // Currently working on this tile, city pool key; U16_KEY_NULL if none
     u64 m_civ_owner : 8; // Civilization owner pool key; U8_KEY_NULL if none
     u64 m_add_typ : 4; // Which add vector m_add_idx refers to
-    u64 m_road_typ : 4; // Road type (ROAD_* in game_map_defs.h)
+    u64 m_road_typ : 3; // Road type (ROAD_* in game_map_defs.h)
+    u64 m_settler_blocked : 1; // Settler blocked flag (0 none, nonzero is blocked by existing settlements)
 
     // Almost static fields: Second 8 bytes: 16 + 4×3 + 1 = 29b  <= 64b
 
@@ -83,11 +84,13 @@ public:
     u16 get_res (u16 x, u16 y) const;  // Resource index at tile
     u16 get_city_worker (u16 x, u16 y) const; // City pool key working this tile; U16_KEY_NULL if none
     u8 get_civ_owner (u16 x, u16 y) const; // Civ/seat owner at tile; U8_KEY_NULL if none
+    u8 get_settler_blocked (u16 x, u16 y) const; // 0 free, nonzero blocked for settling
     
     bool set_unit_hd (u16 x, u16 y, u16 unit_hd); // Unit handle at tile; U16_KEY_NULL clears
     bool set_tile_add (u16 x, u16 y, u16 add_idx, u8 add_typ); // Improvement handle at tile
     bool set_city_worker (u16 x, u16 y, u16 city_idx); // City worker key at tile; U16_KEY_NULL clears
     bool set_civ_owner (u16 x, u16 y, u8 owner); // Civ/seat owner at tile; U8_KEY_NULL clears
+    bool set_settler_blocked (u16 x, u16 y, u8 blocked); // Settler block flag; 0 clears
 
 private:
     friend class Factory_GameArraySimple;

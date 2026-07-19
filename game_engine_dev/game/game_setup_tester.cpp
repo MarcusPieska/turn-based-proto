@@ -253,7 +253,12 @@ void test_setup_and_game_loop () {
     note_result(setup.setup_new_game(&state, req, players), "setup before loop");
     setup.release_map_gen();
     GameLoop loop;
-    note_result(loop.run(&state, G_TRACE_PATH), "game loop run");
+    note_result(loop.begin(&state, G_TRACE_PATH), "game loop begin");
+    while (state.m_current_turn < state.m_turn_limit) {
+        if (!loop.step()) {
+            break;
+        }
+    }
     note_result(state.m_current_turn == state.m_turn_limit, "loop reached turn limit");
     note_result(count_trace_prefix(G_TRACE_PATH, "NEW_TURN:") == state.m_turn_limit, "trace new turn count");
     state.clear();

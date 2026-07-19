@@ -62,6 +62,8 @@ public:
     u16 get_owner () const;
     u16 get_x () const;
     u16 get_y () const;
+    bool is_frontier () const;
+    void city_no_longer_frontier ();
 
     bool finish_if_ready (u16 city_idx);
     bool has_building (u16 city_idx, u16 building_idx) const;
@@ -71,12 +73,15 @@ private:
     u16 m_x; // Map column; U16_KEY_NULL until init
     u16 m_y; // Map row; U16_KEY_NULL until init
     u16 m_bld_idx; // Active catalog index; U16_KEY_NULL if queue empty
+    
     u16 m_pop_count; // City population
     u16 m_build_cost; // Current build cost; saved to avoid constant lookups
     u16 m_accumulated_production; // Production bucket toward current build
     u16 m_culture; // Culture score for this city; determines the city's borders
+    
     u8 m_accumulated_food; // Food bucket toward growth
     u8 m_build_type; // Active build category 
+    u8 m_is_frontier_city; // Helper for AI settler sensing; true if city is near unclaimed territory
 };
 
 #endif // CITY_H

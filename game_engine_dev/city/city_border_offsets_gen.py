@@ -19,7 +19,7 @@ def min_range (dx, dy):
     if d2 == 0:
         return 0
     r = 1
-    while r * r <= d2:
+    while r * (r - 1) < d2:
         r += 1
     return r
 
@@ -49,6 +49,20 @@ def emit_cnt (cnt):
     body = ",".join(str(n) for n in cnt)
     return "static const u16 k_brd_cnt[] = {%s};" % body
 
+def print_shape (rows, cnt, radius):
+    lim = cnt[radius]
+    pts = set((dx, dy) for r, dx, dy in rows[:lim])
+    print("r=%d lim=%d" % (radius, lim))
+    for dy in range(-radius, radius + 1):
+        line = []
+        for dx in range(-radius, radius + 1):
+            if (dx, dy) in pts:
+                line.append("#" if (dx, dy) != (0, 0) else "C")
+            else:
+                line.append(".")
+        print("".join(line))
+    print()
+
 #=================================================================================================================================
 #=> - main -
 #=================================================================================================================================
@@ -56,7 +70,9 @@ def emit_cnt (cnt):
 def main ():
     rows = build_table()
     cnt = cumul_counts(rows)
-    print("// City border offsets: {dx, dy}, tile in range N iff dist < N.")
+    for r in range(4):
+        print_shape(rows, cnt, r)
+    print("// City border offsets: {dx, dy}, tile in range N iff dx*dx+dy*dy <= N*(N-1) (N>0); origin at 0.")
     print("// Sorted by min_r, then dy, then dx. k_brd_cnt[N] = #entries with min_r <= N.")
     print("// Offset count = %d." % len(rows))
     print()

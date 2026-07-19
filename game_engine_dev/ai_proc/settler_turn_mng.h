@@ -2,40 +2,38 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef GAME_LOOP_H
-#define GAME_LOOP_H
+#ifndef SETTLER_TURN_MNG_H
+#define SETTLER_TURN_MNG_H
 
 #include "game_primitives.h"
 
 class GameState;
 
 //================================================================================================================================
-//=> - GameLoop -
+//=> - SettlerTurnMng -
 //================================================================================================================================
 //
-//  Per-turn match stepper. begin binds state and opens the runtime trace; the external driver calls step once per turn.
-//  Each step: all cities (CityTurnHandler + settler build via SettlerTurnMng), then all units (settler count/MP/handle).
+//  AI settler lifecycle for one match. m_target_settlements is the desired settler count (0 = off). Each turn
+//  refresh_targets sets it to SETTLER_MISSION_SLOTS while SenseSettlingPtsOpt returns sites, else 2. GameLoop calls
+//  begin_unit_pass then handle per settler; handle tallies into m_last_turn_settler_count. Mission slots = SETTLER_MISSION_SLOTS.
 //
 //================================================================================================================================
 
-class GameLoop {
-public: 
-    GameLoop ();
-    ~GameLoop ();
+class SettlerTurnMng {
+public:
+    SettlerTurnMng () = delete;
 
-    bool begin (GameState* state, cstr trace_path);
-    bool step ();
+    static bool begin (GameState& state);
+    static void clear ();
 
-private:
-    GameState* m_state; // Bound match; null until begin
-
-    GameLoop (const GameLoop& other) = delete;
-    GameLoop& operator= (const GameLoop& other) = delete;
-    GameLoop (GameLoop&& other) = delete;
-    GameLoop& operator= (GameLoop&& other) = delete;
+    static void refresh_targets (GameState& state);
+    static void begin_unit_pass (GameState& state);
+    static bool need_settler (GameState& state, u16 player);
+    static void handle (GameState& state, u16 unit_idx);
+    static bool tgt_xy (u16 player, u16 slot, u16* x, u16* y);
 };
 
-#endif // GAME_LOOP_H
+#endif // SETTLER_TURN_MNG_H
 
 //================================================================================================================================
 //=> - End of file -

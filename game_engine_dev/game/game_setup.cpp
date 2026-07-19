@@ -19,6 +19,8 @@
 #include "tile_working.h"
 #include "city_tile_manager.h"
 #include "city_border.h"
+#include "sector_network.h"
+#include "sector_network_router.h"
 
 //================================================================================================================================
 //=> - Static runtime data -
@@ -100,6 +102,31 @@ static bool fill_tile_layers_from_map (const GameArraySimple& map, MapTerrainDat
     *clim = clim_buf;
     *ov = ov_buf;
     return true;
+}
+
+static bool begin_sector_pathing (GameState* state) {
+    if (state == nullptr) {
+        return false;
+    }
+    const u16 w = state->m_map.width();
+    const u16 h = state->m_map.height();
+    const u32 n = state->m_map.tile_n();
+    if (w == 0 || h == 0 || n == 0) {
+        return false;
+    }
+    u8* terr = new u8[n];
+    if (terr == nullptr) {
+        return false;
+    }
+    for (u16 y = 0; y < h; ++y) {
+        for (u16 x = 0; x < w; ++x) {
+            terr[static_cast<u32>(y) * static_cast<u32>(w) + static_cast<u32>(x)] = state->m_map.get_terrain(x, y);
+        }
+    }
+    const bool ok_net = state->m_sector_net.begin(w, h, terr);
+    const bool ok_rt = ok_net && state->m_sector_rt.begin(state->m_sector_net);
+    delete[] terr;
+    return ok_rt;
 }
 
 //================================================================================================================================
@@ -266,6 +293,10 @@ bool GameSetup::finish_with_starts (GameState* state, const SpgPickCoords& start
             state->clear();
             return false;
         }
+    }
+    if (!begin_sector_pathing(state)) {
+        state->clear();
+        return false;
     }
     state->m_current_turn = 0;
     state->m_age_of_exploration = true;
