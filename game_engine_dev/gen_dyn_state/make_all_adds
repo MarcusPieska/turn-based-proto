@@ -5,5 +5,4 @@ python3 generate_dyn_state.py shipyard_add ShipyardAdd shipyard_add_struct.h Shi
 python3 generate_dyn_state.py outpost_add OutpostAdd outpost_add_struct.h OutpostAddStruct outpost_add_idx
 python3 generate_dyn_state.py trade_post_add TradePostAdd trade_post_add_struct.h TradePostAddStruct trade_post_add_idx
 python3 generate_dyn_state.py monastery_add MonasteryAdd monastery_add_struct.h MonasteryAddStruct monastery_add_idx
-
-python3 generate_dyn_state.py unit Unit ../game/unit_array.h Unit id
+python3 generate_dyn_state.py unit_add UnitAdd unit_add_struct.h UnitAddStruct unit_add_idx 

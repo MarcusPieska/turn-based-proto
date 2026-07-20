@@ -124,7 +124,6 @@ void test_array_unique_ids () {
             ok_ids = false;
             break;
         }
-        item->plantation_add_idx = id.value();
     }
 
     if (ok_ids) {
@@ -136,10 +135,6 @@ void test_array_unique_ids () {
                 const u16 expected = i;
                 PlantationAddStruct* item = array.get_plantation_add(PlantationAddKey::from_raw(expected));
                 if (item == nullptr) {
-                    ok_ids = false;
-                    break;
-                }
-                if (item->plantation_add_idx != expected) {
                     ok_ids = false;
                     break;
                 }

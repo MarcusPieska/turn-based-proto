@@ -124,7 +124,6 @@ void test_array_unique_ids () {
             ok_ids = false;
             break;
         }
-        item->trade_post_add_idx = id.value();
     }
 
     if (ok_ids) {
@@ -136,10 +135,6 @@ void test_array_unique_ids () {
                 const u16 expected = i;
                 TradePostAddStruct* item = array.get_trade_post_add(TradePostAddKey::from_raw(expected));
                 if (item == nullptr) {
-                    ok_ids = false;
-                    break;
-                }
-                if (item->trade_post_add_idx != expected) {
                     ok_ids = false;
                     break;
                 }

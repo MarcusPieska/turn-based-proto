@@ -32,6 +32,7 @@ public:
     void return_unit_add(UnitAddKey key);
     UnitAddStruct* get_page(u16 page_idx);
     const UnitAddStruct* get_page(u16 page_idx) const;
+    u16 get_head_unit_add_idx () const;
 
     static const u16 MAX_PAGES = 256;
     static const u16 UNIT_ADD_ITEMS_PER_PAGE = 256;

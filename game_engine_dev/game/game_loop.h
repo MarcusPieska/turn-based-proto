@@ -13,8 +13,10 @@ class GameState;
 //=> - GameLoop -
 //================================================================================================================================
 //
-//  Per-turn match stepper. begin binds state and opens the runtime trace; the external driver calls step once per turn.
-//  Each step: all cities (CityTurnHandler + settler build via SettlerTurnMng), then all units (settler count/MP/handle).
+//  Per-turn match stepper. begin binds state, opens the runtime trace, inits whiteboards and SettlerTurnHandler,
+//  arms settling targets, ResearchTurnHandler::begin for first tech targets, and claims starting city borders;
+//  end tears those down. The external driver calls step. Each step: all cities (yields, finish, production pick via
+//  CityTurnHandler), then ResearchTurnHandler::handle per seat, copy/zero counts, then units.
 //
 //================================================================================================================================
 
@@ -25,6 +27,7 @@ public:
 
     bool begin (GameState* state, cstr trace_path);
     bool step ();
+    void end ();
 
 private:
     GameState* m_state; // Bound match; null until begin

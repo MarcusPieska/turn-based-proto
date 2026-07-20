@@ -137,6 +137,10 @@ const UnitAddStruct* UnitAddVector::get_page(u16 page_idx) const {
     return m_pages[page_idx];
 }
 
+u16 UnitAddVector::get_head_unit_add_idx () const {
+    return m_head_unit_add_idx;
+}
+
 void UnitAddVector::return_unit_add(UnitAddKey key) {
     if (!key.is_valid()) {
         return;

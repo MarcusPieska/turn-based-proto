@@ -10,6 +10,7 @@
 class City;
 class RuntimeStatics;
 class GeneralBitBank;
+class GameIo;
 
 //================================================================================================================================
 //=> - CityArray class -
@@ -29,14 +30,22 @@ public:
     u16 get_city_count() const;
     City* get_page(u16 page_idx);
     const City* get_page(u16 page_idx) const;
-    GeneralBitBank* get_bld_bank ();
-    const GeneralBitBank* get_bld_bank () const;
     void set_building_flag (u16 city_idx, u16 bld_idx);
 
     static const u16 MAX_PAGES = 256;
     static const u16 CITIES_PER_PAGE = 256;
 
+protected:
+    GeneralBitBank* get_flag_bank ();
+    const GeneralBitBank* get_flag_bank () const;
+    GeneralBitBank* get_res_bank ();
+    const GeneralBitBank* get_res_bank () const;
+    GeneralBitBank* get_bld_bank ();
+    const GeneralBitBank* get_bld_bank () const;
+
 private:
+    friend class GameIo;
+
     void clear_banks ();
 
     City* m_pages[MAX_PAGES];

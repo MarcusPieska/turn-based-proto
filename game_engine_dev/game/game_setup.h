@@ -64,6 +64,7 @@ private:
     bool complete_new_game (GameState* state, u16 player_n);
     bool run_start_placement (const GameArraySimple& map, u16 player_n, SpgPickCoords* out_starts);
     bool init_players (GameState* state, u16 player_n, u16 small_wonder_n);
+    void cache_unit_type_idxs (GameState* state);
 };
 
 #endif // GAME_SETUP_H

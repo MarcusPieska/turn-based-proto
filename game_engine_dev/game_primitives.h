@@ -35,6 +35,9 @@ typedef struct EffectIndices {
 //#define PTIME_ENABLE
 //#define PTIME_TRACE_ENABLE
 
+// ProfileTimeOpt toggles (misc/profile_time_opt.h); uncomment to enable.
+// #define PTO_ENABLE
+
 // AssertLog toggles (misc/assert_log.h); uncomment to enable.
 //#define GAME_ASSERT_ENABLE
 

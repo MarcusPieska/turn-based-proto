@@ -14,6 +14,7 @@ class GameState;
 //================================================================================================================================
 //
 //  Static façade over per-seat commerce and research counters in GameState::m_player_states.
+//  add_commerce banks into m_commerce_from_turn; GameLoop partitions that into treasury/research after cities.
 //  bind_state wires the active match; callers grant yields without holding a GameState pointer.
 //
 //================================================================================================================================

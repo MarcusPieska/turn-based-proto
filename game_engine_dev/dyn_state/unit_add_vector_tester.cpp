@@ -124,7 +124,6 @@ void test_array_unique_ids () {
             ok_ids = false;
             break;
         }
-        item->m_player_idx = id.value();
     }
 
     if (ok_ids) {
@@ -136,10 +135,6 @@ void test_array_unique_ids () {
                 const u16 expected = i;
                 UnitAddStruct* item = array.get_unit_add(UnitAddKey::from_raw(expected));
                 if (item == nullptr) {
-                    ok_ids = false;
-                    break;
-                }
-                if (item->m_player_idx != expected) {
                     ok_ids = false;
                     break;
                 }

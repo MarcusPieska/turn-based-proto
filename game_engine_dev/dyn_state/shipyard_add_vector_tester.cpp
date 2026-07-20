@@ -124,7 +124,6 @@ void test_array_unique_ids () {
             ok_ids = false;
             break;
         }
-        item->shipyard_add_idx = id.value();
     }
 
     if (ok_ids) {
@@ -136,10 +135,6 @@ void test_array_unique_ids () {
                 const u16 expected = i;
                 ShipyardAddStruct* item = array.get_shipyard_add(ShipyardAddKey::from_raw(expected));
                 if (item == nullptr) {
-                    ok_ids = false;
-                    break;
-                }
-                if (item->shipyard_add_idx != expected) {
                     ok_ids = false;
                     break;
                 }

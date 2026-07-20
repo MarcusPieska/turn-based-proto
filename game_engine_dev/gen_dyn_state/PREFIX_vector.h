@@ -32,6 +32,7 @@ public:
     void return_[MEMBER_TAG]([CLASS_NAME_PREFIX]Key key);
     [STRUCT_NAME]* get_page(u16 page_idx);
     const [STRUCT_NAME]* get_page(u16 page_idx) const;
+    u16 get_head_[MEMBER_TAG]_idx () const;
 
     static const u16 MAX_PAGES = 256;
     static const u16 [MACRO_PREFIX]_ITEMS_PER_PAGE = 256;

@@ -22,7 +22,7 @@ MapGenLoader::~MapGenLoader () {
 
 bool MapGenLoader::load (const char* lib_path) {
     unload();
-    m_lib = dlopen(lib_path, RTLD_NOW | RTLD_GLOBAL);
+    m_lib = dlopen(lib_path, RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND);
     if (m_lib == nullptr) {
         return false;
     }

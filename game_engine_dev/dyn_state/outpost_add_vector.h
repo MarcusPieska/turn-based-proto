@@ -32,6 +32,7 @@ public:
     void return_outpost_add(OutpostAddKey key);
     OutpostAddStruct* get_page(u16 page_idx);
     const OutpostAddStruct* get_page(u16 page_idx) const;
+    u16 get_head_outpost_add_idx () const;
 
     static const u16 MAX_PAGES = 256;
     static const u16 OUTPOST_ADD_ITEMS_PER_PAGE = 256;

@@ -709,17 +709,7 @@ static void seq_putc (char c) {
     if (g_seq_tr != nullptr) {
         std::fputc(c, g_seq_tr);
     }
-}
-
-static void seq_puts (cstr s) {
-    if (s == nullptr) {
-        return;
-    }
-    std::fputs(s, stdout);
-    if (g_seq_tr != nullptr) {
-        std::fputs(s, g_seq_tr);
-    }
-}
+} 
 
 static void seq_printf (cstr fmt, ...) {
     va_list ap;

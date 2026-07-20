@@ -137,6 +137,10 @@ const MineAddStruct* MineAddVector::get_page(u16 page_idx) const {
     return m_pages[page_idx];
 }
 
+u16 MineAddVector::get_head_mine_add_idx () const {
+    return m_head_mine_add_idx;
+}
+
 void MineAddVector::return_mine_add(MineAddKey key) {
     if (!key.is_valid()) {
         return;

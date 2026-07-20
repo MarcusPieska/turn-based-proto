@@ -24,7 +24,7 @@ bool PlayerLedger::add_commerce (u16 player, u16 amount) {
     GAME_EXPECT_RET(s_state != nullptr, false, "PlayerLedger state");
     GAME_EXPECT_RET(s_state->m_player_states != nullptr, false, "PlayerLedger player states");
     GAME_EXPECT_RET(player < s_state->m_player_n, false, "PlayerLedger commerce seat");
-    s_state->m_player_states[player].m_commerce += static_cast<u32>(amount);
+    s_state->m_player_states[player].m_commerce_from_turn += static_cast<u32>(amount);
     return true;
 }
 

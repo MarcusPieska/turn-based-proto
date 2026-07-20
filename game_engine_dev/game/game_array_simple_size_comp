@@ -1,9 +1,0 @@
-#!/bin/bash
-set -e
-
-cd "$(dirname "$0")"
-
-INC="-I.."
-CXXFLAGS="-std=c++17 -Wall -Wextra"
-
-g++ $CXXFLAGS $INC -o game_array_simple_size_tester game_array_simple_size_tester.cpp

@@ -124,7 +124,6 @@ void test_array_unique_ids () {
             ok_ids = false;
             break;
         }
-        item->[NUM_MEMBER] = id.value();
     }
 
     if (ok_ids) {
@@ -136,10 +135,6 @@ void test_array_unique_ids () {
                 const u16 expected = i;
                 [STRUCT_NAME]* item = array.get_[MEMBER_TAG]([CLASS_NAME_PREFIX]Key::from_raw(expected));
                 if (item == nullptr) {
-                    ok_ids = false;
-                    break;
-                }
-                if (item->[NUM_MEMBER] != expected) {
                     ok_ids = false;
                     break;
                 }

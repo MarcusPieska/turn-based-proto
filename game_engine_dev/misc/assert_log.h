@@ -11,8 +11,9 @@
 //=> - AssertLog -
 //================================================================================================================================
 //
-//  Optional expect logger; enable GAME_ASSERT_ENABLE in game_primitives.h.
+//  Optional expect logger/exiter; enable GAME_ASSERT_ENABLE in game_primitives.h.
 //  When disabled, GAME_EXPECT* macros compile out for zero hot-path cost.
+//  When enabled, a failed expect logs to stderr and exits the process.
 //
 //================================================================================================================================
 

@@ -1,0 +1,12 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")"
+
+INC="-I.. -I../.."
+CXXFLAGS="-std=c++17 -Wall -Wextra"
+
+g++ $CXXFLAGS $INC -c game_state_tester.cpp -o game_state_tester.o
+g++ $CXXFLAGS -o game_state_tester game_state_tester.o
+./game_state_tester
+rm game_state_tester.o

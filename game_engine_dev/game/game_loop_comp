@@ -80,15 +80,25 @@ g++ $CXXFLAGS $INC -c ../city/city.cpp -o city.o
 g++ $CXXFLAGS $INC -c city_array.cpp -o city_array.o
 g++ $CXXFLAGS $INC -c game_helpers/civ_spawner.cpp -o civ_spawner.o
 g++ $CXXFLAGS $INC -c game_loop_cache.cpp -o game_loop_cache.o
+g++ $CXXFLAGS $INC -c game_io.cpp -o game_io.o
 g++ $CXXFLAGS $INC -c game_loop.cpp -o game_loop.o
 g++ $CXXFLAGS $INC -c game_setup.cpp -o game_setup.o
 g++ $CXXFLAGS $INC -c ../city/city_tile_manager.cpp -o city_tile_manager.o
 g++ $CXXFLAGS $INC -c ../city/circular_tile_areas.cpp -o circular_tile_areas.o
 g++ $CXXFLAGS $INC -c ../city/city_blocking_mask.cpp -o city_blocking_mask.o
 g++ $CXXFLAGS $INC -c ../city/city_border.cpp -o city_border.o
+g++ $CXXFLAGS $INC -c ../simple_map_gen/perlin_noise.cpp -o perlin_noise.o
+g++ $CXXFLAGS $INC -c ../simple_map_gen/generator_constants.cpp -o generator_constants.o
+g++ $CXXFLAGS $INC -c ../misc/whiteboard_mng.cpp -o whiteboard_mng.o
+g++ $CXXFLAGS $INC -c ../misc/profile_time_opt.cpp -o profile_time_opt.o
 g++ $CXXFLAGS $INC -c city_turn_handler.cpp -o city_turn_handler.o
+g++ $CXXFLAGS $INC -c research_turn_handler.cpp -o research_turn_handler.o
 g++ $CXXFLAGS $INC -c ../ai_proc/sense_settling_pts_opt.cpp -o sense_settling_pts_opt.o
-g++ $CXXFLAGS $INC -c ../ai_proc/settler_turn_mng.cpp -o settler_turn_mng.o
+g++ $CXXFLAGS $INC -c ../ai_proc/settler_turn_handler.cpp -o settler_turn_handler.o
+g++ $CXXFLAGS $INC -c ../ai_proc/worker_turn_handler.cpp -o worker_turn_handler.o
+g++ $CXXFLAGS $INC -c ../ai_proc/defensive_unit_turn_handler.cpp -o defensive_unit_turn_handler.o
+g++ $CXXFLAGS $INC -c ../ai_proc/linear_tech.cpp -o linear_tech.o
+g++ $CXXFLAGS $INC -c ../ai_proc/linear_bld.cpp -o linear_bld.o
 g++ $CXXFLAGS $INC -c game_loop_tester.cpp -o game_loop_tester.o
 
 g++ $CXXFLAGS -o game_loop_tester \
@@ -141,15 +151,25 @@ g++ $CXXFLAGS -o game_loop_tester \
     city_array.o \
     civ_spawner.o \
     game_loop_cache.o \
+    game_io.o \
     game_loop.o \
     game_setup.o \
     city_tile_manager.o \
     circular_tile_areas.o \
     city_blocking_mask.o \
     city_border.o \
+    perlin_noise.o \
+    generator_constants.o \
+    whiteboard_mng.o \
+    profile_time_opt.o \
     city_turn_handler.o \
+    research_turn_handler.o \
     sense_settling_pts_opt.o \
-    settler_turn_mng.o \
+    settler_turn_handler.o \
+    worker_turn_handler.o \
+    defensive_unit_turn_handler.o \
+    linear_tech.o \
+    linear_bld.o \
     game_loop_tester.o \
     -ldl \
     $LIB_SO \
@@ -169,7 +189,9 @@ rm runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.
     local_unit_exp_booster_register.o civ_ship_training_booster_register.o city_commerce_booster_register.o \
     city_production_booster_register.o local_production_booster_register.o local_pop_growth_booster_register.o \
     local_commerce_booster_register.o city_pop_growth_booster_register.o civ_pop_growth_booster_register.o \
-    city_culture_booster_register.o city_array.o civ_spawner.o game_loop_cache.o game_loop.o \
+    city_culture_booster_register.o city_array.o civ_spawner.o game_loop_cache.o game_io.o game_loop.o \
     game_setup.o city_tile_manager.o circular_tile_areas.o city_blocking_mask.o city_border.o \
-    city_turn_handler.o sense_settling_pts_opt.o settler_turn_mng.o game_loop_tester.o
+    perlin_noise.o generator_constants.o whiteboard_mng.o profile_time_opt.o \
+    city_turn_handler.o research_turn_handler.o sense_settling_pts_opt.o settler_turn_handler.o \
+    worker_turn_handler.o defensive_unit_turn_handler.o linear_tech.o linear_bld.o game_loop_tester.o
 

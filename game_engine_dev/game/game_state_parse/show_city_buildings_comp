@@ -1,0 +1,33 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")"
+
+LIB_SO="../../data_io/runtime_static_loader_lib.so"
+if [ ! -f "$LIB_SO" ]; then
+    echo "missing $LIB_SO - run ../../data_io/runtime_static_loader_lib_comp first"
+    exit 1
+fi
+
+INC="-I.. -I../.. -I../../misc -I../../data_io -I../../static_state"
+CXXFLAGS="-std=c++17 -Wall -Wextra"
+
+g++ $CXXFLAGS $INC -c ../../data_io/runtime_static_loader.cpp -o runtime_static_loader.o
+g++ $CXXFLAGS $INC -c hlp_parse_seed.cpp -o hlp_parse_seed.o
+g++ $CXXFLAGS $INC -c hlp_civ_nm.cpp -o hlp_civ_nm.o
+g++ $CXXFLAGS $INC -c hlp_print_city_buildings.cpp -o hlp_print_city_buildings.o
+g++ $CXXFLAGS $INC -c show_city_buildings.cpp -o show_city_buildings.o
+g++ $CXXFLAGS -o show_city_buildings \
+    runtime_static_loader.o \
+    hlp_parse_seed.o \
+    hlp_civ_nm.o \
+    hlp_print_city_buildings.o \
+    show_city_buildings.o \
+    -ldl \
+    $LIB_SO \
+    -Wl,-rpath,'$ORIGIN/../../data_io'
+rm -f runtime_static_loader.o hlp_parse_seed.o hlp_civ_nm.o hlp_print_city_buildings.o show_city_buildings.o
+
+if [ "$#" -ge 1 ]; then
+    ./show_city_buildings "$@"
+fi

@@ -43,6 +43,8 @@ public:
     PlayerState () {
         for (u16 i = 0; i < static_cast<u16>(SETTLER_MISSION_SLOTS); ++i) {
             m_settler_idx[i] = U16_KEY_NULL;
+            m_settle_x[i] = U16_KEY_NULL;
+            m_settle_y[i] = U16_KEY_NULL;
         }
     }
 
@@ -51,19 +53,36 @@ public:
     BitArrayCL* m_techs_researched = nullptr; // Researched-tech bitset for this seat
     u32 m_commerce = 0; // Accumulated commerce treasury for this seat
     u32 m_research = 0; // Accumulated research beakers for this seat
+    u32 m_commerce_from_turn = 0; // Commerce gained this turn; will split between commerce and research
     u16 m_ai_controlled = UINT16_MAX; // Nonzero if seat is AI-controlled
     u16 m_is_active = UINT16_MAX; // Nonzero if seat is still in the game
     u16 m_civ_index = UINT16_MAX; // Civ roster index for this seat
+    u16 m_current_research_target_idx = U16_KEY_NULL; // Current research index
+    u16 m_research_spending_perc = 100; // Percentage of commerce to spend on research; 0-100
+    u16 m_free_unit_support = 0; // Max number of units before upkeep is required
 
     u16 m_target_settlements = 0; // Desired settler count; 0 off; STM sets SETTLER_MISSION_SLOTS with sites / 2 with none
-    u16 m_last_turn_settler_count = 0; // Settlers tallied last unit pass (SettlerTurnMng::handle)
     u16 m_settler_idx[SETTLER_MISSION_SLOTS]; // Settler mission slots; length SETTLER_MISSION_SLOTS
+    u16 m_settle_x[SETTLER_MISSION_SLOTS]; // Cached settle site x; length SETTLER_MISSION_SLOTS
+    u16 m_settle_y[SETTLER_MISSION_SLOTS]; // Cached settle site y; length SETTLER_MISSION_SLOTS
+    u16 m_settle_n = 0; // Valid prefix of m_settle_x/y; 0 means refill on next refresh_targets
     u16 m_scout_1_idx = U16_KEY_NULL; // Scout unit slot 1
     u16 m_scout_2_idx = U16_KEY_NULL; // Scout unit slot 2
     u16 m_scout_3_idx = U16_KEY_NULL; // Scout unit slot 3
     u16 m_scout_4_idx = U16_KEY_NULL; // Scout unit slot 4
+    
+    // The counters below are zeroed after the city turn loop; i.e., the city loop will know last turns unit counts
+    u16 m_last_turn_settler_count = 0; // Settlers counted during last unit pass (SettlerTurnHandler::handle)
+    u16 m_last_turn_worker_count = 0; // Workers counted during last unit pass (WorkerTurnHandler::handle)
+    u16 m_defensive_unit_count = 0; // Defensive units counted during last unit pass (DefensiveUnitTurnHandler::handle)
+    
+    // The counters below are copied over after the city turn loop; i.e., the city loop will know last turns city counts
+    u32 m_last_turn_population_count = 0; // Population counted during last city pass (CityTurnHandler::handle)
+    u16 m_last_turn_city_count = 0; // Cities counted during last city pass (CityTurnHandler::handle)
 
-    u16 m_free_unit_support = 0; // Max number of units before upkeep is required
+    // The counters below are incremented during the city turn loop, and copied to the last turn counters after that
+    u32 m_this_turn_population_count = 0; // Population counted during this turn (CityTurnHandler::handle)
+    u16 m_this_turn_city_count = 0; // Cities counted during this turn (CityTurnHandler::handle)
 };
 
 //================================================================================================================================
@@ -108,6 +127,16 @@ public:
     PlantationAddVector m_adds_plantation;
     ShipyardAddVector m_adds_shipyard;
     TradePostAddVector m_adds_trade_post; 
+
+    // Cached values for quick access
+    u16 m_land_settler_type_idx = U16_KEY_NULL; // Settler type index
+    u16 m_land_worker_type_idx = U16_KEY_NULL; // Worker type index
+    u16 m_land_scout_type_idx = U16_KEY_NULL; // Scout type index
+    u16 m_land_defense_type_idx = U16_KEY_NULL; // Defense type index
+    u16 m_land_attack_type_idx = U16_KEY_NULL; // Attack type index
+    u16 m_land_mobile_type_idx = U16_KEY_NULL; // Mobile type index
+    u16 m_land_artillery_type_idx = U16_KEY_NULL; // Artillery type index
+    u16 m_land_paradrop_type_idx = U16_KEY_NULL; // Paradrop type index
 };
 
 #endif // GAME_STATE_H

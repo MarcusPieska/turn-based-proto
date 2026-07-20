@@ -137,6 +137,10 @@ const OutpostAddStruct* OutpostAddVector::get_page(u16 page_idx) const {
     return m_pages[page_idx];
 }
 
+u16 OutpostAddVector::get_head_outpost_add_idx () const {
+    return m_head_outpost_add_idx;
+}
+
 void OutpostAddVector::return_outpost_add(OutpostAddKey key) {
     if (!key.is_valid()) {
         return;

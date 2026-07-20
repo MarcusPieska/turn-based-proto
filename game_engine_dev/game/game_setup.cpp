@@ -2,8 +2,11 @@
 //=> - Includes -
 //================================================================================================================================
 
-#include "game_setup.h"
+#include <cstdio>
+#include <cstring>
+#include <dlfcn.h>
 
+#include "game_setup.h"
 #include "factory_game_array_simple.h"
 #include "game_array_simple.h"
 #include "game_state.h"
@@ -21,6 +24,8 @@
 #include "city_border.h"
 #include "sector_network.h"
 #include "sector_network_router.h"
+#include "unit_type_static_key.h"
+#include "profile_time_opt.h"
 
 //================================================================================================================================
 //=> - Static runtime data -
@@ -30,26 +35,48 @@ static RuntimeStaticLoader g_rt_loader;
 static RuntimeStatics* g_rt_statics = nullptr;
 static MapGenLoader g_map_loader;
 
-static const char* G_RT_LIB = "../data_io/runtime_static_loader_lib.so";
-static const char* G_RT_DATA = "../";
-static const char* G_MAP_LIB = "../adv_map_gen/map_gen.so";
+static const char* G_RT_LIB_A = "../data_io/runtime_static_loader_lib.so";
+static const char* G_RT_DATA_A = "../";
+static const char* G_MAP_LIB_A = "../adv_map_gen/map_gen.so";
+static const char* G_RT_LIB_B = "../../data_io/runtime_static_loader_lib.so";
+static const char* G_RT_DATA_B = "../../";
+static const char* G_MAP_LIB_B = "../../adv_map_gen/map_gen.so";
 
 static bool ensure_runtime_statics () {
     if (g_rt_statics != nullptr) {
         return true;
     }
-    if (!g_rt_loader.load(G_RT_LIB, G_RT_DATA)) {
-        return false;
+    if (g_rt_loader.load(G_RT_LIB_A, G_RT_DATA_A) || g_rt_loader.load(G_RT_LIB_B, G_RT_DATA_B)) {
+        g_rt_statics = &g_rt_loader.statics();
+        return true;
     }
-    g_rt_statics = &g_rt_loader.statics();
-    return true;
+    return false;
 }
 
 static bool ensure_map_gen_loader () {
     if (g_map_loader.is_loaded()) {
         return true;
     }
-    return g_map_loader.load(G_MAP_LIB);
+    if (g_map_loader.load(G_MAP_LIB_A)) {
+        return true;
+    }
+    char err_a[512];
+    {
+        const char* e = dlerror();
+        if (e == nullptr) {
+            err_a[0] = '?';
+            err_a[1] = 0;
+        } else {
+            std::snprintf(err_a, sizeof(err_a), "%s", e);
+        }
+    }
+    if (g_map_loader.load(G_MAP_LIB_B)) {
+        return true;
+    }
+    const char* err_b = dlerror();
+    std::printf("ensure_map_gen_loader failed:\n  %s: %s\n  %s: %s\n",
+        G_MAP_LIB_A, err_a, G_MAP_LIB_B, err_b != nullptr ? err_b : "?");
+    return false;
 }
 
 //================================================================================================================================
@@ -244,6 +271,44 @@ bool GameSetup::init_players (GameState* state, u16 player_n, u16 small_wonder_n
     return true;
 }
 
+void GameSetup::cache_unit_type_idxs (GameState* state) {
+    if (state == nullptr || g_rt_statics == nullptr) {
+        return;
+    }
+    state->m_land_settler_type_idx = U16_KEY_NULL;
+    state->m_land_worker_type_idx = U16_KEY_NULL;
+    state->m_land_scout_type_idx = U16_KEY_NULL;
+    state->m_land_defense_type_idx = U16_KEY_NULL;
+    state->m_land_attack_type_idx = U16_KEY_NULL;
+    state->m_land_mobile_type_idx = U16_KEY_NULL;
+    state->m_land_artillery_type_idx = U16_KEY_NULL;
+    state->m_land_paradrop_type_idx = U16_KEY_NULL;
+    const u16 n = g_rt_statics->unit_type().get_item_count();
+    for (u16 i = 0; i < n; ++i) {
+        cstr nm = g_rt_statics->unit_type().get_name(UnitTypeStaticDataKey::from_raw(i));
+        if (nm == nullptr) {
+            continue;
+        }
+        if (std::strcmp(nm, "LAND_SETTLER") == 0) {
+            state->m_land_settler_type_idx = i;
+        } else if (std::strcmp(nm, "LAND_WORKER") == 0) {
+            state->m_land_worker_type_idx = i;
+        } else if (std::strcmp(nm, "LAND_SCOUT") == 0) {
+            state->m_land_scout_type_idx = i;
+        } else if (std::strcmp(nm, "LAND_DEFENSE") == 0) {
+            state->m_land_defense_type_idx = i;
+        } else if (std::strcmp(nm, "LAND_ATTACK") == 0) {
+            state->m_land_attack_type_idx = i;
+        } else if (std::strcmp(nm, "LAND_MOBILE") == 0) {
+            state->m_land_mobile_type_idx = i;
+        } else if (std::strcmp(nm, "LAND_ARTILLERY") == 0) {
+            state->m_land_artillery_type_idx = i;
+        } else if (std::strcmp(nm, "LAND_PARADROP") == 0) {
+            state->m_land_paradrop_type_idx = i;
+        }
+    }
+}
+
 bool GameSetup::pick_starts (const GameArraySimple& map, u16 player_n, SpgPickCoords* out_starts) {
     return run_start_placement(map, player_n, out_starts);
 }
@@ -258,6 +323,7 @@ bool GameSetup::finish_with_starts (GameState* state, const SpgPickCoords& start
     if (!state->m_cities.bind_statics(*g_rt_statics)) {
         return false;
     }
+    cache_unit_type_idxs(state);
     const u16 wonder_n = g_rt_statics->wonder().get_item_count();
     const u16 sw_n = g_rt_statics->small_wonder().get_item_count();
     if (wonder_n > 0) {
@@ -300,6 +366,7 @@ bool GameSetup::finish_with_starts (GameState* state, const SpgPickCoords& start
     }
     state->m_current_turn = 0;
     state->m_age_of_exploration = true;
+    PTO_INIT();
     return true;
 }
 
@@ -356,16 +423,22 @@ bool GameSetup::setup_new_game (GameState* state, const MapGenReq& req, u16 play
     gen_req.m_statics = g_rt_statics;
     MakeMapRslt rslt = g_map_loader.generate(gen_req);
     if (!rslt.m_ok) {
+        std::printf("setup_new_game: map generate failed\n");
         state->clear();
         return false;
     }
     if (!Factory_GameArraySimple::load_from_rslt(&state->m_map, rslt)) {
+        std::printf("setup_new_game: load_from_rslt failed\n");
         g_map_loader.free_rslt(&rslt);
         state->clear();
         return false;
     }
     g_map_loader.free_rslt(&rslt);
-    return complete_new_game(state, player_n);
+    if (!complete_new_game(state, player_n)) {
+        std::printf("setup_new_game: complete_new_game failed\n");
+        return false;
+    }
+    return true;
 }
 
 bool GameSetup::setup_new_game (GameState* state, const MapPpmPaths& paths, u16 player_n) {

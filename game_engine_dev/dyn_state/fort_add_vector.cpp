@@ -137,6 +137,10 @@ const FortAddStruct* FortAddVector::get_page(u16 page_idx) const {
     return m_pages[page_idx];
 }
 
+u16 FortAddVector::get_head_fort_add_idx () const {
+    return m_head_fort_add_idx;
+}
+
 void FortAddVector::return_fort_add(FortAddKey key) {
     if (!key.is_valid()) {
         return;

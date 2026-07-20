@@ -137,6 +137,10 @@ const MonasteryAddStruct* MonasteryAddVector::get_page(u16 page_idx) const {
     return m_pages[page_idx];
 }
 
+u16 MonasteryAddVector::get_head_monastery_add_idx () const {
+    return m_head_monastery_add_idx;
+}
+
 void MonasteryAddVector::return_monastery_add(MonasteryAddKey key) {
     if (!key.is_valid()) {
         return;

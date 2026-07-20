@@ -32,6 +32,7 @@ public:
     void return_monastery_add(MonasteryAddKey key);
     MonasteryAddStruct* get_page(u16 page_idx);
     const MonasteryAddStruct* get_page(u16 page_idx) const;
+    u16 get_head_monastery_add_idx () const;
 
     static const u16 MAX_PAGES = 256;
     static const u16 MONASTERY_ADD_ITEMS_PER_PAGE = 256;

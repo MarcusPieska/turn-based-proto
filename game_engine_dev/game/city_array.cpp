@@ -119,6 +119,22 @@ const City* CityArray::get_page(u16 page_idx) const {
     return m_pages[page_idx];
 }
 
+GeneralBitBank* CityArray::get_flag_bank () {
+    return m_flag_bank;
+}
+
+const GeneralBitBank* CityArray::get_flag_bank () const {
+    return m_flag_bank;
+}
+
+GeneralBitBank* CityArray::get_res_bank () {
+    return m_res_bank;
+}
+
+const GeneralBitBank* CityArray::get_res_bank () const {
+    return m_res_bank;
+}
+
 GeneralBitBank* CityArray::get_bld_bank () {
     return m_bld_bank;
 }

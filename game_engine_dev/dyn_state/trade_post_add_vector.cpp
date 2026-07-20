@@ -137,6 +137,10 @@ const TradePostAddStruct* TradePostAddVector::get_page(u16 page_idx) const {
     return m_pages[page_idx];
 }
 
+u16 TradePostAddVector::get_head_trade_post_add_idx () const {
+    return m_head_trade_post_add_idx;
+}
+
 void TradePostAddVector::return_trade_post_add(TradePostAddKey key) {
     if (!key.is_valid()) {
         return;

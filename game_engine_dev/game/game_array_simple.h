@@ -64,6 +64,7 @@ struct GameTileSimple {
 
 class Factory_GameArraySimple;
 class GameLoopCache;
+class GameIo;
 
 class GameArraySimple {
 public:
@@ -95,6 +96,7 @@ public:
 private:
     friend class Factory_GameArraySimple;
     friend class GameLoopCache;
+    friend class GameIo;
     GameArraySimple (const GameArraySimple& other) = delete;
     GameArraySimple& operator= (const GameArraySimple& other) = delete;
     GameArraySimple (GameArraySimple&& other) = delete;

@@ -1,0 +1,18 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")"
+
+INC="-I.. -I../.."
+CXXFLAGS="-std=c++17 -Wall -Wextra"
+
+g++ $CXXFLAGS $INC -c ../tile_array.cpp -o tile_array.o
+g++ $CXXFLAGS $INC -c tile_array_tester.cpp -o tile_array_tester.o
+
+g++ $CXXFLAGS -o tile_array_tester \
+    tile_array.o \
+    tile_array_tester.o
+
+./tile_array_tester
+
+rm tile_array.o tile_array_tester.o

@@ -32,6 +32,7 @@ public:
     void return_trade_post_add(TradePostAddKey key);
     TradePostAddStruct* get_page(u16 page_idx);
     const TradePostAddStruct* get_page(u16 page_idx) const;
+    u16 get_head_trade_post_add_idx () const;
 
     static const u16 MAX_PAGES = 256;
     static const u16 TRADE_POST_ADD_ITEMS_PER_PAGE = 256;

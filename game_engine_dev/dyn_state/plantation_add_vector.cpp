@@ -137,6 +137,10 @@ const PlantationAddStruct* PlantationAddVector::get_page(u16 page_idx) const {
     return m_pages[page_idx];
 }
 
+u16 PlantationAddVector::get_head_plantation_add_idx () const {
+    return m_head_plantation_add_idx;
+}
+
 void PlantationAddVector::return_plantation_add(PlantationAddKey key) {
     if (!key.is_valid()) {
         return;

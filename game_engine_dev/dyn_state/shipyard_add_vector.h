@@ -32,6 +32,7 @@ public:
     void return_shipyard_add(ShipyardAddKey key);
     ShipyardAddStruct* get_page(u16 page_idx);
     const ShipyardAddStruct* get_page(u16 page_idx) const;
+    u16 get_head_shipyard_add_idx () const;
 
     static const u16 MAX_PAGES = 256;
     static const u16 SHIPYARD_ADD_ITEMS_PER_PAGE = 256;

@@ -137,6 +137,10 @@ const [STRUCT_NAME]* [CLASS_NAME_PREFIX]Vector::get_page(u16 page_idx) const {
     return m_pages[page_idx];
 }
 
+u16 [CLASS_NAME_PREFIX]Vector::get_head_[MEMBER_TAG]_idx () const {
+    return m_head_[MEMBER_TAG]_idx;
+}
+
 void [CLASS_NAME_PREFIX]Vector::return_[MEMBER_TAG]([CLASS_NAME_PREFIX]Key key) {
     if (!key.is_valid()) {
         return;

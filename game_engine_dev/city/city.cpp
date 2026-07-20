@@ -34,6 +34,7 @@
 #include "local_commerce_booster_register.h"
 #include "local_pop_growth_booster_register.h"
 #include "local_production_booster_register.h"
+#include "local_culture_booster_register.h"
 #include "city_border.h"
 #include "tile_yields.h"
 
@@ -424,8 +425,16 @@ void City::add_commerce (u16 city_idx, u16 amount) {
 
 void City::add_culture (u16 city_idx, u16 amount) {
     const EffectCtx ctx = make_city_effect_ctx(*this, city_idx);
+
+    // Pull local tile culture yield, and apply local boosters
+    const u16 local = apply_booster_u16(amount, LocalCultureBoosterRegister::determine_effect(ctx));
+    amount = static_cast<u16>(amount + local);
+
+    // Handle the remaining culture, and the non-local boosters
     const u16 boosted = apply_booster_u16(amount, CityCultureBoosterRegister::determine_effect(ctx));
     const u16 new_culture = static_cast<u16>(m_culture + boosted);
+    
+    // Check if the city will expand its borders with the new culture amount
     if (CityBorder::will_expand(m_culture, new_culture)) {
         CityBorder::claim_expand(m_x, m_y, m_culture, new_culture, static_cast<u8>(m_owner));
     }
@@ -577,6 +586,10 @@ bool City::finish_if_ready (u16 city_idx) {
 bool City::has_building (u16 city_idx, u16 building_idx) const {
     GAME_EXPECT_RET(s_bld_bank != nullptr, false, "City building bank");
     return s_bld_bank->is_flagged(city_idx, building_idx);
+}
+
+bool City::need_prod_pick () const {
+    return m_build_type == BUILD_TYPE_NONE || m_build_type == ACCUMULATE_COMMERCE;
 }
 
 //================================================================================================================================

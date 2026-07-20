@@ -137,6 +137,10 @@ const ShipyardAddStruct* ShipyardAddVector::get_page(u16 page_idx) const {
     return m_pages[page_idx];
 }
 
+u16 ShipyardAddVector::get_head_shipyard_add_idx () const {
+    return m_head_shipyard_add_idx;
+}
+
 void ShipyardAddVector::return_shipyard_add(ShipyardAddKey key) {
     if (!key.is_valid()) {
         return;

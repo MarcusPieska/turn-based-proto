@@ -67,6 +67,7 @@ public:
 
     bool finish_if_ready (u16 city_idx);
     bool has_building (u16 city_idx, u16 building_idx) const;
+    bool need_prod_pick () const;
 
 private:
     u16 m_owner; // Owning seat index; U16_KEY_NULL until init
