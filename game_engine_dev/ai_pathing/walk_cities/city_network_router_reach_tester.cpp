@@ -208,8 +208,13 @@ static bool is_nbr (const CityNetwork& net, u16 a, u16 b) {
     if (a >= net.city_n() || b >= net.city_n()) {
         return false;
     }
-    const CityNetLinks& L = net.cities()->get_city(a)->links();
-    return L.m_ne == b || L.m_nw == b || L.m_se == b || L.m_sw == b;
+    const City* c = net.cities()->get_city(a);
+    for (u8 d = 0; d < 4u; ++d) {
+        if (c->get_conn_city(d) == b) {
+            return true;
+        }
+    }
+    return false;
 }
 
 static u32 collect_reach (const CityNetwork& net, u16 src, u16* out, u32 cap) {
@@ -232,10 +237,9 @@ static u32 collect_reach (const CityNetwork& net, u16 src, u16* out, u32 cap) {
         if (out_n < cap) {
             out[out_n++] = cur;
         }
-        const CityNetLinks& L = net.cities()->get_city(cur)->links();
-        const u16 slots[4] = {L.m_ne, L.m_nw, L.m_se, L.m_sw};
-        for (u32 s = 0; s < 4u; ++s) {
-            const u16 j = slots[s];
+        const City* cc = net.cities()->get_city(cur);
+        for (u8 s = 0; s < 4u; ++s) {
+            const u16 j = cc->get_conn_city(s);
             if (j == U16_KEY_NULL || j >= n || seen[j] != 0) {
                 continue;
             }

@@ -161,6 +161,96 @@ static void pick_cands (TileCand* cands, u16 n, u16 pick_n, u8 sort_food, u8 sor
 }
 
 //================================================================================================================================
+//=> - Stable-food helpers -
+//================================================================================================================================
+
+static const u8 k_sec_prod = 0;
+static const u8 k_sec_com = 1;
+static const u8 k_sec_both = 2;
+
+static u16 sec_sum (const TileCand& c) {
+    return static_cast<u16>(c.m_yld.m_production + c.m_yld.m_commerce);
+}
+
+static i32 cmp_food_sec (const TileCand& a, const TileCand& b, u8 sec_mode) {
+    if (a.m_yld.m_food != b.m_yld.m_food) {
+        return static_cast<i32>(a.m_yld.m_food) - static_cast<i32>(b.m_yld.m_food);
+    }
+    if (sec_mode == k_sec_prod) {
+        if (a.m_yld.m_production != b.m_yld.m_production) {
+            return static_cast<i32>(a.m_yld.m_production) - static_cast<i32>(b.m_yld.m_production);
+        }
+        return static_cast<i32>(a.m_yld.m_commerce) - static_cast<i32>(b.m_yld.m_commerce);
+    }
+    if (sec_mode == k_sec_com) {
+        if (a.m_yld.m_commerce != b.m_yld.m_commerce) {
+            return static_cast<i32>(a.m_yld.m_commerce) - static_cast<i32>(b.m_yld.m_commerce);
+        }
+        return static_cast<i32>(a.m_yld.m_production) - static_cast<i32>(b.m_yld.m_production);
+    }
+    const u16 sa = sec_sum(a);
+    const u16 sb = sec_sum(b);
+    if (sa != sb) {
+        return static_cast<i32>(sa) - static_cast<i32>(sb);
+    }
+    if (a.m_yld.m_production != b.m_yld.m_production) {
+        return static_cast<i32>(a.m_yld.m_production) - static_cast<i32>(b.m_yld.m_production);
+    }
+    return static_cast<i32>(a.m_yld.m_commerce) - static_cast<i32>(b.m_yld.m_commerce);
+}
+
+static i32 cmp_sec_food (const TileCand& a, const TileCand& b, u8 sec_mode) {
+    if (sec_mode == k_sec_prod) {
+        if (a.m_yld.m_production != b.m_yld.m_production) {
+            return static_cast<i32>(a.m_yld.m_production) - static_cast<i32>(b.m_yld.m_production);
+        }
+        if (a.m_yld.m_food != b.m_yld.m_food) {
+            return static_cast<i32>(a.m_yld.m_food) - static_cast<i32>(b.m_yld.m_food);
+        }
+        return static_cast<i32>(a.m_yld.m_commerce) - static_cast<i32>(b.m_yld.m_commerce);
+    }
+    if (sec_mode == k_sec_com) {
+        if (a.m_yld.m_commerce != b.m_yld.m_commerce) {
+            return static_cast<i32>(a.m_yld.m_commerce) - static_cast<i32>(b.m_yld.m_commerce);
+        }
+        if (a.m_yld.m_food != b.m_yld.m_food) {
+            return static_cast<i32>(a.m_yld.m_food) - static_cast<i32>(b.m_yld.m_food);
+        }
+        return static_cast<i32>(a.m_yld.m_production) - static_cast<i32>(b.m_yld.m_production);
+    }
+    const u16 sa = sec_sum(a);
+    const u16 sb = sec_sum(b);
+    if (sa != sb) {
+        return static_cast<i32>(sa) - static_cast<i32>(sb);
+    }
+    if (a.m_yld.m_food != b.m_yld.m_food) {
+        return static_cast<i32>(a.m_yld.m_food) - static_cast<i32>(b.m_yld.m_food);
+    }
+    if (a.m_yld.m_production != b.m_yld.m_production) {
+        return static_cast<i32>(a.m_yld.m_production) - static_cast<i32>(b.m_yld.m_production);
+    }
+    return static_cast<i32>(a.m_yld.m_commerce) - static_cast<i32>(b.m_yld.m_commerce);
+}
+
+static void sort_cands_desc (TileCand* cands, u16 n, u8 sec_mode, u8 food_pri) {
+    for (u16 i = 1; i < n; ++i) {
+        TileCand key = cands[i];
+        u16 j = i;
+        while (j > 0) {
+            const i32 c = (food_pri != 0)
+                ? cmp_food_sec(cands[j - 1], key, sec_mode)
+                : cmp_sec_food(cands[j - 1], key, sec_mode);
+            if (c >= 0) {
+                break;
+            }
+            cands[j] = cands[j - 1];
+            --j;
+        }
+        cands[j] = key;
+    }
+}
+
+//================================================================================================================================
 //=> - CityTileManager -
 //================================================================================================================================
 
@@ -190,6 +280,18 @@ TotalTileYield CityTileManager::add_new_production_tile (u16 player, u16 city_id
 
 TotalTileYield CityTileManager::add_new_commerce_tile (u16 player, u16 city_idx) {
     return assign_add_one(player, city_idx, 0, 0, 1);
+}
+
+TotalTileYield CityTileManager::stable_food_max_production (u16 player, u16 city_idx, u16 start_food) {
+    return assign_stable_food(player, city_idx, start_food, k_sec_prod);
+}
+
+TotalTileYield CityTileManager::stable_food_max_commerce (u16 player, u16 city_idx, u16 start_food) {
+    return assign_stable_food(player, city_idx, start_food, k_sec_com);
+}
+
+TotalTileYield CityTileManager::stable_food_max_combined (u16 player, u16 city_idx, u16 start_food) {
+    return assign_stable_food(player, city_idx, start_food, k_sec_both);
 }
 
 TotalTileYield CityTileManager::gather_yields (u16 player, u16 city_idx) {
@@ -268,6 +370,10 @@ u32 CityTileManager::count_worked (u16 cx, u16 cy, u16 city_idx) {
         }
     }
     return n;
+}
+
+CircArea CityTileManager::work_area () {
+    return CircularTileAreas::get(m_reach_r);
 }
 
 TotalTileYield CityTileManager::assign_sorted (u16 player, u16 city_idx, u8 sort_food, u8 sort_production, u8 sort_commerce) {
@@ -387,6 +493,101 @@ TotalTileYield CityTileManager::assign_add_one (u16 player, u16 city_idx, u8 sor
     tot.m_production = best.m_yld.m_production;
     tot.m_commerce = best.m_yld.m_commerce;
     TileWorking::mark_worked(best.m_x, best.m_y, city_idx);
+    return tot;
+}
+
+TotalTileYield CityTileManager::assign_stable_food (u16 player, u16 city_idx, u16 start_food, u8 sec_mode) {
+    TotalTileYield tot = {};
+    if (m_cities == nullptr) {
+        return tot;
+    }
+    City* city = m_cities->get_city(city_idx);
+    if (city == nullptr || city->get_owner() != player) {
+        return tot;
+    }
+    const u16 cx = city->get_x();
+    const u16 cy = city->get_y();
+    const u16 workers = city->get_current_population();
+    if (workers == 0) {
+        return tot;
+    }
+    const CircArea area = CircularTileAreas::get(m_reach_r);
+    if (area.m_lim == 0) {
+        return tot;
+    }
+    clear(cx, cy, city_idx);
+    TileCand cands[m_cand_max];
+    u16 n = 0;
+    for (u16 i = 0; i < area.m_lim && n < m_cand_max; ++i) {
+        const i32 x = static_cast<i32>(cx) + static_cast<i32>(area.m_brd[i][0]);
+        const i32 y = static_cast<i32>(cy) + static_cast<i32>(area.m_brd[i][1]);
+        if (x < 0 || y < 0) {
+            continue;
+        }
+        const u16 ux = static_cast<u16>(x);
+        const u16 uy = static_cast<u16>(y);
+        if (!TileYields::in_bounds(ux, uy)) {
+            continue;
+        }
+        if (ux == cx && uy == cy) {
+            continue;
+        }
+        const u16 wk = TileWorking::get_worker(ux, uy);
+        if (wk != U16_KEY_NULL && wk != city_idx) {
+            continue;
+        }
+        cands[n].m_x = ux;
+        cands[n].m_y = uy;
+        cands[n].m_yld = TileYields::get(ux, uy);
+        ++n;
+    }
+    if (n == 0) {
+        return tot;
+    }
+    sort_cands_desc(cands, n, sec_mode, 1);
+    const u32 min_food = static_cast<u32>(workers) * 2u;
+    u32 food_acc = start_food;
+    u16 split = 0;
+    while (split < n && food_acc < min_food) {
+        food_acc += cands[split].m_yld.m_food;
+        split = static_cast<u16>(split + 1u);
+    }
+    if (split < n) {
+        sort_cands_desc(cands + split, static_cast<u16>(n - split), sec_mode, 0);
+    }
+    u16 fi = 0;
+    u16 si = split;
+    u32 food_have = start_food;
+    u16 food_need = 0;
+    u16 assigned = 0;
+    while (assigned < workers) {
+        food_need = static_cast<u16>(food_need + 2u);
+        u8 take_sec = 0;
+        if (si < n) {
+            if (food_have + cands[si].m_yld.m_food >= food_need) {
+                take_sec = 1;
+            }
+        }
+        TileCand* pick = nullptr;
+        if (take_sec != 0) {
+            pick = &cands[si];
+            si = static_cast<u16>(si + 1u);
+        } else if (fi < split) {
+            pick = &cands[fi];
+            fi = static_cast<u16>(fi + 1u);
+        } else if (si < n) {
+            pick = &cands[si];
+            si = static_cast<u16>(si + 1u);
+        } else {
+            break;
+        }
+        tot.m_food += pick->m_yld.m_food;
+        tot.m_production += pick->m_yld.m_production;
+        tot.m_commerce += pick->m_yld.m_commerce;
+        food_have += pick->m_yld.m_food;
+        TileWorking::mark_worked(pick->m_x, pick->m_y, city_idx);
+        assigned = static_cast<u16>(assigned + 1u);
+    }
     return tot;
 }
 

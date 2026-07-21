@@ -6,6 +6,7 @@
 
 #include <cstring>
 
+#include "build_adds_array.h"
 #include "config_settings_static.h"
 #include "city.h"
 #include "game_state.h"
@@ -36,7 +37,7 @@ static bool found_city (GameState* state, u16 x, u16 y, u16 civ_idx) {
         return false;
     }
     city->init(civ_idx, x, y);
-    if (!state->m_map.set_tile_add(x, y, city_idx, CivSpawner::k_add_typ_city)) {
+    if (!state->m_map.set_tile_add(x, y, city_idx, BUILD_ADD_CITY)) {
         return false;
     }
     TRACE_CITY_FOUNDATION((x, y, civ_idx));

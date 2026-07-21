@@ -78,7 +78,7 @@ static BuildAddItem* upsert_addendum_item(u16 x, u16 y) {
     BuildAddItem* item = &addendum->adds[addendum->add_count];
     item->x_offset = x_offset;
     item->y_offset = y_offset;
-    item->build_add_type = BUILD_ADD_NONE;
+    item->build_add_type = BUILD_ADD_STD;
     item->build_add_idx = 0;
     item->resource_idx = 0;
     item->next_add_idx = 0;
@@ -158,7 +158,7 @@ Tile* TileArray::get_tile(u16 x, u16 y) {
 
 BuildAddItem TileArray::get_build_adds(u16 x, u16 y) {
     BuildAddItem result = {};
-    result.build_add_type = BUILD_ADD_NONE;
+    result.build_add_type = BUILD_ADD_STD;
 
     Tile* tile = get_tile(x, y);
     if (tile == nullptr || tile->adds_exists == 0 || s_adds == nullptr) {
@@ -180,7 +180,7 @@ BuildAddItem TileArray::get_build_adds(u16 x, u16 y) {
     for (u16 i = 0; i < addendum->add_count; ++i) {
         BuildAddItem* item = &addendum->adds[i];
         if (item->x_offset == x_offset && item->y_offset == y_offset) {
-            if (item->build_add_type != BUILD_ADD_NONE || item->resource_idx != 0) {
+            if (item->build_add_type != BUILD_ADD_STD || item->resource_idx != 0) {
                 result = *item;
             }
             return result;

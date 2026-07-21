@@ -2,31 +2,33 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef CIV_SPAWNER_H
-#define CIV_SPAWNER_H
+#ifndef ANCHORED_FARMER_H
+#define ANCHORED_FARMER_H
 
 #include "game_primitives.h"
 
 class GameState;
 
 //================================================================================================================================
-//=> - CivSpawner -
+//=> - AnchoredFarmer -
 //================================================================================================================================
 //
-//  Spawns a civ's START_UNITS at a map point. Places units in UnitAddVector and
-//  founds a city when a LAND_SETTLER is among the start units.
+//  Worker AI with no per-worker state. Each turn: local CircArea scan for nearest friendly city,
+//  then (wx-cx, wy-cy) indexes a static successor step map over the work disk (r=4 / map r=3).
+//  Farms owned empty plains via StdAddHelper; advances by the looked-up 8-adj step. Tables from gen_anchored_farmer_path.py.
 //
 //================================================================================================================================
 
-class CivSpawner {
+class AnchoredFarmer {
 public:
-    static bool spawn (GameState* state, u16 x, u16 y, u16 civ_idx);
+    AnchoredFarmer () = delete;
 
-private:
-    CivSpawner () = delete;
+    static bool begin (GameState& state);
+    static void clear ();
+    static void handle (GameState& state, u16 unit_idx);
 };
 
-#endif // CIV_SPAWNER_H
+#endif // ANCHORED_FARMER_H
 
 //================================================================================================================================
 //=> - End of file -

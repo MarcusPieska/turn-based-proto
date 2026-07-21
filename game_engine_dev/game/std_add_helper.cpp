@@ -1,32 +1,27 @@
 //================================================================================================================================
-//=> - Include guards -
+//=> - Includes -
 //================================================================================================================================
 
-#ifndef CIV_SPAWNER_H
-#define CIV_SPAWNER_H
-
-#include "game_primitives.h"
-
-class GameState;
+#include "std_add_helper.h"
+#include "assert_log.h"
+#include "build_adds_array.h"
+#include "game_array_simple.h" 
 
 //================================================================================================================================
-//=> - CivSpawner -
-//================================================================================================================================
-//
-//  Spawns a civ's START_UNITS at a map point. Places units in UnitAddVector and
-//  founds a city when a LAND_SETTLER is among the start units.
-//
+//=> - StdAddHelper -
 //================================================================================================================================
 
-class CivSpawner {
-public:
-    static bool spawn (GameState* state, u16 x, u16 y, u16 civ_idx);
+bool StdAddHelper::has_farm (const GameTileSimple* t) {
+    GAME_EXPECT(t != nullptr, "StdAddHelper::has_farm null tile");
+    GAME_EXPECT(t->m_add_typ == BUILD_ADD_STD, "StdAddHelper::has_farm not BUILD_ADD_STD");
+    return (static_cast<u16>(t->m_add_idx) & m_farm_bit) != 0u;
+}
 
-private:
-    CivSpawner () = delete;
-};
-
-#endif // CIV_SPAWNER_H
+void StdAddHelper::set_farm (GameTileSimple* t) {
+    GAME_EXPECT(t != nullptr, "StdAddHelper::set_farm null tile");
+    GAME_EXPECT(t->m_add_typ == BUILD_ADD_STD, "StdAddHelper::set_farm not BUILD_ADD_STD");
+    t->m_add_idx = static_cast<u16>(t->m_add_idx) | m_farm_bit;
+}
 
 //================================================================================================================================
 //=> - End of file -

@@ -15,7 +15,8 @@
 //
 //  Builds bidirectional city hop links stored on each City. A new city force-binds its nearest
 //  quadrant neighbors (displacing prior partners). Displaced cities are tracked in a small stack
-//  buffer (id, cleared slot, prior CityNetLinks); repairs only rebind among that set.
+//  buffer (id, cleared slot, prior partner); repairs only rebind among that set.
+//  Dir codes match City::get_conn_city: 0=NE, 1=NW, 2=SE, 3=SW.
 //
 //================================================================================================================================
 
@@ -30,7 +31,7 @@ class GameArraySimple;
 struct CnDisc {
     u16 m_id; // Disconnected city index
     u8 m_q; // Quadrant slot cleared on that city
-    CityNetLinks m_was; // Link table before that clear
+    u16 m_was; // Prior partner in that slot; U16_KEY_NULL if none
 };
 
 class CityNetwork {
@@ -40,6 +41,7 @@ public:
 
     bool begin (CityArray& cities, GameArraySimple& map);
     bool add (u16 city_idx);
+    void clear ();
     bool is_valid () const;
     u16 city_n () const;
     u32 flood_n () const;
@@ -49,7 +51,6 @@ private:
     CityNetwork (const CityNetwork& other) = delete;
     CityNetwork (CityNetwork&& other) = delete;
 
-    void clear ();
     u16 pos_x (u16 i) const;
     u16 pos_y (u16 i) const;
     bool tile_pass (u16 x, u16 y) const;

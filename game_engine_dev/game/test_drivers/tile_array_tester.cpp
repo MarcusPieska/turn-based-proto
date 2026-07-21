@@ -89,7 +89,7 @@ void test_add_type_roundtrip_resource () {
     for (u16 y = 0; y < height; ++y) {
         for (u16 x = 0; x < width; ++x) {
             BuildAddItem item = TileArray::get_build_adds(x, y);
-            if (item.build_add_type != BUILD_ADD_NONE || item.resource_idx != 0) {
+            if (item.build_add_type != BUILD_ADD_STD || item.resource_idx != 0) {
                 ok_empty = false;
             }
         }
@@ -108,7 +108,7 @@ void test_add_type_roundtrip_resource () {
     for (u16 y = 0; y < height; ++y) {
         for (u16 x = 0; x < width; ++x) {
             BuildAddItem item = TileArray::get_build_adds(x, y);
-            bool ok = (item.build_add_type == BUILD_ADD_NONE) &&
+            bool ok = (item.build_add_type == BUILD_ADD_STD) &&
                 (item.resource_idx == add_value);
             note_result(ok, "Resource add roundtrip at tile");
             add_value = static_cast<u16>(add_value + 1);
@@ -128,7 +128,7 @@ void test_add_type_roundtrip_city () {
     for (u16 y = 0; y < height; ++y) {
         for (u16 x = 0; x < width; ++x) {
             BuildAddItem item = TileArray::get_build_adds(x, y);
-            if (item.build_add_type != BUILD_ADD_NONE || item.resource_idx != 0) {
+            if (item.build_add_type != BUILD_ADD_STD || item.resource_idx != 0) {
                 ok_empty = false;
             }
         }
@@ -167,7 +167,7 @@ void test_add_type_roundtrip_fort () {
     for (u16 y = 0; y < height; ++y) {
         for (u16 x = 0; x < width; ++x) {
             BuildAddItem item = TileArray::get_build_adds(x, y);
-            if (item.build_add_type != BUILD_ADD_NONE || item.resource_idx != 0) {
+            if (item.build_add_type != BUILD_ADD_STD || item.resource_idx != 0) {
                 ok_empty = false;
             }
         }

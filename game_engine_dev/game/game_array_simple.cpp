@@ -97,6 +97,16 @@ u8 GameArraySimple::get_settler_blocked (u16 x, u16 y) const {
     return static_cast<u8>(m_tiles[tidx(x, y)].m_settler_blocked);
 }
 
+GameTileSimple* GameArraySimple::tile (u16 x, u16 y) {
+    CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
+    return &m_tiles[tidx(x, y)];
+}
+
+const GameTileSimple* GameArraySimple::tile (u16 x, u16 y) const {
+    CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
+    return &m_tiles[tidx(x, y)];
+}
+
 bool GameArraySimple::set_unit_hd (u16 x, u16 y, u16 unit_hd) {
     CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
     m_tiles[tidx(x, y)].m_unit_hd = unit_hd;

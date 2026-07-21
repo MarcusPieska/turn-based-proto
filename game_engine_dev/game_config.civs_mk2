@@ -1,0 +1,135 @@
+
+
+Cherusci      : Germany     : Industrious  : Militaristic
+Chatti        : Germany     : Industrious  : Militaristic
+Marcomanni    : Germany     : Industrious  : Militaristic
+Franks        : Germany     : Industrious  : Militaristic
+Alemanni      : Germany     : Industrious  : Militaristic
+Saxons        : Germany     : Industrious  : Militaristic
+Visigoths     : Germany     : Industrious  : Militaristic
+Ostrogoths    : Germany     : Industrious  : Militaristic
+Vandals       : Germany     : Industrious  : Militaristic
+Lombards      : Germany     : Industrious  : Militaristic
+Burgundians   : Germany     : Industrious  : Militaristic
+Norse         : Germany     : Commercial   : Militaristic
+Frisii        : Germany     : Agricultural : Commercial
+Batavi        : Germany     : Agricultural : Commercial
+
+Etruscans     : Rome        : Commercial   : Militaristic
+Samnites      : Rome        : Commercial   : Militaristic
+Sabines       : Rome        : Commercial   : Militaristic 
+Umbrians      : Rome        : Commercial   : Militaristic
+Graeci        : Greece      : Commercial   : Scientific
+
+Bedouin       : Arabia      : Expansionist : Religious
+Sabaeans      : Arabia      : Expansionist : Religious
+Himyarites    : Arabia      : Expansionist : Religious
+Nabataeans    : Arabia      : Expansionist : Religious
+Ghassanids    : Arabia      : Expansionist : Religious
+Lakhmids      : Arabia      : Expansionist : Religious
+Sumeria       : Arabia      : Agricultural : Industrious
+Carthage      : Arabia      : Commercial   : Industrious
+Babylon       : Arabia      : Agricultural : Scientific
+
+Athens        : Greece      : Commercial   : Scientific
+Sparta        : Greece      : Commercial   : Scientific
+Thebes        : Greece      : Commercial   : Scientific
+Corinth       : Greece      : Commercial   : Scientific
+Macedon       : Greece      : Commercial   : Scientific
+Epirus        : Greece      : Commercial   : Scientific
+Athens        : Greece      : Commercial   : Scientific
+
+Qin           : China       : Agricultural : Militaristic
+Chu           : China       : Agricultural : Militaristic
+Qi            : China       : Agricultural : Militaristic
+Zhao          : China       : Agricultural : Militaristic
+Han           : China       : Agricultural : Militaristic
+Yan           : China       : Agricultural : Militaristic
+Wei           : China       : Agricultural : Militaristic
+
+Osmanlis      : Ottomans    : Militaristic : Religious
+Karaman       : Ottomans    : Militaristic : Religious
+Germiyan      : Ottomans    : Militaristic : Religious
+Karesi        : Ottomans    : Militaristic : Religious
+Aydin         : Ottomans    : Militaristic : Religious
+Eretna        : Ottomans    : Militaristic : Religious
+Hittites      : Ottomans    : Expansionist : Industrious
+
+Parsa         : Persia      : Expansionist : Industrious
+Medes         : Persia      : Expansionist : Industrious
+Elam          : Persia      : Expansionist : Industrious
+Bactrians     : Persia      : Expansionist : Industrious
+Sogdians      : Persia      : Expansionist : Industrious
+Parthians     : Persia      : Expansionist : Industrious
+Scythia       : Persia      : Expansionist : Militaristic 
+
+Kereits       : Mongols     : Commercial   : Expansionist
+Naimans       : Mongols     : Commercial   : Expansionist
+Khamag        : Mongols     : Commercial   : Expansionist
+Tatars        : Mongols     : Commercial   : Expansionist
+Merkits       : Mongols     : Commercial   : Expansionist
+
+Wessex        : England     : Commercial   : Expansionist
+Mercia        : England     : Commercial   : Expansionist
+Northumbria   : England     : Commercial   : Expansionist
+East Anglia   : England     : Commercial   : Expansionist
+Kent          : England     : Commercial   : Expansionist
+Britons       : England     : Commercial   : Expansionist
+
+
+Capetians     : France      : Commercial   : Industrious
+Normandy      : France      : Commercial   : Industrious
+Aquitaine     : France      : Commercial   : Industrious
+Toulouse      : France      : Commercial   : Industrious
+Flanders      : France      : Commercial   : Industrious
+Brittany      : France      : Commercial   : Industrious
+Celts         : France      : Agricultural : Militaristic
+
+Muscovy       : Russia      : Expansionist : Militaristic
+Novgorod      : Russia      : Expansionist : Militaristic
+Vladimir      : Russia      : Expansionist : Militaristic
+Pskov         : Russia      : Expansionist : Militaristic
+Tver          : Russia      : Expansionist : Militaristic
+Volhynia      : Russia      : Expansionist : Militaristic
+Kievan Rus    : Russia      : Expansionist : Militaristic
+
+
+Lusitani      : Portugal    : Commercial   : Religious
+Callaeci      : Portugal    : Commercial   : Religious
+Suebi         : Portugal    : Commercial   : Religious
+Portucalenses : Portugal    : Commercial   : Religious
+Al-Andalus    : Portugal    : Commercial   : Religious
+
+Castile       : Spain       : Expansionist : Religious
+Aragon        : Spain       : Expansionist : Religious
+Navarre       : Spain       : Expansionist : Religious
+Castile       : Spain       : Expansionist : Religious
+Al-Andalus    : Spain       : Expansionist : Religious
+
+
+
+
+
+
+
+
+
+America     : Agricultural : Industrious
+Aztecs      : Expansionist : Militaristic
+Byzantines  : Religious    : Scientific
+Egypt       : Agricultural : Industrious
+Inca        : Agricultural : Expansionist
+India       : Agricultural : Commercial
+Iroquois    : Agricultural : Expansionist
+Japan       : Industrious  : Militaristic
+Korea       : Agricultural : Commercial
+Maya        : Industrious  : Religious
+Zululand    : Agricultural : Expansionist
+Khmer       : Agricultural : Scientific
+Mali        : Commercial   : Religious
+Ethiopia    : Religious    : Militaristic
+Nubia       : Industrious  : Militaristic
+Vietnam     : Agricultural : Militaristic
+Hungary     : Militaristic : Commercial
+
+Blocker     : Agricultural : Expansionist

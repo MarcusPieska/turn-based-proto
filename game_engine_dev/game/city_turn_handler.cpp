@@ -84,13 +84,15 @@ void CityTurnHandler::handle (GameState& state, u16 city_idx) {
     const u16 food = static_cast<u16>(yld.m_food > 65535u ? 65535u : yld.m_food);
     const u16 production = static_cast<u16>(yld.m_production > 65535u ? 65535u : yld.m_production);
     const u16 commerce = static_cast<u16>(yld.m_commerce > 65535u ? 65535u : yld.m_commerce);
-    const u16 pop0 = city->get_current_population();
-    if (city->add_food(city_idx, food)) {
-        const u16 pop1 = city->get_current_population();
-        for (u16 p = pop0; p < pop1; ++p) {
+    i16 pop_change = city->add_food(city_idx, food);
+    if (pop_change > 0) {
+        for (i16 p = 0; p < pop_change; ++p) {
             CityTileManager::add_new_food_tile(player, city_idx);
         }
+    } else if (pop_change < 0) {
+        CityTileManager::maximize_food(player, city_idx);
     }
+
     city->add_commerce(city_idx, commerce);
     city->add_culture(city_idx, 0);
     city->add_production(city_idx, production);

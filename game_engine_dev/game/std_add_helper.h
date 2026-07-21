@@ -2,31 +2,34 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef CIV_SPAWNER_H
-#define CIV_SPAWNER_H
+#ifndef STD_ADD_HELPER_H
+#define STD_ADD_HELPER_H
 
 #include "game_primitives.h"
 
-class GameState;
+struct GameTileSimple;
 
 //================================================================================================================================
-//=> - CivSpawner -
+//=> - StdAddHelper -
 //================================================================================================================================
 //
-//  Spawns a civ's START_UNITS at a map point. Places units in UnitAddVector and
-//  founds a city when a LAND_SETTLER is among the start units.
+//  Interprets GameTileSimple::m_add_idx as a local bit field when m_add_typ is BUILD_ADD_STD.
+//  Callers must only use these helpers on STD tiles; mistyped tiles trip GAME_EXPECT.
 //
 //================================================================================================================================
 
-class CivSpawner {
+class StdAddHelper {
 public:
-    static bool spawn (GameState* state, u16 x, u16 y, u16 civ_idx);
+    static const u16 m_farm_bit = 1u; // First bit of m_add_idx: farm present
+
+    static bool has_farm (const GameTileSimple* t);
+    static void set_farm (GameTileSimple* t);
 
 private:
-    CivSpawner () = delete;
+    StdAddHelper () = delete;
 };
 
-#endif // CIV_SPAWNER_H
+#endif // STD_ADD_HELPER_H
 
 //================================================================================================================================
 //=> - End of file -

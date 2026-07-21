@@ -48,7 +48,7 @@ public:
     void build_unit (u16 unit_idx);
     void accumulate_commerce ();
 
-    bool add_food (u16 city_idx, u16 amount);
+    i16 add_food (u16 city_idx, u16 amount);
     bool add_production (u16 city_idx, u16 amount);
     void add_commerce (u16 city_idx, u16 amount);
     void add_culture (u16 city_idx, u16 amount);
@@ -69,6 +69,14 @@ public:
     bool has_building (u16 city_idx, u16 building_idx) const;
     bool need_prod_pick () const;
 
+    // Network management, for unit routing and AI road building
+    void set_conn_city (u16 city_idx, u8 dir);
+    u16 get_conn_city (u8 dir) const;
+    bool is_conn_city_locked (u8 dir) const;
+    bool is_conn_city_built (u8 dir) const;
+    void conn_city_is_locked (u8 dir);
+    void conn_city_is_built (u8 dir);
+
 private:
     u16 m_owner; // Owning seat index; U16_KEY_NULL until init
     u16 m_x; // Map column; U16_KEY_NULL until init
@@ -80,9 +88,15 @@ private:
     u16 m_accumulated_production; // Production bucket toward current build
     u16 m_culture; // Culture score for this city; determines the city's borders
     
-    u8 m_accumulated_food; // Food bucket toward growth
+    u16 m_conn_city_nw; // Connection city to the north-west; U16_KEY_NULL if none
+    u16 m_conn_city_ne; // Connection city to the north-east; U16_KEY_NULL if none
+    u16 m_conn_city_sw; // Connection city to the south-west; U16_KEY_NULL if none
+    u16 m_conn_city_se; // Connection city to the south-east; U16_KEY_NULL if none
+
+    i8 m_accumulated_food; // Food bucket toward growth
     u8 m_build_type; // Active build category 
     u8 m_is_frontier_city; // Helper for AI settler sensing; true if city is near unclaimed territory
+    u8 m_road_conn; // Four 2-bit fields (NE,NW,SE,SW): bit0 locked, bit1 built
 };
 
 #endif // CITY_H

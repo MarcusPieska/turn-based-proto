@@ -6,6 +6,7 @@
 
 #include "settler_turn_handler.h"
 #include "assert_log.h"
+#include "build_adds_array.h"
 #include "city.h"
 #include "city_blocking_mask.h"
 #include "city_border.h"
@@ -26,7 +27,6 @@ static const u16 k_slot_n = static_cast<u16>(SETTLER_MISSION_SLOTS);
 static const u16 k_tgt_sites = static_cast<u16>(SETTLER_MISSION_SLOTS);
 static const u16 k_tgt_none = 2u;
 static const u16 k_claim_cult = 25u;
-static const u8 k_add_typ_city = 1u;
 
 //================================================================================================================================
 //=> - Slot state -
@@ -245,7 +245,7 @@ static bool found_city (GameState& state, u16 x, u16 y, u16 player) {
         return false;
     }
     city->init(player, x, y);
-    if (!state.m_map.set_tile_add(x, y, city_idx, k_add_typ_city)) {
+    if (!state.m_map.set_tile_add(x, y, city_idx, BUILD_ADD_CITY)) {
         return false;
     }
     CityBorder::claim_expand(x, y, 0, k_claim_cult, static_cast<u8>(player));

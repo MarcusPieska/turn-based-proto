@@ -305,11 +305,11 @@ static bool save_net_map (const GameArraySimple& map, const CityNetwork& pathing
         }
     }
     for (u16 i = 0; i < city_n; ++i) {
-        const CityNetLinks& L = cities->get_city(i)->links();
-        draw_link(rgb, w, h, *cities, i, L.m_ne);
-        draw_link(rgb, w, h, *cities, i, L.m_nw);
-        draw_link(rgb, w, h, *cities, i, L.m_se);
-        draw_link(rgb, w, h, *cities, i, L.m_sw);
+        const City* c = cities->get_city(i);
+        draw_link(rgb, w, h, *cities, i, c->get_conn_city(0));
+        draw_link(rgb, w, h, *cities, i, c->get_conn_city(1));
+        draw_link(rgb, w, h, *cities, i, c->get_conn_city(2));
+        draw_link(rgb, w, h, *cities, i, c->get_conn_city(3));
     }
     for (u16 c = 0; c < city_n; ++c) {
         const City* city = cities->get_city(c);
@@ -325,18 +325,11 @@ static u32 count_links (const CityNetwork& pathing) {
     const CityArray* cities = pathing.cities();
     u32 filled = 0;
     for (u16 i = 0; i < pathing.city_n(); ++i) {
-        const CityNetLinks& L = cities->get_city(i)->links();
-        if (L.m_ne != U16_KEY_NULL) {
-            ++filled;
-        }
-        if (L.m_nw != U16_KEY_NULL) {
-            ++filled;
-        }
-        if (L.m_se != U16_KEY_NULL) {
-            ++filled;
-        }
-        if (L.m_sw != U16_KEY_NULL) {
-            ++filled;
+        const City* c = cities->get_city(i);
+        for (u8 d = 0; d < 4u; ++d) {
+            if (c->get_conn_city(d) != U16_KEY_NULL) {
+                ++filled;
+            }
         }
     }
     return filled;

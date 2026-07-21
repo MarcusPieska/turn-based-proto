@@ -30,19 +30,6 @@ static int quad_of_xy (u16 sx, u16 sy, u16 dx, u16 dy) {
     return 2;
 }
 
-static u16* link_slot (CityNetLinks& L, int q) {
-    if (q == 0) {
-        return &L.m_ne;
-    }
-    if (q == 1) {
-        return &L.m_nw;
-    }
-    if (q == 2) {
-        return &L.m_se;
-    }
-    return &L.m_sw;
-}
-
 static bool tile_walk (u8 terr) {
     if (overlay_is_water_terr(terr)) {
         return false;
@@ -114,19 +101,12 @@ bool CityNetwork::in_rng (u16 a, u16 b) const {
 }
 
 u8 CityNetwork::link_n (u16 i) const {
-    const CityNetLinks& L = m_cities->get_city(i)->links();
+    const City* c = m_cities->get_city(i);
     u8 n = 0;
-    if (L.m_ne != U16_KEY_NULL) {
-        ++n;
-    }
-    if (L.m_nw != U16_KEY_NULL) {
-        ++n;
-    }
-    if (L.m_se != U16_KEY_NULL) {
-        ++n;
-    }
-    if (L.m_sw != U16_KEY_NULL) {
-        ++n;
+    for (u8 d = 0; d < 4u; ++d) {
+        if (c->get_conn_city(d) != U16_KEY_NULL) {
+            ++n;
+        }
     }
     return n;
 }
@@ -146,7 +126,7 @@ void CityNetwork::push_disc (CnDisc* disc, u32* disc_n, u16 id, int q) {
     }
     disc[*disc_n].m_id = id;
     disc[*disc_n].m_q = q8;
-    disc[*disc_n].m_was = m_cities->get_city(id)->links();
+    disc[*disc_n].m_was = m_cities->get_city(id)->get_conn_city(q8);
     ++(*disc_n);
 }
 
@@ -273,37 +253,42 @@ void CityNetwork::bind_pair (u16 a, u16 b, CnDisc* disc, u32* disc_n) {
     if (qa < 0 || qb < 0) {
         return;
     }
-    u16* sa = link_slot(m_cities->get_city(a)->links(), qa);
-    u16* sb = link_slot(m_cities->get_city(b)->links(), qb);
-    if (*sa == b && *sb == a) {
+    const u8 da = static_cast<u8>(qa);
+    const u8 db = static_cast<u8>(qb);
+    City* ca = m_cities->get_city(a);
+    City* cb = m_cities->get_city(b);
+    if (ca->is_conn_city_locked(da) || cb->is_conn_city_locked(db)) {
         return;
     }
-    const u16 old_a = *sa;
-    const u16 old_b = *sb;
+    const u16 old_a = ca->get_conn_city(da);
+    const u16 old_b = cb->get_conn_city(db);
+    if (old_a == b && old_b == a) {
+        return;
+    }
     if (old_a != U16_KEY_NULL && old_a != b) {
         const int oq = quad_of_xy(pos_x(old_a), pos_y(old_a), pos_x(a), pos_y(a));
         if (oq >= 0) {
-            CityNetLinks& ol = m_cities->get_city(old_a)->links();
-            u16* os = link_slot(ol, oq);
-            if (*os == a) {
+            City* oc = m_cities->get_city(old_a);
+            const u8 od = static_cast<u8>(oq);
+            if (!oc->is_conn_city_locked(od) && oc->get_conn_city(od) == a) {
                 push_disc(disc, disc_n, old_a, oq);
-                *os = U16_KEY_NULL;
+                oc->set_conn_city(U16_KEY_NULL, od);
             }
         }
     }
     if (old_b != U16_KEY_NULL && old_b != a) {
         const int oq = quad_of_xy(pos_x(old_b), pos_y(old_b), pos_x(b), pos_y(b));
         if (oq >= 0) {
-            CityNetLinks& ol = m_cities->get_city(old_b)->links();
-            u16* os = link_slot(ol, oq);
-            if (*os == b) {
+            City* oc = m_cities->get_city(old_b);
+            const u8 od = static_cast<u8>(oq);
+            if (!oc->is_conn_city_locked(od) && oc->get_conn_city(od) == b) {
                 push_disc(disc, disc_n, old_b, oq);
-                *os = U16_KEY_NULL;
+                oc->set_conn_city(U16_KEY_NULL, od);
             }
         }
     }
-    *sa = b;
-    *sb = a;
+    ca->set_conn_city(b, da);
+    cb->set_conn_city(a, db);
 }
 
 void CityNetwork::drain_repairs (CnDisc* disc, u32* disc_n) {
@@ -318,8 +303,9 @@ void CityNetwork::drain_repairs (CnDisc* disc, u32* disc_n) {
         if (i >= m_city_n || q < 0) {
             continue;
         }
-        u16* slot = link_slot(m_cities->get_city(i)->links(), q);
-        if (*slot != U16_KEY_NULL) {
+        City* c = m_cities->get_city(i);
+        const u8 d = static_cast<u8>(q);
+        if (c->is_conn_city_locked(d) || c->get_conn_city(d) != U16_KEY_NULL) {
             continue;
         }
         const u16 best = pick_rep(i, q, disc, *disc_n);
@@ -361,7 +347,10 @@ bool CityNetwork::add (u16 city_idx) {
     if (m_cities->get_city(city_idx) == nullptr) {
         return false;
     }
-    m_cities->get_city(city_idx)->clr_net();
+    City* c = m_cities->get_city(city_idx);
+    for (u8 d = 0; d < 4u; ++d) {
+        c->set_conn_city(U16_KEY_NULL, d);
+    }
     ++m_city_n;
     flood_link(city_idx);
     return true;

@@ -323,10 +323,8 @@ static bool save_net_map (const GameArraySimple& map, const CityNetwork& net, co
     }
     for (u16 i = 0; i < city_n; ++i) {
         const City* a = cities->get_city(i);
-        const CityNetLinks& L = a->links();
-        const u16 slots[4] = {L.m_ne, L.m_nw, L.m_se, L.m_sw};
-        for (u32 s = 0; s < 4u; ++s) {
-            const u16 j = slots[s];
+        for (u8 s = 0; s < 4u; ++s) {
+            const u16 j = a->get_conn_city(s);
             if (j == U16_KEY_NULL) {
                 continue;
             }
@@ -353,17 +351,21 @@ static void check_bidir (const CityNetwork& net) {
     u32 ok_n = 0;
     u32 fail_n = 0;
     for (u16 i = 0; i < net.city_n(); ++i) {
-        const CityNetLinks& Li = cities->get_city(i)->links();
-        const u16 slots[4] = {Li.m_ne, Li.m_nw, Li.m_se, Li.m_sw};
-        for (u32 s = 0; s < 4u; ++s) {
-            const u16 j = slots[s];
+        const City* ci = cities->get_city(i);
+        for (u8 s = 0; s < 4u; ++s) {
+            const u16 j = ci->get_conn_city(s);
             if (j == U16_KEY_NULL) {
                 continue;
             }
             ++link_n;
-            const CityNetLinks& Lj = cities->get_city(j)->links();
-            const bool back =
-                Lj.m_ne == i || Lj.m_nw == i || Lj.m_se == i || Lj.m_sw == i;
+            const City* cj = cities->get_city(j);
+            bool back = false;
+            for (u8 t = 0; t < 4u; ++t) {
+                if (cj->get_conn_city(t) == i) {
+                    back = true;
+                    break;
+                }
+            }
             if (back) {
                 ++ok_n;
             } else {

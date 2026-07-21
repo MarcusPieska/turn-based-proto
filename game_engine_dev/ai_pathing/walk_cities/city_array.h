@@ -2,31 +2,44 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef CIV_SPAWNER_H
-#define CIV_SPAWNER_H
+#ifndef CITY_ARRAY_H
+#define CITY_ARRAY_H
 
 #include "game_primitives.h"
 
-class GameState;
+class City;
 
 //================================================================================================================================
-//=> - CivSpawner -
+//=> - CityArray class -
 //================================================================================================================================
 //
-//  Spawns a civ's START_UNITS at a map point. Places units in UnitAddVector and
-//  founds a city when a LAND_SETTLER is among the start units.
+//  Exp stub matching game/city_array.h page layout. No bit banks.
 //
 //================================================================================================================================
 
-class CivSpawner {
+class CityArray {
 public:
-    static bool spawn (GameState* state, u16 x, u16 y, u16 civ_idx);
+    CityArray ();
+    ~CityArray ();
+
+    City* get_city (u16 city_idx);
+    const City* get_city (u16 city_idx) const;
+    u16 get_next_new_city_idx ();
+    u16 get_page_count () const;
+    u16 get_city_count () const;
+    City* get_page (u16 page_idx);
+    const City* get_page (u16 page_idx) const;
+
+    static const u16 MAX_PAGES = 256;
+    static const u16 CITIES_PER_PAGE = 256;
 
 private:
-    CivSpawner () = delete;
+    City* m_pages[MAX_PAGES];
+    u16 m_city_count;
+    u16 m_page_count;
 };
 
-#endif // CIV_SPAWNER_H
+#endif // CITY_ARRAY_H
 
 //================================================================================================================================
 //=> - End of file -

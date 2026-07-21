@@ -176,8 +176,14 @@ City::City () : m_owner(U16_KEY_NULL),
     m_build_cost(0),
     m_accumulated_production(0),
     m_culture(0),
+    m_conn_city_nw(U16_KEY_NULL),
+    m_conn_city_ne(U16_KEY_NULL),
+    m_conn_city_sw(U16_KEY_NULL),
+    m_conn_city_se(U16_KEY_NULL),
     m_accumulated_food(0),
-    m_build_type(BUILD_TYPE_NONE) {
+    m_build_type(BUILD_TYPE_NONE),
+    m_is_frontier_city(0),
+    m_road_conn(0) {
 }
 
 City::~City () {
@@ -195,6 +201,11 @@ void City::init (u16 owner, u16 x, u16 y) {
     m_build_type = BUILD_TYPE_NONE;
     m_pop_count = 1;
     m_is_frontier_city = 1; // Presumed true until proven otherwise by AI settler sensing logic
+    m_conn_city_nw = U16_KEY_NULL;
+    m_conn_city_ne = U16_KEY_NULL;
+    m_conn_city_sw = U16_KEY_NULL;
+    m_conn_city_se = U16_KEY_NULL;
+    m_road_conn = 0;
 }
 
 void City::bind_statics (const RuntimeStatics& st) {
@@ -361,7 +372,7 @@ void City::accumulate_commerce () {
 //=> - City add yields in furtherance of builds / bank -
 //================================================================================================================================
 
-bool City::add_food (u16 city_idx, u16 amount) {
+i16 City::add_food (u16 city_idx, u16 amount) {
     const EffectCtx ctx = make_city_effect_ctx(*this, city_idx);
 
     // Pull local tile food yield, and apply local boosters
@@ -372,16 +383,26 @@ bool City::add_food (u16 city_idx, u16 amount) {
     // Handle the remaining food, and the non-local boosters
     u16 boosted = apply_booster_u16(amount, CityPopGrowthBoosterRegister::determine_effect(ctx));
     boosted = apply_booster_u16(boosted, CivPopGrowthBoosterRegister::determine_effect(ctx));
-    m_accumulated_food = static_cast<u16>(m_accumulated_food + boosted);
     
-    // Handle population growth
-    bool grew = false;
-    if (m_accumulated_food >= 20) {
-        m_accumulated_food = static_cast<u16>(m_accumulated_food - 20);
-        m_pop_count++;
-        grew = true;
+    // Feed the population; 2 food per pop per turn; bank toward growth at 20; starve at most 1 per turn
+    i16 food_surplus = static_cast<i16>(boosted) - static_cast<i16>(m_pop_count * 2);
+    i16 bank = static_cast<i16>(m_accumulated_food) + food_surplus;
+    i16 pop_change = 0;
+    if (bank < 0) {
+        if (m_pop_count > 1) {
+            m_pop_count--;
+            pop_change = -1;
+        }
+        bank = 0;
+    } else {
+        while (bank >= 20) {
+            bank = static_cast<i16>(bank - 20);
+            m_pop_count++;
+            pop_change++;
+        }
     }
-    return grew;
+    m_accumulated_food = static_cast<i8>(bank);
+    return pop_change;
 }
 
 bool City::add_production (u16 city_idx, u16 amount) {
@@ -590,6 +611,57 @@ bool City::has_building (u16 city_idx, u16 building_idx) const {
 
 bool City::need_prod_pick () const {
     return m_build_type == BUILD_TYPE_NONE || m_build_type == ACCUMULATE_COMMERCE;
+}
+
+void City::set_conn_city (u16 city_idx, u8 dir) {
+    GAME_EXPECT(dir < 4u, "City::set_conn_city bad dir");
+    const u8 sh = static_cast<u8>(dir * 2u);
+    if (city_idx == U16_KEY_NULL) {
+        m_road_conn = static_cast<u8>(m_road_conn & ~(0x3u << sh));
+    }
+    if (dir == 0u) {
+        m_conn_city_ne = city_idx;
+    } else if (dir == 1u) {
+        m_conn_city_nw = city_idx;
+    } else if (dir == 2u) {
+        m_conn_city_se = city_idx;
+    } else {
+        m_conn_city_sw = city_idx;
+    }
+}
+
+u16 City::get_conn_city (u8 dir) const {
+    GAME_EXPECT_RET(dir < 4u, U16_KEY_NULL, "City::get_conn_city bad dir");
+    if (dir == 0u) {
+        return m_conn_city_ne;
+    }
+    if (dir == 1u) {
+        return m_conn_city_nw;
+    }
+    if (dir == 2u) {
+        return m_conn_city_se;
+    }
+    return m_conn_city_sw;
+}
+
+bool City::is_conn_city_locked (u8 dir) const {
+    GAME_EXPECT_RET(dir < 4u, false, "City::is_conn_city_locked bad dir");
+    return ((m_road_conn >> (dir * 2u)) & 0x1u) != 0u;
+}
+
+bool City::is_conn_city_built (u8 dir) const {
+    GAME_EXPECT_RET(dir < 4u, false, "City::is_conn_city_built bad dir");
+    return ((m_road_conn >> (dir * 2u + 1u)) & 0x1u) != 0u;
+}
+
+void City::conn_city_is_locked (u8 dir) {
+    GAME_EXPECT(dir < 4u, "City::conn_city_is_locked bad dir");
+    m_road_conn = static_cast<u8>(m_road_conn | (0x1u << (dir * 2u)));
+}
+
+void City::conn_city_is_built (u8 dir) {
+    GAME_EXPECT(dir < 4u, "City::conn_city_is_built bad dir");
+    m_road_conn = static_cast<u8>(m_road_conn | (0x2u << (dir * 2u)));
 }
 
 //================================================================================================================================

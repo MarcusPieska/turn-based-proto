@@ -456,7 +456,7 @@ int main () {
             return -1;
         }
         cities.get_city(idx)->init(0, pool[i].m_x, pool[i].m_y);
-        map.set_tile_add(pool[i].m_x, pool[i].m_y, idx, CN_ADD_TYP_CITY);
+        map.set_tile_add(pool[i].m_x, pool[i].m_y, idx, BUILD_ADD_CITY);
         if (!net.add(idx)) {
             std::printf("failed to add city %u\n", i);
             delete[] pool;

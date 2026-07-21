@@ -86,6 +86,8 @@ public:
     u16 get_city_worker (u16 x, u16 y) const; // City pool key working this tile; U16_KEY_NULL if none
     u8 get_civ_owner (u16 x, u16 y) const; // Civ/seat owner at tile; U8_KEY_NULL if none
     u8 get_settler_blocked (u16 x, u16 y) const; // 0 free, nonzero blocked for settling
+    GameTileSimple* tile (u16 x, u16 y); // Mutable tile at (x, y); for STD bit helpers
+    const GameTileSimple* tile (u16 x, u16 y) const; // Const tile at (x, y)
     
     bool set_unit_hd (u16 x, u16 y, u16 unit_hd); // Unit handle at tile; U16_KEY_NULL clears
     bool set_tile_add (u16 x, u16 y, u16 add_idx, u8 add_typ); // Improvement handle at tile

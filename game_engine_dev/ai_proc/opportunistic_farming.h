@@ -2,31 +2,35 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef CIV_SPAWNER_H
-#define CIV_SPAWNER_H
+#ifndef OPPORTUNISTIC_FARMING_H
+#define OPPORTUNISTIC_FARMING_H
 
-#include "game_primitives.h"
+#include "game_primitives.h" 
 
 class GameState;
 
 //================================================================================================================================
-//=> - CivSpawner -
+//=> - OpportunisticFarming -
 //================================================================================================================================
 //
-//  Spawns a civ's START_UNITS at a map point. Places units in UnitAddVector and
-//  founds a city when a LAND_SETTLER is among the start units.
+//  Local worker AI: plant farms on adjacent plains without global search or city need scoring.
+//  Prefers unfarmed river plains; on-river cruises up to 4 steps/turn along river farming as it goes.
+//  Falls back to river-adjacent plains, then any 8-adj farmable plains, then cheb-2/3/4 approach steps.
+//  Tiles must be civ-owned and in work reach. Farms are BUILD_ADD_STD bits via StdAddHelper.
+//  No heap allocations.
 //
 //================================================================================================================================
 
-class CivSpawner {
+class OpportunisticFarming {
 public:
-    static bool spawn (GameState* state, u16 x, u16 y, u16 civ_idx);
+    OpportunisticFarming () = delete;
 
-private:
-    CivSpawner () = delete;
+    static bool begin (GameState& state);
+    static void clear ();
+    static void handle (GameState& state, u16 unit_idx);
 };
 
-#endif // CIV_SPAWNER_H
+#endif // OPPORTUNISTIC_FARMING_H
 
 //================================================================================================================================
 //=> - End of file -

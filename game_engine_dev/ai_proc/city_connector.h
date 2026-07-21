@@ -2,31 +2,33 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef CIV_SPAWNER_H
-#define CIV_SPAWNER_H
+#ifndef CITY_CONNECTOR_H
+#define CITY_CONNECTOR_H
 
 #include "game_primitives.h"
 
 class GameState;
 
 //================================================================================================================================
-//=> - CivSpawner -
+//=> - CityConnector -
 //================================================================================================================================
 //
-//  Spawns a civ's START_UNITS at a map point. Places units in UnitAddVector and
-//  founds a city when a LAND_SETTLER is among the start units.
+//  Worker AI: uses CityNetwork links on the home city (WorkerHelper::get_data) to pick an unbuilt
+//  neighbor, lays ROAD_PATH on tiles, and steps toward the target. Straight 8-adj walk if clear of
+//  water/mountains; else a small stack-window flood from the target.
 //
 //================================================================================================================================
 
-class CivSpawner {
+class CityConnector {
 public:
-    static bool spawn (GameState* state, u16 x, u16 y, u16 civ_idx);
+    CityConnector () = delete;
 
-private:
-    CivSpawner () = delete;
+    static bool begin (GameState& state);
+    static void clear ();
+    static void handle (GameState& state, u16 unit_idx);
 };
 
-#endif // CIV_SPAWNER_H
+#endif // CITY_CONNECTOR_H
 
 //================================================================================================================================
 //=> - End of file -

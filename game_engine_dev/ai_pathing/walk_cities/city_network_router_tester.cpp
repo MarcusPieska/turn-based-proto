@@ -2,7 +2,6 @@
 //=> - Includes -
 //================================================================================================================================
 
-#include <cassert>
 #include <chrono>
 #include <cmath>
 #include <cstdio>
@@ -13,6 +12,7 @@
 #include "city.h"
 #include "city_array.h"
 #include "city_network.h"
+#include "city_network_router.h"
 #include "factory_game_array_simple.h"
 #include "game_map_defs.h"
 
@@ -24,16 +24,15 @@ static const char* G_IN_TERR = "/home/w/Projects/simple-map-gen/p1-seed-42/terra
 static const char* G_IN_CLIM = "/home/w/Projects/simple-map-gen/p1-seed-42/climate.ppm";
 static const char* G_IN_RIV = "/home/w/Projects/simple-map-gen/p1-seed-42/rivers.ppm";
 static const char* G_IN_OV = "/home/w/Projects/simple-map-gen/p1-seed-42/overlay.ppm";
-
-static const char* G_OUT_DIR = "/home/w/Projects/simple-map-gen/city-network-build-test";
-static const char* G_OUT_CITIES = "/home/w/Projects/simple-map-gen/city-network-build-test/01_cities.ppm";
-static const char* G_OUT_NET = "/home/w/Projects/simple-map-gen/city-network-build-test/02_network.ppm";
+static const char* G_OUT_DIR = "/home/w/Projects/simple-map-gen/city-network-router-test";
 
 static const u32 G_CITY_TGT = 10000u;
 static const u32 G_CITY_CAP = 65535u;
 static const u32 G_SEED = 42u;
 static const u32 G_SHUF_SEED = 99u;
 static const f64 G_NOISE_FRAC = 0.4;
+static const i32 G_BLUE_R = 3;
+static const u32 G_HOP_MAX = 256u;
 
 struct PlacePos {
     u16 m_x;
@@ -61,10 +60,7 @@ static bool is_city_ok (u8 terr) {
     if (overlay_is_water_terr(terr)) {
         return false;
     }
-    if (terr == TERR_MOUNTAINS[0]) {
-        return false;
-    }
-    if (terr == TERR_NONE[0]) {
+    if (terr == TERR_MOUNTAINS[0] || terr == TERR_NONE[0]) {
         return false;
     }
     return true;
@@ -264,46 +260,20 @@ static void draw_line (u8* rgb, u16 w, u16 h, u16 x0, u16 y0, u16 x1, u16 y1) {
     }
 }
 
-static bool save_city_map (const GameArraySimple& map, const PlacePos* cities, u32 city_n, const char* path) {
-    const u16 w = map.width();
-    const u16 h = map.height();
-    const u32 n = map.tile_n();
-    u8* rgb = new u8[static_cast<size_t>(n) * 3u];
-    for (u16 y = 0; y < h; ++y) {
-        for (u16 x = 0; x < w; ++x) {
-            const u32 i = static_cast<u32>(y) * static_cast<u32>(w) + static_cast<u32>(x);
-            u8 r = 0;
-            u8 g = 0;
-            u8 b = 0;
-            terr_rgb(map.get_terrain(x, y), &r, &g, &b);
-            if (map.get_river(x, y) != 0) {
-                r = 0;
-                g = 180;
-                b = 255;
+static void draw_disc (u8* rgb, u16 w, u16 h, u16 cx, u16 cy, i32 rad, u8 r, u8 g, u8 b) {
+    const i32 r2 = rad * rad;
+    for (i32 dy = -rad; dy <= rad; ++dy) {
+        for (i32 dx = -rad; dx <= rad; ++dx) {
+            if (dx * dx + dy * dy <= r2) {
+                put_px(rgb, w, h, static_cast<i32>(cx) + dx, static_cast<i32>(cy) + dy, r, g, b);
             }
-            rgb[i * 3u + 0] = r;
-            rgb[i * 3u + 1] = g;
-            rgb[i * 3u + 2] = b;
         }
     }
-    for (u32 c = 0; c < city_n; ++c) {
-        put_px(rgb, w, h, cities[c].m_x, cities[c].m_y, 255, 0, 0);
-    }
-    const bool ok = wr_ppm(path, rgb, w, h);
-    delete[] rgb;
-    return ok;
 }
 
-static bool save_net_map (const GameArraySimple& map, const CityNetwork& net, const char* path) {
-    const CityArray* cities = net.cities();
-    const u16 city_n = net.city_n();
-    if (cities == nullptr || city_n == 0) {
-        return false;
-    }
+static void fill_base (const GameArraySimple& map, u8* rgb) {
     const u16 w = map.width();
     const u16 h = map.height();
-    const u32 n = map.tile_n();
-    u8* rgb = new u8[static_cast<size_t>(n) * 3u];
     for (u16 y = 0; y < h; ++y) {
         for (u16 x = 0; x < w; ++x) {
             const u32 i = static_cast<u32>(y) * static_cast<u32>(w) + static_cast<u32>(x);
@@ -321,13 +291,16 @@ static bool save_net_map (const GameArraySimple& map, const CityNetwork& net, co
             rgb[i * 3u + 2] = b;
         }
     }
+}
+
+static void draw_net (u8* rgb, u16 w, u16 h, const CityNetwork& net) {
+    const CityArray* cities = net.cities();
+    const u16 city_n = net.city_n();
     for (u16 i = 0; i < city_n; ++i) {
         const City* a = cities->get_city(i);
-        const CityNetLinks& L = a->links();
-        const u16 slots[4] = {L.m_ne, L.m_nw, L.m_se, L.m_sw};
-        for (u32 s = 0; s < 4u; ++s) {
-            const u16 j = slots[s];
-            if (j == U16_KEY_NULL) {
+        for (u8 s = 0; s < 4u; ++s) {
+            const u16 j = a->get_conn_city(s);
+            if (j == U16_KEY_NULL || j < i) {
                 continue;
             }
             const City* b = cities->get_city(j);
@@ -338,43 +311,98 @@ static bool save_net_map (const GameArraySimple& map, const CityNetwork& net, co
         const City* city = cities->get_city(c);
         put_px(rgb, w, h, city->get_x(), city->get_y(), 255, 0, 0);
     }
+}
+
+static void mark_blue (u8* rgb, u16 w, u16 h, const CityNetwork& net, u16 id) {
+    if (id == U16_KEY_NULL || id >= net.city_n()) {
+        return;
+    }
+    const City* c = net.cities()->get_city(id);
+    draw_disc(rgb, w, h, c->get_x(), c->get_y(), G_BLUE_R, 0, 80, 255);
+}
+
+static bool save_hop (const GameArraySimple& map, const CityNetwork& net, u16 a, u16 b, u16 hop,
+    u32 frame, const char* dir) {
+    const u16 w = map.width();
+    const u16 h = map.height();
+    const u32 n = map.tile_n();
+    u8* rgb = new u8[static_cast<size_t>(n) * 3u];
+    fill_base(map, rgb);
+    mark_blue(rgb, w, h, net, a);
+    mark_blue(rgb, w, h, net, b);
+    mark_blue(rgb, w, h, net, hop);
+    draw_net(rgb, w, h, net);
+    char path[512];
+    std::snprintf(path, sizeof(path), "%s/%04u_hop.ppm", dir, frame);
     const bool ok = wr_ppm(path, rgb, w, h);
     delete[] rgb;
+    if (ok) {
+        std::printf("saved: %s\n", path);
+    }
     return ok;
 }
 
-//================================================================================================================================
-//=> - Main -
-//================================================================================================================================
+static u32 dist2 (u16 ax, u16 ay, u16 bx, u16 by) {
+    const i32 dx = static_cast<i32>(ax) - static_cast<i32>(bx);
+    const i32 dy = static_cast<i32>(ay) - static_cast<i32>(by);
+    return static_cast<u32>(dx * dx + dy * dy);
+}
 
-static void check_bidir (const CityNetwork& net) {
+static void pick_ends (const CityNetwork& net, u16* out_a, u16* out_b) {
     const CityArray* cities = net.cities();
-    u32 link_n = 0;
-    u32 ok_n = 0;
-    u32 fail_n = 0;
-    for (u16 i = 0; i < net.city_n(); ++i) {
-        const CityNetLinks& Li = cities->get_city(i)->links();
-        const u16 slots[4] = {Li.m_ne, Li.m_nw, Li.m_se, Li.m_sw};
-        for (u32 s = 0; s < 4u; ++s) {
-            const u16 j = slots[s];
-            if (j == U16_KEY_NULL) {
-                continue;
-            }
-            ++link_n;
-            const CityNetLinks& Lj = cities->get_city(j)->links();
-            const bool back =
-                Lj.m_ne == i || Lj.m_nw == i || Lj.m_se == i || Lj.m_sw == i;
-            if (back) {
-                ++ok_n;
-            } else {
-                ++fail_n;
-                std::printf("bidir assert fail: %u -> %u missing reverse\n",
-                    static_cast<u32>(i), static_cast<u32>(j));
+    const u16 n = net.city_n();
+    u8* seen = new u8[n];
+    u16* q = new u16[n];
+    for (u16 i = 0; i < n; ++i) {
+        seen[i] = 0;
+    }
+    u16 best_a = 0;
+    u16 best_b = 0;
+    u32 best_d = 0;
+    for (u16 seed = 0; seed < n; ++seed) {
+        if (seen[seed] != 0) {
+            continue;
+        }
+        u32 qh = 0;
+        u32 qt = 0;
+        u16* comp = new u16[n];
+        u32 comp_n = 0;
+        seen[seed] = 1;
+        q[qt++] = seed;
+        while (qh < qt) {
+            const u16 cur = q[qh++];
+            comp[comp_n++] = cur;
+            const City* cc = cities->get_city(cur);
+            for (u8 s = 0; s < 4u; ++s) {
+                const u16 j = cc->get_conn_city(s);
+                if (j == U16_KEY_NULL || j >= n || seen[j] != 0) {
+                    continue;
+                }
+                seen[j] = 1;
+                q[qt++] = j;
             }
         }
+        if (comp_n >= 2u) {
+            const u32 stride = (comp_n > 64u) ? (comp_n / 64u) : 1u;
+            for (u32 i = 0; i < comp_n; i += stride) {
+                const City* ca = cities->get_city(comp[i]);
+                for (u32 j = i + stride; j < comp_n; j += stride) {
+                    const City* cb = cities->get_city(comp[j]);
+                    const u32 d = dist2(ca->get_x(), ca->get_y(), cb->get_x(), cb->get_y());
+                    if (d > best_d) {
+                        best_d = d;
+                        best_a = comp[i];
+                        best_b = comp[j];
+                    }
+                }
+            }
+        }
+        delete[] comp;
     }
-    std::printf("bidir_check links=%u ok=%u fail=%u\n", link_n, ok_n, fail_n);
-    assert(fail_n == 0);
+    delete[] q;
+    delete[] seen;
+    *out_a = best_a;
+    *out_b = best_b;
 }
 
 static void clear_marks (GameArraySimple& map, PlacePos* pool, u32 pool_n) {
@@ -382,6 +410,10 @@ static void clear_marks (GameArraySimple& map, PlacePos* pool, u32 pool_n) {
         map.set_tile_add(pool[i].m_x, pool[i].m_y, U16_KEY_NULL, 0);
     }
 }
+
+//================================================================================================================================
+//=> - Main -
+//================================================================================================================================
 
 int main () {
     if (!ensure_dir(G_OUT_DIR)) {
@@ -404,12 +436,6 @@ int main () {
         delete[] pool;
         return -1;
     }
-    if (!save_city_map(map, pool, pool_n, G_OUT_CITIES)) {
-        std::printf("failed to save: %s\n", G_OUT_CITIES);
-        delete[] pool;
-        return -1;
-    }
-    std::printf("saved: %s\n", G_OUT_CITIES);
     shuffle(pool, pool_n, G_SHUF_SEED);
     clear_marks(map, pool, pool_n);
     CityArray cities;
@@ -419,7 +445,6 @@ int main () {
         delete[] pool;
         return -1;
     }
-    f64 sum_us = 0.0;
     for (u32 i = 0; i < pool_n; ++i) {
         const u16 idx = cities.get_next_new_city_idx();
         if (idx == U16_KEY_NULL) {
@@ -429,25 +454,64 @@ int main () {
         }
         cities.get_city(idx)->init(0, pool[i].m_x, pool[i].m_y);
         map.set_tile_add(pool[i].m_x, pool[i].m_y, idx, BUILD_ADD_CITY);
-        const auto t0 = std::chrono::steady_clock::now();
         if (!net.add(idx)) {
             std::printf("failed to add city %u\n", i);
             delete[] pool;
             return -1;
         }
-        const auto t1 = std::chrono::steady_clock::now();
-        sum_us += std::chrono::duration<f64, std::micro>(t1 - t0).count();
     }
-    check_bidir(net);
-    std::printf("floods=%u\n", net.flood_n());
-    std::printf("avg_update_us=%.2f\n", sum_us / static_cast<f64>(pool_n));
-    std::printf("total_build_ms=%.2f\n", sum_us / 1000.0);
-    if (!save_net_map(map, net, G_OUT_NET)) {
-        std::printf("failed to save: %s\n", G_OUT_NET);
+    std::printf("network cities=%u\n", static_cast<u32>(net.city_n()));
+    CityNetworkRouter router;
+    if (!router.begin(net)) {
+        std::printf("failed to begin router\n");
         delete[] pool;
         return -1;
     }
-    std::printf("saved: %s\n", G_OUT_NET);
+    u16 src = 0;
+    u16 dst = 0;
+    pick_ends(net, &src, &dst);
+    std::printf("route %u -> %u\n", static_cast<u32>(src), static_cast<u32>(dst));
+    u8* seen = new u8[net.city_n()];
+    for (u16 i = 0; i < net.city_n(); ++i) {
+        seen[i] = 0;
+    }
+    u16 cur = src;
+    seen[cur] = 1;
+    u32 frame = 1;
+    f64 sum_us = 0.0;
+    u32 hop_n = 0;
+    while (cur != dst && hop_n < G_HOP_MAX) {
+        const auto t0 = std::chrono::steady_clock::now();
+        const u16 hop = router.next_hop(cur, dst);
+        const auto t1 = std::chrono::steady_clock::now();
+        const f64 us = std::chrono::duration<f64, std::micro>(t1 - t0).count();
+        sum_us += us;
+        ++hop_n;
+        std::printf("next_hop %u -> %u => %u  %.2f us\n",
+            static_cast<u32>(cur), static_cast<u32>(dst), static_cast<u32>(hop), us);
+        if (!save_hop(map, net, src, dst, hop, frame, G_OUT_DIR)) {
+            std::printf("failed to save hop frame %u\n", frame);
+            delete[] seen;
+            delete[] pool;
+            return -1;
+        }
+        ++frame;
+        if (hop == U16_KEY_NULL || hop == cur) {
+            std::printf("stuck at %u\n", static_cast<u32>(cur));
+            break;
+        }
+        if (seen[hop] != 0) {
+            std::printf("cycle at %u\n", static_cast<u32>(hop));
+            break;
+        }
+        seen[hop] = 1;
+        cur = hop;
+    }
+    if (hop_n > 0) {
+        std::printf("avg_next_hop_us=%.2f\n", sum_us / static_cast<f64>(hop_n));
+    }
+    std::printf("hops=%u arrived=%u\n", hop_n, static_cast<u32>(cur == dst));
+    delete[] seen;
     clear_marks(map, pool, pool_n);
     delete[] pool;
     return 0;
