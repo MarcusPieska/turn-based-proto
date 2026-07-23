@@ -23,12 +23,14 @@ class StaticParsingManager;
 #include "tile_attribute_static_data.h"
 #include "resource_static_data.h"
 #include "res_dist_static_data.h"
+#include "res_type_static_data.h"
 #include "small_wonder_static_data.h"
 #include "tech_static_data.h"
 #include "unit_static_data.h"
 #include "unit_action_static_data.h"
 #include "unit_type_static_data.h"
 #include "wonder_static_data.h"
+#include "worker_job_static_data.h"
 #include "unit_type_action_map.h"
 #include "civ_bld_discount_map.h"
 #include "gen_effector/local_effector.h"
@@ -75,6 +77,10 @@ public:
 
     const ResDistStaticData& res_dist () const;
 
+    ResTypeStaticData& res_type ();
+
+    const ResTypeStaticData& res_type () const;
+
     SmallWonderStaticData& small_wonder ();
 
     const SmallWonderStaticData& small_wonder () const;
@@ -98,6 +104,10 @@ public:
     WonderStaticData& wonder ();
 
     const WonderStaticData& wonder () const;
+
+    WorkerJobStaticData& worker_job ();
+
+    const WorkerJobStaticData& worker_job () const;
 
     UnitTypeActionMap& unit_type_action_map ();
 
@@ -132,12 +142,14 @@ private:
     TileAttributeStaticData m_tile_attribute;
     ResourceStaticData m_resource;
     ResDistStaticData m_res_dist;
+    ResTypeStaticData m_res_type;
     SmallWonderStaticData m_small_wonder;
     TechStaticData m_tech;
     UnitStaticData m_unit;
     UnitActionStaticData m_unit_action;
     UnitTypeStaticData m_unit_type;
     WonderStaticData m_wonder;
+    WorkerJobStaticData m_worker_job;
     
     UnitTypeActionMap m_unit_type_action_map;
     CivBldDiscountMap m_civ_bld_discount_map;

@@ -33,12 +33,14 @@ TechParserTester::TechParserTester () :
     m_tile_attribute_sd(NULL),
     m_resource_sd(NULL),
     m_res_dist_sd(NULL),
+    m_res_type_sd(NULL),
     m_small_wonder_sd(NULL),
     m_tech_sd(NULL),
     m_unit_sd(NULL),
     m_unit_action_sd(NULL),
     m_unit_type_sd(NULL),
-    m_wonder_sd(NULL), 
+    m_wonder_sd(NULL),
+    m_worker_job_sd(NULL), 
     m_building_psr(NULL),
     m_city_flag_psr(NULL),
     m_civ_psr(NULL),
@@ -46,12 +48,14 @@ TechParserTester::TechParserTester () :
     m_tile_attribute_psr(NULL),
     m_resource_psr(NULL),
     m_res_dist_psr(NULL),
+    m_res_type_psr(NULL),
     m_small_wonder_psr(NULL),
     m_tech_psr(NULL),
     m_unit_psr(NULL),
     m_unit_action_psr(NULL),
     m_unit_type_psr(NULL),
-    m_wonder_psr(NULL) 
+    m_wonder_psr(NULL),
+    m_worker_job_psr(NULL) 
 {
 }
 
@@ -97,6 +101,12 @@ void TechParserTester::set_res_dist_sd (const ResDistStaticData* sd) {
 
 }
 
+void TechParserTester::set_res_type_sd (const ResTypeStaticData* sd) {
+
+    m_res_type_sd = sd;
+
+}
+
 void TechParserTester::set_small_wonder_sd (const SmallWonderStaticData* sd) {
 
     m_small_wonder_sd = sd;
@@ -130,6 +140,12 @@ void TechParserTester::set_unit_type_sd (const UnitTypeStaticData* sd) {
 void TechParserTester::set_wonder_sd (const WonderStaticData* sd) {
 
     m_wonder_sd = sd;
+
+}
+
+void TechParserTester::set_worker_job_sd (const WorkerJobStaticData* sd) {
+
+    m_worker_job_sd = sd;
 
 }
 
@@ -216,6 +232,13 @@ u16 TechParserTester::st_res_dist_n2i (cstr name) {
     return s_inst->m_res_dist_psr->name_to_idx(name);
 }
 
+u16 TechParserTester::st_res_type_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_res_type_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_res_type_psr->name_to_idx(name);
+}
+
 u16 TechParserTester::st_small_wonder_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_small_wonder_psr == NULL) {
         return U16_KEY_NULL;
@@ -256,6 +279,13 @@ u16 TechParserTester::st_wonder_n2i (cstr name) {
         return U16_KEY_NULL;
     }
     return s_inst->m_wonder_psr->name_to_idx(name);
+}
+
+u16 TechParserTester::st_worker_job_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_worker_job_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_worker_job_psr->name_to_idx(name);
 }
 
 void TechParserTester::pr_u16 (cstr label, u16 value) {
@@ -504,12 +534,14 @@ int TechParserTester::run () {
     cbs.tile_attribute_name_to_idx = st_tile_attribute_n2i;
     cbs.resource_name_to_idx = st_resource_n2i;
     cbs.res_dist_name_to_idx = st_res_dist_n2i;
+    cbs.res_type_name_to_idx = st_res_type_n2i;
     cbs.small_wonder_name_to_idx = st_small_wonder_n2i;
     cbs.tech_name_to_idx = st_tech_n2i;
     cbs.unit_name_to_idx = st_unit_n2i;
     cbs.unit_action_name_to_idx = st_unit_action_n2i;
     cbs.unit_type_name_to_idx = st_unit_type_n2i;
     cbs.wonder_name_to_idx = st_wonder_n2i;
+    cbs.worker_job_name_to_idx = st_worker_job_n2i;
 
     PathMng paths("../");
 
@@ -520,12 +552,14 @@ int TechParserTester::run () {
     StringManager tile_attribute_items;
     StringManager resource_items;
     StringManager res_dist_items;
+    StringManager res_type_items;
     StringManager small_wonder_items;
     StringManager tech_items;
     StringManager unit_items;
     StringManager unit_action_items;
     StringManager unit_type_items;
     StringManager wonder_items;
+    StringManager worker_job_items;
 
     StringManager effect_items;
 
@@ -536,12 +570,14 @@ int TechParserTester::run () {
     ld_sm(tile_attribute_items, paths.get_path_to_tile_attributes());
     ld_sm(resource_items, paths.get_path_to_resources());
     ld_sm(res_dist_items, paths.get_path_to_res_dists());
+    ld_sm(res_type_items, paths.get_path_to_res_types());
     ld_sm(small_wonder_items, paths.get_path_to_small_wonders());
     ld_sm(tech_items, paths.get_path_to_techs());
     ld_sm(unit_items, paths.get_path_to_units());
     ld_sm(unit_action_items, paths.get_path_to_unit_actions());
     ld_sm(unit_type_items, paths.get_path_to_unit_types());
     ld_sm(wonder_items, paths.get_path_to_wonders());
+    ld_sm(worker_job_items, paths.get_path_to_worker_jobs());
 
     const bool fx_ok = ld_sm(effect_items, paths.get_path_to_effects());
     if (fx_ok) {
@@ -555,12 +591,14 @@ int TechParserTester::run () {
     DataParserBase tile_attribute_parser(tile_attribute_items, cbs);
     DataParserBase resource_parser(resource_items, cbs);
     DataParserBase res_dist_parser(res_dist_items, cbs);
+    DataParserBase res_type_parser(res_type_items, cbs);
     DataParserBase small_wonder_parser(small_wonder_items, cbs);
     DataParserBase tech_parser(tech_items, cbs);
     DataParserBase unit_parser(unit_items, cbs);
     DataParserBase unit_action_parser(unit_action_items, cbs);
     DataParserBase unit_type_parser(unit_type_items, cbs);
     DataParserBase wonder_parser(wonder_items, cbs);
+    DataParserBase worker_job_parser(worker_job_items, cbs);
 
     m_building_psr = &building_parser;
     m_city_flag_psr = &city_flag_parser;
@@ -569,12 +607,14 @@ int TechParserTester::run () {
     m_tile_attribute_psr = &tile_attribute_parser;
     m_resource_psr = &resource_parser;
     m_res_dist_psr = &res_dist_parser;
+    m_res_type_psr = &res_type_parser;
     m_small_wonder_psr = &small_wonder_parser;
     m_tech_psr = &tech_parser;
     m_unit_psr = &unit_parser;
     m_unit_action_psr = &unit_action_parser;
     m_unit_type_psr = &unit_type_parser;
     m_wonder_psr = &wonder_parser;
+    m_worker_job_psr = &worker_job_parser;
 
     StringManager raw_items;
     if (!ld_sm(raw_items, paths.get_path_to_techs())) {

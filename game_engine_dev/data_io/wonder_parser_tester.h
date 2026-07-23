@@ -29,12 +29,14 @@
 #include "tile_attribute_static_data.h"
 #include "resource_static_data.h"
 #include "res_dist_static_data.h"
+#include "res_type_static_data.h"
 #include "small_wonder_static_data.h"
 #include "tech_static_data.h"
 #include "unit_static_data.h"
 #include "unit_action_static_data.h"
 #include "unit_type_static_data.h"
 #include "wonder_static_data.h"
+#include "worker_job_static_data.h"
 
 //================================================================================================================================
 //=> - WonderParserTester class -
@@ -56,12 +58,14 @@ public:
     void set_tile_attribute_sd (const TileAttributeStaticData* sd);
     void set_resource_sd (const ResourceStaticData* sd);
     void set_res_dist_sd (const ResDistStaticData* sd);
+    void set_res_type_sd (const ResTypeStaticData* sd);
     void set_small_wonder_sd (const SmallWonderStaticData* sd);
     void set_tech_sd (const TechStaticData* sd);
     void set_unit_sd (const UnitStaticData* sd);
     void set_unit_action_sd (const UnitActionStaticData* sd);
     void set_unit_type_sd (const UnitTypeStaticData* sd);
     void set_wonder_sd (const WonderStaticData* sd);
+    void set_worker_job_sd (const WorkerJobStaticData* sd);
 
 private:
     typedef const char* cstr;
@@ -76,12 +80,14 @@ private:
     const TileAttributeStaticData* m_tile_attribute_sd;
     const ResourceStaticData* m_resource_sd;
     const ResDistStaticData* m_res_dist_sd;
+    const ResTypeStaticData* m_res_type_sd;
     const SmallWonderStaticData* m_small_wonder_sd;
     const TechStaticData* m_tech_sd;
     const UnitStaticData* m_unit_sd;
     const UnitActionStaticData* m_unit_action_sd;
     const UnitTypeStaticData* m_unit_type_sd;
     const WonderStaticData* m_wonder_sd;
+    const WorkerJobStaticData* m_worker_job_sd;
 
     const DataParserBase* m_building_psr;
     const DataParserBase* m_city_flag_psr;
@@ -90,12 +96,14 @@ private:
     const DataParserBase* m_tile_attribute_psr;
     const DataParserBase* m_resource_psr;
     const DataParserBase* m_res_dist_psr;
+    const DataParserBase* m_res_type_psr;
     const DataParserBase* m_small_wonder_psr;
     const DataParserBase* m_tech_psr;
     const DataParserBase* m_unit_psr;
     const DataParserBase* m_unit_action_psr;
     const DataParserBase* m_unit_type_psr;
     const DataParserBase* m_wonder_psr;
+    const DataParserBase* m_worker_job_psr;
 
     static WonderParserTester* s_inst;
 
@@ -106,12 +114,14 @@ private:
     static u16 st_tile_attribute_n2i (cstr name);
     static u16 st_resource_n2i (cstr name);
     static u16 st_res_dist_n2i (cstr name);
+    static u16 st_res_type_n2i (cstr name);
     static u16 st_small_wonder_n2i (cstr name);
     static u16 st_tech_n2i (cstr name);
     static u16 st_unit_n2i (cstr name);
     static u16 st_unit_action_n2i (cstr name);
     static u16 st_unit_type_n2i (cstr name);
     static u16 st_wonder_n2i (cstr name);
+    static u16 st_worker_job_n2i (cstr name);
 
     bool ld_sm (StringManager& sm, cstr path);
     void pr_u16 (cstr label, u16 value);

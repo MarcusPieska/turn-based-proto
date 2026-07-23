@@ -1,0 +1,33 @@
+#!/bin/bash
+
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+cd "$ROOT"
+
+INC="-I. -I.. -I../misc -I../adv_map_gen -I../map_loader -I../data_io -I../static_state"
+LIB_SO="../data_io/runtime_static_loader_lib.so"
+
+if [ ! -f "$LIB_SO" ]; then
+    echo "missing $LIB_SO - run ../data_io/runtime_static_loader_lib_comp first"
+    exit 1
+fi
+
+g++ -std=c++11 $INC -c ../data_io/runtime_static_loader.cpp -o runtime_static_loader.o
+g++ -std=c++11 $INC -c res_statics.cpp -o res_statics.o
+g++ -std=c++11 $INC -c resource_placement.cpp -o resource_placement.o
+g++ -std=c++11 $INC -c r1_adj_res_place.cpp -o r1_adj_res_place.o
+g++ -std=c++11 $INC -c ../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
+g++ -std=c++11 $INC -c resource_overlay_viz_tester.cpp -o resource_overlay_viz_tester.o
+
+g++ -std=c++11 -o resource_overlay_viz_tester \
+    runtime_static_loader.o \
+    res_statics.o \
+    resource_placement.o \
+    r1_adj_res_place.o \
+    map_terrain_validate.o \
+    resource_overlay_viz_tester.o \
+    -ldl \
+    "$LIB_SO" \
+    -Wl,-rpath,'$ORIGIN/../data_io' -lm
+
+rm -f runtime_static_loader.o res_statics.o resource_placement.o r1_adj_res_place.o \
+    map_terrain_validate.o resource_overlay_viz_tester.o

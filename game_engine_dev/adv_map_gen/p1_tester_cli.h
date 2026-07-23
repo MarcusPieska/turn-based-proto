@@ -30,6 +30,7 @@ public:
     P1_Adj_LandAltitudePrm& lap_mut ();
     u8 rain_wt () const;
     bool rain_wt_set () const;
+    u16 sec_pct () const;
 
 private:
     P1_RunPrm m_prm;
@@ -40,6 +41,7 @@ private:
     P1_Adj_LandAltitudePrm m_lap;
     u8 m_rain_wt;
     bool m_rain_wt_set;
+    u16 m_sec_pct;
 };
 
 bool p1_tester_out_subdir ();

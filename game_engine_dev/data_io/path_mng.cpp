@@ -104,6 +104,10 @@ cstr PathMng::get_path_to_res_dists () const {
     return m_path_res_dists;
 }
 
+cstr PathMng::get_path_to_res_types () const {
+    return m_path_res_types;
+}
+
 cstr PathMng::get_path_to_small_wonders () const {
     return m_path_small_wonders;
 }
@@ -128,6 +132,10 @@ cstr PathMng::get_path_to_wonders () const {
     return m_path_wonders;
 }
 
+cstr PathMng::get_path_to_worker_jobs () const {
+    return m_path_worker_jobs;
+}
+
 cstr PathMng::get_path_to_settings () const {
     return m_path_settings;
 }
@@ -142,12 +150,14 @@ void PathMng::build_paths () {
     join_path(m_path_tile_attributes, PATH_MNG_PATH_N, m_path_offset, "game_config.tile_attributes");
     join_path(m_path_resources, PATH_MNG_PATH_N, m_path_offset, "game_config.resources");
     join_path(m_path_res_dists, PATH_MNG_PATH_N, m_path_offset, "game_config.res_dists");
+    join_path(m_path_res_types, PATH_MNG_PATH_N, m_path_offset, "game_config.res_types");
     join_path(m_path_small_wonders, PATH_MNG_PATH_N, m_path_offset, "game_config.small_wonders");
     join_path(m_path_techs, PATH_MNG_PATH_N, m_path_offset, "game_config.techs");
     join_path(m_path_unit_actions, PATH_MNG_PATH_N, m_path_offset, "game_config.unit_actions");
     join_path(m_path_unit_types, PATH_MNG_PATH_N, m_path_offset, "game_config.unit_types");
     join_path(m_path_units, PATH_MNG_PATH_N, m_path_offset, "game_config.units");
     join_path(m_path_wonders, PATH_MNG_PATH_N, m_path_offset, "game_config.wonders");
+    join_path(m_path_worker_jobs, PATH_MNG_PATH_N, m_path_offset, "game_config.worker_jobs");
     join_path(m_path_settings, PATH_MNG_PATH_N, m_path_offset, "game_config.settings");
 }
 
@@ -190,6 +200,10 @@ void PathMng::validate_paths_or_exit () const {
         printf("ERROR: Missing file: %s\n", m_path_res_dists);
         ++error_count;
     }
+    if (!does_file_exist(m_path_res_types)) {
+        printf("ERROR: Missing file: %s\n", m_path_res_types);
+        ++error_count;
+    }
     if (!does_file_exist(m_path_small_wonders)) {
         printf("ERROR: Missing file: %s\n", m_path_small_wonders);
         ++error_count;
@@ -212,6 +226,10 @@ void PathMng::validate_paths_or_exit () const {
     }
     if (!does_file_exist(m_path_wonders)) {
         printf("ERROR: Missing file: %s\n", m_path_wonders);
+        ++error_count;
+    }
+    if (!does_file_exist(m_path_worker_jobs)) {
+        printf("ERROR: Missing file: %s\n", m_path_worker_jobs);
         ++error_count;
     }
     if (!does_file_exist(m_path_settings)) {

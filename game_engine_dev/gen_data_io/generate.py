@@ -20,14 +20,16 @@ PARSER_SPECS.append(("city_flag", "CityFlag", ""))
 PARSER_SPECS.append(("civ", "Civ", "traits,1,CivTraitStruct"))
 PARSER_SPECS.append(("civ_trait", "CivTrait", ""))
 PARSER_SPECS.append(("tile_attribute", "TileAttribute", "mvt_cost,1,u16:food,2,i16:production,3,u16:commerce,4,u16:culture,5,u16:science,6,u16:religion,7,u16:attack_mod,8,u16:defense_mod,9,u16"))
-PARSER_SPECS.append(("resource", "Resource", "food,1,u16:shields,2,u16:commerce,3,u16:reqs,4,ItemReqsStruct:res_dist_idx,0,ResDistIdx"))
+PARSER_SPECS.append(("resource", "Resource", "food,1,u16:shields,2,u16:commerce,3,u16:type,4,ResType:reqs,5,ItemReqsStruct:res_dist_idx,0,ResDistIdx"))
 PARSER_SPECS.append(("res_dist", "ResDist", "plc,1,ResPlacement"))
+PARSER_SPECS.append(("res_type", "ResType", ""))
 PARSER_SPECS.append(("small_wonder", "SmallWonder", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStruct"))
 PARSER_SPECS.append(("tech", "Tech", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStructOpt"))
 PARSER_SPECS.append(("unit", "Unit", "type,1,UnitType:cost,2,u32:attack,3,u16:defense,4,u16:mvt_pts,5,u16:sight,6,u16:reqs,7,ItemReqsStruct"))
 PARSER_SPECS.append(("unit_action", "UnitAction", ""))
 PARSER_SPECS.append(("unit_type", "UnitType", ""))
 PARSER_SPECS.append(("wonder", "Wonder", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStruct"))
+PARSER_SPECS.append(("worker_job", "WorkerJob", "cost,1,u32:reqs,2,ItemReqsStruct"))
 
 def derive_req_type(prefix):
     if prefix == "city_flag":
@@ -59,6 +61,8 @@ def get_function_name_from_output_type(output_type):
         return "parse_u32"
     elif output_type == "UnitType":
         return "parse_unit_type"
+    elif output_type == "ResType":
+        return "parse_res_type"
     elif output_type == "ItemReqsStruct":
         return "parse_item_reqs"
     elif output_type == "ItemEffectsStruct":
@@ -94,7 +98,7 @@ def derive_member_print_lines(parsing_instructions):
         return ["// No parsing instructions provided"]
     for instruction in parsing_instructions.split(":"):
         mem, idx, data_type = [part.strip() for part in instruction.strip().split(",")]
-        if data_type in ["u16", "UnitType", "ResDistIdx"]:
+        if data_type in ["u16", "UnitType", "ResType", "ResDistIdx"]:
             lines.append('pr_u16("%s", item.%s);' % (mem, mem))
         elif data_type == "i16":
             lines.append('pr_i16("%s", item.%s);' % (mem, mem))

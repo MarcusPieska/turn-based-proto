@@ -59,6 +59,18 @@ static bool tok_rain_wt (cstr s, u8* wt) {
     return true;
 }
 
+static bool tok_sec_pct (cstr s, u16* pct) {
+    if (s == nullptr || pct == nullptr || std::strncmp(s, "--sec-pct=", 10) != 0) {
+        return false;
+    }
+    const i32 v = static_cast<i32>(std::strtol(s + 10, nullptr, 10));
+    if (v < 1 || v > 100) {
+        return false;
+    }
+    *pct = static_cast<u16>(v);
+    return true;
+}
+
 static bool tok_is_batch (cstr s) {
     return s != nullptr && std::strcmp(s, "batch") == 0;
 }
@@ -117,10 +129,12 @@ P1_TesterCli::P1_TesterCli () :
     m_out_subdir(true),
     m_lap(),
     m_rain_wt(0),
-    m_rain_wt_set(false) {
+    m_rain_wt_set(false),
+    m_sec_pct(10) {
     m_prm = p1_run_prm_def();
     m_lap = lap_def();
     m_rain_wt = p1_gen_climate_prm_def().m_wts.m_w_rain;
+    m_sec_pct = 10u;
 }
 
 bool P1_TesterCli::parse (i32 argc, char* argv[]) {
@@ -132,6 +146,7 @@ bool P1_TesterCli::parse (i32 argc, char* argv[]) {
     m_lap = lap_def();
     m_rain_wt = p1_gen_climate_prm_def().m_wts.m_w_rain;
     m_rain_wt_set = false;
+    m_sec_pct = 10u;
     cstr pos[16];
     i32 pos_n = 0;
     for (i32 a = 1; a < argc; ++a) {
@@ -154,6 +169,11 @@ bool P1_TesterCli::parse (i32 argc, char* argv[]) {
         if (tok_rain_wt(argv[a], &rw)) {
             m_rain_wt = rw;
             m_rain_wt_set = true;
+            continue;
+        }
+        u16 sp = 0;
+        if (tok_sec_pct(argv[a], &sp)) {
+            m_sec_pct = sp;
             continue;
         }
         if (pos_n < 16) {
@@ -249,6 +269,10 @@ u8 P1_TesterCli::rain_wt () const {
 
 bool P1_TesterCli::rain_wt_set () const {
     return m_rain_wt_set;
+}
+
+u16 P1_TesterCli::sec_pct () const {
+    return m_sec_pct;
 }
 
 //================================================================================================================================

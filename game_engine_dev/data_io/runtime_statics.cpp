@@ -57,6 +57,8 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_resource.load_names_from(p.get_resource_name_parser(), p.get_resource_count());
     m_res_dist.set_items(const_cast<ResDistStaticDataStruct*>(p.get_res_dist_data()), p.get_res_dist_count());
     m_res_dist.load_names_from(p.get_res_dist_name_parser(), p.get_res_dist_count());
+    m_res_type.set_items(const_cast<ResTypeStaticDataStruct*>(p.get_res_type_data()), p.get_res_type_count());
+    m_res_type.load_names_from(p.get_res_type_name_parser(), p.get_res_type_count());
     m_small_wonder.set_items(const_cast<SmallWonderStaticDataStruct*>(p.get_small_wonder_data()), p.get_small_wonder_count());
     m_small_wonder.load_names_from(p.get_small_wonder_name_parser(), p.get_small_wonder_count());
     m_tech.set_items(const_cast<TechStaticDataStruct*>(p.get_tech_data()), p.get_tech_count());
@@ -69,6 +71,8 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_unit_type.load_names_from(p.get_unit_type_name_parser(), p.get_unit_type_count());
     m_wonder.set_items(const_cast<WonderStaticDataStruct*>(p.get_wonder_data()), p.get_wonder_count());
     m_wonder.load_names_from(p.get_wonder_name_parser(), p.get_wonder_count());
+    m_worker_job.set_items(const_cast<WorkerJobStaticDataStruct*>(p.get_worker_job_data()), p.get_worker_job_count());
+    m_worker_job.load_names_from(p.get_worker_job_name_parser(), p.get_worker_job_count());
 
     u16 flat_fx_n = 0;
     EffectMapStruct* flat_fx = EffectRevMapper::build_flat_list(p, &flat_fx_n);
@@ -89,12 +93,14 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_tile_attribute.take_ownership();
     m_resource.take_ownership();
     m_res_dist.take_ownership();
+    m_res_type.take_ownership();
     m_small_wonder.take_ownership();
     m_tech.take_ownership();
     m_unit.take_ownership();
     m_unit_action.take_ownership();
     m_unit_type.take_ownership();
     m_wonder.take_ownership();
+    m_worker_job.take_ownership();
     
     m_unit_type_action_map.set_map(p.get_unit_type_action_map_bank(), p.get_unit_type_count(), p.get_unit_action_count());
     m_unit_type_action_map.take_ownership();
@@ -171,6 +177,14 @@ const ResDistStaticData& RuntimeStatics::res_dist () const {
     return m_res_dist;
 }
 
+ResTypeStaticData& RuntimeStatics::res_type () {
+    return m_res_type;
+}
+
+const ResTypeStaticData& RuntimeStatics::res_type () const {
+    return m_res_type;
+}
+
 SmallWonderStaticData& RuntimeStatics::small_wonder () {
     return m_small_wonder;
 }
@@ -217,6 +231,14 @@ WonderStaticData& RuntimeStatics::wonder () {
 
 const WonderStaticData& RuntimeStatics::wonder () const {
     return m_wonder;
+}
+
+WorkerJobStaticData& RuntimeStatics::worker_job () {
+    return m_worker_job;
+}
+
+const WorkerJobStaticData& RuntimeStatics::worker_job () const {
+    return m_worker_job;
 }
 
 UnitTypeActionMap& RuntimeStatics::unit_type_action_map () {

@@ -19,12 +19,14 @@
 #include "tile_attribute_parser_tester.h"
 #include "resource_parser_tester.h"
 #include "res_dist_parser_tester.h"
+#include "res_type_parser_tester.h"
 #include "small_wonder_parser_tester.h"
 #include "tech_parser_tester.h"
 #include "unit_parser_tester.h"
 #include "unit_action_parser_tester.h"
 #include "unit_type_parser_tester.h"
 #include "wonder_parser_tester.h"
+#include "worker_job_parser_tester.h"
 #include "runtime_statics.h"
 
 //================================================================================================================================
@@ -44,12 +46,14 @@ public:
     TileAttributeParserTester& tile_attribute () { return m_tile_attribute; }
     ResourceParserTester& resource () { return m_resource; }
     ResDistParserTester& res_dist () { return m_res_dist; }
+    ResTypeParserTester& res_type () { return m_res_type; }
     SmallWonderParserTester& small_wonder () { return m_small_wonder; }
     TechParserTester& tech () { return m_tech; }
     UnitParserTester& unit () { return m_unit; }
     UnitActionParserTester& unit_action () { return m_unit_action; }
     UnitTypeParserTester& unit_type () { return m_unit_type; }
     WonderParserTester& wonder () { return m_wonder; }
+    WorkerJobParserTester& worker_job () { return m_worker_job; }
 
 private:
     int m_plvl;
@@ -61,12 +65,14 @@ private:
     TileAttributeParserTester m_tile_attribute;
     ResourceParserTester m_resource;
     ResDistParserTester m_res_dist;
+    ResTypeParserTester m_res_type;
     SmallWonderParserTester m_small_wonder;
     TechParserTester m_tech;
     UnitParserTester m_unit;
     UnitActionParserTester m_unit_action;
     UnitTypeParserTester m_unit_type;
     WonderParserTester m_wonder;
+    WorkerJobParserTester m_worker_job;
 };
 
 #endif // PARSER_TEST_MANAGER_H

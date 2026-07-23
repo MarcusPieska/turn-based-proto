@@ -1,0 +1,26 @@
+#!/bin/bash
+
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+ADV="$(cd "$ROOT/../adv_map_gen" && pwd)"
+LIB_SO="$ROOT/../data_io/runtime_static_loader_lib.so"
+
+if [ ! -f "$LIB_SO" ]; then
+    echo "missing $LIB_SO - run ../data_io/runtime_static_loader_lib_comp first"
+    exit 1
+fi
+
+cd "$ADV"
+source p1_build_core_map_objs.sh
+
+INC_EXTRA="-I../ai_pathing/walk_general"
+
+g++ -std=c++11 $INC $INC_EXTRA -c "$ROOT/r1_adj_produce_placements_tester.cpp" -o r1_adj_produce_placements_tester.o
+
+g++ -std=c++11 -o "$ROOT/r1_adj_produce_placements_tester" \
+    $CORE_MAP_OBJS \
+    r1_adj_produce_placements_tester.o \
+    -ldl \
+    "$LIB_SO" \
+    -Wl,-rpath,'$ORIGIN/../data_io' -lm
+
+rm $CORE_MAP_OBJS r1_adj_produce_placements_tester.o

@@ -78,12 +78,14 @@ void print_holder_counts (const RuntimeStatics& s) {
     print_u16_member("tile_attribute", s.tile_attribute().get_item_count());
     print_u16_member("resource", s.resource().get_item_count());
     print_u16_member("res_dist", s.res_dist().get_item_count());
+    print_u16_member("res_type", s.res_type().get_item_count());
     print_u16_member("small_wonder", s.small_wonder().get_item_count());
     print_u16_member("tech", s.tech().get_item_count());
     print_u16_member("unit", s.unit().get_item_count());
     print_u16_member("unit_action", s.unit_action().get_item_count());
     print_u16_member("unit_type", s.unit_type().get_item_count());
     print_u16_member("wonder", s.wonder().get_item_count());
+    print_u16_member("worker_job", s.worker_job().get_item_count());
 }
 
 u16 get_req_limit_for_type (const RuntimeStatics& s, u8 req_type) {
@@ -134,12 +136,14 @@ void run_load_tests (const RuntimeStaticLoader& loader) {
     note_result(s.tile_attribute().get_item_count() > 0, "tile_attribute holder has items");
     note_result(s.resource().get_item_count() > 0, "resource holder has items");
     note_result(s.res_dist().get_item_count() > 0, "res_dist holder has items");
+    note_result(s.res_type().get_item_count() > 0, "res_type holder has items");
     note_result(s.small_wonder().get_item_count() > 0, "small_wonder holder has items");
     note_result(s.tech().get_item_count() > 0, "tech holder has items");
     note_result(s.unit().get_item_count() > 0, "unit holder has items");
     note_result(s.unit_action().get_item_count() > 0, "unit_action holder has items");
     note_result(s.unit_type().get_item_count() > 0, "unit_type holder has items");
     note_result(s.wonder().get_item_count() > 0, "wonder holder has items");
+    note_result(s.worker_job().get_item_count() > 0, "worker_job holder has items");
 }
 
 void run_req_bounds_tests (const RuntimeStatics& s) {
@@ -205,6 +209,15 @@ void run_req_bounds_tests (const RuntimeStatics& s) {
         }
     }
     note_result(result, "SmallWonderStaticDataStruct req indices in bounds");
+    
+    result = true;
+    for (u16 i = 0; i < s.worker_job().get_item_count(); ++i) {
+        if (!are_reqs_in_bounds(s, s.worker_job().get_item(WorkerJobStaticDataKey::from_raw(i)).reqs, "worker_job", i)) {
+            result = false;
+            break;
+        }
+    }
+    note_result(result, "WorkerJobStaticDataStruct req indices in bounds");
 }
 
 void run_map_smoke_tests (const RuntimeStatics& s) {

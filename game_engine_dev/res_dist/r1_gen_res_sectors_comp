@@ -12,14 +12,15 @@ fi
 cd "$ADV"
 source p1_build_core_map_objs.sh
 
-g++ -std=c++11 -I. -I.. -I../misc -I../res_dist -I../map_loader -I../data_io -I../static_state \
-    -c "$ROOT/r1_gen_res_overlay_tester.cpp" -o r1_gen_res_overlay_tester.o
+INC_EXTRA="-I../ai_pathing/walk_general"
 
-g++ -std=c++11 -o "$ROOT/r1_gen_res_overlay_tester" \
+g++ -std=c++11 $INC $INC_EXTRA -c "$ROOT/r1_gen_res_sectors_tester.cpp" -o r1_gen_res_sectors_tester.o
+
+g++ -std=c++11 -o "$ROOT/r1_gen_res_sectors_tester" \
     $CORE_MAP_OBJS \
-    r1_gen_res_overlay_tester.o \
+    r1_gen_res_sectors_tester.o \
     -ldl \
     "$LIB_SO" \
     -Wl,-rpath,'$ORIGIN/../data_io' -lm
 
-rm $CORE_MAP_OBJS r1_gen_res_overlay_tester.o
+rm $CORE_MAP_OBJS r1_gen_res_sectors_tester.o

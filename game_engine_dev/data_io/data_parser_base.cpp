@@ -327,6 +327,10 @@ u16 DataParserBase::parse_unit_type (const StringManager& line_items, u16 start_
     return m_name_to_idx_cbs.unit_type_name_to_idx(line_items.get_string_content(start_idx));
 }
 
+u16 DataParserBase::parse_res_type (const StringManager& line_items, u16 start_idx) const {
+    return m_name_to_idx_cbs.res_type_name_to_idx(line_items.get_string_content(start_idx));
+}
+
 ItemEffectsStruct DataParserBase::parse_item_effects (const StringManager& line_items, u16 start_idx) const {
     (void)start_idx;
     ItemEffectsStruct effects = {};

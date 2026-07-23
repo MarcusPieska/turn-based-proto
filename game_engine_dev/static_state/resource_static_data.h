@@ -30,6 +30,7 @@ typedef struct ResourceStaticDataStruct {
     u16 food;
     u16 shields;
     u16 commerce;
+    u16 type;
     u16 res_dist_idx;
 } ResourceStaticDataStruct;
 

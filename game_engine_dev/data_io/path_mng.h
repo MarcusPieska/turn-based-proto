@@ -36,12 +36,14 @@ public:
     cstr get_path_to_tile_attributes () const;
     cstr get_path_to_resources () const;
     cstr get_path_to_res_dists () const;
+    cstr get_path_to_res_types () const;
     cstr get_path_to_small_wonders () const;
     cstr get_path_to_techs () const;
     cstr get_path_to_unit_actions () const;
     cstr get_path_to_unit_types () const;
     cstr get_path_to_units () const;
     cstr get_path_to_wonders () const;
+    cstr get_path_to_worker_jobs () const;
     cstr get_path_to_settings () const;
 
 private:
@@ -63,12 +65,14 @@ private:
     char m_path_tile_attributes[PATH_MNG_PATH_N];
     char m_path_resources[PATH_MNG_PATH_N];
     char m_path_res_dists[PATH_MNG_PATH_N];
+    char m_path_res_types[PATH_MNG_PATH_N];
     char m_path_small_wonders[PATH_MNG_PATH_N];
     char m_path_techs[PATH_MNG_PATH_N];
     char m_path_unit_actions[PATH_MNG_PATH_N];
     char m_path_unit_types[PATH_MNG_PATH_N];
     char m_path_units[PATH_MNG_PATH_N];
     char m_path_wonders[PATH_MNG_PATH_N];
+    char m_path_worker_jobs[PATH_MNG_PATH_N];
     char m_path_settings[PATH_MNG_PATH_N];
 };
 

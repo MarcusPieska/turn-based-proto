@@ -90,12 +90,14 @@ void note_all_paths_exist (const PathMng& paths, cstr tag) {
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s tile_attributes exists", tag); note_result(does_file_exist(paths.get_path_to_tile_attributes()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s resources exists", tag); note_result(does_file_exist(paths.get_path_to_resources()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s res_dists exists", tag); note_result(does_file_exist(paths.get_path_to_res_dists()), _buf); }
+        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s res_types exists", tag); note_result(does_file_exist(paths.get_path_to_res_types()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s small_wonders exists", tag); note_result(does_file_exist(paths.get_path_to_small_wonders()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s techs exists", tag); note_result(does_file_exist(paths.get_path_to_techs()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s unit_actions exists", tag); note_result(does_file_exist(paths.get_path_to_unit_actions()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s unit_types exists", tag); note_result(does_file_exist(paths.get_path_to_unit_types()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s units exists", tag); note_result(does_file_exist(paths.get_path_to_units()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s wonders exists", tag); note_result(does_file_exist(paths.get_path_to_wonders()), _buf); }
+        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s worker_jobs exists", tag); note_result(does_file_exist(paths.get_path_to_worker_jobs()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s settings exists", tag); note_result(does_file_exist(paths.get_path_to_settings()), _buf); }
 }
 

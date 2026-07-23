@@ -45,6 +45,8 @@ g++ $INC $CXXFLAGS -c resource_parser.cpp -o resource_parser.o
 g++ $INC $CXXFLAGS -c resource_parser_tester.cpp -o resource_parser_tester.o
 g++ $INC $CXXFLAGS -c res_dist_parser.cpp -o res_dist_parser.o
 g++ $INC $CXXFLAGS -c res_dist_parser_tester.cpp -o res_dist_parser_tester.o
+g++ $INC $CXXFLAGS -c res_type_parser.cpp -o res_type_parser.o
+g++ $INC $CXXFLAGS -c res_type_parser_tester.cpp -o res_type_parser_tester.o
 g++ $INC $CXXFLAGS -c small_wonder_parser.cpp -o small_wonder_parser.o
 g++ $INC $CXXFLAGS -c small_wonder_parser_tester.cpp -o small_wonder_parser_tester.o
 g++ $INC $CXXFLAGS -c tech_parser.cpp -o tech_parser.o
@@ -57,6 +59,8 @@ g++ $INC $CXXFLAGS -c unit_type_parser.cpp -o unit_type_parser.o
 g++ $INC $CXXFLAGS -c unit_type_parser_tester.cpp -o unit_type_parser_tester.o
 g++ $INC $CXXFLAGS -c wonder_parser.cpp -o wonder_parser.o
 g++ $INC $CXXFLAGS -c wonder_parser_tester.cpp -o wonder_parser_tester.o
+g++ $INC $CXXFLAGS -c worker_job_parser.cpp -o worker_job_parser.o
+g++ $INC $CXXFLAGS -c worker_job_parser_tester.cpp -o worker_job_parser_tester.o
 g++ $INC $CXXFLAGS -c parser_test_manager.cpp -o parser_test_manager.o
 
 g++ $CXXFLAGS -o $OUT_BIN \
@@ -85,6 +89,8 @@ g++ $CXXFLAGS -o $OUT_BIN \
     resource_parser_tester.o \
     res_dist_parser.o \
     res_dist_parser_tester.o \
+    res_type_parser.o \
+    res_type_parser_tester.o \
     small_wonder_parser.o \
     small_wonder_parser_tester.o \
     tech_parser.o \
@@ -97,6 +103,8 @@ g++ $CXXFLAGS -o $OUT_BIN \
     unit_type_parser_tester.o \
     wonder_parser.o \
     wonder_parser_tester.o \
+    worker_job_parser.o \
+    worker_job_parser_tester.o \
     parser_test_manager.o \
     -ldl \
     $LIB_DIR/$LIB_SO \
@@ -126,6 +134,8 @@ rm runtime_static_loader.o runtime_statics_tester.o \
     resource_parser_tester.o \
     res_dist_parser.o \
     res_dist_parser_tester.o \
+    res_type_parser.o \
+    res_type_parser_tester.o \
     small_wonder_parser.o \
     small_wonder_parser_tester.o \
     tech_parser.o \
@@ -138,4 +148,6 @@ rm runtime_static_loader.o runtime_statics_tester.o \
     unit_type_parser_tester.o \
     wonder_parser.o \
     wonder_parser_tester.o \
+    worker_job_parser.o \
+    worker_job_parser_tester.o \
     parser_test_manager.o \

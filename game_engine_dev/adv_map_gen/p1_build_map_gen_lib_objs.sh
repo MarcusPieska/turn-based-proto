@@ -1,6 +1,6 @@
 #!/bin/bash
 
-INC="-I. -I.. -I../map_loader -I../static_state -I../misc -I../res_dist -I../data_io -I../simple_map_gen"
+INC="-I. -I.. -I../map_loader -I../static_state -I../misc -I../res_dist -I../data_io -I../simple_map_gen -I../ai_pathing/walk_general"
 PIC="-fPIC"
 
 g++ -std=c++11 $INC $PIC -c ../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
@@ -59,8 +59,20 @@ g++ -std=c++11 $INC $PIC -c ../data_io/runtime_static_loader.cpp -o runtime_stat
 g++ -std=c++11 $INC $PIC -c ../res_dist/res_statics.cpp -o res_statics.o
 g++ -std=c++11 $INC $PIC -c ../res_dist/resource_placement.cpp -o resource_placement.o
 g++ -std=c++11 $INC $PIC -c ../res_dist/r1_adj_res_place.cpp -o r1_adj_res_place.o
-g++ -std=c++11 $INC $PIC -c ../res_dist/r1_gen_res_overlay.cpp -o r1_gen_res_overlay.o
+g++ -std=c++11 $INC $PIC -c ../res_dist/res_dist_state.cpp -o res_dist_state.o
+g++ -std=c++11 $INC $PIC -c ../res_dist/r1_gen_empty_resource_overlay.cpp -o r1_gen_empty_resource_overlay.o
+g++ -std=c++11 $INC $PIC -c ../ai_pathing/walk_general/land_mass_index.cpp -o land_mass_index.o
+g++ -std=c++11 $INC $PIC -c ../res_dist/r1_gen_res_sectors.cpp -o r1_gen_res_sectors.o
+g++ -std=c++11 $INC $PIC -c ../res_dist/r1_adj_gemstone_placements.cpp -o r1_adj_gemstone_placements.o
+g++ -std=c++11 $INC $PIC -c ../res_dist/r1_adj_livestock_placements.cpp -o r1_adj_livestock_placements.o
+g++ -std=c++11 $INC $PIC -c ../res_dist/r1_adj_food_crop_placements.cpp -o r1_adj_food_crop_placements.o
+g++ -std=c++11 $INC $PIC -c ../res_dist/r1_adj_metal_placements.cpp -o r1_adj_metal_placements.o
+g++ -std=c++11 $INC $PIC -c ../res_dist/r1_adj_spice_placements.cpp -o r1_adj_spice_placements.o
+g++ -std=c++11 $INC $PIC -c ../res_dist/r1_adj_cash_crop_placements.cpp -o r1_adj_cash_crop_placements.o
+g++ -std=c++11 $INC $PIC -c ../res_dist/r1_adj_produce_placements.cpp -o r1_adj_produce_placements.o
+g++ -std=c++11 $INC $PIC -c ../res_dist/r1_adj_general_placement.cpp -o r1_adj_general_placement.o
+g++ -std=c++11 $INC $PIC -c ../res_dist/r1_gen_std_res_dist.cpp -o r1_gen_std_res_dist.o
 g++ -std=c++11 $INC $PIC -c p1_tester_cli.cpp -o p1_tester_cli.o
 g++ -std=c++11 $INC $PIC -c map_gen_lib_api.cpp -o map_gen_lib_api.o
 
-MAP_GEN_LIB_OBJS="map_terrain_validate.o map_terrain_data.o map_loader.o generator_constants.o perlin_noise.o whiteboard_mng.o wb_que_xy.o wb_1b_multi_vector.o wb_2b_multi_vector.o wb_b4_multi_vector.o p1_gen_outline.o generate_terrain_rotation.o p1_gen_cont_outlines.o p1_gen_land_depth.o p1_gen_noise_perlin.o p1_adj_outline_fill.o p1_gen_shaped_outline.o p1_gen_river_prob.o p1_gen_river_dynamic_pts.o p1_gen_river_pts.o p1_gen_ocean_index.o p1_gen_river_sectors.o p1_gen_river_sect_adj.o p1_gen_coastal_mtn_limits.o p1_gen_river_network.o p1_gen_river_lines.o p1_adj_coastal_mtn_rivers.o p1_adj_river_lakes.o p1_adj_river_inlets.o p1_gen_river_dist.o p1_gen_watershed_mountains.o p1_gen_watershed_mountain_line_sets.o p1_gen_distance_to_river.o p1_gen_nearness_to_watershed_mtn.o p1_adj_land_altitude.o p1_adj_ensure_coasts.o p1_adj_ensure_seas.o p1_adj_ensure_river_valleys.o p1_adj_ensure_mtn_foothills.o p1_gen_climate.o p1_gen_desert_river_cull.o p1_gen_wind_pattern_adv.o p1_gen_loess_boost.o p1_adj_grassland_loess_tiles.o p1_gen_rain_orographic.o p1_gen_rich_coast_fertility.o p1_gen_rich_coast_fertility_view.o p1_adj_coast_fertility.o p1_adj_ensure_adj_rules.o p1_gen_forest_overlay.o p1_adj_delta_swamps.o p1_make_map.o p1_tester_cli.o runtime_static_loader.o res_statics.o resource_placement.o r1_adj_res_place.o r1_gen_res_overlay.o map_gen_lib_api.o"
+MAP_GEN_LIB_OBJS="map_terrain_validate.o map_terrain_data.o map_loader.o generator_constants.o perlin_noise.o whiteboard_mng.o wb_que_xy.o wb_1b_multi_vector.o wb_2b_multi_vector.o wb_b4_multi_vector.o p1_gen_outline.o generate_terrain_rotation.o p1_gen_cont_outlines.o p1_gen_land_depth.o p1_gen_noise_perlin.o p1_adj_outline_fill.o p1_gen_shaped_outline.o p1_gen_river_prob.o p1_gen_river_dynamic_pts.o p1_gen_river_pts.o p1_gen_ocean_index.o p1_gen_river_sectors.o p1_gen_river_sect_adj.o p1_gen_coastal_mtn_limits.o p1_gen_river_network.o p1_gen_river_lines.o p1_adj_coastal_mtn_rivers.o p1_adj_river_lakes.o p1_adj_river_inlets.o p1_gen_river_dist.o p1_gen_watershed_mountains.o p1_gen_watershed_mountain_line_sets.o p1_gen_distance_to_river.o p1_gen_nearness_to_watershed_mtn.o p1_adj_land_altitude.o p1_adj_ensure_coasts.o p1_adj_ensure_seas.o p1_adj_ensure_river_valleys.o p1_adj_ensure_mtn_foothills.o p1_gen_climate.o p1_gen_desert_river_cull.o p1_gen_wind_pattern_adv.o p1_gen_loess_boost.o p1_adj_grassland_loess_tiles.o p1_gen_rain_orographic.o p1_gen_rich_coast_fertility.o p1_gen_rich_coast_fertility_view.o p1_adj_coast_fertility.o p1_adj_ensure_adj_rules.o p1_gen_forest_overlay.o p1_adj_delta_swamps.o p1_make_map.o p1_tester_cli.o runtime_static_loader.o res_statics.o resource_placement.o r1_adj_res_place.o res_dist_state.o r1_gen_empty_resource_overlay.o land_mass_index.o r1_gen_res_sectors.o r1_adj_gemstone_placements.o r1_adj_livestock_placements.o r1_adj_food_crop_placements.o r1_adj_metal_placements.o r1_adj_spice_placements.o r1_adj_cash_crop_placements.o r1_adj_produce_placements.o r1_adj_general_placement.o r1_gen_std_res_dist.o map_gen_lib_api.o"

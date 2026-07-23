@@ -1,33 +1,16 @@
 //================================================================================================================================
-//=> - Includes -
+//= - Includes -
 //================================================================================================================================
 
-#include "r1_gen_res_overlay.h"
+#include "r1_gen_empty_resource_overlay.h"
 
-#include <cerrno>
 #include <cstdio>
-#include <cstring>
 
-#include <sys/stat.h>
-
-#include "r1_adj_res_place.h"
 #include "game_map_defs.h"
-#include "generator_constants.h"
-#include "resource_static_key.h"
 
 //================================================================================================================================
-//=> - Private helpers -
+//= - Helpers -
 //================================================================================================================================
-
-static bool ensure_dir (cstr path) {
-    if (path == nullptr || path[0] == '\0') {
-        return false;
-    }
-    if (mkdir(path, 0755) == 0 || errno == EEXIST) {
-        return true;
-    }
-    return false;
-}
 
 static bool is_water (u8 t) {
     return t == TERR_OCEAN[0] || t == TERR_SEA[0] || t == TERR_COASTAL[0];
@@ -59,36 +42,35 @@ static bool save_rgb_ppm (cstr path, const u8* rgb, u16 wi, u16 hi) {
 }
 
 //================================================================================================================================
-//=> - R1_Gen_ResOverlay -
+//= - R1_Gen_EmptyResourceOverlay -
 //================================================================================================================================
 
-R1_Gen_ResOverlay::R1_Gen_ResOverlay () :
-    m_valid(false),
-    m_w(0),
-    m_h(0),
-    m_ov(nullptr) {
-}
-
-R1_Gen_ResOverlay::~R1_Gen_ResOverlay () {
-    delete[] m_ov;
-    m_ov = nullptr;
-}
-
-bool R1_Gen_ResOverlay::generate (
-    const ResPlcMapCtx& ctx,
-    const RuntimeStatics& s,
-    u32 base_n,
-    u32 seed) 
+R1_Gen_EmptyResourceOverlay::R1_Gen_EmptyResourceOverlay ()
+    : m_ok(false)
+    , m_w(0)
+    , m_h(0)
+    , m_ov(nullptr)
 {
-    m_valid = false;
+}
+
+R1_Gen_EmptyResourceOverlay::~R1_Gen_EmptyResourceOverlay () {
+    clr();
+}
+
+void R1_Gen_EmptyResourceOverlay::clr () {
     delete[] m_ov;
     m_ov = nullptr;
-    m_w = ctx.m_w;
-    m_h = ctx.m_h;
-    if (m_w == 0 || m_h == 0 || ctx.m_terrain == nullptr || base_n == 0) {
+    m_ok = false;
+    m_w = 0;
+    m_h = 0;
+}
+
+bool R1_Gen_EmptyResourceOverlay::generate (u16 w, u16 h) {
+    clr();
+    if (w == 0 || h == 0) {
         return false;
     }
-    const u32 n = (u32)m_w * (u32)m_h;
+    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
     m_ov = new u16[n];
     if (m_ov == nullptr) {
         return false;
@@ -96,59 +78,48 @@ bool R1_Gen_ResOverlay::generate (
     for (u32 i = 0; i < n; ++i) {
         m_ov[i] = U16_KEY_NULL;
     }
-    const u16 res_n = s.resource().get_item_count();
-    R1_Adj_ResPlace adj;
-    for (u16 ri = 0; ri < res_n; ++ri) {
-        const ResourceStaticDataStruct& r = s.resource().get_item(
-            ResourceStaticDataKey::from_raw(ri));
-        if (r.res_dist_idx >= s.res_dist().get_item_count()) {
-            continue;
-        }
-        const ResDistStaticDataStruct& rd = s.res_dist().get_item(
-            ResDistStaticDataKey::from_raw(r.res_dist_idx));
-        if (rd.has_plc == 0) {
-            continue;
-        }
-        if (!adj.adjust(m_ov, m_w, m_h, ctx, s, ri, base_n, seed + (u32)ri, nullptr)) {
-            return false;
-        }
-    }
-    m_valid = true;
+    m_w = w;
+    m_h = h;
+    m_ok = true;
     return true;
 }
 
-bool R1_Gen_ResOverlay::is_valid () const {
-    return m_valid;
+bool R1_Gen_EmptyResourceOverlay::is_valid () const {
+    return m_ok;
 }
 
-u16 R1_Gen_ResOverlay::width () const {
+u16 R1_Gen_EmptyResourceOverlay::width () const {
     return m_w;
 }
 
-u16 R1_Gen_ResOverlay::height () const {
+u16 R1_Gen_EmptyResourceOverlay::height () const {
     return m_h;
 }
 
-const u16* R1_Gen_ResOverlay::overlay () const {
+const u16* R1_Gen_EmptyResourceOverlay::overlay () const {
     return m_ov;
 }
 
-u16* R1_Gen_ResOverlay::take_overlay () {
+u16* R1_Gen_EmptyResourceOverlay::overlay_mut () {
+    return m_ov;
+}
+
+u16* R1_Gen_EmptyResourceOverlay::take_overlay () {
     u16* p = m_ov;
     m_ov = nullptr;
-    m_valid = false;
+    m_ok = false;
     m_w = 0;
     m_h = 0;
     return p;
 }
 
-bool R1_Gen_ResOverlay::save_ppm (
+bool R1_Gen_EmptyResourceOverlay::save_ppm (
     cstr path,
     const ResPlcMapCtx& ctx,
     const u16* res_ov,
     u16 w,
     u16 h,
-    u16 res_max) 
+    u16 res_max)
 {
     if (path == nullptr || res_ov == nullptr || ctx.m_terrain == nullptr) {
         return false;
@@ -187,5 +158,5 @@ bool R1_Gen_ResOverlay::save_ppm (
 }
 
 //================================================================================================================================
-//=> - End -
+//= - End of file -
 //================================================================================================================================

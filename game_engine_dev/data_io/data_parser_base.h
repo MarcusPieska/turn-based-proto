@@ -42,6 +42,7 @@ protected:
     i16 parse_i16 (const StringManager& line_items, u16 start_idx) const;
     u32 parse_u32 (const StringManager& line_items, u16 start_idx) const;
     u16 parse_unit_type (const StringManager& line_items, u16 start_idx) const;
+    u16 parse_res_type (const StringManager& line_items, u16 start_idx) const;
     ItemReqsStruct parse_item_reqs (const StringManager& line_items, u16 start_idx) const;
     ItemEffectsStruct parse_item_effects (const StringManager& line_items, u16 start_idx) const;
     ItemEffectsStruct parse_item_effects_optional (const StringManager& line_items, u16 start_idx) const;

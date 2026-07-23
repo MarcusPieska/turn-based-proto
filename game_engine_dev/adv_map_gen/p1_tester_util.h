@@ -55,7 +55,7 @@ struct P1_TesterCfg {
     cstr m_out_sec;
 };
 
-static const P1_TesterCfg g_p1_tester_tbl[] = {
+static const P1_TesterCfg g_p1_tester_tbl[] = { 
     {"p1_gen_cont_outlines_tester", 1u, P1_TIN_NONE, 0u, "01_outline.ppm", ""},
     {"p1_adj_outline_fill_tester", 2u, P1_TIN_EARLY, 1u, "02_outline_fill.ppm", ""},
     {"p1_gen_noise_perlin_tester", 3u, P1_TIN_EARLY, 3u, "03_noise_perlin.ppm", ""},
@@ -95,7 +95,15 @@ static const P1_TesterCfg g_p1_tester_tbl[] = {
     {"p1_adj_ensure_adj_rules_tester", P1_STEP_ENSURE_ADJ, P1_TIN_MK, P1_STEP_DELTA_SWAMPS, "41_ensure_adj_rules.ppm", "41_ensure_adj_rules_terrain.ppm"},
     {"p1_gen_forest_overlay_tester", P1_STEP_FOREST_OVERLAY, P1_TIN_MK, P1_STEP_COAST_FERT_ADJ, "39_forest_overlay.ppm", ""},
     {"p1_adj_delta_swamps_tester", P1_STEP_DELTA_SWAMPS, P1_TIN_MK, P1_STEP_FOREST_OVERLAY, "40_delta_swamps.ppm", "40_delta_swamps_climate.ppm"},
-    {"r1_gen_res_overlay_tester", P1_STEP_RESOURCES, P1_TIN_MK, P1_STEP_DELTA_SWAMPS, "42_resources.ppm", ""},
+    {"r1_adj_general_placement_tester", P1_STEP_RESOURCES, P1_TIN_MK, P1_STEP_DELTA_SWAMPS, "42_resources.ppm", ""},
+    {"r1_gen_res_sectors_tester", P1_STEP_RESOURCES, P1_TIN_MK, P1_STEP_DELTA_SWAMPS, "43_res_sectors.ppm", "43_res_sectors_terrain.ppm"},
+    {"r1_adj_gemstone_placements_tester", P1_STEP_RESOURCES, P1_TIN_MK, P1_STEP_DELTA_SWAMPS, "44_gemstone_placements.ppm", ""},
+    {"r1_adj_metal_placements_tester", P1_STEP_RESOURCES, P1_TIN_MK, P1_STEP_DELTA_SWAMPS, "45_metal_placements.ppm", ""},
+    {"r1_adj_livestock_placements_tester", P1_STEP_RESOURCES, P1_TIN_MK, P1_STEP_DELTA_SWAMPS, "46_livestock_placements.ppm", ""},
+    {"r1_adj_food_crop_placements_tester", P1_STEP_RESOURCES, P1_TIN_MK, P1_STEP_DELTA_SWAMPS, "47_food_crop_placements.ppm", ""},
+    {"r1_adj_spice_placements_tester", P1_STEP_RESOURCES, P1_TIN_MK, P1_STEP_DELTA_SWAMPS, "48_spice_placements.ppm", ""},
+    {"r1_adj_cash_crop_placements_tester", P1_STEP_RESOURCES, P1_TIN_MK, P1_STEP_DELTA_SWAMPS, "49_cash_crop_placements.ppm", ""},
+    {"r1_adj_produce_placements_tester", P1_STEP_RESOURCES, P1_TIN_MK, P1_STEP_DELTA_SWAMPS, "50_produce_placements.ppm", ""},
 };
 
 static const P1_TesterCfg* g_p1_tester_cfg = nullptr;

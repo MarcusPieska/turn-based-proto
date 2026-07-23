@@ -23,8 +23,9 @@ if __name__ == "__main__":
     specs.append(("civ", "Civ", "CivTraitStruct traits;", "traits.indices[0]", "traits.indices[1]"))
     specs.append(("civ_trait", "CivTrait", "", "None", "None"))
     specs.append(("tile_attribute", "TileAttribute", "u16 mvt_cost; i16 food; u16 production; u16 commerce; u16 culture; u16 science; u16 religion; u16 attack_mod; u16 defense_mod;", "None", "None"))
-    specs.append(("resource", "Resource", std_members + "u16 food; u16 shields; u16 commerce; u16 res_dist_idx;", "food", "shields"))
+    specs.append(("resource", "Resource", std_members + "u16 food; u16 shields; u16 commerce; u16 type; u16 res_dist_idx;", "food", "type"))
     specs.append(("res_dist", "ResDist", "u8 has_plc; ResPlacement plc;", "None", "None"))
+    specs.append(("res_type", "ResType", "", "None", "None"))
     
     specs.append(("small_wonder", "SmallWonder", std_members + "u32 cost; ItemEffectsStruct effects;", "cost", "effects.items[0].type"))
     specs.append(("tech", "Tech", std_members + "ItemEffectsStruct effects; u32 cost; u16 tier;", "cost", "tier"))
@@ -33,6 +34,7 @@ if __name__ == "__main__":
     specs.append(("unit_type", "UnitType", "", "None", "None"))
     
     specs.append(("wonder", "Wonder", std_members + "u32 cost; ItemEffectsStruct effects;", "cost", "effects.items[0].type"))
+    specs.append(("worker_job", "WorkerJob", std_members + "u32 cost;", "cost", "reqs.types[0]"))
 
     total_failures = 0
 

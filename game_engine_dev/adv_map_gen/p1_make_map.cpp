@@ -47,7 +47,8 @@
 #include "p1_tester_cli.h"
 #include "p1_tester_util.h"
 #include "p1_wb_util.h"
-#include "r1_gen_res_overlay.h"
+#include "r1_gen_std_res_dist.h"
+#include "r1_gen_empty_resource_overlay.h"
 #include "res_statics.h"
 #include "runtime_statics.h"
 
@@ -870,7 +871,7 @@ bool P1_MakeMap::generate (u16 last_step) {
             ctx.m_climate = climate_copy;
             ctx.m_river = river;
             ctx.m_overlay = overlay;
-            R1_Gen_ResOverlay res_gen;
+            R1_Gen_StdResDist res_gen;
             ok = res_gen.generate(ctx, p1_rt_statics(), m_mp.m_res_base_n, m_prm.m_seed) && res_gen.is_valid();
             if (ok) {
                 m_rslt.m_resources = res_gen.take_overlay();
@@ -1014,7 +1015,7 @@ bool P1_MakeMap::save_resources_ppm (cstr path) const {
     ctx.m_climate = m_rslt.m_climate;
     ctx.m_river = m_rslt.m_rivers;
     ctx.m_overlay = m_rslt.m_overlay;
-    return R1_Gen_ResOverlay::save_ppm(path, ctx, m_rslt.m_resources, m_rslt.m_w, m_rslt.m_h, 255u);
+    return R1_Gen_EmptyResourceOverlay::save_ppm(path, ctx, m_rslt.m_resources, m_rslt.m_w, m_rslt.m_h, 255u);
 }
 
 bool P1_MakeMap::save_seed_export () const {

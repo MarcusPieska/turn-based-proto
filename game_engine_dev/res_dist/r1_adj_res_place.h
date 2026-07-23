@@ -47,6 +47,20 @@ bool r1_adj_res_place_u8 (
     u32* placed_n,
     double* sec_out);
 
+bool r1_adj_res_place_fair (
+    u16* res_ov,
+    u16 w,
+    u16 h,
+    const ResPlcMapCtx& ctx,
+    const RuntimeStatics& s,
+    const u16* res_is,
+    const u32* soft_want,
+    const u32* hard_want,
+    u16 res_n,
+    u32 seed,
+    u32* placed_out,
+    u32* placed_tot);
+
 #endif // R1_ADJ_RES_PLACE_H
 
 //================================================================================================================================

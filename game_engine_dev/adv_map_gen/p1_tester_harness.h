@@ -34,6 +34,7 @@ public:
     const P1_Adj_LandAltitudePrm& lap () const;
     u8 rain_wt () const;
     bool rain_wt_set () const;
+    u16 sec_pct () const;
     const P1_RunPrm& prm () const;
     const MapConfig& cfg () const;
     u32 seed () const;

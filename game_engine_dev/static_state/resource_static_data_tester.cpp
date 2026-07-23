@@ -73,9 +73,9 @@ public:
 
 void test_set_items_updates_count () {
     static ResourceStaticDataStruct items[3];
-    items[0].food = 1;  items[0].shields = 10;
-    items[1].food = 2;  items[1].shields = 20;
-    items[2].food = 3;  items[2].shields = 30;
+    items[0].food = 1;  items[0].type = 10;
+    items[1].food = 2;  items[1].type = 20;
+    items[2].food = 3;  items[2].type = 30;
     ResourceStaticData data;
     data.set_items(items, 3);
     note_result(data.get_item_count() == 3, "set_items updates item count");
@@ -84,10 +84,10 @@ void test_set_items_updates_count () {
 
 void test_get_item_returns_expected_struct_by_key () {
     static ResourceStaticDataStruct items[4];
-    items[0].food = 7;   items[0].shields = 70;
-    items[1].food = 8;   items[1].shields = 80;
-    items[2].food = 9;   items[2].shields = 90;
-    items[3].food = 10;  items[3].shields = 100;
+    items[0].food = 7;   items[0].type = 70;
+    items[1].food = 8;   items[1].type = 80;
+    items[2].food = 9;   items[2].type = 90;
+    items[3].food = 10;  items[3].type = 100;
     ResourceStaticData data;
     data.set_items(items, 4);
 
@@ -95,14 +95,14 @@ void test_get_item_returns_expected_struct_by_key () {
     const ResourceStaticDataStruct& item = data.get_item(key);
 
     note_result(item.food == 9, "get_item returns expected member1");
-    note_result(item.shields == 90, "get_item returns expected member2");
+    note_result(item.type == 90, "get_item returns expected member2");
     summarize_test_results();
 }
 
 void test_get_item_returns_reference_to_backing_array () {
     static ResourceStaticDataStruct items[2];
-    items[0].food = 11;  items[0].shields = 110;
-    items[1].food = 12;  items[1].shields = 120;
+    items[0].food = 11;  items[0].type = 110;
+    items[1].food = 12;  items[1].type = 120;
     ResourceStaticData data;
     data.set_items(items, 2);
 
@@ -115,14 +115,14 @@ void test_get_item_returns_reference_to_backing_array () {
 
 void test_set_items_can_replace_array_and_count () {
     static ResourceStaticDataStruct items_a[2];
-    items_a[0].food = 21; items_a[0].shields = 210;
-    items_a[1].food = 22; items_a[1].shields = 220;
+    items_a[0].food = 21; items_a[0].type = 210;
+    items_a[1].food = 22; items_a[1].type = 220;
     static ResourceStaticDataStruct items_b[5];
-    items_b[0].food = 31; items_b[0].shields = 131;
-    items_b[1].food = 32; items_b[1].shields = 132;
-    items_b[2].food = 33; items_b[2].shields = 133;
-    items_b[3].food = 34; items_b[3].shields = 134;
-    items_b[4].food = 35; items_b[4].shields = 135;
+    items_b[0].food = 31; items_b[0].type = 131;
+    items_b[1].food = 32; items_b[1].type = 132;
+    items_b[2].food = 33; items_b[2].type = 133;
+    items_b[3].food = 34; items_b[3].type = 134;
+    items_b[4].food = 35; items_b[4].type = 135;
 
     ResourceStaticData data;
     data.set_items(items_a, 2);
@@ -138,7 +138,7 @@ void test_set_items_can_replace_array_and_count () {
 
 void test_zero_count_is_allowed () {
     static ResourceStaticDataStruct items[1];
-    items[0].food = 41; items[0].shields = 141;
+    items[0].food = 41; items[0].type = 141;
     ResourceStaticData data;
     data.set_items(items, 0);
     note_result(data.get_item_count() == 0, "zero item count can be stored");
@@ -147,8 +147,8 @@ void test_zero_count_is_allowed () {
 
 void test_take_ownership_copies_backing_array () {
     ResourceStaticDataStruct* items = new ResourceStaticDataStruct[2];
-    items[0].food = 51; items[0].shields = 151;
-    items[1].food = 52; items[1].shields = 152;
+    items[0].food = 51; items[0].type = 151;
+    items[1].food = 52; items[1].type = 152;
     ResourceStaticData data;
     data.set_items(items, 2);
     ResourceStaticDataKey key = ResourceStaticDataTester::make_key(1);
@@ -158,7 +158,7 @@ void test_take_ownership_copies_backing_array () {
 
     note_result(&item != src_ref, "take_ownership uses a distinct buffer");
     note_result(item.food == 52, "take_ownership preserves member1");
-    note_result(item.shields == 152, "take_ownership preserves member2");
+    note_result(item.type == 152, "take_ownership preserves member2");
     data.release_items();
     summarize_test_results();
 }

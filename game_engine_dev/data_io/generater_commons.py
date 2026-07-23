@@ -20,12 +20,14 @@ def get_entries ():
         "tile_attribute",
         "resource",
         "res_dist",
+        "res_type",
         "small_wonder",
         "tech",
         "unit",
         "unit_action",
         "unit_type",
         "wonder",
+        "worker_job",
     ]
 
 def get_req_test_stems ():
@@ -37,6 +39,7 @@ def get_req_test_stems ():
         "unit",
         "wonder",
         "small_wonder",
+        "worker_job",
     ]
 
 def get_map_specs ():

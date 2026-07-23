@@ -25,12 +25,14 @@ class StaticBitBank;
 #include "tile_attribute_parser.h"
 #include "resource_parser.h"
 #include "res_dist_parser.h"
+#include "res_type_parser.h"
 #include "small_wonder_parser.h"
 #include "tech_parser.h"
 #include "unit_parser.h"
 #include "unit_action_parser.h"
 #include "unit_type_parser.h"
 #include "wonder_parser.h"
+#include "worker_job_parser.h"
 
 #include "building_static_data.h"
 #include "city_flag_static_data.h"
@@ -39,12 +41,14 @@ class StaticBitBank;
 #include "tile_attribute_static_data.h"
 #include "resource_static_data.h"
 #include "res_dist_static_data.h"
+#include "res_type_static_data.h"
 #include "small_wonder_static_data.h"
 #include "tech_static_data.h"
 #include "unit_static_data.h"
 #include "unit_action_static_data.h"
 #include "unit_type_static_data.h"
 #include "wonder_static_data.h"
+#include "worker_job_static_data.h"
 
 //================================================================================================================================
 //=> - StaticParsingManager class -
@@ -83,6 +87,10 @@ public:
 
     u16 get_res_dist_count () const;
 
+    const ResTypeStaticDataStruct* get_res_type_data () const;
+
+    u16 get_res_type_count () const;
+
     const SmallWonderStaticDataStruct* get_small_wonder_data () const;
 
     u16 get_small_wonder_count () const;
@@ -106,6 +114,10 @@ public:
     const WonderStaticDataStruct* get_wonder_data () const;
 
     u16 get_wonder_count () const;
+
+    const WorkerJobStaticDataStruct* get_worker_job_data () const;
+
+    u16 get_worker_job_count () const;
     const DataParserBase& get_building_name_parser () const;
 
     const DataParserBase& get_city_flag_name_parser () const;
@@ -120,6 +132,8 @@ public:
 
     const DataParserBase& get_res_dist_name_parser () const;
 
+    const DataParserBase& get_res_type_name_parser () const;
+
     const DataParserBase& get_small_wonder_name_parser () const;
 
     const DataParserBase& get_tech_name_parser () const;
@@ -131,6 +145,8 @@ public:
     const DataParserBase& get_unit_type_name_parser () const;
 
     const DataParserBase& get_wonder_name_parser () const;
+
+    const DataParserBase& get_worker_job_name_parser () const;
     
     StaticBitBank* get_unit_type_action_map_bank () const;
 
@@ -162,12 +178,14 @@ private:
     StringManager m_tile_attribute_items;
     StringManager m_resource_items;
     StringManager m_res_dist_items;
+    StringManager m_res_type_items;
     StringManager m_small_wonder_items;
     StringManager m_tech_items;
     StringManager m_unit_items;
     StringManager m_unit_action_items;
     StringManager m_unit_type_items;
     StringManager m_wonder_items;
+    StringManager m_worker_job_items;
 
     DataParserBase* m_building_name_parser;
     DataParserBase* m_city_flag_name_parser;
@@ -176,12 +194,14 @@ private:
     DataParserBase* m_tile_attribute_name_parser;
     DataParserBase* m_resource_name_parser;
     DataParserBase* m_res_dist_name_parser;
+    DataParserBase* m_res_type_name_parser;
     DataParserBase* m_small_wonder_name_parser;
     DataParserBase* m_tech_name_parser;
     DataParserBase* m_unit_name_parser;
     DataParserBase* m_unit_action_name_parser;
     DataParserBase* m_unit_type_name_parser;
     DataParserBase* m_wonder_name_parser;
+    DataParserBase* m_worker_job_name_parser;
 
     NameToIdxCbs m_name_to_idx_cbs;
     u16 m_callback_count;
@@ -196,12 +216,14 @@ private:
     TileAttributeStaticDataStruct* m_tile_attribute_data;
     ResourceStaticDataStruct* m_resource_data;
     ResDistStaticDataStruct* m_res_dist_data;
+    ResTypeStaticDataStruct* m_res_type_data;
     SmallWonderStaticDataStruct* m_small_wonder_data;
     TechStaticDataStruct* m_tech_data;
     UnitStaticDataStruct* m_unit_data;
     UnitActionStaticDataStruct* m_unit_action_data;
     UnitTypeStaticDataStruct* m_unit_type_data;
     WonderStaticDataStruct* m_wonder_data;
+    WorkerJobStaticDataStruct* m_worker_job_data;
 };
 
 #endif // STATIC_PARSING_MANAGER_H

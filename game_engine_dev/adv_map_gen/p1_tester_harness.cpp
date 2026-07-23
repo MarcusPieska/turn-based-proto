@@ -242,6 +242,10 @@ bool P1_TesterHarness::rain_wt_set () const {
     return m_cli.rain_wt_set();
 }
 
+u16 P1_TesterHarness::sec_pct () const {
+    return m_cli.sec_pct();
+}
+
 u32 P1_TesterHarness::seed () const {
     return m_prm.m_seed;
 }

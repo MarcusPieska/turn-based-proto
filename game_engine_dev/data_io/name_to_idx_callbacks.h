@@ -21,12 +21,14 @@ typedef struct NameToIdxCbs {
     u16 (*tile_attribute_name_to_idx)(cstr);
     u16 (*resource_name_to_idx)(cstr);
     u16 (*res_dist_name_to_idx)(cstr);
+    u16 (*res_type_name_to_idx)(cstr);
     u16 (*small_wonder_name_to_idx)(cstr);
     u16 (*tech_name_to_idx)(cstr);
     u16 (*unit_name_to_idx)(cstr);
     u16 (*unit_action_name_to_idx)(cstr);
     u16 (*unit_type_name_to_idx)(cstr);
     u16 (*wonder_name_to_idx)(cstr);
+    u16 (*worker_job_name_to_idx)(cstr);
 } NameToIdxCbs;
 
 #endif // NAME_TO_IDX_CBS_H
