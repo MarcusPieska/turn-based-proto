@@ -47,6 +47,10 @@ static bool tile_has_river (const GameState& s, u16 x, u16 y) {
     return s.m_map.get_river(x, y) != 0u;
 }
 
+static bool is_diag (u16 fx, u16 fy, u16 tx, u16 ty) {
+    return fx != tx && fy != ty;
+}
+
 static bool is_water_terr (u8 terr) {
     return terr == TERR_OCEAN[0] || terr == TERR_SEA[0] || terr == TERR_COASTAL[0];
 }
@@ -413,10 +417,14 @@ i16 UnitMovementMng::tile_cost (const GameState& s, u16 from_x, u16 from_y, u16 
         return 0;
     }
     const i16 transport = pair_transport_cost(s, from_x, from_y, to_x, to_y);
-    if (transport > 0) {
-        return transport;
+    i16 n = transport > 0 ? transport : land_tile_cost(s, to_x, to_y);
+    if (n <= 0) {
+        return 0;
     }
-    return land_tile_cost(s, to_x, to_y);
+    if (is_diag(from_x, from_y, to_x, to_y)) {
+        n = static_cast<i16>(n + n / 2);
+    }
+    return n;
 }
 
 i16 UnitMovementMng::grp_min_mvt (const GameState& s, UnitAddKey key) {

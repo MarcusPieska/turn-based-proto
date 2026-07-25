@@ -15,11 +15,12 @@
 
 #define VERY_GREEN 0
 #define GREEN 1 // Default unit skill level
-#define DISCIPLINED 2
-#define HARDENED 3
-#define VETERAN 4
-#define COMMANDO 5
-#define ELITE 6
+#define REGULAR 2
+#define DISCIPLINED 3
+#define HARDENED 4
+#define VETERAN 5
+#define COMMANDO 6
+#define ELITE 7
 
 //================================================================================================================================
 //=> - UnitAddStruct -

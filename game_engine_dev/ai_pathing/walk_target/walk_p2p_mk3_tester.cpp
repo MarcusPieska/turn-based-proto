@@ -22,8 +22,8 @@ typedef const char* cstr;
 //=> - Constants -
 //================================================================================================================================
 
-static const cstr k_in_path = "/home/w/Projects/simple-map-gen/p1-seed-042/24_make_map_terrain.ppm";
-static const cstr k_in_riv = "/home/w/Projects/simple-map-gen/p1-seed-042/24_make_map_rivers.ppm";
+static const cstr k_in_path = "/home/w/Projects/simple-map-gen/p1-seed-42/terrain.ppm";
+static const cstr k_in_riv = "/home/w/Projects/simple-map-gen/p1-seed-42/rivers.ppm";
 static const cstr k_out_path = "/home/w/Projects/simple-map-gen/distance-p2p-mk3-walk.ppm";
 static const cstr k_trace_path = "/home/w/Projects/simple-map-gen/distance-p2p-mk3-walk.trace";
 static const u16 k_turn_none = 0xFFFFu;
