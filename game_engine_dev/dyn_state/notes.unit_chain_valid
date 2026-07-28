@@ -1,0 +1,31 @@
+The unit-chain meta-tester builds a tiny consistent world (a solo stack unit plus a two-unit group), confirms the cohesion checker is quiet, injects one deliberate corruption, and requires the checker to fail. Each paragraph below is one of those spoofs.
+
+Mixed coordinates leave a live unit with only one of its two position fields set, so it is neither a proper map head nor a proper null-xy follower.
+
+An out-of-range map stack head points the tile overlay at a pool index the unit vector has never allocated, so the map claims a unit that cannot exist.
+
+Unique map head places the same live unit as the stack head of two different tiles, so one body appears to occupy two places at once.
+
+A tile-stack cycle makes the on-tile next links loop among co-located units so a stack walk never reaches a clean end.
+
+A dead stack pointer leaves the map still naming a unit after that slot has been returned to the pool, so the overlay references garbage.
+
+Stack coordinates mismatch keeps a unit on a tile’s stack while its recorded position names a different tile, breaking the rule that stack members share the tile they hang from.
+
+An out-of-range group link makes a head’s follower pointer jump past the allocated pool, so the group chain cannot be followed safely.
+
+A group cycle closes the follower chain back onto an earlier member so walking the group never terminates.
+
+Dual group membership hangs the same follower off two different heads, so one unit belongs to two move-as-one chains.
+
+A dead group pointer keeps a head linked to a follower after that follower’s pool slot was recycled, so the chain names a unit that no longer lives.
+
+Head in the tail restores real coordinates on a unit that is still listed as a non-head follower, violating the rule that only the group head may be positioned on the map.
+
+A stack unit also used as another group’s follower attaches a map-visible unit into a second head’s chain, so the same unit is claimed both as an independent stack presence and as someone else’s tail.
+
+A positioned unit missing from the map keeps real coordinates in the vector while no tile stack mentions it, so the unit claims a place the overlay does not show.
+
+An orphan tail clears the only group link that reached a null-xy follower, leaving a shadow unit that is neither on a stack nor in any group.
+
+A null-xy tail installed as a map stack head puts a follower-shaped unit onto the tile overlay as if it were a positioned head, mixing the two axes that must stay exclusive.

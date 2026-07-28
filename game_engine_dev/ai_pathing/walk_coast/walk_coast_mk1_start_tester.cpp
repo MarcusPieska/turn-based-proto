@@ -17,6 +17,7 @@
 #include "game_map_grid_defs.h"
 #include "game_primitives.h"
 #include "map_bit_overlay.h"
+#include "runtime_static_loader.h"
 
 typedef const char* cstr;
 
@@ -30,13 +31,29 @@ static const cstr WC_IN_RIV = "/home/w/Projects/simple-map-gen/p1-seed-042/24_ma
 static const cstr WC_START_MAP = "/home/w/Projects/simple-map-gen/walk_coast_mk1_start_map.ppm";
 static const cstr WC_OUT = "/home/w/Projects/simple-map-gen/walk_coast_mk1_start_result.ppm";
 static const cstr WC_FRAMES = "/home/w/Projects/simple-map-gen/walk_coast_mk1_start_frames";
-static const u16 WC_TURNS = PATH_MP_TURN;
+static u16 WC_TURNS = 0;
+static const cstr G_LIB = "../../data_io/runtime_static_loader_lib.so";
+static const cstr G_DATA = "../../";
 static const u16 WC_SIGHT = 3u;
 
 static const u8 k_ov_off = 0u;
 static const u8 k_ov_land = 1u;
 static const u8 k_ov_walk = 2u;
 static const u8 k_ov_repo = 3u;
+
+static RuntimeStaticLoader g_rt_loader;
+static RuntimeStatics* g_rt_statics = nullptr;
+
+static bool load_statics () {
+    if (g_rt_statics != nullptr) {
+        return true;
+    }
+    if (!g_rt_loader.load(G_LIB, G_DATA)) {
+        return false;
+    }
+    g_rt_statics = &g_rt_loader.statics();
+    return true;
+}
 
 
 static const cstr k_ansi_rst = "\033[0m";
@@ -507,6 +524,11 @@ static bool save_frame_ppm (
 int main (int argc, char** argv) {
     const bool verbose = (argc >= 2 && argv[1] != nullptr && std::atoi(argv[1]) >= 2);
     print_cls_size(sizeof(WalkCoastMk1));
+    if (!load_statics()) {
+        t_fail("*** FAILED load statics\n");
+        return 1;
+    }
+    WC_TURNS = g_rt_statics->config().get_mov_pt_per_turn();
     GameArraySimple map;
     if (!Factory_GameArraySimple::load_map_gen_data(&map, WC_IN_TERR, WC_IN_CLIM, WC_IN_RIV)) {
         t_fail("*** FAILED load map\n");

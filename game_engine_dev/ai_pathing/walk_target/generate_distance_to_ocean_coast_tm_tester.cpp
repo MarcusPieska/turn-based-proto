@@ -10,6 +10,7 @@
 #include "ai_whiteboard.h"
 #include "game_map_defs.h"
 #include "map_loader.h"
+#include "runtime_static_loader.h"
 
 typedef const char* cstr;
 
@@ -29,9 +30,28 @@ static const u8 k_riv_r = 40;
 static const u8 k_riv_g = 160;
 static const u8 k_riv_b = 255;
 
+static const cstr G_LIB = "../../data_io/runtime_static_loader_lib.so";
+static const cstr G_DATA = "../../";
+
+static RuntimeStaticLoader g_rt_loader;
+static RuntimeStatics* g_rt_statics = nullptr;
+static u16 g_mp_turn = 0;
+
 //================================================================================================================================
 //=> - Helpers -
 //================================================================================================================================
+
+static bool load_statics () {
+    if (g_rt_statics != nullptr) {
+        return true;
+    }
+    if (!g_rt_loader.load(G_LIB, G_DATA)) {
+        return false;
+    }
+    g_rt_statics = &g_rt_loader.statics();
+    g_mp_turn = g_rt_statics->config().get_mov_pt_per_turn();
+    return true;
+}
 
 static bool is_water (u8 t) {
     return t == TERR_OCEAN[0] || t == TERR_SEA[0] || t == TERR_COASTAL[0];
@@ -165,6 +185,10 @@ static bool build_img_riv (
 //================================================================================================================================
 
 int main () {
+    if (!load_statics()) {
+        std::printf("*** FAILED load runtime statics\n");
+        return 1;
+    }
     MapTerrainData map;
     if (!MapLoader::load_terrain_ppm(k_in_path, map)) {
         std::printf("*** FAILED load %s\n", k_in_path);
@@ -201,7 +225,7 @@ int main () {
         scr0.get(), scr1.get()};
     const clock_t t0 = clock();
     const bool ok = Generate_DistanceToOceanCoast_Tm::generate(
-        terrain, rivers, w, h, turn_sh.get(), scr, &max_d);
+        terrain, rivers, w, h, turn_sh.get(), scr, g_mp_turn, &max_d);
     const double gen_sec = static_cast<double>(clock() - t0) / static_cast<double>(CLOCKS_PER_SEC);
     if (!ok) {
         delete[] rivers;

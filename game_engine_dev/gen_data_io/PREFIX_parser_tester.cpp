@@ -237,6 +237,42 @@ void [CLASS_TAG]ParserTester::pr_fx (cstr label, const ItemEffectsStruct& e) {
             }
             break;
         }
+        case ItemEffectType::SET_FLAG: {
+            const ItemEffectSetFlag& sf = slot.effect.set_flag;
+            const char* sc = "?";
+            switch (sf.scope) {
+                case ItemEffectsScope::LOCAL: sc = "LOCAL"; break;
+                case ItemEffectsScope::CITY: sc = "CITY"; break;
+                case ItemEffectsScope::CIV: sc = "CIV"; break;
+                case ItemEffectsScope::GLOBAL: sc = "GLOBAL"; break;
+                default: break;
+            }
+            if (sf.flag_id == U16_KEY_NULL) {
+                fprintf(out(), " setFlag");
+            } else if (m_city_flag_sd != NULL && sf.flag_id < m_city_flag_sd->get_item_count()) {
+                fprintf(out(), " setFlag %s (%u)", m_city_flag_sd->get_name(CityFlagStaticDataKey::from_raw(sf.flag_id)), static_cast<u32>(sf.flag_id));
+            } else if (m_city_flag_psr != NULL) {
+                fprintf(out(), " setFlag %s (%u)", m_city_flag_psr->idx_to_name(sf.flag_id), static_cast<u32>(sf.flag_id));
+            } else {
+                fprintf(out(), " setFlag <unknown> (%u)", static_cast<u32>(sf.flag_id));
+            }
+            fprintf(out(), " scope=%s", sc);
+            break;
+        }
+        case ItemEffectType::PRODUCE: {
+            const ItemEffectProduce& pr = slot.effect.produce;
+            if (pr.resource_id == U16_KEY_NULL) {
+                fprintf(out(), " produce");
+            } else if (m_resource_sd != NULL && pr.resource_id < m_resource_sd->get_item_count()) {
+                fprintf(out(), " produce %s (%u)", m_resource_sd->get_name(ResourceStaticDataKey::from_raw(pr.resource_id)), static_cast<u32>(pr.resource_id));
+            } else if (m_resource_psr != NULL) {
+                fprintf(out(), " produce %s (%u)", m_resource_psr->idx_to_name(pr.resource_id), static_cast<u32>(pr.resource_id));
+            } else {
+                fprintf(out(), " produce <unknown> (%u)", static_cast<u32>(pr.resource_id));
+            }
+            fprintf(out(), " amount=%d", static_cast<int>(pr.amount));
+            break;
+        }
         case ItemEffectType::TERRAIN_BOOSTER:
             fprintf(out(), " TERRAIN_BOOSTER");
             break;

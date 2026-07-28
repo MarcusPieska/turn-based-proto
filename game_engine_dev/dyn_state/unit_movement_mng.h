@@ -56,6 +56,17 @@ public:
     static bool place_on_tile (GameState& s, u16 x, u16 y, u16 player_idx, u16 typ_idx, UnitAddKey* out);
     static bool link_group (GameState& s, UnitAddKey head, UnitAddKey tail);
     static bool unlink_group (GameState& s, UnitAddKey tail);
+
+    // More specific API tailored to certain AI procedures
+    static bool muster_leave_one_defense (GameState& s, u16 x, u16 y, u16 player_idx, UnitAddKey* out_head);
+    static bool campaign_leave_five_defense (GameState& s, u16 x, u16 y, u16 player_idx, UnitAddKey* out_head);
+    static bool destroy_unit (GameState& s, UnitAddKey key);
+    static bool split_group_half_by_type (
+        GameState& s,
+        UnitAddKey head,
+        UnitAddKey force_go,
+        UnitAddKey* out_stay,
+        UnitAddKey* out_go);
 };
 
 #endif // UNIT_MOVEMENT_MNG_H

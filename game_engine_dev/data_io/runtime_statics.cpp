@@ -63,12 +63,14 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_small_wonder.load_names_from(p.get_small_wonder_name_parser(), p.get_small_wonder_count());
     m_tech.set_items(const_cast<TechStaticDataStruct*>(p.get_tech_data()), p.get_tech_count());
     m_tech.load_names_from(p.get_tech_name_parser(), p.get_tech_count());
-    m_unit.set_items(const_cast<UnitStaticDataStruct*>(p.get_unit_data()), p.get_unit_count());
-    m_unit.load_names_from(p.get_unit_name_parser(), p.get_unit_count());
     m_unit_action.set_items(const_cast<UnitActionStaticDataStruct*>(p.get_unit_action_data()), p.get_unit_action_count());
     m_unit_action.load_names_from(p.get_unit_action_name_parser(), p.get_unit_action_count());
+    m_unit_role.set_items(const_cast<UnitRoleStaticDataStruct*>(p.get_unit_role_data()), p.get_unit_role_count());
+    m_unit_role.load_names_from(p.get_unit_role_name_parser(), p.get_unit_role_count());
     m_unit_type.set_items(const_cast<UnitTypeStaticDataStruct*>(p.get_unit_type_data()), p.get_unit_type_count());
     m_unit_type.load_names_from(p.get_unit_type_name_parser(), p.get_unit_type_count());
+    m_unit.set_items(const_cast<UnitStaticDataStruct*>(p.get_unit_data()), p.get_unit_count());
+    m_unit.load_names_from(p.get_unit_name_parser(), p.get_unit_count());
     m_wonder.set_items(const_cast<WonderStaticDataStruct*>(p.get_wonder_data()), p.get_wonder_count());
     m_wonder.load_names_from(p.get_wonder_name_parser(), p.get_wonder_count());
     m_worker_job.set_items(const_cast<WorkerJobStaticDataStruct*>(p.get_worker_job_data()), p.get_worker_job_count());
@@ -96,9 +98,10 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_res_type.take_ownership();
     m_small_wonder.take_ownership();
     m_tech.take_ownership();
-    m_unit.take_ownership();
     m_unit_action.take_ownership();
+    m_unit_role.take_ownership();
     m_unit_type.take_ownership();
+    m_unit.take_ownership();
     m_wonder.take_ownership();
     m_worker_job.take_ownership();
     
@@ -201,14 +204,6 @@ const TechStaticData& RuntimeStatics::tech () const {
     return m_tech;
 }
 
-UnitStaticData& RuntimeStatics::unit () {
-    return m_unit;
-}
-
-const UnitStaticData& RuntimeStatics::unit () const {
-    return m_unit;
-}
-
 UnitActionStaticData& RuntimeStatics::unit_action () {
     return m_unit_action;
 }
@@ -217,12 +212,28 @@ const UnitActionStaticData& RuntimeStatics::unit_action () const {
     return m_unit_action;
 }
 
+UnitRoleStaticData& RuntimeStatics::unit_role () {
+    return m_unit_role;
+}
+
+const UnitRoleStaticData& RuntimeStatics::unit_role () const {
+    return m_unit_role;
+}
+
 UnitTypeStaticData& RuntimeStatics::unit_type () {
     return m_unit_type;
 }
 
 const UnitTypeStaticData& RuntimeStatics::unit_type () const {
     return m_unit_type;
+}
+
+UnitStaticData& RuntimeStatics::unit () {
+    return m_unit;
+}
+
+const UnitStaticData& RuntimeStatics::unit () const {
+    return m_unit;
 }
 
 WonderStaticData& RuntimeStatics::wonder () {

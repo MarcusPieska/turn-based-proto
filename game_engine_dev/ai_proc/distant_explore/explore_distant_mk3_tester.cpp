@@ -9,6 +9,7 @@
 #include "factory_game_array_simple.h"
 #include "game_map_defs.h"
 #include "map_terrain_validate.h"
+#include "runtime_static_loader.h"
 #include "runtime_trace_dbg.h"
 
 typedef const char* cstr;
@@ -25,8 +26,24 @@ static const cstr ED3_TRACE = "explore_distant_test.trace";
 static const u16 ED3_SX = 499u;
 static const u16 ED3_SY = 499u;
 static const u16 ED3_SIGHT = 3u;
-static const u16 ED3_TURNS = PATH_MP_TURN;
+static u16 ED3_TURNS = 0;
 static const u16 ED3_MOVES = 3u;
+static const cstr G_LIB = "../../data_io/runtime_static_loader_lib.so";
+static const cstr G_DATA = "../../";
+
+static RuntimeStaticLoader g_rt_loader;
+static RuntimeStatics* g_rt_statics = nullptr;
+
+static bool load_statics () {
+    if (g_rt_statics != nullptr) {
+        return true;
+    }
+    if (!g_rt_loader.load(G_LIB, G_DATA)) {
+        return false;
+    }
+    g_rt_statics = &g_rt_loader.statics();
+    return true;
+}
 
 //================================================================================================================================
 //=> - Helpers -
@@ -150,6 +167,11 @@ static bool save_wp_ppm (
 //================================================================================================================================
 
 int main () {
+    if (!load_statics()) {
+        std::printf("*** FAILED load statics\n");
+        return 1;
+    }
+    ED3_TURNS = g_rt_statics->config().get_mov_pt_per_turn();
     GameArraySimple map;
     if (!Factory_GameArraySimple::load_map_gen_data(&map, ED3_IN_TERR, ED3_IN_CLIM, ED3_IN_RIV)) {
         std::printf("*** FAILED load map\n");

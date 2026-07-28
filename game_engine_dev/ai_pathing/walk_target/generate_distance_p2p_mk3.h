@@ -34,6 +34,7 @@ public:
         MapBitArrayOverlay* step_o,
         u32* pred,
         u16** scr,
+        u16 mp_turn,
         u16* out_max);
 
 private:

@@ -23,9 +23,10 @@ def get_entries ():
         "res_type",
         "small_wonder",
         "tech",
-        "unit",
         "unit_action",
+        "unit_role",
         "unit_type",
+        "unit",
         "wonder",
         "worker_job",
     ]

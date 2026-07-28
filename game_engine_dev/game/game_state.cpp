@@ -39,6 +39,7 @@ void GameState::clear () {
     m_wonder_count = 0;
     m_small_wonder_count = 0;
     m_civ_relations.reset(0);
+    m_combat_mods.clear();
     m_map.clear();
 
     // These are the arrays over which the game loop iterates, and does most of its work.

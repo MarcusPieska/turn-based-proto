@@ -51,12 +51,14 @@ g++ $INC $CXXFLAGS -c small_wonder_parser.cpp -o small_wonder_parser.o
 g++ $INC $CXXFLAGS -c small_wonder_parser_tester.cpp -o small_wonder_parser_tester.o
 g++ $INC $CXXFLAGS -c tech_parser.cpp -o tech_parser.o
 g++ $INC $CXXFLAGS -c tech_parser_tester.cpp -o tech_parser_tester.o
-g++ $INC $CXXFLAGS -c unit_parser.cpp -o unit_parser.o
-g++ $INC $CXXFLAGS -c unit_parser_tester.cpp -o unit_parser_tester.o
 g++ $INC $CXXFLAGS -c unit_action_parser.cpp -o unit_action_parser.o
 g++ $INC $CXXFLAGS -c unit_action_parser_tester.cpp -o unit_action_parser_tester.o
+g++ $INC $CXXFLAGS -c unit_role_parser.cpp -o unit_role_parser.o
+g++ $INC $CXXFLAGS -c unit_role_parser_tester.cpp -o unit_role_parser_tester.o
 g++ $INC $CXXFLAGS -c unit_type_parser.cpp -o unit_type_parser.o
 g++ $INC $CXXFLAGS -c unit_type_parser_tester.cpp -o unit_type_parser_tester.o
+g++ $INC $CXXFLAGS -c unit_parser.cpp -o unit_parser.o
+g++ $INC $CXXFLAGS -c unit_parser_tester.cpp -o unit_parser_tester.o
 g++ $INC $CXXFLAGS -c wonder_parser.cpp -o wonder_parser.o
 g++ $INC $CXXFLAGS -c wonder_parser_tester.cpp -o wonder_parser_tester.o
 g++ $INC $CXXFLAGS -c worker_job_parser.cpp -o worker_job_parser.o
@@ -95,12 +97,14 @@ g++ $CXXFLAGS -o $OUT_BIN \
     small_wonder_parser_tester.o \
     tech_parser.o \
     tech_parser_tester.o \
-    unit_parser.o \
-    unit_parser_tester.o \
     unit_action_parser.o \
     unit_action_parser_tester.o \
+    unit_role_parser.o \
+    unit_role_parser_tester.o \
     unit_type_parser.o \
     unit_type_parser_tester.o \
+    unit_parser.o \
+    unit_parser_tester.o \
     wonder_parser.o \
     wonder_parser_tester.o \
     worker_job_parser.o \
@@ -140,12 +144,14 @@ rm runtime_static_loader.o runtime_statics_tester.o \
     small_wonder_parser_tester.o \
     tech_parser.o \
     tech_parser_tester.o \
-    unit_parser.o \
-    unit_parser_tester.o \
     unit_action_parser.o \
     unit_action_parser_tester.o \
+    unit_role_parser.o \
+    unit_role_parser_tester.o \
     unit_type_parser.o \
     unit_type_parser_tester.o \
+    unit_parser.o \
+    unit_parser_tester.o \
     wonder_parser.o \
     wonder_parser_tester.o \
     worker_job_parser.o \

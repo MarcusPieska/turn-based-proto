@@ -8,6 +8,7 @@
 #include "ai_whiteboard.h"
 #include "generate_distance_p2p_mk4.h"
 #include "game_map_defs.h"
+#include "runtime_static_loader.h"
 #include "walk_p2p_mk4.h"
 
 typedef const char* cstr;
@@ -29,6 +30,12 @@ static const u8 k_ck_riv = 3u;
 static const cstr k_ansi_rst = "\033[0m";
 static const cstr k_ansi_grn = "\033[32m";
 static const cstr k_ansi_blu = "\033[94m";
+
+static const cstr G_LIB = "../../data_io/runtime_static_loader_lib.so";
+static const cstr G_DATA = "../../";
+
+static RuntimeStaticLoader g_rt_loader;
+static RuntimeStatics* g_rt_statics = nullptr;
 
 struct WalkSimRes {
     u32 path_len;
@@ -115,6 +122,17 @@ static u32 tidx (u16 x, u16 y) {
     return static_cast<u32>(y) * static_cast<u32>(k_w) + static_cast<u32>(x);
 }
 
+static bool load_statics () {
+    if (g_rt_statics != nullptr) {
+        return true;
+    }
+    if (!g_rt_loader.load(G_LIB, G_DATA)) {
+        return false;
+    }
+    g_rt_statics = &g_rt_loader.statics();
+    return true;
+}
+
 static void decode_ck (const u8* ck, u8* terrain, u8* rivers) {
     for (u32 i = 0; i < k_tile_n; ++i) {
         switch (ck[i]) {
@@ -186,11 +204,12 @@ static WalkSimRes sim_walk (
     u16 sy,
     u16 dx,
     u16 dy,
+    u16 mp_turn,
     u8* path_m) {
     WalkSimRes res = {};
     u16 px = sx;
     u16 py = sy;
-    i32 mp = static_cast<i32>(PATH_MP_TURN);
+    i32 mp = static_cast<i32>(mp_turn);
     u32 turn = 1u;
     for (u32 i = 0; i < k_tile_n; ++i) {
         path_m[i] = 0u;
@@ -226,7 +245,7 @@ static WalkSimRes sim_walk (
             break;
         }
         turn++;
-        mp += static_cast<i32>(PATH_MP_TURN);
+        mp += static_cast<i32>(mp_turn);
     }
     res.game_turns = turn;
     return res;
@@ -270,6 +289,7 @@ static void print_path_view (
 }
 
 static bool run_case (const CtrlCase& cs) {
+    const u16 mp_turn = g_rt_statics->config().get_mov_pt_per_turn();
     u8 terrain[k_tile_n];
     u8 rivers[k_tile_n];
     decode_ck(cs.m_ck, terrain, rivers);
@@ -306,7 +326,7 @@ static bool run_case (const CtrlCase& cs) {
     const WalkP2P_Mk4 wk;
     const WalkSimRes wres = sim_walk(
         wk, dist, terrain, rivers,
-        cs.m_src_x, cs.m_src_y, cs.m_dst_x, cs.m_dst_y, path_m);
+        cs.m_src_x, cs.m_src_y, cs.m_dst_x, cs.m_dst_y, mp_turn, path_m);
     print_path_view(cs.m_ck, rivers, path_m,
         cs.m_src_x, cs.m_src_y, cs.m_dst_x, cs.m_dst_y);
     std::printf("  src (%u,%u) dst (%u,%u) max_turn %u walk %s len %u turns %u\n",
@@ -327,6 +347,10 @@ static bool run_case (const CtrlCase& cs) {
 //================================================================================================================================
 
 int main () {
+    if (!load_statics()) {
+        std::printf("*** FAILED load runtime statics\n");
+        return 1;
+    }
     u32 pass = 0;
     for (u32 i = 0; i < k_case_n; ++i) {
         if (run_case(k_cases[i])) {

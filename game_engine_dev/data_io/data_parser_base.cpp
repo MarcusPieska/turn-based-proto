@@ -327,8 +327,47 @@ u16 DataParserBase::parse_unit_type (const StringManager& line_items, u16 start_
     return m_name_to_idx_cbs.unit_type_name_to_idx(line_items.get_string_content(start_idx));
 }
 
+u16 DataParserBase::parse_unit_role (const StringManager& line_items, u16 start_idx) const {
+    return m_name_to_idx_cbs.unit_role_name_to_idx(line_items.get_string_content(start_idx));
+}
+
 u16 DataParserBase::parse_res_type (const StringManager& line_items, u16 start_idx) const {
     return m_name_to_idx_cbs.res_type_name_to_idx(line_items.get_string_content(start_idx));
+}
+
+CombatModList DataParserBase::parse_combat_mods (const StringManager& line_items, u16 start_idx) const {
+    CombatModList out = {};
+    for (u16 i = start_idx; i < line_items.get_string_count() && out.m_n < COMBAT_MOD_MAX; ++i) {
+        cstr raw = line_items.get_string_content(i);
+        if (raw == nullptr || raw[0] == '\0') {
+            continue;
+        }
+        StringManager parts;
+        parts.load_cstr_content(raw);
+        parts.split_string_by_char(0, ',');
+        for (u32 p = 0; p < parts.get_string_count(); ++p) {
+            parts.trim_head_char(p, ' ');
+            parts.trim_tail_char(p, ' ');
+            parts.trim_head_char(p, '\t');
+            parts.trim_tail_char(p, '\t');
+        }
+        parts.cull_empty_strings();
+        if (parts.get_string_count() < 2u) {
+            printf("ERROR: DataParserBase parse_combat_mods: bad token '%s'\n", raw);
+            ++m_error_count;
+            continue;
+        }
+        cstr role_name = parts.get_string_content(0);
+        CombatMod& mod = out.m_mods[out.m_n];
+        if (std::strcmp(role_name, "CITY_DEFENSE") == 0) {
+            mod.m_role = COMBAT_MOD_CITY_DEFENSE;
+        } else {
+            mod.m_role = m_name_to_idx_cbs.unit_role_name_to_idx(role_name);
+        }
+        mod.m_pct = (i16)std::strtol(parts.get_string_content(1), 0, 10);
+        ++out.m_n;
+    }
+    return out;
 }
 
 ItemEffectsStruct DataParserBase::parse_item_effects (const StringManager& line_items, u16 start_idx) const {

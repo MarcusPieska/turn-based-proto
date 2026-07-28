@@ -79,9 +79,10 @@ void print_item_counts (const StaticParsingManager& parser) {
     print_u16_member("res_type", parser.get_res_type_count());
     print_u16_member("small_wonder", parser.get_small_wonder_count());
     print_u16_member("tech", parser.get_tech_count());
-    print_u16_member("unit", parser.get_unit_count());
     print_u16_member("unit_action", parser.get_unit_action_count());
+    print_u16_member("unit_role", parser.get_unit_role_count());
     print_u16_member("unit_type", parser.get_unit_type_count());
+    print_u16_member("unit", parser.get_unit_count());
     print_u16_member("wonder", parser.get_wonder_count());
     print_u16_member("worker_job", parser.get_worker_job_count());
     print_u16_member("callback", parser.get_callback_count());

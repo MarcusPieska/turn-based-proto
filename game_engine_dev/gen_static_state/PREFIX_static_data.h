@@ -16,6 +16,7 @@
 #include "item_reqs.h"
 #include "item_effects.h"
 #include "res_placement.h"
+#include "combat_mod.h"
 #include "game_primitives.h"
 #include "static_string_pool.h"
 

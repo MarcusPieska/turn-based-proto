@@ -152,18 +152,20 @@ static bool seats_ally (const GameState& s, u16 seat_a, u16 seat_b) {
 }
 
 static bool dest_allows_entry (const GameState& s, u16 mover_seat, u16 dest_x, u16 dest_y, bool grp_move) {
+    (void)grp_move;
     const u16 hd = s.m_map.get_unit_hd(dest_x, dest_y);
     if (hd == U16_KEY_NULL) {
         return true;
-    }
-    if (grp_move) {
-        return false;
     }
     const UnitAddStruct* du = u_get(s, UnitAddKey::from_raw(hd));
     if (du == nullptr) {
         return false;
     }
-    return seats_ally(s, mover_seat, du->m_player_idx);
+    if (du->m_player_idx == mover_seat) {
+        return true;
+    }
+    // TODO: also allow CivRel ALLY / SUBJECT via CivRelations (seats_ally) once wired for pathing.
+    return false;
 }
 
 static void grp_decr_mvt (GameState& s, UnitAddKey key, i16 cost) {
@@ -275,7 +277,8 @@ static void init_mvt_pts (GameState& s, UnitAddStruct* u) {
         return;
     }
     const u16 pts = s.m_statics->unit().get_item(UnitStaticDataKey::from_raw(u->m_unit_typ_idx)).mvt_pts;
-    u->m_mvt_points = static_cast<i16>(pts * PATH_MP_TURN);
+    const u16 mp_turn = s.m_statics->config().get_mov_pt_per_turn();
+    u->m_mvt_points = static_cast<i16>(pts * mp_turn);
 }
 
 static UnitAddKey grp_find_prev (const GameState& s, UnitAddKey tail) {
@@ -474,14 +477,22 @@ bool UnitMovementMng::apply_step (GameState& s, UnitAddKey key, u16 dest_x, u16 
     }
     const u16 ox = u->m_x;
     const u16 oy = u->m_y;
-    const bool grp_move = has_grp_followers(*u);
+    const bool grp_move = has_grp_followers(*u); 
     if (grp_move) {
-        if (in_bounds(s, ox, oy) && s.m_map.get_unit_hd(ox, oy) == key.value()) {
-            s.m_map.set_unit_hd(ox, oy, U16_KEY_NULL);
+        if (in_bounds(s, ox, oy)) {
+            if (s.m_map.get_unit_hd(ox, oy) == key.value()) {
+                s.m_map.set_unit_hd(ox, oy, u->m_next_unit_on_tile);
+            } else {
+                tile_stack_unlink(s, key);
+            }
+            u->m_next_unit_on_tile = U16_KEY_NULL;
         }
-        u->m_x = dest_x;
-        u->m_y = dest_y;
-        s.m_map.set_unit_hd(dest_x, dest_y, key.value());
+        if (!tile_stack_append(s, key, dest_x, dest_y)) {
+            if (in_bounds(s, ox, oy)) {
+                tile_stack_append(s, key, ox, oy);
+            }
+            return false;
+        }
         grp_decr_mvt(s, key, cost);
         return true;
     }
@@ -612,6 +623,356 @@ bool UnitMovementMng::unlink_group (GameState& s, UnitAddKey tail) {
     tu->m_next_unit_in_group = U16_KEY_NULL;
     tu->m_x = pu->m_x;
     tu->m_y = pu->m_y;
+    return true;
+}
+
+static bool is_defense_typ (const GameState& s, u16 typ_idx) {
+    if (s.m_statics == nullptr) {
+        return false;
+    }
+    const u16 un = s.m_statics->unit().get_item_count();
+    if (typ_idx >= un) {
+        return false;
+    }
+    const u16 ut = s.m_statics->unit().get_item(UnitStaticDataKey::from_raw(typ_idx)).type;
+    const UnitTypeStaticDataKey tk = UnitTypeStaticDataKey::from_raw(ut);
+    cstr nm = s.m_statics->unit_type().get_name(tk);
+    return nm != nullptr && std::strcmp(nm, "LAND_DEFENSE") == 0;
+}
+
+bool UnitMovementMng::muster_leave_one_defense (
+    GameState& s,
+    u16 x,
+    u16 y,
+    u16 player_idx,
+    UnitAddKey* out_head) {
+    if (out_head == nullptr || !in_bounds(s, x, y) || player_idx >= s.m_player_n) {
+        return false;
+    }
+    static const u16 k_cap = 64u;
+    UnitAddKey keys[k_cap];
+    u16 n = 0;
+    u16 cur = s.m_map.get_unit_hd(x, y);
+    while (cur != U16_KEY_NULL && n < k_cap) {
+        const UnitAddKey k = UnitAddKey::from_raw(cur);
+        const UnitAddStruct* u = u_get(s, k);
+        if (u == nullptr) {
+            break;
+        }
+        if (u->m_player_idx == player_idx && !is_grp_tail(*u)) {
+            keys[n++] = k;
+        }
+        cur = u->m_next_unit_on_tile;
+    }
+    if (n < 2u) {
+        return false;
+    }
+    i32 leave_i = -1;
+    for (u16 i = 0; i < n; ++i) {
+        const UnitAddStruct* u = u_get(s, keys[i]);
+        if (u != nullptr && is_defense_typ(s, u->m_unit_typ_idx)) {
+            leave_i = static_cast<i32>(i);
+            break;
+        }
+    }
+    UnitAddKey head = UnitAddKey::None();
+    for (u16 i = 0; i < n; ++i) {
+        if (static_cast<i32>(i) == leave_i) {
+            continue;
+        }
+        head = keys[i];
+        break;
+    }
+    if (!head.is_valid()) {
+        return false;
+    }
+    for (u16 i = 0; i < n; ++i) {
+        if (static_cast<i32>(i) == leave_i || keys[i] == head) {
+            continue;
+        }
+        if (!link_group(s, head, keys[i])) {
+            return false;
+        }
+    }
+    *out_head = head;
+    return true;
+}
+
+bool UnitMovementMng::campaign_leave_five_defense (
+    GameState& s,
+    u16 x,
+    u16 y,
+    u16 player_idx,
+    UnitAddKey* out_head) {
+    if (out_head == nullptr || !in_bounds(s, x, y) || player_idx >= s.m_player_n) {
+        return false;
+    }
+    static const u16 k_cap = 2048u;
+    static const u16 k_leave = 5u;
+    bool peeling = true;
+    while (peeling) {
+        peeling = false;
+        u16 cur = s.m_map.get_unit_hd(x, y);
+        while (cur != U16_KEY_NULL) {
+            const UnitAddKey k = UnitAddKey::from_raw(cur);
+            UnitAddStruct* u = u_get(s, k);
+            if (u == nullptr) {
+                break;
+            }
+            if (u->m_player_idx == player_idx && u->m_next_unit_in_group != U16_KEY_NULL) {
+                const UnitAddKey nxt = UnitAddKey::from_raw(u->m_next_unit_in_group);
+                if (!unlink_group(s, nxt)) {
+                    return false;
+                }
+                if (!tile_stack_append(s, nxt, x, y)) {
+                    return false;
+                }
+                peeling = true;
+                break;
+            }
+            cur = u->m_next_unit_on_tile;
+        }
+    }
+    UnitAddKey keys[k_cap];
+    u16 n = 0;
+    u16 cur = s.m_map.get_unit_hd(x, y);
+    while (cur != U16_KEY_NULL && n < k_cap) {
+        const UnitAddKey k = UnitAddKey::from_raw(cur);
+        const UnitAddStruct* u = u_get(s, k);
+        if (u == nullptr) {
+            break;
+        }
+        if (u->m_player_idx == player_idx && !is_grp_tail(*u)) {
+            keys[n++] = k;
+        }
+        cur = u->m_next_unit_on_tile;
+    }
+    if (n < 2u) {
+        return false;
+    }
+    bool leave[k_cap];
+    for (u16 i = 0; i < n; ++i) {
+        leave[i] = false;
+    }
+    u16 left = 0;
+    for (u16 i = 0; i < n && left < k_leave; ++i) {
+        const UnitAddStruct* u = u_get(s, keys[i]);
+        if (u != nullptr && is_defense_typ(s, u->m_unit_typ_idx)) {
+            leave[i] = true;
+            left++;
+        }
+    }
+    UnitAddKey head = UnitAddKey::None();
+    for (u16 i = 0; i < n; ++i) {
+        if (leave[i]) {
+            continue;
+        }
+        head = keys[i];
+        break;
+    }
+    if (!head.is_valid()) {
+        return false;
+    }
+    for (u16 i = 0; i < n; ++i) {
+        if (leave[i] || keys[i] == head) {
+            continue;
+        }
+        if (!link_group(s, head, keys[i])) {
+            return false;
+        }
+    }
+    *out_head = head;
+    return true;
+}
+
+bool UnitMovementMng::destroy_unit (GameState& s, UnitAddKey key) {
+    UnitAddStruct* u = u_get(s, key);
+    if (u == nullptr) {
+        return false;
+    }
+    if (is_grp_tail(*u)) {
+        const UnitAddKey prev = grp_find_prev(s, key);
+        if (!prev.is_valid()) {
+            return false;
+        }
+        UnitAddStruct* pu = u_get(s, prev);
+        if (pu == nullptr) {
+            return false;
+        }
+        pu->m_next_unit_in_group = u->m_next_unit_in_group;
+        u->m_next_unit_in_group = U16_KEY_NULL;
+    } else {
+        const u16 x = u->m_x;
+        const u16 y = u->m_y;
+        if (u->m_next_unit_in_group != U16_KEY_NULL) {
+            const UnitAddKey nxt = UnitAddKey::from_raw(u->m_next_unit_in_group);
+            UnitAddStruct* nu = u_get(s, nxt);
+            if (nu == nullptr) {
+                return false;
+            }
+            nu->m_x = x;
+            nu->m_y = y;
+            nu->m_next_unit_on_tile = u->m_next_unit_on_tile;
+            if (in_bounds(s, x, y)) {
+                if (s.m_map.get_unit_hd(x, y) == key.value()) {
+                    s.m_map.set_unit_hd(x, y, nxt.value());
+                } else {
+                    UnitAddKey cur = UnitAddKey::from_raw(s.m_map.get_unit_hd(x, y));
+                    while (cur.is_valid()) {
+                        UnitAddStruct* cu = u_get(s, cur);
+                        if (cu == nullptr) {
+                            break;
+                        }
+                        if (cu->m_next_unit_on_tile == key.value()) {
+                            cu->m_next_unit_on_tile = nxt.value();
+                            break;
+                        }
+                        if (cu->m_next_unit_on_tile == U16_KEY_NULL) {
+                            break;
+                        }
+                        cur = UnitAddKey::from_raw(cu->m_next_unit_on_tile);
+                    }
+                }
+            }
+            u->m_next_unit_in_group = U16_KEY_NULL;
+            u->m_next_unit_on_tile = U16_KEY_NULL;
+        } else {
+            tile_stack_remove(s, key);
+        }
+        u->m_x = U16_KEY_NULL;
+        u->m_y = U16_KEY_NULL;
+    }
+    s.m_units.return_unit_add(key);
+    return true;
+}
+
+static u16 utype_of (const GameState& s, u16 unit_typ_idx) {
+    if (s.m_statics == nullptr) {
+        return U16_KEY_NULL;
+    }
+    const u16 n = s.m_statics->unit().get_item_count();
+    if (unit_typ_idx >= n) {
+        return U16_KEY_NULL;
+    }
+    return s.m_statics->unit().get_item(UnitStaticDataKey::from_raw(unit_typ_idx)).type;
+}
+
+static u8 split_bucket (const GameState& s, u16 unit_typ_idx) {
+    const u16 t = utype_of(s, unit_typ_idx);
+    if (t != U16_KEY_NULL && t == s.m_land_defense_type_idx) {
+        return 0u;
+    }
+    if (t != U16_KEY_NULL && t == s.m_land_attack_type_idx) {
+        return 1u;
+    }
+    if (t != U16_KEY_NULL && t == s.m_land_artillery_type_idx) {
+        return 2u;
+    }
+    return 3u;
+}
+
+bool UnitMovementMng::split_group_half_by_type (
+    GameState& s,
+    UnitAddKey head,
+    UnitAddKey force_go,
+    UnitAddKey* out_stay,
+    UnitAddKey* out_go) {
+    if (out_stay == nullptr || out_go == nullptr || !head.is_valid()) {
+        return false;
+    }
+    static const u16 k_cap = 2048u;
+    UnitAddKey keys[k_cap];
+    u16 n = 0;
+    UnitAddKey cur = head;
+    while (cur.is_valid() && n < k_cap) {
+        keys[n++] = cur;
+        const UnitAddStruct* u = u_get(s, cur);
+        if (u == nullptr || u->m_next_unit_in_group == U16_KEY_NULL) {
+            break;
+        }
+        cur = UnitAddKey::from_raw(u->m_next_unit_in_group);
+    }
+    if (n == 0u) {
+        return false;
+    }
+    UnitAddStruct* hu = u_get(s, head);
+    if (hu == nullptr || hu->m_x == U16_KEY_NULL) {
+        return false;
+    }
+    const u16 x = hu->m_x;
+    const u16 y = hu->m_y;
+    while (hu->m_next_unit_in_group != U16_KEY_NULL) {
+        const UnitAddKey nxt = UnitAddKey::from_raw(hu->m_next_unit_in_group);
+        if (!unlink_group(s, nxt)) {
+            return false;
+        }
+        if (!tile_stack_append(s, nxt, x, y)) {
+            return false;
+        }
+    }
+    bool go_flag[k_cap];
+    for (u16 i = 0; i < n; ++i) {
+        go_flag[i] = false;
+    }
+    for (u8 b = 0; b < 4u; ++b) {
+        u16 bi[k_cap];
+        u16 bn = 0;
+        for (u16 i = 0; i < n; ++i) {
+            const UnitAddStruct* u = u_get(s, keys[i]);
+            if (u == nullptr) {
+                continue;
+            }
+            if (split_bucket(s, u->m_unit_typ_idx) == b) {
+                bi[bn++] = i;
+            }
+        }
+        const u16 take = static_cast<u16>((bn + 1u) / 2u);
+        for (u16 j = 0; j < take; ++j) {
+            go_flag[bi[j]] = true;
+        }
+    }
+    if (force_go.is_valid()) {
+        for (u16 i = 0; i < n; ++i) {
+            if (keys[i] == force_go) {
+                go_flag[i] = true;
+                break;
+            }
+        }
+    }
+    UnitAddKey stay = UnitAddKey::None();
+    UnitAddKey go = UnitAddKey::None();
+    for (u16 i = 0; i < n; ++i) {
+        if (go_flag[i]) {
+            if (!go.is_valid()) {
+                go = keys[i];
+            }
+        } else if (!stay.is_valid()) {
+            stay = keys[i];
+        }
+    }
+    if (!go.is_valid()) {
+        return false;
+    }
+    for (u16 i = 0; i < n; ++i) {
+        if (!go_flag[i] || keys[i] == go) {
+            continue;
+        }
+        if (!link_group(s, go, keys[i])) {
+            return false;
+        }
+    }
+    if (stay.is_valid()) {
+        for (u16 i = 0; i < n; ++i) {
+            if (go_flag[i] || keys[i] == stay) {
+                continue;
+            }
+            if (!link_group(s, stay, keys[i])) {
+                return false;
+            }
+        }
+    }
+    *out_stay = stay;
+    *out_go = go;
     return true;
 }
 

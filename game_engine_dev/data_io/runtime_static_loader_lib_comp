@@ -33,9 +33,10 @@ g++ $INC $CXXFLAGS -c res_dist_parser.cpp -o res_dist_parser.o
 g++ $INC $CXXFLAGS -c res_type_parser.cpp -o res_type_parser.o
 g++ $INC $CXXFLAGS -c small_wonder_parser.cpp -o small_wonder_parser.o
 g++ $INC $CXXFLAGS -c tech_parser.cpp -o tech_parser.o
-g++ $INC $CXXFLAGS -c unit_parser.cpp -o unit_parser.o
 g++ $INC $CXXFLAGS -c unit_action_parser.cpp -o unit_action_parser.o
+g++ $INC $CXXFLAGS -c unit_role_parser.cpp -o unit_role_parser.o
 g++ $INC $CXXFLAGS -c unit_type_parser.cpp -o unit_type_parser.o
+g++ $INC $CXXFLAGS -c unit_parser.cpp -o unit_parser.o
 g++ $INC $CXXFLAGS -c wonder_parser.cpp -o wonder_parser.o
 g++ $INC $CXXFLAGS -c worker_job_parser.cpp -o worker_job_parser.o
 g++ $INC $CXXFLAGS -c ../misc/static_string_pool.cpp -o static_string_pool.o
@@ -59,12 +60,14 @@ g++ $INC $CXXFLAGS -c ../static_state/small_wonder_static_data.cpp -o small_wond
 g++ $INC $CXXFLAGS -c ../static_state/small_wonder_static_data_load.cpp -o small_wonder_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/tech_static_data.cpp -o tech_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/tech_static_data_load.cpp -o tech_static_data_load.o
-g++ $INC $CXXFLAGS -c ../static_state/unit_static_data.cpp -o unit_static_data.o
-g++ $INC $CXXFLAGS -c ../static_state/unit_static_data_load.cpp -o unit_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/unit_action_static_data.cpp -o unit_action_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/unit_action_static_data_load.cpp -o unit_action_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/unit_role_static_data.cpp -o unit_role_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/unit_role_static_data_load.cpp -o unit_role_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/unit_type_static_data.cpp -o unit_type_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/unit_type_static_data_load.cpp -o unit_type_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/unit_static_data.cpp -o unit_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/unit_static_data_load.cpp -o unit_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/wonder_static_data.cpp -o wonder_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/wonder_static_data_load.cpp -o wonder_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/worker_job_static_data.cpp -o worker_job_static_data.o
@@ -102,9 +105,10 @@ g++ -shared -o $OUT_SO \
     res_type_parser.o \
     small_wonder_parser.o \
     tech_parser.o \
-    unit_parser.o \
     unit_action_parser.o \
+    unit_role_parser.o \
     unit_type_parser.o \
+    unit_parser.o \
     wonder_parser.o \
     worker_job_parser.o \
     building_static_data.o \
@@ -127,12 +131,14 @@ g++ -shared -o $OUT_SO \
     small_wonder_static_data_load.o \
     tech_static_data.o \
     tech_static_data_load.o \
-    unit_static_data.o \
-    unit_static_data_load.o \
     unit_action_static_data.o \
     unit_action_static_data_load.o \
+    unit_role_static_data.o \
+    unit_role_static_data_load.o \
     unit_type_static_data.o \
     unit_type_static_data_load.o \
+    unit_static_data.o \
+    unit_static_data_load.o \
     wonder_static_data.o \
     wonder_static_data_load.o \
     worker_job_static_data.o \
@@ -171,9 +177,10 @@ rm \
     res_type_parser.o \
     small_wonder_parser.o \
     tech_parser.o \
-    unit_parser.o \
     unit_action_parser.o \
+    unit_role_parser.o \
     unit_type_parser.o \
+    unit_parser.o \
     wonder_parser.o \
     worker_job_parser.o \
     building_static_data.o \
@@ -196,12 +203,14 @@ rm \
     small_wonder_static_data_load.o \
     tech_static_data.o \
     tech_static_data_load.o \
-    unit_static_data.o \
-    unit_static_data_load.o \
     unit_action_static_data.o \
     unit_action_static_data_load.o \
+    unit_role_static_data.o \
+    unit_role_static_data_load.o \
     unit_type_static_data.o \
     unit_type_static_data_load.o \
+    unit_static_data.o \
+    unit_static_data_load.o \
     wonder_static_data.o \
     wonder_static_data_load.o \
     worker_job_static_data.o \

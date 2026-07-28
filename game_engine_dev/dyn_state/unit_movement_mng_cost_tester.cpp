@@ -202,7 +202,7 @@ static void refill_mp (GameState& s, UnitAddKey key) {
         return;
     }
     const u16 pts = s.m_statics->unit().get_item(UnitStaticDataKey::from_raw(u->m_unit_typ_idx)).mvt_pts;
-    u->m_mvt_points = static_cast<i16>(pts * PATH_MP_TURN);
+    u->m_mvt_points = static_cast<i16>(pts * s.m_statics->config().get_mov_pt_per_turn());
 }
 
 void note_result (bool cond, cstr msg) {

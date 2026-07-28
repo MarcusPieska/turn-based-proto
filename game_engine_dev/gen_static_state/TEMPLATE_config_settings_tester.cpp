@@ -74,6 +74,10 @@ static u16 st_unit_action_n2i (cstr name) {
     return g_st->get_unit_action_name_parser().name_to_idx(name);
 }
 
+static u16 st_unit_role_n2i (cstr name) {
+    return g_st->get_unit_role_name_parser().name_to_idx(name);
+}
+
 static u16 st_unit_type_n2i (cstr name) {
     return g_st->get_unit_type_name_parser().name_to_idx(name);
 }
@@ -94,6 +98,7 @@ static void fill_cbs (NameToIdxCbs* cbs) {
     cbs->tech_name_to_idx = st_tech_n2i;
     cbs->unit_name_to_idx = st_unit_n2i;
     cbs->unit_action_name_to_idx = st_unit_action_n2i;
+    cbs->unit_role_name_to_idx = st_unit_role_n2i;
     cbs->unit_type_name_to_idx = st_unit_type_n2i;
     cbs->wonder_name_to_idx = st_wonder_n2i;
 }

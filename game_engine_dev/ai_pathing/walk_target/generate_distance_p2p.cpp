@@ -353,6 +353,7 @@ static bool flood (
     u16 w,
     u16 h,
     u32 src_i,
+    bool have_src,
     i32 k_mp,
     i32 k_min,
     u16* turn,
@@ -367,7 +368,8 @@ static bool flood (
         while (b.min_t < k_bkt_n && b.heads[b.min_t] == k_nil) {
             b.min_t++;
         }
-        if (turn[src_i] != k_turn_sent
+        if (have_src
+            && turn[src_i] != k_turn_sent
             && fin_turn[src_i] == turn[src_i]
             && fin_rem[src_i] == rem[src_i]
             && b.min_t > turn[src_i]) {
@@ -377,7 +379,8 @@ static bool flood (
         if (si == k_nil) {
             break;
         }
-        if (turn[src_i] != k_turn_sent
+        if (have_src
+            && turn[src_i] != k_turn_sent
             && fin_turn[src_i] == turn[src_i]
             && fin_rem[src_i] == rem[src_i]
             && turn[si] > turn[src_i]) {
@@ -387,16 +390,16 @@ static bool flood (
             s, w, h, idx_x(si, w), idx_y(si, w), k_mp, k_min, b, turn, rem, fin_turn, fin_rem, mask,
             out_max);
     }
+    if (!have_src) {
+        return true;
+    }
     return turn[src_i] != k_turn_sent;
 }
 
-//================================================================================================================================
-//=> - GenerateDistanceP2P -
-//================================================================================================================================
-
-bool GenerateDistanceP2P::generate (
+static bool run_gen (
     const GameState& s,
     const RuntimeStatics& st,
+    bool have_src,
     u16 src_x,
     u16 src_y,
     u16 dst_x,
@@ -412,13 +415,19 @@ bool GenerateDistanceP2P::generate (
     if (w == 0 || h == 0 || w != walk.w() || h != walk.h()) {
         return false;
     }
-    if (src_x >= w || src_y >= h || dst_x >= w || dst_y >= h) {
+    if (dst_x >= w || dst_y >= h) {
+        return false;
+    }
+    if (have_src && (src_x >= w || src_y >= h)) {
         return false;
     }
     if (mask != nullptr && (!mask->ok() || mask->w() != w || mask->h() != h)) {
         return false;
     }
-    if (!can_tile(s, src_x, src_y, mask) || !can_tile(s, dst_x, dst_y, mask)) {
+    if (!can_tile(s, dst_x, dst_y, mask)) {
+        return false;
+    }
+    if (have_src && !can_tile(s, src_x, src_y, mask)) {
         return false;
     }
     const i32 k_mp = static_cast<i32>(st.config().get_mov_pt_per_turn());
@@ -427,7 +436,7 @@ bool GenerateDistanceP2P::generate (
         return false;
     }
     const u32 tile_n = s.m_map.tile_n();
-    const u32 src_i = tidx(w, src_x, src_y);
+    const u32 src_i = have_src ? tidx(w, src_x, src_y) : k_nil;
     const u32 dst_i = tidx(w, dst_x, dst_y);
     Whiteboard_1B inq_wb("GenerateDistanceP2P", "inq", 0u);
     Whiteboard_2B qt_wb("GenerateDistanceP2P", "qturn", 0u);
@@ -462,11 +471,11 @@ bool GenerateDistanceP2P::generate (
     rem[dst_i] = rem_enc(k_mp);
     bkt_push(b, dst_i, 0u, rem[dst_i]);
     *out_max = 0;
-    if (src_i == dst_i) {
+    if (have_src && src_i == dst_i) {
         return true;
     }
     const bool ok = flood(
-        s, w, h, src_i, k_mp, k_min, turn, rem, b, fin_turn, fin_rem, mask, out_max);
+        s, w, h, src_i, have_src, k_mp, k_min, turn, rem, b, fin_turn, fin_rem, mask, out_max);
     if (!ok) {
         for (u32 i = 0; i < tile_n; ++i) {
             turn[i] = k_turn_sent;
@@ -475,6 +484,34 @@ bool GenerateDistanceP2P::generate (
         *out_max = 0;
     }
     return ok;
+}
+
+//================================================================================================================================
+//=> - GenerateDistanceP2P -
+//================================================================================================================================
+
+bool GenerateDistanceP2P::generate (
+    const GameState& s,
+    const RuntimeStatics& st,
+    u16 src_x,
+    u16 src_y,
+    u16 dst_x,
+    u16 dst_y,
+    WalkP2P& walk,
+    const Whiteboard_1B* mask,
+    u16* out_max) {
+    return run_gen(s, st, true, src_x, src_y, dst_x, dst_y, walk, mask, out_max);
+}
+
+bool GenerateDistanceP2P::generate (
+    const GameState& s,
+    const RuntimeStatics& st,
+    u16 dst_x,
+    u16 dst_y,
+    WalkP2P& walk,
+    const Whiteboard_1B* mask,
+    u16* out_max) {
+    return run_gen(s, st, false, 0u, 0u, dst_x, dst_y, walk, mask, out_max);
 }
 
 //================================================================================================================================

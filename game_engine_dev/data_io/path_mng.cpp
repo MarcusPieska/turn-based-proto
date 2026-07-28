@@ -120,6 +120,10 @@ cstr PathMng::get_path_to_unit_actions () const {
     return m_path_unit_actions;
 }
 
+cstr PathMng::get_path_to_unit_roles () const {
+    return m_path_unit_roles;
+}
+
 cstr PathMng::get_path_to_unit_types () const {
     return m_path_unit_types;
 }
@@ -154,6 +158,7 @@ void PathMng::build_paths () {
     join_path(m_path_small_wonders, PATH_MNG_PATH_N, m_path_offset, "game_config.small_wonders");
     join_path(m_path_techs, PATH_MNG_PATH_N, m_path_offset, "game_config.techs");
     join_path(m_path_unit_actions, PATH_MNG_PATH_N, m_path_offset, "game_config.unit_actions");
+    join_path(m_path_unit_roles, PATH_MNG_PATH_N, m_path_offset, "game_config.unit_roles");
     join_path(m_path_unit_types, PATH_MNG_PATH_N, m_path_offset, "game_config.unit_types");
     join_path(m_path_units, PATH_MNG_PATH_N, m_path_offset, "game_config.units");
     join_path(m_path_wonders, PATH_MNG_PATH_N, m_path_offset, "game_config.wonders");
@@ -214,6 +219,10 @@ void PathMng::validate_paths_or_exit () const {
     }
     if (!does_file_exist(m_path_unit_actions)) {
         printf("ERROR: Missing file: %s\n", m_path_unit_actions);
+        ++error_count;
+    }
+    if (!does_file_exist(m_path_unit_roles)) {
+        printf("ERROR: Missing file: %s\n", m_path_unit_roles);
         ++error_count;
     }
     if (!does_file_exist(m_path_unit_types)) {

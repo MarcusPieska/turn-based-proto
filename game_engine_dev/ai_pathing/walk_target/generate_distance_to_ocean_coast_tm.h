@@ -21,6 +21,7 @@ public:
         u16 h,
         u16* turn,
         u16** scr,
+        u16 mp_turn,
         u16* out_max);
 
 private:

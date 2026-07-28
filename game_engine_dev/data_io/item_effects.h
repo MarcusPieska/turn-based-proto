@@ -31,7 +31,9 @@ enum class ItemEffectType : u16 {
     ENABLE = 3,
     RESEARCH_TECH = 4,
     TRAIN = 5,
-    TERRAIN_BOOSTER = 6
+    TERRAIN_BOOSTER = 6,
+    SET_FLAG = 7,
+    PRODUCE = 8
 };
 
 enum class ItemEffectBoosterType : u16 {
@@ -56,7 +58,8 @@ enum class ItemEffectBoosterType : u16 {
     UNIT_EXP = 18,
     UPGRADE_COST = 19,
     WAR_WEAR = 20,
-    CULTURE = 21
+    CULTURE = 21,
+    SANITATION = 22
 };
 
 enum class ItemTerrainYield : u8 {
@@ -134,6 +137,16 @@ typedef struct ItemEffectTrain {
     u8 turns_interval;
 } ItemEffectTrain;
 
+typedef struct ItemEffectSetFlag {
+    u16 flag_id;
+    ItemEffectsScope scope;
+} ItemEffectSetFlag;
+
+typedef struct ItemEffectProduce {
+    u16 resource_id;
+    i16 amount;
+} ItemEffectProduce;
+
 //================================================================================================================================
 //=> - Union + tagged entry -
 //================================================================================================================================
@@ -144,6 +157,8 @@ typedef union ItemEffectsUnion {
     ItemEffectEnable enable;
     ItemEffectResearchTech research_tech;
     ItemEffectTrain train;
+    ItemEffectSetFlag set_flag;
+    ItemEffectProduce produce;
 } ItemEffectsUnion;
 
 typedef struct ItemEffectStruct {

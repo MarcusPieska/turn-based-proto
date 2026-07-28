@@ -8,8 +8,8 @@
 
 #include "combat_mng.h"
 #include "factory_game_array_simple.h"
-#include "game_array_simple.h"
 #include "game_map_defs.h"
+#include "game_state.h"
 #include "runtime_static_loader.h"
 #include "runtime_statics.h"
 #include "tile_attr_tables.h"
@@ -21,9 +21,11 @@
 //=> - Globals -
 //================================================================================================================================
 
+typedef const char* cstr;
+
 static RuntimeStaticLoader g_rt_loader;
 static RuntimeStatics* g_rt_statics = nullptr;
-static GameArraySimple g_map;
+static GameState g_st;
 static int g_fails = 0;
 
 //================================================================================================================================
@@ -42,11 +44,11 @@ static bool load_statics () {
 }
 
 static bool mk_map () {
-    if (!Factory_GameArraySimple::init_test_grid(&g_map, 2u, 1u)) {
+    if (!Factory_GameArraySimple::init_test_grid(&g_st.m_map, 2u, 1u)) {
         return false;
     }
-    GameTileSimple* a = g_map.tile(0u, 0u);
-    GameTileSimple* b = g_map.tile(1u, 0u);
+    GameTileSimple* a = g_st.m_map.tile(0u, 0u);
+    GameTileSimple* b = g_st.m_map.tile(1u, 0u);
     a->m_clim = CLIMATE_NONE;
     b->m_clim = CLIMATE_NONE;
     a->m_road_typ = ROAD_NONE;
@@ -61,8 +63,8 @@ static bool mk_map () {
 }
 
 static void set_scene (u8 terr, u8 ov, u8 riv) {
-    GameTileSimple* a = g_map.tile(0u, 0u);
-    GameTileSimple* b = g_map.tile(1u, 0u);
+    GameTileSimple* a = g_st.m_map.tile(0u, 0u);
+    GameTileSimple* b = g_st.m_map.tile(1u, 0u);
     a->m_terr = terr;
     b->m_terr = terr;
     a->m_ov = ov;
@@ -147,7 +149,7 @@ static void eval_attack (const UnitAddStruct& atk_proto) {
         UnitAddStruct atk = atk_proto;
         UnitAddStruct def = mk_unit(typ, 1u, 0u);
         const auto t0 = std::chrono::steady_clock::now();
-        const u16 win_prob = CombatMng::resolve_win_prob(atk, def, g_map);
+        const u16 win_prob = CombatMng::resolve_win_prob(atk, def, g_st, 1u, 0u);
         const auto t1 = std::chrono::steady_clock::now();
         const f64 ns = static_cast<f64>(std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count());
         const f64 pct = static_cast<f64>(win_prob) * 100.0 / 1000.0;
@@ -210,7 +212,7 @@ static void run_terrain_eval (cstr atk_name, cstr def_name) {
         UnitAddStruct atk = mk_unit(atk_typ, 0u, 0u);
         UnitAddStruct def = mk_unit(def_typ, 1u, 0u);
         const auto t0 = std::chrono::steady_clock::now();
-        const u16 win_prob = CombatMng::resolve_win_prob(atk, def, g_map);
+        const u16 win_prob = CombatMng::resolve_win_prob(atk, def, g_st, 1u, 0u);
         const auto t1 = std::chrono::steady_clock::now();
         const f64 ns = static_cast<f64>(std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count());
         const f64 pct = static_cast<f64>(win_prob) * 100.0 / 1000.0;
@@ -258,7 +260,7 @@ static void run_training_eval (cstr atk_name, cstr def_name) {
             UnitAddStruct def = mk_unit(def_typ, 1u, 0u);
             atk.m_level = k_levels[a];
             def.m_level = k_levels[d];
-            const u16 win_prob = CombatMng::resolve_win_prob(atk, def, g_map);
+            const u16 win_prob = CombatMng::resolve_win_prob(atk, def, g_st, 1u, 0u);
             const f64 pct = static_cast<f64>(win_prob) * 100.0 / 1000.0;
             std::printf(" %7.2f%%", pct);
         }
@@ -300,7 +302,7 @@ static void run_health_eval (cstr atk_name, cstr def_name) {
             UnitAddStruct def = mk_unit(def_typ, 1u, 0u);
             atk.m_health = k_healths[a];
             def.m_health = k_healths[d];
-            const u16 win_prob = CombatMng::resolve_win_prob(atk, def, g_map);
+            const u16 win_prob = CombatMng::resolve_win_prob(atk, def, g_st, 1u, 0u);
             const f64 pct = static_cast<f64>(win_prob) * 100.0 / 1000.0;
             std::printf(" %5.1f%%", pct);
         }
@@ -323,6 +325,11 @@ int main () {
     }
     if (!CombatMng::setup(*g_rt_statics)) {
         std::printf("FAILED CombatMng::setup\n");
+        return 1;
+    }
+    g_st.m_statics = g_rt_statics;
+    if (!g_st.m_combat_mods.setup(*g_rt_statics)) {
+        std::printf("FAILED CombatMods::setup\n");
         return 1;
     }
     CombatMng::set_dials(85u, 25u, 1u);
@@ -353,13 +360,21 @@ int main () {
         run_training_eval("Swordsman", "Infantry");
         run_training_eval("Swordsman", "Mech Infantry");
     }
-    if (1) {
+    if (0) {
         run_health_eval("Swordsman", "Spearman");
         run_health_eval("Swordsman", "Pikeman");
         run_health_eval("Swordsman", "Rifleman");
         run_health_eval("Swordsman", "Infantry");
         run_health_eval("Swordsman", "Mech Infantry");
     }
+    if (1) {
+        run_terrain_eval("Horseman", "Spearman");
+        run_terrain_eval("Horseman", "Archer");
+
+        run_terrain_eval("Bowman", "Spearman");
+        run_terrain_eval("Bowman", "Archer");
+    }
+
     CombatMng::clear();
     TileAttrTables::clear();
     return (g_fails > 0) ? 1 : 0;

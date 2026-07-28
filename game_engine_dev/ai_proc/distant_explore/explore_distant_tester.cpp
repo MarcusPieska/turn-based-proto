@@ -7,6 +7,7 @@
 #include "explore_distant_mk2.h"
 #include "factory_game_array_simple.h"
 #include "game_map_defs.h"
+#include "runtime_static_loader.h"
 #include "runtime_trace_dbg.h"
 
 //================================================================================================================================
@@ -17,10 +18,26 @@ static const char* ED_IN_TERR = "/home/w/Projects/simple-map-gen/p1-seed-042/24_
 static const char* ED_IN_CLIM = "/home/w/Projects/simple-map-gen/p1-seed-042/24_make_map_climate.ppm";
 static const char* ED_IN_RIV = "/home/w/Projects/simple-map-gen/p1-seed-042/24_make_map_rivers.ppm";
 static const char* ED_TRACE = "explore_distant_test.trace";
+static const char* G_LIB = "../../data_io/runtime_static_loader_lib.so";
+static const char* G_DATA = "../../";
 
-static const u16 ED_TURNS = PATH_MP_TURN;
+static u16 ED_TURNS = 0;
 static const u16 ED_MOVES = 3;
 static const u16 ED_SIGHT = 3;
+
+static RuntimeStaticLoader g_rt_loader;
+static RuntimeStatics* g_rt_statics = nullptr;
+
+static bool load_statics () {
+    if (g_rt_statics != nullptr) {
+        return true;
+    }
+    if (!g_rt_loader.load(G_LIB, G_DATA)) {
+        return false;
+    }
+    g_rt_statics = &g_rt_loader.statics();
+    return true;
+}
 
 //================================================================================================================================
 //=> - Helpers -
@@ -81,6 +98,11 @@ static u32 cnt_explored (const MapBitOverlay& ov) {
 //================================================================================================================================
 
 int main () {
+    if (!load_statics()) {
+        std::printf("*** FAILED load statics\n");
+        return 1;
+    }
+    ED_TURNS = g_rt_statics->config().get_mov_pt_per_turn();
     GameArraySimple map;
     if (!Factory_GameArraySimple::load_map_gen_data(&map, ED_IN_TERR, ED_IN_CLIM, ED_IN_RIV)) {
         std::printf("*** FAILED load map\n");

@@ -490,6 +490,10 @@ u16 City::get_owner () const {
     return m_owner;
 }
 
+void City::set_owner (u16 owner) {
+    m_owner = owner;
+}
+
 u16 City::get_x () const {
     return m_x;
 }

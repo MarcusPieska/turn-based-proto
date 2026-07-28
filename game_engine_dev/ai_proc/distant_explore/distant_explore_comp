@@ -1,8 +1,15 @@
 #!/bin/bash
 
-INC="-I.. -I../.. -I../../game -I../../map_loader -I../../simple_map_gen -I../../misc -I../distant_explore -I../../ai_pathing -I../../ai_pathing/walk_target"
+LIB_SO="../../data_io/runtime_static_loader_lib.so"
+if [ ! -f "$LIB_SO" ]; then
+    echo "missing $LIB_SO - run ../../data_io/runtime_static_loader_lib_comp first"
+    exit 1
+fi
+
+INC="-I.. -I../.. -I../../game -I../../map_loader -I../../simple_map_gen -I../../misc -I../distant_explore -I../../ai_pathing -I../../ai_pathing/walk_target -I../../data_io -I../../static_state"
 CXXFLAGS="-std=c++17 -Wall -Wextra"
 
+g++ $CXXFLAGS $INC -c ../../data_io/runtime_static_loader.cpp -o runtime_static_loader.o
 g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
 g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_data.cpp -o map_terrain_data.o
 g++ $CXXFLAGS $INC -c ../../map_loader/map_loader.cpp -o map_loader.o
@@ -21,6 +28,7 @@ g++ $CXXFLAGS $INC -c explore_distant_tester.cpp -o explore_distant_tester.o
 g++ $CXXFLAGS $INC -c explore_distant_mk3_tester.cpp -o explore_distant_mk3_tester.o
 
 g++ $CXXFLAGS -o explore_distant_tester \
+    runtime_static_loader.o \
     map_terrain_validate.o \
     map_terrain_data.o \
     map_loader.o \
@@ -31,9 +39,13 @@ g++ $CXXFLAGS -o explore_distant_tester \
     ai_whiteboard.o \
     explore_distant_mk1.o \
     explore_distant_mk2.o \
-    explore_distant_tester.o
+    explore_distant_tester.o \
+    -ldl \
+    $LIB_SO \
+    -Wl,-rpath,'$ORIGIN/../../data_io'
 
 g++ $CXXFLAGS -o explore_distant_mk3_tester \
+    runtime_static_loader.o \
     map_terrain_validate.o \
     map_terrain_data.o \
     map_loader.o \
@@ -47,9 +59,12 @@ g++ $CXXFLAGS -o explore_distant_mk3_tester \
     generate_distance_to_coastal_point.o \
     near_path_mk1.o \
     explore_distant_mk3.o \
-    explore_distant_mk3_tester.o
+    explore_distant_mk3_tester.o \
+    -ldl \
+    $LIB_SO \
+    -Wl,-rpath,'$ORIGIN/../../data_io'
 
-rm map_terrain_validate.o map_terrain_data.o map_loader.o runtime_trace_dbg.o \
+rm runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.o runtime_trace_dbg.o \
     game_array_simple.o factory_game_array_simple.o map_bit_overlay.o \
     ai_whiteboard.o explore_distant_mk1.o explore_distant_mk2.o explore_distant_mk3.o \
     generate_distance_to_ocean_coast.o generate_distance_to_coastal_point.o near_path_mk1.o \

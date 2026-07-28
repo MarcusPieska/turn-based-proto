@@ -20,7 +20,6 @@ static double clk_sec (clock_t t0, clock_t t1) {
 //================================================================================================================================
 
 static const u16 k_turn_none = 0xFFFFu;
-static const u16 k_mp_z = PATH_MP_TURN;
 
 //================================================================================================================================
 //=> - Helpers -
@@ -42,19 +41,20 @@ static u32 tidx (u16 w, u16 x, u16 y) {
     return static_cast<u32>(y) * static_cast<u32>(w) + static_cast<u32>(x);
 }
 
-static i32 mp_dec (u16 v) {
-    return static_cast<i32>(v) - static_cast<i32>(k_mp_z);
+static i32 mp_dec (u16 v, u16 mp_z) {
+    return static_cast<i32>(v) - static_cast<i32>(mp_z);
 }
 
-static u16 mp_enc (i32 rem) {
-    return static_cast<u16>(rem + static_cast<i32>(k_mp_z));
+static u16 mp_enc (i32 rem, u16 mp_z) {
+    return static_cast<u16>(rem + static_cast<i32>(mp_z));
 }
 
 static bool arr_better (
     u16 old_t,
     u16 old_mp,
     u16 new_t,
-    i32 new_r) {
+    i32 new_r,
+    u16 mp_z) {
     if (old_t == k_turn_none) {
         return true;
     }
@@ -64,7 +64,7 @@ static bool arr_better (
     if (new_t > old_t) {
         return false;
     }
-    return new_r > mp_dec(old_mp);
+    return new_r > mp_dec(old_mp, mp_z);
 }
 
 static void seed_coast (
@@ -74,6 +74,7 @@ static void seed_coast (
     u16 y,
     u16* turn,
     u16* mp,
+    u16 mp_z,
     WB_QueXY& coast_q) {
     const u32 i = tidx(w, x, y);
     if (!is_walk(terrain[i])) {
@@ -83,7 +84,7 @@ static void seed_coast (
         return;
     }
     turn[i] = 0;
-    mp[i] = k_mp_z;
+    mp[i] = mp_z;
     coast_q.push(x, y);
 }
 
@@ -95,6 +96,7 @@ static void seed_coast_nbrs (
     u16 py,
     u16* turn,
     u16* mp,
+    u16 mp_z,
     WB_QueXY& coast_q) {
     for (u32 k = 0u; k < MAP_NBR4_N; ++k) {
         const i32 nx = static_cast<i32>(px) + MAP_NBR4_DX[k];
@@ -107,7 +109,7 @@ static void seed_coast_nbrs (
         if (cx >= w || cy >= h) {
             continue;
         }
-        seed_coast(terrain, w, cx, cy, turn, mp, coast_q);
+        seed_coast(terrain, w, cx, cy, turn, mp, mp_z, coast_q);
     }
 }
 
@@ -143,6 +145,7 @@ static void flood_ocean_wtr (
     u16* oc,
     u16* turn,
     u16* mp,
+    u16 mp_z,
     WB_QueXY& wq,
     WB_QueXY& wq_nxt,
     WB_QueXY& coast_q) {
@@ -166,7 +169,7 @@ static void flood_ocean_wtr (
                     const u16 px = wq.x_at(qh);
                     const u16 py = wq.y_at(qh);
                     if (wtr_bords_land(terrain, w, h, px, py)) {
-                        seed_coast_nbrs(terrain, w, h, px, py, turn, mp, coast_q);
+                        seed_coast_nbrs(terrain, w, h, px, py, turn, mp, mp_z, coast_q);
                     }
                     for (u32 k = 0u; k < MAP_NBR4_N; ++k) {
                         const i32 nx = static_cast<i32>(px) + MAP_NBR4_DX[k];
@@ -186,7 +189,7 @@ static void flood_ocean_wtr (
                         oc[ni] = 1;
                         wq_nxt.push(cx, cy);
                         if (wtr_bords_land(terrain, w, h, cx, cy)) {
-                            seed_coast_nbrs(terrain, w, h, cx, cy, turn, mp, coast_q);
+                            seed_coast_nbrs(terrain, w, h, cx, cy, turn, mp, mp_z, coast_q);
                         }
                     }
                 }
@@ -221,6 +224,7 @@ static void try_fan (
     WB_QueXY& q_nxt,
     u16* turn,
     u16* mp,
+    u16 mp_z,
     u16* out_max) {
     for (u32 k = 0u; k < MAP_NBR4_N; ++k) {
         const i32 nx = static_cast<i32>(ux) + MAP_NBR4_DX[k];
@@ -241,11 +245,11 @@ static void try_fan (
         const i32 nrem = bud - static_cast<i32>(cost);
         const u16 nt = nrem <= 0
             ? static_cast<u16>(ct + 1u) : ct;
-        if (!arr_better(turn[vi], mp[vi], nt, nrem)) {
+        if (!arr_better(turn[vi], mp[vi], nt, nrem, mp_z)) {
             continue;
         }
         turn[vi] = nt;
-        mp[vi] = mp_enc(nrem);
+        mp[vi] = mp_enc(nrem, mp_z);
         if (nt > *out_max) {
             *out_max = nt;
         }
@@ -269,9 +273,10 @@ static void flood_coast_tm (
     WB_QueXY& q_cur,
     WB_QueXY& q_nxt,
     WB_QueXY& sq,
+    u16 mp_z,
     u16* out_max) {
     *out_max = 0;
-    const i32 k_mp = static_cast<i32>(PATH_MP_TURN);
+    const i32 k_mp = static_cast<i32>(mp_z);
     const i32 k_min = static_cast<i32>(PATH_COST_STEP);
     while (q_cur.count() > 0u) {
         for (u32 i = 0; i < tile_n; ++i) {
@@ -286,7 +291,7 @@ static void flood_coast_tm (
             if (st >= 65534u) {
                 continue;
             }
-            const i32 rem = mp_dec(mp[si]);
+            const i32 rem = mp_dec(mp[si], mp_z);
             if (rem > 0) {
                 sq.push(sx, sy);
                 continue;
@@ -294,12 +299,12 @@ static void flood_coast_tm (
             const i32 bud = rem + k_mp;
             if (rem < 0) {
                 if (bud <= 0) {
-                    mp[si] = mp_enc(bud);
+                    mp[si] = mp_enc(bud, mp_z);
                     q_nxt.push(sx, sy);
                     continue;
                 }
                 if (bud < k_min) {
-                    mp[si] = k_mp_z;
+                    mp[si] = mp_z;
                     q_nxt.push(sx, sy);
                     continue;
                 }
@@ -307,24 +312,24 @@ static void flood_coast_tm (
             if (bud < k_min) {
                 continue;
             }
-            try_fan(terrain, rivers, w, h, si, sx, sy, bud, st, sq, q_nxt, turn, mp, out_max);
+            try_fan(terrain, rivers, w, h, si, sx, sy, bud, st, sq, q_nxt, turn, mp, mp_z, out_max);
         }
         for (u32 sh = 0; sh < sq.count(); ++sh) {
             const u16 sx = sq.x_at(sh);
             const u16 sy = sq.y_at(sh);
             const u32 si = tidx(w, sx, sy);
-            const i32 bud = mp_dec(mp[si]);
+            const i32 bud = mp_dec(mp[si], mp_z);
             if (bud <= 0) {
                 continue;
             }
             if (sq_spent[si] != 0) {
-                const i32 spent = mp_dec(sq_spent[si]);
+                const i32 spent = mp_dec(sq_spent[si], mp_z);
                 if (bud <= spent) {
                     continue;
                 }
             }
-            try_fan(terrain, rivers, w, h, si, sx, sy, bud, turn[si], sq, q_nxt, turn, mp, out_max);
-            sq_spent[si] = mp_enc(bud);
+            try_fan(terrain, rivers, w, h, si, sx, sy, bud, turn[si], sq, q_nxt, turn, mp, mp_z, out_max);
+            sq_spent[si] = mp_enc(bud, mp_z);
         }
         q_cur.swap(q_nxt);
         q_nxt.clear();
@@ -342,10 +347,12 @@ bool Generate_DistanceToOceanCoast_Tm::generate (
     u16 h,
     u16* turn,
     u16** scr,
+    u16 mp_turn,
     u16* out_max) {
     if (terrain == nullptr || turn == nullptr || scr == nullptr || out_max == nullptr || w == 0 || h == 0) {
         return false;
     }
+    const u16 k_mp_z = mp_turn;
     for (u32 s = 0; s < k_scr_n; ++s) {
         if (scr[s] == nullptr) {
             return false;
@@ -371,9 +378,9 @@ bool Generate_DistanceToOceanCoast_Tm::generate (
     if (k_phase_time) {
         t0 = clock();
     }
-    flood_ocean_wtr(terrain, w, h, tile_n, oc, turn, mp, wq, q_nxt, coast_q);
+    flood_ocean_wtr(terrain, w, h, tile_n, oc, turn, mp, k_mp_z, wq, q_nxt, coast_q);
     const clock_t t_ocean = k_phase_time ? clock() : 0;
-    flood_coast_tm(terrain, rivers, w, h, tile_n, turn, mp, oc, coast_q, q_nxt, sq, out_max);
+    flood_coast_tm(terrain, rivers, w, h, tile_n, turn, mp, oc, coast_q, q_nxt, sq, k_mp_z, out_max);
     if (k_phase_time) {
         const clock_t t_end = clock();
         std::printf("tm phase init:  %.6f s\n", clk_sec(t_all, t0));

@@ -1,8 +1,18 @@
 #!/bin/bash
+set -e
 
-INC="-I. -I.. -I../.. -I../../game -I../../map_loader -I../../simple_map_gen -I../../misc -I../../ai_proc"
+cd "$(dirname "$0")"
+
+LIB_SO="../../data_io/runtime_static_loader_lib.so"
+if [ ! -f "$LIB_SO" ]; then
+    echo "missing $LIB_SO - run ../../data_io/runtime_static_loader_lib_comp first"
+    exit 1
+fi
+
+INC="-I. -I.. -I../.. -I../../game -I../../map_loader -I../../simple_map_gen -I../../misc -I../../ai_proc -I../../data_io -I../../static_state"
 CXXFLAGS="-std=c++17 -Wall -Wextra"
 
+g++ $CXXFLAGS $INC -c ../../data_io/runtime_static_loader.cpp -o runtime_static_loader.o
 g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
 g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_data.cpp -o map_terrain_data.o
 g++ $CXXFLAGS $INC -c ../../map_loader/map_loader.cpp -o map_loader.o
@@ -19,6 +29,7 @@ g++ $CXXFLAGS $INC -c ../../ai_proc/wb_que_xy.cpp -o wb_que_xy.o
 g++ $CXXFLAGS $INC -c walk_p2p_mk4_tester.cpp -o walk_p2p_mk4_tester.o
 
 g++ $CXXFLAGS -o walk_p2p_mk4_tester \
+    runtime_static_loader.o \
     map_terrain_validate.o \
     map_terrain_data.o \
     map_loader.o \
@@ -32,9 +43,9 @@ g++ $CXXFLAGS -o walk_p2p_mk4_tester \
     walk_p2p_mk4.o \
     ai_whiteboard.o \
     wb_que_xy.o \
-    walk_p2p_mk4_tester.o -lm
+    walk_p2p_mk4_tester.o -lm -ldl
 
-rm map_terrain_validate.o map_terrain_data.o map_loader.o \
+rm runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.o \
     generator_constants.o perlin_noise.o generate_overlay_water_land.o water_land_overlay.o cont_indexer.o \
     runtime_trace_dbg.o generate_distance_p2p_mk4.o walk_p2p_mk4.o \
     ai_whiteboard.o wb_que_xy.o walk_p2p_mk4_tester.o

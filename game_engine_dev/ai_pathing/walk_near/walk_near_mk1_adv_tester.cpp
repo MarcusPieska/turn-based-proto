@@ -14,6 +14,7 @@
 #include "game_map_defs.h"
 #include "map_terrain_validate.h"
 #include "map_bit_overlay.h"
+#include "runtime_static_loader.h"
 
 typedef const char* cstr;
 
@@ -28,9 +29,25 @@ static const cstr NE_OUT = "/home/w/Projects/simple-map-gen/walk_near_mk1_adv_re
 static const cstr NE_FRAMES = "/home/w/Projects/simple-map-gen/walk_near_mk1_adv_frames";
 static const u16 NE_SX = 499u;
 static const u16 NE_SY = 499u;
-static const u16 NE_TURNS = PATH_MP_TURN;
+static u16 NE_TURNS = 0;
+static const cstr G_LIB = "../../data_io/runtime_static_loader_lib.so";
+static const cstr G_DATA = "../../";
 static const u16 NE_SIGHT = 3u;
 static const u32 NE_UNIT_N = 4u;
+
+static RuntimeStaticLoader g_rt_loader;
+static RuntimeStatics* g_rt_statics = nullptr;
+
+static bool load_statics () {
+    if (g_rt_statics != nullptr) {
+        return true;
+    }
+    if (!g_rt_loader.load(G_LIB, G_DATA)) {
+        return false;
+    }
+    g_rt_statics = &g_rt_loader.statics();
+    return true;
+}
 
 //================================================================================================================================
 //=> - Helpers -
@@ -193,6 +210,11 @@ static const char* bias_name (WalkNearBias b) {
 
 int main (int argc, char** argv) {
     const bool verbose = (argc >= 2 && argv[1] != nullptr && std::atoi(argv[1]) >= 2);
+    if (!load_statics()) {
+        std::printf("*** FAILED load statics\n");
+        return 1;
+    }
+    NE_TURNS = g_rt_statics->config().get_mov_pt_per_turn();
     GameArraySimple map;
     if (!Factory_GameArraySimple::load_map_gen_data(&map, NE_IN_TERR, NE_IN_CLIM, NE_IN_RIV)) {
         std::printf("*** FAILED load map\n");

@@ -10,6 +10,7 @@
 #include "game_primitives.h"
 #include "item_effects.h"
 #include "item_reqs.h"
+#include "combat_mod.h"
 #include "name_to_idx_callbacks.h"
 #include "opt_str_mng.h"
 #include "res_placement.h"
@@ -42,11 +43,13 @@ protected:
     i16 parse_i16 (const StringManager& line_items, u16 start_idx) const;
     u32 parse_u32 (const StringManager& line_items, u16 start_idx) const;
     u16 parse_unit_type (const StringManager& line_items, u16 start_idx) const;
+    u16 parse_unit_role (const StringManager& line_items, u16 start_idx) const;
     u16 parse_res_type (const StringManager& line_items, u16 start_idx) const;
     ItemReqsStruct parse_item_reqs (const StringManager& line_items, u16 start_idx) const;
     ItemEffectsStruct parse_item_effects (const StringManager& line_items, u16 start_idx) const;
     ItemEffectsStruct parse_item_effects_optional (const StringManager& line_items, u16 start_idx) const;
     CivTraitStruct parse_civ_traits (const StringManager& line_items, u16 start_idx) const;
+    CombatModList parse_combat_mods (const StringManager& line_items, u16 start_idx) const;
     bool parse_res_placement (const StringManager& line_items, ResPlacement& plc) const;
 
     static u32 get_error_count_for_tests ();

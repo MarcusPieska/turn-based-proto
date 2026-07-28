@@ -27,6 +27,7 @@ public:
         u16* step,
         u32* pred,
         u16** scr,
+        u16 mp_turn,
         u16* out_max);
 
 private:

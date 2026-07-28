@@ -9,7 +9,7 @@
 //=> - CivRelations -
 //================================================================================================================================
 
-static const u8 k_rel_bpv = 3;
+static const u8 k_rel_bpv = 4;
 
 CivRelations::CivRelations () :
     m_grid(nullptr) {

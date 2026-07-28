@@ -24,6 +24,7 @@
 #include "tech_parser_tester.h"
 #include "unit_parser_tester.h"
 #include "unit_action_parser_tester.h"
+#include "unit_role_parser_tester.h"
 #include "unit_type_parser_tester.h"
 #include "wonder_parser_tester.h"
 #include "worker_job_parser_tester.h"
@@ -51,6 +52,7 @@ public:
     TechParserTester& tech () { return m_tech; }
     UnitParserTester& unit () { return m_unit; }
     UnitActionParserTester& unit_action () { return m_unit_action; }
+    UnitRoleParserTester& unit_role () { return m_unit_role; }
     UnitTypeParserTester& unit_type () { return m_unit_type; }
     WonderParserTester& wonder () { return m_wonder; }
     WorkerJobParserTester& worker_job () { return m_worker_job; }
@@ -70,6 +72,7 @@ private:
     TechParserTester m_tech;
     UnitParserTester m_unit;
     UnitActionParserTester m_unit_action;
+    UnitRoleParserTester m_unit_role;
     UnitTypeParserTester m_unit_type;
     WonderParserTester m_wonder;
     WorkerJobParserTester m_worker_job;

@@ -31,6 +31,7 @@ g++ $INC -c ../static_state/small_wonder_static_data.cpp -o small_wonder_static_
 g++ $INC -c ../static_state/tech_static_data.cpp -o tech_static_data.o
 g++ $INC -c ../static_state/unit_static_data.cpp -o unit_static_data.o
 g++ $INC -c ../static_state/unit_action_static_data.cpp -o unit_action_static_data.o
+g++ $INC -c ../static_state/unit_role_static_data.cpp -o unit_role_static_data.o
 g++ $INC -c ../static_state/unit_type_static_data.cpp -o unit_type_static_data.o
 g++ $INC -c ../static_state/wonder_static_data.cpp -o wonder_static_data.o
 g++ $INC -c ../static_state/worker_job_static_data.cpp -o worker_job_static_data.o
@@ -58,6 +59,7 @@ g++ -o unit_action_parser_tester \
     tech_static_data.o \
     unit_static_data.o \
     unit_action_static_data.o \
+    unit_role_static_data.o \
     unit_type_static_data.o \
     wonder_static_data.o \
     worker_job_static_data.o \
@@ -85,6 +87,7 @@ rm \
     tech_static_data.o \
     unit_static_data.o \
     unit_action_static_data.o \
+    unit_role_static_data.o \
     unit_type_static_data.o \
     wonder_static_data.o \
     worker_job_static_data.o \

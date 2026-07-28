@@ -392,6 +392,9 @@ bool GameSetup::setup_from_cache (GameState* state, cstr map_path, cstr starts_p
     state->clear();
     state->m_statics = g_rt_statics;
     state->m_civ_relations.reset(g_rt_statics->civ().get_item_count());
+    if (!state->m_combat_mods.setup(*g_rt_statics)) {
+        return false;
+    }
     if (!GameLoopCache::load_map(map_path, &state->m_map)) {
         return false;
     }
@@ -419,6 +422,9 @@ bool GameSetup::setup_new_game (GameState* state, const MapGenReq& req, u16 play
     state->clear();
     state->m_statics = g_rt_statics;
     state->m_civ_relations.reset(g_rt_statics->civ().get_item_count());
+    if (!state->m_combat_mods.setup(*g_rt_statics)) {
+        return false;
+    }
     MapGenReq gen_req = req;
     gen_req.m_statics = g_rt_statics;
     MakeMapRslt rslt = g_map_loader.generate(gen_req);
@@ -451,6 +457,9 @@ bool GameSetup::setup_new_game (GameState* state, const MapPpmPaths& paths, u16 
     state->clear();
     state->m_statics = g_rt_statics;
     state->m_civ_relations.reset(g_rt_statics->civ().get_item_count());
+    if (!state->m_combat_mods.setup(*g_rt_statics)) {
+        return false;
+    }
     if (!Factory_GameArraySimple::load_map_gen_data(&state->m_map, paths.m_terr, paths.m_clim, paths.m_riv, paths.m_ov)) {
         return false;
     }

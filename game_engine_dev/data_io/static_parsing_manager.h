@@ -28,9 +28,10 @@ class StaticBitBank;
 #include "res_type_parser.h"
 #include "small_wonder_parser.h"
 #include "tech_parser.h"
-#include "unit_parser.h"
 #include "unit_action_parser.h"
+#include "unit_role_parser.h"
 #include "unit_type_parser.h"
+#include "unit_parser.h"
 #include "wonder_parser.h"
 #include "worker_job_parser.h"
 
@@ -44,9 +45,10 @@ class StaticBitBank;
 #include "res_type_static_data.h"
 #include "small_wonder_static_data.h"
 #include "tech_static_data.h"
-#include "unit_static_data.h"
 #include "unit_action_static_data.h"
+#include "unit_role_static_data.h"
 #include "unit_type_static_data.h"
+#include "unit_static_data.h"
 #include "wonder_static_data.h"
 #include "worker_job_static_data.h"
 
@@ -99,17 +101,21 @@ public:
 
     u16 get_tech_count () const;
 
-    const UnitStaticDataStruct* get_unit_data () const;
-
-    u16 get_unit_count () const;
-
     const UnitActionStaticDataStruct* get_unit_action_data () const;
 
     u16 get_unit_action_count () const;
 
+    const UnitRoleStaticDataStruct* get_unit_role_data () const;
+
+    u16 get_unit_role_count () const;
+
     const UnitTypeStaticDataStruct* get_unit_type_data () const;
 
     u16 get_unit_type_count () const;
+
+    const UnitStaticDataStruct* get_unit_data () const;
+
+    u16 get_unit_count () const;
 
     const WonderStaticDataStruct* get_wonder_data () const;
 
@@ -138,11 +144,13 @@ public:
 
     const DataParserBase& get_tech_name_parser () const;
 
-    const DataParserBase& get_unit_name_parser () const;
-
     const DataParserBase& get_unit_action_name_parser () const;
 
+    const DataParserBase& get_unit_role_name_parser () const;
+
     const DataParserBase& get_unit_type_name_parser () const;
+
+    const DataParserBase& get_unit_name_parser () const;
 
     const DataParserBase& get_wonder_name_parser () const;
 
@@ -181,9 +189,10 @@ private:
     StringManager m_res_type_items;
     StringManager m_small_wonder_items;
     StringManager m_tech_items;
-    StringManager m_unit_items;
     StringManager m_unit_action_items;
+    StringManager m_unit_role_items;
     StringManager m_unit_type_items;
+    StringManager m_unit_items;
     StringManager m_wonder_items;
     StringManager m_worker_job_items;
 
@@ -197,9 +206,10 @@ private:
     DataParserBase* m_res_type_name_parser;
     DataParserBase* m_small_wonder_name_parser;
     DataParserBase* m_tech_name_parser;
-    DataParserBase* m_unit_name_parser;
     DataParserBase* m_unit_action_name_parser;
+    DataParserBase* m_unit_role_name_parser;
     DataParserBase* m_unit_type_name_parser;
+    DataParserBase* m_unit_name_parser;
     DataParserBase* m_wonder_name_parser;
     DataParserBase* m_worker_job_name_parser;
 
@@ -219,9 +229,10 @@ private:
     ResTypeStaticDataStruct* m_res_type_data;
     SmallWonderStaticDataStruct* m_small_wonder_data;
     TechStaticDataStruct* m_tech_data;
-    UnitStaticDataStruct* m_unit_data;
     UnitActionStaticDataStruct* m_unit_action_data;
+    UnitRoleStaticDataStruct* m_unit_role_data;
     UnitTypeStaticDataStruct* m_unit_type_data;
+    UnitStaticDataStruct* m_unit_data;
     WonderStaticDataStruct* m_wonder_data;
     WorkerJobStaticDataStruct* m_worker_job_data;
 };

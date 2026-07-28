@@ -22,6 +22,7 @@
 #include "unit_add_vector.h"
 #include "unit_add_vector_key.h"
 #include "civ_relations.h"
+#include "combat_mods.h"
 #include "city_array.h"
 #include "sector_network.h"
 #include "sector_network_router.h"
@@ -110,6 +111,7 @@ public:
     bool m_age_of_exploration = true; // If true, fog/explore rules apply; else, all see all 
     const RuntimeStatics* m_statics = nullptr; // Process-wide static data; not owned by GameState
     CivRelations m_civ_relations; // Civ-vs-civ relation matrix for ally checks
+    CombatMods m_combat_mods; // Role-vs-role combat pct table; CITY_DEFENSE on defender only
     u16* m_wonder_city = nullptr; // Built world wonder city index per catalog row; U16_KEY_NULL if none
     u16 m_wonder_count = 0; // Length of m_wonder_city
     u16 m_small_wonder_count = 0; // Length of each player's m_small_wonder_city

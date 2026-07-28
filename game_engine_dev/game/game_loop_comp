@@ -60,6 +60,7 @@ g++ $CXXFLAGS $INC -c player_ledger.cpp -o player_ledger.o
 g++ $CXXFLAGS $INC -c tile_yields.cpp -o tile_yields.o
 g++ $CXXFLAGS $INC -c tile_working.cpp -o tile_working.o
 g++ $CXXFLAGS $INC -c civ_relations.cpp -o civ_relations.o
+g++ $CXXFLAGS $INC -c combat_mods.cpp -o combat_mods.o
 g++ $CXXFLAGS $INC -c ../adv_map_gen/map_gen_loader.cpp -o map_gen_loader.o
 g++ $CXXFLAGS $INC -c ../gen_bit_banks/general_bit_bank.cpp -o general_bit_bank.o
 g++ $CXXFLAGS $INC -c ../city/assessor/general_assessor.cpp -o general_assessor.o
@@ -131,6 +132,7 @@ g++ $CXXFLAGS -o game_loop_tester \
     tile_yields.o \
     tile_working.o \
     civ_relations.o \
+    combat_mods.o \
     map_gen_loader.o \
     city.o \
     general_bit_bank.o \
@@ -184,7 +186,7 @@ rm runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.
     sector_network.o sector_network_router.o point_seq_flood_walker.o \
     game_array_simple.o factory_game_array_simple.o game_state.o player_ledger.o \
     tile_yields.o tile_working.o \
-    civ_relations.o map_gen_loader.o city.o general_bit_bank.o general_assessor.o \
+    civ_relations.o combat_mods.o map_gen_loader.o city.o general_bit_bank.o general_assessor.o \
     effect_ctx.o effect_enabler.o booster_effect_register.o \
     local_unit_exp_booster_register.o civ_ship_training_booster_register.o city_commerce_booster_register.o \
     city_production_booster_register.o local_production_booster_register.o local_pop_growth_booster_register.o \

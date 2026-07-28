@@ -11,6 +11,7 @@
 #include "game_map_defs.h"
 #include "generator_constants.h"
 #include "map_loader.h"
+#include "runtime_static_loader.h"
 #include "water_land_overlay.h"
 
 typedef const char* cstr;
@@ -22,6 +23,8 @@ typedef const char* cstr;
 static const cstr k_in_path = "/home/w/Projects/simple-map-gen/p1-seed-042/24_make_map_terrain.ppm";
 static const cstr k_in_riv = "/home/w/Projects/simple-map-gen/p1-seed-042/24_make_map_rivers.ppm";
 static const cstr k_out_path = "/home/w/Projects/simple-map-gen/distance-p2p-mk3.ppm";
+static const cstr G_LIB = "../../data_io/runtime_static_loader_lib.so";
+static const cstr G_DATA = "../../";
 static const u16 k_turn_none = 0xFFFFu;
 static const u32 k_pred_none = 0xFFFFFFFFu;
 static const u32 k_turn_sent = Generate_DistanceP2P_Mk3::k_turn_sent;
@@ -48,6 +51,10 @@ static const cstr k_ansi_grn = "\033[32m";
 static const cstr k_ansi_red = "\033[31m";
 static const cstr k_ansi_blu = "\033[94m";
 
+static RuntimeStaticLoader g_rt_loader;
+static RuntimeStatics* g_rt_statics = nullptr;
+static u16 g_mp_turn = 0;
+
 struct P2PAuditRes {
     u32 n_val;
     u32 n_has_step;
@@ -71,6 +78,18 @@ static bool is_water (u8 t) {
 
 static u32 tidx (u16 w, u16 x, u16 y) {
     return static_cast<u32>(y) * static_cast<u32>(w) + static_cast<u32>(x);
+}
+
+static bool load_statics () {
+    if (g_rt_statics != nullptr) {
+        return true;
+    }
+    if (!g_rt_loader.load(G_LIB, G_DATA)) {
+        return false;
+    }
+    g_rt_statics = &g_rt_loader.statics();
+    g_mp_turn = g_rt_statics->config().get_mov_pt_per_turn();
+    return true;
 }
 
 static bool is_walk (u8 t) {
@@ -514,6 +533,10 @@ static bool build_img (
 //================================================================================================================================
 
 int main () {
+    if (!load_statics()) {
+        std::printf("*** FAILED load runtime statics\n");
+        return 1;
+    }
     MapTerrainData map;
     if (!MapLoader::load_terrain_ppm(k_in_path, map)) {
         std::printf("*** FAILED load %s\n", k_in_path);
@@ -574,7 +597,7 @@ int main () {
     u16 p2p_max = 0;
     const clock_t t0 = clock();
     const bool ok = Generate_DistanceP2P_Mk3::generate(
-        terrain, rivers, w, h, src_x, src_y, dst_x, dst_y, &turn_o, &step_o, pred, scr, &p2p_max);
+        terrain, rivers, w, h, src_x, src_y, dst_x, dst_y, &turn_o, &step_o, pred, scr, g_mp_turn, &p2p_max);
     const double ovl_sec = static_cast<double>(clock() - t0) / static_cast<double>(CLOCKS_PER_SEC);
     if (!ok) {
         std::printf("*** FAILED p2p generate (no path)\n");

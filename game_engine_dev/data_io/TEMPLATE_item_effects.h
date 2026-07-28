@@ -92,6 +92,16 @@ typedef struct ItemEffectTrain {
     u8 turns_interval;
 } ItemEffectTrain;
 
+typedef struct ItemEffectSetFlag {
+    u16 flag_id;
+    ItemEffectsScope scope;
+} ItemEffectSetFlag;
+
+typedef struct ItemEffectProduce {
+    u16 resource_id;
+    i16 amount;
+} ItemEffectProduce;
+
 //================================================================================================================================
 //=> - Union + tagged entry -
 //================================================================================================================================
@@ -102,6 +112,8 @@ typedef union ItemEffectsUnion {
     ItemEffectEnable enable;
     ItemEffectResearchTech research_tech;
     ItemEffectTrain train;
+    ItemEffectSetFlag set_flag;
+    ItemEffectProduce produce;
 } ItemEffectsUnion;
 
 typedef struct ItemEffectStruct {

@@ -21,6 +21,8 @@ ItemEffectType ItemEffectHelper::type_str_to_enum (cstr s) {
     if (s && std::strcmp(s, "RESEARCH_TECH") == 0) { return ItemEffectType::RESEARCH_TECH; }
     if (s && std::strcmp(s, "TRAIN") == 0) { return ItemEffectType::TRAIN; }
     if (s && std::strcmp(s, "TERRAIN_BOOSTER") == 0) { return ItemEffectType::TERRAIN_BOOSTER; }
+    if (s && std::strcmp(s, "SET_FLAG") == 0) { return ItemEffectType::SET_FLAG; }
+    if (s && std::strcmp(s, "PRODUCE") == 0) { return ItemEffectType::PRODUCE; }
     return ItemEffectType::NONE;
 }
 
@@ -33,6 +35,8 @@ cstr ItemEffectHelper::type_enum_to_str (ItemEffectType v) {
         case ItemEffectType::RESEARCH_TECH : return "RESEARCH_TECH";
         case ItemEffectType::TRAIN : return "TRAIN";
         case ItemEffectType::TERRAIN_BOOSTER : return "TERRAIN_BOOSTER";
+        case ItemEffectType::SET_FLAG : return "SET_FLAG";
+        case ItemEffectType::PRODUCE : return "PRODUCE";
         default: return "NONE";
     }
 }
@@ -60,6 +64,7 @@ ItemEffectBoosterType ItemEffectHelper::booster_type_str_to_enum (cstr s) {
     if (s && std::strcmp(s, "UPGRADE_COST") == 0) { return ItemEffectBoosterType::UPGRADE_COST; }
     if (s && std::strcmp(s, "WAR_WEAR") == 0) { return ItemEffectBoosterType::WAR_WEAR; }
     if (s && std::strcmp(s, "CULTURE") == 0) { return ItemEffectBoosterType::CULTURE; }
+    if (s && std::strcmp(s, "SANITATION") == 0) { return ItemEffectBoosterType::SANITATION; }
     return ItemEffectBoosterType::NONE;
 }
 
@@ -87,6 +92,7 @@ cstr ItemEffectHelper::booster_type_enum_to_str (ItemEffectBoosterType v) {
         case ItemEffectBoosterType::UPGRADE_COST : return "UPGRADE_COST";
         case ItemEffectBoosterType::WAR_WEAR : return "WAR_WEAR";
         case ItemEffectBoosterType::CULTURE : return "CULTURE";
+        case ItemEffectBoosterType::SANITATION : return "SANITATION";
         default: return "NONE";
     }
 }

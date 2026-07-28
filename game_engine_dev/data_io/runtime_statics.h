@@ -26,9 +26,10 @@ class StaticParsingManager;
 #include "res_type_static_data.h"
 #include "small_wonder_static_data.h"
 #include "tech_static_data.h"
-#include "unit_static_data.h"
 #include "unit_action_static_data.h"
+#include "unit_role_static_data.h"
 #include "unit_type_static_data.h"
+#include "unit_static_data.h"
 #include "wonder_static_data.h"
 #include "worker_job_static_data.h"
 #include "unit_type_action_map.h"
@@ -89,17 +90,21 @@ public:
 
     const TechStaticData& tech () const;
 
-    UnitStaticData& unit ();
-
-    const UnitStaticData& unit () const;
-
     UnitActionStaticData& unit_action ();
 
     const UnitActionStaticData& unit_action () const;
 
+    UnitRoleStaticData& unit_role ();
+
+    const UnitRoleStaticData& unit_role () const;
+
     UnitTypeStaticData& unit_type ();
 
     const UnitTypeStaticData& unit_type () const;
+
+    UnitStaticData& unit ();
+
+    const UnitStaticData& unit () const;
 
     WonderStaticData& wonder ();
 
@@ -145,9 +150,10 @@ private:
     ResTypeStaticData m_res_type;
     SmallWonderStaticData m_small_wonder;
     TechStaticData m_tech;
-    UnitStaticData m_unit;
     UnitActionStaticData m_unit_action;
+    UnitRoleStaticData m_unit_role;
     UnitTypeStaticData m_unit_type;
+    UnitStaticData m_unit;
     WonderStaticData m_wonder;
     WorkerJobStaticData m_worker_job;
     

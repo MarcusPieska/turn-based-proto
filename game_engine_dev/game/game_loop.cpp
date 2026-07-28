@@ -52,7 +52,7 @@ static void refill_mp (GameState& state, u16 unit_idx) {
     GAME_EXPECT(u != nullptr, "GameLoop refill_mp got nullptr unit");
     GAME_EXPECT(state.m_statics != nullptr, "GameLoop refill_mp got nullptr statics");
     const u16 pts = state.m_statics->unit().get_item(UnitStaticDataKey::from_raw(u->m_unit_typ_idx)).mvt_pts;
-    u->m_mvt_points = static_cast<i16>(pts * PATH_MP_TURN);
+    u->m_mvt_points = static_cast<i16>(pts * state.m_statics->config().get_mov_pt_per_turn());
 }
 
 static void after_city_turns (GameState& state) {

@@ -16,6 +16,7 @@
 #include "game_map_defs.h"
 #include "path_mk1.h"
 #include "river_pathing.h"
+#include "runtime_static_loader.h"
 #include "runtime_trace_dbg.h"
 #include "test_support.h"
 
@@ -33,12 +34,28 @@ static const cstr RE_SYS_MAP = "/home/w/Projects/simple-map-gen/walk_river_mk1_s
 static const cstr RE_BAD_MAP = "/home/w/Projects/simple-map-gen/walk_river_mk1_badmap.ppm";
 static const cstr RE_FRAMES = "/home/w/Projects/simple-map-gen/walk_river_mk1_frames";
 static const cstr RE_TRACE = "walk_river_mk1_test.trace";
-static const u16 RE_TURNS = PATH_MP_TURN;
+static u16 RE_TURNS = 0;
+static const cstr G_LIB = "../../data_io/runtime_static_loader_lib.so";
+static const cstr G_DATA = "../../";
 static const u16 RE_MOVES = 3u;
 static const u16 RE_SIGHT = 3u;
 static const u8 RE_PH_DONE = 3u;
 static const u16 RE_PROG_EVERY = 50u;
 static const u32 RE_SYS_MAX = 1000u; // Do not EVER touch this, we have to go through some systems to find one of interest
+
+static RuntimeStaticLoader g_rt_loader;
+static RuntimeStatics* g_rt_statics = nullptr;
+
+static bool load_statics () {
+    if (g_rt_statics != nullptr) {
+        return true;
+    }
+    if (!g_rt_loader.load(G_LIB, G_DATA)) {
+        return false;
+    }
+    g_rt_statics = &g_rt_loader.statics();
+    return true;
+}
 
 
 static const cstr k_ansi_rst = "\033[0m";
@@ -256,6 +273,11 @@ static bool save_sys_frame (
 int main (int argc, char** argv) {
     const bool verbose = re_verbose(argc, argv);
     print_cls_size(sizeof(WalkRiverMk1));
+    if (!load_statics()) {
+        t_fail("*** FAILED load statics\n");
+        return 1;
+    }
+    RE_TURNS = g_rt_statics->config().get_mov_pt_per_turn();
     const bool sys_frames = re_sys_frames(argc, argv);
     GameArraySimple map;
     if (!Factory_GameArraySimple::load_map_gen_data(&map, RE_IN_TERR, RE_IN_CLIM, RE_IN_RIV)) {

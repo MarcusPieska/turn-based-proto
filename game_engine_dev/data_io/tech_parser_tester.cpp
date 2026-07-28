@@ -38,6 +38,7 @@ TechParserTester::TechParserTester () :
     m_tech_sd(NULL),
     m_unit_sd(NULL),
     m_unit_action_sd(NULL),
+    m_unit_role_sd(NULL),
     m_unit_type_sd(NULL),
     m_wonder_sd(NULL),
     m_worker_job_sd(NULL), 
@@ -53,6 +54,7 @@ TechParserTester::TechParserTester () :
     m_tech_psr(NULL),
     m_unit_psr(NULL),
     m_unit_action_psr(NULL),
+    m_unit_role_psr(NULL),
     m_unit_type_psr(NULL),
     m_wonder_psr(NULL),
     m_worker_job_psr(NULL) 
@@ -128,6 +130,12 @@ void TechParserTester::set_unit_sd (const UnitStaticData* sd) {
 void TechParserTester::set_unit_action_sd (const UnitActionStaticData* sd) {
 
     m_unit_action_sd = sd;
+
+}
+
+void TechParserTester::set_unit_role_sd (const UnitRoleStaticData* sd) {
+
+    m_unit_role_sd = sd;
 
 }
 
@@ -265,6 +273,13 @@ u16 TechParserTester::st_unit_action_n2i (cstr name) {
         return U16_KEY_NULL;
     }
     return s_inst->m_unit_action_psr->name_to_idx(name);
+}
+
+u16 TechParserTester::st_unit_role_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_unit_role_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_unit_role_psr->name_to_idx(name);
 }
 
 u16 TechParserTester::st_unit_type_n2i (cstr name) {
@@ -486,6 +501,42 @@ void TechParserTester::pr_fx (cstr label, const ItemEffectsStruct& e) {
             }
             break;
         }
+        case ItemEffectType::SET_FLAG: {
+            const ItemEffectSetFlag& sf = slot.effect.set_flag;
+            const char* sc = "?";
+            switch (sf.scope) {
+                case ItemEffectsScope::LOCAL: sc = "LOCAL"; break;
+                case ItemEffectsScope::CITY: sc = "CITY"; break;
+                case ItemEffectsScope::CIV: sc = "CIV"; break;
+                case ItemEffectsScope::GLOBAL: sc = "GLOBAL"; break;
+                default: break;
+            }
+            if (sf.flag_id == U16_KEY_NULL) {
+                fprintf(out(), " setFlag");
+            } else if (m_city_flag_sd != NULL && sf.flag_id < m_city_flag_sd->get_item_count()) {
+                fprintf(out(), " setFlag %s (%u)", m_city_flag_sd->get_name(CityFlagStaticDataKey::from_raw(sf.flag_id)), static_cast<u32>(sf.flag_id));
+            } else if (m_city_flag_psr != NULL) {
+                fprintf(out(), " setFlag %s (%u)", m_city_flag_psr->idx_to_name(sf.flag_id), static_cast<u32>(sf.flag_id));
+            } else {
+                fprintf(out(), " setFlag <unknown> (%u)", static_cast<u32>(sf.flag_id));
+            }
+            fprintf(out(), " scope=%s", sc);
+            break;
+        }
+        case ItemEffectType::PRODUCE: {
+            const ItemEffectProduce& pr = slot.effect.produce;
+            if (pr.resource_id == U16_KEY_NULL) {
+                fprintf(out(), " produce");
+            } else if (m_resource_sd != NULL && pr.resource_id < m_resource_sd->get_item_count()) {
+                fprintf(out(), " produce %s (%u)", m_resource_sd->get_name(ResourceStaticDataKey::from_raw(pr.resource_id)), static_cast<u32>(pr.resource_id));
+            } else if (m_resource_psr != NULL) {
+                fprintf(out(), " produce %s (%u)", m_resource_psr->idx_to_name(pr.resource_id), static_cast<u32>(pr.resource_id));
+            } else {
+                fprintf(out(), " produce <unknown> (%u)", static_cast<u32>(pr.resource_id));
+            }
+            fprintf(out(), " amount=%d", static_cast<int>(pr.amount));
+            break;
+        }
         case ItemEffectType::TERRAIN_BOOSTER:
             fprintf(out(), " TERRAIN_BOOSTER");
             break;
@@ -539,6 +590,7 @@ int TechParserTester::run () {
     cbs.tech_name_to_idx = st_tech_n2i;
     cbs.unit_name_to_idx = st_unit_n2i;
     cbs.unit_action_name_to_idx = st_unit_action_n2i;
+    cbs.unit_role_name_to_idx = st_unit_role_n2i;
     cbs.unit_type_name_to_idx = st_unit_type_n2i;
     cbs.wonder_name_to_idx = st_wonder_n2i;
     cbs.worker_job_name_to_idx = st_worker_job_n2i;
@@ -557,6 +609,7 @@ int TechParserTester::run () {
     StringManager tech_items;
     StringManager unit_items;
     StringManager unit_action_items;
+    StringManager unit_role_items;
     StringManager unit_type_items;
     StringManager wonder_items;
     StringManager worker_job_items;
@@ -575,6 +628,7 @@ int TechParserTester::run () {
     ld_sm(tech_items, paths.get_path_to_techs());
     ld_sm(unit_items, paths.get_path_to_units());
     ld_sm(unit_action_items, paths.get_path_to_unit_actions());
+    ld_sm(unit_role_items, paths.get_path_to_unit_roles());
     ld_sm(unit_type_items, paths.get_path_to_unit_types());
     ld_sm(wonder_items, paths.get_path_to_wonders());
     ld_sm(worker_job_items, paths.get_path_to_worker_jobs());
@@ -596,6 +650,7 @@ int TechParserTester::run () {
     DataParserBase tech_parser(tech_items, cbs);
     DataParserBase unit_parser(unit_items, cbs);
     DataParserBase unit_action_parser(unit_action_items, cbs);
+    DataParserBase unit_role_parser(unit_role_items, cbs);
     DataParserBase unit_type_parser(unit_type_items, cbs);
     DataParserBase wonder_parser(wonder_items, cbs);
     DataParserBase worker_job_parser(worker_job_items, cbs);
@@ -612,6 +667,7 @@ int TechParserTester::run () {
     m_tech_psr = &tech_parser;
     m_unit_psr = &unit_parser;
     m_unit_action_psr = &unit_action_parser;
+    m_unit_role_psr = &unit_role_parser;
     m_unit_type_psr = &unit_type_parser;
     m_wonder_psr = &wonder_parser;
     m_worker_job_psr = &worker_job_parser;

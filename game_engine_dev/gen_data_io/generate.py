@@ -25,8 +25,9 @@ PARSER_SPECS.append(("res_dist", "ResDist", "plc,1,ResPlacement"))
 PARSER_SPECS.append(("res_type", "ResType", ""))
 PARSER_SPECS.append(("small_wonder", "SmallWonder", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStruct"))
 PARSER_SPECS.append(("tech", "Tech", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStructOpt"))
-PARSER_SPECS.append(("unit", "Unit", "type,1,UnitType:cost,2,u32:attack,3,u16:defense,4,u16:mvt_pts,5,u16:sight,6,u16:reqs,7,ItemReqsStruct"))
+PARSER_SPECS.append(("unit", "Unit", "type,1,UnitType:role,2,UnitRole:cost,3,u32:attack,4,u16:defense,5,u16:mvt_pts,6,u16:sight,7,u16:reqs,8,ItemReqsStruct"))
 PARSER_SPECS.append(("unit_action", "UnitAction", ""))
+PARSER_SPECS.append(("unit_role", "UnitRole", "mods,1,CombatModList"))
 PARSER_SPECS.append(("unit_type", "UnitType", ""))
 PARSER_SPECS.append(("wonder", "Wonder", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStruct"))
 PARSER_SPECS.append(("worker_job", "WorkerJob", "cost,1,u32:reqs,2,ItemReqsStruct"))
@@ -61,6 +62,8 @@ def get_function_name_from_output_type(output_type):
         return "parse_u32"
     elif output_type == "UnitType":
         return "parse_unit_type"
+    elif output_type == "UnitRole":
+        return "parse_unit_role"
     elif output_type == "ResType":
         return "parse_res_type"
     elif output_type == "ItemReqsStruct":
@@ -73,6 +76,8 @@ def get_function_name_from_output_type(output_type):
         return "parse_civ_traits"
     elif output_type == "ResPlacement":
         return "parse_res_placement"
+    elif output_type == "CombatModList":
+        return "parse_combat_mods"
     else:
         return None
         
@@ -84,6 +89,9 @@ def derive_parsing_lines(parsing_instructions):
         member, idx, data_type = [part.strip() for part in instruction.strip().split(",")]
         if data_type == "ResPlacement":
             parsing_lines.append("parsed_data[i].has_plc = parse_res_placement(line_items, parsed_data[i].plc) ? 1 : 0;")
+            continue
+        if data_type == "CombatModList":
+            parsing_lines.append("parsed_data[i].%s = parse_combat_mods(line_items, %d);" % (member, int(idx)))
             continue
         if data_type == "ResDistIdx":
             parsing_lines.append("parsed_data[i].res_dist_idx = m_name_to_idx_cbs.res_dist_name_to_idx(get_names().get_string_content(i));")
@@ -98,7 +106,7 @@ def derive_member_print_lines(parsing_instructions):
         return ["// No parsing instructions provided"]
     for instruction in parsing_instructions.split(":"):
         mem, idx, data_type = [part.strip() for part in instruction.strip().split(",")]
-        if data_type in ["u16", "UnitType", "ResType", "ResDistIdx"]:
+        if data_type in ["u16", "UnitType", "UnitRole", "ResType", "ResDistIdx"]:
             lines.append('pr_u16("%s", item.%s);' % (mem, mem))
         elif data_type == "i16":
             lines.append('pr_i16("%s", item.%s);' % (mem, mem))
@@ -112,33 +120,60 @@ def derive_member_print_lines(parsing_instructions):
             lines.append('pr_traits("%s", item.%s);' % (mem, mem))
         elif data_type == "ResPlacement":
             lines.append('pr_plc(item.has_plc, item.plc);')
+        elif data_type == "CombatModList":
+            lines.append('pr_mods(item.%s);' % mem)
     return lines
 
 def derive_extra_includes(parsing_instructions):
     if parsing_instructions and "ResPlacement" in parsing_instructions:
         return '#include "res_placement.h"'
+    if parsing_instructions and "CombatModList" in parsing_instructions:
+        return '#include "combat_mod.h"'
     return ""
 
 def derive_extra_pr_decl(parsing_instructions):
     if parsing_instructions and "ResPlacement" in parsing_instructions:
         return "void pr_plc (u8 has_plc, const ResPlacement& plc);"
+    if parsing_instructions and "CombatModList" in parsing_instructions:
+        return "void pr_mods (const CombatModList& mods);"
     return ""
 
 def derive_extra_pr_impl(class_name, parsing_instructions):
-    if not parsing_instructions or "ResPlacement" not in parsing_instructions:
-        return ""
-    return (
-        "void %sParserTester::pr_plc (u8 has_plc, const ResPlacement& plc) {\n"
-        "    fprintf(out(), \"  has_plc: %%u\\n\", has_plc);\n"
-        "    if (!has_plc) return;\n"
-        "    fprintf(out(), \"  res_wt: %%u\\n\", plc.m_res_wt);\n"
-        "    fprintf(out(), \"  quad_n: %%u\\n\", plc.m_quad_n);\n"
-        "    for (u32 qi = 0; qi < plc.m_quad_n; ++qi) {\n"
-        "        fprintf(out(), \"  quad[%%u]: terr=%%u clim=%%u ov=%%u wt=%%u\\n\", qi,\n"
-        "            plc.m_quads[qi].m_terr, plc.m_quads[qi].m_clim, plc.m_quads[qi].m_ov, plc.m_quads[qi].m_wt);\n"
-        "    }\n"
-        "}" % class_name
-    )
+    if parsing_instructions and "ResPlacement" in parsing_instructions:
+        return (
+            "void %sParserTester::pr_plc (u8 has_plc, const ResPlacement& plc) {\n"
+            "    fprintf(out(), \"  has_plc: %%u\\n\", has_plc);\n"
+            "    if (!has_plc) return;\n"
+            "    fprintf(out(), \"  res_wt: %%u\\n\", plc.m_res_wt);\n"
+            "    fprintf(out(), \"  quad_n: %%u\\n\", plc.m_quad_n);\n"
+            "    for (u32 qi = 0; qi < plc.m_quad_n; ++qi) {\n"
+            "        fprintf(out(), \"  quad[%%u]: terr=%%u clim=%%u ov=%%u wt=%%u\\n\", qi,\n"
+            "            plc.m_quads[qi].m_terr, plc.m_quads[qi].m_clim, plc.m_quads[qi].m_ov, plc.m_quads[qi].m_wt);\n"
+            "    }\n"
+            "}" % class_name
+        )
+    if parsing_instructions and "CombatModList" in parsing_instructions:
+        return (
+            "void %sParserTester::pr_mods (const CombatModList& mods) {\n"
+            "    fprintf(out(), \"  mods (%%u):\\n\", mods.m_n);\n"
+            "    for (u32 i = 0; i < mods.m_n; ++i) {\n"
+            "        const u16 role = mods.m_mods[i].m_role;\n"
+            "        if (role == COMBAT_MOD_CITY_DEFENSE) {\n"
+            "            fprintf(out(), \"    [%%u] CITY_DEFENSE pct=%%d\\n\", i, (int)mods.m_mods[i].m_pct);\n"
+            "        } else if (m_unit_role_sd != NULL && role < m_unit_role_sd->get_item_count()) {\n"
+            "            fprintf(out(), \"    [%%u] %%s (%%u) pct=%%d\\n\", i,\n"
+            "                m_unit_role_sd->get_name(UnitRoleStaticDataKey::from_raw(role)), role,\n"
+            "                (int)mods.m_mods[i].m_pct);\n"
+            "        } else if (m_unit_role_psr != NULL) {\n"
+            "            fprintf(out(), \"    [%%u] %%s (%%u) pct=%%d\\n\", i,\n"
+            "                m_unit_role_psr->idx_to_name(role), role, (int)mods.m_mods[i].m_pct);\n"
+            "        } else {\n"
+            "            fprintf(out(), \"    [%%u] <unknown> (%%u) pct=%%d\\n\", i, role, (int)mods.m_mods[i].m_pct);\n"
+            "        }\n"
+            "    }\n"
+            "}" % class_name
+        )
+    return ""
 
 def derive_dep_psr_members():
     lines = []
@@ -289,6 +324,53 @@ def get_output_filename(output_prefix, template_file):
 def get_output_dir():
     return os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data_io"))
 
+def get_game_config_dir():
+    return os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+
+def load_catalog_names (prefix):
+    path = os.path.join(get_game_config_dir(), "game_config." + path_from_stem(prefix))
+    names = []
+    with open(path, "r") as ptr:
+        for line in ptr:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            name = line.split(":", 1)[0].strip()
+            if name:
+                names.append(name)
+    return names
+
+def to_enum_ident (name):
+    out = []
+    for c in name:
+        if c.isalnum():
+            out.append(c)
+        else:
+            out.append("_")
+    ident = "".join(out)
+    while "__" in ident:
+        ident = ident.replace("__", "_")
+    ident = ident.strip("_")
+    if ident == "":
+        ident = "UNNAMED"
+    if ident[0].isdigit():
+        ident = "_" + ident
+    return ident
+
+def unroll_catalog_enum_members (prefix):
+    names = load_catalog_names(prefix)
+    if len(names) == 0:
+        raise RuntimeError("no catalog names for %s" % prefix)
+    lines = []
+    seen = {}
+    for i, name in enumerate(names):
+        ident = to_enum_ident(name)
+        if ident in seen:
+            ident = "%s_%u" % (ident, i)
+        seen[ident] = i
+        lines.append("%s = %d" % (ident, i))
+    return ",\n    ".join(lines)
+
 def apply_substitution(content, old_string, new_string):
     return content.replace(old_string, new_string)
 
@@ -337,6 +419,7 @@ if __name__ == "__main__":
     substitution_pairs.append(("[DEP_COMP_COMPILE_HOLDERS_TAG]", "\n".join(derive_comp_compile_holders())))
     substitution_pairs.append(("[DEP_COMP_LINK_HOLDERS_TAG]", "\n    ".join(derive_comp_link_holders())))
     substitution_pairs.append(("[DEP_COMP_CLEAN_HOLDERS_TAG]", "\n    ".join(derive_comp_clean_holders())))
+    substitution_pairs.append(("[ENUM_MEMBERS]", unroll_catalog_enum_members(output_prefix)))
 
     template_files = []
     template_files.append("PREFIX_parser.cpp")
@@ -345,6 +428,7 @@ if __name__ == "__main__":
     template_files.append("PREFIX_parser_tester.cpp")
     template_files.append("PREFIX_parser_tester_drv.cpp")
     template_files.append("PREFIX_parser_comp")
+    template_files.append("PREFIX_enum.h")
 
     output_files = []
     for template_file in template_files:

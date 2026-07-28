@@ -13,6 +13,7 @@
 #include "game_map_grid_defs.h"
 #include "game_primitives.h"
 #include "map_bit_overlay.h"
+#include "runtime_static_loader.h"
 
 typedef const char* cstr;
 
@@ -25,13 +26,29 @@ static const cstr EN_IN_CLIM = "/home/w/Projects/simple-map-gen/p1-seed-042/24_m
 static const cstr EN_IN_RIV = "/home/w/Projects/simple-map-gen/p1-seed-042/24_make_map_rivers.ppm";
 static const cstr EN_START_MAP = "/home/w/Projects/simple-map-gen/explore_near_start_map.ppm";
 static const cstr EN_OUT = "/home/w/Projects/simple-map-gen/explore_near_start_result.ppm";
-static const u16 EN_TURNS = PATH_MP_TURN;
+static u16 EN_TURNS = 0;
+static const cstr G_LIB = "../data_io/runtime_static_loader_lib.so";
+static const cstr G_DATA = "../";
 static const u16 EN_SIGHT = 3u;
 
 static const u8 k_ov_off = 0u;
 static const u8 k_ov_land = 1u;
 static const u8 k_ov_near = 2u;
 static const u8 k_ov_side = 3u;
+
+static RuntimeStaticLoader g_rt_loader;
+static RuntimeStatics* g_rt_statics = nullptr;
+
+static bool load_statics () {
+    if (g_rt_statics != nullptr) {
+        return true;
+    }
+    if (!g_rt_loader.load(G_LIB, G_DATA)) {
+        return false;
+    }
+    g_rt_statics = &g_rt_loader.statics();
+    return true;
+}
 
 static const cstr k_ansi_rst = "\033[0m";
 static const cstr k_ansi_grn = "\033[32m";
@@ -437,6 +454,11 @@ static bool save_frame_ppm (
 int main (int argc, char** argv) {
     const bool verbose = (argc >= 2 && argv[1] != nullptr && std::atoi(argv[1]) >= 2);
     print_cls_size(sizeof(ExploreNear));
+    if (!load_statics()) {
+        t_fail("*** FAILED load statics\n");
+        return 1;
+    }
+    EN_TURNS = g_rt_statics->config().get_mov_pt_per_turn();
     GameArraySimple map;
     if (!Factory_GameArraySimple::load_map_gen_data(&map, EN_IN_TERR, EN_IN_CLIM, EN_IN_RIV)) {
         t_fail("*** FAILED load map\n");

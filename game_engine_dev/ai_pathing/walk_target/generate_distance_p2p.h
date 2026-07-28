@@ -16,9 +16,9 @@ class Whiteboard_1B;
 //=> - GenerateDistanceP2P -
 //================================================================================================================================
 //
-//  Floods turn + arrival-rem boards from dst toward src (UnitMovementMng, 8-neighbor). Enter only
-//  when local budget >= cost; Dial buckets process lower turns first; stops once src is settled and
-//  no <=src-turn work remains. Walk: lower turn, then higher rem. Optional 1B mask.
+//  Floods turn + arrival-rem boards from dst (UnitMovementMng, 8-neighbor). Enter only when local
+//  budget >= cost; Dial buckets process lower turns first. With src: stops once src is settled and
+//  no <=src-turn work remains. Without src: floods until the open set is empty. Optional 1B mask.
 //
 //================================================================================================================================
 
@@ -31,6 +31,15 @@ public:
         const RuntimeStatics& st,
         u16 src_x,
         u16 src_y,
+        u16 dst_x,
+        u16 dst_y,
+        WalkP2P& walk,
+        const Whiteboard_1B* mask,
+        u16* out_max);
+
+    static bool generate (
+        const GameState& s,
+        const RuntimeStatics& st,
         u16 dst_x,
         u16 dst_y,
         WalkP2P& walk,

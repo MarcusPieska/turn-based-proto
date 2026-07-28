@@ -19,8 +19,9 @@ enum class CivRel : u8 {
     CIV_REL_NONE = 1,
     CIV_REL_WAR = 2,
     CIV_REL_PEACE = 3,
-    CIV_REL_ALLY = 4,
-    CIV_REL_SUBJECT = 5,
+    CIV_REL_PEACE_ACCESS = 4,
+    CIV_REL_ALLY = 5,
+    CIV_REL_SUBJECT = 6,
 };
 
 //================================================================================================================================

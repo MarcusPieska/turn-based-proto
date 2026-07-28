@@ -13,6 +13,7 @@
 #include "game_map_defs.h"
 #include "generator_constants.h"
 #include "map_loader.h"
+#include "runtime_static_loader.h"
 #include "runtime_trace_dbg.h"
 #include "water_land_overlay.h"
 
@@ -26,6 +27,8 @@ static const cstr k_in_path = "/home/w/Projects/simple-map-gen/p1-seed-42/terrai
 static const cstr k_in_riv = "/home/w/Projects/simple-map-gen/p1-seed-42/rivers.ppm";
 static const cstr k_out_path = "/home/w/Projects/simple-map-gen/distance-p2p-mk3-walk.ppm";
 static const cstr k_trace_path = "/home/w/Projects/simple-map-gen/distance-p2p-mk3-walk.trace";
+static const cstr G_LIB = "../../data_io/runtime_static_loader_lib.so";
+static const cstr G_DATA = "../../";
 static const u16 k_turn_none = 0xFFFFu;
 static const u32 k_pred_none = 0xFFFFFFFFu;
 static const u32 k_turn_sent = Generate_DistanceP2P_Mk3::k_turn_sent;
@@ -49,6 +52,9 @@ static const u8 k_inland_b = 48;
 static const cstr k_ansi_rst = "\033[0m";
 static const cstr k_ansi_blu = "\033[94m";
 
+static RuntimeStaticLoader g_rt_loader;
+static RuntimeStatics* g_rt_statics = nullptr;
+
 struct WalkSimRes {
     u32 path_len;
     u32 game_turns;
@@ -65,6 +71,17 @@ static bool is_water (u8 t) {
 
 static u32 tidx (u16 w, u16 x, u16 y) {
     return static_cast<u32>(y) * static_cast<u32>(w) + static_cast<u32>(x);
+}
+
+static bool load_statics () {
+    if (g_rt_statics != nullptr) {
+        return true;
+    }
+    if (!g_rt_loader.load(G_LIB, G_DATA)) {
+        return false;
+    }
+    g_rt_statics = &g_rt_loader.statics();
+    return true;
 }
 
 static bool is_walk (u8 t) {
@@ -249,12 +266,13 @@ static WalkSimRes sim_walk (
     u16 sy,
     u16 dx,
     u16 dy,
+    u16 mp_turn,
     u8* path_m) {
     WalkSimRes res = {};
     const u32 tile_n = static_cast<u32>(w) * static_cast<u32>(h);
     u16 px = sx;
     u16 py = sy;
-    i32 mp = static_cast<i32>(PATH_MP_TURN);
+    i32 mp = static_cast<i32>(mp_turn);
     u32 turn = 1u;
     for (u32 i = 0; i < tile_n; ++i) {
         path_m[i] = 0;
@@ -298,7 +316,7 @@ static WalkSimRes sim_walk (
             break;
         }
         turn++;
-        mp += static_cast<i32>(PATH_MP_TURN);
+        mp += static_cast<i32>(mp_turn);
     }
     res.game_turns = turn;
     return res;
@@ -496,6 +514,11 @@ static void print_outcome (
 }
 
 int main () {
+    if (!load_statics()) {
+        std::printf("*** FAILED load runtime statics\n");
+        return 1;
+    }
+    const u16 mp_turn = g_rt_statics->config().get_mov_pt_per_turn();
     MapTerrainData map;
     if (!MapLoader::load_terrain_ppm(k_in_path, map)) {
         std::printf("*** FAILED load %s\n", k_in_path);
@@ -556,7 +579,7 @@ int main () {
     u16 p2p_max = 0;
     const clock_t t0 = clock();
     const bool ok = Generate_DistanceP2P_Mk3::generate(
-        terrain, rivers, w, h, src_x, src_y, dst_x, dst_y, &turn_o, &step_o, pred, scr, &p2p_max);
+        terrain, rivers, w, h, src_x, src_y, dst_x, dst_y, &turn_o, &step_o, pred, scr, mp_turn, &p2p_max);
     const double gen_sec = static_cast<double>(clock() - t0) / static_cast<double>(CLOCKS_PER_SEC);
     if (!ok) {
         std::printf("*** FAILED p2p generate (no path)\n");
@@ -569,7 +592,7 @@ int main () {
     const clock_t t1 = clock();
     res = sim_walk(
         walker, turn_o, step_o, pred, terrain, rivers, w, h,
-        src_x, src_y, dst_x, dst_y, path_m);
+        src_x, src_y, dst_x, dst_y, mp_turn, path_m);
     const double walk_sec = static_cast<double>(clock() - t1) / static_cast<double>(CLOCKS_PER_SEC);
     u8* rgb = new u8[static_cast<size_t>(tile_n) * 3u];
     build_img(terrain, turn_o, pred, path_m, w, h, src_x, src_y, dst_x, dst_y, rgb);

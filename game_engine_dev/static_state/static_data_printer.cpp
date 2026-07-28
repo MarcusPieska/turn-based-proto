@@ -124,6 +124,18 @@ static void print_building_item (
                 StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::UNIT, ref_idx, print_lvl + 1, max_lvl);
             }
         }
+        if (slot.type == static_cast<u16>(ItemEffectType::SET_FLAG)) {
+            u16 ref_idx = slot.effect.set_flag.flag_id;
+            if (ref_idx != U16_KEY_NULL) {
+                StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::CITY_FLAG, ref_idx, print_lvl + 1, max_lvl);
+            }
+        }
+        if (slot.type == static_cast<u16>(ItemEffectType::PRODUCE)) {
+            u16 ref_idx = slot.effect.produce.resource_id;
+            if (ref_idx != U16_KEY_NULL) {
+                StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::RESOURCE, ref_idx, print_lvl + 1, max_lvl);
+            }
+        }
     }
 }
 
@@ -192,6 +204,18 @@ static void print_city_flag_item (
             u16 ref_idx = slot.effect.train.unit_id;
             if (ref_idx != U16_KEY_NULL) {
                 StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::UNIT, ref_idx, print_lvl + 1, max_lvl);
+            }
+        }
+        if (slot.type == static_cast<u16>(ItemEffectType::SET_FLAG)) {
+            u16 ref_idx = slot.effect.set_flag.flag_id;
+            if (ref_idx != U16_KEY_NULL) {
+                StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::CITY_FLAG, ref_idx, print_lvl + 1, max_lvl);
+            }
+        }
+        if (slot.type == static_cast<u16>(ItemEffectType::PRODUCE)) {
+            u16 ref_idx = slot.effect.produce.resource_id;
+            if (ref_idx != U16_KEY_NULL) {
+                StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::RESOURCE, ref_idx, print_lvl + 1, max_lvl);
             }
         }
     }
@@ -358,6 +382,18 @@ static void print_small_wonder_item (
                 StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::UNIT, ref_idx, print_lvl + 1, max_lvl);
             }
         }
+        if (slot.type == static_cast<u16>(ItemEffectType::SET_FLAG)) {
+            u16 ref_idx = slot.effect.set_flag.flag_id;
+            if (ref_idx != U16_KEY_NULL) {
+                StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::CITY_FLAG, ref_idx, print_lvl + 1, max_lvl);
+            }
+        }
+        if (slot.type == static_cast<u16>(ItemEffectType::PRODUCE)) {
+            u16 ref_idx = slot.effect.produce.resource_id;
+            if (ref_idx != U16_KEY_NULL) {
+                StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::RESOURCE, ref_idx, print_lvl + 1, max_lvl);
+            }
+        }
     }
 }
 
@@ -426,6 +462,18 @@ static void print_tech_item (
             u16 ref_idx = slot.effect.train.unit_id;
             if (ref_idx != U16_KEY_NULL) {
                 StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::UNIT, ref_idx, print_lvl + 1, max_lvl);
+            }
+        }
+        if (slot.type == static_cast<u16>(ItemEffectType::SET_FLAG)) {
+            u16 ref_idx = slot.effect.set_flag.flag_id;
+            if (ref_idx != U16_KEY_NULL) {
+                StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::CITY_FLAG, ref_idx, print_lvl + 1, max_lvl);
+            }
+        }
+        if (slot.type == static_cast<u16>(ItemEffectType::PRODUCE)) {
+            u16 ref_idx = slot.effect.produce.resource_id;
+            if (ref_idx != U16_KEY_NULL) {
+                StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::RESOURCE, ref_idx, print_lvl + 1, max_lvl);
             }
         }
     }
@@ -581,6 +629,18 @@ static void print_wonder_item (
             u16 ref_idx = slot.effect.train.unit_id;
             if (ref_idx != U16_KEY_NULL) {
                 StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::UNIT, ref_idx, print_lvl + 1, max_lvl);
+            }
+        }
+        if (slot.type == static_cast<u16>(ItemEffectType::SET_FLAG)) {
+            u16 ref_idx = slot.effect.set_flag.flag_id;
+            if (ref_idx != U16_KEY_NULL) {
+                StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::CITY_FLAG, ref_idx, print_lvl + 1, max_lvl);
+            }
+        }
+        if (slot.type == static_cast<u16>(ItemEffectType::PRODUCE)) {
+            u16 ref_idx = slot.effect.produce.resource_id;
+            if (ref_idx != U16_KEY_NULL) {
+                StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::RESOURCE, ref_idx, print_lvl + 1, max_lvl);
             }
         }
     }

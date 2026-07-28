@@ -15,6 +15,7 @@
 #include "game_map_grid_defs.h"
 #include "map_terrain_validate.h"
 #include "map_bit_overlay.h"
+#include "runtime_static_loader.h"
 
 typedef const char* cstr;
 
@@ -28,14 +29,29 @@ static const cstr EN_IN_RIV = "/home/w/Projects/simple-map-gen/p1-seed-042/24_ma
 static const cstr EN_OUT_DIR = "/home/w/Projects/simple-map-gen/explore_near_results";
 static const u16 EN_SX = 499u;
 static const u16 EN_SY = 499u;
-static const u16 EN_TURNS = PATH_MP_TURN;
+static u16 EN_TURNS = 0;
+static const cstr G_LIB = "../data_io/runtime_static_loader_lib.so";
+static const cstr G_DATA = "../";
 static const u16 EN_SIGHT = 3u;
-static const u32 EN_MOVE_CAP = static_cast<u32>(EN_TURNS) * 2u;
 
 static const cstr k_ansi_rst = "\033[0m";
 static const cstr k_ansi_grn = "\033[32m";
 static const cstr k_ansi_red = "\033[31m";
 static const cstr k_ansi_blu = "\033[94m";
+
+static RuntimeStaticLoader g_rt_loader;
+static RuntimeStatics* g_rt_statics = nullptr;
+
+static bool load_statics () {
+    if (g_rt_statics != nullptr) {
+        return true;
+    }
+    if (!g_rt_loader.load(G_LIB, G_DATA)) {
+        return false;
+    }
+    g_rt_statics = &g_rt_loader.statics();
+    return true;
+}
 
 static void print_cls_size (size_t n) {
     if (n < 1000u) {
@@ -332,6 +348,12 @@ static bool save_result_ppm (
 int main (int argc, char** argv) {
     const bool verbose = (argc >= 2 && argv[1] != nullptr && std::atoi(argv[1]) >= 2);
     print_cls_size(sizeof(ExploreNear));
+    if (!load_statics()) {
+        t_fail("*** FAILED load statics\n");
+        return 1;
+    }
+    EN_TURNS = g_rt_statics->config().get_mov_pt_per_turn();
+    const u32 en_move_cap = static_cast<u32>(EN_TURNS) * 2u;
     GameArraySimple map;
     if (!Factory_GameArraySimple::load_map_gen_data(&map, EN_IN_TERR, EN_IN_CLIM, EN_IN_RIV)) {
         t_fail("*** FAILED load map\n");
@@ -369,7 +391,7 @@ int main (int argc, char** argv) {
                 coast,
                 mtn,
                 riv);
-            double* move_us = new double[EN_MOVE_CAP];
+            double* move_us = new double[en_move_cap];
             u32 move_n = 0u;
             if (move_us == nullptr) {
                 t_fail("*** FAILED alloc move timing\n");
@@ -384,7 +406,7 @@ int main (int argc, char** argv) {
                 clock_gettime(CLOCK_MONOTONIC, &t0);
                 ai.move(1u);
                 clock_gettime(CLOCK_MONOTONIC, &t1);
-                record_move(move_us, EN_MOVE_CAP, move_n, t0, t1);
+                record_move(move_us, en_move_cap, move_n, t0, t1);
                 vis.inc(ai.x(), ai.y());
                 ++turn;
             }

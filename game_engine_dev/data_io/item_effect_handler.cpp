@@ -263,6 +263,36 @@ ItemEffectsStruct ItemEffectHandler::parse_effects_line (const StringManager& li
                 slot.effect.train.unit_id = m_cbs->unit_name_to_idx(args_mgr.get_string_content(0));
             }
             slot.effect.train.turns_interval = static_cast<u8>(std::strtoul(args_mgr.get_string_content(1), nullptr, 10));
+        } else if (streq(effect_verb, "setFlag")) {
+            if (arg_n != 2) {
+                printf("ERROR: ItemEffectHandler setFlag(...) expects 2 args in '%s'\n", token_raw);
+                ++m_error_count;
+                continue;
+            }
+            const ItemEffectsScope scope = ItemEffectHelper::effects_scope_str_to_enum(args_mgr.get_string_content(1));
+            if (scope == ItemEffectsScope::NONE) {
+                printf("ERROR: ItemEffectHandler unknown setFlag scope '%s'\n", args_mgr.get_string_content(1));
+                ++m_error_count;
+                continue;
+            }
+            slot.type = static_cast<u16>(ItemEffectType::SET_FLAG);
+            slot.effect.set_flag.flag_id = U16_KEY_NULL;
+            if (m_cbs->city_flag_name_to_idx != nullptr) {
+                slot.effect.set_flag.flag_id = m_cbs->city_flag_name_to_idx(args_mgr.get_string_content(0));
+            }
+            slot.effect.set_flag.scope = scope;
+        } else if (streq(effect_verb, "produce")) {
+            if (arg_n != 2) {
+                printf("ERROR: ItemEffectHandler produce(...) expects 2 args in '%s'\n", token_raw);
+                ++m_error_count;
+                continue;
+            }
+            slot.type = static_cast<u16>(ItemEffectType::PRODUCE);
+            slot.effect.produce.resource_id = U16_KEY_NULL;
+            if (m_cbs->resource_name_to_idx != nullptr) {
+                slot.effect.produce.resource_id = m_cbs->resource_name_to_idx(args_mgr.get_string_content(0));
+            }
+            slot.effect.produce.amount = static_cast<i16>(std::strtol(args_mgr.get_string_content(1), nullptr, 10));
         } else {
             printf("ERROR: ItemEffectHandler unhandled effect verb '%s'\n", effect_verb);
             ++m_error_count;

@@ -4,7 +4,15 @@
 
 #include "combat_mng.h"
 
+#include <cmath>
+
+#include "build_adds_array.h"
+#include "city_array.h"
+#include "city_defense_booster_register.h"
+#include "combat_mods.h"
+#include "effect_ctx.h"
 #include "game_array_simple.h"
+#include "game_state.h"
 #include "runtime_statics.h"
 #include "tile_attr_tables.h"
 #include "unit_add_struct.h"
@@ -70,7 +78,8 @@ u16 CombatMng::lvl_pct (u8 level) {
     }
 }
 
-u16 CombatMng::atk_mod (const GameArraySimple& map, u16 x, u16 y) {
+u16 CombatMng::atk_mod (const GameState& st, u16 x, u16 y) {
+    const GameArraySimple& map = st.m_map;
     if (x >= map.width() || y >= map.height()) {
         return 0u;
     }
@@ -85,7 +94,8 @@ u16 CombatMng::atk_mod (const GameArraySimple& map, u16 x, u16 y) {
     return m;
 }
 
-u16 CombatMng::def_mod (const GameArraySimple& map, u16 x, u16 y) {
+u16 CombatMng::def_mod (const GameState& st, u16 x, u16 y) {
+    const GameArraySimple& map = st.m_map;
     if (x >= map.width() || y >= map.height()) {
         return 0u;
     }
@@ -100,16 +110,47 @@ u16 CombatMng::def_mod (const GameArraySimple& map, u16 x, u16 y) {
     return m;
 }
 
-u32 CombatMng::pwr (u16 base, u16 tile_mod, u8 level, u8 health) {
+i16 CombatMng::city_def_pct (const GameState& st, u16 x, u16 y) {
+    const GameArraySimple& map = st.m_map;
+    if (x >= map.width() || y >= map.height()) {
+        return 0;
+    }
+    const GameTileSimple* t = map.tile(x, y);
+    if (t->m_add_typ != BUILD_ADD_CITY) {
+        return 0;
+    }
+    const u16 city_idx = static_cast<u16>(t->m_add_idx);
+    EffectCtx ctx = {};
+    ctx.m_owner = static_cast<u16>(t->m_civ_owner);
+    ctx.m_city_idx = city_idx;
+    if (st.m_player_states != nullptr && ctx.m_owner < st.m_player_n) {
+        ctx.m_tech = st.m_player_states[ctx.m_owner].m_techs_researched;
+        ctx.m_small_wonder_city = st.m_player_states[ctx.m_owner].m_small_wonder_city;
+    }
+    ctx.m_bld_bank = st.m_cities.get_bld_bank();
+    ctx.m_wonder_city = st.m_wonder_city;
+    ctx.m_wonder_n = st.m_wonder_count;
+    ctx.m_small_wonder_n = st.m_small_wonder_count;
+    return CityDefenseBoosterRegister::determine_effect(ctx).m_perc;
+}
+
+u32 CombatMng::pwr (u16 base, i32 pct_mod, u8 level, u8 health) {
     if (base == 0u || health == 0u) {
         return 0u;
     }
-    const u32 with_tile = static_cast<u32>(base) * static_cast<u32>(100u + tile_mod) / 100u;
-    const u32 with_lvl = with_tile * static_cast<u32>(lvl_pct(level)) / 100u;
-    return with_lvl * static_cast<u32>(health);
+    i32 scale = 100 + pct_mod;
+    if (scale < 0) {
+        scale = 0;
+    }
+    const u64 p = static_cast<u64>(base)
+        * static_cast<u64>(scale)
+        * static_cast<u64>(lvl_pct(level))
+        * static_cast<u64>(health)
+        / 10000ull;
+    return static_cast<u32>(p);
 }
 
-void CombatMng::resolve (UnitAddStruct& atk, UnitAddStruct& def, const GameArraySimple& map) {
+void CombatMng::resolve (UnitAddStruct& atk, UnitAddStruct& def, const GameState& st, u16 x, u16 y) {
     if (!ready()) {
         return;
     }
@@ -120,8 +161,16 @@ void CombatMng::resolve (UnitAddStruct& atk, UnitAddStruct& def, const GameArray
     }
     const UnitStaticDataStruct& as = ud.get_item(UnitStaticDataKey::from_raw(atk.m_unit_typ_idx));
     const UnitStaticDataStruct& ds = ud.get_item(UnitStaticDataKey::from_raw(def.m_unit_typ_idx));
-    const u32 ap = pwr(as.attack, atk_mod(map, atk.m_x, atk.m_y), atk.m_level, atk.m_health);
-    const u32 dp = pwr(ds.defense, def_mod(map, def.m_x, def.m_y), def.m_level, def.m_health);
+    const GameArraySimple& map = st.m_map;
+    bool on_city = false;
+    if (x < map.width() && y < map.height()) {
+        on_city = (map.tile(x, y)->m_add_typ == BUILD_ADD_CITY);
+    }
+    const CombatBoost roles = st.m_combat_mods.get(as.role, ds.role, on_city);
+    const i32 atk_pct = static_cast<i32>(atk_mod(st, x, y)) + static_cast<i32>(roles.m_atk);
+    const i32 def_pct = static_cast<i32>(def_mod(st, x, y)) + static_cast<i32>(roles.m_def) + static_cast<i32>(city_def_pct(st, x, y));
+    const u32 ap = pwr(as.attack, atk_pct, atk.m_level, atk.m_health);
+    const u32 dp = pwr(ds.defense, def_pct, def.m_level, def.m_health);
     bool atk_wins = false;
     if (ap == 0u && dp == 0u) {
         atk_wins = (rnd() & 1u) != 0u;
@@ -130,11 +179,12 @@ void CombatMng::resolve (UnitAddStruct& atk, UnitAddStruct& def, const GameArray
     } else if (dp == 0u) {
         atk_wins = true;
     } else {
-        u32 thr = ap * 10000u / (ap + dp);
-        if (ap > dp) {
-            thr = thr + (10000u - thr) * static_cast<u32>(m_pred) / 100u;
-        } else if (dp > ap) {
-            thr = thr - thr * static_cast<u32>(m_pred) / 100u;
+        const double g = 1.0 + static_cast<double>(m_pred) / 12.0; // This is good for tweaking win odds
+        const double ag = std::pow(static_cast<double>(ap), g);
+        const double dg = std::pow(static_cast<double>(dp), g);
+        u32 thr = static_cast<u32>(10000.0 * ag / (ag + dg) + 0.5);
+        if (thr > 10000u) {
+            thr = 10000u;
         }
         atk_wins = (static_cast<u32>(rnd()) % 10000u) < thr;
     }
@@ -166,12 +216,12 @@ void CombatMng::resolve (UnitAddStruct& atk, UnitAddStruct& def, const GameArray
     }
 }
 
-u16 CombatMng::resolve_win_prob (const UnitAddStruct& atk, const UnitAddStruct& def, const GameArraySimple& map) {
+u16 CombatMng::resolve_win_prob (const UnitAddStruct& atk, const UnitAddStruct& def, const GameState& st, u16 x, u16 y) {
     u16 wins = 0u;
     for (u16 i = 0; i < k_prob_n; ++i) {
         UnitAddStruct a = atk;
         UnitAddStruct d = def;
-        resolve(a, d, map);
+        resolve(a, d, st, x, y);
         if (d.m_health == 0u && a.m_health > 0u) {
             wins++;
         }

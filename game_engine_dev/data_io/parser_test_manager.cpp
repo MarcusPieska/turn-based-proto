@@ -35,6 +35,7 @@ void ParserTestManager::set_plvl (int lvl) {
     m_tech.set_plvl(lvl);
     m_unit.set_plvl(lvl);
     m_unit_action.set_plvl(lvl);
+    m_unit_role.set_plvl(lvl);
     m_unit_type.set_plvl(lvl);
     m_wonder.set_plvl(lvl);
     m_worker_job.set_plvl(lvl);
@@ -53,6 +54,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_building.set_tech_sd(&statics.tech());
     m_building.set_unit_sd(&statics.unit());
     m_building.set_unit_action_sd(&statics.unit_action());
+    m_building.set_unit_role_sd(&statics.unit_role());
     m_building.set_unit_type_sd(&statics.unit_type());
     m_building.set_wonder_sd(&statics.wonder());
     m_building.set_worker_job_sd(&statics.worker_job());
@@ -68,6 +70,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_city_flag.set_tech_sd(&statics.tech());
     m_city_flag.set_unit_sd(&statics.unit());
     m_city_flag.set_unit_action_sd(&statics.unit_action());
+    m_city_flag.set_unit_role_sd(&statics.unit_role());
     m_city_flag.set_unit_type_sd(&statics.unit_type());
     m_city_flag.set_wonder_sd(&statics.wonder());
     m_city_flag.set_worker_job_sd(&statics.worker_job());
@@ -83,6 +86,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_civ.set_tech_sd(&statics.tech());
     m_civ.set_unit_sd(&statics.unit());
     m_civ.set_unit_action_sd(&statics.unit_action());
+    m_civ.set_unit_role_sd(&statics.unit_role());
     m_civ.set_unit_type_sd(&statics.unit_type());
     m_civ.set_wonder_sd(&statics.wonder());
     m_civ.set_worker_job_sd(&statics.worker_job());
@@ -98,6 +102,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_civ_trait.set_tech_sd(&statics.tech());
     m_civ_trait.set_unit_sd(&statics.unit());
     m_civ_trait.set_unit_action_sd(&statics.unit_action());
+    m_civ_trait.set_unit_role_sd(&statics.unit_role());
     m_civ_trait.set_unit_type_sd(&statics.unit_type());
     m_civ_trait.set_wonder_sd(&statics.wonder());
     m_civ_trait.set_worker_job_sd(&statics.worker_job());
@@ -113,6 +118,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_tile_attribute.set_tech_sd(&statics.tech());
     m_tile_attribute.set_unit_sd(&statics.unit());
     m_tile_attribute.set_unit_action_sd(&statics.unit_action());
+    m_tile_attribute.set_unit_role_sd(&statics.unit_role());
     m_tile_attribute.set_unit_type_sd(&statics.unit_type());
     m_tile_attribute.set_wonder_sd(&statics.wonder());
     m_tile_attribute.set_worker_job_sd(&statics.worker_job());
@@ -128,6 +134,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_resource.set_tech_sd(&statics.tech());
     m_resource.set_unit_sd(&statics.unit());
     m_resource.set_unit_action_sd(&statics.unit_action());
+    m_resource.set_unit_role_sd(&statics.unit_role());
     m_resource.set_unit_type_sd(&statics.unit_type());
     m_resource.set_wonder_sd(&statics.wonder());
     m_resource.set_worker_job_sd(&statics.worker_job());
@@ -143,6 +150,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_res_dist.set_tech_sd(&statics.tech());
     m_res_dist.set_unit_sd(&statics.unit());
     m_res_dist.set_unit_action_sd(&statics.unit_action());
+    m_res_dist.set_unit_role_sd(&statics.unit_role());
     m_res_dist.set_unit_type_sd(&statics.unit_type());
     m_res_dist.set_wonder_sd(&statics.wonder());
     m_res_dist.set_worker_job_sd(&statics.worker_job());
@@ -158,6 +166,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_res_type.set_tech_sd(&statics.tech());
     m_res_type.set_unit_sd(&statics.unit());
     m_res_type.set_unit_action_sd(&statics.unit_action());
+    m_res_type.set_unit_role_sd(&statics.unit_role());
     m_res_type.set_unit_type_sd(&statics.unit_type());
     m_res_type.set_wonder_sd(&statics.wonder());
     m_res_type.set_worker_job_sd(&statics.worker_job());
@@ -173,6 +182,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_small_wonder.set_tech_sd(&statics.tech());
     m_small_wonder.set_unit_sd(&statics.unit());
     m_small_wonder.set_unit_action_sd(&statics.unit_action());
+    m_small_wonder.set_unit_role_sd(&statics.unit_role());
     m_small_wonder.set_unit_type_sd(&statics.unit_type());
     m_small_wonder.set_wonder_sd(&statics.wonder());
     m_small_wonder.set_worker_job_sd(&statics.worker_job());
@@ -188,6 +198,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_tech.set_tech_sd(&statics.tech());
     m_tech.set_unit_sd(&statics.unit());
     m_tech.set_unit_action_sd(&statics.unit_action());
+    m_tech.set_unit_role_sd(&statics.unit_role());
     m_tech.set_unit_type_sd(&statics.unit_type());
     m_tech.set_wonder_sd(&statics.wonder());
     m_tech.set_worker_job_sd(&statics.worker_job());
@@ -203,6 +214,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_unit.set_tech_sd(&statics.tech());
     m_unit.set_unit_sd(&statics.unit());
     m_unit.set_unit_action_sd(&statics.unit_action());
+    m_unit.set_unit_role_sd(&statics.unit_role());
     m_unit.set_unit_type_sd(&statics.unit_type());
     m_unit.set_wonder_sd(&statics.wonder());
     m_unit.set_worker_job_sd(&statics.worker_job());
@@ -218,9 +230,26 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_unit_action.set_tech_sd(&statics.tech());
     m_unit_action.set_unit_sd(&statics.unit());
     m_unit_action.set_unit_action_sd(&statics.unit_action());
+    m_unit_action.set_unit_role_sd(&statics.unit_role());
     m_unit_action.set_unit_type_sd(&statics.unit_type());
     m_unit_action.set_wonder_sd(&statics.wonder());
     m_unit_action.set_worker_job_sd(&statics.worker_job());
+    m_unit_role.set_building_sd(&statics.building());
+    m_unit_role.set_city_flag_sd(&statics.city_flag());
+    m_unit_role.set_civ_sd(&statics.civ());
+    m_unit_role.set_civ_trait_sd(&statics.civ_trait());
+    m_unit_role.set_tile_attribute_sd(&statics.tile_attribute());
+    m_unit_role.set_resource_sd(&statics.resource());
+    m_unit_role.set_res_dist_sd(&statics.res_dist());
+    m_unit_role.set_res_type_sd(&statics.res_type());
+    m_unit_role.set_small_wonder_sd(&statics.small_wonder());
+    m_unit_role.set_tech_sd(&statics.tech());
+    m_unit_role.set_unit_sd(&statics.unit());
+    m_unit_role.set_unit_action_sd(&statics.unit_action());
+    m_unit_role.set_unit_role_sd(&statics.unit_role());
+    m_unit_role.set_unit_type_sd(&statics.unit_type());
+    m_unit_role.set_wonder_sd(&statics.wonder());
+    m_unit_role.set_worker_job_sd(&statics.worker_job());
     m_unit_type.set_building_sd(&statics.building());
     m_unit_type.set_city_flag_sd(&statics.city_flag());
     m_unit_type.set_civ_sd(&statics.civ());
@@ -233,6 +262,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_unit_type.set_tech_sd(&statics.tech());
     m_unit_type.set_unit_sd(&statics.unit());
     m_unit_type.set_unit_action_sd(&statics.unit_action());
+    m_unit_type.set_unit_role_sd(&statics.unit_role());
     m_unit_type.set_unit_type_sd(&statics.unit_type());
     m_unit_type.set_wonder_sd(&statics.wonder());
     m_unit_type.set_worker_job_sd(&statics.worker_job());
@@ -248,6 +278,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_wonder.set_tech_sd(&statics.tech());
     m_wonder.set_unit_sd(&statics.unit());
     m_wonder.set_unit_action_sd(&statics.unit_action());
+    m_wonder.set_unit_role_sd(&statics.unit_role());
     m_wonder.set_unit_type_sd(&statics.unit_type());
     m_wonder.set_wonder_sd(&statics.wonder());
     m_wonder.set_worker_job_sd(&statics.worker_job());
@@ -263,6 +294,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_worker_job.set_tech_sd(&statics.tech());
     m_worker_job.set_unit_sd(&statics.unit());
     m_worker_job.set_unit_action_sd(&statics.unit_action());
+    m_worker_job.set_unit_role_sd(&statics.unit_role());
     m_worker_job.set_unit_type_sd(&statics.unit_type());
     m_worker_job.set_wonder_sd(&statics.wonder());
     m_worker_job.set_worker_job_sd(&statics.worker_job());
@@ -339,6 +371,12 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     }
     m_unit_action.close_writer();
     
+    m_unit_role.open_writer();
+    for (u16 i = 0; i < statics.unit_role().get_item_count(); ++i) {
+        m_unit_role.pr_item(statics.unit_role().get_name(UnitRoleStaticDataKey::from_raw(i)), statics.unit_role().get_item(UnitRoleStaticDataKey::from_raw(i)));
+    }
+    m_unit_role.close_writer();
+    
     m_unit_type.open_writer();
     for (u16 i = 0; i < statics.unit_type().get_item_count(); ++i) {
         m_unit_type.pr_item(statics.unit_type().get_name(UnitTypeStaticDataKey::from_raw(i)), statics.unit_type().get_item(UnitTypeStaticDataKey::from_raw(i)));
@@ -369,6 +407,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_building.set_tech_sd(NULL);
     m_building.set_unit_sd(NULL);
     m_building.set_unit_action_sd(NULL);
+    m_building.set_unit_role_sd(NULL);
     m_building.set_unit_type_sd(NULL);
     m_building.set_wonder_sd(NULL);
     m_building.set_worker_job_sd(NULL);
@@ -384,6 +423,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_city_flag.set_tech_sd(NULL);
     m_city_flag.set_unit_sd(NULL);
     m_city_flag.set_unit_action_sd(NULL);
+    m_city_flag.set_unit_role_sd(NULL);
     m_city_flag.set_unit_type_sd(NULL);
     m_city_flag.set_wonder_sd(NULL);
     m_city_flag.set_worker_job_sd(NULL);
@@ -399,6 +439,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_civ.set_tech_sd(NULL);
     m_civ.set_unit_sd(NULL);
     m_civ.set_unit_action_sd(NULL);
+    m_civ.set_unit_role_sd(NULL);
     m_civ.set_unit_type_sd(NULL);
     m_civ.set_wonder_sd(NULL);
     m_civ.set_worker_job_sd(NULL);
@@ -414,6 +455,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_civ_trait.set_tech_sd(NULL);
     m_civ_trait.set_unit_sd(NULL);
     m_civ_trait.set_unit_action_sd(NULL);
+    m_civ_trait.set_unit_role_sd(NULL);
     m_civ_trait.set_unit_type_sd(NULL);
     m_civ_trait.set_wonder_sd(NULL);
     m_civ_trait.set_worker_job_sd(NULL);
@@ -429,6 +471,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_tile_attribute.set_tech_sd(NULL);
     m_tile_attribute.set_unit_sd(NULL);
     m_tile_attribute.set_unit_action_sd(NULL);
+    m_tile_attribute.set_unit_role_sd(NULL);
     m_tile_attribute.set_unit_type_sd(NULL);
     m_tile_attribute.set_wonder_sd(NULL);
     m_tile_attribute.set_worker_job_sd(NULL);
@@ -444,6 +487,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_resource.set_tech_sd(NULL);
     m_resource.set_unit_sd(NULL);
     m_resource.set_unit_action_sd(NULL);
+    m_resource.set_unit_role_sd(NULL);
     m_resource.set_unit_type_sd(NULL);
     m_resource.set_wonder_sd(NULL);
     m_resource.set_worker_job_sd(NULL);
@@ -459,6 +503,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_res_dist.set_tech_sd(NULL);
     m_res_dist.set_unit_sd(NULL);
     m_res_dist.set_unit_action_sd(NULL);
+    m_res_dist.set_unit_role_sd(NULL);
     m_res_dist.set_unit_type_sd(NULL);
     m_res_dist.set_wonder_sd(NULL);
     m_res_dist.set_worker_job_sd(NULL);
@@ -474,6 +519,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_res_type.set_tech_sd(NULL);
     m_res_type.set_unit_sd(NULL);
     m_res_type.set_unit_action_sd(NULL);
+    m_res_type.set_unit_role_sd(NULL);
     m_res_type.set_unit_type_sd(NULL);
     m_res_type.set_wonder_sd(NULL);
     m_res_type.set_worker_job_sd(NULL);
@@ -489,6 +535,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_small_wonder.set_tech_sd(NULL);
     m_small_wonder.set_unit_sd(NULL);
     m_small_wonder.set_unit_action_sd(NULL);
+    m_small_wonder.set_unit_role_sd(NULL);
     m_small_wonder.set_unit_type_sd(NULL);
     m_small_wonder.set_wonder_sd(NULL);
     m_small_wonder.set_worker_job_sd(NULL);
@@ -504,6 +551,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_tech.set_tech_sd(NULL);
     m_tech.set_unit_sd(NULL);
     m_tech.set_unit_action_sd(NULL);
+    m_tech.set_unit_role_sd(NULL);
     m_tech.set_unit_type_sd(NULL);
     m_tech.set_wonder_sd(NULL);
     m_tech.set_worker_job_sd(NULL);
@@ -519,6 +567,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_unit.set_tech_sd(NULL);
     m_unit.set_unit_sd(NULL);
     m_unit.set_unit_action_sd(NULL);
+    m_unit.set_unit_role_sd(NULL);
     m_unit.set_unit_type_sd(NULL);
     m_unit.set_wonder_sd(NULL);
     m_unit.set_worker_job_sd(NULL);
@@ -534,9 +583,26 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_unit_action.set_tech_sd(NULL);
     m_unit_action.set_unit_sd(NULL);
     m_unit_action.set_unit_action_sd(NULL);
+    m_unit_action.set_unit_role_sd(NULL);
     m_unit_action.set_unit_type_sd(NULL);
     m_unit_action.set_wonder_sd(NULL);
     m_unit_action.set_worker_job_sd(NULL);
+    m_unit_role.set_building_sd(NULL);
+    m_unit_role.set_city_flag_sd(NULL);
+    m_unit_role.set_civ_sd(NULL);
+    m_unit_role.set_civ_trait_sd(NULL);
+    m_unit_role.set_tile_attribute_sd(NULL);
+    m_unit_role.set_resource_sd(NULL);
+    m_unit_role.set_res_dist_sd(NULL);
+    m_unit_role.set_res_type_sd(NULL);
+    m_unit_role.set_small_wonder_sd(NULL);
+    m_unit_role.set_tech_sd(NULL);
+    m_unit_role.set_unit_sd(NULL);
+    m_unit_role.set_unit_action_sd(NULL);
+    m_unit_role.set_unit_role_sd(NULL);
+    m_unit_role.set_unit_type_sd(NULL);
+    m_unit_role.set_wonder_sd(NULL);
+    m_unit_role.set_worker_job_sd(NULL);
     m_unit_type.set_building_sd(NULL);
     m_unit_type.set_city_flag_sd(NULL);
     m_unit_type.set_civ_sd(NULL);
@@ -549,6 +615,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_unit_type.set_tech_sd(NULL);
     m_unit_type.set_unit_sd(NULL);
     m_unit_type.set_unit_action_sd(NULL);
+    m_unit_type.set_unit_role_sd(NULL);
     m_unit_type.set_unit_type_sd(NULL);
     m_unit_type.set_wonder_sd(NULL);
     m_unit_type.set_worker_job_sd(NULL);
@@ -564,6 +631,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_wonder.set_tech_sd(NULL);
     m_wonder.set_unit_sd(NULL);
     m_wonder.set_unit_action_sd(NULL);
+    m_wonder.set_unit_role_sd(NULL);
     m_wonder.set_unit_type_sd(NULL);
     m_wonder.set_wonder_sd(NULL);
     m_wonder.set_worker_job_sd(NULL);
@@ -579,6 +647,7 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_worker_job.set_tech_sd(NULL);
     m_worker_job.set_unit_sd(NULL);
     m_worker_job.set_unit_action_sd(NULL);
+    m_worker_job.set_unit_role_sd(NULL);
     m_worker_job.set_unit_type_sd(NULL);
     m_worker_job.set_wonder_sd(NULL);
     m_worker_job.set_worker_job_sd(NULL);

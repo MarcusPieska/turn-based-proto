@@ -37,9 +37,10 @@ const DataParserBase* g_res_dist_name_parser = nullptr;
 const DataParserBase* g_res_type_name_parser = nullptr;
 const DataParserBase* g_small_wonder_name_parser = nullptr;
 const DataParserBase* g_tech_name_parser = nullptr;
-const DataParserBase* g_unit_name_parser = nullptr;
 const DataParserBase* g_unit_action_name_parser = nullptr;
+const DataParserBase* g_unit_role_name_parser = nullptr;
 const DataParserBase* g_unit_type_name_parser = nullptr;
+const DataParserBase* g_unit_name_parser = nullptr;
 const DataParserBase* g_wonder_name_parser = nullptr;
 const DataParserBase* g_worker_job_name_parser = nullptr;
 
@@ -83,16 +84,20 @@ u16 cb_tech_name_to_idx (cstr name) {
     return g_tech_name_parser->name_to_idx(name);
 }
 
-u16 cb_unit_name_to_idx (cstr name) {
-    return g_unit_name_parser->name_to_idx(name);
-}
-
 u16 cb_unit_action_name_to_idx (cstr name) {
     return g_unit_action_name_parser->name_to_idx(name);
 }
 
+u16 cb_unit_role_name_to_idx (cstr name) {
+    return g_unit_role_name_parser->name_to_idx(name);
+}
+
 u16 cb_unit_type_name_to_idx (cstr name) {
     return g_unit_type_name_parser->name_to_idx(name);
+}
+
+u16 cb_unit_name_to_idx (cstr name) {
+    return g_unit_name_parser->name_to_idx(name);
 }
 
 u16 cb_wonder_name_to_idx (cstr name) {
@@ -123,9 +128,10 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_res_type_items(),
     m_small_wonder_items(),
     m_tech_items(),
-    m_unit_items(),
     m_unit_action_items(),
+    m_unit_role_items(),
     m_unit_type_items(),
+    m_unit_items(),
     m_wonder_items(),
     m_worker_job_items(),
 
@@ -139,9 +145,10 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_res_type_name_parser(nullptr),
     m_small_wonder_name_parser(nullptr),
     m_tech_name_parser(nullptr),
-    m_unit_name_parser(nullptr),
     m_unit_action_name_parser(nullptr),
+    m_unit_role_name_parser(nullptr),
     m_unit_type_name_parser(nullptr),
+    m_unit_name_parser(nullptr),
     m_wonder_name_parser(nullptr),
     m_worker_job_name_parser(nullptr),
 
@@ -161,9 +168,10 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_res_type_data(nullptr),
     m_small_wonder_data(nullptr),
     m_tech_data(nullptr),
-    m_unit_data(nullptr),
     m_unit_action_data(nullptr),
+    m_unit_role_data(nullptr),
     m_unit_type_data(nullptr),
+    m_unit_data(nullptr),
     m_wonder_data(nullptr),
     m_worker_job_data(nullptr)
 {
@@ -200,15 +208,18 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_tech_items.load_file_content(m_paths.get_path_to_techs());
     m_tech_items.split_string_by_char(0, '\n');
     m_tech_items.cull_empty_strings();
-    m_unit_items.load_file_content(m_paths.get_path_to_units());
-    m_unit_items.split_string_by_char(0, '\n');
-    m_unit_items.cull_empty_strings();
     m_unit_action_items.load_file_content(m_paths.get_path_to_unit_actions());
     m_unit_action_items.split_string_by_char(0, '\n');
     m_unit_action_items.cull_empty_strings();
+    m_unit_role_items.load_file_content(m_paths.get_path_to_unit_roles());
+    m_unit_role_items.split_string_by_char(0, '\n');
+    m_unit_role_items.cull_empty_strings();
     m_unit_type_items.load_file_content(m_paths.get_path_to_unit_types());
     m_unit_type_items.split_string_by_char(0, '\n');
     m_unit_type_items.cull_empty_strings();
+    m_unit_items.load_file_content(m_paths.get_path_to_units());
+    m_unit_items.split_string_by_char(0, '\n');
+    m_unit_items.cull_empty_strings();
     m_wonder_items.load_file_content(m_paths.get_path_to_wonders());
     m_wonder_items.split_string_by_char(0, '\n');
     m_wonder_items.cull_empty_strings();
@@ -225,9 +236,10 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_res_type_name_parser = new DataParserBase(m_res_type_items, NameToIdxCbs());
     m_small_wonder_name_parser = new DataParserBase(m_small_wonder_items, NameToIdxCbs());
     m_tech_name_parser = new DataParserBase(m_tech_items, NameToIdxCbs());
-    m_unit_name_parser = new DataParserBase(m_unit_items, NameToIdxCbs());
     m_unit_action_name_parser = new DataParserBase(m_unit_action_items, NameToIdxCbs());
+    m_unit_role_name_parser = new DataParserBase(m_unit_role_items, NameToIdxCbs());
     m_unit_type_name_parser = new DataParserBase(m_unit_type_items, NameToIdxCbs());
+    m_unit_name_parser = new DataParserBase(m_unit_items, NameToIdxCbs());
     m_wonder_name_parser = new DataParserBase(m_wonder_items, NameToIdxCbs());
     m_worker_job_name_parser = new DataParserBase(m_worker_job_items, NameToIdxCbs());
     build_name_to_idx_callbacks();
@@ -247,9 +259,10 @@ StaticParsingManager::~StaticParsingManager () {
     delete m_res_type_name_parser;
     delete m_small_wonder_name_parser;
     delete m_tech_name_parser;
-    delete m_unit_name_parser;
     delete m_unit_action_name_parser;
+    delete m_unit_role_name_parser;
     delete m_unit_type_name_parser;
+    delete m_unit_name_parser;
     delete m_wonder_name_parser;
     delete m_worker_job_name_parser;
 }
@@ -334,14 +347,6 @@ u16 StaticParsingManager::get_tech_count () const {
     return safe_size_to_u16(m_tech_items.get_string_count());
 }
 
-const UnitStaticDataStruct* StaticParsingManager::get_unit_data () const {
-    return m_unit_data;
-}
-
-u16 StaticParsingManager::get_unit_count () const {
-    return safe_size_to_u16(m_unit_items.get_string_count());
-}
-
 const UnitActionStaticDataStruct* StaticParsingManager::get_unit_action_data () const {
     return m_unit_action_data;
 }
@@ -350,12 +355,28 @@ u16 StaticParsingManager::get_unit_action_count () const {
     return safe_size_to_u16(m_unit_action_items.get_string_count());
 }
 
+const UnitRoleStaticDataStruct* StaticParsingManager::get_unit_role_data () const {
+    return m_unit_role_data;
+}
+
+u16 StaticParsingManager::get_unit_role_count () const {
+    return safe_size_to_u16(m_unit_role_items.get_string_count());
+}
+
 const UnitTypeStaticDataStruct* StaticParsingManager::get_unit_type_data () const {
     return m_unit_type_data;
 }
 
 u16 StaticParsingManager::get_unit_type_count () const {
     return safe_size_to_u16(m_unit_type_items.get_string_count());
+}
+
+const UnitStaticDataStruct* StaticParsingManager::get_unit_data () const {
+    return m_unit_data;
+}
+
+u16 StaticParsingManager::get_unit_count () const {
+    return safe_size_to_u16(m_unit_items.get_string_count());
 }
 
 const WonderStaticDataStruct* StaticParsingManager::get_wonder_data () const {
@@ -413,16 +434,20 @@ const DataParserBase& StaticParsingManager::get_tech_name_parser () const {
     return *m_tech_name_parser;
 }
 
-const DataParserBase& StaticParsingManager::get_unit_name_parser () const {
-    return *m_unit_name_parser;
-}
-
 const DataParserBase& StaticParsingManager::get_unit_action_name_parser () const {
     return *m_unit_action_name_parser;
 }
 
+const DataParserBase& StaticParsingManager::get_unit_role_name_parser () const {
+    return *m_unit_role_name_parser;
+}
+
 const DataParserBase& StaticParsingManager::get_unit_type_name_parser () const {
     return *m_unit_type_name_parser;
+}
+
+const DataParserBase& StaticParsingManager::get_unit_name_parser () const {
+    return *m_unit_name_parser;
 }
 
 const DataParserBase& StaticParsingManager::get_wonder_name_parser () const {
@@ -469,9 +494,10 @@ void StaticParsingManager::build_name_to_idx_callbacks () {
     g_res_type_name_parser = m_res_type_name_parser;
     g_small_wonder_name_parser = m_small_wonder_name_parser;
     g_tech_name_parser = m_tech_name_parser;
-    g_unit_name_parser = m_unit_name_parser;
     g_unit_action_name_parser = m_unit_action_name_parser;
+    g_unit_role_name_parser = m_unit_role_name_parser;
     g_unit_type_name_parser = m_unit_type_name_parser;
+    g_unit_name_parser = m_unit_name_parser;
     g_wonder_name_parser = m_wonder_name_parser;
     g_worker_job_name_parser = m_worker_job_name_parser;
 
@@ -485,13 +511,14 @@ void StaticParsingManager::build_name_to_idx_callbacks () {
     m_name_to_idx_cbs.res_type_name_to_idx = cb_res_type_name_to_idx;
     m_name_to_idx_cbs.small_wonder_name_to_idx = cb_small_wonder_name_to_idx;
     m_name_to_idx_cbs.tech_name_to_idx = cb_tech_name_to_idx;
-    m_name_to_idx_cbs.unit_name_to_idx = cb_unit_name_to_idx;
     m_name_to_idx_cbs.unit_action_name_to_idx = cb_unit_action_name_to_idx;
+    m_name_to_idx_cbs.unit_role_name_to_idx = cb_unit_role_name_to_idx;
     m_name_to_idx_cbs.unit_type_name_to_idx = cb_unit_type_name_to_idx;
+    m_name_to_idx_cbs.unit_name_to_idx = cb_unit_name_to_idx;
     m_name_to_idx_cbs.wonder_name_to_idx = cb_wonder_name_to_idx;
     m_name_to_idx_cbs.worker_job_name_to_idx = cb_worker_job_name_to_idx;
 
-    m_callback_count = 15;
+    m_callback_count = 16;
     DataParserBase::set_item_effect_handler(&m_name_to_idx_cbs, &m_effect_items);
 }
 
@@ -506,9 +533,10 @@ void StaticParsingManager::parse_supported_data () {
     ResTypeParser res_type_parser(m_res_type_items, m_name_to_idx_cbs);
     SmallWonderParser small_wonder_parser(m_small_wonder_items, m_name_to_idx_cbs);
     TechParser tech_parser(m_tech_items, m_name_to_idx_cbs);
-    UnitParser unit_parser(m_unit_items, m_name_to_idx_cbs);
     UnitActionParser unit_action_parser(m_unit_action_items, m_name_to_idx_cbs);
+    UnitRoleParser unit_role_parser(m_unit_role_items, m_name_to_idx_cbs);
     UnitTypeParser unit_type_parser(m_unit_type_items, m_name_to_idx_cbs);
+    UnitParser unit_parser(m_unit_items, m_name_to_idx_cbs);
     WonderParser wonder_parser(m_wonder_items, m_name_to_idx_cbs);
     WorkerJobParser worker_job_parser(m_worker_job_items, m_name_to_idx_cbs);
 
@@ -522,9 +550,10 @@ void StaticParsingManager::parse_supported_data () {
     m_res_type_data = res_type_parser.parse_data_dependencies();
     m_small_wonder_data = small_wonder_parser.parse_data_dependencies();
     m_tech_data = tech_parser.parse_data_dependencies();
-    m_unit_data = unit_parser.parse_data_dependencies();
     m_unit_action_data = unit_action_parser.parse_data_dependencies();
+    m_unit_role_data = unit_role_parser.parse_data_dependencies();
     m_unit_type_data = unit_type_parser.parse_data_dependencies();
+    m_unit_data = unit_parser.parse_data_dependencies();
     m_wonder_data = wonder_parser.parse_data_dependencies();
     m_worker_job_data = worker_job_parser.parse_data_dependencies();
     

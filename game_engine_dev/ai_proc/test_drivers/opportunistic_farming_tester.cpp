@@ -178,7 +178,7 @@ static void refill_mp (GameState& s, u16 unit_idx) {
         return;
     }
     const u16 pts = s.m_statics->unit().get_item(UnitStaticDataKey::from_raw(u->m_unit_typ_idx)).mvt_pts;
-    u->m_mvt_points = static_cast<i16>(pts * PATH_MP_TURN);
+    u->m_mvt_points = static_cast<i16>(pts * s.m_statics->config().get_mov_pt_per_turn());
 }
 
 static void terr_rgb (u8 cls, u8* r, u8* g, u8* b) {

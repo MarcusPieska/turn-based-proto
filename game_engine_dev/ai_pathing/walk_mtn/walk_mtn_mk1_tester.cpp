@@ -14,6 +14,7 @@
 #include "walk_mtn_mk1.h"
 #include "factory_game_array_simple.h"
 #include "map_bit_overlay.h"
+#include "runtime_static_loader.h"
 
 typedef const char* cstr;
 
@@ -26,10 +27,25 @@ static const cstr WM_IN_CLIM = "/home/w/Projects/simple-map-gen/p1-seed-042/24_m
 static const cstr WM_IN_RIV = "/home/w/Projects/simple-map-gen/p1-seed-042/24_make_map_rivers.ppm";
 static const cstr WM_OUT = "/home/w/Projects/simple-map-gen/walk_mtn_mk1_result.ppm";
 static const cstr WM_FRAMES = "/home/w/Projects/simple-map-gen/walk_mtn_mk1_frames";
-static const u16 WM_TURNS = PATH_MP_TURN;
+static u16 WM_TURNS = 0;
+static const cstr G_LIB = "../../data_io/runtime_static_loader_lib.so";
+static const cstr G_DATA = "../../";
 static const u16 WM_SIGHT = 3u;
 static const u16 WM_UNIT2_TURN = 21u;
-static const u32 WM_MOVE_CAP = static_cast<u32>(WM_TURNS) * 2u;
+
+static RuntimeStaticLoader g_rt_loader;
+static RuntimeStatics* g_rt_statics = nullptr;
+
+static bool load_statics () {
+    if (g_rt_statics != nullptr) {
+        return true;
+    }
+    if (!g_rt_loader.load(G_LIB, G_DATA)) {
+        return false;
+    }
+    g_rt_statics = &g_rt_loader.statics();
+    return true;
+}
 
 static double move_elapsed_us (const timespec& t0, const timespec& t1) {
     const double sec = static_cast<double>(t1.tv_sec - t0.tv_sec);
@@ -379,6 +395,12 @@ static bool save_frame_ppm (
 int main (int argc, char** argv) {
     const bool verbose = (argc >= 2 && argv[1] != nullptr && std::atoi(argv[1]) >= 2);
     print_cls_size(sizeof(WalkMtnMk1));
+    if (!load_statics()) {
+        t_fail("*** FAILED load statics\n");
+        return 1;
+    }
+    WM_TURNS = g_rt_statics->config().get_mov_pt_per_turn();
+    const u32 wm_move_cap = static_cast<u32>(WM_TURNS) * 2u;
     GameArraySimple map;
     if (!Factory_GameArraySimple::load_map_gen_data(&map, WM_IN_TERR, WM_IN_CLIM, WM_IN_RIV)) {
         t_fail("*** FAILED load map\n");
@@ -400,7 +422,7 @@ int main (int argc, char** argv) {
         t_fail("*** FAILED load terrain rgb\n");
         return 1;
     }
-    double* move_us = new double[WM_MOVE_CAP];
+    double* move_us = new double[wm_move_cap];
     if (move_us == nullptr) {
         t_fail("*** FAILED alloc move_us\n");
         delete[] terr_rgb;
@@ -453,7 +475,7 @@ int main (int argc, char** argv) {
             clock_gettime(CLOCK_MONOTONIC, &t0);
             ai0.move(1u);
             clock_gettime(CLOCK_MONOTONIC, &t1);
-            record_move(move_us, WM_MOVE_CAP, move_n, t0, t1);
+            record_move(move_us, wm_move_cap, move_n, t0, t1);
             if (ai0.x() != ox || ai0.y() != oy) {
                 ++steps0;
             }
@@ -466,7 +488,7 @@ int main (int argc, char** argv) {
             clock_gettime(CLOCK_MONOTONIC, &t0);
             ai1->move(1u);
             clock_gettime(CLOCK_MONOTONIC, &t1);
-            record_move(move_us, WM_MOVE_CAP, move_n, t0, t1);
+            record_move(move_us, wm_move_cap, move_n, t0, t1);
             if (ai1->x() != ox || ai1->y() != oy) {
                 ++steps1;
             }

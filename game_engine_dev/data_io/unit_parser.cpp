@@ -24,12 +24,13 @@ UnitStaticDataStruct* UnitParser::parse_data_dependencies () {
         StringManager line_items;
         get_line_items(get_raw_lines().get_string_content(i), line_items);
         parsed_data[i].type = parse_unit_type(line_items, 1);
-        parsed_data[i].cost = parse_u32(line_items, 2);
-        parsed_data[i].attack = parse_u16(line_items, 3);
-        parsed_data[i].defense = parse_u16(line_items, 4);
-        parsed_data[i].mvt_pts = parse_u16(line_items, 5);
-        parsed_data[i].sight = parse_u16(line_items, 6);
-        parsed_data[i].reqs = parse_item_reqs(line_items, 7);
+        parsed_data[i].role = parse_unit_role(line_items, 2);
+        parsed_data[i].cost = parse_u32(line_items, 3);
+        parsed_data[i].attack = parse_u16(line_items, 4);
+        parsed_data[i].defense = parse_u16(line_items, 5);
+        parsed_data[i].mvt_pts = parse_u16(line_items, 6);
+        parsed_data[i].sight = parse_u16(line_items, 7);
+        parsed_data[i].reqs = parse_item_reqs(line_items, 8);
     }
     return parsed_data;
 }

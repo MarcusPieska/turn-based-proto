@@ -16,6 +16,7 @@
 #include "game_map_defs.h"
 #include "map_terrain_validate.h"
 #include "map_bit_overlay.h"
+#include "runtime_static_loader.h"
 #include "runtime_trace_dbg.h"
 
 typedef const char* cstr;
@@ -32,14 +33,29 @@ static const cstr NE_FRAMES = "/home/w/Projects/simple-map-gen/walk_near_mk1_fra
 static const cstr NE_TRACE = "walk_near_mk1_test.trace";
 static const u16 NE_SX = 499u;
 static const u16 NE_SY = 499u;
-static const u16 NE_TURNS = PATH_MP_TURN;
+static u16 NE_TURNS = 0;
+static const cstr G_LIB = "../../data_io/runtime_static_loader_lib.so";
+static const cstr G_DATA = "../../";
 static const u16 NE_SIGHT = 3u;
-static const u32 NE_MOVE_CAP = static_cast<u32>(NE_TURNS) * 2u;
 
 static const cstr k_ansi_rst = "\033[0m";
 static const cstr k_ansi_grn = "\033[32m";
 static const cstr k_ansi_red = "\033[31m";
 static const cstr k_ansi_blu = "\033[94m";
+
+static RuntimeStaticLoader g_rt_loader;
+static RuntimeStatics* g_rt_statics = nullptr;
+
+static bool load_statics () {
+    if (g_rt_statics != nullptr) {
+        return true;
+    }
+    if (!g_rt_loader.load(G_LIB, G_DATA)) {
+        return false;
+    }
+    g_rt_statics = &g_rt_loader.statics();
+    return true;
+}
 
 static void print_cls_size (size_t n) {
     if (n < 1000u) {
@@ -268,6 +284,12 @@ static bool save_frame_ppm (
 int main (int argc, char** argv) {
     const bool verbose = (argc >= 2 && argv[1] != nullptr && std::atoi(argv[1]) >= 2);
     print_cls_size(sizeof(WalkNearMk1));
+    if (!load_statics()) {
+        t_fail("*** FAILED load statics\n");
+        return 1;
+    }
+    NE_TURNS = g_rt_statics->config().get_mov_pt_per_turn();
+    const u32 ne_move_cap = static_cast<u32>(NE_TURNS) * 2u;
     GameArraySimple map;
     if (!Factory_GameArraySimple::load_map_gen_data(&map, NE_IN_TERR, NE_IN_CLIM, NE_IN_RIV)) {
         t_fail("*** FAILED load map\n");
@@ -288,7 +310,7 @@ int main (int argc, char** argv) {
     }
     MapBitOverlay ov(map.width(), map.height());
     WalkNearMk1 ai(map, ov, ux, uy, NE_SIGHT, 0u, WN_BIAS_NONE);
-    double* move_us = new double[NE_MOVE_CAP];
+    double* move_us = new double[ne_move_cap];
     u32 move_n = 0u;
     if (move_us == nullptr) {
         t_fail("*** FAILED alloc move timing\n");
@@ -321,7 +343,7 @@ int main (int argc, char** argv) {
         clock_gettime(CLOCK_MONOTONIC, &t0);
         ai.move(1u);
         clock_gettime(CLOCK_MONOTONIC, &t1);
-        record_move(move_us, NE_MOVE_CAP, move_n, t0, t1);
+        record_move(move_us, ne_move_cap, move_n, t0, t1);
         if (ai.x() == ox && ai.y() == oy) {
             break;
         }

@@ -27,7 +27,7 @@ INC="-I. \
      -I../../adv_map_gen \
      -I../../ai_pathing/walk_general"
 CXXFLAGS="-std=c++17 -Wall -Wextra"
-UM_FLAGS="$CXXFLAGS -DPATH_MP_TURN=1000u"
+UM_FLAGS="$CXXFLAGS"
 
 g++ $CXXFLAGS $INC -c ../../data_io/runtime_static_loader.cpp -o runtime_static_loader.o
 g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o

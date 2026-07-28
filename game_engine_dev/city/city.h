@@ -60,6 +60,7 @@ public:
     u16 get_current_population () const;
     void set_population (u16 pop);
     u16 get_owner () const;
+    void set_owner (u16 owner);
     u16 get_x () const;
     u16 get_y () const;
     bool is_frontier () const;

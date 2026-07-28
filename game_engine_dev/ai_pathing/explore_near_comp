@@ -1,8 +1,15 @@
 #!/bin/bash
 
-INC="-I. -I.. -Iwalk_near -Iwalk_coast -Iwalk_mtn -Iwalk_river -I../game -I../map_loader -I../simple_map_gen -I../misc"
+LIB_SO="../data_io/runtime_static_loader_lib.so"
+if [ ! -f "$LIB_SO" ]; then
+    echo "missing $LIB_SO - run ../data_io/runtime_static_loader_lib_comp first"
+    exit 1
+fi
+
+INC="-I. -I.. -Iwalk_near -Iwalk_coast -Iwalk_mtn -Iwalk_river -I../game -I../map_loader -I../simple_map_gen -I../misc -I../data_io -I../static_state"
 CXXFLAGS="-std=c++17 -Wall -Wextra"
 
+g++ $CXXFLAGS $INC -c ../data_io/runtime_static_loader.cpp -o runtime_static_loader.o
 g++ $CXXFLAGS $INC -c ../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
 g++ $CXXFLAGS $INC -c ../map_loader/map_terrain_data.cpp -o map_terrain_data.o
 g++ $CXXFLAGS $INC -c ../map_loader/map_loader.cpp -o map_loader.o
@@ -19,6 +26,7 @@ g++ $CXXFLAGS $INC -c explore_near.cpp -o explore_near.o
 g++ $CXXFLAGS $INC -c explore_near_tester.cpp -o explore_near_tester.o
 
 g++ $CXXFLAGS -o explore_near_tester \
+    runtime_static_loader.o \
     map_terrain_validate.o \
     map_terrain_data.o \
     map_loader.o \
@@ -32,9 +40,12 @@ g++ $CXXFLAGS -o explore_near_tester \
     walk_mtn_mk1.o \
     walk_river_mk2.o \
     explore_near.o \
-    explore_near_tester.o
+    explore_near_tester.o \
+    -ldl \
+    $LIB_SO \
+    -Wl,-rpath,'$ORIGIN/../data_io'
 
-rm map_terrain_validate.o map_terrain_data.o map_loader.o runtime_trace_dbg.o \
+rm runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.o runtime_trace_dbg.o \
     game_array_simple.o factory_game_array_simple.o map_bit_overlay.o \
     near_path_mk1.o walk_near_mk1.o walk_coast_mk1.o walk_mtn_mk1.o walk_river_mk2.o \
     explore_near.o explore_near_tester.o

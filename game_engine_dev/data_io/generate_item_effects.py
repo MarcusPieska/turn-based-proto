@@ -19,6 +19,8 @@ ie_type_enum.append("ENABLE")
 ie_type_enum.append("RESEARCH_TECH")
 ie_type_enum.append("TRAIN")
 ie_type_enum.append("TERRAIN_BOOSTER")
+ie_type_enum.append("SET_FLAG")
+ie_type_enum.append("PRODUCE")
 
 ie_booster_type_enum = []
 ie_booster_type_enum.append("NONE")
@@ -43,6 +45,7 @@ ie_booster_type_enum.append("UNIT_EXP")
 ie_booster_type_enum.append("UPGRADE_COST")
 ie_booster_type_enum.append("WAR_WEAR")
 ie_booster_type_enum.append("CULTURE")
+ie_booster_type_enum.append("SANITATION")
 
 ie_terrain_yield_enum = []
 ie_terrain_yield_enum.append("NONE")
