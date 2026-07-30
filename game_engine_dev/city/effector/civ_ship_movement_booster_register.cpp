@@ -17,7 +17,7 @@
 
 const BoosterRegisterEntry CivShipMovementBoosterRegister::s_entry[2] = {
     { { EffectEnablerKind::WONDER, 4 }, 1, 0 }, // Great Lighthouse (wonder)
-    { { EffectEnablerKind::WONDER, 11 }, 1, 0 }, // Magellan's Voyage (wonder)
+    { { EffectEnablerKind::WONDER, 12 }, 1, 0 }, // Magellan's Voyage (wonder)
 };
 
 //================================================================================================================================

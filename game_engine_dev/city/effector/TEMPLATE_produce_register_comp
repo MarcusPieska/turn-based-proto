@@ -1,0 +1,52 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")"
+
+LIB_SO="../../data_io/runtime_static_loader_lib.so"
+if [ ! -f "$LIB_SO" ]; then
+    echo "missing $LIB_SO - run ../../data_io/runtime_static_loader_lib_comp first"
+    exit 1
+fi
+
+INC="-I../../ \
+     -I../../misc \
+     -I../../data_io \
+     -I../../static_state \
+     -I../../city \
+     -I../../city/effector \
+     -I../../gen_bit_banks \
+     -I../../game \
+     -I../../dyn_state"
+CXXFLAGS="-std=c++17 -Wall -Wextra"
+
+g++ $CXXFLAGS $INC -c ../../data_io/item_effect_helpers.cpp -o item_effect_helpers.o
+g++ $CXXFLAGS $INC -c ../../data_io/runtime_static_loader.cpp -o runtime_static_loader.o
+g++ $CXXFLAGS $INC -c ../../misc/bit_array.cpp -o bit_array.o
+g++ $CXXFLAGS $INC -c ../../gen_bit_banks/general_bit_bank.cpp -o general_bit_bank.o
+g++ $CXXFLAGS $INC -c ../../city/effect_ctx.cpp -o effect_ctx.o
+g++ $CXXFLAGS $INC -c effect_enabler.cpp -o effect_enabler.o
+g++ $CXXFLAGS $INC -c produce_register.cpp -o produce_register.o
+g++ $CXXFLAGS $INC -c produce_register_tester.cpp -o produce_register_tester.o
+
+g++ $CXXFLAGS -o produce_register_tester \
+    item_effect_helpers.o \
+    runtime_static_loader.o \
+    bit_array.o \
+    general_bit_bank.o \
+    effect_ctx.o \
+    effect_enabler.o \
+    produce_register.o \
+    produce_register_tester.o \
+    -ldl \
+    $LIB_SO \
+    -Wl,-rpath,'$ORIGIN/../../data_io'
+
+if [ "$#" -ge 1 ]; then
+    ./produce_register_tester "$1"
+else
+    ./produce_register_tester Coal
+fi
+
+rm item_effect_helpers.o runtime_static_loader.o bit_array.o general_bit_bank.o effect_ctx.o effect_enabler.o \
+    produce_register.o produce_register_tester.o

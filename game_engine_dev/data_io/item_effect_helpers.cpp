@@ -187,6 +187,48 @@ cstr ItemEffectHelper::upkeep_mode_enum_to_str (ItemEffectUpkeepMode v) {
     }
 }
 
+ItemProduceKind ItemEffectHelper::produce_kind_str_to_enum (cstr s) {
+    if (s && std::strcmp(s, "NONE") == 0) { return ItemProduceKind::NONE; }
+    if (s && std::strcmp(s, "RESOURCE") == 0) { return ItemProduceKind::RESOURCE; }
+    if (s && std::strcmp(s, "YIELD") == 0) { return ItemProduceKind::YIELD; }
+    return ItemProduceKind::NONE;
+}
+
+cstr ItemEffectHelper::produce_kind_enum_to_str (ItemProduceKind v) {
+    switch (v) {
+        case ItemProduceKind::NONE : return "NONE";
+        case ItemProduceKind::RESOURCE : return "RESOURCE";
+        case ItemProduceKind::YIELD : return "YIELD";
+        default: return "NONE";
+    }
+}
+
+ItemProduceYield ItemEffectHelper::produce_yield_str_to_enum (cstr s) {
+    if (s && std::strcmp(s, "NONE") == 0) { return ItemProduceYield::NONE; }
+    if (s && std::strcmp(s, "FOOD") == 0) { return ItemProduceYield::FOOD; }
+    if (s && std::strcmp(s, "COMMERCE") == 0) { return ItemProduceYield::COMMERCE; }
+    if (s && std::strcmp(s, "PRODUCTION") == 0) { return ItemProduceYield::PRODUCTION; }
+    if (s && std::strcmp(s, "SCIENCE") == 0) { return ItemProduceYield::SCIENCE; }
+    if (s && std::strcmp(s, "HAPPINESS") == 0) { return ItemProduceYield::HAPPINESS; }
+    if (s && std::strcmp(s, "CULTURE") == 0) { return ItemProduceYield::CULTURE; }
+    if (s && std::strcmp(s, "SANITATION") == 0) { return ItemProduceYield::SANITATION; }
+    return ItemProduceYield::NONE;
+}
+
+cstr ItemEffectHelper::produce_yield_enum_to_str (ItemProduceYield v) {
+    switch (v) {
+        case ItemProduceYield::NONE : return "NONE";
+        case ItemProduceYield::FOOD : return "FOOD";
+        case ItemProduceYield::COMMERCE : return "COMMERCE";
+        case ItemProduceYield::PRODUCTION : return "PRODUCTION";
+        case ItemProduceYield::SCIENCE : return "SCIENCE";
+        case ItemProduceYield::HAPPINESS : return "HAPPINESS";
+        case ItemProduceYield::CULTURE : return "CULTURE";
+        case ItemProduceYield::SANITATION : return "SANITATION";
+        default: return "NONE";
+    }
+}
+
 //================================================================================================================================
 //=> - End -
 //================================================================================================================================

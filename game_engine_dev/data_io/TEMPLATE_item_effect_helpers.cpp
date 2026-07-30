@@ -97,6 +97,30 @@ cstr ItemEffectHelper::upkeep_mode_enum_to_str (ItemEffectUpkeepMode v) {
     }
 }
 
+ItemProduceKind ItemEffectHelper::produce_kind_str_to_enum (cstr s) {
+    [IE_PRODUCE_KIND_FROM_STRING_BODY]
+    return ItemProduceKind::NONE;
+}
+
+cstr ItemEffectHelper::produce_kind_enum_to_str (ItemProduceKind v) {
+    switch (v) {
+        [IE_PRODUCE_KIND_TO_STRING_SWITCH_BODY]
+        default: return "NONE";
+    }
+}
+
+ItemProduceYield ItemEffectHelper::produce_yield_str_to_enum (cstr s) {
+    [IE_PRODUCE_YIELD_FROM_STRING_BODY]
+    return ItemProduceYield::NONE;
+}
+
+cstr ItemEffectHelper::produce_yield_enum_to_str (ItemProduceYield v) {
+    switch (v) {
+        [IE_PRODUCE_YIELD_TO_STRING_SWITCH_BODY]
+        default: return "NONE";
+    }
+}
+
 //================================================================================================================================
 //=> - End -
 //================================================================================================================================

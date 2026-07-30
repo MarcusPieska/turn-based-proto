@@ -15,15 +15,16 @@
 //=> - CityProductionBoosterRegister data -
 //================================================================================================================================
 
-const BoosterRegisterEntry CityProductionBoosterRegister::s_entry[9] = {
-    { { EffectEnablerKind::BUILDING, 12 }, 0, 50 }, // Factory (building)
-    { { EffectEnablerKind::BUILDING, 19 }, 0, 100 }, // Coal Plant (building)
-    { { EffectEnablerKind::BUILDING, 20 }, 0, 100 }, // Hydro Plant (building)
-    { { EffectEnablerKind::BUILDING, 21 }, 0, 200 }, // Nuclear Plant (building)
-    { { EffectEnablerKind::BUILDING, 23 }, 0, 150 }, // Manufacturing Plant (building)
-    { { EffectEnablerKind::BUILDING, 28 }, 0, 20 }, // Offshore Platform (building)
-    { { EffectEnablerKind::BUILDING, 32 }, 0, 100 }, // Solar Plant (building)
-    { { EffectEnablerKind::BUILDING, 33 }, 0, 50 }, // Capitalization (building)
+const BoosterRegisterEntry CityProductionBoosterRegister::s_entry[10] = {
+    { { EffectEnablerKind::BUILDING, 21 }, 0, 50 }, // Factory (building)
+    { { EffectEnablerKind::BUILDING, 30 }, 2, 0 }, // Waterworks (building)
+    { { EffectEnablerKind::BUILDING, 36 }, 0, 100 }, // Coal Plant (building)
+    { { EffectEnablerKind::BUILDING, 37 }, 0, 100 }, // Hydro Plant (building)
+    { { EffectEnablerKind::BUILDING, 38 }, 0, 200 }, // Nuclear Plant (building)
+    { { EffectEnablerKind::BUILDING, 40 }, 0, 150 }, // Manufacturing Plant (building)
+    { { EffectEnablerKind::BUILDING, 46 }, 0, 20 }, // Offshore Platform (building)
+    { { EffectEnablerKind::BUILDING, 49 }, 0, 100 }, // Solar Plant (building)
+    { { EffectEnablerKind::BUILDING, 50 }, 0, 50 }, // Capitalization (building)
     { { EffectEnablerKind::SMALL_WONDER, 8 }, 0, 200 }, // Ironworks (small_wonder)
 };
 

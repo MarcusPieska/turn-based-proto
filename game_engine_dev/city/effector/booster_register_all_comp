@@ -107,6 +107,14 @@ cd "$(dirname "$0")"
 
 ./global_production_booster_register_comp
 
+./local_sanitation_booster_register_comp
+
+./city_sanitation_booster_register_comp
+
+./civ_sanitation_booster_register_comp
+
+./global_sanitation_booster_register_comp
+
 ./local_science_booster_register_comp
 
 ./city_science_booster_register_comp

@@ -16,14 +16,14 @@
 //================================================================================================================================
 
 const BoosterRegisterEntry CityScienceBoosterRegister::s_entry[8] = {
-    { { EffectEnablerKind::BUILDING, 2 }, 0, 50 }, // Library (building)
-    { { EffectEnablerKind::BUILDING, 10 }, 0, 100 }, // University (building)
-    { { EffectEnablerKind::BUILDING, 22 }, 0, 200 }, // Research Lab (building)
+    { { EffectEnablerKind::BUILDING, 3 }, 0, 50 }, // Library (building)
+    { { EffectEnablerKind::BUILDING, 19 }, 0, 100 }, // University (building)
+    { { EffectEnablerKind::BUILDING, 39 }, 0, 200 }, // Research Lab (building)
     { { EffectEnablerKind::SMALL_WONDER, 12 }, 0, 100 }, // Oxford University (small_wonder)
     { { EffectEnablerKind::WONDER, 5 }, 0, 100 }, // Oracle (wonder)
-    { { EffectEnablerKind::WONDER, 12 }, 0, 100 }, // Copernicus' Observatory (wonder)
-    { { EffectEnablerKind::WONDER, 14 }, 0, 100 }, // Newton's University (wonder)
-    { { EffectEnablerKind::WONDER, 22 }, 0, 200 }, // SETI Program (wonder)
+    { { EffectEnablerKind::WONDER, 13 }, 0, 100 }, // Copernicus' Observatory (wonder)
+    { { EffectEnablerKind::WONDER, 15 }, 0, 100 }, // Newton's University (wonder)
+    { { EffectEnablerKind::WONDER, 26 }, 0, 200 }, // SETI Program (wonder)
 };
 
 //================================================================================================================================

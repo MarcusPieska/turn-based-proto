@@ -35,6 +35,9 @@
 #include "local_pop_growth_booster_register.h"
 #include "local_production_booster_register.h"
 #include "local_culture_booster_register.h"
+#include "local_sanitation_booster_register.h"
+#include "city_sanitation_booster_register.h"
+#include "civ_sanitation_booster_register.h"
 #include "city_border.h"
 #include "tile_yields.h"
 
@@ -372,20 +375,29 @@ void City::accumulate_commerce () {
 //=> - City add yields in furtherance of builds / bank -
 //================================================================================================================================
 
-i16 City::add_food (u16 city_idx, u16 amount) {
+i16 City::add_food (u16 city_idx, u16 amount, i16 net_sanitation) {
     const EffectCtx ctx = make_city_effect_ctx(*this, city_idx);
 
-    // Pull local tile food yield, and apply local boosters
+    // Pull local tile food yield (no POP_GROWTH on gross food)
     const TileYield cy = TileYields::get(m_x, m_y);
-    const u16 local = apply_booster_u16(cy.m_food, LocalPopGrowthBoosterRegister::determine_effect(ctx));
-    amount = static_cast<u16>(local + amount);
+    amount = static_cast<u16>(cy.m_food + amount);
 
-    // Handle the remaining food, and the non-local boosters
-    u16 boosted = apply_booster_u16(amount, CityPopGrowthBoosterRegister::determine_effect(ctx));
-    boosted = apply_booster_u16(boosted, CivPopGrowthBoosterRegister::determine_effect(ctx));
-    
     // Feed the population; 2 food per pop per turn; bank toward growth at 20; starve at most 1 per turn
-    i16 food_surplus = static_cast<i16>(boosted) - static_cast<i16>(m_pop_count * 2);
+    i16 food_surplus = static_cast<i16>(amount) - static_cast<i16>(m_pop_count * 2);
+    if (net_sanitation < 0) {
+        food_surplus = static_cast<i16>(food_surplus + net_sanitation);
+    }
+    
+    // If we now have a surplus, apply growth boosters
+    if (food_surplus > 0) {
+        u16 scaled = static_cast<u16>(food_surplus);
+        scaled = apply_booster_u16(scaled, LocalPopGrowthBoosterRegister::determine_effect(ctx));
+        scaled = apply_booster_u16(scaled, CityPopGrowthBoosterRegister::determine_effect(ctx));
+        scaled = apply_booster_u16(scaled, CivPopGrowthBoosterRegister::determine_effect(ctx));
+        food_surplus = static_cast<i16>(scaled);
+    }
+
+    // Bank the food, and determine the population change
     i16 bank = static_cast<i16>(m_accumulated_food) + food_surplus;
     i16 pop_change = 0;
     if (bank < 0) {
@@ -465,6 +477,26 @@ void City::add_culture (u16 city_idx, u16 amount) {
 //================================================================================================================================
 //=> - City getters -
 //================================================================================================================================
+
+i16 City::get_city_net_sanitation (u16 sanitation_boost) const {
+    const i16 net = static_cast<i16>(static_cast<i32>(sanitation_boost) - static_cast<i32>(m_pop_count));
+    if (net >= 0) {
+        return net;
+    }
+    if (net >= -5) {
+        const i32 mag = static_cast<i32>(-net);
+        return static_cast<i16>(-(mag * mag));
+    }
+    return static_cast<i16>(net * 5);
+}
+
+u16 City::get_city_sanitation_boost (u16 city_idx) const {
+    const EffectCtx ctx = make_city_effect_ctx(*this, city_idx);
+    u16 amount = apply_booster_u16(3, LocalSanitationBoosterRegister::determine_effect(ctx));
+    amount = apply_booster_u16(amount, CitySanitationBoosterRegister::determine_effect(ctx));
+    amount = apply_booster_u16(amount, CivSanitationBoosterRegister::determine_effect(ctx));
+    return amount;
+}
 
 u16 City::get_current_food_store () const {
     return m_accumulated_food;

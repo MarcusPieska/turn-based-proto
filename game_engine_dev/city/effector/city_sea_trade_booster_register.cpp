@@ -16,9 +16,9 @@
 //================================================================================================================================
 
 const BoosterRegisterEntry CitySeaTradeBoosterRegister::s_entry[3] = {
-    { { EffectEnablerKind::BUILDING, 7 }, 1, 0 }, // Harbor (building)
-    { { EffectEnablerKind::BUILDING, 16 }, 0, 100 }, // Commercial Dock (building)
-    { { EffectEnablerKind::BUILDING, 28 }, 0, 50 }, // Offshore Platform (building)
+    { { EffectEnablerKind::BUILDING, 16 }, 1, 0 }, // Harbor (building)
+    { { EffectEnablerKind::BUILDING, 25 }, 0, 100 }, // Commercial Dock (building)
+    { { EffectEnablerKind::BUILDING, 46 }, 0, 50 }, // Offshore Platform (building)
 };
 
 //================================================================================================================================

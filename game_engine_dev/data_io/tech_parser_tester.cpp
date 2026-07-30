@@ -12,6 +12,7 @@
 #include <cstdio>
 
 #include "tech_parser_tester.h"
+#include "item_effect_helpers.h"
 
 //================================================================================================================================
 //=> - Static members -
@@ -525,14 +526,17 @@ void TechParserTester::pr_fx (cstr label, const ItemEffectsStruct& e) {
         }
         case ItemEffectType::PRODUCE: {
             const ItemEffectProduce& pr = slot.effect.produce;
-            if (pr.resource_id == U16_KEY_NULL) {
+            if (pr.kind == ItemProduceKind::YIELD) {
+                const ItemProduceYield yv = static_cast<ItemProduceYield>(pr.target_id);
+                fprintf(out(), " produce %s (%u)", ItemEffectHelper::produce_yield_enum_to_str(yv), static_cast<u32>(pr.target_id));
+            } else if (pr.target_id == U16_KEY_NULL) {
                 fprintf(out(), " produce");
-            } else if (m_resource_sd != NULL && pr.resource_id < m_resource_sd->get_item_count()) {
-                fprintf(out(), " produce %s (%u)", m_resource_sd->get_name(ResourceStaticDataKey::from_raw(pr.resource_id)), static_cast<u32>(pr.resource_id));
+            } else if (m_resource_sd != NULL && pr.target_id < m_resource_sd->get_item_count()) {
+                fprintf(out(), " produce %s (%u)", m_resource_sd->get_name(ResourceStaticDataKey::from_raw(pr.target_id)), static_cast<u32>(pr.target_id));
             } else if (m_resource_psr != NULL) {
-                fprintf(out(), " produce %s (%u)", m_resource_psr->idx_to_name(pr.resource_id), static_cast<u32>(pr.resource_id));
+                fprintf(out(), " produce %s (%u)", m_resource_psr->idx_to_name(pr.target_id), static_cast<u32>(pr.target_id));
             } else {
-                fprintf(out(), " produce <unknown> (%u)", static_cast<u32>(pr.resource_id));
+                fprintf(out(), " produce <unknown> (%u)", static_cast<u32>(pr.target_id));
             }
             fprintf(out(), " amount=%d", static_cast<int>(pr.amount));
             break;

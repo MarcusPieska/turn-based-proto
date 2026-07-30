@@ -16,7 +16,7 @@
 //================================================================================================================================
 
 const BoosterRegisterEntry CityEspionageBoosterRegister::s_entry[2] = {
-    { { EffectEnablerKind::BUILDING, 31 }, 0, 100 }, // Intelligence Agency (building)
+    { { EffectEnablerKind::BUILDING, 48 }, 0, 100 }, // Intelligence Agency (building)
     { { EffectEnablerKind::SMALL_WONDER, 6 }, 0, 100 }, // Intelligence Agency (small_wonder)
 };
 

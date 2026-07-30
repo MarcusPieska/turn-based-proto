@@ -131,9 +131,11 @@ static void print_building_item (
             }
         }
         if (slot.type == static_cast<u16>(ItemEffectType::PRODUCE)) {
-            u16 ref_idx = slot.effect.produce.resource_id;
-            if (ref_idx != U16_KEY_NULL) {
-                StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::RESOURCE, ref_idx, print_lvl + 1, max_lvl);
+            if (slot.effect.produce.kind == ItemProduceKind::RESOURCE) {
+                u16 ref_idx = slot.effect.produce.target_id;
+                if (ref_idx != U16_KEY_NULL) {
+                    StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::RESOURCE, ref_idx, print_lvl + 1, max_lvl);
+                }
             }
         }
     }
@@ -213,9 +215,11 @@ static void print_city_flag_item (
             }
         }
         if (slot.type == static_cast<u16>(ItemEffectType::PRODUCE)) {
-            u16 ref_idx = slot.effect.produce.resource_id;
-            if (ref_idx != U16_KEY_NULL) {
-                StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::RESOURCE, ref_idx, print_lvl + 1, max_lvl);
+            if (slot.effect.produce.kind == ItemProduceKind::RESOURCE) {
+                u16 ref_idx = slot.effect.produce.target_id;
+                if (ref_idx != U16_KEY_NULL) {
+                    StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::RESOURCE, ref_idx, print_lvl + 1, max_lvl);
+                }
             }
         }
     }
@@ -389,9 +393,11 @@ static void print_small_wonder_item (
             }
         }
         if (slot.type == static_cast<u16>(ItemEffectType::PRODUCE)) {
-            u16 ref_idx = slot.effect.produce.resource_id;
-            if (ref_idx != U16_KEY_NULL) {
-                StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::RESOURCE, ref_idx, print_lvl + 1, max_lvl);
+            if (slot.effect.produce.kind == ItemProduceKind::RESOURCE) {
+                u16 ref_idx = slot.effect.produce.target_id;
+                if (ref_idx != U16_KEY_NULL) {
+                    StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::RESOURCE, ref_idx, print_lvl + 1, max_lvl);
+                }
             }
         }
     }
@@ -471,9 +477,11 @@ static void print_tech_item (
             }
         }
         if (slot.type == static_cast<u16>(ItemEffectType::PRODUCE)) {
-            u16 ref_idx = slot.effect.produce.resource_id;
-            if (ref_idx != U16_KEY_NULL) {
-                StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::RESOURCE, ref_idx, print_lvl + 1, max_lvl);
+            if (slot.effect.produce.kind == ItemProduceKind::RESOURCE) {
+                u16 ref_idx = slot.effect.produce.target_id;
+                if (ref_idx != U16_KEY_NULL) {
+                    StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::RESOURCE, ref_idx, print_lvl + 1, max_lvl);
+                }
             }
         }
     }
@@ -638,9 +646,11 @@ static void print_wonder_item (
             }
         }
         if (slot.type == static_cast<u16>(ItemEffectType::PRODUCE)) {
-            u16 ref_idx = slot.effect.produce.resource_id;
-            if (ref_idx != U16_KEY_NULL) {
-                StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::RESOURCE, ref_idx, print_lvl + 1, max_lvl);
+            if (slot.effect.produce.kind == ItemProduceKind::RESOURCE) {
+                u16 ref_idx = slot.effect.produce.target_id;
+                if (ref_idx != U16_KEY_NULL) {
+                    StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::RESOURCE, ref_idx, print_lvl + 1, max_lvl);
+                }
             }
         }
     }

@@ -15,14 +15,19 @@
 //=> - CityHappinessBoosterRegister data -
 //================================================================================================================================
 
-const BoosterRegisterEntry CityHappinessBoosterRegister::s_entry[7] = {
-    { { EffectEnablerKind::BUILDING, 3 }, 1, 0 }, // Temple (building)
-    { { EffectEnablerKind::BUILDING, 9 }, 2, 0 }, // Cathedral (building)
-    { { EffectEnablerKind::BUILDING, 11 }, 2, 0 }, // Colosseum (building)
-    { { EffectEnablerKind::BUILDING, 13 }, 1, 0 }, // Police Station (building)
+const BoosterRegisterEntry CityHappinessBoosterRegister::s_entry[12] = {
+    { { EffectEnablerKind::BUILDING, 4 }, 1, 0 }, // Amphitheater (building)
+    { { EffectEnablerKind::BUILDING, 5 }, 1, 0 }, // Temple (building)
+    { { EffectEnablerKind::BUILDING, 11 }, 1, 0 }, // Public Fountains (building)
+    { { EffectEnablerKind::BUILDING, 12 }, 1, 0 }, // Public Baths (building)
+    { { EffectEnablerKind::BUILDING, 18 }, 2, 0 }, // Cathedral (building)
+    { { EffectEnablerKind::BUILDING, 20 }, 2, 0 }, // Colosseum (building)
+    { { EffectEnablerKind::BUILDING, 22 }, 1, 0 }, // Police Station (building)
+    { { EffectEnablerKind::BUILDING, 31 }, 1, 0 }, // Sewage Pumps (building)
+    { { EffectEnablerKind::BUILDING, 35 }, 1, 0 }, // Laundry (building)
     { { EffectEnablerKind::WONDER, 2 }, 3, 0 }, // Hanging Gardens (wonder)
-    { { EffectEnablerKind::WONDER, 13 }, 3, 0 }, // Shakespeare's Theatre (wonder)
-    { { EffectEnablerKind::WONDER, 15 }, 2, 0 }, // J.S. Bach's Cathedral (wonder)
+    { { EffectEnablerKind::WONDER, 14 }, 3, 0 }, // Shakespeare's Theatre (wonder)
+    { { EffectEnablerKind::WONDER, 16 }, 2, 0 }, // J.S. Bach's Cathedral (wonder)
 };
 
 //================================================================================================================================

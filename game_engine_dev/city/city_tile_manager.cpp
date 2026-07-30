@@ -282,16 +282,16 @@ TotalTileYield CityTileManager::add_new_commerce_tile (u16 player, u16 city_idx)
     return assign_add_one(player, city_idx, 0, 0, 1);
 }
 
-TotalTileYield CityTileManager::stable_food_max_production (u16 player, u16 city_idx, u16 start_food) {
-    return assign_stable_food(player, city_idx, start_food, k_sec_prod);
+TotalTileYield CityTileManager::stable_food_max_production (u16 player, u16 city_idx, u16 start_food, u16 sanitation_boost) {
+    return assign_stable_food(player, city_idx, start_food, sanitation_boost, k_sec_prod);
 }
 
-TotalTileYield CityTileManager::stable_food_max_commerce (u16 player, u16 city_idx, u16 start_food) {
-    return assign_stable_food(player, city_idx, start_food, k_sec_com);
+TotalTileYield CityTileManager::stable_food_max_commerce (u16 player, u16 city_idx, u16 start_food, u16 sanitation_boost) {
+    return assign_stable_food(player, city_idx, start_food, sanitation_boost, k_sec_com);
 }
 
-TotalTileYield CityTileManager::stable_food_max_combined (u16 player, u16 city_idx, u16 start_food) {
-    return assign_stable_food(player, city_idx, start_food, k_sec_both);
+TotalTileYield CityTileManager::stable_food_max_combined (u16 player, u16 city_idx, u16 start_food, u16 sanitation_boost) {
+    return assign_stable_food(player, city_idx, start_food, sanitation_boost, k_sec_both);
 }
 
 TotalTileYield CityTileManager::gather_yields (u16 player, u16 city_idx) {
@@ -496,7 +496,7 @@ TotalTileYield CityTileManager::assign_add_one (u16 player, u16 city_idx, u8 sor
     return tot;
 }
 
-TotalTileYield CityTileManager::assign_stable_food (u16 player, u16 city_idx, u16 start_food, u8 sec_mode) {
+TotalTileYield CityTileManager::assign_stable_food (u16 player, u16 city_idx, u16 start_food, u16 sanitation_boost, u8 sec_mode) {
     TotalTileYield tot = {};
     if (m_cities == nullptr) {
         return tot;
@@ -545,7 +545,7 @@ TotalTileYield CityTileManager::assign_stable_food (u16 player, u16 city_idx, u1
         return tot;
     }
     sort_cands_desc(cands, n, sec_mode, 1);
-    const u32 min_food = static_cast<u32>(workers) * 2u;
+    const u32 min_food = static_cast<u32>(sanitation_boost) * 2u;
     u32 food_acc = start_food;
     u16 split = 0;
     while (split < n && food_acc < min_food) {
@@ -558,28 +558,37 @@ TotalTileYield CityTileManager::assign_stable_food (u16 player, u16 city_idx, u1
     u16 fi = 0;
     u16 si = split;
     u32 food_have = start_food;
-    u16 food_need = 0;
     u16 assigned = 0;
     while (assigned < workers) {
-        food_need = static_cast<u16>(food_need + 2u);
-        u8 take_sec = 0;
-        if (si < n) {
-            if (food_have + cands[si].m_yld.m_food >= food_need) {
-                take_sec = 1;
-            }
-        }
         TileCand* pick = nullptr;
-        if (take_sec != 0) {
-            pick = &cands[si];
-            si = static_cast<u16>(si + 1u);
-        } else if (fi < split) {
-            pick = &cands[fi];
-            fi = static_cast<u16>(fi + 1u);
-        } else if (si < n) {
+        if (food_have >= min_food) {
+            while (si < n && cands[si].m_yld.m_food != 0) {
+                si = static_cast<u16>(si + 1u);
+            }
+            if (si >= n) {
+                break;
+            }
             pick = &cands[si];
             si = static_cast<u16>(si + 1u);
         } else {
-            break;
+            u8 take_sec = 0;
+            if (si < n) {
+                if (food_have + cands[si].m_yld.m_food >= min_food) {
+                    take_sec = 1;
+                }
+            }
+            if (take_sec != 0) {
+                pick = &cands[si];
+                si = static_cast<u16>(si + 1u);
+            } else if (fi < split) {
+                pick = &cands[fi];
+                fi = static_cast<u16>(fi + 1u);
+            } else if (si < n) {
+                pick = &cands[si];
+                si = static_cast<u16>(si + 1u);
+            } else {
+                break;
+            }
         }
         tot.m_food += pick->m_yld.m_food;
         tot.m_production += pick->m_yld.m_production;
@@ -588,6 +597,7 @@ TotalTileYield CityTileManager::assign_stable_food (u16 player, u16 city_idx, u1
         TileWorking::mark_worked(pick->m_x, pick->m_y, city_idx);
         assigned = static_cast<u16>(assigned + 1u);
     }
+    tot.m_pops_assigned = assigned;
     return tot;
 }
 

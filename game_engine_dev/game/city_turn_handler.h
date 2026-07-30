@@ -14,9 +14,9 @@ class GameState;
 //================================================================================================================================
 //
 //  Per-city turn step invoked by the main game loop. Gathers worked-tile yields via CityTileManager, applies growth and
-//  production finish, then if the queue is idle or in commerce mode picks next: settler if needed, else LinearBld, else
-//  accumulate commerce. Banks commerce and culture (add_culture(0) pulls building yields; City::add_culture claims borders
-//  on expand). Tallies m_this_turn_city_count and m_this_turn_population_count for the owning seat.
+//  production finish, then dispatches trait city AI (CityTurnHandler_Default scaffolding; Commercial stub reserved).
+//  Banks commerce and culture (add_culture(0) pulls building yields; City::add_culture claims borders on expand).
+//  Tallies m_this_turn_city_count and m_this_turn_population_count for the owning seat.
 //
 //================================================================================================================================
 

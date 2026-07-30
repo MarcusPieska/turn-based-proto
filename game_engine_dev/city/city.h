@@ -48,11 +48,13 @@ public:
     void build_unit (u16 unit_idx);
     void accumulate_commerce ();
 
-    i16 add_food (u16 city_idx, u16 amount);
+    i16 add_food (u16 city_idx, u16 amount, i16 net_sanitation);
     bool add_production (u16 city_idx, u16 amount);
     void add_commerce (u16 city_idx, u16 amount);
     void add_culture (u16 city_idx, u16 amount);
 
+    i16 get_city_net_sanitation (u16 sanitation_boost) const;
+    u16 get_city_sanitation_boost (u16 city_idx) const;
     u16 get_current_food_store () const;
     u16 get_current_production_store () const;
     u16 get_current_culture () const;

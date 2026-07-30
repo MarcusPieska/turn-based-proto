@@ -16,8 +16,8 @@
 //================================================================================================================================
 
 const BoosterRegisterEntry CityCorruptionBoosterRegister::s_entry[2] = {
-    { { EffectEnablerKind::BUILDING, 6 }, 0, -50 }, // Courthouse (building)
-    { { EffectEnablerKind::BUILDING, 13 }, 0, -50 }, // Police Station (building)
+    { { EffectEnablerKind::BUILDING, 15 }, 0, -50 }, // Courthouse (building)
+    { { EffectEnablerKind::BUILDING, 22 }, 0, -50 }, // Police Station (building)
 };
 
 //================================================================================================================================

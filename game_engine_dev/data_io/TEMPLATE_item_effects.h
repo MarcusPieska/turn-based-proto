@@ -52,6 +52,14 @@ enum class ItemEffectUpkeepMode : u8 {
     [IE_UPKEEP_MODE_ENUM_MEMBERS]
 };
 
+enum class ItemProduceKind : u8 {
+    [IE_PRODUCE_KIND_ENUM_MEMBERS]
+};
+
+enum class ItemProduceYield : u8 {
+    [IE_PRODUCE_YIELD_ENUM_MEMBERS]
+};
+
 //================================================================================================================================
 //=> - Per-effect payload structs -
 //================================================================================================================================
@@ -98,7 +106,8 @@ typedef struct ItemEffectSetFlag {
 } ItemEffectSetFlag;
 
 typedef struct ItemEffectProduce {
-    u16 resource_id;
+    ItemProduceKind kind;
+    u16 target_id;
     i16 amount;
 } ItemEffectProduce;
 

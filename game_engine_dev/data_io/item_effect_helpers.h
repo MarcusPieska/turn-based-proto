@@ -40,6 +40,12 @@ public:
 
     static ItemEffectUpkeepMode upkeep_mode_str_to_enum (cstr s);
     static cstr upkeep_mode_enum_to_str (ItemEffectUpkeepMode v);
+
+    static ItemProduceKind produce_kind_str_to_enum (cstr s);
+    static cstr produce_kind_enum_to_str (ItemProduceKind v);
+
+    static ItemProduceYield produce_yield_str_to_enum (cstr s);
+    static cstr produce_yield_enum_to_str (ItemProduceYield v);
 };
 
 #endif // ITEM_EFFECT_HELPER_H

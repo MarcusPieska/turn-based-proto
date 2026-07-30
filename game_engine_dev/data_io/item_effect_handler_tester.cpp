@@ -225,8 +225,9 @@ void print_item_effects_readable (
             printf("      scope:   %s\n", ItemEffectHelper::effects_scope_enum_to_str(e.effect.set_flag.scope));
             break;
         case ItemEffectType::PRODUCE:
-            printf("      resource_id: %u\n", e.effect.produce.resource_id);
-            printf("      amount:      %d\n", static_cast<int>(e.effect.produce.amount));
+            printf("      kind:       %s\n", ItemEffectHelper::produce_kind_enum_to_str(e.effect.produce.kind));
+            printf("      target_id:  %u\n", e.effect.produce.target_id);
+            printf("      amount:     %d\n", static_cast<int>(e.effect.produce.amount));
             break;
         default:
             printf("      (no detail printer for this type)\n");

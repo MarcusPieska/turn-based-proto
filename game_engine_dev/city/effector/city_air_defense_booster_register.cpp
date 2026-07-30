@@ -16,7 +16,7 @@
 //================================================================================================================================
 
 const BoosterRegisterEntry CityAirDefenseBoosterRegister::s_entry[1] = {
-    { { EffectEnablerKind::BUILDING, 26 }, 1, 0 }, // SAM Missile Battery (building)
+    { { EffectEnablerKind::BUILDING, 43 }, 1, 0 }, // SAM Missile Battery (building)
 };
 
 //================================================================================================================================

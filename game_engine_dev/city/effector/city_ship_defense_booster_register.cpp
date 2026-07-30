@@ -16,7 +16,7 @@
 //================================================================================================================================
 
 const BoosterRegisterEntry CityShipDefenseBoosterRegister::s_entry[1] = {
-    { { EffectEnablerKind::BUILDING, 14 }, 0, 100 }, // Coastal Fortress (building)
+    { { EffectEnablerKind::BUILDING, 23 }, 0, 100 }, // Coastal Fortress (building)
 };
 
 //================================================================================================================================

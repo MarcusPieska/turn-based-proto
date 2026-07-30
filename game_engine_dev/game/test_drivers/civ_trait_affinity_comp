@@ -1,0 +1,21 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")"
+
+INC="-I../.. \
+     -I../../misc \
+     -I../../data_io \
+     -I.."
+CXXFLAGS="-std=c++17 -Wall -Wextra"
+
+g++ $CXXFLAGS $INC -c ../civ_trait_affinity.cpp -o civ_trait_affinity.o
+g++ $CXXFLAGS $INC -c civ_trait_affinity_tester.cpp -o civ_trait_affinity_tester.o
+
+g++ $CXXFLAGS -o civ_trait_affinity_tester \
+    civ_trait_affinity.o \
+    civ_trait_affinity_tester.o
+
+./civ_trait_affinity_tester
+
+rm -f civ_trait_affinity.o civ_trait_affinity_tester.o

@@ -77,6 +77,21 @@ ie_upkeep_mode_enum.append("NONE")
 ie_upkeep_mode_enum.append("NORMAL_UPKEEP")
 ie_upkeep_mode_enum.append("NO_UPKEEP")
 
+ie_produce_kind_enum = []
+ie_produce_kind_enum.append("NONE")
+ie_produce_kind_enum.append("RESOURCE")
+ie_produce_kind_enum.append("YIELD")
+
+ie_produce_yield_enum = []
+ie_produce_yield_enum.append("NONE")
+ie_produce_yield_enum.append("FOOD")
+ie_produce_yield_enum.append("COMMERCE")
+ie_produce_yield_enum.append("PRODUCTION")
+ie_produce_yield_enum.append("SCIENCE")
+ie_produce_yield_enum.append("HAPPINESS")
+ie_produce_yield_enum.append("CULTURE")
+ie_produce_yield_enum.append("SANITATION")
+
 #================================================================================================================================#
 #=> - Helpers -
 #================================================================================================================================#
@@ -107,6 +122,8 @@ if __name__ == "__main__":
     sub_pairs.append(("[IE_AMOUNT_MODE_ENUM_MEMBERS]", unroll_enum_members(ie_amount_mode_enum)))
     sub_pairs.append(("[IE_BUILD_MODE_ENUM_MEMBERS]", unroll_enum_members(ie_build_mode_enum)))
     sub_pairs.append(("[IE_UPKEEP_MODE_ENUM_MEMBERS]", unroll_enum_members(ie_upkeep_mode_enum)))
+    sub_pairs.append(("[IE_PRODUCE_KIND_ENUM_MEMBERS]", unroll_enum_members(ie_produce_kind_enum)))
+    sub_pairs.append(("[IE_PRODUCE_YIELD_ENUM_MEMBERS]", unroll_enum_members(ie_produce_yield_enum)))
     
     sub_pairs.append(("[IE_TYPE_FROM_STRING_BODY]", unroll_to_enum(ie_type_enum, "ItemEffectType")))
     sub_pairs.append(("[IE_BOOSTER_TYPE_FROM_STRING_BODY]", unroll_to_enum(ie_booster_type_enum, "ItemEffectBoosterType")))
@@ -115,6 +132,8 @@ if __name__ == "__main__":
     sub_pairs.append(("[IE_AMOUNT_MODE_FROM_STRING_BODY]", unroll_to_enum(ie_amount_mode_enum, "ItemEffectAmountMode")))
     sub_pairs.append(("[IE_BUILD_MODE_FROM_STRING_BODY]", unroll_to_enum(ie_build_mode_enum, "ItemEffectBuildMode")))
     sub_pairs.append(("[IE_UPKEEP_MODE_FROM_STRING_BODY]", unroll_to_enum(ie_upkeep_mode_enum, "ItemEffectUpkeepMode")))
+    sub_pairs.append(("[IE_PRODUCE_KIND_FROM_STRING_BODY]", unroll_to_enum(ie_produce_kind_enum, "ItemProduceKind")))
+    sub_pairs.append(("[IE_PRODUCE_YIELD_FROM_STRING_BODY]", unroll_to_enum(ie_produce_yield_enum, "ItemProduceYield")))
 
     sub_pairs.append(("[IE_TYPE_TO_STRING_SWITCH_BODY]", unroll_to_str(ie_type_enum, "ItemEffectType")))
     sub_pairs.append(("[IE_BOOSTER_TYPE_TO_STRING_SWITCH_BODY]", unroll_to_str(ie_booster_type_enum, "ItemEffectBoosterType")))
@@ -123,6 +142,8 @@ if __name__ == "__main__":
     sub_pairs.append(("[IE_AMOUNT_MODE_TO_STRING_SWITCH_BODY]", unroll_to_str(ie_amount_mode_enum, "ItemEffectAmountMode")))
     sub_pairs.append(("[IE_BUILD_MODE_TO_STRING_SWITCH_BODY]", unroll_to_str(ie_build_mode_enum, "ItemEffectBuildMode")))
     sub_pairs.append(("[IE_UPKEEP_MODE_TO_STRING_SWITCH_BODY]", unroll_to_str(ie_upkeep_mode_enum, "ItemEffectUpkeepMode")))
+    sub_pairs.append(("[IE_PRODUCE_KIND_TO_STRING_SWITCH_BODY]", unroll_to_str(ie_produce_kind_enum, "ItemProduceKind")))
+    sub_pairs.append(("[IE_PRODUCE_YIELD_TO_STRING_SWITCH_BODY]", unroll_to_str(ie_produce_yield_enum, "ItemProduceYield")))
 
 
     file_prefix = "TEMPLATE_"

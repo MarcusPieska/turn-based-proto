@@ -288,9 +288,17 @@ ItemEffectsStruct ItemEffectHandler::parse_effects_line (const StringManager& li
                 continue;
             }
             slot.type = static_cast<u16>(ItemEffectType::PRODUCE);
-            slot.effect.produce.resource_id = U16_KEY_NULL;
-            if (m_cbs->resource_name_to_idx != nullptr) {
-                slot.effect.produce.resource_id = m_cbs->resource_name_to_idx(args_mgr.get_string_content(0));
+            const cstr target_nm = args_mgr.get_string_content(0);
+            const ItemProduceYield yld = ItemEffectHelper::produce_yield_str_to_enum(target_nm);
+            if (yld != ItemProduceYield::NONE) {
+                slot.effect.produce.kind = ItemProduceKind::YIELD;
+                slot.effect.produce.target_id = static_cast<u16>(yld);
+            } else {
+                slot.effect.produce.kind = ItemProduceKind::RESOURCE;
+                slot.effect.produce.target_id = U16_KEY_NULL;
+                if (m_cbs->resource_name_to_idx != nullptr) {
+                    slot.effect.produce.target_id = m_cbs->resource_name_to_idx(target_nm);
+                }
             }
             slot.effect.produce.amount = static_cast<i16>(std::strtol(args_mgr.get_string_content(1), nullptr, 10));
         } else {

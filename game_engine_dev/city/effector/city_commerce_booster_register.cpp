@@ -15,12 +15,13 @@
 //=> - CityCommerceBoosterRegister data -
 //================================================================================================================================
 
-const BoosterRegisterEntry CityCommerceBoosterRegister::s_entry[6] = {
-    { { EffectEnablerKind::BUILDING, 4 }, 0, 50 }, // Marketplace (building)
-    { { EffectEnablerKind::BUILDING, 8 }, 0, 100 }, // Bank (building)
-    { { EffectEnablerKind::BUILDING, 24 }, 0, 200 }, // Stock Exchange (building)
-    { { EffectEnablerKind::BUILDING, 25 }, 0, 50 }, // Superhighways (building)
-    { { EffectEnablerKind::BUILDING, 33 }, 0, 50 }, // Capitalization (building)
+const BoosterRegisterEntry CityCommerceBoosterRegister::s_entry[7] = {
+    { { EffectEnablerKind::BUILDING, 6 }, 0, 50 }, // Marketplace (building)
+    { { EffectEnablerKind::BUILDING, 17 }, 0, 100 }, // Bank (building)
+    { { EffectEnablerKind::BUILDING, 33 }, 2, 0 }, // Incineration Plant (building)
+    { { EffectEnablerKind::BUILDING, 41 }, 0, 200 }, // Stock Exchange (building)
+    { { EffectEnablerKind::BUILDING, 42 }, 0, 50 }, // Superhighways (building)
+    { { EffectEnablerKind::BUILDING, 50 }, 0, 50 }, // Capitalization (building)
     { { EffectEnablerKind::WONDER, 3 }, 1, 0 }, // Colossus (wonder)
 };
 

@@ -135,8 +135,26 @@ typedef struct ItemEffectSetFlag {
     ItemEffectsScope scope;
 } ItemEffectSetFlag;
 
+enum class ItemProduceKind : u8 {
+    NONE = 0,
+    RESOURCE = 1,
+    YIELD = 2
+};
+
+enum class ItemProduceYield : u8 {
+    NONE = 0,
+    FOOD = 1,
+    COMMERCE = 2,
+    PRODUCTION = 3,
+    SCIENCE = 4,
+    HAPPINESS = 5,
+    CULTURE = 6,
+    SANITATION = 7
+};
+
 typedef struct ItemEffectProduce {
-    u16 resource_id;        // e.g. Iron, Gold...
+    ItemProduceKind kind;
+    u16 target_id;
     i16 amount;
 } ItemEffectProduce;
 

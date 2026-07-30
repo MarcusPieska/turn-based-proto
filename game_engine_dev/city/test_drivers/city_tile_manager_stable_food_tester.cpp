@@ -393,14 +393,14 @@ static BfBest brute_force (const Cand* cands, u16 n, u16 pop, u16 start_food, Se
     return best;
 }
 
-static TotalTileYield run_stable (SecMode mode, u16 player, u16 city_idx, u16 start_food) {
+static TotalTileYield run_stable (SecMode mode, u16 player, u16 city_idx, u16 start_food, u16 sanitation_boost) {
     if (mode == SEC_PROD) {
-        return CityTileManager::stable_food_max_production(player, city_idx, start_food);
+        return CityTileManager::stable_food_max_production(player, city_idx, start_food, sanitation_boost);
     }
     if (mode == SEC_COM) {
-        return CityTileManager::stable_food_max_commerce(player, city_idx, start_food);
+        return CityTileManager::stable_food_max_commerce(player, city_idx, start_food, sanitation_boost);
     }
-    return CityTileManager::stable_food_max_combined(player, city_idx, start_food);
+    return CityTileManager::stable_food_max_combined(player, city_idx, start_food, sanitation_boost);
 }
 
 static void print_yld (cstr tag, u16 pop, u16 avail, u16 start_food, const TotalTileYield& y, u32 worked) {
@@ -569,7 +569,7 @@ int main () {
             city->set_population(pop);
             CityTileManager::clear(spot_x, spot_y, city_idx);
             const auto t0 = std::chrono::high_resolution_clock::now();
-            const TotalTileYield y = run_stable(mode, player, city_idx, start_food);
+            const TotalTileYield y = run_stable(mode, player, city_idx, start_food, pop);
             const auto t1 = std::chrono::high_resolution_clock::now();
             const f64 us = std::chrono::duration<f64, std::micro>(t1 - t0).count();
             const u32 worked = CityTileManager::count_worked(spot_x, spot_y, city_idx);
@@ -597,7 +597,7 @@ int main () {
         for (u16 mi = 0; mi < 3; ++mi) {
             const SecMode mode = modes[mi];
             CityTileManager::clear(spot_x, spot_y, city_idx);
-            const TotalTileYield gy = run_stable(mode, player, city_idx, start_food);
+            const TotalTileYield gy = run_stable(mode, player, city_idx, start_food, pop);
             const auto t0 = std::chrono::high_resolution_clock::now();
             const BfBest bf = brute_force(cands, avail, pop, start_food, mode);
             const auto t1 = std::chrono::high_resolution_clock::now();

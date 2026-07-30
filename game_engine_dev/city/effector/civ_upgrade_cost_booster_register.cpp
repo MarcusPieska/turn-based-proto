@@ -16,7 +16,7 @@
 //================================================================================================================================
 
 const BoosterRegisterEntry CivUpgradeCostBoosterRegister::s_entry[1] = {
-    { { EffectEnablerKind::WONDER, 9 }, 0, -50 }, // Leonardo's Workshop (wonder)
+    { { EffectEnablerKind::WONDER, 10 }, 0, -50 }, // Leonardo's Workshop (wonder)
 };
 
 //================================================================================================================================

@@ -16,7 +16,7 @@
 //================================================================================================================================
 
 const BoosterRegisterEntry CityNukeDefenseBoosterRegister::s_entry[1] = {
-    { { EffectEnablerKind::BUILDING, 29 }, 1, 0 }, // Civil Defense (building)
+    { { EffectEnablerKind::BUILDING, 47 }, 1, 0 }, // Civil Defense (building)
 };
 
 //================================================================================================================================
