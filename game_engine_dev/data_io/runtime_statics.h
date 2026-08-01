@@ -18,6 +18,7 @@ class StaticParsingManager;
 
 #include "building_static_data.h"
 #include "city_flag_static_data.h"
+#include "city_job_static_data.h"
 #include "civ_static_data.h"
 #include "civ_trait_static_data.h"
 #include "tile_attribute_static_data.h"
@@ -38,6 +39,9 @@ class StaticParsingManager;
 #include "gen_effector/city_effector.h"
 #include "gen_effector/civ_effector.h"
 #include "gen_effector/global_effector.h"
+#include "dyn_produce_register.h"
+#include "dyn_booster_register.h"
+#include "dyn_job_slot_register.h"
 
 //================================================================================================================================
 //=> - RuntimeStatics class -
@@ -57,6 +61,10 @@ public:
     CityFlagStaticData& city_flag ();
 
     const CityFlagStaticData& city_flag () const;
+
+    CityJobStaticData& city_job ();
+
+    const CityJobStaticData& city_job () const;
 
     CivStaticData& civ ();
 
@@ -138,10 +146,23 @@ public:
 
     const GlobalEffector& global_fx () const;
 
+    DynProduceRegister& dyn_produce ();
+
+    const DynProduceRegister& dyn_produce () const;
+
+    DynBoosterRegister& dyn_booster ();
+
+    const DynBoosterRegister& dyn_booster () const;
+
+    DynJobSlotRegister& dyn_job_slot ();
+
+    const DynJobSlotRegister& dyn_job_slot () const;
+
 private:
     GameConfigSettings m_config;
     BuildingStaticData m_building;
     CityFlagStaticData m_city_flag;
+    CityJobStaticData m_city_job;
     CivStaticData m_civ;
     CivTraitStaticData m_civ_trait;
     TileAttributeStaticData m_tile_attribute;
@@ -164,6 +185,10 @@ private:
     CityEffector m_city_fx;
     CivEffector m_civ_fx;
     GlobalEffector m_global_fx;
+    
+    DynProduceRegister m_dyn_produce;
+    DynBoosterRegister m_dyn_booster;
+    DynJobSlotRegister m_dyn_job_slot;
 };
 
 extern RuntimeStatics* g_runtime_statics;

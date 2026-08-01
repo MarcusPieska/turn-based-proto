@@ -21,6 +21,7 @@ ie_type_enum.append("TRAIN")
 ie_type_enum.append("TERRAIN_BOOSTER")
 ie_type_enum.append("SET_FLAG")
 ie_type_enum.append("PRODUCE")
+ie_type_enum.append("JOB_SLOTS")
 
 ie_booster_type_enum = []
 ie_booster_type_enum.append("NONE")
@@ -152,13 +153,20 @@ if __name__ == "__main__":
     files.append("item_effect_helpers.h")
     files.append("item_effect_helpers.cpp")
 
+    this_dir = os.path.dirname(os.path.abspath(__file__))
+    out_dirs = [this_dir, os.path.normpath(os.path.join(this_dir, "..", "static_state"))]
+
     for output_path in files:
-        with open(file_prefix + output_path, "r") as ptr:
+        with open(os.path.join(this_dir, file_prefix + output_path), "r") as ptr:
             content = ptr.read()
         for old_string, new_string in sub_pairs:
             content = content.replace(old_string, new_string)
-        with open(output_path, "w") as ptr:
-            ptr.write(content)
+        for out_dir in out_dirs:
+            if output_path.endswith(".cpp") and os.path.basename(out_dir) == "static_state":
+                continue
+            out_path = os.path.join(out_dir, output_path)
+            with open(out_path, "w") as ptr:
+                ptr.write(content) 
 
 #================================================================================================================================#
 #=> - End -

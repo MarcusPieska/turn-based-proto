@@ -28,6 +28,7 @@ public:
 
     static void set_item_effect_handler (const NameToIdxCbs* name_to_idx_cbs, const StringManager* effect_defs);
     static void clear_item_effect_handler ();
+    static void normalize_lines (StringManager& lines);
 
     u16 name_to_idx (cstr name) const;
     cstr idx_to_name (u16 idx) const;

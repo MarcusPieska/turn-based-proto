@@ -301,6 +301,32 @@ ItemEffectsStruct ItemEffectHandler::parse_effects_line (const StringManager& li
                 }
             }
             slot.effect.produce.amount = static_cast<i16>(std::strtol(args_mgr.get_string_content(1), nullptr, 10));
+        } else if (streq(effect_verb, "jobSlots")) {
+            if (arg_n != 4) {
+                printf("ERROR: ItemEffectHandler jobSlots(...) expects 4 args in '%s'\n", token_raw);
+                ++m_error_count;
+                continue;
+            }
+            const ItemEffectsScope scope = ItemEffectHelper::effects_scope_str_to_enum(args_mgr.get_string_content(2));
+            if (scope == ItemEffectsScope::NONE) {
+                printf("ERROR: ItemEffectHandler unknown jobSlots scope '%s'\n", args_mgr.get_string_content(2));
+                ++m_error_count;
+                continue;
+            }
+            const ItemEffectAmountMode amount_mode = ItemEffectHelper::amount_mode_str_to_enum(args_mgr.get_string_content(3));
+            if (amount_mode == ItemEffectAmountMode::NONE) {
+                printf("ERROR: ItemEffectHandler unknown jobSlots amount mode '%s'\n", args_mgr.get_string_content(3));
+                ++m_error_count;
+                continue;
+            }
+            slot.type = static_cast<u16>(ItemEffectType::JOB_SLOTS);
+            slot.effect.job_slots.job_id = U16_KEY_NULL;
+            if (m_cbs->city_job_name_to_idx != nullptr) {
+                slot.effect.job_slots.job_id = m_cbs->city_job_name_to_idx(args_mgr.get_string_content(0));
+            }
+            slot.effect.job_slots.amount = static_cast<i16>(std::strtol(args_mgr.get_string_content(1), nullptr, 10));
+            slot.effect.job_slots.scope = scope;
+            slot.effect.job_slots.amount_mode = amount_mode;
         } else {
             printf("ERROR: ItemEffectHandler unhandled effect verb '%s'\n", effect_verb);
             ++m_error_count;

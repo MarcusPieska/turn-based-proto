@@ -14,6 +14,7 @@ sys.dont_write_bytecode = True
 path_config_endings = []
 path_config_endings.append("buildings")
 path_config_endings.append("city_flags")
+path_config_endings.append("city_jobs")
 path_config_endings.append("civ_traits")
 path_config_endings.append("civs")
 path_config_endings.append("effects")

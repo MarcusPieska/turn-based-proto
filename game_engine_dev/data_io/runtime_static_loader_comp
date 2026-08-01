@@ -9,7 +9,7 @@
 #
 #================================================================================================================================
 
-INC="-I. -I.. -I../misc -I../static_state"
+INC="-I. -I.. -I../misc -I../static_state -I../city -I../city/effector -I../gen_bit_banks -I../game"
 CXXFLAGS="-std=c++17"
 LIB_DIR="."
 LIB_SO="runtime_static_loader_lib.so"

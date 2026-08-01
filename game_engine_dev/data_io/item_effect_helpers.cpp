@@ -23,6 +23,7 @@ ItemEffectType ItemEffectHelper::type_str_to_enum (cstr s) {
     if (s && std::strcmp(s, "TERRAIN_BOOSTER") == 0) { return ItemEffectType::TERRAIN_BOOSTER; }
     if (s && std::strcmp(s, "SET_FLAG") == 0) { return ItemEffectType::SET_FLAG; }
     if (s && std::strcmp(s, "PRODUCE") == 0) { return ItemEffectType::PRODUCE; }
+    if (s && std::strcmp(s, "JOB_SLOTS") == 0) { return ItemEffectType::JOB_SLOTS; }
     return ItemEffectType::NONE;
 }
 
@@ -37,6 +38,7 @@ cstr ItemEffectHelper::type_enum_to_str (ItemEffectType v) {
         case ItemEffectType::TERRAIN_BOOSTER : return "TERRAIN_BOOSTER";
         case ItemEffectType::SET_FLAG : return "SET_FLAG";
         case ItemEffectType::PRODUCE : return "PRODUCE";
+        case ItemEffectType::JOB_SLOTS : return "JOB_SLOTS";
         default: return "NONE";
     }
 }

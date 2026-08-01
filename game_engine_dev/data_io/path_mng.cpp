@@ -76,6 +76,10 @@ cstr PathMng::get_path_to_city_flags () const {
     return m_path_city_flags;
 }
 
+cstr PathMng::get_path_to_city_jobs () const {
+    return m_path_city_jobs;
+}
+
 cstr PathMng::get_path_to_civ_traits () const {
     return m_path_civ_traits;
 }
@@ -147,6 +151,7 @@ cstr PathMng::get_path_to_settings () const {
 void PathMng::build_paths () {
     join_path(m_path_buildings, PATH_MNG_PATH_N, m_path_offset, "game_config.buildings");
     join_path(m_path_city_flags, PATH_MNG_PATH_N, m_path_offset, "game_config.city_flags");
+    join_path(m_path_city_jobs, PATH_MNG_PATH_N, m_path_offset, "game_config.city_jobs");
     join_path(m_path_civ_traits, PATH_MNG_PATH_N, m_path_offset, "game_config.civ_traits");
     join_path(m_path_civs, PATH_MNG_PATH_N, m_path_offset, "game_config.civs");
     join_path(m_path_effects, PATH_MNG_PATH_N, m_path_offset, "game_config.effects");
@@ -175,6 +180,10 @@ void PathMng::validate_paths_or_exit () const {
     }
     if (!does_file_exist(m_path_city_flags)) {
         printf("ERROR: Missing file: %s\n", m_path_city_flags);
+        ++error_count;
+    }
+    if (!does_file_exist(m_path_city_jobs)) {
+        printf("ERROR: Missing file: %s\n", m_path_city_jobs);
         ++error_count;
     }
     if (!does_file_exist(m_path_civ_traits)) {

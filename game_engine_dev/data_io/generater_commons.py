@@ -15,6 +15,7 @@ def get_entries ():
     return [
         "building",
         "city_flag",
+        "city_job",
         "civ",
         "civ_trait",
         "tile_attribute",

@@ -17,6 +17,7 @@ from generater_commons import path_from_stem
 PARSER_SPECS = []
 PARSER_SPECS.append(("building", "Building", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStruct"))
 PARSER_SPECS.append(("city_flag", "CityFlag", ""))
+PARSER_SPECS.append(("city_job", "CityJob", "food,1,i16:production,2,u16:commerce,3,u16:culture,4,u16:science,5,u16:religion,6,u16:slots,7,u16:effects,8,ItemEffectsStructOpt"))
 PARSER_SPECS.append(("civ", "Civ", "traits,1,CivTraitStruct"))
 PARSER_SPECS.append(("civ_trait", "CivTrait", ""))
 PARSER_SPECS.append(("tile_attribute", "TileAttribute", "mvt_cost,1,u16:food,2,i16:production,3,u16:commerce,4,u16:culture,5,u16:science,6,u16:religion,7,u16:attack_mod,8,u16:defense_mod,9,u16"))

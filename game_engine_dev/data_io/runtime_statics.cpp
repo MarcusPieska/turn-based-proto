@@ -24,6 +24,10 @@
 #include "gen_effector/civ_effector.h"
 #include "gen_effector/global_effector.h"
 
+#include "dyn_produce_register_setup.h"
+#include "dyn_booster_register_setup.h"
+#include "dyn_job_slot_register_setup.h"
+
 //================================================================================================================================
 //=> - Globals -
 //================================================================================================================================
@@ -47,6 +51,8 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_building.load_names_from(p.get_building_name_parser(), p.get_building_count());
     m_city_flag.set_items(const_cast<CityFlagStaticDataStruct*>(p.get_city_flag_data()), p.get_city_flag_count());
     m_city_flag.load_names_from(p.get_city_flag_name_parser(), p.get_city_flag_count());
+    m_city_job.set_items(const_cast<CityJobStaticDataStruct*>(p.get_city_job_data()), p.get_city_job_count());
+    m_city_job.load_names_from(p.get_city_job_name_parser(), p.get_city_job_count());
     m_civ.set_items(const_cast<CivStaticDataStruct*>(p.get_civ_data()), p.get_civ_count());
     m_civ.load_names_from(p.get_civ_name_parser(), p.get_civ_count());
     m_civ_trait.set_items(const_cast<CivTraitStaticDataStruct*>(p.get_civ_trait_data()), p.get_civ_trait_count());
@@ -90,6 +96,7 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
 
     m_building.take_ownership();
     m_city_flag.take_ownership();
+    m_city_job.take_ownership();
     m_civ.take_ownership();
     m_civ_trait.take_ownership();
     m_tile_attribute.take_ownership();
@@ -110,6 +117,19 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_civ_bld_discount_map.set_map(p.get_civ_bld_discount_map_bank(), p.get_civ_trait_count(), p.get_building_count());
     m_civ_bld_discount_map.take_ownership();
     p.release_map_banks();
+
+    if (!DynProduceRegisterSetup::build(*this, m_dyn_produce)) {
+        std::exit(1);
+    }
+    m_dyn_produce.take_ownership();
+    if (!DynBoosterRegisterSetup::build(*this, m_dyn_booster)) {
+        std::exit(1);
+    }
+    m_dyn_booster.take_ownership();
+    if (!DynJobSlotRegisterSetup::build(*this, m_dyn_job_slot)) {
+        std::exit(1);
+    }
+    m_dyn_job_slot.take_ownership();
     GameConfigSettingsParser psr(p.get_name_to_idx_cbs());
     if (!psr.load_file(p.get_path_to_settings(), &m_config)) {
         std::exit(1);
@@ -138,6 +158,14 @@ CityFlagStaticData& RuntimeStatics::city_flag () {
 
 const CityFlagStaticData& RuntimeStatics::city_flag () const {
     return m_city_flag;
+}
+
+CityJobStaticData& RuntimeStatics::city_job () {
+    return m_city_job;
+}
+
+const CityJobStaticData& RuntimeStatics::city_job () const {
+    return m_city_job;
 }
 
 CivStaticData& RuntimeStatics::civ () {
@@ -298,6 +326,30 @@ GlobalEffector& RuntimeStatics::global_fx () {
 
 const GlobalEffector& RuntimeStatics::global_fx () const {
     return m_global_fx;
+}
+
+DynProduceRegister& RuntimeStatics::dyn_produce () {
+    return m_dyn_produce;
+}
+
+const DynProduceRegister& RuntimeStatics::dyn_produce () const {
+    return m_dyn_produce;
+}
+
+DynBoosterRegister& RuntimeStatics::dyn_booster () {
+    return m_dyn_booster;
+}
+
+const DynBoosterRegister& RuntimeStatics::dyn_booster () const {
+    return m_dyn_booster;
+}
+
+DynJobSlotRegister& RuntimeStatics::dyn_job_slot () {
+    return m_dyn_job_slot;
+}
+
+const DynJobSlotRegister& RuntimeStatics::dyn_job_slot () const {
+    return m_dyn_job_slot;
 }
 
 //================================================================================================================================

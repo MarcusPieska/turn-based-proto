@@ -9,7 +9,7 @@
 #
 #================================================================================================================================
 
-INC="-I. -I.. -I../misc -I../static_state"
+INC="-I. -I.. -I../misc -I../static_state -I../city -I../city/effector -I../gen_bit_banks -I../game"
 CXXFLAGS="-std=c++17 -fPIC"
 OUT_SO="runtime_static_loader_lib.so"
 
@@ -25,6 +25,7 @@ g++ $INC $CXXFLAGS -c ../static_state/civ_bld_discount_map.cpp -o civ_bld_discou
 g++ $INC $CXXFLAGS -c civ_bld_discount_map_parsing.cpp -o civ_bld_discount_map_parsing.o
 g++ $INC $CXXFLAGS -c building_parser.cpp -o building_parser.o
 g++ $INC $CXXFLAGS -c city_flag_parser.cpp -o city_flag_parser.o
+g++ $INC $CXXFLAGS -c city_job_parser.cpp -o city_job_parser.o
 g++ $INC $CXXFLAGS -c civ_parser.cpp -o civ_parser.o
 g++ $INC $CXXFLAGS -c civ_trait_parser.cpp -o civ_trait_parser.o
 g++ $INC $CXXFLAGS -c tile_attribute_parser.cpp -o tile_attribute_parser.o
@@ -44,6 +45,8 @@ g++ $INC $CXXFLAGS -c ../static_state/building_static_data.cpp -o building_stati
 g++ $INC $CXXFLAGS -c ../static_state/building_static_data_load.cpp -o building_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/city_flag_static_data.cpp -o city_flag_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/city_flag_static_data_load.cpp -o city_flag_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/city_job_static_data.cpp -o city_job_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/city_job_static_data_load.cpp -o city_job_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/civ_static_data.cpp -o civ_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/civ_static_data_load.cpp -o civ_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/civ_trait_static_data.cpp -o civ_trait_static_data.o
@@ -78,6 +81,16 @@ g++ $INC $CXXFLAGS -c ../gen_effector/local_effector.cpp -o local_effector.o
 g++ $INC $CXXFLAGS -c ../gen_effector/city_effector.cpp -o city_effector.o
 g++ $INC $CXXFLAGS -c ../gen_effector/civ_effector.cpp -o civ_effector.o
 g++ $INC $CXXFLAGS -c ../gen_effector/global_effector.cpp -o global_effector.o
+g++ $INC $CXXFLAGS -c ../misc/bit_array.cpp -o bit_array.o
+g++ $INC $CXXFLAGS -c ../gen_bit_banks/general_bit_bank.cpp -o general_bit_bank.o
+g++ $INC $CXXFLAGS -c ../city/effector/effect_enabler.cpp -o effect_enabler.o
+g++ $INC $CXXFLAGS -c ../city/effector/booster_effect_register.cpp -o booster_effect_register.o
+g++ $INC $CXXFLAGS -c ../city/effector/dyn_produce_register.cpp -o dyn_produce_register.o
+g++ $INC $CXXFLAGS -c ../city/effector/dyn_produce_register_setup.cpp -o dyn_produce_register_setup.o
+g++ $INC $CXXFLAGS -c ../city/effector/dyn_booster_register.cpp -o dyn_booster_register.o
+g++ $INC $CXXFLAGS -c ../city/effector/dyn_booster_register_setup.cpp -o dyn_booster_register_setup.o
+g++ $INC $CXXFLAGS -c ../city/effector/dyn_job_slot_register.cpp -o dyn_job_slot_register.o
+g++ $INC $CXXFLAGS -c ../city/effector/dyn_job_slot_register_setup.cpp -o dyn_job_slot_register_setup.o
 g++ $INC $CXXFLAGS -c ../static_state/config_settings_static.cpp -o config_settings_static.o
 g++ $INC $CXXFLAGS -c ../static_state/config_settings_parse.cpp -o config_settings_parse.o
 g++ $INC $CXXFLAGS -c static_parsing_manager.cpp -o static_parsing_manager.o
@@ -97,6 +110,7 @@ g++ -shared -o $OUT_SO \
     civ_bld_discount_map_parsing.o \
     building_parser.o \
     city_flag_parser.o \
+    city_job_parser.o \
     civ_parser.o \
     civ_trait_parser.o \
     tile_attribute_parser.o \
@@ -115,6 +129,8 @@ g++ -shared -o $OUT_SO \
     building_static_data_load.o \
     city_flag_static_data.o \
     city_flag_static_data_load.o \
+    city_job_static_data.o \
+    city_job_static_data_load.o \
     civ_static_data.o \
     civ_static_data_load.o \
     civ_trait_static_data.o \
@@ -150,6 +166,16 @@ g++ -shared -o $OUT_SO \
     city_effector.o \
     civ_effector.o \
     global_effector.o \
+    bit_array.o \
+    general_bit_bank.o \
+    effect_enabler.o \
+    booster_effect_register.o \
+    dyn_produce_register.o \
+    dyn_produce_register_setup.o \
+    dyn_booster_register.o \
+    dyn_booster_register_setup.o \
+    dyn_job_slot_register.o \
+    dyn_job_slot_register_setup.o \
     config_settings_static.o \
     config_settings_parse.o \
     static_parsing_manager.o \
@@ -169,6 +195,7 @@ rm \
     civ_bld_discount_map_parsing.o \
     building_parser.o \
     city_flag_parser.o \
+    city_job_parser.o \
     civ_parser.o \
     civ_trait_parser.o \
     tile_attribute_parser.o \
@@ -187,6 +214,8 @@ rm \
     building_static_data_load.o \
     city_flag_static_data.o \
     city_flag_static_data_load.o \
+    city_job_static_data.o \
+    city_job_static_data_load.o \
     civ_static_data.o \
     civ_static_data_load.o \
     civ_trait_static_data.o \
@@ -222,6 +251,16 @@ rm \
     city_effector.o \
     civ_effector.o \
     global_effector.o \
+    bit_array.o \
+    general_bit_bank.o \
+    effect_enabler.o \
+    booster_effect_register.o \
+    dyn_produce_register.o \
+    dyn_produce_register_setup.o \
+    dyn_booster_register.o \
+    dyn_booster_register_setup.o \
+    dyn_job_slot_register.o \
+    dyn_job_slot_register_setup.o \
     config_settings_static.o \
     config_settings_parse.o \
     static_parsing_manager.o \

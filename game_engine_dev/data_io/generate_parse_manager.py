@@ -140,12 +140,12 @@ def lines_cpp_local_parsers ():
 def lines_cpp_load_items ():
     lines = [
         "m_effect_items.split_string_by_char(0, '\\n');",
-        "m_effect_items.cull_empty_strings();",
+        "DataParserBase::normalize_lines(m_effect_items);",
     ]
     for stem in entries:
         lines.append("m_%s_items.load_file_content(m_paths.get_path_to_%s());" % (stem, path_from_stem(stem)))
         lines.append("m_%s_items.split_string_by_char(0, '\\n');" % stem)
-        lines.append("m_%s_items.cull_empty_strings();" % stem)
+        lines.append("DataParserBase::normalize_lines(m_%s_items);" % stem)
     return lines
 
 def lines_cpp_init_name_parsers ():

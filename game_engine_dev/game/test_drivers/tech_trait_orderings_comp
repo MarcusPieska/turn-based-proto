@@ -1,0 +1,42 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")"
+
+LIB_SO="../../data_io/runtime_static_loader_lib.so"
+if [ ! -f "$LIB_SO" ]; then
+    echo "missing $LIB_SO - run ../../data_io/runtime_static_loader_lib_comp first"
+    exit 1
+fi
+
+INC="-I../.. \
+     -I../../misc \
+     -I../../data_io \
+     -I../../static_state \
+     -I.."
+CXXFLAGS="-std=c++17 -Wall -Wextra"
+
+g++ $CXXFLAGS $INC -c ../../data_io/runtime_static_loader.cpp -o runtime_static_loader.o
+g++ $CXXFLAGS $INC -c ../../misc/bit_array.cpp -o bit_array.o
+g++ $CXXFLAGS $INC -c ../building_trait_attribution.cpp -o building_trait_attribution.o
+g++ $CXXFLAGS $INC -c ../civ_trait_affinity.cpp -o civ_trait_affinity.o
+g++ $CXXFLAGS $INC -c ../tech_trait_attribution.cpp -o tech_trait_attribution.o
+g++ $CXXFLAGS $INC -c ../tech_trait_orderings.cpp -o tech_trait_orderings.o
+g++ $CXXFLAGS $INC -c tech_trait_orderings_tester.cpp -o tech_trait_orderings_tester.o
+
+g++ $CXXFLAGS -o tech_trait_orderings_tester \
+    runtime_static_loader.o \
+    bit_array.o \
+    building_trait_attribution.o \
+    civ_trait_affinity.o \
+    tech_trait_attribution.o \
+    tech_trait_orderings.o \
+    tech_trait_orderings_tester.o \
+    -ldl \
+    $LIB_SO \
+    -Wl,-rpath,'$ORIGIN/../../data_io'
+
+./tech_trait_orderings_tester
+
+rm -f runtime_static_loader.o bit_array.o building_trait_attribution.o civ_trait_affinity.o \
+    tech_trait_attribution.o tech_trait_orderings.o tech_trait_orderings_tester.o

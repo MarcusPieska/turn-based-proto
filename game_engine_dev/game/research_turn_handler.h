@@ -13,8 +13,9 @@ class GameState;
 //=> - ResearchTurnHandler -
 //================================================================================================================================
 //
-//  Per-seat research step. begin arms each seat's first LinearTech target. handle banks turn commerce into
-//  research/treasury, then completes any affordable targets and picks the next.
+//  Per-seat research step. begin arms each seat's first tech target (TechTraitOrderings by primary
+//  civ trait, LinearTech fallback). handle banks turn commerce into research/treasury, then completes
+//  any affordable targets and picks the next.
 //
 //================================================================================================================================
 

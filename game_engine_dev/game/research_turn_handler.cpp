@@ -5,11 +5,14 @@
 #include "research_turn_handler.h"
 #include "assert_log.h"
 #include "bit_array.h"
+#include "civ_static_data.h"
+#include "civ_static_key.h"
+#include "civ_trait_enum.h"
 #include "game_state.h"
 #include "general_assessor.h"
-#include "linear_tech.h"
 #include "runtime_statics.h"
 #include "tech_static_data.h"
+#include "tech_trait_orderings.h"
 
 //================================================================================================================================
 //=> - Helpers -
@@ -30,23 +33,19 @@ static void pick_target (PlayerState& ps, const RuntimeStatics& st) {
     }
     const u16 tech_n = st.tech().get_item_count();
     GAME_EXPECT(tech_n != 0, "ResearchTurnHandler pick_target tech count");
-    if (tech_n == 0) {
-        return;
-    }
     if (ps.m_techs_researched == nullptr) {
         ps.m_techs_researched = new BitArrayCL(tech_n);
     }
     GAME_EXPECT(ps.m_techs_researched != nullptr, "ResearchTurnHandler pick_target techs null");
-    if (ps.m_techs_researched == nullptr) {
-        return;
-    }
     BitArrayCL resource(st.resource().get_item_count());
     BitArrayCL building(st.building().get_item_count());
     BitArrayCL city_flag(st.city_flag().get_item_count());
     BitArrayCL civ(st.civ().get_item_count());
-    if (ps.m_civ_index < civ.get_count()) {
-        civ.set_bit(ps.m_civ_index);
+    for (u32 i = 0; i < resource.get_count(); ++i) {
+        resource.set_bit(i);
     }
+    GAME_EXPECT(ps.m_civ_index < civ.get_count(), "ResearchTurnHandler pick_target civ index");
+    civ.set_bit(ps.m_civ_index);
     AssessorCtx ctx = {};
     ctx.m_tech = ps.m_techs_researched;
     ctx.m_civ = &civ;
@@ -61,18 +60,21 @@ static void pick_target (PlayerState& ps, const RuntimeStatics& st) {
     const TechStaticDataStruct* items = &st.tech().get_item(TechStaticDataKey::from_raw(0));
     GeneralAssessor::assess_tech(&available, tech_n, items, ctx);
     clr_owned(available, *ps.m_techs_researched);
-    u16 pick = U16_KEY_NULL;
-    if (!LinearTech::pick(available, &pick)) {
+
+    GAME_EXPECT(ps.m_civ_index < st.civ().get_item_count(), "ResearchTurnHandler pick_target civ row");
+    const CivStaticDataStruct& civ_row = st.civ().get_item(CivStaticDataKey::from_raw(ps.m_civ_index));
+    const CivTrait trait = static_cast<CivTrait>(civ_row.traits.indices[0]);
+    GAME_EXPECT(TechTraitOrderings::ready(), "ResearchTurnHandler pick_target orderings");
+    const u16 pick = TechTraitOrderings::pick(available, static_cast<u16>(trait));
+    if (pick == U16_KEY_NULL) {
         return;
     }
     ps.m_current_research_target_idx = pick;
 }
 
 static void bank_commerce (PlayerState& ps) {
-    u16 perc = ps.m_research_spending_perc;
-    if (perc > 100u) {
-        perc = 100u;
-    }
+    GAME_EXPECT(ps.m_research_spending_perc <= 100u, "ResearchTurnHandler bank_commerce perc");
+    const u16 perc = ps.m_research_spending_perc;
     const u32 from = ps.m_commerce_from_turn;
     const u32 to_research = (from * static_cast<u32>(perc)) / 100u;
     const u32 to_commerce = from - to_research;
@@ -83,18 +85,15 @@ static void bank_commerce (PlayerState& ps) {
 
 static void finish_ready (PlayerState& ps, const RuntimeStatics& st) {
     GAME_EXPECT(ps.m_techs_researched != nullptr, "ResearchTurnHandler finish_ready techs null");
-    if (ps.m_techs_researched == nullptr) {
-        return;
-    }
-    const u16 tech_n = st.tech().get_item_count();
     while (true) {
         if (ps.m_current_research_target_idx == U16_KEY_NULL) {
             pick_target(ps, st);
         }
         const u16 tgt = ps.m_current_research_target_idx;
-        if (tgt == U16_KEY_NULL || tgt >= tech_n) {
+        if (tgt == U16_KEY_NULL) {
             return;
         }
+        GAME_EXPECT(tgt < st.tech().get_item_count(), "ResearchTurnHandler finish_ready target");
         const u32 cost = st.tech().get_item(TechStaticDataKey::from_raw(tgt)).cost;
         if (ps.m_research < cost) {
             return;
@@ -112,9 +111,6 @@ static void finish_ready (PlayerState& ps, const RuntimeStatics& st) {
 void ResearchTurnHandler::begin (GameState& state) {
     GAME_EXPECT(state.m_player_states != nullptr, "ResearchTurnHandler begin got nullptr player states");
     GAME_EXPECT(state.m_statics != nullptr, "ResearchTurnHandler begin got nullptr statics");
-    if (state.m_player_states == nullptr || state.m_statics == nullptr) {
-        return;
-    }
     for (u16 p = 0; p < state.m_player_n; ++p) {
         pick_target(state.m_player_states[p], *state.m_statics);
     }
@@ -124,9 +120,6 @@ void ResearchTurnHandler::handle (GameState& state, u16 player) {
     GAME_EXPECT(state.m_player_states != nullptr, "ResearchTurnHandler handle got nullptr player states");
     GAME_EXPECT(state.m_statics != nullptr, "ResearchTurnHandler handle got nullptr statics");
     GAME_EXPECT(player < state.m_player_n, "ResearchTurnHandler handle player out of bounds");
-    if (state.m_player_states == nullptr || state.m_statics == nullptr || player >= state.m_player_n) {
-        return;
-    }
     PlayerState& ps = state.m_player_states[player];
     bank_commerce(ps);
     finish_ready(ps, *state.m_statics);

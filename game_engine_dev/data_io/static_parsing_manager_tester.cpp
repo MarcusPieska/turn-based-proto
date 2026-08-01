@@ -71,6 +71,7 @@ void print_item_counts (const StaticParsingManager& parser) {
     printf("STATIC PARSING MANAGER COUNTS\n");
     print_u16_member("building", parser.get_building_count());
     print_u16_member("city_flag", parser.get_city_flag_count());
+    print_u16_member("city_job", parser.get_city_job_count());
     print_u16_member("civ", parser.get_civ_count());
     print_u16_member("civ_trait", parser.get_civ_trait_count());
     print_u16_member("tile_attribute", parser.get_tile_attribute_count());

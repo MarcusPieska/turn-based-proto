@@ -83,6 +83,7 @@ static bool does_file_exist (cstr path) {
 void note_all_paths_exist (const PathMng& paths, cstr tag) {
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s buildings exists", tag); note_result(does_file_exist(paths.get_path_to_buildings()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s city_flags exists", tag); note_result(does_file_exist(paths.get_path_to_city_flags()), _buf); }
+        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s city_jobs exists", tag); note_result(does_file_exist(paths.get_path_to_city_jobs()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s civ_traits exists", tag); note_result(does_file_exist(paths.get_path_to_civ_traits()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s civs exists", tag); note_result(does_file_exist(paths.get_path_to_civs()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s effects exists", tag); note_result(does_file_exist(paths.get_path_to_effects()), _buf); }

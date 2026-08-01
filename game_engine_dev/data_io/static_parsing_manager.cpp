@@ -29,6 +29,7 @@ namespace {
 
 const DataParserBase* g_building_name_parser = nullptr;
 const DataParserBase* g_city_flag_name_parser = nullptr;
+const DataParserBase* g_city_job_name_parser = nullptr;
 const DataParserBase* g_civ_name_parser = nullptr;
 const DataParserBase* g_civ_trait_name_parser = nullptr;
 const DataParserBase* g_tile_attribute_name_parser = nullptr;
@@ -50,6 +51,10 @@ u16 cb_building_name_to_idx (cstr name) {
 
 u16 cb_city_flag_name_to_idx (cstr name) {
     return g_city_flag_name_parser->name_to_idx(name);
+}
+
+u16 cb_city_job_name_to_idx (cstr name) {
+    return g_city_job_name_parser->name_to_idx(name);
 }
 
 u16 cb_civ_name_to_idx (cstr name) {
@@ -120,6 +125,7 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_effect_items(),
     m_building_items(),
     m_city_flag_items(),
+    m_city_job_items(),
     m_civ_items(),
     m_civ_trait_items(),
     m_tile_attribute_items(),
@@ -137,6 +143,7 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
 
     m_building_name_parser(nullptr),
     m_city_flag_name_parser(nullptr),
+    m_city_job_name_parser(nullptr),
     m_civ_name_parser(nullptr),
     m_civ_trait_name_parser(nullptr),
     m_tile_attribute_name_parser(nullptr),
@@ -160,6 +167,7 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
 
     m_building_data(nullptr),
     m_city_flag_data(nullptr),
+    m_city_job_data(nullptr),
     m_civ_data(nullptr),
     m_civ_trait_data(nullptr),
     m_tile_attribute_data(nullptr),
@@ -177,57 +185,61 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
 {
     m_effect_items.load_file_content(m_paths.get_path_to_effects());
     m_effect_items.split_string_by_char(0, '\n');
-    m_effect_items.cull_empty_strings();
+    DataParserBase::normalize_lines(m_effect_items);
     m_building_items.load_file_content(m_paths.get_path_to_buildings());
     m_building_items.split_string_by_char(0, '\n');
-    m_building_items.cull_empty_strings();
+    DataParserBase::normalize_lines(m_building_items);
     m_city_flag_items.load_file_content(m_paths.get_path_to_city_flags());
     m_city_flag_items.split_string_by_char(0, '\n');
-    m_city_flag_items.cull_empty_strings();
+    DataParserBase::normalize_lines(m_city_flag_items);
+    m_city_job_items.load_file_content(m_paths.get_path_to_city_jobs());
+    m_city_job_items.split_string_by_char(0, '\n');
+    DataParserBase::normalize_lines(m_city_job_items);
     m_civ_items.load_file_content(m_paths.get_path_to_civs());
     m_civ_items.split_string_by_char(0, '\n');
-    m_civ_items.cull_empty_strings();
+    DataParserBase::normalize_lines(m_civ_items);
     m_civ_trait_items.load_file_content(m_paths.get_path_to_civ_traits());
     m_civ_trait_items.split_string_by_char(0, '\n');
-    m_civ_trait_items.cull_empty_strings();
+    DataParserBase::normalize_lines(m_civ_trait_items);
     m_tile_attribute_items.load_file_content(m_paths.get_path_to_tile_attributes());
     m_tile_attribute_items.split_string_by_char(0, '\n');
-    m_tile_attribute_items.cull_empty_strings();
+    DataParserBase::normalize_lines(m_tile_attribute_items);
     m_resource_items.load_file_content(m_paths.get_path_to_resources());
     m_resource_items.split_string_by_char(0, '\n');
-    m_resource_items.cull_empty_strings();
+    DataParserBase::normalize_lines(m_resource_items);
     m_res_dist_items.load_file_content(m_paths.get_path_to_res_dists());
     m_res_dist_items.split_string_by_char(0, '\n');
-    m_res_dist_items.cull_empty_strings();
+    DataParserBase::normalize_lines(m_res_dist_items);
     m_res_type_items.load_file_content(m_paths.get_path_to_res_types());
     m_res_type_items.split_string_by_char(0, '\n');
-    m_res_type_items.cull_empty_strings();
+    DataParserBase::normalize_lines(m_res_type_items);
     m_small_wonder_items.load_file_content(m_paths.get_path_to_small_wonders());
     m_small_wonder_items.split_string_by_char(0, '\n');
-    m_small_wonder_items.cull_empty_strings();
+    DataParserBase::normalize_lines(m_small_wonder_items);
     m_tech_items.load_file_content(m_paths.get_path_to_techs());
     m_tech_items.split_string_by_char(0, '\n');
-    m_tech_items.cull_empty_strings();
+    DataParserBase::normalize_lines(m_tech_items);
     m_unit_action_items.load_file_content(m_paths.get_path_to_unit_actions());
     m_unit_action_items.split_string_by_char(0, '\n');
-    m_unit_action_items.cull_empty_strings();
+    DataParserBase::normalize_lines(m_unit_action_items);
     m_unit_role_items.load_file_content(m_paths.get_path_to_unit_roles());
     m_unit_role_items.split_string_by_char(0, '\n');
-    m_unit_role_items.cull_empty_strings();
+    DataParserBase::normalize_lines(m_unit_role_items);
     m_unit_type_items.load_file_content(m_paths.get_path_to_unit_types());
     m_unit_type_items.split_string_by_char(0, '\n');
-    m_unit_type_items.cull_empty_strings();
+    DataParserBase::normalize_lines(m_unit_type_items);
     m_unit_items.load_file_content(m_paths.get_path_to_units());
     m_unit_items.split_string_by_char(0, '\n');
-    m_unit_items.cull_empty_strings();
+    DataParserBase::normalize_lines(m_unit_items);
     m_wonder_items.load_file_content(m_paths.get_path_to_wonders());
     m_wonder_items.split_string_by_char(0, '\n');
-    m_wonder_items.cull_empty_strings();
+    DataParserBase::normalize_lines(m_wonder_items);
     m_worker_job_items.load_file_content(m_paths.get_path_to_worker_jobs());
     m_worker_job_items.split_string_by_char(0, '\n');
-    m_worker_job_items.cull_empty_strings();
+    DataParserBase::normalize_lines(m_worker_job_items);
     m_building_name_parser = new DataParserBase(m_building_items, NameToIdxCbs());
     m_city_flag_name_parser = new DataParserBase(m_city_flag_items, NameToIdxCbs());
+    m_city_job_name_parser = new DataParserBase(m_city_job_items, NameToIdxCbs());
     m_civ_name_parser = new DataParserBase(m_civ_items, NameToIdxCbs());
     m_civ_trait_name_parser = new DataParserBase(m_civ_trait_items, NameToIdxCbs());
     m_tile_attribute_name_parser = new DataParserBase(m_tile_attribute_items, NameToIdxCbs());
@@ -251,6 +263,7 @@ StaticParsingManager::~StaticParsingManager () {
     delete m_civ_bld_discount_map_bank;
     delete m_building_name_parser;
     delete m_city_flag_name_parser;
+    delete m_city_job_name_parser;
     delete m_civ_name_parser;
     delete m_civ_trait_name_parser;
     delete m_tile_attribute_name_parser;
@@ -281,6 +294,14 @@ const CityFlagStaticDataStruct* StaticParsingManager::get_city_flag_data () cons
 
 u16 StaticParsingManager::get_city_flag_count () const {
     return safe_size_to_u16(m_city_flag_items.get_string_count());
+}
+
+const CityJobStaticDataStruct* StaticParsingManager::get_city_job_data () const {
+    return m_city_job_data;
+}
+
+u16 StaticParsingManager::get_city_job_count () const {
+    return safe_size_to_u16(m_city_job_items.get_string_count());
 }
 
 const CivStaticDataStruct* StaticParsingManager::get_civ_data () const {
@@ -402,6 +423,10 @@ const DataParserBase& StaticParsingManager::get_city_flag_name_parser () const {
     return *m_city_flag_name_parser;
 }
 
+const DataParserBase& StaticParsingManager::get_city_job_name_parser () const {
+    return *m_city_job_name_parser;
+}
+
 const DataParserBase& StaticParsingManager::get_civ_name_parser () const {
     return *m_civ_name_parser;
 }
@@ -486,6 +511,7 @@ u16 StaticParsingManager::get_callback_count () const {
 void StaticParsingManager::build_name_to_idx_callbacks () {
     g_building_name_parser = m_building_name_parser;
     g_city_flag_name_parser = m_city_flag_name_parser;
+    g_city_job_name_parser = m_city_job_name_parser;
     g_civ_name_parser = m_civ_name_parser;
     g_civ_trait_name_parser = m_civ_trait_name_parser;
     g_tile_attribute_name_parser = m_tile_attribute_name_parser;
@@ -503,6 +529,7 @@ void StaticParsingManager::build_name_to_idx_callbacks () {
 
     m_name_to_idx_cbs.building_name_to_idx = cb_building_name_to_idx;
     m_name_to_idx_cbs.city_flag_name_to_idx = cb_city_flag_name_to_idx;
+    m_name_to_idx_cbs.city_job_name_to_idx = cb_city_job_name_to_idx;
     m_name_to_idx_cbs.civ_name_to_idx = cb_civ_name_to_idx;
     m_name_to_idx_cbs.civ_trait_name_to_idx = cb_civ_trait_name_to_idx;
     m_name_to_idx_cbs.tile_attribute_name_to_idx = cb_tile_attribute_name_to_idx;
@@ -518,13 +545,14 @@ void StaticParsingManager::build_name_to_idx_callbacks () {
     m_name_to_idx_cbs.wonder_name_to_idx = cb_wonder_name_to_idx;
     m_name_to_idx_cbs.worker_job_name_to_idx = cb_worker_job_name_to_idx;
 
-    m_callback_count = 16;
+    m_callback_count = 17;
     DataParserBase::set_item_effect_handler(&m_name_to_idx_cbs, &m_effect_items);
 }
 
 void StaticParsingManager::parse_supported_data () {
     BuildingParser building_parser(m_building_items, m_name_to_idx_cbs);
     CityFlagParser city_flag_parser(m_city_flag_items, m_name_to_idx_cbs);
+    CityJobParser city_job_parser(m_city_job_items, m_name_to_idx_cbs);
     CivParser civ_parser(m_civ_items, m_name_to_idx_cbs);
     CivTraitParser civ_trait_parser(m_civ_trait_items, m_name_to_idx_cbs);
     TileAttributeParser tile_attribute_parser(m_tile_attribute_items, m_name_to_idx_cbs);
@@ -542,6 +570,7 @@ void StaticParsingManager::parse_supported_data () {
 
     m_building_data = building_parser.parse_data_dependencies();
     m_city_flag_data = city_flag_parser.parse_data_dependencies();
+    m_city_job_data = city_job_parser.parse_data_dependencies();
     m_civ_data = civ_parser.parse_data_dependencies();
     m_civ_trait_data = civ_trait_parser.parse_data_dependencies();
     m_tile_attribute_data = tile_attribute_parser.parse_data_dependencies();

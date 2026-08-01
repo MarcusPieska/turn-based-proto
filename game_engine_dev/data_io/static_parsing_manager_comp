@@ -26,6 +26,7 @@ g++ $INC -c ../static_state/civ_bld_discount_map.cpp -o civ_bld_discount_map.o
 g++ $INC -c civ_bld_discount_map_parsing.cpp -o civ_bld_discount_map_parsing.o
 g++ $INC -c building_parser.cpp -o building_parser.o
 g++ $INC -c city_flag_parser.cpp -o city_flag_parser.o
+g++ $INC -c city_job_parser.cpp -o city_job_parser.o
 g++ $INC -c civ_parser.cpp -o civ_parser.o
 g++ $INC -c civ_trait_parser.cpp -o civ_trait_parser.o
 g++ $INC -c tile_attribute_parser.cpp -o tile_attribute_parser.o
@@ -45,6 +46,8 @@ g++ $INC $CXXFLAGS -c ../static_state/building_static_data.cpp -o building_stati
 g++ $INC $CXXFLAGS -c ../static_state/building_static_data_load.cpp -o building_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/city_flag_static_data.cpp -o city_flag_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/city_flag_static_data_load.cpp -o city_flag_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/city_job_static_data.cpp -o city_job_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/city_job_static_data_load.cpp -o city_job_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/civ_static_data.cpp -o civ_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/civ_static_data_load.cpp -o civ_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/civ_trait_static_data.cpp -o civ_trait_static_data.o
@@ -99,6 +102,7 @@ g++ $CXXFLAGS -o static_parsing_manager_tester \
     civ_bld_discount_map_parsing.o \
     building_parser.o \
     city_flag_parser.o \
+    city_job_parser.o \
     civ_parser.o \
     civ_trait_parser.o \
     tile_attribute_parser.o \
@@ -117,6 +121,8 @@ g++ $CXXFLAGS -o static_parsing_manager_tester \
     building_static_data_load.o \
     city_flag_static_data.o \
     city_flag_static_data_load.o \
+    city_job_static_data.o \
+    city_job_static_data_load.o \
     civ_static_data.o \
     civ_static_data_load.o \
     civ_trait_static_data.o \
@@ -171,6 +177,7 @@ g++ $INC -c ../static_state/civ_bld_discount_map.cpp -o civ_bld_discount_map.o
 g++ $INC -c civ_bld_discount_map_parsing.cpp -o civ_bld_discount_map_parsing.o
 g++ $INC -c building_parser.cpp -o building_parser.o
 g++ $INC -c city_flag_parser.cpp -o city_flag_parser.o
+g++ $INC -c city_job_parser.cpp -o city_job_parser.o
 g++ $INC -c civ_parser.cpp -o civ_parser.o
 g++ $INC -c civ_trait_parser.cpp -o civ_trait_parser.o
 g++ $INC -c tile_attribute_parser.cpp -o tile_attribute_parser.o
@@ -190,6 +197,8 @@ g++ $INC $CXXFLAGS -c ../static_state/building_static_data.cpp -o building_stati
 g++ $INC $CXXFLAGS -c ../static_state/building_static_data_load.cpp -o building_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/city_flag_static_data.cpp -o city_flag_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/city_flag_static_data_load.cpp -o city_flag_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/city_job_static_data.cpp -o city_job_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/city_job_static_data_load.cpp -o city_job_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/civ_static_data.cpp -o civ_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/civ_static_data_load.cpp -o civ_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/civ_trait_static_data.cpp -o civ_trait_static_data.o
@@ -244,6 +253,7 @@ g++ $CXXFLAGS $OPT -o static_parsing_manager_opt_tester \
     civ_bld_discount_map_parsing.o \
     building_parser.o \
     city_flag_parser.o \
+    city_job_parser.o \
     civ_parser.o \
     civ_trait_parser.o \
     tile_attribute_parser.o \
@@ -262,6 +272,8 @@ g++ $CXXFLAGS $OPT -o static_parsing_manager_opt_tester \
     building_static_data_load.o \
     city_flag_static_data.o \
     city_flag_static_data_load.o \
+    city_job_static_data.o \
+    city_job_static_data_load.o \
     civ_static_data.o \
     civ_static_data_load.o \
     civ_trait_static_data.o \
@@ -317,6 +329,7 @@ rm \
     civ_bld_discount_map_parsing.o \
     building_parser.o \
     city_flag_parser.o \
+    city_job_parser.o \
     civ_parser.o \
     civ_trait_parser.o \
     tile_attribute_parser.o \
@@ -335,6 +348,8 @@ rm \
     building_static_data_load.o \
     city_flag_static_data.o \
     city_flag_static_data_load.o \
+    city_job_static_data.o \
+    city_job_static_data_load.o \
     civ_static_data.o \
     civ_static_data_load.o \
     civ_trait_static_data.o \

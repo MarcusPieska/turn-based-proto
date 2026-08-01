@@ -20,6 +20,7 @@ class StaticBitBank;
 
 #include "building_parser.h"
 #include "city_flag_parser.h"
+#include "city_job_parser.h"
 #include "civ_parser.h"
 #include "civ_trait_parser.h"
 #include "tile_attribute_parser.h"
@@ -37,6 +38,7 @@ class StaticBitBank;
 
 #include "building_static_data.h"
 #include "city_flag_static_data.h"
+#include "city_job_static_data.h"
 #include "civ_static_data.h"
 #include "civ_trait_static_data.h"
 #include "tile_attribute_static_data.h"
@@ -68,6 +70,10 @@ public:
     const CityFlagStaticDataStruct* get_city_flag_data () const;
 
     u16 get_city_flag_count () const;
+
+    const CityJobStaticDataStruct* get_city_job_data () const;
+
+    u16 get_city_job_count () const;
 
     const CivStaticDataStruct* get_civ_data () const;
 
@@ -128,6 +134,8 @@ public:
 
     const DataParserBase& get_city_flag_name_parser () const;
 
+    const DataParserBase& get_city_job_name_parser () const;
+
     const DataParserBase& get_civ_name_parser () const;
 
     const DataParserBase& get_civ_trait_name_parser () const;
@@ -181,6 +189,7 @@ private:
     StringManager m_effect_items;
     StringManager m_building_items;
     StringManager m_city_flag_items;
+    StringManager m_city_job_items;
     StringManager m_civ_items;
     StringManager m_civ_trait_items;
     StringManager m_tile_attribute_items;
@@ -198,6 +207,7 @@ private:
 
     DataParserBase* m_building_name_parser;
     DataParserBase* m_city_flag_name_parser;
+    DataParserBase* m_city_job_name_parser;
     DataParserBase* m_civ_name_parser;
     DataParserBase* m_civ_trait_name_parser;
     DataParserBase* m_tile_attribute_name_parser;
@@ -221,6 +231,7 @@ private:
 
     BuildingStaticDataStruct* m_building_data;
     CityFlagStaticDataStruct* m_city_flag_data;
+    CityJobStaticDataStruct* m_city_job_data;
     CivStaticDataStruct* m_civ_data;
     CivTraitStaticDataStruct* m_civ_trait_data;
     TileAttributeStaticDataStruct* m_tile_attribute_data;

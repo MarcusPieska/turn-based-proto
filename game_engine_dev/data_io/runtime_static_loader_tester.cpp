@@ -71,6 +71,7 @@ void print_holder_counts (const RuntimeStatics& s) {
     printf("RUNTIME STATIC LOADER COUNTS\n");
     print_u16_member("building", s.building().get_item_count());
     print_u16_member("city_flag", s.city_flag().get_item_count());
+    print_u16_member("city_job", s.city_job().get_item_count());
     print_u16_member("civ", s.civ().get_item_count());
     print_u16_member("civ_trait", s.civ_trait().get_item_count());
     print_u16_member("tile_attribute", s.tile_attribute().get_item_count());
@@ -130,6 +131,7 @@ void run_load_tests (const RuntimeStaticLoader& loader) {
     const RuntimeStatics& s = loader.statics();
     note_result(s.building().get_item_count() > 0, "building holder has items");
     note_result(s.city_flag().get_item_count() > 0, "city_flag holder has items");
+    note_result(s.city_job().get_item_count() > 0, "city_job holder has items");
     note_result(s.civ().get_item_count() > 0, "civ holder has items");
     note_result(s.civ_trait().get_item_count() > 0, "civ_trait holder has items");
     note_result(s.tile_attribute().get_item_count() > 0, "tile_attribute holder has items");

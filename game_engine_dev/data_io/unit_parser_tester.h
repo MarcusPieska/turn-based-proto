@@ -24,6 +24,7 @@
 
 #include "building_static_data.h"
 #include "city_flag_static_data.h"
+#include "city_job_static_data.h"
 #include "civ_static_data.h"
 #include "civ_trait_static_data.h"
 #include "tile_attribute_static_data.h"
@@ -54,6 +55,7 @@ public:
     
     void set_building_sd (const BuildingStaticData* sd);
     void set_city_flag_sd (const CityFlagStaticData* sd);
+    void set_city_job_sd (const CityJobStaticData* sd);
     void set_civ_sd (const CivStaticData* sd);
     void set_civ_trait_sd (const CivTraitStaticData* sd);
     void set_tile_attribute_sd (const TileAttributeStaticData* sd);
@@ -77,6 +79,7 @@ private:
     
     const BuildingStaticData* m_building_sd;
     const CityFlagStaticData* m_city_flag_sd;
+    const CityJobStaticData* m_city_job_sd;
     const CivStaticData* m_civ_sd;
     const CivTraitStaticData* m_civ_trait_sd;
     const TileAttributeStaticData* m_tile_attribute_sd;
@@ -94,6 +97,7 @@ private:
 
     const DataParserBase* m_building_psr;
     const DataParserBase* m_city_flag_psr;
+    const DataParserBase* m_city_job_psr;
     const DataParserBase* m_civ_psr;
     const DataParserBase* m_civ_trait_psr;
     const DataParserBase* m_tile_attribute_psr;
@@ -113,6 +117,7 @@ private:
 
     static u16 st_building_n2i (cstr name);
     static u16 st_city_flag_n2i (cstr name);
+    static u16 st_city_job_n2i (cstr name);
     static u16 st_civ_n2i (cstr name);
     static u16 st_civ_trait_n2i (cstr name);
     static u16 st_tile_attribute_n2i (cstr name);

@@ -1,0 +1,22 @@
+
+Priest               : 0  : 0  : 0  : 0  : 0  : 2    : 0
+ 
+Entertainer          : 0  : 0  : 0  : 0  : 0  : 0    : 1  
+Artist               : 0  : 0  : 0  : 2  : 0  : 0    : 0
+ 
+Tax Collector        : 0  : 0  : 2  : 0  : 0  : 0    : 0  
+Merchant             : 0  : 0  : 2  : 0  : 0  : 0    : 0  
+
+Librarian            : 0  : 0  : 0  : 0  : 2  : 0    : 0  
+Academic             : 0  : 0  : 0  : 0  : 3  : 0    : 0
+Scientist            : 0  : 0  : 0  : 0  : 4  : 0    : 0    
+
+Citizen              : 0  : 1  : 0  : 0  : 0  : 0    : 5 
+Civil Engineer       : 0  : 2  : 0  : 0  : 0  : 0    : 0 
+Technician           : 0  : 3  : 0  : 0  : 0  : 0    : 0 
+Policeman            : 0  : 0  : 0  : 0  : 0  : 0    : 0 
+
+Dung Collector       : 0  : 0  : 0  : 0  : 0  : 0    : 0 
+Doctor               : 0  : 0  : 0  : 0  : 0  : 0    : 0 
+
+

@@ -21,6 +21,7 @@ g++ $INC -c ../data_io/item_effect_helpers.cpp -o item_effect_helpers.o
 g++ $INC -c ../misc/static_string_pool.cpp -o static_string_pool.o
 g++ $INC -c ../static_state/building_static_data.cpp -o building_static_data.o
 g++ $INC -c ../static_state/city_flag_static_data.cpp -o city_flag_static_data.o
+g++ $INC -c ../static_state/city_job_static_data.cpp -o city_job_static_data.o
 g++ $INC -c ../static_state/civ_static_data.cpp -o civ_static_data.o
 g++ $INC -c ../static_state/civ_trait_static_data.cpp -o civ_trait_static_data.o
 g++ $INC -c ../static_state/tile_attribute_static_data.cpp -o tile_attribute_static_data.o
@@ -49,6 +50,7 @@ g++ -o civ_parser_tester \
     static_string_pool.o \
     building_static_data.o \
     city_flag_static_data.o \
+    city_job_static_data.o \
     civ_static_data.o \
     civ_trait_static_data.o \
     tile_attribute_static_data.o \
@@ -77,6 +79,7 @@ rm \
     static_string_pool.o \
     building_static_data.o \
     city_flag_static_data.o \
+    city_job_static_data.o \
     civ_static_data.o \
     civ_trait_static_data.o \
     tile_attribute_static_data.o \

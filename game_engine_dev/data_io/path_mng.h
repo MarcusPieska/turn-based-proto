@@ -29,6 +29,7 @@ public:
 
     cstr get_path_to_buildings () const;
     cstr get_path_to_city_flags () const;
+    cstr get_path_to_city_jobs () const;
     cstr get_path_to_civ_traits () const;
     cstr get_path_to_civs () const;
     cstr get_path_to_effects () const;
@@ -59,6 +60,7 @@ private:
 
     char m_path_buildings[PATH_MNG_PATH_N];
     char m_path_city_flags[PATH_MNG_PATH_N];
+    char m_path_city_jobs[PATH_MNG_PATH_N];
     char m_path_civ_traits[PATH_MNG_PATH_N];
     char m_path_civs[PATH_MNG_PATH_N];
     char m_path_effects[PATH_MNG_PATH_N];

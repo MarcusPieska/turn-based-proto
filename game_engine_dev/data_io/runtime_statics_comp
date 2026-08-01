@@ -9,7 +9,7 @@
 #
 #================================================================================================================================
 
-INC="-I. -I.. -I../misc -I../static_state"
+INC="-I. -I.. -I../misc -I../static_state -I../city -I../city/effector -I../gen_bit_banks -I../game"
 CXXFLAGS="-std=c++17"
 LIB_DIR="."
 LIB_SO="runtime_static_loader_lib.so"
@@ -35,6 +35,8 @@ g++ $INC $CXXFLAGS -c building_parser.cpp -o building_parser.o
 g++ $INC $CXXFLAGS -c building_parser_tester.cpp -o building_parser_tester.o
 g++ $INC $CXXFLAGS -c city_flag_parser.cpp -o city_flag_parser.o
 g++ $INC $CXXFLAGS -c city_flag_parser_tester.cpp -o city_flag_parser_tester.o
+g++ $INC $CXXFLAGS -c city_job_parser.cpp -o city_job_parser.o
+g++ $INC $CXXFLAGS -c city_job_parser_tester.cpp -o city_job_parser_tester.o
 g++ $INC $CXXFLAGS -c civ_parser.cpp -o civ_parser.o
 g++ $INC $CXXFLAGS -c civ_parser_tester.cpp -o civ_parser_tester.o
 g++ $INC $CXXFLAGS -c civ_trait_parser.cpp -o civ_trait_parser.o
@@ -81,6 +83,8 @@ g++ $CXXFLAGS -o $OUT_BIN \
     building_parser_tester.o \
     city_flag_parser.o \
     city_flag_parser_tester.o \
+    city_job_parser.o \
+    city_job_parser_tester.o \
     civ_parser.o \
     civ_parser_tester.o \
     civ_trait_parser.o \
@@ -128,6 +132,8 @@ rm runtime_static_loader.o runtime_statics_tester.o \
     building_parser_tester.o \
     city_flag_parser.o \
     city_flag_parser_tester.o \
+    city_job_parser.o \
+    city_job_parser_tester.o \
     civ_parser.o \
     civ_parser_tester.o \
     civ_trait_parser.o \

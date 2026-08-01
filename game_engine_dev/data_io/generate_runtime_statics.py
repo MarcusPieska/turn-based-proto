@@ -37,6 +37,12 @@ SCOPE_ENUMS = [s for s in ie_scope_enum if s != "NONE"]
 
 EFFECTOR_COMMON = ["effect_scoper_common", "effect_rev_mapper"]
 
+DYN_REG_STEMS = [
+    ("dyn_produce", "DynProduceRegister", "DynProduceRegisterSetup"),
+    ("dyn_booster", "DynBoosterRegister", "DynBoosterRegisterSetup"),
+    ("dyn_job_slot", "DynJobSlotRegister", "DynJobSlotRegisterSetup"),
+]
+
 #================================================================================================================================#
 #=> - RuntimeStatics codegen -
 #================================================================================================================================#
@@ -56,6 +62,9 @@ def lines_runtime_header_map_includes ():
 def lines_runtime_header_effector_includes ():
     return ['#include "gen_effector/%s_effector.h"' % scope_stem(s) for s in SCOPE_ENUMS]
 
+def lines_runtime_header_dyn_reg_includes ():
+    return ['#include "%s_register.h"' % stem for stem, cls, setup in DYN_REG_STEMS]
+
 def lines_runtime_header_members ():
     lines = ["%s m_%s;" % (static_data_class(stem), stem) for stem in entries]
     lines.append("")
@@ -64,6 +73,9 @@ def lines_runtime_header_members ():
     lines.append("")
     for s in SCOPE_ENUMS:
         lines.append("%s m_%s_fx;" % (scope_class(s), scope_stem(s)))
+    lines.append("")
+    for stem, cls, setup in DYN_REG_STEMS:
+        lines.append("%s m_%s;" % (cls, stem))
     return lines
 
 def lines_runtime_header_accessors ():
@@ -81,6 +93,9 @@ def lines_runtime_header_accessors ():
         cls = scope_class(s)
         lines.append("%s& %s_fx ();" % (cls, stem))
         lines.append("const %s& %s_fx () const;" % (cls, stem))
+    for stem, cls, setup in DYN_REG_STEMS:
+        lines.append("%s& %s ();" % (cls, stem))
+        lines.append("const %s& %s () const;" % (cls, stem))
     return lines
 
 def lines_runtime_cpp_map_includes ():
@@ -97,6 +112,21 @@ def lines_runtime_cpp_effector_includes ():
     lines = ['#include "gen_effector/effect_rev_mapper.h"']
     for s in SCOPE_ENUMS:
         lines.append('#include "gen_effector/%s_effector.h"' % scope_stem(s))
+    return lines
+
+def lines_runtime_cpp_dyn_reg_includes ():
+    lines = []
+    for stem, cls, setup in DYN_REG_STEMS:
+        lines.append('#include "%s_register_setup.h"' % stem)
+    return lines
+
+def lines_runtime_cpp_load_dyn_regs ():
+    lines = []
+    for stem, cls, setup in DYN_REG_STEMS:
+        lines.append("if (!%s::build(*this, m_%s)) {" % (setup, stem))
+        lines.append("    std::exit(1);")
+        lines.append("}")
+        lines.append("m_%s.take_ownership();" % stem)
     return lines
 
 def lines_runtime_cpp_load_items_set ():
@@ -144,6 +174,9 @@ def lines_runtime_cpp_accessors ():
         cls = scope_class(s)
         blocks.append("%s& RuntimeStatics::%s_fx () {\n    return m_%s_fx;\n}" % (cls, stem, stem))
         blocks.append("const %s& RuntimeStatics::%s_fx () const {\n    return m_%s_fx;\n}" % (cls, stem, stem))
+    for stem, cls, setup in DYN_REG_STEMS:
+        blocks.append("%s& RuntimeStatics::%s () {\n    return m_%s;\n}" % (cls, stem, stem))
+        blocks.append("const %s& RuntimeStatics::%s () const {\n    return m_%s;\n}" % (cls, stem, stem))
     return blocks
 
 def lines_lib_comp_compile_maps ():
@@ -209,6 +242,33 @@ def lines_comp_clean_effectors ():
     for s in SCOPE_ENUMS:
         lines.append("%s_effector.o \\" % scope_stem(s))
     return lines
+
+def lines_lib_comp_compile_dyn_regs ():
+    lines = [
+        "g++ $INC $CXXFLAGS -c ../misc/bit_array.cpp -o bit_array.o",
+        "g++ $INC $CXXFLAGS -c ../gen_bit_banks/general_bit_bank.cpp -o general_bit_bank.o",
+        "g++ $INC $CXXFLAGS -c ../city/effector/effect_enabler.cpp -o effect_enabler.o",
+        "g++ $INC $CXXFLAGS -c ../city/effector/booster_effect_register.cpp -o booster_effect_register.o",
+    ]
+    for stem, cls, setup in DYN_REG_STEMS:
+        lines.append("g++ $INC $CXXFLAGS -c ../city/effector/%s_register.cpp -o %s_register.o" % (stem, stem))
+        lines.append("g++ $INC $CXXFLAGS -c ../city/effector/%s_register_setup.cpp -o %s_register_setup.o" % (stem, stem))
+    return lines
+
+def lines_comp_link_dyn_regs ():
+    lines = [
+        "bit_array.o \\",
+        "general_bit_bank.o \\",
+        "effect_enabler.o \\",
+        "booster_effect_register.o \\",
+    ]
+    for stem, cls, setup in DYN_REG_STEMS:
+        lines.append("%s_register.o \\" % stem)
+        lines.append("%s_register_setup.o \\" % stem)
+    return lines
+
+def lines_comp_clean_dyn_regs ():
+    return lines_comp_link_dyn_regs()
 
 def lines_tester_comp_compile_effectors ():
     return ["g++ $INC $CXXFLAGS -c ../gen_effector/%s_effector.cpp -o %s_effector.o" % (scope_stem(s), scope_stem(s)) for s in SCOPE_ENUMS]
@@ -302,15 +362,18 @@ def build_loader_sub_pairs ():
 def build_runtime_sub_pairs ():
     sub_pairs = []
     sub_pairs.append(("[RUNTIME_STATICS_HEADER_INCLUDES_TAG]", join_tag_lines(
-        lines_runtime_header_includes() + lines_runtime_header_map_includes() + lines_runtime_header_effector_includes(), "\n")))
+        lines_runtime_header_includes() + lines_runtime_header_map_includes()
+        + lines_runtime_header_effector_includes() + lines_runtime_header_dyn_reg_includes(), "\n")))
     sub_pairs.append(("[RUNTIME_STATICS_HEADER_MEMBERS_TAG]", join_tag_lines(lines_runtime_header_members())))
     sub_pairs.append(("[RUNTIME_STATICS_HEADER_ACCESSORS_TAG]", join_tag_lines(lines_runtime_header_accessors(), "\n\n    ")))
     sub_pairs.append(("[RUNTIME_STATICS_CPP_MAP_INCLUDES_TAG]", join_tag_lines(lines_runtime_cpp_map_includes(), "\n")))
     sub_pairs.append(("[RUNTIME_STATICS_CPP_EFFECTOR_INCLUDES_TAG]", join_tag_lines(lines_runtime_cpp_effector_includes(), "\n")))
+    sub_pairs.append(("[RUNTIME_STATICS_CPP_DYN_REG_INCLUDES_TAG]", join_tag_lines(lines_runtime_cpp_dyn_reg_includes(), "\n")))
     sub_pairs.append(("[RUNTIME_STATICS_CPP_LOAD_ITEMS_SET_TAG]", join_tag_lines(lines_runtime_cpp_load_items_set(), "\n    ")))
     sub_pairs.append(("[RUNTIME_STATICS_CPP_LOAD_EFFECTORS_TAG]", join_tag_lines(lines_runtime_cpp_load_effectors(), "\n    ")))
     sub_pairs.append(("[RUNTIME_STATICS_CPP_LOAD_ITEMS_TAKE_TAG]", join_tag_lines(lines_runtime_cpp_load_items_take(), "\n    ")))
     sub_pairs.append(("[RUNTIME_STATICS_CPP_LOAD_MAPS_TAG]", join_tag_lines(lines_runtime_cpp_load_maps(), "\n    ")))
+    sub_pairs.append(("[RUNTIME_STATICS_CPP_LOAD_DYN_REGS_TAG]", join_tag_lines(lines_runtime_cpp_load_dyn_regs(), "\n    ")))
     sub_pairs.append(("[RUNTIME_STATICS_CPP_ACCESSORS_TAG]", join_tag_lines(lines_runtime_cpp_accessors(), "\n\n")))
     return sub_pairs
 
@@ -347,8 +410,11 @@ def build_lib_sub_pairs ():
     sub_pairs.append(("[RUNTIME_STATIC_LOADER_LIB_COMP_COMPILE_PARSERS_TAG]", join_tag_lines(lines_lib_comp_compile_parsers(), "\n")))
     sub_pairs.append(("[RUNTIME_STATIC_LOADER_LIB_COMP_COMPILE_HOLDERS_TAG]", join_tag_lines(lines_lib_comp_compile_holders(), "\n")))
     sub_pairs.append(("[RUNTIME_STATIC_LOADER_LIB_COMP_COMPILE_EFFECTORS_TAG]", join_tag_lines(lines_lib_comp_compile_effectors(), "\n")))
+    sub_pairs.append(("[RUNTIME_STATIC_LOADER_LIB_COMP_COMPILE_DYN_REGS_TAG]", join_tag_lines(lines_lib_comp_compile_dyn_regs(), "\n")))
     sub_pairs.append(("[RUNTIME_STATICS_COMP_LINK_EFFECTORS_TAG]", join_tag_lines(lines_comp_link_effectors(), "\n    ")))
     sub_pairs.append(("[RUNTIME_STATICS_COMP_CLEAN_EFFECTORS_TAG]", join_tag_lines(lines_comp_clean_effectors(), "\n    ")))
+    sub_pairs.append(("[RUNTIME_STATICS_COMP_LINK_DYN_REGS_TAG]", join_tag_lines(lines_comp_link_dyn_regs(), "\n    ")))
+    sub_pairs.append(("[RUNTIME_STATICS_COMP_CLEAN_DYN_REGS_TAG]", join_tag_lines(lines_comp_clean_dyn_regs(), "\n    ")))
     return sub_pairs
 
 #================================================================================================================================#

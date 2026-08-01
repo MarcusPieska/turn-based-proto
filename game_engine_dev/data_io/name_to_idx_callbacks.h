@@ -14,6 +14,7 @@
 typedef struct NameToIdxCbs {
     u16 (*building_name_to_idx)(cstr);
     u16 (*city_flag_name_to_idx)(cstr);
+    u16 (*city_job_name_to_idx)(cstr);
     u16 (*civ_name_to_idx)(cstr);
     u16 (*civ_trait_name_to_idx)(cstr);
     u16 (*effect_name_to_idx)(cstr);

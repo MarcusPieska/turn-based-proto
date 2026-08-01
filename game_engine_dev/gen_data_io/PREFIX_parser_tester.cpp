@@ -59,12 +59,12 @@ void [CLASS_TAG]ParserTester::set_plvl (int lvl) {
 bool [CLASS_TAG]ParserTester::ld_sm (StringManager& sm, cstr path) {
     if (sm.load_file_content(path)) {
         sm.split_string_by_char(0, '\n');
-        sm.cull_empty_strings();
+        DataParserBase::normalize_lines(sm);
         return true;
     }
     sm.load_cstr_content("NONE");
     sm.split_string_by_char(0, '\n');
-    sm.cull_empty_strings();
+    DataParserBase::normalize_lines(sm);
     return false;
 }
 
@@ -275,6 +275,34 @@ void [CLASS_TAG]ParserTester::pr_fx (cstr label, const ItemEffectsStruct& e) {
                 fprintf(out(), " produce <unknown> (%u)", static_cast<u32>(pr.target_id));
             }
             fprintf(out(), " amount=%d", static_cast<int>(pr.amount));
+            break;
+        }
+        case ItemEffectType::JOB_SLOTS: {
+            const ItemEffectJobSlots& js = slot.effect.job_slots;
+            if (js.job_id == U16_KEY_NULL) {
+                fprintf(out(), " jobSlots");
+            } else if (m_city_job_sd != NULL && js.job_id < m_city_job_sd->get_item_count()) {
+                fprintf(out(), " jobSlots %s (%u)", m_city_job_sd->get_name(CityJobStaticDataKey::from_raw(js.job_id)), static_cast<u32>(js.job_id));
+            } else if (m_city_job_psr != NULL) {
+                fprintf(out(), " jobSlots %s (%u)", m_city_job_psr->idx_to_name(js.job_id), static_cast<u32>(js.job_id));
+            } else {
+                fprintf(out(), " jobSlots <unknown> (%u)", static_cast<u32>(js.job_id));
+            }
+            const char* sc = "?";
+            switch (js.scope) {
+                case ItemEffectsScope::LOCAL: sc = "LOCAL"; break;
+                case ItemEffectsScope::CITY: sc = "CITY"; break;
+                case ItemEffectsScope::CIV: sc = "CIV"; break;
+                case ItemEffectsScope::GLOBAL: sc = "GLOBAL"; break;
+                default: break;
+            }
+            const char* am = "?";
+            switch (js.amount_mode) {
+                case ItemEffectAmountMode::COUNT: am = "COUNT"; break;
+                case ItemEffectAmountMode::PERCENTAGE: am = "PERCENTAGE"; break;
+                default: break;
+            }
+            fprintf(out(), " (%d) scope=%s mode=%s", static_cast<int>(js.amount), sc, am);
             break;
         }
         case ItemEffectType::TERRAIN_BOOSTER:

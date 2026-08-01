@@ -14,6 +14,7 @@
 
 #include "building_parser_tester.h"
 #include "city_flag_parser_tester.h"
+#include "city_job_parser_tester.h"
 #include "civ_parser_tester.h"
 #include "civ_trait_parser_tester.h"
 #include "tile_attribute_parser_tester.h"
@@ -42,6 +43,7 @@ public:
 
     BuildingParserTester& building () { return m_building; }
     CityFlagParserTester& city_flag () { return m_city_flag; }
+    CityJobParserTester& city_job () { return m_city_job; }
     CivParserTester& civ () { return m_civ; }
     CivTraitParserTester& civ_trait () { return m_civ_trait; }
     TileAttributeParserTester& tile_attribute () { return m_tile_attribute; }
@@ -62,6 +64,7 @@ private:
     
     BuildingParserTester m_building;
     CityFlagParserTester m_city_flag;
+    CityJobParserTester m_city_job;
     CivParserTester m_civ;
     CivTraitParserTester m_civ_trait;
     TileAttributeParserTester m_tile_attribute;

@@ -31,6 +31,17 @@ bool effect_matches_scope (const ItemEffectStruct& fx, ItemEffectsScope want) {
     if (fx.type == static_cast<u16>(ItemEffectType::ENABLE)) {
         return fx.effect.enable.scope == want;
     }
+    if (fx.type == static_cast<u16>(ItemEffectType::JOB_SLOTS)) {
+        ItemEffectsScope sc = fx.effect.job_slots.scope;
+        ItemEffectsScope w = want;
+        if (sc == ItemEffectsScope::LOCAL) {
+            sc = ItemEffectsScope::CITY;
+        }
+        if (w == ItemEffectsScope::LOCAL) {
+            w = ItemEffectsScope::CITY;
+        }
+        return sc == w;
+    }
     return false;
 }
 

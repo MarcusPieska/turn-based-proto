@@ -80,8 +80,9 @@ def main():
         root = Path(sys.argv[1]).resolve()
 
     logs = sorted(root.glob("[0-9][0-9][0-9].log"))
+    logs = logs + sorted(root.glob("[0-9][0-9][0-9]-*.log"))
     if not logs:
-        print(f"no NNN.log files in {root}", file=sys.stderr)
+        print(f"no NNN.log / NNN-*.log files in {root}", file=sys.stderr)
         return 1
 
     for log_path in logs:

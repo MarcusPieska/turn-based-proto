@@ -89,6 +89,8 @@ g++ $CXXFLAGS $INC -c ../game_setup.cpp -o game_setup.o
 g++ $CXXFLAGS $INC -c ../building_trait_attribution.cpp -o building_trait_attribution.o
 g++ $CXXFLAGS $INC -c ../civ_trait_affinity.cpp -o civ_trait_affinity.o
 g++ $CXXFLAGS $INC -c ../building_trait_orderings.cpp -o building_trait_orderings.o
+g++ $CXXFLAGS $INC -c ../tech_trait_attribution.cpp -o tech_trait_attribution.o
+g++ $CXXFLAGS $INC -c ../tech_trait_orderings.cpp -o tech_trait_orderings.o
 g++ $CXXFLAGS $INC -c ../../city/city_tile_manager.cpp -o city_tile_manager.o
 g++ $CXXFLAGS $INC -c ../../city/circular_tile_areas.cpp -o circular_tile_areas.o
 g++ $CXXFLAGS $INC -c ../../city/city_blocking_mask.cpp -o city_blocking_mask.o
@@ -170,7 +172,7 @@ g++ $CXXFLAGS -o single_city_dev_tester \
     civ_spawner.o \
     game_loop_cache.o \
     game_loop.o \
-    game_setup.o building_trait_attribution.o civ_trait_affinity.o building_trait_orderings.o \
+    game_setup.o building_trait_attribution.o civ_trait_affinity.o building_trait_orderings.o tech_trait_attribution.o tech_trait_orderings.o \
     city_tile_manager.o \
     circular_tile_areas.o \
     city_blocking_mask.o \

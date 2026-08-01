@@ -1,0 +1,36 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")"
+
+LIB_SO="../../data_io/runtime_static_loader_lib.so"
+if [ ! -f "$LIB_SO" ]; then
+    echo "missing $LIB_SO - run ../../data_io/runtime_static_loader_lib_comp first"
+    exit 1
+fi
+
+INC="-I../.. \
+     -I../../misc \
+     -I../../data_io \
+     -I../../static_state \
+     -I.."
+CXXFLAGS="-std=c++17 -Wall -Wextra"
+
+g++ $CXXFLAGS $INC -c ../../data_io/runtime_static_loader.cpp -o runtime_static_loader.o
+g++ $CXXFLAGS $INC -c ../../misc/bit_array.cpp -o bit_array.o
+g++ $CXXFLAGS $INC -c ../../misc/assert_log.cpp -o assert_log.o
+g++ $CXXFLAGS $INC -c tech_tier_tester.cpp -o tech_tier_tester.o
+
+g++ $CXXFLAGS -o tech_tier_tester \
+    runtime_static_loader.o \
+    bit_array.o \
+    assert_log.o \
+    tech_tier_tester.o \
+    -ldl \
+    $LIB_SO \
+    -Wl,-rpath,'$ORIGIN/../../data_io'
+
+echo "--- running tech_tier_tester ---"
+./tech_tier_tester "$@"
+
+rm -f runtime_static_loader.o bit_array.o assert_log.o tech_tier_tester.o

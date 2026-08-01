@@ -87,6 +87,8 @@ g++ $CXXFLAGS $INC -c game_setup.cpp -o game_setup.o
 g++ $CXXFLAGS $INC -c building_trait_attribution.cpp -o building_trait_attribution.o
 g++ $CXXFLAGS $INC -c civ_trait_affinity.cpp -o civ_trait_affinity.o
 g++ $CXXFLAGS $INC -c building_trait_orderings.cpp -o building_trait_orderings.o
+g++ $CXXFLAGS $INC -c tech_trait_attribution.cpp -o tech_trait_attribution.o
+g++ $CXXFLAGS $INC -c tech_trait_orderings.cpp -o tech_trait_orderings.o
 g++ $CXXFLAGS $INC -c ../city/city_tile_manager.cpp -o city_tile_manager.o
 g++ $CXXFLAGS $INC -c ../city/circular_tile_areas.cpp -o circular_tile_areas.o
 g++ $CXXFLAGS $INC -c ../city/city_blocking_mask.cpp -o city_blocking_mask.o
@@ -167,7 +169,7 @@ g++ $CXXFLAGS -o game_loop_tester \
     game_loop_cache.o \
     game_io.o \
     game_loop.o \
-    game_setup.o building_trait_attribution.o civ_trait_affinity.o building_trait_orderings.o \
+    game_setup.o building_trait_attribution.o civ_trait_affinity.o building_trait_orderings.o tech_trait_attribution.o tech_trait_orderings.o \
     city_tile_manager.o \
     circular_tile_areas.o \
     city_blocking_mask.o \
@@ -213,7 +215,7 @@ rm runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.
     city_production_booster_register.o local_production_booster_register.o local_pop_growth_booster_register.o \
     local_commerce_booster_register.o city_pop_growth_booster_register.o civ_pop_growth_booster_register.o \
     city_culture_booster_register.o city_array.o civ_spawner.o game_loop_cache.o game_io.o game_loop.o \
-    game_setup.o building_trait_attribution.o civ_trait_affinity.o building_trait_orderings.o city_tile_manager.o circular_tile_areas.o city_blocking_mask.o city_border.o \
+    game_setup.o building_trait_attribution.o civ_trait_affinity.o building_trait_orderings.o tech_trait_attribution.o tech_trait_orderings.o city_tile_manager.o circular_tile_areas.o city_blocking_mask.o city_border.o \
     perlin_noise.o generator_constants.o whiteboard_mng.o profile_time_opt.o \
     worker_turn_handler.o defensive_unit_turn_handler.o linear_tech.o linear_bld.o game_loop_tester.o
 

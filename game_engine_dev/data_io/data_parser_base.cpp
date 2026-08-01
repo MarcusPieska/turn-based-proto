@@ -161,6 +161,11 @@ void DataParserBase::clear_item_effect_handler () {
     s_effect_definition_items = 0;
 }
 
+void DataParserBase::normalize_lines (StringManager& lines) {
+    trim_ws_all(lines);
+    lines.cull_empty_strings();
+}
+
 void DataParserBase::derive_names_from_raw_lines (const StringManager& raw_lines, StringManager& out_names) const {
     u32 n = raw_lines.get_string_count();
     u32 total = 0;
@@ -234,10 +239,21 @@ DataParserBase::DataParserBase (const StringManager& raw_lines, const NameToIdxC
     buf[k] = '\0';
     m_raw_lines.load_cstr_content(buf);
     m_raw_lines.split_string_by_char(0, '\n');
-    m_raw_lines.cull_empty_strings();
+    normalize_lines(m_raw_lines);
     delete[] buf;
 
+    if (m_raw_lines.get_string_count() == 0) {
+        printf("ERROR: DataParserBase received empty raw items\n");
+        ++m_error_count;
+        return;
+    }
+
     derive_names_from_raw_lines(m_raw_lines, m_names);
+    if (m_names.get_string_count() != m_raw_lines.get_string_count()) {
+        printf("ERROR: DataParserBase name/raw count mismatch (%u vs %u)\n",
+            m_names.get_string_count(), m_raw_lines.get_string_count());
+        ++m_error_count;
+    }
 
     u16 upper_limit = (u16)-1;
     if (m_raw_lines.get_string_count() > upper_limit) {

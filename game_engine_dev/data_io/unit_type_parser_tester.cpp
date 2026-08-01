@@ -29,6 +29,7 @@ UnitTypeParserTester::UnitTypeParserTester () :
     m_out(NULL), 
     m_building_sd(NULL),
     m_city_flag_sd(NULL),
+    m_city_job_sd(NULL),
     m_civ_sd(NULL),
     m_civ_trait_sd(NULL),
     m_tile_attribute_sd(NULL),
@@ -45,6 +46,7 @@ UnitTypeParserTester::UnitTypeParserTester () :
     m_worker_job_sd(NULL), 
     m_building_psr(NULL),
     m_city_flag_psr(NULL),
+    m_city_job_psr(NULL),
     m_civ_psr(NULL),
     m_civ_trait_psr(NULL),
     m_tile_attribute_psr(NULL),
@@ -71,6 +73,12 @@ void UnitTypeParserTester::set_building_sd (const BuildingStaticData* sd) {
 void UnitTypeParserTester::set_city_flag_sd (const CityFlagStaticData* sd) {
 
     m_city_flag_sd = sd;
+
+}
+
+void UnitTypeParserTester::set_city_job_sd (const CityJobStaticData* sd) {
+
+    m_city_job_sd = sd;
 
 }
 
@@ -183,12 +191,12 @@ void UnitTypeParserTester::set_plvl (int lvl) {
 bool UnitTypeParserTester::ld_sm (StringManager& sm, cstr path) {
     if (sm.load_file_content(path)) {
         sm.split_string_by_char(0, '\n');
-        sm.cull_empty_strings();
+        DataParserBase::normalize_lines(sm);
         return true;
     }
     sm.load_cstr_content("NONE");
     sm.split_string_by_char(0, '\n');
-    sm.cull_empty_strings();
+    DataParserBase::normalize_lines(sm);
     return false;
 }
 
@@ -204,6 +212,13 @@ u16 UnitTypeParserTester::st_city_flag_n2i (cstr name) {
         return U16_KEY_NULL;
     }
     return s_inst->m_city_flag_psr->name_to_idx(name);
+}
+
+u16 UnitTypeParserTester::st_city_job_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_city_job_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_city_job_psr->name_to_idx(name);
 }
 
 u16 UnitTypeParserTester::st_civ_n2i (cstr name) {
@@ -541,6 +556,34 @@ void UnitTypeParserTester::pr_fx (cstr label, const ItemEffectsStruct& e) {
             fprintf(out(), " amount=%d", static_cast<int>(pr.amount));
             break;
         }
+        case ItemEffectType::JOB_SLOTS: {
+            const ItemEffectJobSlots& js = slot.effect.job_slots;
+            if (js.job_id == U16_KEY_NULL) {
+                fprintf(out(), " jobSlots");
+            } else if (m_city_job_sd != NULL && js.job_id < m_city_job_sd->get_item_count()) {
+                fprintf(out(), " jobSlots %s (%u)", m_city_job_sd->get_name(CityJobStaticDataKey::from_raw(js.job_id)), static_cast<u32>(js.job_id));
+            } else if (m_city_job_psr != NULL) {
+                fprintf(out(), " jobSlots %s (%u)", m_city_job_psr->idx_to_name(js.job_id), static_cast<u32>(js.job_id));
+            } else {
+                fprintf(out(), " jobSlots <unknown> (%u)", static_cast<u32>(js.job_id));
+            }
+            const char* sc = "?";
+            switch (js.scope) {
+                case ItemEffectsScope::LOCAL: sc = "LOCAL"; break;
+                case ItemEffectsScope::CITY: sc = "CITY"; break;
+                case ItemEffectsScope::CIV: sc = "CIV"; break;
+                case ItemEffectsScope::GLOBAL: sc = "GLOBAL"; break;
+                default: break;
+            }
+            const char* am = "?";
+            switch (js.amount_mode) {
+                case ItemEffectAmountMode::COUNT: am = "COUNT"; break;
+                case ItemEffectAmountMode::PERCENTAGE: am = "PERCENTAGE"; break;
+                default: break;
+            }
+            fprintf(out(), " (%d) scope=%s mode=%s", static_cast<int>(js.amount), sc, am);
+            break;
+        }
         case ItemEffectType::TERRAIN_BOOSTER:
             fprintf(out(), " TERRAIN_BOOSTER");
             break;
@@ -582,6 +625,7 @@ int UnitTypeParserTester::run () {
 
     cbs.building_name_to_idx = st_building_n2i;
     cbs.city_flag_name_to_idx = st_city_flag_n2i;
+    cbs.city_job_name_to_idx = st_city_job_n2i;
     cbs.civ_name_to_idx = st_civ_n2i;
     cbs.civ_trait_name_to_idx = st_civ_trait_n2i;
     cbs.tile_attribute_name_to_idx = st_tile_attribute_n2i;
@@ -601,6 +645,7 @@ int UnitTypeParserTester::run () {
 
     StringManager building_items;
     StringManager city_flag_items;
+    StringManager city_job_items;
     StringManager civ_items;
     StringManager civ_trait_items;
     StringManager tile_attribute_items;
@@ -620,6 +665,7 @@ int UnitTypeParserTester::run () {
 
     ld_sm(building_items, paths.get_path_to_buildings());
     ld_sm(city_flag_items, paths.get_path_to_city_flags());
+    ld_sm(city_job_items, paths.get_path_to_city_jobs());
     ld_sm(civ_items, paths.get_path_to_civs());
     ld_sm(civ_trait_items, paths.get_path_to_civ_traits());
     ld_sm(tile_attribute_items, paths.get_path_to_tile_attributes());
@@ -642,6 +688,7 @@ int UnitTypeParserTester::run () {
 
     DataParserBase building_parser(building_items, cbs);
     DataParserBase city_flag_parser(city_flag_items, cbs);
+    DataParserBase city_job_parser(city_job_items, cbs);
     DataParserBase civ_parser(civ_items, cbs);
     DataParserBase civ_trait_parser(civ_trait_items, cbs);
     DataParserBase tile_attribute_parser(tile_attribute_items, cbs);
@@ -659,6 +706,7 @@ int UnitTypeParserTester::run () {
 
     m_building_psr = &building_parser;
     m_city_flag_psr = &city_flag_parser;
+    m_city_job_psr = &city_job_parser;
     m_civ_psr = &civ_parser;
     m_civ_trait_psr = &civ_trait_parser;
     m_tile_attribute_psr = &tile_attribute_parser;

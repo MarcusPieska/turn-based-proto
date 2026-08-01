@@ -33,7 +33,8 @@ enum class ItemEffectType : u16 {
     TRAIN = 5,
     TERRAIN_BOOSTER = 6,
     SET_FLAG = 7,
-    PRODUCE = 8
+    PRODUCE = 8,
+    JOB_SLOTS = 9
 };
 
 enum class ItemEffectBoosterType : u16 {
@@ -165,6 +166,13 @@ typedef struct ItemEffectProduce {
     i16 amount;
 } ItemEffectProduce;
 
+typedef struct ItemEffectJobSlots {
+    u16 job_id;
+    i16 amount;
+    ItemEffectsScope scope;
+    ItemEffectAmountMode amount_mode;
+} ItemEffectJobSlots;
+
 //================================================================================================================================
 //=> - Union + tagged entry -
 //================================================================================================================================
@@ -177,6 +185,7 @@ typedef union ItemEffectsUnion {
     ItemEffectTrain train;
     ItemEffectSetFlag set_flag;
     ItemEffectProduce produce;
+    ItemEffectJobSlots job_slots;
 } ItemEffectsUnion;
 
 typedef struct ItemEffectStruct {

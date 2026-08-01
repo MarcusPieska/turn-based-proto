@@ -9,7 +9,7 @@
 #
 #================================================================================================================================
 
-INC="-I. -I.. -I../misc -I../static_state"
+INC="-I. -I.. -I../misc -I../static_state -I../city -I../city/effector -I../gen_bit_banks -I../game"
 CXXFLAGS="-std=c++17 -fPIC"
 OUT_SO="runtime_static_loader_lib.so"
 
@@ -23,6 +23,7 @@ g++ $INC $CXXFLAGS -c ../static_state/static_bit_bank.cpp -o static_bit_bank.o
 [RUNTIME_STATIC_LOADER_LIB_COMP_COMPILE_PARSERS_TAG]
 [RUNTIME_STATIC_LOADER_LIB_COMP_COMPILE_HOLDERS_TAG]
 [RUNTIME_STATIC_LOADER_LIB_COMP_COMPILE_EFFECTORS_TAG]
+[RUNTIME_STATIC_LOADER_LIB_COMP_COMPILE_DYN_REGS_TAG]
 g++ $INC $CXXFLAGS -c ../static_state/config_settings_static.cpp -o config_settings_static.o
 g++ $INC $CXXFLAGS -c ../static_state/config_settings_parse.cpp -o config_settings_parse.o
 g++ $INC $CXXFLAGS -c static_parsing_manager.cpp -o static_parsing_manager.o
@@ -40,6 +41,7 @@ g++ -shared -o $OUT_SO \
     [RUNTIME_STATICS_COMP_LINK_PARSERS_TAG]
     [RUNTIME_STATICS_COMP_LINK_HOLDERS_TAG]
     [RUNTIME_STATICS_COMP_LINK_EFFECTORS_TAG]
+    [RUNTIME_STATICS_COMP_LINK_DYN_REGS_TAG]
     config_settings_static.o \
     config_settings_parse.o \
     static_parsing_manager.o \
@@ -57,6 +59,7 @@ rm \
     [RUNTIME_STATICS_COMP_CLEAN_PARSERS_TAG]
     [RUNTIME_STATICS_COMP_CLEAN_HOLDERS_TAG]
     [RUNTIME_STATICS_COMP_CLEAN_EFFECTORS_TAG]
+    [RUNTIME_STATICS_COMP_CLEAN_DYN_REGS_TAG]
     config_settings_static.o \
     config_settings_parse.o \
     static_parsing_manager.o \
