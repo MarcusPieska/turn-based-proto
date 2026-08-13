@@ -1,5 +1,3 @@
-
-
 Walls                          : booster(DEFENSE, 50, CITY, PERCENTAGE)
 Barracks                       : booster(UNIT_EXP, 1, LOCAL, COUNT)
 Granary                        : booster(POP_GROWTH, 50, CITY, PERCENTAGE) : booster(SANITATION, 1, CITY, COUNT)
@@ -7,6 +5,8 @@ Library                        : booster(SCIENCE, 50, CITY, PERCENTAGE) : booste
 Amphitheater                   : booster(HAPPINESS, 1, CITY, COUNT) : booster(CULTURE, 2, CITY, COUNT) : jobSlots(Artist, 1, CITY, COUNT)
 Temple                         : booster(HAPPINESS, 1, CITY, COUNT) : booster(CULTURE, 2, CITY, COUNT) : jobSlots(Priest, 1, CITY, COUNT)
 Marketplace                    : booster(COMMERCE, 50, CITY, PERCENTAGE) : jobSlots(Merchant, 1, CITY, COUNT)
+Prefecture                     : booster(CORRUPTION, -10, CITY, PERCENTAGE) 
+Census Office                  : booster(WORKER_DRAFT, 1, CITY, COUNT)
 Cisterns                       : booster(SANITATION, 1, CITY, COUNT)
 Dry Sewers                     : booster(SANITATION, 1, CITY, COUNT)
 Cesspools                      : booster(SANITATION, 1, CITY, COUNT) : jobSlots(Dung Collector, 1, CITY, COUNT)

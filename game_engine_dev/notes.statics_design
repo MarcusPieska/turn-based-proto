@@ -1,0 +1,26 @@
+The design described below is not implemented fully yet, and will require refactoring of the existing design. 
+
+All game engine data, including static enum-like data, will be in game data files. This would mean each game data file could be modded in 1 of 3 different ways: 1.) add or remove entries and change the configuration of each entity; 2.) change the configuration of each entity, but not add new entries; 3.) not moddable at all. Part of the reason we want that 3rd option is for pure documentation. However, the generators will have to be extended to not only create IO and parse support for each data file, but also roll up the data files into header files that in aggregate contain all the static game data for running the game. Meaning we should be able to run the game with zero IO. The IO is then retained to allow modding, while the rolled up header data is used to validate that the game is an an unmodded state, or restore the game to such a state at run time. Part of rolling the game data into headers will be to generate static enums, or enum-like classes with interfaces derived from the data, for the non-moddable data; this is critical, as the game engine will on occasion have to access certain static game data by using a contractually agreed token. The compiler should readily detect a breach in this contract.  
+
+Here is a partial list of changes needed:
+ - The base parsing class will have to support single-line comments so that we can convey to modders what can and cannot be modded.
+ - Generators for data-to-header roll-ups will have to be written.
+ - Some data that is currently in the code base will have to be moved to game data. 
+ 
+Additional comments:
+
+ - Single source of truth (authoring): game data files in the developers' working tree. Developers are the only ones who roll data into headers. Rolled headers are strictly generate-only build artifacts (same class as generated parsers/enums today); never hand-edited.
+ - Runtime truth for shipped builds: baked headers are the canonical unmodded snapshot. Optional IO loads mods on top. Mods must never write back into baked headers.
+ - Integrity: expect dedicated test drivers that regen-or-compare rolled headers against current game data (dev/CI). Similar checks can run at game startup to detect a modded or corrupted install and/or to restore vanilla; keep startup checks cheap and fail-soft unless a full reparse is explicitly required.
+ - Mod tier 2 (reconfigure, no add/remove) needs a stable identity story (fixed names and/or fixed enum indices) so saves and cross-mod references do not break when values change.
+ - Keep a thin distinction between content catalogs (buildings, techs, wonders, …) and engine-contract tokens (effect verbs, booster target names, scopes, amount modes, …). The latter still belong in data files for documentation and roll-up, but they are natural tier-3 / non-moddable surface; C++ unions and switches must stay in lockstep with those tokens via generation, not ad-hoc print maps.
+ - Single-line comments in game data are for conveying modder-facing contracts; enforcement of mod tiers should still be mechanical (generator metadata + load-time policy), not comments alone.
+ - CI should fail if committed headers do not match a fresh roll-up from the working-tree game data.
+
+Next steps:
+
+ - Pilot on one existing catalog that already has a generator (e.g. buildings or a small enum-like file): roll file -> header, load-or-compare against baked data, prove zero-IO path and unmodded restore for that one type.
+ - Extend DataParserBase (or equivalent) with single-line comment support; define a small comment/metadata convention for mod tier per file (or per section).
+ - Add a roll-up generator beside the existing gen_data_io / data_io pipeline; wire "regen and diff" into a test driver (and optionally a startup integrity probe).
+ - Classify current game_config.* files into mod tiers 1 / 2 / 3; move one piece of code-embedded static data into a game data file as the first migration.
+ - Document the authoring workflow: edit game data -> run roll-up -> commit files + generated headers (or regenerate headers in CI from files only).

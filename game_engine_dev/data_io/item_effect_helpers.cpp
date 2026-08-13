@@ -67,6 +67,7 @@ ItemEffectBoosterType ItemEffectHelper::booster_type_str_to_enum (cstr s) {
     if (s && std::strcmp(s, "WAR_WEAR") == 0) { return ItemEffectBoosterType::WAR_WEAR; }
     if (s && std::strcmp(s, "CULTURE") == 0) { return ItemEffectBoosterType::CULTURE; }
     if (s && std::strcmp(s, "SANITATION") == 0) { return ItemEffectBoosterType::SANITATION; }
+    if (s && std::strcmp(s, "WORKER_DRAFT") == 0) { return ItemEffectBoosterType::WORKER_DRAFT; }
     return ItemEffectBoosterType::NONE;
 }
 
@@ -95,6 +96,7 @@ cstr ItemEffectHelper::booster_type_enum_to_str (ItemEffectBoosterType v) {
         case ItemEffectBoosterType::WAR_WEAR : return "WAR_WEAR";
         case ItemEffectBoosterType::CULTURE : return "CULTURE";
         case ItemEffectBoosterType::SANITATION : return "SANITATION";
+        case ItemEffectBoosterType::WORKER_DRAFT : return "WORKER_DRAFT";
         default: return "NONE";
     }
 }

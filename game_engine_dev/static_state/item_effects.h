@@ -60,7 +60,8 @@ enum class ItemEffectBoosterType : u16 {
     UPGRADE_COST = 19,
     WAR_WEAR = 20,
     CULTURE = 21,
-    SANITATION = 22
+    SANITATION = 22,
+    WORKER_DRAFT = 23
 };
 
 enum class ItemTerrainYield : u8 {
