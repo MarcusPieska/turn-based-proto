@@ -86,6 +86,9 @@ void print_holder_counts (const RuntimeStatics& s) {
     print_u16_member("unit", s.unit().get_item_count());
     print_u16_member("wonder", s.wonder().get_item_count());
     print_u16_member("worker_job", s.worker_job().get_item_count());
+    print_u16_member("worker_job_imp", s.worker_job_imp().get_item_count());
+    print_u16_member("tile_yield_type", s.tile_yield_type().get_item_count());
+    print_u16_member("improvement_yield", s.improvement_yield().get_item_count());
 }
 
 u16 get_req_limit_for_type (const RuntimeStatics& s, u8 req_type) {
@@ -146,6 +149,9 @@ void run_load_tests (const RuntimeStaticLoader& loader) {
     note_result(s.unit().get_item_count() > 0, "unit holder has items");
     note_result(s.wonder().get_item_count() > 0, "wonder holder has items");
     note_result(s.worker_job().get_item_count() > 0, "worker_job holder has items");
+    note_result(s.worker_job_imp().get_item_count() > 0, "worker_job_imp holder has items");
+    note_result(s.tile_yield_type().get_item_count() > 0, "tile_yield_type holder has items");
+    note_result(s.improvement_yield().get_item_count() > 0, "improvement_yield holder has items");
 }
 
 void run_req_bounds_tests (const RuntimeStatics& s) {
@@ -220,6 +226,15 @@ void run_req_bounds_tests (const RuntimeStatics& s) {
         }
     }
     note_result(result, "WorkerJobStaticDataStruct req indices in bounds");
+    
+    result = true;
+    for (u16 i = 0; i < s.worker_job_imp().get_item_count(); ++i) {
+        if (!are_reqs_in_bounds(s, s.worker_job_imp().get_item(WorkerJobImpStaticDataKey::from_raw(i)).reqs, "worker_job_imp", i)) {
+            result = false;
+            break;
+        }
+    }
+    note_result(result, "WorkerJobImpStaticDataStruct req indices in bounds");
 }
 
 void run_map_smoke_tests (const RuntimeStatics& s) {

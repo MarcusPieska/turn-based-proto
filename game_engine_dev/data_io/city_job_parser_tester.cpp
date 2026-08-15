@@ -43,7 +43,10 @@ CityJobParserTester::CityJobParserTester () :
     m_unit_role_sd(NULL),
     m_unit_type_sd(NULL),
     m_wonder_sd(NULL),
-    m_worker_job_sd(NULL), 
+    m_worker_job_sd(NULL),
+    m_worker_job_imp_sd(NULL),
+    m_tile_yield_type_sd(NULL),
+    m_improvement_yield_sd(NULL), 
     m_building_psr(NULL),
     m_city_flag_psr(NULL),
     m_city_job_psr(NULL),
@@ -60,7 +63,10 @@ CityJobParserTester::CityJobParserTester () :
     m_unit_role_psr(NULL),
     m_unit_type_psr(NULL),
     m_wonder_psr(NULL),
-    m_worker_job_psr(NULL) 
+    m_worker_job_psr(NULL),
+    m_worker_job_imp_psr(NULL),
+    m_tile_yield_type_psr(NULL),
+    m_improvement_yield_psr(NULL) 
 {
 }
 
@@ -163,6 +169,24 @@ void CityJobParserTester::set_wonder_sd (const WonderStaticData* sd) {
 void CityJobParserTester::set_worker_job_sd (const WorkerJobStaticData* sd) {
 
     m_worker_job_sd = sd;
+
+}
+
+void CityJobParserTester::set_worker_job_imp_sd (const WorkerJobImpStaticData* sd) {
+
+    m_worker_job_imp_sd = sd;
+
+}
+
+void CityJobParserTester::set_tile_yield_type_sd (const TileYieldTypeStaticData* sd) {
+
+    m_tile_yield_type_sd = sd;
+
+}
+
+void CityJobParserTester::set_improvement_yield_sd (const ImprovementYieldStaticData* sd) {
+
+    m_improvement_yield_sd = sd;
 
 }
 
@@ -319,6 +343,27 @@ u16 CityJobParserTester::st_worker_job_n2i (cstr name) {
     return s_inst->m_worker_job_psr->name_to_idx(name);
 }
 
+u16 CityJobParserTester::st_worker_job_imp_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_worker_job_imp_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_worker_job_imp_psr->name_to_idx(name);
+}
+
+u16 CityJobParserTester::st_tile_yield_type_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_tile_yield_type_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_tile_yield_type_psr->name_to_idx(name);
+}
+
+u16 CityJobParserTester::st_improvement_yield_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_improvement_yield_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_improvement_yield_psr->name_to_idx(name);
+}
+
 void CityJobParserTester::pr_u16 (cstr label, u16 value) {
     fprintf(out(), "  %s: %u\n", label, value);
 }
@@ -418,8 +463,11 @@ void CityJobParserTester::pr_fx (cstr label, const ItemEffectsStruct& e) {
                 case ItemEffectBoosterType::UNIT_EXP: tname = "UNIT_EXP"; break;
                 case ItemEffectBoosterType::UPGRADE_COST: tname = "UPGRADE_COST"; break;
                 case ItemEffectBoosterType::WAR_WEAR: tname = "WAR_WEAR"; break;
+                case ItemEffectBoosterType::CULTURE: tname = "CULTURE"; break;
                 case ItemEffectBoosterType::SANITATION: tname = "SANITATION"; break;
                 case ItemEffectBoosterType::WORKER_DRAFT: tname = "WORKER_DRAFT"; break;
+                case ItemEffectBoosterType::FOOD: tname = "FOOD"; break;
+                case ItemEffectBoosterType::RESOURCE: tname = "RESOURCE"; break;
                 default: break;
             }
             const char* sc = "?";
@@ -649,6 +697,9 @@ int CityJobParserTester::run () {
     cbs.unit_type_name_to_idx = st_unit_type_n2i;
     cbs.wonder_name_to_idx = st_wonder_n2i;
     cbs.worker_job_name_to_idx = st_worker_job_n2i;
+    cbs.worker_job_imp_name_to_idx = st_worker_job_imp_n2i;
+    cbs.tile_yield_type_name_to_idx = st_tile_yield_type_n2i;
+    cbs.improvement_yield_name_to_idx = st_improvement_yield_n2i;
 
     PathMng paths("../");
 
@@ -669,6 +720,9 @@ int CityJobParserTester::run () {
     StringManager unit_type_items;
     StringManager wonder_items;
     StringManager worker_job_items;
+    StringManager worker_job_imp_items;
+    StringManager tile_yield_type_items;
+    StringManager improvement_yield_items;
 
     StringManager effect_items;
 
@@ -689,6 +743,9 @@ int CityJobParserTester::run () {
     ld_sm(unit_type_items, paths.get_path_to_unit_types());
     ld_sm(wonder_items, paths.get_path_to_wonders());
     ld_sm(worker_job_items, paths.get_path_to_worker_jobs());
+    ld_sm(worker_job_imp_items, paths.get_path_to_worker_job_imps());
+    ld_sm(tile_yield_type_items, paths.get_path_to_tile_yield_types());
+    ld_sm(improvement_yield_items, paths.get_path_to_improvement_yields());
 
     const bool fx_ok = ld_sm(effect_items, paths.get_path_to_effects());
     if (fx_ok) {
@@ -712,6 +769,9 @@ int CityJobParserTester::run () {
     DataParserBase unit_type_parser(unit_type_items, cbs);
     DataParserBase wonder_parser(wonder_items, cbs);
     DataParserBase worker_job_parser(worker_job_items, cbs);
+    DataParserBase worker_job_imp_parser(worker_job_imp_items, cbs);
+    DataParserBase tile_yield_type_parser(tile_yield_type_items, cbs);
+    DataParserBase improvement_yield_parser(improvement_yield_items, cbs);
 
     m_building_psr = &building_parser;
     m_city_flag_psr = &city_flag_parser;
@@ -730,6 +790,9 @@ int CityJobParserTester::run () {
     m_unit_type_psr = &unit_type_parser;
     m_wonder_psr = &wonder_parser;
     m_worker_job_psr = &worker_job_parser;
+    m_worker_job_imp_psr = &worker_job_imp_parser;
+    m_tile_yield_type_psr = &tile_yield_type_parser;
+    m_improvement_yield_psr = &improvement_yield_parser;
 
     StringManager raw_items;
     if (!ld_sm(raw_items, paths.get_path_to_city_jobs())) {

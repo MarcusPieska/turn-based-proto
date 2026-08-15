@@ -316,6 +316,9 @@ static void print_resource_item (
     StaticDataPrinter::print_u16("food", static_cast<u16>(item.food), print_lvl + 1);
     StaticDataPrinter::print_u16("shields", static_cast<u16>(item.shields), print_lvl + 1);
     StaticDataPrinter::print_u16("commerce", static_cast<u16>(item.commerce), print_lvl + 1);
+    StaticDataPrinter::print_u16("culture", static_cast<u16>(item.culture), print_lvl + 1);
+    StaticDataPrinter::print_u16("science", static_cast<u16>(item.science), print_lvl + 1);
+    StaticDataPrinter::print_u16("religion", static_cast<u16>(item.religion), print_lvl + 1);
 }
 
 static void print_small_wonder_item (

@@ -1,0 +1,35 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")"
+
+RESULTS="/home/w/Projects/simple-map-gen/draft_worker_handler_results.txt"
+
+# Add new mkNN tags here as implementations land under draft_worker_handler_impl/.
+IMPLS=(mk01 mk02)
+
+echo "======== draft_worker_handler_general all ========"
+echo "--- session $(date -Iseconds) ---" >> "$RESULTS"
+
+fail=0
+for mk in "${IMPLS[@]}"; do
+    echo "======== COMP+RUN general_${mk} ========"
+    if ! DRAFT_WORKER_GENERAL_MK="$mk" ./draft_worker_handler_general_comp; then
+        echo "COMP FAIL general_${mk}"
+        fail=$((fail + 1))
+        continue
+    fi
+    if ! ./draft_worker_handler_general_tester; then
+        echo "RUN FAIL general_${mk}"
+        fail=$((fail + 1))
+    fi
+done
+
+echo "======== results file ========"
+if [ -f "$RESULTS" ]; then
+    cat "$RESULTS"
+else
+    echo "(missing $RESULTS)"
+fi
+echo "TOTAL fail=$fail"
+exit $fail

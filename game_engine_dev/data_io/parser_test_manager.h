@@ -29,6 +29,9 @@
 #include "unit_type_parser_tester.h"
 #include "wonder_parser_tester.h"
 #include "worker_job_parser_tester.h"
+#include "worker_job_imp_parser_tester.h"
+#include "tile_yield_type_parser_tester.h"
+#include "improvement_yield_parser_tester.h"
 #include "runtime_statics.h"
 
 //================================================================================================================================
@@ -58,6 +61,9 @@ public:
     UnitTypeParserTester& unit_type () { return m_unit_type; }
     WonderParserTester& wonder () { return m_wonder; }
     WorkerJobParserTester& worker_job () { return m_worker_job; }
+    WorkerJobImpParserTester& worker_job_imp () { return m_worker_job_imp; }
+    TileYieldTypeParserTester& tile_yield_type () { return m_tile_yield_type; }
+    ImprovementYieldParserTester& improvement_yield () { return m_improvement_yield; }
 
 private:
     int m_plvl;
@@ -79,6 +85,9 @@ private:
     UnitTypeParserTester m_unit_type;
     WonderParserTester m_wonder;
     WorkerJobParserTester m_worker_job;
+    WorkerJobImpParserTester m_worker_job_imp;
+    TileYieldTypeParserTester m_tile_yield_type;
+    ImprovementYieldParserTester m_improvement_yield;
 };
 
 #endif // PARSER_TEST_MANAGER_H

@@ -44,6 +44,9 @@ const DataParserBase* g_unit_type_name_parser = nullptr;
 const DataParserBase* g_unit_name_parser = nullptr;
 const DataParserBase* g_wonder_name_parser = nullptr;
 const DataParserBase* g_worker_job_name_parser = nullptr;
+const DataParserBase* g_worker_job_imp_name_parser = nullptr;
+const DataParserBase* g_tile_yield_type_name_parser = nullptr;
+const DataParserBase* g_improvement_yield_name_parser = nullptr;
 
 u16 cb_building_name_to_idx (cstr name) {
     return g_building_name_parser->name_to_idx(name);
@@ -113,6 +116,18 @@ u16 cb_worker_job_name_to_idx (cstr name) {
     return g_worker_job_name_parser->name_to_idx(name);
 }
 
+u16 cb_worker_job_imp_name_to_idx (cstr name) {
+    return g_worker_job_imp_name_parser->name_to_idx(name);
+}
+
+u16 cb_tile_yield_type_name_to_idx (cstr name) {
+    return g_tile_yield_type_name_parser->name_to_idx(name);
+}
+
+u16 cb_improvement_yield_name_to_idx (cstr name) {
+    return g_improvement_yield_name_parser->name_to_idx(name);
+}
+
 } // namespace
 
 //================================================================================================================================
@@ -140,6 +155,9 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_unit_items(),
     m_wonder_items(),
     m_worker_job_items(),
+    m_worker_job_imp_items(),
+    m_tile_yield_type_items(),
+    m_improvement_yield_items(),
 
     m_building_name_parser(nullptr),
     m_city_flag_name_parser(nullptr),
@@ -158,6 +176,9 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_unit_name_parser(nullptr),
     m_wonder_name_parser(nullptr),
     m_worker_job_name_parser(nullptr),
+    m_worker_job_imp_name_parser(nullptr),
+    m_tile_yield_type_name_parser(nullptr),
+    m_improvement_yield_name_parser(nullptr),
 
     m_name_to_idx_cbs(),
     m_callback_count(0),
@@ -181,7 +202,10 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_unit_type_data(nullptr),
     m_unit_data(nullptr),
     m_wonder_data(nullptr),
-    m_worker_job_data(nullptr)
+    m_worker_job_data(nullptr),
+    m_worker_job_imp_data(nullptr),
+    m_tile_yield_type_data(nullptr),
+    m_improvement_yield_data(nullptr)
 {
     m_effect_items.load_file_content(m_paths.get_path_to_effects());
     m_effect_items.split_string_by_char(0, '\n');
@@ -237,6 +261,15 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_worker_job_items.load_file_content(m_paths.get_path_to_worker_jobs());
     m_worker_job_items.split_string_by_char(0, '\n');
     DataParserBase::normalize_lines(m_worker_job_items);
+    m_worker_job_imp_items.load_file_content(m_paths.get_path_to_worker_job_imps());
+    m_worker_job_imp_items.split_string_by_char(0, '\n');
+    DataParserBase::normalize_lines(m_worker_job_imp_items);
+    m_tile_yield_type_items.load_file_content(m_paths.get_path_to_tile_yield_types());
+    m_tile_yield_type_items.split_string_by_char(0, '\n');
+    DataParserBase::normalize_lines(m_tile_yield_type_items);
+    m_improvement_yield_items.load_file_content(m_paths.get_path_to_improvement_yields());
+    m_improvement_yield_items.split_string_by_char(0, '\n');
+    DataParserBase::normalize_lines(m_improvement_yield_items);
     m_building_name_parser = new DataParserBase(m_building_items, NameToIdxCbs());
     m_city_flag_name_parser = new DataParserBase(m_city_flag_items, NameToIdxCbs());
     m_city_job_name_parser = new DataParserBase(m_city_job_items, NameToIdxCbs());
@@ -254,6 +287,9 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_unit_name_parser = new DataParserBase(m_unit_items, NameToIdxCbs());
     m_wonder_name_parser = new DataParserBase(m_wonder_items, NameToIdxCbs());
     m_worker_job_name_parser = new DataParserBase(m_worker_job_items, NameToIdxCbs());
+    m_worker_job_imp_name_parser = new DataParserBase(m_worker_job_imp_items, NameToIdxCbs());
+    m_tile_yield_type_name_parser = new DataParserBase(m_tile_yield_type_items, NameToIdxCbs());
+    m_improvement_yield_name_parser = new DataParserBase(m_improvement_yield_items, NameToIdxCbs());
     build_name_to_idx_callbacks();
     parse_supported_data();
 }
@@ -278,6 +314,9 @@ StaticParsingManager::~StaticParsingManager () {
     delete m_unit_name_parser;
     delete m_wonder_name_parser;
     delete m_worker_job_name_parser;
+    delete m_worker_job_imp_name_parser;
+    delete m_tile_yield_type_name_parser;
+    delete m_improvement_yield_name_parser;
 }
 
 const BuildingStaticDataStruct* StaticParsingManager::get_building_data () const {
@@ -415,6 +454,30 @@ const WorkerJobStaticDataStruct* StaticParsingManager::get_worker_job_data () co
 u16 StaticParsingManager::get_worker_job_count () const {
     return safe_size_to_u16(m_worker_job_items.get_string_count());
 }
+
+const WorkerJobImpStaticDataStruct* StaticParsingManager::get_worker_job_imp_data () const {
+    return m_worker_job_imp_data;
+}
+
+u16 StaticParsingManager::get_worker_job_imp_count () const {
+    return safe_size_to_u16(m_worker_job_imp_items.get_string_count());
+}
+
+const TileYieldTypeStaticDataStruct* StaticParsingManager::get_tile_yield_type_data () const {
+    return m_tile_yield_type_data;
+}
+
+u16 StaticParsingManager::get_tile_yield_type_count () const {
+    return safe_size_to_u16(m_tile_yield_type_items.get_string_count());
+}
+
+const ImprovementYieldStaticDataStruct* StaticParsingManager::get_improvement_yield_data () const {
+    return m_improvement_yield_data;
+}
+
+u16 StaticParsingManager::get_improvement_yield_count () const {
+    return safe_size_to_u16(m_improvement_yield_items.get_string_count());
+}
 const DataParserBase& StaticParsingManager::get_building_name_parser () const {
     return *m_building_name_parser;
 }
@@ -483,6 +546,18 @@ const DataParserBase& StaticParsingManager::get_worker_job_name_parser () const 
     return *m_worker_job_name_parser;
 }
 
+const DataParserBase& StaticParsingManager::get_worker_job_imp_name_parser () const {
+    return *m_worker_job_imp_name_parser;
+}
+
+const DataParserBase& StaticParsingManager::get_tile_yield_type_name_parser () const {
+    return *m_tile_yield_type_name_parser;
+}
+
+const DataParserBase& StaticParsingManager::get_improvement_yield_name_parser () const {
+    return *m_improvement_yield_name_parser;
+}
+
 StaticBitBank* StaticParsingManager::get_unit_type_action_map_bank () const {
     return m_unit_type_action_map_bank;
 }
@@ -526,6 +601,9 @@ void StaticParsingManager::build_name_to_idx_callbacks () {
     g_unit_name_parser = m_unit_name_parser;
     g_wonder_name_parser = m_wonder_name_parser;
     g_worker_job_name_parser = m_worker_job_name_parser;
+    g_worker_job_imp_name_parser = m_worker_job_imp_name_parser;
+    g_tile_yield_type_name_parser = m_tile_yield_type_name_parser;
+    g_improvement_yield_name_parser = m_improvement_yield_name_parser;
 
     m_name_to_idx_cbs.building_name_to_idx = cb_building_name_to_idx;
     m_name_to_idx_cbs.city_flag_name_to_idx = cb_city_flag_name_to_idx;
@@ -544,8 +622,11 @@ void StaticParsingManager::build_name_to_idx_callbacks () {
     m_name_to_idx_cbs.unit_name_to_idx = cb_unit_name_to_idx;
     m_name_to_idx_cbs.wonder_name_to_idx = cb_wonder_name_to_idx;
     m_name_to_idx_cbs.worker_job_name_to_idx = cb_worker_job_name_to_idx;
+    m_name_to_idx_cbs.worker_job_imp_name_to_idx = cb_worker_job_imp_name_to_idx;
+    m_name_to_idx_cbs.tile_yield_type_name_to_idx = cb_tile_yield_type_name_to_idx;
+    m_name_to_idx_cbs.improvement_yield_name_to_idx = cb_improvement_yield_name_to_idx;
 
-    m_callback_count = 17;
+    m_callback_count = 20;
     DataParserBase::set_item_effect_handler(&m_name_to_idx_cbs, &m_effect_items);
 }
 
@@ -567,6 +648,9 @@ void StaticParsingManager::parse_supported_data () {
     UnitParser unit_parser(m_unit_items, m_name_to_idx_cbs);
     WonderParser wonder_parser(m_wonder_items, m_name_to_idx_cbs);
     WorkerJobParser worker_job_parser(m_worker_job_items, m_name_to_idx_cbs);
+    WorkerJobImpParser worker_job_imp_parser(m_worker_job_imp_items, m_name_to_idx_cbs);
+    TileYieldTypeParser tile_yield_type_parser(m_tile_yield_type_items, m_name_to_idx_cbs);
+    ImprovementYieldParser improvement_yield_parser(m_improvement_yield_items, m_name_to_idx_cbs);
 
     m_building_data = building_parser.parse_data_dependencies();
     m_city_flag_data = city_flag_parser.parse_data_dependencies();
@@ -585,6 +669,9 @@ void StaticParsingManager::parse_supported_data () {
     m_unit_data = unit_parser.parse_data_dependencies();
     m_wonder_data = wonder_parser.parse_data_dependencies();
     m_worker_job_data = worker_job_parser.parse_data_dependencies();
+    m_worker_job_imp_data = worker_job_imp_parser.parse_data_dependencies();
+    m_tile_yield_type_data = tile_yield_type_parser.parse_data_dependencies();
+    m_improvement_yield_data = improvement_yield_parser.parse_data_dependencies();
     
     const u16 unit_type_n = safe_size_to_u16(m_unit_type_items.get_string_count());
     const u16 unit_action_n = safe_size_to_u16(m_unit_action_items.get_string_count());

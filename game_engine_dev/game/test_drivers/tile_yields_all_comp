@@ -1,0 +1,16 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")"
+
+# Add new mkNN tags here as implementations land under tile_yields_impl/.
+IMPLS=(mk01 mk02)
+
+for mk in "${IMPLS[@]}"; do
+    echo "======================================================="
+    echo " TILE_YIELDS mk=${mk}"
+    echo "======================================================="
+    TILE_YIELDS_MK="${mk}" ./tile_yields_farm_table_dump_comp
+    TILE_YIELDS_MK="${mk}" ./tile_yields_farm_infer_comp
+    TILE_YIELDS_MK="${mk}" ./tile_yields_res_tech_comp
+done

@@ -30,6 +30,9 @@ def get_entries ():
         "unit",
         "wonder",
         "worker_job",
+        "worker_job_imp",
+        "tile_yield_type",
+        "improvement_yield",
     ]
 
 def get_req_test_stems ():
@@ -42,6 +45,7 @@ def get_req_test_stems ():
         "wonder",
         "small_wonder",
         "worker_job",
+        "worker_job_imp",
     ]
 
 def get_map_specs ():

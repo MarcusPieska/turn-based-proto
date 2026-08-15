@@ -33,6 +33,9 @@ class StaticParsingManager;
 #include "unit_static_data.h"
 #include "wonder_static_data.h"
 #include "worker_job_static_data.h"
+#include "worker_job_imp_static_data.h"
+#include "tile_yield_type_static_data.h"
+#include "improvement_yield_static_data.h"
 #include "unit_type_action_map.h"
 #include "civ_bld_discount_map.h"
 #include "gen_effector/local_effector.h"
@@ -42,6 +45,7 @@ class StaticParsingManager;
 #include "dyn_produce_register.h"
 #include "dyn_booster_register.h"
 #include "dyn_job_slot_register.h"
+#include "worker_job_imp_index.h"
 
 //================================================================================================================================
 //=> - RuntimeStatics class -
@@ -122,6 +126,18 @@ public:
 
     const WorkerJobStaticData& worker_job () const;
 
+    WorkerJobImpStaticData& worker_job_imp ();
+
+    const WorkerJobImpStaticData& worker_job_imp () const;
+
+    TileYieldTypeStaticData& tile_yield_type ();
+
+    const TileYieldTypeStaticData& tile_yield_type () const;
+
+    ImprovementYieldStaticData& improvement_yield ();
+
+    const ImprovementYieldStaticData& improvement_yield () const;
+
     UnitTypeActionMap& unit_type_action_map ();
 
     const UnitTypeActionMap& unit_type_action_map () const;
@@ -158,6 +174,10 @@ public:
 
     const DynJobSlotRegister& dyn_job_slot () const;
 
+    WorkerJobImpIndex& worker_job_imp_index ();
+
+    const WorkerJobImpIndex& worker_job_imp_index () const;
+
 private:
     GameConfigSettings m_config;
     BuildingStaticData m_building;
@@ -177,6 +197,9 @@ private:
     UnitStaticData m_unit;
     WonderStaticData m_wonder;
     WorkerJobStaticData m_worker_job;
+    WorkerJobImpStaticData m_worker_job_imp;
+    TileYieldTypeStaticData m_tile_yield_type;
+    ImprovementYieldStaticData m_improvement_yield;
     
     UnitTypeActionMap m_unit_type_action_map;
     CivBldDiscountMap m_civ_bld_discount_map;
@@ -189,6 +212,7 @@ private:
     DynProduceRegister m_dyn_produce;
     DynBoosterRegister m_dyn_booster;
     DynJobSlotRegister m_dyn_job_slot;
+    WorkerJobImpIndex m_worker_job_imp_index;
 };
 
 extern RuntimeStatics* g_runtime_statics;

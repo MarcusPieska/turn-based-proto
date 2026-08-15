@@ -12,9 +12,9 @@ TERR_TILE_SENTINEL :   0    : 0  : 0  : 0  : 0  : 0  : 0    : 0   : 0
 
 CLIMATE_NONE       :   0    : 0  : 0  : 0  : 0  : 0  : 0    : 0   : 0   
 CLIMATE_DESERT     :   1000 : 0  : 0  : 0  : 0  : 0  : 0    : 0   : 0   
-CLIMATE_PLAINS     :   0    : 2  : 0  : 0  : 0  : 0  : 0    : 0   : 0   
-CLIMATE_GRASSLAND  :   0    : 3  : 0  : 0  : 0  : 0  : 0    : 0   : 0   
-CLIMATE_BLACK_SOIL :   0    : 4  : 0  : 1  : 0  : 0  : 0    : 0   : 0   
+CLIMATE_PLAINS     :   0    : 1  : 0  : 0  : 0  : 0  : 0    : 0   : 0   
+CLIMATE_GRASSLAND  :   0    : 2  : 0  : 0  : 0  : 0  : 0    : 0   : 0   
+CLIMATE_BLACK_SOIL :   0    : 2  : 0  : 1  : 0  : 0  : 0    : 0   : 0   
 
 OV_NONE            :   0    : 0  : 0  : 0  : 0  : 0  : 0    : 0   : 0   
 OV_FORESTS         :   1000 :-1  : 2  : 0  : 0  : 0  : 0    : 0   : 100   

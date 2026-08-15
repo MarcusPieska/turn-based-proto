@@ -48,6 +48,8 @@ ie_booster_type_enum.append("WAR_WEAR")
 ie_booster_type_enum.append("CULTURE")
 ie_booster_type_enum.append("SANITATION")
 ie_booster_type_enum.append("WORKER_DRAFT")
+ie_booster_type_enum.append("FOOD")
+ie_booster_type_enum.append("RESOURCE")
 
 ie_terrain_yield_enum = []
 ie_terrain_yield_enum.append("NONE")

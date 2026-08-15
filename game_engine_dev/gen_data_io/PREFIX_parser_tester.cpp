@@ -139,8 +139,11 @@ void [CLASS_TAG]ParserTester::pr_fx (cstr label, const ItemEffectsStruct& e) {
                 case ItemEffectBoosterType::UNIT_EXP: tname = "UNIT_EXP"; break;
                 case ItemEffectBoosterType::UPGRADE_COST: tname = "UPGRADE_COST"; break;
                 case ItemEffectBoosterType::WAR_WEAR: tname = "WAR_WEAR"; break;
+                case ItemEffectBoosterType::CULTURE: tname = "CULTURE"; break;
                 case ItemEffectBoosterType::SANITATION: tname = "SANITATION"; break;
                 case ItemEffectBoosterType::WORKER_DRAFT: tname = "WORKER_DRAFT"; break;
+                case ItemEffectBoosterType::FOOD: tname = "FOOD"; break;
+                case ItemEffectBoosterType::RESOURCE: tname = "RESOURCE"; break;
                 default: break;
             }
             const char* sc = "?";

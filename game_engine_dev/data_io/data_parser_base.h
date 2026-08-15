@@ -46,6 +46,9 @@ protected:
     u16 parse_unit_type (const StringManager& line_items, u16 start_idx) const;
     u16 parse_unit_role (const StringManager& line_items, u16 start_idx) const;
     u16 parse_res_type (const StringManager& line_items, u16 start_idx) const;
+    u16 parse_tile_yield_type (const StringManager& line_items, u16 start_idx) const;
+    u16 parse_tile_attribute_idx (const StringManager& line_items, u16 start_idx) const;
+    u16 parse_worker_job_idx (const StringManager& line_items, u16 start_idx) const;
     ItemReqsStruct parse_item_reqs (const StringManager& line_items, u16 start_idx) const;
     ItemEffectsStruct parse_item_effects (const StringManager& line_items, u16 start_idx) const;
     ItemEffectsStruct parse_item_effects_optional (const StringManager& line_items, u16 start_idx) const;

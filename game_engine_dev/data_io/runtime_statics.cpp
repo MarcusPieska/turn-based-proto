@@ -27,6 +27,7 @@
 #include "dyn_produce_register_setup.h"
 #include "dyn_booster_register_setup.h"
 #include "dyn_job_slot_register_setup.h"
+#include "worker_job_imp_index_setup.h"
 
 //================================================================================================================================
 //=> - Globals -
@@ -81,6 +82,12 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_wonder.load_names_from(p.get_wonder_name_parser(), p.get_wonder_count());
     m_worker_job.set_items(const_cast<WorkerJobStaticDataStruct*>(p.get_worker_job_data()), p.get_worker_job_count());
     m_worker_job.load_names_from(p.get_worker_job_name_parser(), p.get_worker_job_count());
+    m_worker_job_imp.set_items(const_cast<WorkerJobImpStaticDataStruct*>(p.get_worker_job_imp_data()), p.get_worker_job_imp_count());
+    m_worker_job_imp.load_names_from(p.get_worker_job_imp_name_parser(), p.get_worker_job_imp_count());
+    m_tile_yield_type.set_items(const_cast<TileYieldTypeStaticDataStruct*>(p.get_tile_yield_type_data()), p.get_tile_yield_type_count());
+    m_tile_yield_type.load_names_from(p.get_tile_yield_type_name_parser(), p.get_tile_yield_type_count());
+    m_improvement_yield.set_items(const_cast<ImprovementYieldStaticDataStruct*>(p.get_improvement_yield_data()), p.get_improvement_yield_count());
+    m_improvement_yield.load_names_from(p.get_improvement_yield_name_parser(), p.get_improvement_yield_count());
 
     u16 flat_fx_n = 0;
     EffectMapStruct* flat_fx = EffectRevMapper::build_flat_list(p, &flat_fx_n);
@@ -111,6 +118,9 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_unit.take_ownership();
     m_wonder.take_ownership();
     m_worker_job.take_ownership();
+    m_worker_job_imp.take_ownership();
+    m_tile_yield_type.take_ownership();
+    m_improvement_yield.take_ownership();
     
     m_unit_type_action_map.set_map(p.get_unit_type_action_map_bank(), p.get_unit_type_count(), p.get_unit_action_count());
     m_unit_type_action_map.take_ownership();
@@ -130,6 +140,10 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
         std::exit(1);
     }
     m_dyn_job_slot.take_ownership();
+    if (!WorkerJobImpIndexSetup::build(*this, m_worker_job_imp_index)) {
+        std::exit(1);
+    }
+    m_worker_job_imp_index.take_ownership();
     GameConfigSettingsParser psr(p.get_name_to_idx_cbs());
     if (!psr.load_file(p.get_path_to_settings(), &m_config)) {
         std::exit(1);
@@ -280,6 +294,30 @@ const WorkerJobStaticData& RuntimeStatics::worker_job () const {
     return m_worker_job;
 }
 
+WorkerJobImpStaticData& RuntimeStatics::worker_job_imp () {
+    return m_worker_job_imp;
+}
+
+const WorkerJobImpStaticData& RuntimeStatics::worker_job_imp () const {
+    return m_worker_job_imp;
+}
+
+TileYieldTypeStaticData& RuntimeStatics::tile_yield_type () {
+    return m_tile_yield_type;
+}
+
+const TileYieldTypeStaticData& RuntimeStatics::tile_yield_type () const {
+    return m_tile_yield_type;
+}
+
+ImprovementYieldStaticData& RuntimeStatics::improvement_yield () {
+    return m_improvement_yield;
+}
+
+const ImprovementYieldStaticData& RuntimeStatics::improvement_yield () const {
+    return m_improvement_yield;
+}
+
 UnitTypeActionMap& RuntimeStatics::unit_type_action_map () {
     return m_unit_type_action_map;
 }
@@ -350,6 +388,14 @@ DynJobSlotRegister& RuntimeStatics::dyn_job_slot () {
 
 const DynJobSlotRegister& RuntimeStatics::dyn_job_slot () const {
     return m_dyn_job_slot;
+}
+
+WorkerJobImpIndex& RuntimeStatics::worker_job_imp_index () {
+    return m_worker_job_imp_index;
+}
+
+const WorkerJobImpIndex& RuntimeStatics::worker_job_imp_index () const {
+    return m_worker_job_imp_index;
 }
 
 //================================================================================================================================

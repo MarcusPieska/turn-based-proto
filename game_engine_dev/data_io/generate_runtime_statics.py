@@ -43,6 +43,10 @@ DYN_REG_STEMS = [
     ("dyn_job_slot", "DynJobSlotRegister", "DynJobSlotRegisterSetup"),
 ]
 
+DERIVED_INDEX_STEMS = [
+    ("worker_job_imp_index", "WorkerJobImpIndex", "WorkerJobImpIndexSetup"),
+]
+
 #================================================================================================================================#
 #=> - RuntimeStatics codegen -
 #================================================================================================================================#
@@ -63,7 +67,10 @@ def lines_runtime_header_effector_includes ():
     return ['#include "gen_effector/%s_effector.h"' % scope_stem(s) for s in SCOPE_ENUMS]
 
 def lines_runtime_header_dyn_reg_includes ():
-    return ['#include "%s_register.h"' % stem for stem, cls, setup in DYN_REG_STEMS]
+    lines = ['#include "%s_register.h"' % stem for stem, cls, setup in DYN_REG_STEMS]
+    for stem, cls, setup in DERIVED_INDEX_STEMS:
+        lines.append('#include "%s.h"' % stem)
+    return lines
 
 def lines_runtime_header_members ():
     lines = ["%s m_%s;" % (static_data_class(stem), stem) for stem in entries]
@@ -75,6 +82,8 @@ def lines_runtime_header_members ():
         lines.append("%s m_%s_fx;" % (scope_class(s), scope_stem(s)))
     lines.append("")
     for stem, cls, setup in DYN_REG_STEMS:
+        lines.append("%s m_%s;" % (cls, stem))
+    for stem, cls, setup in DERIVED_INDEX_STEMS:
         lines.append("%s m_%s;" % (cls, stem))
     return lines
 
@@ -94,6 +103,9 @@ def lines_runtime_header_accessors ():
         lines.append("%s& %s_fx ();" % (cls, stem))
         lines.append("const %s& %s_fx () const;" % (cls, stem))
     for stem, cls, setup in DYN_REG_STEMS:
+        lines.append("%s& %s ();" % (cls, stem))
+        lines.append("const %s& %s () const;" % (cls, stem))
+    for stem, cls, setup in DERIVED_INDEX_STEMS:
         lines.append("%s& %s ();" % (cls, stem))
         lines.append("const %s& %s () const;" % (cls, stem))
     return lines
@@ -118,11 +130,18 @@ def lines_runtime_cpp_dyn_reg_includes ():
     lines = []
     for stem, cls, setup in DYN_REG_STEMS:
         lines.append('#include "%s_register_setup.h"' % stem)
+    for stem, cls, setup in DERIVED_INDEX_STEMS:
+        lines.append('#include "%s_setup.h"' % stem)
     return lines
 
 def lines_runtime_cpp_load_dyn_regs ():
     lines = []
     for stem, cls, setup in DYN_REG_STEMS:
+        lines.append("if (!%s::build(*this, m_%s)) {" % (setup, stem))
+        lines.append("    std::exit(1);")
+        lines.append("}")
+        lines.append("m_%s.take_ownership();" % stem)
+    for stem, cls, setup in DERIVED_INDEX_STEMS:
         lines.append("if (!%s::build(*this, m_%s)) {" % (setup, stem))
         lines.append("    std::exit(1);")
         lines.append("}")
@@ -175,6 +194,9 @@ def lines_runtime_cpp_accessors ():
         blocks.append("%s& RuntimeStatics::%s_fx () {\n    return m_%s_fx;\n}" % (cls, stem, stem))
         blocks.append("const %s& RuntimeStatics::%s_fx () const {\n    return m_%s_fx;\n}" % (cls, stem, stem))
     for stem, cls, setup in DYN_REG_STEMS:
+        blocks.append("%s& RuntimeStatics::%s () {\n    return m_%s;\n}" % (cls, stem, stem))
+        blocks.append("const %s& RuntimeStatics::%s () const {\n    return m_%s;\n}" % (cls, stem, stem))
+    for stem, cls, setup in DERIVED_INDEX_STEMS:
         blocks.append("%s& RuntimeStatics::%s () {\n    return m_%s;\n}" % (cls, stem, stem))
         blocks.append("const %s& RuntimeStatics::%s () const {\n    return m_%s;\n}" % (cls, stem, stem))
     return blocks
@@ -253,6 +275,9 @@ def lines_lib_comp_compile_dyn_regs ():
     for stem, cls, setup in DYN_REG_STEMS:
         lines.append("g++ $INC $CXXFLAGS -c ../city/effector/%s_register.cpp -o %s_register.o" % (stem, stem))
         lines.append("g++ $INC $CXXFLAGS -c ../city/effector/%s_register_setup.cpp -o %s_register_setup.o" % (stem, stem))
+    for stem, cls, setup in DERIVED_INDEX_STEMS:
+        lines.append("g++ $INC $CXXFLAGS -c %s.cpp -o %s.o" % (stem, stem))
+        lines.append("g++ $INC $CXXFLAGS -c %s_setup.cpp -o %s_setup.o" % (stem, stem))
     return lines
 
 def lines_comp_link_dyn_regs ():
@@ -265,6 +290,9 @@ def lines_comp_link_dyn_regs ():
     for stem, cls, setup in DYN_REG_STEMS:
         lines.append("%s_register.o \\" % stem)
         lines.append("%s_register_setup.o \\" % stem)
+    for stem, cls, setup in DERIVED_INDEX_STEMS:
+        lines.append("%s.o \\" % stem)
+        lines.append("%s_setup.o \\" % stem)
     return lines
 
 def lines_comp_clean_dyn_regs ():

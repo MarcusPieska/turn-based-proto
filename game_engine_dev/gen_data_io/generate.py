@@ -21,7 +21,7 @@ PARSER_SPECS.append(("city_job", "CityJob", "food,1,i16:production,2,u16:commerc
 PARSER_SPECS.append(("civ", "Civ", "traits,1,CivTraitStruct"))
 PARSER_SPECS.append(("civ_trait", "CivTrait", ""))
 PARSER_SPECS.append(("tile_attribute", "TileAttribute", "mvt_cost,1,u16:food,2,i16:production,3,u16:commerce,4,u16:culture,5,u16:science,6,u16:religion,7,u16:attack_mod,8,u16:defense_mod,9,u16"))
-PARSER_SPECS.append(("resource", "Resource", "food,1,u16:shields,2,u16:commerce,3,u16:type,4,ResType:reqs,5,ItemReqsStruct:res_dist_idx,0,ResDistIdx"))
+PARSER_SPECS.append(("resource", "Resource", "food,1,u16:shields,2,u16:commerce,3,u16:culture,4,u16:science,5,u16:religion,6,u16:type,7,ResType:reqs,8,ItemReqsStruct:res_dist_idx,0,ResDistIdx"))
 PARSER_SPECS.append(("res_dist", "ResDist", "plc,1,ResPlacement"))
 PARSER_SPECS.append(("res_type", "ResType", ""))
 PARSER_SPECS.append(("small_wonder", "SmallWonder", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStruct"))
@@ -32,6 +32,9 @@ PARSER_SPECS.append(("unit_role", "UnitRole", "mods,1,CombatModList"))
 PARSER_SPECS.append(("unit_type", "UnitType", ""))
 PARSER_SPECS.append(("wonder", "Wonder", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStruct"))
 PARSER_SPECS.append(("worker_job", "WorkerJob", "cost,1,u32:reqs,2,ItemReqsStruct"))
+PARSER_SPECS.append(("worker_job_imp", "WorkerJobImp", "worker_job_idx,1,WorkerJobColIdx:cost,2,u32:reqs,3,ItemReqsStruct:effects,4,ItemEffectsStruct"))
+PARSER_SPECS.append(("tile_yield_type", "TileYieldType", ""))
+PARSER_SPECS.append(("improvement_yield", "ImprovementYield", "cond_attr,1,TileAttributeIdx:yield_type,2,TileYieldType:amount,3,i16:worker_job_idx,0,WorkerJobIdx"))
 
 def derive_req_type(prefix):
     if prefix == "city_flag":
@@ -67,6 +70,12 @@ def get_function_name_from_output_type(output_type):
         return "parse_unit_role"
     elif output_type == "ResType":
         return "parse_res_type"
+    elif output_type == "TileYieldType":
+        return "parse_tile_yield_type"
+    elif output_type == "TileAttributeIdx":
+        return "parse_tile_attribute_idx"
+    elif output_type == "WorkerJobColIdx":
+        return "parse_worker_job_idx"
     elif output_type == "ItemReqsStruct":
         return "parse_item_reqs"
     elif output_type == "ItemEffectsStruct":
@@ -97,6 +106,9 @@ def derive_parsing_lines(parsing_instructions):
         if data_type == "ResDistIdx":
             parsing_lines.append("parsed_data[i].res_dist_idx = m_name_to_idx_cbs.res_dist_name_to_idx(get_names().get_string_content(i));")
             continue
+        if data_type == "WorkerJobIdx":
+            parsing_lines.append("parsed_data[i].%s = m_name_to_idx_cbs.worker_job_name_to_idx(get_names().get_string_content(i));" % member)
+            continue
         function_name = get_function_name_from_output_type(data_type)
         parsing_lines.append("parsed_data[i].%s = %s(line_items, %d);" %(member, function_name, int(idx)))
     return parsing_lines
@@ -107,7 +119,7 @@ def derive_member_print_lines(parsing_instructions):
         return ["// No parsing instructions provided"]
     for instruction in parsing_instructions.split(":"):
         mem, idx, data_type = [part.strip() for part in instruction.strip().split(",")]
-        if data_type in ["u16", "UnitType", "UnitRole", "ResType", "ResDistIdx"]:
+        if data_type in ["u16", "UnitType", "UnitRole", "ResType", "ResDistIdx", "TileYieldType", "TileAttributeIdx", "WorkerJobIdx", "WorkerJobColIdx"]:
             lines.append('pr_u16("%s", item.%s);' % (mem, mem))
         elif data_type == "i16":
             lines.append('pr_i16("%s", item.%s);' % (mem, mem))

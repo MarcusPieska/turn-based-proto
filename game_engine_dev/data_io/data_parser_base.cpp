@@ -351,6 +351,18 @@ u16 DataParserBase::parse_res_type (const StringManager& line_items, u16 start_i
     return m_name_to_idx_cbs.res_type_name_to_idx(line_items.get_string_content(start_idx));
 }
 
+u16 DataParserBase::parse_tile_yield_type (const StringManager& line_items, u16 start_idx) const {
+    return m_name_to_idx_cbs.tile_yield_type_name_to_idx(line_items.get_string_content(start_idx));
+}
+
+u16 DataParserBase::parse_tile_attribute_idx (const StringManager& line_items, u16 start_idx) const {
+    return m_name_to_idx_cbs.tile_attribute_name_to_idx(line_items.get_string_content(start_idx));
+}
+
+u16 DataParserBase::parse_worker_job_idx (const StringManager& line_items, u16 start_idx) const {
+    return m_name_to_idx_cbs.worker_job_name_to_idx(line_items.get_string_content(start_idx));
+}
+
 CombatModList DataParserBase::parse_combat_mods (const StringManager& line_items, u16 start_idx) const {
     CombatModList out = {};
     for (u16 i = start_idx; i < line_items.get_string_count() && out.m_n < COMBAT_MOD_MAX; ++i) {

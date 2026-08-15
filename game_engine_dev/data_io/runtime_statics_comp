@@ -65,6 +65,12 @@ g++ $INC $CXXFLAGS -c wonder_parser.cpp -o wonder_parser.o
 g++ $INC $CXXFLAGS -c wonder_parser_tester.cpp -o wonder_parser_tester.o
 g++ $INC $CXXFLAGS -c worker_job_parser.cpp -o worker_job_parser.o
 g++ $INC $CXXFLAGS -c worker_job_parser_tester.cpp -o worker_job_parser_tester.o
+g++ $INC $CXXFLAGS -c worker_job_imp_parser.cpp -o worker_job_imp_parser.o
+g++ $INC $CXXFLAGS -c worker_job_imp_parser_tester.cpp -o worker_job_imp_parser_tester.o
+g++ $INC $CXXFLAGS -c tile_yield_type_parser.cpp -o tile_yield_type_parser.o
+g++ $INC $CXXFLAGS -c tile_yield_type_parser_tester.cpp -o tile_yield_type_parser_tester.o
+g++ $INC $CXXFLAGS -c improvement_yield_parser.cpp -o improvement_yield_parser.o
+g++ $INC $CXXFLAGS -c improvement_yield_parser_tester.cpp -o improvement_yield_parser_tester.o
 g++ $INC $CXXFLAGS -c parser_test_manager.cpp -o parser_test_manager.o
 
 g++ $CXXFLAGS -o $OUT_BIN \
@@ -113,6 +119,12 @@ g++ $CXXFLAGS -o $OUT_BIN \
     wonder_parser_tester.o \
     worker_job_parser.o \
     worker_job_parser_tester.o \
+    worker_job_imp_parser.o \
+    worker_job_imp_parser_tester.o \
+    tile_yield_type_parser.o \
+    tile_yield_type_parser_tester.o \
+    improvement_yield_parser.o \
+    improvement_yield_parser_tester.o \
     parser_test_manager.o \
     -ldl \
     $LIB_DIR/$LIB_SO \
@@ -162,4 +174,10 @@ rm runtime_static_loader.o runtime_statics_tester.o \
     wonder_parser_tester.o \
     worker_job_parser.o \
     worker_job_parser_tester.o \
+    worker_job_imp_parser.o \
+    worker_job_imp_parser_tester.o \
+    tile_yield_type_parser.o \
+    tile_yield_type_parser_tester.o \
+    improvement_yield_parser.o \
+    improvement_yield_parser_tester.o \
     parser_test_manager.o \

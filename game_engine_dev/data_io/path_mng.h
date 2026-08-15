@@ -15,7 +15,7 @@
 #include "game_primitives.h"
 
 static const u16 PATH_MNG_PATH_N = 512;
-static const u16 PATH_MNG_SUFFIX_MAX_N = 27;
+static const u16 PATH_MNG_SUFFIX_MAX_N = 30;
 static const u16 PATH_MNG_OFFSET_MAX_N = PATH_MNG_PATH_N - PATH_MNG_SUFFIX_MAX_N - 1;
 static const u16 PATH_MNG_OFFSET_BUF_N = PATH_MNG_OFFSET_MAX_N + 1;
 
@@ -46,6 +46,9 @@ public:
     cstr get_path_to_units () const;
     cstr get_path_to_wonders () const;
     cstr get_path_to_worker_jobs () const;
+    cstr get_path_to_worker_job_imps () const;
+    cstr get_path_to_tile_yield_types () const;
+    cstr get_path_to_improvement_yields () const;
     cstr get_path_to_settings () const;
 
 private:
@@ -77,6 +80,9 @@ private:
     char m_path_units[PATH_MNG_PATH_N];
     char m_path_wonders[PATH_MNG_PATH_N];
     char m_path_worker_jobs[PATH_MNG_PATH_N];
+    char m_path_worker_job_imps[PATH_MNG_PATH_N];
+    char m_path_tile_yield_types[PATH_MNG_PATH_N];
+    char m_path_improvement_yields[PATH_MNG_PATH_N];
     char m_path_settings[PATH_MNG_PATH_N];
 };
 

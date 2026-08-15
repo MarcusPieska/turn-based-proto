@@ -1,0 +1,10 @@
+Below are the next steps to take for various development pipelines.
+
+Tile improvement and working:
+ - We will need an effect type that boost tile improvement yields; e.g. "Gunpowder Blasting" for Mines.
+ - We need the tile selector to return tiles that will be worked that miss improvements; this is to help the AI trigger draft workers.
+ - We need a condition for terminating and returning draft workers.
+ - We might want a second stage to mk01-general draft workers that add a few unworked improvements at the end of its run. 
+ - Make sure the improvement yield boost lookup table is moved to data IO.   
+ - We will need a O(1) lookup structure for effects pertaining to tile improvement yields.
+

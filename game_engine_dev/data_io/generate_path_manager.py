@@ -31,6 +31,9 @@ path_config_endings.append("unit_types")
 path_config_endings.append("units")
 path_config_endings.append("wonders")
 path_config_endings.append("worker_jobs")
+path_config_endings.append("worker_job_imps")
+path_config_endings.append("tile_yield_types")
+path_config_endings.append("improvement_yields")
 path_config_endings.append("settings")
 
 #================================================================================================================================#

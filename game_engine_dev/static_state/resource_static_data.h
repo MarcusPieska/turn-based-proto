@@ -16,6 +16,7 @@
 #include "item_reqs.h"
 #include "item_effects.h"
 #include "res_placement.h"
+#include "combat_mod.h"
 #include "game_primitives.h"
 #include "static_string_pool.h"
 
@@ -30,6 +31,9 @@ typedef struct ResourceStaticDataStruct {
     u16 food;
     u16 shields;
     u16 commerce;
+    u16 culture;
+    u16 science;
+    u16 religion;
     u16 type;
     u16 res_dist_idx;
 } ResourceStaticDataStruct;

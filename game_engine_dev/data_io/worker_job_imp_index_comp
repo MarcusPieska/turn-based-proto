@@ -1,0 +1,27 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")"
+
+LIB_SO="./runtime_static_loader_lib.so"
+if [ ! -f "$LIB_SO" ]; then
+    echo "missing $LIB_SO - run ./runtime_static_loader_lib_comp first"
+    exit 1
+fi
+
+INC="-I. -I.. -I../misc -I../static_state -I../city -I../city/effector -I../gen_bit_banks -I../game"
+CXXFLAGS="-std=c++17 -Wall -Wextra"
+
+g++ $CXXFLAGS $INC -c runtime_static_loader.cpp -o runtime_static_loader.o
+g++ $CXXFLAGS $INC -c worker_job_imp_index_tester.cpp -o worker_job_imp_index_tester.o
+
+g++ $CXXFLAGS -o worker_job_imp_index_tester \
+    runtime_static_loader.o \
+    worker_job_imp_index_tester.o \
+    -ldl \
+    $LIB_SO \
+    -Wl,-rpath,'$ORIGIN'
+
+./worker_job_imp_index_tester
+
+rm runtime_static_loader.o worker_job_imp_index_tester.o

@@ -144,6 +144,18 @@ cstr PathMng::get_path_to_worker_jobs () const {
     return m_path_worker_jobs;
 }
 
+cstr PathMng::get_path_to_worker_job_imps () const {
+    return m_path_worker_job_imps;
+}
+
+cstr PathMng::get_path_to_tile_yield_types () const {
+    return m_path_tile_yield_types;
+}
+
+cstr PathMng::get_path_to_improvement_yields () const {
+    return m_path_improvement_yields;
+}
+
 cstr PathMng::get_path_to_settings () const {
     return m_path_settings;
 }
@@ -168,6 +180,9 @@ void PathMng::build_paths () {
     join_path(m_path_units, PATH_MNG_PATH_N, m_path_offset, "game_config.units");
     join_path(m_path_wonders, PATH_MNG_PATH_N, m_path_offset, "game_config.wonders");
     join_path(m_path_worker_jobs, PATH_MNG_PATH_N, m_path_offset, "game_config.worker_jobs");
+    join_path(m_path_worker_job_imps, PATH_MNG_PATH_N, m_path_offset, "game_config.worker_job_imps");
+    join_path(m_path_tile_yield_types, PATH_MNG_PATH_N, m_path_offset, "game_config.tile_yield_types");
+    join_path(m_path_improvement_yields, PATH_MNG_PATH_N, m_path_offset, "game_config.improvement_yields");
     join_path(m_path_settings, PATH_MNG_PATH_N, m_path_offset, "game_config.settings");
 }
 
@@ -248,6 +263,18 @@ void PathMng::validate_paths_or_exit () const {
     }
     if (!does_file_exist(m_path_worker_jobs)) {
         printf("ERROR: Missing file: %s\n", m_path_worker_jobs);
+        ++error_count;
+    }
+    if (!does_file_exist(m_path_worker_job_imps)) {
+        printf("ERROR: Missing file: %s\n", m_path_worker_job_imps);
+        ++error_count;
+    }
+    if (!does_file_exist(m_path_tile_yield_types)) {
+        printf("ERROR: Missing file: %s\n", m_path_tile_yield_types);
+        ++error_count;
+    }
+    if (!does_file_exist(m_path_improvement_yields)) {
+        printf("ERROR: Missing file: %s\n", m_path_improvement_yields);
         ++error_count;
     }
     if (!does_file_exist(m_path_settings)) {

@@ -40,6 +40,9 @@ g++ $INC $CXXFLAGS -c unit_type_parser.cpp -o unit_type_parser.o
 g++ $INC $CXXFLAGS -c unit_parser.cpp -o unit_parser.o
 g++ $INC $CXXFLAGS -c wonder_parser.cpp -o wonder_parser.o
 g++ $INC $CXXFLAGS -c worker_job_parser.cpp -o worker_job_parser.o
+g++ $INC $CXXFLAGS -c worker_job_imp_parser.cpp -o worker_job_imp_parser.o
+g++ $INC $CXXFLAGS -c tile_yield_type_parser.cpp -o tile_yield_type_parser.o
+g++ $INC $CXXFLAGS -c improvement_yield_parser.cpp -o improvement_yield_parser.o
 g++ $INC $CXXFLAGS -c ../misc/static_string_pool.cpp -o static_string_pool.o
 g++ $INC $CXXFLAGS -c ../static_state/building_static_data.cpp -o building_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/building_static_data_load.cpp -o building_static_data_load.o
@@ -75,6 +78,12 @@ g++ $INC $CXXFLAGS -c ../static_state/wonder_static_data.cpp -o wonder_static_da
 g++ $INC $CXXFLAGS -c ../static_state/wonder_static_data_load.cpp -o wonder_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/worker_job_static_data.cpp -o worker_job_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/worker_job_static_data_load.cpp -o worker_job_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/worker_job_imp_static_data.cpp -o worker_job_imp_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/worker_job_imp_static_data_load.cpp -o worker_job_imp_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/tile_yield_type_static_data.cpp -o tile_yield_type_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/tile_yield_type_static_data_load.cpp -o tile_yield_type_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/improvement_yield_static_data.cpp -o improvement_yield_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/improvement_yield_static_data_load.cpp -o improvement_yield_static_data_load.o
 g++ $INC $CXXFLAGS -c ../gen_effector/effect_scoper_common.cpp -o effect_scoper_common.o
 g++ $INC $CXXFLAGS -c ../gen_effector/effect_rev_mapper.cpp -o effect_rev_mapper.o
 g++ $INC $CXXFLAGS -c ../gen_effector/local_effector.cpp -o local_effector.o
@@ -91,6 +100,8 @@ g++ $INC $CXXFLAGS -c ../city/effector/dyn_booster_register.cpp -o dyn_booster_r
 g++ $INC $CXXFLAGS -c ../city/effector/dyn_booster_register_setup.cpp -o dyn_booster_register_setup.o
 g++ $INC $CXXFLAGS -c ../city/effector/dyn_job_slot_register.cpp -o dyn_job_slot_register.o
 g++ $INC $CXXFLAGS -c ../city/effector/dyn_job_slot_register_setup.cpp -o dyn_job_slot_register_setup.o
+g++ $INC $CXXFLAGS -c worker_job_imp_index.cpp -o worker_job_imp_index.o
+g++ $INC $CXXFLAGS -c worker_job_imp_index_setup.cpp -o worker_job_imp_index_setup.o
 g++ $INC $CXXFLAGS -c ../static_state/config_settings_static.cpp -o config_settings_static.o
 g++ $INC $CXXFLAGS -c ../static_state/config_settings_parse.cpp -o config_settings_parse.o
 g++ $INC $CXXFLAGS -c static_parsing_manager.cpp -o static_parsing_manager.o
@@ -125,6 +136,9 @@ g++ -shared -o $OUT_SO \
     unit_parser.o \
     wonder_parser.o \
     worker_job_parser.o \
+    worker_job_imp_parser.o \
+    tile_yield_type_parser.o \
+    improvement_yield_parser.o \
     building_static_data.o \
     building_static_data_load.o \
     city_flag_static_data.o \
@@ -159,6 +173,12 @@ g++ -shared -o $OUT_SO \
     wonder_static_data_load.o \
     worker_job_static_data.o \
     worker_job_static_data_load.o \
+    worker_job_imp_static_data.o \
+    worker_job_imp_static_data_load.o \
+    tile_yield_type_static_data.o \
+    tile_yield_type_static_data_load.o \
+    improvement_yield_static_data.o \
+    improvement_yield_static_data_load.o \
     static_string_pool.o \
     effect_scoper_common.o \
     effect_rev_mapper.o \
@@ -176,6 +196,8 @@ g++ -shared -o $OUT_SO \
     dyn_booster_register_setup.o \
     dyn_job_slot_register.o \
     dyn_job_slot_register_setup.o \
+    worker_job_imp_index.o \
+    worker_job_imp_index_setup.o \
     config_settings_static.o \
     config_settings_parse.o \
     static_parsing_manager.o \
@@ -210,6 +232,9 @@ rm \
     unit_parser.o \
     wonder_parser.o \
     worker_job_parser.o \
+    worker_job_imp_parser.o \
+    tile_yield_type_parser.o \
+    improvement_yield_parser.o \
     building_static_data.o \
     building_static_data_load.o \
     city_flag_static_data.o \
@@ -244,6 +269,12 @@ rm \
     wonder_static_data_load.o \
     worker_job_static_data.o \
     worker_job_static_data_load.o \
+    worker_job_imp_static_data.o \
+    worker_job_imp_static_data_load.o \
+    tile_yield_type_static_data.o \
+    tile_yield_type_static_data_load.o \
+    improvement_yield_static_data.o \
+    improvement_yield_static_data_load.o \
     static_string_pool.o \
     effect_scoper_common.o \
     effect_rev_mapper.o \
@@ -261,6 +292,8 @@ rm \
     dyn_booster_register_setup.o \
     dyn_job_slot_register.o \
     dyn_job_slot_register_setup.o \
+    worker_job_imp_index.o \
+    worker_job_imp_index_setup.o \
     config_settings_static.o \
     config_settings_parse.o \
     static_parsing_manager.o \

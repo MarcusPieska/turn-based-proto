@@ -35,6 +35,9 @@ class StaticBitBank;
 #include "unit_parser.h"
 #include "wonder_parser.h"
 #include "worker_job_parser.h"
+#include "worker_job_imp_parser.h"
+#include "tile_yield_type_parser.h"
+#include "improvement_yield_parser.h"
 
 #include "building_static_data.h"
 #include "city_flag_static_data.h"
@@ -53,6 +56,9 @@ class StaticBitBank;
 #include "unit_static_data.h"
 #include "wonder_static_data.h"
 #include "worker_job_static_data.h"
+#include "worker_job_imp_static_data.h"
+#include "tile_yield_type_static_data.h"
+#include "improvement_yield_static_data.h"
 
 //================================================================================================================================
 //=> - StaticParsingManager class -
@@ -130,6 +136,18 @@ public:
     const WorkerJobStaticDataStruct* get_worker_job_data () const;
 
     u16 get_worker_job_count () const;
+
+    const WorkerJobImpStaticDataStruct* get_worker_job_imp_data () const;
+
+    u16 get_worker_job_imp_count () const;
+
+    const TileYieldTypeStaticDataStruct* get_tile_yield_type_data () const;
+
+    u16 get_tile_yield_type_count () const;
+
+    const ImprovementYieldStaticDataStruct* get_improvement_yield_data () const;
+
+    u16 get_improvement_yield_count () const;
     const DataParserBase& get_building_name_parser () const;
 
     const DataParserBase& get_city_flag_name_parser () const;
@@ -163,6 +181,12 @@ public:
     const DataParserBase& get_wonder_name_parser () const;
 
     const DataParserBase& get_worker_job_name_parser () const;
+
+    const DataParserBase& get_worker_job_imp_name_parser () const;
+
+    const DataParserBase& get_tile_yield_type_name_parser () const;
+
+    const DataParserBase& get_improvement_yield_name_parser () const;
     
     StaticBitBank* get_unit_type_action_map_bank () const;
 
@@ -204,6 +228,9 @@ private:
     StringManager m_unit_items;
     StringManager m_wonder_items;
     StringManager m_worker_job_items;
+    StringManager m_worker_job_imp_items;
+    StringManager m_tile_yield_type_items;
+    StringManager m_improvement_yield_items;
 
     DataParserBase* m_building_name_parser;
     DataParserBase* m_city_flag_name_parser;
@@ -222,6 +249,9 @@ private:
     DataParserBase* m_unit_name_parser;
     DataParserBase* m_wonder_name_parser;
     DataParserBase* m_worker_job_name_parser;
+    DataParserBase* m_worker_job_imp_name_parser;
+    DataParserBase* m_tile_yield_type_name_parser;
+    DataParserBase* m_improvement_yield_name_parser;
 
     NameToIdxCbs m_name_to_idx_cbs;
     u16 m_callback_count;
@@ -246,6 +276,9 @@ private:
     UnitStaticDataStruct* m_unit_data;
     WonderStaticDataStruct* m_wonder_data;
     WorkerJobStaticDataStruct* m_worker_job_data;
+    WorkerJobImpStaticDataStruct* m_worker_job_imp_data;
+    TileYieldTypeStaticDataStruct* m_tile_yield_type_data;
+    ImprovementYieldStaticDataStruct* m_improvement_yield_data;
 };
 
 #endif // STATIC_PARSING_MANAGER_H

@@ -68,6 +68,8 @@ ItemEffectBoosterType ItemEffectHelper::booster_type_str_to_enum (cstr s) {
     if (s && std::strcmp(s, "CULTURE") == 0) { return ItemEffectBoosterType::CULTURE; }
     if (s && std::strcmp(s, "SANITATION") == 0) { return ItemEffectBoosterType::SANITATION; }
     if (s && std::strcmp(s, "WORKER_DRAFT") == 0) { return ItemEffectBoosterType::WORKER_DRAFT; }
+    if (s && std::strcmp(s, "FOOD") == 0) { return ItemEffectBoosterType::FOOD; }
+    if (s && std::strcmp(s, "RESOURCE") == 0) { return ItemEffectBoosterType::RESOURCE; }
     return ItemEffectBoosterType::NONE;
 }
 
@@ -97,6 +99,8 @@ cstr ItemEffectHelper::booster_type_enum_to_str (ItemEffectBoosterType v) {
         case ItemEffectBoosterType::CULTURE : return "CULTURE";
         case ItemEffectBoosterType::SANITATION : return "SANITATION";
         case ItemEffectBoosterType::WORKER_DRAFT : return "WORKER_DRAFT";
+        case ItemEffectBoosterType::FOOD : return "FOOD";
+        case ItemEffectBoosterType::RESOURCE : return "RESOURCE";
         default: return "NONE";
     }
 }

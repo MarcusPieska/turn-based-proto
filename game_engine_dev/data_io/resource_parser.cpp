@@ -26,8 +26,11 @@ ResourceStaticDataStruct* ResourceParser::parse_data_dependencies () {
         parsed_data[i].food = parse_u16(line_items, 1);
         parsed_data[i].shields = parse_u16(line_items, 2);
         parsed_data[i].commerce = parse_u16(line_items, 3);
-        parsed_data[i].type = parse_res_type(line_items, 4);
-        parsed_data[i].reqs = parse_item_reqs(line_items, 5);
+        parsed_data[i].culture = parse_u16(line_items, 4);
+        parsed_data[i].science = parse_u16(line_items, 5);
+        parsed_data[i].religion = parse_u16(line_items, 6);
+        parsed_data[i].type = parse_res_type(line_items, 7);
+        parsed_data[i].reqs = parse_item_reqs(line_items, 8);
         parsed_data[i].res_dist_idx = m_name_to_idx_cbs.res_dist_name_to_idx(get_names().get_string_content(i));
     }
     return parsed_data;

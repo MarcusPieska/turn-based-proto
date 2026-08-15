@@ -1,0 +1,6 @@
+Farm    : CLIMATE_DESERT     : FOOD     :   1 
+Farm    : CLIMATE_PLAINS     : FOOD     :   1 
+Farm    : CLIMATE_GRASSLAND  : FOOD     :   1
+Farm    : CLIMATE_BLACK_SOIL : FOOD     :   2 
+Farm    : OV_RIVERS          : FOOD     :   1
+Farm    : OV_RIVERS          : COMMERCE :   1

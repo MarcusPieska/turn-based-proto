@@ -31,6 +31,9 @@ typedef struct NameToIdxCbs {
     u16 (*unit_type_name_to_idx)(cstr);
     u16 (*wonder_name_to_idx)(cstr);
     u16 (*worker_job_name_to_idx)(cstr);
+    u16 (*worker_job_imp_name_to_idx)(cstr);
+    u16 (*tile_yield_type_name_to_idx)(cstr);
+    u16 (*improvement_yield_name_to_idx)(cstr);
 } NameToIdxCbs;
 
 #endif // NAME_TO_IDX_CBS_H

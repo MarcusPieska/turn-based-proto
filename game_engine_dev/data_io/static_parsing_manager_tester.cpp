@@ -86,6 +86,9 @@ void print_item_counts (const StaticParsingManager& parser) {
     print_u16_member("unit", parser.get_unit_count());
     print_u16_member("wonder", parser.get_wonder_count());
     print_u16_member("worker_job", parser.get_worker_job_count());
+    print_u16_member("worker_job_imp", parser.get_worker_job_imp_count());
+    print_u16_member("tile_yield_type", parser.get_tile_yield_type_count());
+    print_u16_member("improvement_yield", parser.get_improvement_yield_count());
     print_u16_member("callback", parser.get_callback_count());
 }
 
@@ -161,6 +164,9 @@ void run_req_bounds_tests (const StaticParsingManager& parser) {
     
     result = test_dataset_req_bounds(parser, parser.get_worker_job_data(), parser.get_worker_job_count(), "worker_job");
     note_result(result, "WorkerJobStaticDataStruct req indices in bounds");
+    
+    result = test_dataset_req_bounds(parser, parser.get_worker_job_imp_data(), parser.get_worker_job_imp_count(), "worker_job_imp");
+    note_result(result, "WorkerJobImpStaticDataStruct req indices in bounds");
 }
 
 void run_map_tests (const StaticParsingManager& parser, const RuntimeStatics& statics) {
