@@ -34,8 +34,16 @@ static u16 st_building_n2i (cstr name) {
     return g_st->get_building_name_parser().name_to_idx(name);
 }
 
-static u16 st_city_flag_n2i (cstr name) {
-    return g_st->get_city_flag_name_parser().name_to_idx(name);
+static u16 st_toggle_city_n2i (cstr name) {
+    return g_st->get_toggle_city_name_parser().name_to_idx(name);
+}
+
+static u16 st_toggle_civ_n2i (cstr name) {
+    return g_st->get_toggle_civ_name_parser().name_to_idx(name);
+}
+
+static u16 st_toggle_global_n2i (cstr name) {
+    return g_st->get_toggle_global_name_parser().name_to_idx(name);
 }
 
 static u16 st_civ_n2i (cstr name) {
@@ -74,6 +82,10 @@ static u16 st_unit_action_n2i (cstr name) {
     return g_st->get_unit_action_name_parser().name_to_idx(name);
 }
 
+static u16 st_unit_role_n2i (cstr name) {
+    return g_st->get_unit_role_name_parser().name_to_idx(name);
+}
+
 static u16 st_unit_type_n2i (cstr name) {
     return g_st->get_unit_type_name_parser().name_to_idx(name);
 }
@@ -84,7 +96,9 @@ static u16 st_wonder_n2i (cstr name) {
 
 static void fill_cbs (NameToIdxCbs* cbs) {
     cbs->building_name_to_idx = st_building_n2i;
-    cbs->city_flag_name_to_idx = st_city_flag_n2i;
+    cbs->toggle_city_name_to_idx = st_toggle_city_n2i;
+    cbs->toggle_civ_name_to_idx = st_toggle_civ_n2i;
+    cbs->toggle_global_name_to_idx = st_toggle_global_n2i;
     cbs->civ_name_to_idx = st_civ_n2i;
     cbs->civ_trait_name_to_idx = st_civ_trait_n2i;
     cbs->tile_attribute_name_to_idx = st_tile_attribute_n2i;
@@ -94,6 +108,7 @@ static void fill_cbs (NameToIdxCbs* cbs) {
     cbs->tech_name_to_idx = st_tech_n2i;
     cbs->unit_name_to_idx = st_unit_n2i;
     cbs->unit_action_name_to_idx = st_unit_action_n2i;
+    cbs->unit_role_name_to_idx = st_unit_role_n2i;
     cbs->unit_type_name_to_idx = st_unit_type_n2i;
     cbs->wonder_name_to_idx = st_wonder_n2i;
 }
@@ -150,6 +165,7 @@ int main (int argc, char* argv[]) {
         return 1;
     }
     print_config(cfg);
+    DataParserBase::check_errors();
     return 0;
 }
 

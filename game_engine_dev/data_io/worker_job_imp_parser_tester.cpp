@@ -28,7 +28,9 @@ WorkerJobImpParserTester::WorkerJobImpParserTester () :
     m_plvl(0), 
     m_out(NULL), 
     m_building_sd(NULL),
-    m_city_flag_sd(NULL),
+    m_toggle_city_sd(NULL),
+    m_toggle_civ_sd(NULL),
+    m_toggle_global_sd(NULL),
     m_city_job_sd(NULL),
     m_civ_sd(NULL),
     m_civ_trait_sd(NULL),
@@ -48,7 +50,9 @@ WorkerJobImpParserTester::WorkerJobImpParserTester () :
     m_tile_yield_type_sd(NULL),
     m_improvement_yield_sd(NULL), 
     m_building_psr(NULL),
-    m_city_flag_psr(NULL),
+    m_toggle_city_psr(NULL),
+    m_toggle_civ_psr(NULL),
+    m_toggle_global_psr(NULL),
     m_city_job_psr(NULL),
     m_civ_psr(NULL),
     m_civ_trait_psr(NULL),
@@ -76,9 +80,21 @@ void WorkerJobImpParserTester::set_building_sd (const BuildingStaticData* sd) {
 
 }
 
-void WorkerJobImpParserTester::set_city_flag_sd (const CityFlagStaticData* sd) {
+void WorkerJobImpParserTester::set_toggle_city_sd (const ToggleCityStaticData* sd) {
 
-    m_city_flag_sd = sd;
+    m_toggle_city_sd = sd;
+
+}
+
+void WorkerJobImpParserTester::set_toggle_civ_sd (const ToggleCivStaticData* sd) {
+
+    m_toggle_civ_sd = sd;
+
+}
+
+void WorkerJobImpParserTester::set_toggle_global_sd (const ToggleGlobalStaticData* sd) {
+
+    m_toggle_global_sd = sd;
 
 }
 
@@ -231,11 +247,25 @@ u16 WorkerJobImpParserTester::st_building_n2i (cstr name) {
     return s_inst->m_building_psr->name_to_idx(name);
 }
 
-u16 WorkerJobImpParserTester::st_city_flag_n2i (cstr name) {
-    if (s_inst == NULL || s_inst->m_city_flag_psr == NULL) {
+u16 WorkerJobImpParserTester::st_toggle_city_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_toggle_city_psr == NULL) {
         return U16_KEY_NULL;
     }
-    return s_inst->m_city_flag_psr->name_to_idx(name);
+    return s_inst->m_toggle_city_psr->name_to_idx(name);
+}
+
+u16 WorkerJobImpParserTester::st_toggle_civ_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_toggle_civ_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_toggle_civ_psr->name_to_idx(name);
+}
+
+u16 WorkerJobImpParserTester::st_toggle_global_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_toggle_global_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_toggle_global_psr->name_to_idx(name);
 }
 
 u16 WorkerJobImpParserTester::st_city_job_n2i (cstr name) {
@@ -395,10 +425,10 @@ void WorkerJobImpParserTester::pr_reqs (cstr label, const ItemReqsStruct& reqs) 
                 fprintf(out(), "    [%u] type=%u %s (%u)", j, type, m_building_psr->idx_to_name(idx), idx);
             }
         } else if (type == ITEM_REQ_TYPE_FLAG) {
-            if (m_city_flag_sd != NULL && idx < m_city_flag_sd->get_item_count()) {
-                fprintf(out(), "    [%u] type=%u %s (%u)", j, type, m_city_flag_sd->get_name(CityFlagStaticDataKey::from_raw(idx)), idx);
-            } else if (m_city_flag_psr != NULL) {
-                fprintf(out(), "    [%u] type=%u %s (%u)", j, type, m_city_flag_psr->idx_to_name(idx), idx);
+            if (m_toggle_city_sd != NULL && idx < m_toggle_city_sd->get_item_count()) {
+                fprintf(out(), "    [%u] type=%u %s (%u)", j, type, m_toggle_city_sd->get_name(ToggleCityStaticDataKey::from_raw(idx)), idx);
+            } else if (m_toggle_city_psr != NULL) {
+                fprintf(out(), "    [%u] type=%u %s (%u)", j, type, m_toggle_city_psr->idx_to_name(idx), idx);
             }
         } else if (type == ITEM_REQ_TYPE_CIV) {
             if (m_civ_sd != NULL && idx < m_civ_sd->get_item_count()) {
@@ -522,28 +552,43 @@ void WorkerJobImpParserTester::pr_fx (cstr label, const ItemEffectsStruct& e) {
             fprintf(out(), " build_mode=%s upkeep=%s", bm, um);
             break;
         }
-        case ItemEffectType::ENABLE: {
+        case ItemEffectType::ENABLE_CITY: {
             const ItemEffectEnable& en = slot.effect.enable;
-            const char* fn = "?";
-            switch (en.feature_id) {
-                case 1: fn = "ALL_GOVERNMENTS"; break;
-                case 2: fn = "UNIT_VETERAN"; break;
-                case 3: fn = "DIPLOMACY"; break;
-                case 4: fn = "NUKES"; break;
-                case 5: fn = "SPACE"; break;
-                case 6: fn = "SHIP_BUILD"; break;
-                case 7: fn = "AIR_UNIT"; break;
-                default: break;
+            if (en.feature_id == U16_KEY_NULL) {
+                fprintf(out(), " enableCity");
+            } else if (m_toggle_city_sd != NULL && en.feature_id < m_toggle_city_sd->get_item_count()) {
+                fprintf(out(), " enableCity %s (%u)", m_toggle_city_sd->get_name(ToggleCityStaticDataKey::from_raw(en.feature_id)), static_cast<u32>(en.feature_id));
+            } else if (m_toggle_city_psr != NULL) {
+                fprintf(out(), " enableCity %s (%u)", m_toggle_city_psr->idx_to_name(en.feature_id), static_cast<u32>(en.feature_id));
+            } else {
+                fprintf(out(), " enableCity <unknown> (%u)", static_cast<u32>(en.feature_id));
             }
-            const char* sc = "?";
-            switch (en.scope) {
-                case ItemEffectsScope::LOCAL: sc = "LOCAL"; break;
-                case ItemEffectsScope::CITY: sc = "CITY"; break;
-                case ItemEffectsScope::GLOBAL: sc = "CIV"; break;
-                default: break;
+            break;
+        }
+        case ItemEffectType::ENABLE_CIV: {
+            const ItemEffectEnable& en = slot.effect.enable;
+            if (en.feature_id == U16_KEY_NULL) {
+                fprintf(out(), " enableCiv");
+            } else if (m_toggle_civ_sd != NULL && en.feature_id < m_toggle_civ_sd->get_item_count()) {
+                fprintf(out(), " enableCiv %s (%u)", m_toggle_civ_sd->get_name(ToggleCivStaticDataKey::from_raw(en.feature_id)), static_cast<u32>(en.feature_id));
+            } else if (m_toggle_civ_psr != NULL) {
+                fprintf(out(), " enableCiv %s (%u)", m_toggle_civ_psr->idx_to_name(en.feature_id), static_cast<u32>(en.feature_id));
+            } else {
+                fprintf(out(), " enableCiv <unknown> (%u)", static_cast<u32>(en.feature_id));
             }
-            fprintf(out(), " enable %s (%u)", fn, static_cast<u32>(en.feature_id));
-            fprintf(out(), " scope=%s", sc);
+            break;
+        }
+        case ItemEffectType::ENABLE_GLOBAL: {
+            const ItemEffectEnable& en = slot.effect.enable;
+            if (en.feature_id == U16_KEY_NULL) {
+                fprintf(out(), " enableGlobal");
+            } else if (m_toggle_global_sd != NULL && en.feature_id < m_toggle_global_sd->get_item_count()) {
+                fprintf(out(), " enableGlobal %s (%u)", m_toggle_global_sd->get_name(ToggleGlobalStaticDataKey::from_raw(en.feature_id)), static_cast<u32>(en.feature_id));
+            } else if (m_toggle_global_psr != NULL) {
+                fprintf(out(), " enableGlobal %s (%u)", m_toggle_global_psr->idx_to_name(en.feature_id), static_cast<u32>(en.feature_id));
+            } else {
+                fprintf(out(), " enableGlobal <unknown> (%u)", static_cast<u32>(en.feature_id));
+            }
             break;
         }
         case ItemEffectType::RESEARCH_TECH: {
@@ -579,10 +624,10 @@ void WorkerJobImpParserTester::pr_fx (cstr label, const ItemEffectsStruct& e) {
             }
             if (sf.flag_id == U16_KEY_NULL) {
                 fprintf(out(), " setFlag");
-            } else if (m_city_flag_sd != NULL && sf.flag_id < m_city_flag_sd->get_item_count()) {
-                fprintf(out(), " setFlag %s (%u)", m_city_flag_sd->get_name(CityFlagStaticDataKey::from_raw(sf.flag_id)), static_cast<u32>(sf.flag_id));
-            } else if (m_city_flag_psr != NULL) {
-                fprintf(out(), " setFlag %s (%u)", m_city_flag_psr->idx_to_name(sf.flag_id), static_cast<u32>(sf.flag_id));
+            } else if (m_toggle_city_sd != NULL && sf.flag_id < m_toggle_city_sd->get_item_count()) {
+                fprintf(out(), " setFlag %s (%u)", m_toggle_city_sd->get_name(ToggleCityStaticDataKey::from_raw(sf.flag_id)), static_cast<u32>(sf.flag_id));
+            } else if (m_toggle_city_psr != NULL) {
+                fprintf(out(), " setFlag %s (%u)", m_toggle_city_psr->idx_to_name(sf.flag_id), static_cast<u32>(sf.flag_id));
             } else {
                 fprintf(out(), " setFlag <unknown> (%u)", static_cast<u32>(sf.flag_id));
             }
@@ -677,7 +722,9 @@ int WorkerJobImpParserTester::run () {
     NameToIdxCbs cbs = {};
 
     cbs.building_name_to_idx = st_building_n2i;
-    cbs.city_flag_name_to_idx = st_city_flag_n2i;
+    cbs.toggle_city_name_to_idx = st_toggle_city_n2i;
+    cbs.toggle_civ_name_to_idx = st_toggle_civ_n2i;
+    cbs.toggle_global_name_to_idx = st_toggle_global_n2i;
     cbs.city_job_name_to_idx = st_city_job_n2i;
     cbs.civ_name_to_idx = st_civ_n2i;
     cbs.civ_trait_name_to_idx = st_civ_trait_n2i;
@@ -700,7 +747,9 @@ int WorkerJobImpParserTester::run () {
     PathMng paths("../");
 
     StringManager building_items;
-    StringManager city_flag_items;
+    StringManager toggle_city_items;
+    StringManager toggle_civ_items;
+    StringManager toggle_global_items;
     StringManager city_job_items;
     StringManager civ_items;
     StringManager civ_trait_items;
@@ -723,7 +772,9 @@ int WorkerJobImpParserTester::run () {
     StringManager effect_items;
 
     ld_sm(building_items, paths.get_path_to_buildings());
-    ld_sm(city_flag_items, paths.get_path_to_city_flags());
+    ld_sm(toggle_city_items, paths.get_path_to_toggle_city());
+    ld_sm(toggle_civ_items, paths.get_path_to_toggle_civ());
+    ld_sm(toggle_global_items, paths.get_path_to_toggle_global());
     ld_sm(city_job_items, paths.get_path_to_city_jobs());
     ld_sm(civ_items, paths.get_path_to_civs());
     ld_sm(civ_trait_items, paths.get_path_to_civ_traits());
@@ -749,7 +800,9 @@ int WorkerJobImpParserTester::run () {
     }
 
     DataParserBase building_parser(building_items, cbs);
-    DataParserBase city_flag_parser(city_flag_items, cbs);
+    DataParserBase toggle_city_parser(toggle_city_items, cbs);
+    DataParserBase toggle_civ_parser(toggle_civ_items, cbs);
+    DataParserBase toggle_global_parser(toggle_global_items, cbs);
     DataParserBase city_job_parser(city_job_items, cbs);
     DataParserBase civ_parser(civ_items, cbs);
     DataParserBase civ_trait_parser(civ_trait_items, cbs);
@@ -770,7 +823,9 @@ int WorkerJobImpParserTester::run () {
     DataParserBase improvement_yield_parser(improvement_yield_items, cbs);
 
     m_building_psr = &building_parser;
-    m_city_flag_psr = &city_flag_parser;
+    m_toggle_city_psr = &toggle_city_parser;
+    m_toggle_civ_psr = &toggle_civ_parser;
+    m_toggle_global_psr = &toggle_global_parser;
     m_city_job_psr = &city_job_parser;
     m_civ_psr = &civ_parser;
     m_civ_trait_psr = &civ_trait_parser;

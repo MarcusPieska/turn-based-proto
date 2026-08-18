@@ -28,6 +28,9 @@ static u32 g_name_lookup_errors = 0;
 
 static const StringManager* g_building_names = nullptr;
 static const StringManager* g_unit_names = nullptr;
+static const StringManager* g_toggle_city_names = nullptr;
+static const StringManager* g_toggle_civ_names = nullptr;
+static const StringManager* g_toggle_global_names = nullptr;
 
 //================================================================================================================================
 //=> - Name resolution (same rules as DataParserBase::name_to_idx / idx_to_name on RawItem lists) -
@@ -137,6 +140,34 @@ u16 cb_unit_name_to_idx (cstr name) {
     return raw_items_name_to_idx(*g_unit_names, name);
 }
 
+static u16 toggle_name_to_idx (const StringManager* names, cstr name) {
+    if (names == nullptr) {
+        return U16_KEY_NULL;
+    }
+    char target[256];
+    if (!trim_to_buf(name, target, sizeof(target))) {
+        return U16_KEY_NULL;
+    }
+    for (u32 i = 0; i < names->get_string_count(); ++i) {
+        if (streq_trimmed(names->get_string_content(i), target)) {
+            return static_cast<u16>(i);
+        }
+    }
+    return U16_KEY_NULL;
+}
+
+u16 cb_toggle_city_name_to_idx (cstr name) {
+    return toggle_name_to_idx(g_toggle_city_names, name);
+}
+
+u16 cb_toggle_civ_name_to_idx (cstr name) {
+    return toggle_name_to_idx(g_toggle_civ_names, name);
+}
+
+u16 cb_toggle_global_name_to_idx (cstr name) {
+    return toggle_name_to_idx(g_toggle_global_names, name);
+}
+
 //================================================================================================================================
 //=> - Test helpers (logging, CLI) -
 //================================================================================================================================
@@ -207,9 +238,14 @@ void print_item_effects_readable (
             printf("      upkeep:   %s\n", ItemEffectHelper::upkeep_mode_enum_to_str(e.effect.build.upkeep_mode));
             break;
         }
-        case ItemEffectType::ENABLE:
+        case ItemEffectType::ENABLE_CITY:
             printf("      feature_id: %u\n", e.effect.enable.feature_id);
-            printf("      scope:      %s\n", ItemEffectHelper::effects_scope_enum_to_str(e.effect.enable.scope));
+            break;
+        case ItemEffectType::ENABLE_CIV:
+            printf("      feature_id: %u\n", e.effect.enable.feature_id);
+            break;
+        case ItemEffectType::ENABLE_GLOBAL:
+            printf("      feature_id: %u\n", e.effect.enable.feature_id);
             break;
         case ItemEffectType::RESEARCH_TECH:
             printf("      tech_count: %u\n", e.effect.research_tech.tech_count);
@@ -245,8 +281,14 @@ void test_parse_each_game_config_effects_line () {
     StringManager building_lines;
     StringManager unit_lines;
     StringManager effect_lines;
+    StringManager toggle_city_lines;
+    StringManager toggle_civ_lines;
+    StringManager toggle_global_lines;
     StringManager building_names;
     StringManager unit_names;
+    StringManager toggle_city_names;
+    StringManager toggle_civ_names;
+    StringManager toggle_global_names;
 
     building_lines.load_file_content(paths.get_path_to_buildings());
     building_lines.split_string_by_char(0, '\n');
@@ -257,16 +299,34 @@ void test_parse_each_game_config_effects_line () {
     effect_lines.load_file_content(paths.get_path_to_effects());
     effect_lines.split_string_by_char(0, '\n');
     effect_lines.cull_empty_strings();
+    toggle_city_lines.load_file_content(paths.get_path_to_toggle_city());
+    toggle_city_lines.split_string_by_char(0, '\n');
+    toggle_city_lines.cull_empty_strings();
+    toggle_civ_lines.load_file_content(paths.get_path_to_toggle_civ());
+    toggle_civ_lines.split_string_by_char(0, '\n');
+    toggle_civ_lines.cull_empty_strings();
+    toggle_global_lines.load_file_content(paths.get_path_to_toggle_global());
+    toggle_global_lines.split_string_by_char(0, '\n');
+    toggle_global_lines.cull_empty_strings();
 
     derive_names_from_lines(building_lines, building_names);
     derive_names_from_lines(unit_lines, unit_names);
+    derive_names_from_lines(toggle_city_lines, toggle_city_names);
+    derive_names_from_lines(toggle_civ_lines, toggle_civ_names);
+    derive_names_from_lines(toggle_global_lines, toggle_global_names);
 
     g_building_names = &building_names;
     g_unit_names = &unit_names;
+    g_toggle_city_names = &toggle_city_names;
+    g_toggle_civ_names = &toggle_civ_names;
+    g_toggle_global_names = &toggle_global_names;
 
     NameToIdxCbs cbs = {};
     cbs.building_name_to_idx = cb_building_name_to_idx;
     cbs.unit_name_to_idx = cb_unit_name_to_idx;
+    cbs.toggle_city_name_to_idx = cb_toggle_city_name_to_idx;
+    cbs.toggle_civ_name_to_idx = cb_toggle_civ_name_to_idx;
+    cbs.toggle_global_name_to_idx = cb_toggle_global_name_to_idx;
     cbs.effect_name_to_idx = nullptr;
 
     ItemEffectHandler handler(&cbs);
@@ -311,6 +371,9 @@ void test_parse_each_game_config_effects_line () {
 
     g_building_names = nullptr;
     g_unit_names = nullptr;
+    g_toggle_city_names = nullptr;
+    g_toggle_civ_names = nullptr;
+    g_toggle_global_names = nullptr;
 }
 
 //================================================================================================================================

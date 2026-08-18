@@ -13,7 +13,9 @@
 
 typedef struct NameToIdxCbs {
     u16 (*building_name_to_idx)(cstr);
-    u16 (*city_flag_name_to_idx)(cstr);
+    u16 (*toggle_city_name_to_idx)(cstr);
+    u16 (*toggle_civ_name_to_idx)(cstr);
+    u16 (*toggle_global_name_to_idx)(cstr);
     u16 (*city_job_name_to_idx)(cstr);
     u16 (*civ_name_to_idx)(cstr);
     u16 (*civ_trait_name_to_idx)(cstr);
@@ -30,6 +32,7 @@ typedef struct NameToIdxCbs {
     u16 (*unit_role_name_to_idx)(cstr);
     u16 (*unit_type_name_to_idx)(cstr);
     u16 (*wonder_name_to_idx)(cstr);
+    u16 (*worker_job_type_name_to_idx)(cstr);
     u16 (*worker_job_name_to_idx)(cstr);
     u16 (*worker_job_imp_name_to_idx)(cstr);
     u16 (*tile_yield_type_name_to_idx)(cstr);

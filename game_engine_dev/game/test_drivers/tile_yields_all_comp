@@ -3,7 +3,7 @@ set -e
 
 cd "$(dirname "$0")"
 
-# Add new mkNN tags here as implementations land under tile_yields_impl/.
+# Add new mkNN tags here as implementations land under impl/.
 IMPLS=(mk01 mk02)
 
 for mk in "${IMPLS[@]}"; do

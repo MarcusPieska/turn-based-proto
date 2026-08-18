@@ -72,8 +72,16 @@ cstr PathMng::get_path_to_buildings () const {
     return m_path_buildings;
 }
 
-cstr PathMng::get_path_to_city_flags () const {
-    return m_path_city_flags;
+cstr PathMng::get_path_to_toggle_city () const {
+    return m_path_toggle_city;
+}
+
+cstr PathMng::get_path_to_toggle_civ () const {
+    return m_path_toggle_civ;
+}
+
+cstr PathMng::get_path_to_toggle_global () const {
+    return m_path_toggle_global;
 }
 
 cstr PathMng::get_path_to_city_jobs () const {
@@ -140,6 +148,10 @@ cstr PathMng::get_path_to_wonders () const {
     return m_path_wonders;
 }
 
+cstr PathMng::get_path_to_worker_job_types () const {
+    return m_path_worker_job_types;
+}
+
 cstr PathMng::get_path_to_worker_jobs () const {
     return m_path_worker_jobs;
 }
@@ -162,7 +174,9 @@ cstr PathMng::get_path_to_settings () const {
 
 void PathMng::build_paths () {
     join_path(m_path_buildings, PATH_MNG_PATH_N, m_path_offset, "game_config.buildings");
-    join_path(m_path_city_flags, PATH_MNG_PATH_N, m_path_offset, "game_config.city_flags");
+    join_path(m_path_toggle_city, PATH_MNG_PATH_N, m_path_offset, "game_config.toggle_city");
+    join_path(m_path_toggle_civ, PATH_MNG_PATH_N, m_path_offset, "game_config.toggle_civ");
+    join_path(m_path_toggle_global, PATH_MNG_PATH_N, m_path_offset, "game_config.toggle_global");
     join_path(m_path_city_jobs, PATH_MNG_PATH_N, m_path_offset, "game_config.city_jobs");
     join_path(m_path_civ_traits, PATH_MNG_PATH_N, m_path_offset, "game_config.civ_traits");
     join_path(m_path_civs, PATH_MNG_PATH_N, m_path_offset, "game_config.civs");
@@ -179,6 +193,7 @@ void PathMng::build_paths () {
     join_path(m_path_unit_types, PATH_MNG_PATH_N, m_path_offset, "game_config.unit_types");
     join_path(m_path_units, PATH_MNG_PATH_N, m_path_offset, "game_config.units");
     join_path(m_path_wonders, PATH_MNG_PATH_N, m_path_offset, "game_config.wonders");
+    join_path(m_path_worker_job_types, PATH_MNG_PATH_N, m_path_offset, "game_config.worker_job_types");
     join_path(m_path_worker_jobs, PATH_MNG_PATH_N, m_path_offset, "game_config.worker_jobs");
     join_path(m_path_worker_job_imps, PATH_MNG_PATH_N, m_path_offset, "game_config.worker_job_imps");
     join_path(m_path_tile_yield_types, PATH_MNG_PATH_N, m_path_offset, "game_config.tile_yield_types");
@@ -193,8 +208,16 @@ void PathMng::validate_paths_or_exit () const {
         printf("ERROR: Missing file: %s\n", m_path_buildings);
         ++error_count;
     }
-    if (!does_file_exist(m_path_city_flags)) {
-        printf("ERROR: Missing file: %s\n", m_path_city_flags);
+    if (!does_file_exist(m_path_toggle_city)) {
+        printf("ERROR: Missing file: %s\n", m_path_toggle_city);
+        ++error_count;
+    }
+    if (!does_file_exist(m_path_toggle_civ)) {
+        printf("ERROR: Missing file: %s\n", m_path_toggle_civ);
+        ++error_count;
+    }
+    if (!does_file_exist(m_path_toggle_global)) {
+        printf("ERROR: Missing file: %s\n", m_path_toggle_global);
         ++error_count;
     }
     if (!does_file_exist(m_path_city_jobs)) {
@@ -259,6 +282,10 @@ void PathMng::validate_paths_or_exit () const {
     }
     if (!does_file_exist(m_path_wonders)) {
         printf("ERROR: Missing file: %s\n", m_path_wonders);
+        ++error_count;
+    }
+    if (!does_file_exist(m_path_worker_job_types)) {
+        printf("ERROR: Missing file: %s\n", m_path_worker_job_types);
         ++error_count;
     }
     if (!does_file_exist(m_path_worker_jobs)) {

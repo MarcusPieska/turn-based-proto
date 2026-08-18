@@ -31,13 +31,13 @@ struct InferredReqs {
     u16 m_tech[BRUTE_MAX_PER_TYPE];
     u16 m_resource[BRUTE_MAX_PER_TYPE];
     u16 m_building[BRUTE_MAX_PER_TYPE];
-    u16 m_city_flag[BRUTE_MAX_PER_TYPE];
+    u16 m_toggle_city[BRUTE_MAX_PER_TYPE];
     u16 m_civ[BRUTE_MAX_PER_TYPE];
     
     u8 m_tech_n;
     u8 m_resource_n;
     u8 m_building_n;
-    u8 m_city_flag_n;
+    u8 m_toggle_city_n;
     u8 m_civ_n;
 };
 
@@ -58,12 +58,12 @@ struct EnablesMap {
     EnSlot* m_tech;
     EnSlot* m_resource;
     EnSlot* m_building;
-    EnSlot* m_city_flag;
+    EnSlot* m_toggle_city;
     EnSlot* m_civ;
     u32 m_tech_count;
     u32 m_resource_count;
     u32 m_building_count;
-    u32 m_city_flag_count;
+    u32 m_toggle_city_count;
     u32 m_civ_count;
 };
 

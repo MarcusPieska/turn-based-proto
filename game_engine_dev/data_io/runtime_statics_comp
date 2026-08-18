@@ -33,8 +33,12 @@ g++ $INC $CXXFLAGS -c item_effect_handler.cpp -o item_effect_handler.o
 g++ $INC $CXXFLAGS -c item_effect_helpers.cpp -o item_effect_helpers.o
 g++ $INC $CXXFLAGS -c building_parser.cpp -o building_parser.o
 g++ $INC $CXXFLAGS -c building_parser_tester.cpp -o building_parser_tester.o
-g++ $INC $CXXFLAGS -c city_flag_parser.cpp -o city_flag_parser.o
-g++ $INC $CXXFLAGS -c city_flag_parser_tester.cpp -o city_flag_parser_tester.o
+g++ $INC $CXXFLAGS -c toggle_city_parser.cpp -o toggle_city_parser.o
+g++ $INC $CXXFLAGS -c toggle_city_parser_tester.cpp -o toggle_city_parser_tester.o
+g++ $INC $CXXFLAGS -c toggle_civ_parser.cpp -o toggle_civ_parser.o
+g++ $INC $CXXFLAGS -c toggle_civ_parser_tester.cpp -o toggle_civ_parser_tester.o
+g++ $INC $CXXFLAGS -c toggle_global_parser.cpp -o toggle_global_parser.o
+g++ $INC $CXXFLAGS -c toggle_global_parser_tester.cpp -o toggle_global_parser_tester.o
 g++ $INC $CXXFLAGS -c city_job_parser.cpp -o city_job_parser.o
 g++ $INC $CXXFLAGS -c city_job_parser_tester.cpp -o city_job_parser_tester.o
 g++ $INC $CXXFLAGS -c civ_parser.cpp -o civ_parser.o
@@ -63,6 +67,8 @@ g++ $INC $CXXFLAGS -c unit_parser.cpp -o unit_parser.o
 g++ $INC $CXXFLAGS -c unit_parser_tester.cpp -o unit_parser_tester.o
 g++ $INC $CXXFLAGS -c wonder_parser.cpp -o wonder_parser.o
 g++ $INC $CXXFLAGS -c wonder_parser_tester.cpp -o wonder_parser_tester.o
+g++ $INC $CXXFLAGS -c worker_job_type_parser.cpp -o worker_job_type_parser.o
+g++ $INC $CXXFLAGS -c worker_job_type_parser_tester.cpp -o worker_job_type_parser_tester.o
 g++ $INC $CXXFLAGS -c worker_job_parser.cpp -o worker_job_parser.o
 g++ $INC $CXXFLAGS -c worker_job_parser_tester.cpp -o worker_job_parser_tester.o
 g++ $INC $CXXFLAGS -c worker_job_imp_parser.cpp -o worker_job_imp_parser.o
@@ -87,8 +93,12 @@ g++ $CXXFLAGS -o $OUT_BIN \
     data_parser_base.o \
     building_parser.o \
     building_parser_tester.o \
-    city_flag_parser.o \
-    city_flag_parser_tester.o \
+    toggle_city_parser.o \
+    toggle_city_parser_tester.o \
+    toggle_civ_parser.o \
+    toggle_civ_parser_tester.o \
+    toggle_global_parser.o \
+    toggle_global_parser_tester.o \
     city_job_parser.o \
     city_job_parser_tester.o \
     civ_parser.o \
@@ -117,6 +127,8 @@ g++ $CXXFLAGS -o $OUT_BIN \
     unit_parser_tester.o \
     wonder_parser.o \
     wonder_parser_tester.o \
+    worker_job_type_parser.o \
+    worker_job_type_parser_tester.o \
     worker_job_parser.o \
     worker_job_parser_tester.o \
     worker_job_imp_parser.o \
@@ -142,8 +154,12 @@ rm runtime_static_loader.o runtime_statics_tester.o \
     data_parser_base.o \
     building_parser.o \
     building_parser_tester.o \
-    city_flag_parser.o \
-    city_flag_parser_tester.o \
+    toggle_city_parser.o \
+    toggle_city_parser_tester.o \
+    toggle_civ_parser.o \
+    toggle_civ_parser_tester.o \
+    toggle_global_parser.o \
+    toggle_global_parser_tester.o \
     city_job_parser.o \
     city_job_parser_tester.o \
     civ_parser.o \
@@ -172,6 +188,8 @@ rm runtime_static_loader.o runtime_statics_tester.o \
     unit_parser_tester.o \
     wonder_parser.o \
     wonder_parser_tester.o \
+    worker_job_type_parser.o \
+    worker_job_type_parser_tester.o \
     worker_job_parser.o \
     worker_job_parser_tester.o \
     worker_job_imp_parser.o \

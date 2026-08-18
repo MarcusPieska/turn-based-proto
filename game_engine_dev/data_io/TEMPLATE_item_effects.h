@@ -88,7 +88,6 @@ typedef struct ItemEffectBuild {
 
 typedef struct ItemEffectEnable {
     u16 feature_id;
-    ItemEffectsScope scope;
 } ItemEffectEnable;
 
 typedef struct ItemEffectResearchTech {

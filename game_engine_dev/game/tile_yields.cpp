@@ -19,7 +19,7 @@ u16 TileYields::m_job_n = 0;
 //================================================================================================================================
 
 #ifndef TILE_YIELDS_IMPL
-#define TILE_YIELDS_IMPL "tile_yields_impl/tile_yields_impl_mk01.cpp"
+#define TILE_YIELDS_IMPL "impl/tile_yields_impl_mk01.cpp"
 #endif
 
 #include TILE_YIELDS_IMPL

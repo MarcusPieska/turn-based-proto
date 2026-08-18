@@ -17,7 +17,9 @@ class StaticParsingManager;
 #include "config_settings_static.h"
 
 #include "building_static_data.h"
-#include "city_flag_static_data.h"
+#include "toggle_city_static_data.h"
+#include "toggle_civ_static_data.h"
+#include "toggle_global_static_data.h"
 #include "city_job_static_data.h"
 #include "civ_static_data.h"
 #include "civ_trait_static_data.h"
@@ -32,6 +34,7 @@ class StaticParsingManager;
 #include "unit_type_static_data.h"
 #include "unit_static_data.h"
 #include "wonder_static_data.h"
+#include "worker_job_type_static_data.h"
 #include "worker_job_static_data.h"
 #include "worker_job_imp_static_data.h"
 #include "tile_yield_type_static_data.h"
@@ -62,9 +65,17 @@ public:
 
     const BuildingStaticData& building () const;
 
-    CityFlagStaticData& city_flag ();
+    ToggleCityStaticData& toggle_city ();
 
-    const CityFlagStaticData& city_flag () const;
+    const ToggleCityStaticData& toggle_city () const;
+
+    ToggleCivStaticData& toggle_civ ();
+
+    const ToggleCivStaticData& toggle_civ () const;
+
+    ToggleGlobalStaticData& toggle_global ();
+
+    const ToggleGlobalStaticData& toggle_global () const;
 
     CityJobStaticData& city_job ();
 
@@ -121,6 +132,10 @@ public:
     WonderStaticData& wonder ();
 
     const WonderStaticData& wonder () const;
+
+    WorkerJobTypeStaticData& worker_job_type ();
+
+    const WorkerJobTypeStaticData& worker_job_type () const;
 
     WorkerJobStaticData& worker_job ();
 
@@ -181,7 +196,9 @@ public:
 private:
     GameConfigSettings m_config;
     BuildingStaticData m_building;
-    CityFlagStaticData m_city_flag;
+    ToggleCityStaticData m_toggle_city;
+    ToggleCivStaticData m_toggle_civ;
+    ToggleGlobalStaticData m_toggle_global;
     CityJobStaticData m_city_job;
     CivStaticData m_civ;
     CivTraitStaticData m_civ_trait;
@@ -196,6 +213,7 @@ private:
     UnitTypeStaticData m_unit_type;
     UnitStaticData m_unit;
     WonderStaticData m_wonder;
+    WorkerJobTypeStaticData m_worker_job_type;
     WorkerJobStaticData m_worker_job;
     WorkerJobImpStaticData m_worker_job_imp;
     TileYieldTypeStaticData m_tile_yield_type;

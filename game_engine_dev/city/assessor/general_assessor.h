@@ -19,12 +19,14 @@ class BitArrayCL;
 class GeneralBitBank;
 
 struct BuildingStaticDataStruct;
-struct CityFlagStaticDataStruct;
+struct ToggleCityStaticDataStruct;
 struct ResourceStaticDataStruct;
 struct SmallWonderStaticDataStruct;
 struct TechStaticDataStruct;
 struct UnitStaticDataStruct;
 struct WonderStaticDataStruct;
+struct WorkerJobStaticDataStruct;
+struct WorkerJobImpStaticDataStruct;
 
 //================================================================================================================================
 //=> - AssessorCtx -
@@ -36,10 +38,10 @@ struct AssessorCtx {
     u16 m_city_idx;
     const GeneralBitBank* m_resource_bank;
     const GeneralBitBank* m_building_bank;
-    const GeneralBitBank* m_city_flag_bank;
+    const GeneralBitBank* m_toggle_city_bank;
     const BitArrayCL* m_resource;
     const BitArrayCL* m_building;
-    const BitArrayCL* m_city_flag;
+    const BitArrayCL* m_toggle_city;
 };
 
 //================================================================================================================================
@@ -51,12 +53,14 @@ public:
     static bool chk (const ItemReqsStruct& reqs, const AssessorCtx& ctx);
     
     static void assess_building (BitArrayCL* out, u16 item_count, const BuildingStaticDataStruct* items, const AssessorCtx& ctx);
-    static void assess_city_flag (BitArrayCL* out, u16 item_count, const CityFlagStaticDataStruct* items, const AssessorCtx& ctx);
+    static void assess_toggle_city (BitArrayCL* out, u16 item_count, const ToggleCityStaticDataStruct* items, const AssessorCtx& ctx);
     static void assess_resource (BitArrayCL* out, u16 item_count, const ResourceStaticDataStruct* items, const AssessorCtx& ctx);
     static void assess_small_wonder (BitArrayCL* out, u16 item_count, const SmallWonderStaticDataStruct* items, const AssessorCtx& ctx);
     static void assess_tech (BitArrayCL* out, u16 item_count, const TechStaticDataStruct* items, const AssessorCtx& ctx);
     static void assess_unit (BitArrayCL* out, u16 item_count, const UnitStaticDataStruct* items, const AssessorCtx& ctx);
     static void assess_wonder (BitArrayCL* out, u16 item_count, const WonderStaticDataStruct* items, const AssessorCtx& ctx);
+    static void assess_worker_job (BitArrayCL* out, u16 item_count, const WorkerJobStaticDataStruct* items, const AssessorCtx& ctx);
+    static void assess_worker_job_imp (BitArrayCL* out, u16 item_count, const WorkerJobImpStaticDataStruct* items, const AssessorCtx& ctx);
 
 private:
     GeneralAssessor () = delete;

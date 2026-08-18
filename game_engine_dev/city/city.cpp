@@ -8,7 +8,7 @@
 #include "general_bit_bank.h"
 #include "runtime_statics.h"
 #include "building_static_key.h"
-#include "city_flag_static_key.h"
+#include "toggle_city_static_key.h"
 #include "small_wonder_static_key.h"
 #include "unit_static_key.h"
 #include "wonder_static_key.h"
@@ -93,17 +93,17 @@ static AssessorCtx make_city_ctx (u16 city_idx, BitArrayCL* techs, BitArrayCL* c
     ctx.m_city_idx = city_idx;
     ctx.m_resource_bank = s_res_bank;
     ctx.m_building_bank = s_bld_bank;
-    ctx.m_city_flag_bank = s_flag_bank;
+    ctx.m_toggle_city_bank = s_flag_bank;
     return ctx;
 }
 
-static u16 find_city_flag_idx (cstr nm) {
+static u16 find_toggle_city_idx (cstr nm) {
     if (s_statics == nullptr || nm == nullptr) {
         return U16_KEY_NULL;
     }
-    const u16 n = s_statics->city_flag().get_item_count();
+    const u16 n = s_statics->toggle_city().get_item_count();
     for (u16 i = 0; i < n; ++i) {
-        cstr flag_nm = s_statics->city_flag().get_name(CityFlagStaticDataKey::from_raw(i));
+        cstr flag_nm = s_statics->toggle_city().get_name(ToggleCityStaticDataKey::from_raw(i));
         if (flag_nm != nullptr && std::strcmp(flag_nm, nm) == 0) {
             return i;
         }
@@ -111,7 +111,7 @@ static u16 find_city_flag_idx (cstr nm) {
     return U16_KEY_NULL;
 }
 
-static void set_city_flag (u16 city_idx, u16 flag_idx) {
+static void set_toggle_city (u16 city_idx, u16 flag_idx) {
     if (s_flag_bank == nullptr || flag_idx == U16_KEY_NULL) {
         return;
     }
@@ -230,8 +230,8 @@ void City::bind_statics (const RuntimeStatics& st) {
     if (unit_n > 0) {
         s_scratch_unit = new BitArrayCL(unit_n);
     }
-    s_flag_has_wonder = find_city_flag_idx("hasWonder");
-    s_flag_has_wonder_small = find_city_flag_idx("hasWonderSmall");
+    s_flag_has_wonder = find_toggle_city_idx("HAS_WONDER");
+    s_flag_has_wonder_small = find_toggle_city_idx("HAS_WONDER_SMALL");
     s_wonder_n = wonder_n;
     s_small_wonder_n = sw_n;
 }
@@ -572,7 +572,7 @@ bool City::finish_if_ready (u16 city_idx) {
             GAME_EXPECT_RET(s_wonder_city != nullptr, false, "City wonder cities");
             m_accumulated_production = static_cast<u16>(m_accumulated_production - m_build_cost);
             s_wonder_city[m_bld_idx] = city_idx;
-            set_city_flag(city_idx, s_flag_has_wonder);
+            set_toggle_city(city_idx, s_flag_has_wonder);
             m_build_type = BUILD_TYPE_NONE;
             m_bld_idx = U16_KEY_NULL;
             m_build_cost = 0;
@@ -583,7 +583,7 @@ bool City::finish_if_ready (u16 city_idx) {
             GAME_EXPECT_RET(built != nullptr, false, "City small wonder cities");
             m_accumulated_production = static_cast<u16>(m_accumulated_production - m_build_cost);
             built[m_bld_idx] = city_idx;
-            set_city_flag(city_idx, s_flag_has_wonder_small);
+            set_toggle_city(city_idx, s_flag_has_wonder_small);
             m_build_type = BUILD_TYPE_NONE;
             m_bld_idx = U16_KEY_NULL;
             m_build_cost = 0;

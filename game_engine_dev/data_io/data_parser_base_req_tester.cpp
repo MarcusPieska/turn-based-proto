@@ -24,7 +24,7 @@ int print_level = 0;
 
 const DataParserBase* g_tech_parser = NULL;
 const DataParserBase* g_resource_parser = NULL;
-const DataParserBase* g_city_flag_parser = NULL;
+const DataParserBase* g_toggle_city_parser = NULL;
 const DataParserBase* g_building_parser = NULL;
 const DataParserBase* g_civ_parser = NULL;
 
@@ -112,8 +112,8 @@ u16 cb_resource_name_to_idx (cstr name) {
     return g_resource_parser->name_to_idx(name);
 }
 
-u16 cb_city_flag_name_to_idx (cstr name) {
-    return g_city_flag_parser->name_to_idx(name);
+u16 cb_toggle_city_name_to_idx (cstr name) {
+    return g_toggle_city_parser->name_to_idx(name);
 }
 
 u16 cb_building_name_to_idx (cstr name) {
@@ -183,14 +183,14 @@ void run_item_reqs_parse_tests () {
     NameToIdxCbs cbs = {};
     cbs.tech_name_to_idx = cb_tech_name_to_idx;
     cbs.resource_name_to_idx = cb_resource_name_to_idx;
-    cbs.city_flag_name_to_idx = cb_city_flag_name_to_idx;
+    cbs.toggle_city_name_to_idx = cb_toggle_city_name_to_idx;
     cbs.building_name_to_idx = cb_building_name_to_idx;
     cbs.civ_name_to_idx = cb_civ_name_to_idx;
 
     PathMng paths("../");
     StringManager tech_items;
     StringManager resource_items;
-    StringManager city_flag_items;
+    StringManager toggle_city_items;
     StringManager building_items;
     StringManager civ_items;
     StringManager unit_items;
@@ -203,9 +203,9 @@ void run_item_reqs_parse_tests () {
     resource_items.split_string_by_char(0, '\n');
     resource_items.cull_empty_strings();
 
-    city_flag_items.load_file_content(paths.get_path_to_city_flags());
-    city_flag_items.split_string_by_char(0, '\n');
-    city_flag_items.cull_empty_strings();
+    toggle_city_items.load_file_content(paths.get_path_to_toggle_city());
+    toggle_city_items.split_string_by_char(0, '\n');
+    toggle_city_items.cull_empty_strings();
 
     building_items.load_file_content(paths.get_path_to_buildings());
     building_items.split_string_by_char(0, '\n');
@@ -221,14 +221,14 @@ void run_item_reqs_parse_tests () {
 
     DataParserBaseHarness tech_parser(tech_items, cbs);
     DataParserBaseHarness resource_parser(resource_items, cbs);
-    DataParserBaseHarness city_flag_parser(city_flag_items, cbs);
+    DataParserBaseHarness toggle_city_parser(toggle_city_items, cbs);
     DataParserBaseHarness building_parser(building_items, cbs);
     DataParserBaseHarness civ_parser(civ_items, cbs);
     DataParserBaseHarness unit_parser(unit_items, cbs);
 
     g_tech_parser = &tech_parser;
     g_resource_parser = &resource_parser;
-    g_city_flag_parser = &city_flag_parser;
+    g_toggle_city_parser = &toggle_city_parser;
     g_building_parser = &building_parser;
     g_civ_parser = &civ_parser;
 

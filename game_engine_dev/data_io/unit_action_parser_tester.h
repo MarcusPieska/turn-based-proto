@@ -23,7 +23,9 @@
 
 
 #include "building_static_data.h"
-#include "city_flag_static_data.h"
+#include "toggle_city_static_data.h"
+#include "toggle_civ_static_data.h"
+#include "toggle_global_static_data.h"
 #include "city_job_static_data.h"
 #include "civ_static_data.h"
 #include "civ_trait_static_data.h"
@@ -57,7 +59,9 @@ public:
     void pr_item (cstr name, const UnitActionStaticDataStruct& item);
     
     void set_building_sd (const BuildingStaticData* sd);
-    void set_city_flag_sd (const CityFlagStaticData* sd);
+    void set_toggle_city_sd (const ToggleCityStaticData* sd);
+    void set_toggle_civ_sd (const ToggleCivStaticData* sd);
+    void set_toggle_global_sd (const ToggleGlobalStaticData* sd);
     void set_city_job_sd (const CityJobStaticData* sd);
     void set_civ_sd (const CivStaticData* sd);
     void set_civ_trait_sd (const CivTraitStaticData* sd);
@@ -84,7 +88,9 @@ private:
     FILE* out () const;
     
     const BuildingStaticData* m_building_sd;
-    const CityFlagStaticData* m_city_flag_sd;
+    const ToggleCityStaticData* m_toggle_city_sd;
+    const ToggleCivStaticData* m_toggle_civ_sd;
+    const ToggleGlobalStaticData* m_toggle_global_sd;
     const CityJobStaticData* m_city_job_sd;
     const CivStaticData* m_civ_sd;
     const CivTraitStaticData* m_civ_trait_sd;
@@ -105,7 +111,9 @@ private:
     const ImprovementYieldStaticData* m_improvement_yield_sd;
 
     const DataParserBase* m_building_psr;
-    const DataParserBase* m_city_flag_psr;
+    const DataParserBase* m_toggle_city_psr;
+    const DataParserBase* m_toggle_civ_psr;
+    const DataParserBase* m_toggle_global_psr;
     const DataParserBase* m_city_job_psr;
     const DataParserBase* m_civ_psr;
     const DataParserBase* m_civ_trait_psr;
@@ -128,7 +136,9 @@ private:
     static UnitActionParserTester* s_inst;
 
     static u16 st_building_n2i (cstr name);
-    static u16 st_city_flag_n2i (cstr name);
+    static u16 st_toggle_city_n2i (cstr name);
+    static u16 st_toggle_civ_n2i (cstr name);
+    static u16 st_toggle_global_n2i (cstr name);
     static u16 st_city_job_n2i (cstr name);
     static u16 st_civ_n2i (cstr name);
     static u16 st_civ_trait_n2i (cstr name);

@@ -73,9 +73,9 @@ public:
 
 void test_set_items_updates_count () {
     static WorkerJobStaticDataStruct items[3];
-    items[0].cost = 1;  items[0].reqs.types[0] = 10;
-    items[1].cost = 2;  items[1].reqs.types[0] = 20;
-    items[2].cost = 3;  items[2].reqs.types[0] = 30;
+    items[0].cost = 1;  items[0].type = 10;
+    items[1].cost = 2;  items[1].type = 20;
+    items[2].cost = 3;  items[2].type = 30;
     WorkerJobStaticData data;
     data.set_items(items, 3);
     note_result(data.get_item_count() == 3, "set_items updates item count");
@@ -84,10 +84,10 @@ void test_set_items_updates_count () {
 
 void test_get_item_returns_expected_struct_by_key () {
     static WorkerJobStaticDataStruct items[4];
-    items[0].cost = 7;   items[0].reqs.types[0] = 70;
-    items[1].cost = 8;   items[1].reqs.types[0] = 80;
-    items[2].cost = 9;   items[2].reqs.types[0] = 90;
-    items[3].cost = 10;  items[3].reqs.types[0] = 100;
+    items[0].cost = 7;   items[0].type = 70;
+    items[1].cost = 8;   items[1].type = 80;
+    items[2].cost = 9;   items[2].type = 90;
+    items[3].cost = 10;  items[3].type = 100;
     WorkerJobStaticData data;
     data.set_items(items, 4);
 
@@ -95,14 +95,14 @@ void test_get_item_returns_expected_struct_by_key () {
     const WorkerJobStaticDataStruct& item = data.get_item(key);
 
     note_result(item.cost == 9, "get_item returns expected member1");
-    note_result(item.reqs.types[0] == 90, "get_item returns expected member2");
+    note_result(item.type == 90, "get_item returns expected member2");
     summarize_test_results();
 }
 
 void test_get_item_returns_reference_to_backing_array () {
     static WorkerJobStaticDataStruct items[2];
-    items[0].cost = 11;  items[0].reqs.types[0] = 110;
-    items[1].cost = 12;  items[1].reqs.types[0] = 120;
+    items[0].cost = 11;  items[0].type = 110;
+    items[1].cost = 12;  items[1].type = 120;
     WorkerJobStaticData data;
     data.set_items(items, 2);
 
@@ -115,14 +115,14 @@ void test_get_item_returns_reference_to_backing_array () {
 
 void test_set_items_can_replace_array_and_count () {
     static WorkerJobStaticDataStruct items_a[2];
-    items_a[0].cost = 21; items_a[0].reqs.types[0] = 210;
-    items_a[1].cost = 22; items_a[1].reqs.types[0] = 220;
+    items_a[0].cost = 21; items_a[0].type = 210;
+    items_a[1].cost = 22; items_a[1].type = 220;
     static WorkerJobStaticDataStruct items_b[5];
-    items_b[0].cost = 31; items_b[0].reqs.types[0] = 131;
-    items_b[1].cost = 32; items_b[1].reqs.types[0] = 132;
-    items_b[2].cost = 33; items_b[2].reqs.types[0] = 133;
-    items_b[3].cost = 34; items_b[3].reqs.types[0] = 134;
-    items_b[4].cost = 35; items_b[4].reqs.types[0] = 135;
+    items_b[0].cost = 31; items_b[0].type = 131;
+    items_b[1].cost = 32; items_b[1].type = 132;
+    items_b[2].cost = 33; items_b[2].type = 133;
+    items_b[3].cost = 34; items_b[3].type = 134;
+    items_b[4].cost = 35; items_b[4].type = 135;
 
     WorkerJobStaticData data;
     data.set_items(items_a, 2);
@@ -138,7 +138,7 @@ void test_set_items_can_replace_array_and_count () {
 
 void test_zero_count_is_allowed () {
     static WorkerJobStaticDataStruct items[1];
-    items[0].cost = 41; items[0].reqs.types[0] = 141;
+    items[0].cost = 41; items[0].type = 141;
     WorkerJobStaticData data;
     data.set_items(items, 0);
     note_result(data.get_item_count() == 0, "zero item count can be stored");
@@ -147,8 +147,8 @@ void test_zero_count_is_allowed () {
 
 void test_take_ownership_copies_backing_array () {
     WorkerJobStaticDataStruct* items = new WorkerJobStaticDataStruct[2];
-    items[0].cost = 51; items[0].reqs.types[0] = 151;
-    items[1].cost = 52; items[1].reqs.types[0] = 152;
+    items[0].cost = 51; items[0].type = 151;
+    items[1].cost = 52; items[1].type = 152;
     WorkerJobStaticData data;
     data.set_items(items, 2);
     WorkerJobStaticDataKey key = WorkerJobStaticDataTester::make_key(1);
@@ -158,7 +158,7 @@ void test_take_ownership_copies_backing_array () {
 
     note_result(&item != src_ref, "take_ownership uses a distinct buffer");
     note_result(item.cost == 52, "take_ownership preserves member1");
-    note_result(item.reqs.types[0] == 152, "take_ownership preserves member2");
+    note_result(item.type == 152, "take_ownership preserves member2");
     data.release_items();
     summarize_test_results();
 }

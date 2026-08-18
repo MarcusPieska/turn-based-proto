@@ -65,17 +65,6 @@ cstr get_unit_name (const StaticParsingManager& mgr, u16 idx) {
     return "?";
 }
 
-cstr get_enable_feature_name (u16 feature_id) {
-    if (feature_id == 1) return "ALL_GOVERNMENTS";
-    if (feature_id == 2) return "UNIT_VETERAN";
-    if (feature_id == 3) return "DIPLOMACY";
-    if (feature_id == 4) return "NUKES";
-    if (feature_id == 5) return "SPACE";
-    if (feature_id == 6) return "SHIP_BUILD";
-    if (feature_id == 7) return "AIR_UNIT";
-    return "?";
-}
-
 void build_semantic_effect_text (const StaticParsingManager& mgr, const ItemEffectStruct& fx, char* out, u16 out_sz) {
     if (fx.type == static_cast<u16>(ItemEffectType::NONE)) {
         std::snprintf(out, out_sz, "effect=<none>");
@@ -99,11 +88,31 @@ void build_semantic_effect_text (const StaticParsingManager& mgr, const ItemEffe
             ItemEffectHelper::upkeep_mode_enum_to_str(b.upkeep_mode).c_str());
         return;
     }
-    if (fx.type == static_cast<u16>(ItemEffectType::ENABLE)) {
+    if (fx.type == static_cast<u16>(ItemEffectType::ENABLE_CITY)) {
         const ItemEffectEnable& e = fx.effect.enable;
-        std::snprintf(out, out_sz, "effect=enable(%s %s)",
-            get_enable_feature_name(e.feature_id),
-            ItemEffectHelper::effects_scope_enum_to_str(e.scope).c_str());
+        cstr nm = "?";
+        if (e.feature_id < mgr.get_toggle_city_count()) {
+            nm = mgr.get_toggle_city_name_parser().idx_to_name(e.feature_id);
+        }
+        std::snprintf(out, out_sz, "effect=enableCity(%s)", nm);
+        return;
+    }
+    if (fx.type == static_cast<u16>(ItemEffectType::ENABLE_CIV)) {
+        const ItemEffectEnable& e = fx.effect.enable;
+        cstr nm = "?";
+        if (e.feature_id < mgr.get_toggle_civ_count()) {
+            nm = mgr.get_toggle_civ_name_parser().idx_to_name(e.feature_id);
+        }
+        std::snprintf(out, out_sz, "effect=enableCiv(%s)", nm);
+        return;
+    }
+    if (fx.type == static_cast<u16>(ItemEffectType::ENABLE_GLOBAL)) {
+        const ItemEffectEnable& e = fx.effect.enable;
+        cstr nm = "?";
+        if (e.feature_id < mgr.get_toggle_global_count()) {
+            nm = mgr.get_toggle_global_name_parser().idx_to_name(e.feature_id);
+        }
+        std::snprintf(out, out_sz, "effect=enableGlobal(%s)", nm);
         return;
     }
     if (fx.type == static_cast<u16>(ItemEffectType::RESEARCH_TECH)) {

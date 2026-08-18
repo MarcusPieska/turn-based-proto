@@ -82,7 +82,9 @@ static bool does_file_exist (cstr path) {
 
 void note_all_paths_exist (const PathMng& paths, cstr tag) {
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s buildings exists", tag); note_result(does_file_exist(paths.get_path_to_buildings()), _buf); }
-        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s city_flags exists", tag); note_result(does_file_exist(paths.get_path_to_city_flags()), _buf); }
+        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s toggle_city exists", tag); note_result(does_file_exist(paths.get_path_to_toggle_city()), _buf); }
+        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s toggle_civ exists", tag); note_result(does_file_exist(paths.get_path_to_toggle_civ()), _buf); }
+        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s toggle_global exists", tag); note_result(does_file_exist(paths.get_path_to_toggle_global()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s city_jobs exists", tag); note_result(does_file_exist(paths.get_path_to_city_jobs()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s civ_traits exists", tag); note_result(does_file_exist(paths.get_path_to_civ_traits()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s civs exists", tag); note_result(does_file_exist(paths.get_path_to_civs()), _buf); }
@@ -99,6 +101,7 @@ void note_all_paths_exist (const PathMng& paths, cstr tag) {
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s unit_types exists", tag); note_result(does_file_exist(paths.get_path_to_unit_types()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s units exists", tag); note_result(does_file_exist(paths.get_path_to_units()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s wonders exists", tag); note_result(does_file_exist(paths.get_path_to_wonders()), _buf); }
+        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s worker_job_types exists", tag); note_result(does_file_exist(paths.get_path_to_worker_job_types()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s worker_jobs exists", tag); note_result(does_file_exist(paths.get_path_to_worker_jobs()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s worker_job_imps exists", tag); note_result(does_file_exist(paths.get_path_to_worker_job_imps()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s tile_yield_types exists", tag); note_result(does_file_exist(paths.get_path_to_tile_yield_types()), _buf); }

@@ -351,6 +351,10 @@ u16 DataParserBase::parse_res_type (const StringManager& line_items, u16 start_i
     return m_name_to_idx_cbs.res_type_name_to_idx(line_items.get_string_content(start_idx));
 }
 
+u16 DataParserBase::parse_worker_job_type (const StringManager& line_items, u16 start_idx) const {
+    return m_name_to_idx_cbs.worker_job_type_name_to_idx(line_items.get_string_content(start_idx));
+}
+
 u16 DataParserBase::parse_tile_yield_type (const StringManager& line_items, u16 start_idx) const {
     return m_name_to_idx_cbs.tile_yield_type_name_to_idx(line_items.get_string_content(start_idx));
 }
@@ -360,7 +364,11 @@ u16 DataParserBase::parse_tile_attribute_idx (const StringManager& line_items, u
 }
 
 u16 DataParserBase::parse_worker_job_idx (const StringManager& line_items, u16 start_idx) const {
-    return m_name_to_idx_cbs.worker_job_name_to_idx(line_items.get_string_content(start_idx));
+    cstr name = line_items.get_string_content(start_idx);
+    if (name != nullptr && std::strcmp(name, "None") == 0) {
+        return U16_KEY_NULL;
+    }
+    return m_name_to_idx_cbs.worker_job_name_to_idx(name);
 }
 
 CombatModList DataParserBase::parse_combat_mods (const StringManager& line_items, u16 start_idx) const {
@@ -552,7 +560,7 @@ ItemReqsStruct DataParserBase::parse_item_reqs (const StringManager& line_items,
             reqs.indices[write_idx] = m_name_to_idx_cbs.resource_name_to_idx(req_name);
         } else if (std::strcmp(type_name, "flag") == 0) {
             reqs.types[write_idx] = ITEM_REQ_TYPE_FLAG;
-            reqs.indices[write_idx] = m_name_to_idx_cbs.city_flag_name_to_idx(req_name);
+            reqs.indices[write_idx] = m_name_to_idx_cbs.toggle_city_name_to_idx(req_name);
         } else if (std::strcmp(type_name, "civ") == 0) {
             reqs.types[write_idx] = ITEM_REQ_TYPE_CIV;
             reqs.indices[write_idx] = m_name_to_idx_cbs.civ_name_to_idx(req_name);

@@ -50,6 +50,7 @@ struct GameTileSimple {
     u64 m_clim : 4; // Climate class id (CLIMATE_* in game_map_defs.h)
     u64 m_ov : 4; // Base-map overlay id (OVERLAY_* in game_map_defs.h)
     u64 m_riv : 1; // River flag (0 none, nonzero has river)
+    u64 m_planned_city : 1; // Planned city flag (if 1 the AI will target placing a city here)
 };
 
 //================================================================================================================================
@@ -86,14 +87,19 @@ public:
     u16 get_city_worker (u16 x, u16 y) const; // City pool key working this tile; U16_KEY_NULL if none
     u8 get_civ_owner (u16 x, u16 y) const; // Civ/seat owner at tile; U8_KEY_NULL if none
     u8 get_settler_blocked (u16 x, u16 y) const; // 0 free, nonzero blocked for settling
+    u8 get_planned_city (u16 x, u16 y) const; // 0 none, nonzero planned settle site
+    u8 get_road_typ (u16 x, u16 y) const; // Road type at tile (ROAD_*; 0 none)
     GameTileSimple* tile (u16 x, u16 y); // Mutable tile at (x, y); for STD bit helpers
     const GameTileSimple* tile (u16 x, u16 y) const; // Const tile at (x, y)
     
     bool set_unit_hd (u16 x, u16 y, u16 unit_hd); // Unit handle at tile; U16_KEY_NULL clears
     bool set_tile_add (u16 x, u16 y, u16 add_idx, u8 add_typ); // Improvement handle at tile
+    bool set_overlay (u16 x, u16 y, u8 ov); // Base overlay at tile (OVERLAY_* / OV_*[0])
+    bool set_road_typ (u16 x, u16 y, u8 road); // Road type at tile; ROAD_NONE clears
     bool set_city_worker (u16 x, u16 y, u16 city_idx); // City worker key at tile; U16_KEY_NULL clears
     bool set_civ_owner (u16 x, u16 y, u8 owner); // Civ/seat owner at tile; U8_KEY_NULL clears
     bool set_settler_blocked (u16 x, u16 y, u8 blocked); // Settler block flag; 0 clears
+    bool set_planned_city (u16 x, u16 y, u8 planned); // Planned-city flag; 0 clears
 
 private:
     friend class Factory_GameArraySimple;

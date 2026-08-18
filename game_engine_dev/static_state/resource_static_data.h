@@ -35,6 +35,7 @@ typedef struct ResourceStaticDataStruct {
     u16 science;
     u16 religion;
     u16 type;
+    u16 worker_job_idx;
     u16 res_dist_idx;
 } ResourceStaticDataStruct;
 

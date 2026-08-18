@@ -71,38 +71,6 @@ bool parse_paren_token (cstr raw, StringManager& verb_out, StringManager& args_o
     return true;
 }
 
-bool enable_feature_from_token (cstr n, u16& out) {
-    if (streq(n, "ALL_GOVERNMENTS")) {
-        out = 1;
-        return true;
-    }
-    if (streq(n, "UNIT_VETERAN")) {
-        out = 2;
-        return true;
-    }
-    if (streq(n, "DIPLOMACY")) {
-        out = 3;
-        return true;
-    }
-    if (streq(n, "NUKES")) {
-        out = 4;
-        return true;
-    }
-    if (streq(n, "SPACE")) {
-        out = 5;
-        return true;
-    }
-    if (streq(n, "SHIP_BUILD")) {
-        out = 6;
-        return true;
-    }
-    if (streq(n, "AIR_UNIT")) {
-        out = 7;
-        return true;
-    }
-    return false;
-}
-
 } // namespace
 
 //================================================================================================================================
@@ -222,27 +190,54 @@ ItemEffectsStruct ItemEffectHandler::parse_effects_line (const StringManager& li
             slot.effect.build.scope = scope;
             slot.effect.build.build_mode = bmode;
             slot.effect.build.upkeep_mode = umode;
-        } else if (streq(effect_verb, "enable")) {
-            if (arg_n != 2) {
-                printf("ERROR: ItemEffectHandler enable(...) expects 2 args in '%s'\n", token_raw);
+        } else if (streq(effect_verb, "enableCity")) {
+            if (arg_n != 1) {
+                printf("ERROR: ItemEffectHandler enableCity(...) expects 1 arg in '%s'\n", token_raw);
                 ++m_error_count;
                 continue;
             }
-            u16 feature_id = 0;
-            if (!enable_feature_from_token(args_mgr.get_string_content(0), feature_id)) {
-                printf("ERROR: ItemEffectHandler unknown enable feature '%s'\n", args_mgr.get_string_content(0));
+            slot.type = static_cast<u16>(ItemEffectType::ENABLE_CITY);
+            slot.effect.enable.feature_id = U16_KEY_NULL;
+            if (m_cbs->toggle_city_name_to_idx != nullptr) {
+                slot.effect.enable.feature_id = m_cbs->toggle_city_name_to_idx(args_mgr.get_string_content(0));
+            }
+            if (slot.effect.enable.feature_id == U16_KEY_NULL) {
+                printf("ERROR: ItemEffectHandler unknown enableCity feature '%s'\n", args_mgr.get_string_content(0));
                 ++m_error_count;
                 continue;
             }
-            const ItemEffectsScope scope = ItemEffectHelper::effects_scope_str_to_enum(args_mgr.get_string_content(1));
-            if (scope == ItemEffectsScope::NONE) {
-                printf("ERROR: ItemEffectHandler unknown enable scope '%s'\n", args_mgr.get_string_content(1));
+        } else if (streq(effect_verb, "enableCiv")) {
+            if (arg_n != 1) {
+                printf("ERROR: ItemEffectHandler enableCiv(...) expects 1 arg in '%s'\n", token_raw);
                 ++m_error_count;
                 continue;
             }
-            slot.type = static_cast<u16>(ItemEffectType::ENABLE);
-            slot.effect.enable.feature_id = feature_id;
-            slot.effect.enable.scope = scope;
+            slot.type = static_cast<u16>(ItemEffectType::ENABLE_CIV);
+            slot.effect.enable.feature_id = U16_KEY_NULL;
+            if (m_cbs->toggle_civ_name_to_idx != nullptr) {
+                slot.effect.enable.feature_id = m_cbs->toggle_civ_name_to_idx(args_mgr.get_string_content(0));
+            }
+            if (slot.effect.enable.feature_id == U16_KEY_NULL) {
+                printf("ERROR: ItemEffectHandler unknown enableCiv feature '%s'\n", args_mgr.get_string_content(0));
+                ++m_error_count;
+                continue;
+            }
+        } else if (streq(effect_verb, "enableGlobal")) {
+            if (arg_n != 1) {
+                printf("ERROR: ItemEffectHandler enableGlobal(...) expects 1 arg in '%s'\n", token_raw);
+                ++m_error_count;
+                continue;
+            }
+            slot.type = static_cast<u16>(ItemEffectType::ENABLE_GLOBAL);
+            slot.effect.enable.feature_id = U16_KEY_NULL;
+            if (m_cbs->toggle_global_name_to_idx != nullptr) {
+                slot.effect.enable.feature_id = m_cbs->toggle_global_name_to_idx(args_mgr.get_string_content(0));
+            }
+            if (slot.effect.enable.feature_id == U16_KEY_NULL) {
+                printf("ERROR: ItemEffectHandler unknown enableGlobal feature '%s'\n", args_mgr.get_string_content(0));
+                ++m_error_count;
+                continue;
+            }
         } else if (streq(effect_verb, "researchTech")) {
             if (arg_n != 1) {
                 printf("ERROR: ItemEffectHandler researchTech(...) expects 1 arg in '%s'\n", token_raw);
@@ -277,8 +272,8 @@ ItemEffectsStruct ItemEffectHandler::parse_effects_line (const StringManager& li
             }
             slot.type = static_cast<u16>(ItemEffectType::SET_FLAG);
             slot.effect.set_flag.flag_id = U16_KEY_NULL;
-            if (m_cbs->city_flag_name_to_idx != nullptr) {
-                slot.effect.set_flag.flag_id = m_cbs->city_flag_name_to_idx(args_mgr.get_string_content(0));
+            if (m_cbs->toggle_city_name_to_idx != nullptr) {
+                slot.effect.set_flag.flag_id = m_cbs->toggle_city_name_to_idx(args_mgr.get_string_content(0));
             }
             slot.effect.set_flag.scope = scope;
         } else if (streq(effect_verb, "produce")) {

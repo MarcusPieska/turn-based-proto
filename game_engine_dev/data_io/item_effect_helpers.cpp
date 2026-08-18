@@ -17,7 +17,9 @@ ItemEffectType ItemEffectHelper::type_str_to_enum (cstr s) {
     if (s && std::strcmp(s, "NONE") == 0) { return ItemEffectType::NONE; }
     if (s && std::strcmp(s, "BOOSTER") == 0) { return ItemEffectType::BOOSTER; }
     if (s && std::strcmp(s, "BUILD") == 0) { return ItemEffectType::BUILD; }
-    if (s && std::strcmp(s, "ENABLE") == 0) { return ItemEffectType::ENABLE; }
+    if (s && std::strcmp(s, "ENABLE_CITY") == 0) { return ItemEffectType::ENABLE_CITY; }
+    if (s && std::strcmp(s, "ENABLE_CIV") == 0) { return ItemEffectType::ENABLE_CIV; }
+    if (s && std::strcmp(s, "ENABLE_GLOBAL") == 0) { return ItemEffectType::ENABLE_GLOBAL; }
     if (s && std::strcmp(s, "RESEARCH_TECH") == 0) { return ItemEffectType::RESEARCH_TECH; }
     if (s && std::strcmp(s, "TRAIN") == 0) { return ItemEffectType::TRAIN; }
     if (s && std::strcmp(s, "TERRAIN_BOOSTER") == 0) { return ItemEffectType::TERRAIN_BOOSTER; }
@@ -32,7 +34,9 @@ cstr ItemEffectHelper::type_enum_to_str (ItemEffectType v) {
         case ItemEffectType::NONE : return "NONE";
         case ItemEffectType::BOOSTER : return "BOOSTER";
         case ItemEffectType::BUILD : return "BUILD";
-        case ItemEffectType::ENABLE : return "ENABLE";
+        case ItemEffectType::ENABLE_CITY : return "ENABLE_CITY";
+        case ItemEffectType::ENABLE_CIV : return "ENABLE_CIV";
+        case ItemEffectType::ENABLE_GLOBAL : return "ENABLE_GLOBAL";
         case ItemEffectType::RESEARCH_TECH : return "RESEARCH_TECH";
         case ItemEffectType::TRAIN : return "TRAIN";
         case ItemEffectType::TERRAIN_BOOSTER : return "TERRAIN_BOOSTER";

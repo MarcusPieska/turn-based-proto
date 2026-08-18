@@ -23,7 +23,9 @@
 
 
 #include "building_static_data.h"
-#include "city_flag_static_data.h"
+#include "toggle_city_static_data.h"
+#include "toggle_civ_static_data.h"
+#include "toggle_global_static_data.h"
 #include "city_job_static_data.h"
 #include "civ_static_data.h"
 #include "civ_trait_static_data.h"
@@ -38,6 +40,7 @@
 #include "unit_role_static_data.h"
 #include "unit_type_static_data.h"
 #include "wonder_static_data.h"
+#include "worker_job_type_static_data.h"
 #include "worker_job_static_data.h"
 #include "worker_job_imp_static_data.h"
 #include "tile_yield_type_static_data.h"
@@ -57,7 +60,9 @@ public:
     void pr_item (cstr name, const WorkerJobStaticDataStruct& item);
     
     void set_building_sd (const BuildingStaticData* sd);
-    void set_city_flag_sd (const CityFlagStaticData* sd);
+    void set_toggle_city_sd (const ToggleCityStaticData* sd);
+    void set_toggle_civ_sd (const ToggleCivStaticData* sd);
+    void set_toggle_global_sd (const ToggleGlobalStaticData* sd);
     void set_city_job_sd (const CityJobStaticData* sd);
     void set_civ_sd (const CivStaticData* sd);
     void set_civ_trait_sd (const CivTraitStaticData* sd);
@@ -72,6 +77,7 @@ public:
     void set_unit_role_sd (const UnitRoleStaticData* sd);
     void set_unit_type_sd (const UnitTypeStaticData* sd);
     void set_wonder_sd (const WonderStaticData* sd);
+    void set_worker_job_type_sd (const WorkerJobTypeStaticData* sd);
     void set_worker_job_sd (const WorkerJobStaticData* sd);
     void set_worker_job_imp_sd (const WorkerJobImpStaticData* sd);
     void set_tile_yield_type_sd (const TileYieldTypeStaticData* sd);
@@ -84,7 +90,9 @@ private:
     FILE* out () const;
     
     const BuildingStaticData* m_building_sd;
-    const CityFlagStaticData* m_city_flag_sd;
+    const ToggleCityStaticData* m_toggle_city_sd;
+    const ToggleCivStaticData* m_toggle_civ_sd;
+    const ToggleGlobalStaticData* m_toggle_global_sd;
     const CityJobStaticData* m_city_job_sd;
     const CivStaticData* m_civ_sd;
     const CivTraitStaticData* m_civ_trait_sd;
@@ -99,13 +107,16 @@ private:
     const UnitRoleStaticData* m_unit_role_sd;
     const UnitTypeStaticData* m_unit_type_sd;
     const WonderStaticData* m_wonder_sd;
+    const WorkerJobTypeStaticData* m_worker_job_type_sd;
     const WorkerJobStaticData* m_worker_job_sd;
     const WorkerJobImpStaticData* m_worker_job_imp_sd;
     const TileYieldTypeStaticData* m_tile_yield_type_sd;
     const ImprovementYieldStaticData* m_improvement_yield_sd;
 
     const DataParserBase* m_building_psr;
-    const DataParserBase* m_city_flag_psr;
+    const DataParserBase* m_toggle_city_psr;
+    const DataParserBase* m_toggle_civ_psr;
+    const DataParserBase* m_toggle_global_psr;
     const DataParserBase* m_city_job_psr;
     const DataParserBase* m_civ_psr;
     const DataParserBase* m_civ_trait_psr;
@@ -120,6 +131,7 @@ private:
     const DataParserBase* m_unit_role_psr;
     const DataParserBase* m_unit_type_psr;
     const DataParserBase* m_wonder_psr;
+    const DataParserBase* m_worker_job_type_psr;
     const DataParserBase* m_worker_job_psr;
     const DataParserBase* m_worker_job_imp_psr;
     const DataParserBase* m_tile_yield_type_psr;
@@ -128,7 +140,9 @@ private:
     static WorkerJobParserTester* s_inst;
 
     static u16 st_building_n2i (cstr name);
-    static u16 st_city_flag_n2i (cstr name);
+    static u16 st_toggle_city_n2i (cstr name);
+    static u16 st_toggle_civ_n2i (cstr name);
+    static u16 st_toggle_global_n2i (cstr name);
     static u16 st_city_job_n2i (cstr name);
     static u16 st_civ_n2i (cstr name);
     static u16 st_civ_trait_n2i (cstr name);
@@ -143,6 +157,7 @@ private:
     static u16 st_unit_role_n2i (cstr name);
     static u16 st_unit_type_n2i (cstr name);
     static u16 st_wonder_n2i (cstr name);
+    static u16 st_worker_job_type_n2i (cstr name);
     static u16 st_worker_job_n2i (cstr name);
     static u16 st_worker_job_imp_n2i (cstr name);
     static u16 st_tile_yield_type_n2i (cstr name);

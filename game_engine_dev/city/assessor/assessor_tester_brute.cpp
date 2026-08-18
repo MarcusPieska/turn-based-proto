@@ -17,12 +17,14 @@
 #include "static_parsing_manager.h"
 
 #include "building_static_data.h"
-#include "city_flag_static_data.h"
+#include "toggle_city_static_data.h"
 #include "resource_static_data.h"
 #include "small_wonder_static_data.h"
 #include "tech_static_data.h"
 #include "unit_static_data.h"
 #include "wonder_static_data.h"
+#include "worker_job_static_data.h"
+#include "worker_job_imp_static_data.h"
 
 static const BuildingStaticDataStruct* s_building_items;
 
@@ -87,61 +89,61 @@ int run_building_assessor_brute () {
     return AssessorBrute::run(mgr, cfg);
 }
 
-static const CityFlagStaticDataStruct* s_city_flag_items;
+static const ToggleCityStaticDataStruct* s_toggle_city_items;
 
-static void s_assess_city_flag (BitArrayCL* out, u16 n, const AssessorCtx& ctx) {
-    GeneralAssessor::assess_city_flag(out, n, s_city_flag_items, ctx);
+static void s_assess_toggle_city (BitArrayCL* out, u16 n, const AssessorCtx& ctx) {
+    GeneralAssessor::assess_toggle_city(out, n, s_toggle_city_items, ctx);
 }
 
-static u16 get_city_flag_cnt (const StaticParsingManager& mgr) {
-    return mgr.get_city_flag_count();
+static u16 get_toggle_city_cnt (const StaticParsingManager& mgr) {
+    return mgr.get_toggle_city_count();
 }
 
-static const char* get_city_flag_nm (const StaticParsingManager& mgr, u16 idx) {
-    if (idx >= get_city_flag_cnt(mgr)) {
+static const char* get_toggle_city_nm (const StaticParsingManager& mgr, u16 idx) {
+    if (idx >= get_toggle_city_cnt(mgr)) {
         return "";
     }
-    return mgr.get_city_flag_name_parser().idx_to_name(idx);
+    return mgr.get_toggle_city_name_parser().idx_to_name(idx);
 }
 
-struct EmitUd_CITY_FLAG {
+struct EmitUd_TOGGLE_CITY {
     const StaticParsingManager* m_mgr;
 };
 
-static void emit_ln_city_flag (FILE* out, u16 idx, const InferredReqs& ir, void* ud) {
-    EmitUd_CITY_FLAG* eu = static_cast<EmitUd_CITY_FLAG*>(ud);
+static void emit_ln_toggle_city (FILE* out, u16 idx, const InferredReqs& ir, void* ud) {
+    EmitUd_TOGGLE_CITY* eu = static_cast<EmitUd_TOGGLE_CITY*>(ud);
     const StaticParsingManager& mgr = *eu->m_mgr;
     char nm[64];
-    AssessorBruteWrite::pad_name(nm, 64, get_city_flag_nm(mgr, idx));
+    AssessorBruteWrite::pad_name(nm, 64, get_toggle_city_nm(mgr, idx));
     std::fprintf(out, "%s", nm);
     AssessorBruteWrite::emit_reqs(out, ir, mgr);
     std::fprintf(out, "\n");
 }
 
-int run_city_flag_assessor_brute () {
+int run_toggle_city_assessor_brute () {
     StaticParsingManager mgr("../");
-    u16 n = get_city_flag_cnt(mgr);
+    u16 n = get_toggle_city_cnt(mgr);
     if (n == 0) {
         return 0;
     }
-    s_city_flag_items = mgr.get_city_flag_data();
-    if (s_city_flag_items == nullptr) {
+    s_toggle_city_items = mgr.get_toggle_city_data();
+    if (s_toggle_city_items == nullptr) {
         return 0;
     }
     static const char* s_nms[4096];
     for (u16 i = 0; i < n && i < 4096; ++i) {
-        s_nms[i] = get_city_flag_nm(mgr, i);
+        s_nms[i] = get_toggle_city_nm(mgr, i);
     }
-    EmitUd_CITY_FLAG eu = { &mgr };
+    EmitUd_TOGGLE_CITY eu = { &mgr };
     BruteRunCfg cfg = {};
     cfg.m_item_count = n;
-    cfg.m_assess = s_assess_city_flag;
+    cfg.m_assess = s_assess_toggle_city;
     cfg.m_names = s_nms;
-    cfg.m_results_to_match_path = "RESULTS_TO_MATCH_CITY_FLAG";
-    cfg.m_results_readable_path = "RESULTS_READABLE_CITY_FLAG";
+    cfg.m_results_to_match_path = "RESULTS_TO_MATCH_TOGGLE_CITY";
+    cfg.m_results_readable_path = "RESULTS_READABLE_TOGGLE_CITY";
     cfg.m_init_building_all = true;
     cfg.m_building_isolate = false;
-    cfg.m_emit_line = emit_ln_city_flag;
+    cfg.m_emit_line = emit_ln_toggle_city;
     cfg.m_emit_ud = &eu;
     return AssessorBrute::run(mgr, cfg);
 }
@@ -453,6 +455,128 @@ int run_wonder_assessor_brute () {
     cfg.m_init_building_all = true;
     cfg.m_building_isolate = false;
     cfg.m_emit_line = emit_ln_wonder;
+    cfg.m_emit_ud = &eu;
+    return AssessorBrute::run(mgr, cfg);
+}
+
+static const WorkerJobStaticDataStruct* s_worker_job_items;
+
+static void s_assess_worker_job (BitArrayCL* out, u16 n, const AssessorCtx& ctx) {
+    GeneralAssessor::assess_worker_job(out, n, s_worker_job_items, ctx);
+}
+
+static u16 get_worker_job_cnt (const StaticParsingManager& mgr) {
+    return mgr.get_worker_job_count();
+}
+
+static const char* get_worker_job_nm (const StaticParsingManager& mgr, u16 idx) {
+    if (idx >= get_worker_job_cnt(mgr)) {
+        return "";
+    }
+    return mgr.get_worker_job_name_parser().idx_to_name(idx);
+}
+
+struct EmitUd_WORKER_JOB {
+    const StaticParsingManager* m_mgr;
+};
+
+static void emit_ln_worker_job (FILE* out, u16 idx, const InferredReqs& ir, void* ud) {
+    EmitUd_WORKER_JOB* eu = static_cast<EmitUd_WORKER_JOB*>(ud);
+    const StaticParsingManager& mgr = *eu->m_mgr;
+    char nm[64];
+    AssessorBruteWrite::pad_name(nm, 64, get_worker_job_nm(mgr, idx));
+    std::fprintf(out, "%s", nm);
+const WorkerJobStaticDataStruct* items = mgr.get_worker_job_data();
+    if (items != nullptr) {
+        std::fprintf(out, " : %5u", items[idx].cost);
+    }
+    AssessorBruteWrite::emit_reqs(out, ir, mgr);
+    std::fprintf(out, "\n");
+}
+
+int run_worker_job_assessor_brute () {
+    StaticParsingManager mgr("../");
+    u16 n = get_worker_job_cnt(mgr);
+    if (n == 0) {
+        return 0;
+    }
+    s_worker_job_items = mgr.get_worker_job_data();
+    if (s_worker_job_items == nullptr) {
+        return 0;
+    }
+    static const char* s_nms[4096];
+    for (u16 i = 0; i < n && i < 4096; ++i) {
+        s_nms[i] = get_worker_job_nm(mgr, i);
+    }
+    EmitUd_WORKER_JOB eu = { &mgr };
+    BruteRunCfg cfg = {};
+    cfg.m_item_count = n;
+    cfg.m_assess = s_assess_worker_job;
+    cfg.m_names = s_nms;
+    cfg.m_results_to_match_path = "RESULTS_TO_MATCH_WORKER_JOB";
+    cfg.m_results_readable_path = "RESULTS_READABLE_WORKER_JOB";
+    cfg.m_init_building_all = true;
+    cfg.m_building_isolate = false;
+    cfg.m_emit_line = emit_ln_worker_job;
+    cfg.m_emit_ud = &eu;
+    return AssessorBrute::run(mgr, cfg);
+}
+
+static const WorkerJobImpStaticDataStruct* s_worker_job_imp_items;
+
+static void s_assess_worker_job_imp (BitArrayCL* out, u16 n, const AssessorCtx& ctx) {
+    GeneralAssessor::assess_worker_job_imp(out, n, s_worker_job_imp_items, ctx);
+}
+
+static u16 get_worker_job_imp_cnt (const StaticParsingManager& mgr) {
+    return mgr.get_worker_job_imp_count();
+}
+
+static const char* get_worker_job_imp_nm (const StaticParsingManager& mgr, u16 idx) {
+    if (idx >= get_worker_job_imp_cnt(mgr)) {
+        return "";
+    }
+    return mgr.get_worker_job_imp_name_parser().idx_to_name(idx);
+}
+
+struct EmitUd_WORKER_JOB_IMP {
+    const StaticParsingManager* m_mgr;
+};
+
+static void emit_ln_worker_job_imp (FILE* out, u16 idx, const InferredReqs& ir, void* ud) {
+    EmitUd_WORKER_JOB_IMP* eu = static_cast<EmitUd_WORKER_JOB_IMP*>(ud);
+    const StaticParsingManager& mgr = *eu->m_mgr;
+    char nm[64];
+    AssessorBruteWrite::pad_name(nm, 64, get_worker_job_imp_nm(mgr, idx));
+    std::fprintf(out, "%s", nm);
+    AssessorBruteWrite::emit_reqs(out, ir, mgr);
+    std::fprintf(out, "\n");
+}
+
+int run_worker_job_imp_assessor_brute () {
+    StaticParsingManager mgr("../");
+    u16 n = get_worker_job_imp_cnt(mgr);
+    if (n == 0) {
+        return 0;
+    }
+    s_worker_job_imp_items = mgr.get_worker_job_imp_data();
+    if (s_worker_job_imp_items == nullptr) {
+        return 0;
+    }
+    static const char* s_nms[4096];
+    for (u16 i = 0; i < n && i < 4096; ++i) {
+        s_nms[i] = get_worker_job_imp_nm(mgr, i);
+    }
+    EmitUd_WORKER_JOB_IMP eu = { &mgr };
+    BruteRunCfg cfg = {};
+    cfg.m_item_count = n;
+    cfg.m_assess = s_assess_worker_job_imp;
+    cfg.m_names = s_nms;
+    cfg.m_results_to_match_path = "RESULTS_TO_MATCH_WORKER_JOB_IMP";
+    cfg.m_results_readable_path = "RESULTS_READABLE_WORKER_JOB_IMP";
+    cfg.m_init_building_all = true;
+    cfg.m_building_isolate = false;
+    cfg.m_emit_line = emit_ln_worker_job_imp;
     cfg.m_emit_ud = &eu;
     return AssessorBrute::run(mgr, cfg);
 }

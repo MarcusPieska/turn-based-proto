@@ -30,9 +30,23 @@ def parse_resource_types (filename):
                 continue
             parts = [p.strip() for p in line.split(":")]
             name = parts[0] if len(parts) > 0 else ""
-            typ = parts[4] if len(parts) > 4 else ""
+            typ = parts[7] if len(parts) > 7 else ""
             if name:
                 pairs.append((name, typ))
+    return pairs
+
+def parse_resource_jobs (filename):
+    pairs = []
+    with open(filename, "r") as ptr:
+        for line in ptr:
+            line = line.strip()
+            if not line:
+                continue
+            parts = [p.strip() for p in line.split(":")]
+            name = parts[0] if len(parts) > 0 else ""
+            job = parts[8] if len(parts) > 8 else ""
+            if name:
+                pairs.append((name, job))
     return pairs
 
 def validate_res_dist (resources_file, res_dists_file):
@@ -72,6 +86,27 @@ def validate_res_types (resources_file, res_types_file):
     print("  - Checked %u resources against %u types" % (len(pairs), len(known)))
     return True
 
+def validate_res_jobs (resources_file):
+    print("Validating %s worker_job column" % resources_file)
+    allowed = set(["Mine", "Plantation", "None"])
+    pairs = parse_resource_jobs(resources_file)
+    bad = []
+    for name, job in pairs:
+        if not job:
+            bad.append((name, "(missing)"))
+        elif job not in allowed:
+            bad.append((name, job))
+    if bad:
+        print("WARN: %u resource(s) with unknown or missing worker_job:" % len(bad))
+        for name, job in bad:
+            print("  - %s : %s" % (name, job))
+        print()
+        print("FAILED: %u of %u resources have an invalid worker_job." % (len(bad), len(pairs)))
+        return False
+    print("SUCCESS: Every resource worker_job is Mine, Plantation, or None.")
+    print("  - Checked %u resources" % len(pairs))
+    return True
+
 #================================================================================================================================#
 #=> - Main -
 #================================================================================================================================#
@@ -80,7 +115,9 @@ if __name__ == "__main__":
     ok_dist = validate_res_dist("game_config.resources", "game_config.res_dists")
     print()
     ok_type = validate_res_types("game_config.resources", "game_config.res_types")
-    if not ok_dist or not ok_type:
+    print()
+    ok_job = validate_res_jobs("game_config.resources")
+    if not ok_dist or not ok_type or not ok_job:
         sys.exit(1)
 
 #================================================================================================================================#

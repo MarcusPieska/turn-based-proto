@@ -265,7 +265,7 @@ static bool unlock_one_tech (GameState& state, u16 player, u16* out_idx) {
     }
     BitArrayCL resource(st.resource().get_item_count());
     BitArrayCL building(st.building().get_item_count());
-    BitArrayCL city_flag(st.city_flag().get_item_count());
+    BitArrayCL toggle_city(st.toggle_city().get_item_count());
     BitArrayCL civ(st.civ().get_item_count());
     for (u32 i = 0; i < resource.get_count(); ++i) {
         resource.set_bit(i);
@@ -279,7 +279,7 @@ static bool unlock_one_tech (GameState& state, u16 player, u16* out_idx) {
     ctx.m_city_idx = 0;
     ctx.m_resource = &resource;
     ctx.m_building = &building;
-    ctx.m_city_flag = &city_flag;
+    ctx.m_toggle_city = &toggle_city;
     BitArrayCL available(tech_n);
     const TechStaticDataStruct* items = &st.tech().get_item(TechStaticDataKey::from_raw(0));
     GeneralAssessor::assess_tech(&available, tech_n, items, ctx);

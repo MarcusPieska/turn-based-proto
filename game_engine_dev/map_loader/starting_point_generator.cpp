@@ -10,6 +10,7 @@
 #include "starting_point_generator.h"
 
 #include "generator_constants.h"
+#include "settle_rules.h"
 
 //================================================================================================================================
 //=> - Internal -
@@ -55,6 +56,7 @@ StartingPointGenerator::StartingPointGenerator (const StartingPointGeneratorPara
     m_cls(nullptr),
     m_clim(nullptr),
     m_ov(nullptr),
+    m_riv(nullptr),
     m_dist(nullptr),
     m_gray(nullptr),
     m_dist_max(0),
@@ -159,10 +161,12 @@ bool StartingPointGenerator::picks_are_start_land () const {
         if (px >= m_w || py >= m_h) {
             return false;
         }
-        const u8 terr = m_cls[static_cast<u32>(py) * static_cast<u32>(m_w) + static_cast<u32>(px)];
-        const u8 clim = m_clim != nullptr ? m_clim[static_cast<u32>(py) * static_cast<u32>(m_w) + static_cast<u32>(px)] : 0;
-        const u8 ov = m_ov != nullptr ? m_ov[static_cast<u32>(py) * static_cast<u32>(m_w) + static_cast<u32>(px)] : OVERLAY_NONE;
-        if (!is_start_tile(terr, clim, ov)) {
+        const u32 ti = static_cast<u32>(py) * static_cast<u32>(m_w) + static_cast<u32>(px);
+        const u8 terr = m_cls[ti];
+        const u8 clim = m_clim != nullptr ? m_clim[ti] : 0;
+        const u8 ov = m_ov != nullptr ? m_ov[ti] : OVERLAY_NONE;
+        const u8 riv = m_riv != nullptr ? m_riv[ti] : 0;
+        if (!is_start_tile(terr, clim, ov, riv)) {
             return false;
         }
     }
@@ -204,14 +208,12 @@ bool StartingPointGenerator::is_land (u8 cls) const {
     return !is_water(cls);
 }
 
-bool StartingPointGenerator::is_start_tile (u8 terr, u8 clim, u8 ov) const {
-    if (terr != TERR_PLAINS[0] && terr != TERR_HILLS[0]) {
+bool StartingPointGenerator::is_start_tile (u8 terr, u8 clim, u8 ov, u8 riv) const {
+    if (!SettleRules::terr_ok(terr)) {
         return false;
     }
-    if (m_clim != nullptr) {
-        if (clim != CLIMATE_GRASSLAND && clim != CLIMATE_PLAINS && clim != CLIMATE_BLACK_SOIL) {
-            return false;
-        }
+    if (m_clim != nullptr && !SettleRules::clim_ok(clim, riv)) {
+        return false;
     }
     if (m_ov != nullptr) {
         if (ov != OVERLAY_NONE && ov != OV_FOREST[0]) {
@@ -375,10 +377,12 @@ void StartingPointGenerator::filt_land () {
         if (px < 0 || py < 0 || px >= static_cast<i32>(m_w) || py >= static_cast<i32>(m_h)) {
             continue;
         }
-        const u8 terr = m_cls[static_cast<u32>(py) * static_cast<u32>(m_w) + static_cast<u32>(px)];
-        const u8 clim = m_clim != nullptr ? m_clim[static_cast<u32>(py) * static_cast<u32>(m_w) + static_cast<u32>(px)] : 0;
-        const u8 ov = m_ov != nullptr ? m_ov[static_cast<u32>(py) * static_cast<u32>(m_w) + static_cast<u32>(px)] : OVERLAY_NONE;
-        if (is_start_tile(terr, clim, ov)) {
+        const u32 ti = static_cast<u32>(py) * static_cast<u32>(m_w) + static_cast<u32>(px);
+        const u8 terr = m_cls[ti];
+        const u8 clim = m_clim != nullptr ? m_clim[ti] : 0;
+        const u8 ov = m_ov != nullptr ? m_ov[ti] : OVERLAY_NONE;
+        const u8 riv = m_riv != nullptr ? m_riv[ti] : 0;
+        if (is_start_tile(terr, clim, ov, riv)) {
             m_land[m_land_n++] = p;
         }
     }
@@ -465,6 +469,7 @@ bool StartingPointGenerator::generate () {
     m_cls = m_p.map->data();
     m_clim = m_p.climate;
     m_ov = m_p.overlay;
+    m_riv = m_p.river;
     if (m_cls == nullptr || m_w == 0 || m_h == 0) {
         return false;
     }

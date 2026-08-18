@@ -62,11 +62,11 @@ static cstr building_nm (const StaticParsingManager& mgr, u16 idx) {
     return mgr.get_building_name_parser().idx_to_name(idx);
 }
 
-static cstr city_flag_nm (const StaticParsingManager& mgr, u16 idx) {
-    if (idx >= mgr.get_city_flag_count()) {
+static cstr toggle_city_nm (const StaticParsingManager& mgr, u16 idx) {
+    if (idx >= mgr.get_toggle_city_count()) {
         return "";
     }
-    return mgr.get_city_flag_name_parser().idx_to_name(idx);
+    return mgr.get_toggle_city_name_parser().idx_to_name(idx);
 }
 
 static cstr civ_nm (const StaticParsingManager& mgr, u16 idx) {
@@ -159,10 +159,10 @@ void AssessorBruteWrite::emit_reqs (FILE* out, const InferredReqs& ir, const Sta
             emit_req_tok(out, "building", mgr.get_building_name_parser().idx_to_name(ix), 1);
         }
     }
-    for (u8 i = 0; i < ir.m_city_flag_n; ++i) {
-        u16 ix = ir.m_city_flag[i];
-        if (ix < mgr.get_city_flag_count()) {
-            emit_req_tok(out, "flag", mgr.get_city_flag_name_parser().idx_to_name(ix), 0);
+    for (u8 i = 0; i < ir.m_toggle_city_n; ++i) {
+        u16 ix = ir.m_toggle_city[i];
+        if (ix < mgr.get_toggle_city_count()) {
+            emit_req_tok(out, "flag", mgr.get_toggle_city_name_parser().idx_to_name(ix), 0);
         }
     }
     for (u8 i = 0; i < ir.m_civ_n; ++i) {
@@ -180,7 +180,7 @@ void AssessorBruteWrite::write_readable (FILE* out, const EnablesMap& en, const 
     pr_en_section(out, "TECHS", en.m_tech, en.m_tech_count, mgr, tech_nm, cfg);
     pr_en_section(out, "RESOURCES", en.m_resource, en.m_resource_count, mgr, resource_nm, cfg);
     pr_en_section(out, "BUILDINGS", en.m_building, en.m_building_count, mgr, building_nm, cfg);
-    pr_en_section(out, "FLAGS", en.m_city_flag, en.m_city_flag_count, mgr, city_flag_nm, cfg);
+    pr_en_section(out, "FLAGS", en.m_toggle_city, en.m_toggle_city_count, mgr, toggle_city_nm, cfg);
     pr_en_section(out, "CIVS", en.m_civ, en.m_civ_count, mgr, civ_nm, cfg);
 }
 

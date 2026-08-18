@@ -8,3 +8,10 @@ Tile improvement and working:
  - Make sure the improvement yield boost lookup table is moved to data IO.   
  - We will need a O(1) lookup structure for effects pertaining to tile improvement yields.
 
+
+Static data:
+ - Need to implement dynamic enums for those cases when the hot-path need to lookup static data without a string compare. 
+
+
+Map generation:
+ - We currently place some resources on water, or on mountains, that should not be placed there (see aux_res_imp_terrain_comp).

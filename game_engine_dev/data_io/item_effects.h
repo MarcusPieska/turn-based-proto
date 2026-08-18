@@ -28,13 +28,15 @@ enum class ItemEffectType : u16 {
     NONE = 0,
     BOOSTER = 1,
     BUILD = 2,
-    ENABLE = 3,
-    RESEARCH_TECH = 4,
-    TRAIN = 5,
-    TERRAIN_BOOSTER = 6,
-    SET_FLAG = 7,
-    PRODUCE = 8,
-    JOB_SLOTS = 9
+    ENABLE_CITY = 3,
+    ENABLE_CIV = 4,
+    ENABLE_GLOBAL = 5,
+    RESEARCH_TECH = 6,
+    TRAIN = 7,
+    TERRAIN_BOOSTER = 8,
+    SET_FLAG = 9,
+    PRODUCE = 10,
+    JOB_SLOTS = 11
 };
 
 enum class ItemEffectBoosterType : u16 {
@@ -146,7 +148,6 @@ typedef struct ItemEffectBuild {
 
 typedef struct ItemEffectEnable {
     u16 feature_id;
-    ItemEffectsScope scope;
 } ItemEffectEnable;
 
 typedef struct ItemEffectResearchTech {

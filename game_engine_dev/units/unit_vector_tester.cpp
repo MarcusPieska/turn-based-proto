@@ -10,7 +10,7 @@
 #include <sstream>
 
 #include "bit_array.h"
-#include "city_flags.h"
+#include "toggle_city_enum.h"
 #include "tech_data.h"
 #include "resource_data.h"
 #include "building_data.h"
@@ -240,7 +240,7 @@ int main (int argc, char* argv[]) {
         print_level = std::atoi(argv[1]);
     }
 
-    CityFlagData::load_static_data("../game_config.city_flags");
+    CityFlagData::load_static_data("../game_config.toggle_city");
     TechData::load_static_data("../game_config.techs");
     ResourceData::load_static_data("../game_config.resources");
     BuildingData::load_static_data("../game_config.buildings");

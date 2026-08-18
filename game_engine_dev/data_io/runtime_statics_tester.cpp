@@ -72,7 +72,9 @@ void print_holder_counts (const RuntimeStatics& s) {
     printf("-----------------------------------------------------------\n");
     printf("RUNTIME STATICS COUNTS\n");
     print_u16_member("building", s.building().get_item_count());
-    print_u16_member("city_flag", s.city_flag().get_item_count());
+    print_u16_member("toggle_city", s.toggle_city().get_item_count());
+    print_u16_member("toggle_civ", s.toggle_civ().get_item_count());
+    print_u16_member("toggle_global", s.toggle_global().get_item_count());
     print_u16_member("city_job", s.city_job().get_item_count());
     print_u16_member("civ", s.civ().get_item_count());
     print_u16_member("civ_trait", s.civ_trait().get_item_count());
@@ -87,6 +89,7 @@ void print_holder_counts (const RuntimeStatics& s) {
     print_u16_member("unit_type", s.unit_type().get_item_count());
     print_u16_member("unit", s.unit().get_item_count());
     print_u16_member("wonder", s.wonder().get_item_count());
+    print_u16_member("worker_job_type", s.worker_job_type().get_item_count());
     print_u16_member("worker_job", s.worker_job().get_item_count());
     print_u16_member("worker_job_imp", s.worker_job_imp().get_item_count());
     print_u16_member("tile_yield_type", s.tile_yield_type().get_item_count());
@@ -101,7 +104,7 @@ u16 get_req_limit_for_type (const RuntimeStatics& s, u8 req_type) {
         return s.resource().get_item_count();
     }
     if (req_type == ITEM_REQ_TYPE_FLAG) {
-        return s.city_flag().get_item_count();
+        return s.toggle_city().get_item_count();
     }
     if (req_type == ITEM_REQ_TYPE_CIV) {
         return s.civ().get_item_count();
@@ -135,7 +138,9 @@ void run_load_tests (const RuntimeStaticLoader& loader) {
     note_result(loader.is_loaded(), "shared library load succeeded");
     const RuntimeStatics& s = loader.statics();
     note_result(s.building().get_item_count() > 0, "building holder has items");
-    note_result(s.city_flag().get_item_count() > 0, "city_flag holder has items");
+    note_result(s.toggle_city().get_item_count() > 0, "toggle_city holder has items");
+    note_result(s.toggle_civ().get_item_count() > 0, "toggle_civ holder has items");
+    note_result(s.toggle_global().get_item_count() > 0, "toggle_global holder has items");
     note_result(s.city_job().get_item_count() > 0, "city_job holder has items");
     note_result(s.civ().get_item_count() > 0, "civ holder has items");
     note_result(s.civ_trait().get_item_count() > 0, "civ_trait holder has items");
@@ -150,6 +155,7 @@ void run_load_tests (const RuntimeStaticLoader& loader) {
     note_result(s.unit_type().get_item_count() > 0, "unit_type holder has items");
     note_result(s.unit().get_item_count() > 0, "unit holder has items");
     note_result(s.wonder().get_item_count() > 0, "wonder holder has items");
+    note_result(s.worker_job_type().get_item_count() > 0, "worker_job_type holder has items");
     note_result(s.worker_job().get_item_count() > 0, "worker_job holder has items");
     note_result(s.worker_job_imp().get_item_count() > 0, "worker_job_imp holder has items");
     note_result(s.tile_yield_type().get_item_count() > 0, "tile_yield_type holder has items");
@@ -176,13 +182,13 @@ void run_req_bounds_tests (const RuntimeStatics& s) {
     note_result(result, "ResourceStaticDataStruct req indices in bounds");
     
     result = true;
-    for (u16 i = 0; i < s.city_flag().get_item_count(); ++i) {
-        if (!are_reqs_in_bounds(s, s.city_flag().get_item(CityFlagStaticDataKey::from_raw(i)).reqs, "city_flag", i)) {
+    for (u16 i = 0; i < s.toggle_city().get_item_count(); ++i) {
+        if (!are_reqs_in_bounds(s, s.toggle_city().get_item(ToggleCityStaticDataKey::from_raw(i)).reqs, "toggle_city", i)) {
             result = false;
             break;
         }
     }
-    note_result(result, "CityFlagStaticDataStruct req indices in bounds");
+    note_result(result, "ToggleCityStaticDataStruct req indices in bounds");
     
     result = true;
     for (u16 i = 0; i < s.building().get_item_count(); ++i) {

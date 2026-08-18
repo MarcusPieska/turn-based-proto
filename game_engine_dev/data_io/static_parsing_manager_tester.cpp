@@ -70,7 +70,9 @@ void print_item_counts (const StaticParsingManager& parser) {
     printf("-----------------------------------------------------------\n");
     printf("STATIC PARSING MANAGER COUNTS\n");
     print_u16_member("building", parser.get_building_count());
-    print_u16_member("city_flag", parser.get_city_flag_count());
+    print_u16_member("toggle_city", parser.get_toggle_city_count());
+    print_u16_member("toggle_civ", parser.get_toggle_civ_count());
+    print_u16_member("toggle_global", parser.get_toggle_global_count());
     print_u16_member("city_job", parser.get_city_job_count());
     print_u16_member("civ", parser.get_civ_count());
     print_u16_member("civ_trait", parser.get_civ_trait_count());
@@ -85,6 +87,7 @@ void print_item_counts (const StaticParsingManager& parser) {
     print_u16_member("unit_type", parser.get_unit_type_count());
     print_u16_member("unit", parser.get_unit_count());
     print_u16_member("wonder", parser.get_wonder_count());
+    print_u16_member("worker_job_type", parser.get_worker_job_type_count());
     print_u16_member("worker_job", parser.get_worker_job_count());
     print_u16_member("worker_job_imp", parser.get_worker_job_imp_count());
     print_u16_member("tile_yield_type", parser.get_tile_yield_type_count());
@@ -100,7 +103,7 @@ u16 get_req_limit_for_type (const StaticParsingManager& parser, u8 req_type) {
         return parser.get_resource_count();
     }
     if (req_type == ITEM_REQ_TYPE_FLAG) {
-        return parser.get_city_flag_count();
+        return parser.get_toggle_city_count();
     }
     if (req_type == ITEM_REQ_TYPE_CIV) {
         return parser.get_civ_count();
@@ -147,8 +150,8 @@ void run_req_bounds_tests (const StaticParsingManager& parser) {
     result = test_dataset_req_bounds(parser, parser.get_resource_data(), parser.get_resource_count(), "resource");
     note_result(result, "ResourceStaticDataStruct req indices in bounds");
     
-    result = test_dataset_req_bounds(parser, parser.get_city_flag_data(), parser.get_city_flag_count(), "city_flag");
-    note_result(result, "CityFlagStaticDataStruct req indices in bounds");
+    result = test_dataset_req_bounds(parser, parser.get_toggle_city_data(), parser.get_toggle_city_count(), "toggle_city");
+    note_result(result, "ToggleCityStaticDataStruct req indices in bounds");
     
     result = test_dataset_req_bounds(parser, parser.get_building_data(), parser.get_building_count(), "building");
     note_result(result, "BuildingStaticDataStruct req indices in bounds");

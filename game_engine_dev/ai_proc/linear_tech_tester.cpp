@@ -55,13 +55,13 @@ int main () {
     BitArrayCL owned(tech_n);
     BitArrayCL resource(mgr.get_resource_count());
     BitArrayCL building(mgr.get_building_count());
-    BitArrayCL city_flag(mgr.get_city_flag_count());
+    BitArrayCL toggle_city(mgr.get_toggle_city_count());
     BitArrayCL civ(mgr.get_civ_count());
     for (u32 i = 0; i < resource.get_count(); ++i) {
         resource.set_bit(i);
     }
-    for (u32 i = 0; i < city_flag.get_count(); ++i) {
-        city_flag.set_bit(i);
+    for (u32 i = 0; i < toggle_city.get_count(); ++i) {
+        toggle_city.set_bit(i);
     }
     for (u32 i = 0; i < civ.get_count(); ++i) {
         civ.set_bit(i);
@@ -73,10 +73,10 @@ int main () {
     ctx.m_city_idx = 0;
     ctx.m_resource_bank = nullptr;
     ctx.m_building_bank = nullptr;
-    ctx.m_city_flag_bank = nullptr;
+    ctx.m_toggle_city_bank = nullptr;
     ctx.m_resource = &resource;
     ctx.m_building = &building;
-    ctx.m_city_flag = &city_flag;
+    ctx.m_toggle_city = &toggle_city;
 
     u32 step = 0;
     u64 pick_ns = 0;

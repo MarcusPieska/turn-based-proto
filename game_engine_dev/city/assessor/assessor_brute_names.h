@@ -32,11 +32,11 @@ static inline cstr assessor_prereq_building_nm (const StaticParsingManager& mgr,
     return mgr.get_building_name_parser().idx_to_name(idx);
 }
 
-static inline cstr assessor_prereq_city_flag_nm (const StaticParsingManager& mgr, u16 idx) {
-    if (idx >= mgr.get_city_flag_count()) {
+static inline cstr assessor_prereq_toggle_city_nm (const StaticParsingManager& mgr, u16 idx) {
+    if (idx >= mgr.get_toggle_city_count()) {
         return "";
     }
-    return mgr.get_city_flag_name_parser().idx_to_name(idx);
+    return mgr.get_toggle_city_name_parser().idx_to_name(idx);
 }
 
 static inline cstr assessor_prereq_civ_nm (const StaticParsingManager& mgr, u16 idx) {
@@ -54,8 +54,8 @@ static inline cstr assessor_item_building_nm (const StaticParsingManager& mgr, u
     return assessor_prereq_building_nm(mgr, idx);
 }
 
-static inline cstr assessor_item_city_flag_nm (const StaticParsingManager& mgr, u16 idx) {
-    return assessor_prereq_city_flag_nm(mgr, idx);
+static inline cstr assessor_item_toggle_city_nm (const StaticParsingManager& mgr, u16 idx) {
+    return assessor_prereq_toggle_city_nm(mgr, idx);
 }
 
 static inline cstr assessor_item_resource_nm (const StaticParsingManager& mgr, u16 idx) {

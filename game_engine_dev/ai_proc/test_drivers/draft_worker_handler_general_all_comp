@@ -5,7 +5,7 @@ cd "$(dirname "$0")"
 
 RESULTS="/home/w/Projects/simple-map-gen/draft_worker_handler_results.txt"
 
-# Add new mkNN tags here as implementations land under draft_worker_handler_impl/.
+# Add new mkNN tags here as implementations land under impl/.
 IMPLS=(mk01 mk02)
 
 echo "======== draft_worker_handler_general all ========"

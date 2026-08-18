@@ -25,7 +25,9 @@ g++ $INC -c unit_type_action_map_parsing.cpp -o unit_type_action_map_parsing.o
 g++ $INC -c ../static_state/civ_bld_discount_map.cpp -o civ_bld_discount_map.o
 g++ $INC -c civ_bld_discount_map_parsing.cpp -o civ_bld_discount_map_parsing.o
 g++ $INC -c building_parser.cpp -o building_parser.o
-g++ $INC -c city_flag_parser.cpp -o city_flag_parser.o
+g++ $INC -c toggle_city_parser.cpp -o toggle_city_parser.o
+g++ $INC -c toggle_civ_parser.cpp -o toggle_civ_parser.o
+g++ $INC -c toggle_global_parser.cpp -o toggle_global_parser.o
 g++ $INC -c city_job_parser.cpp -o city_job_parser.o
 g++ $INC -c civ_parser.cpp -o civ_parser.o
 g++ $INC -c civ_trait_parser.cpp -o civ_trait_parser.o
@@ -40,6 +42,7 @@ g++ $INC -c unit_role_parser.cpp -o unit_role_parser.o
 g++ $INC -c unit_type_parser.cpp -o unit_type_parser.o
 g++ $INC -c unit_parser.cpp -o unit_parser.o
 g++ $INC -c wonder_parser.cpp -o wonder_parser.o
+g++ $INC -c worker_job_type_parser.cpp -o worker_job_type_parser.o
 g++ $INC -c worker_job_parser.cpp -o worker_job_parser.o
 g++ $INC -c worker_job_imp_parser.cpp -o worker_job_imp_parser.o
 g++ $INC -c tile_yield_type_parser.cpp -o tile_yield_type_parser.o
@@ -47,8 +50,12 @@ g++ $INC -c improvement_yield_parser.cpp -o improvement_yield_parser.o
 g++ $INC $CXXFLAGS -c ../misc/static_string_pool.cpp -o static_string_pool.o
 g++ $INC $CXXFLAGS -c ../static_state/building_static_data.cpp -o building_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/building_static_data_load.cpp -o building_static_data_load.o
-g++ $INC $CXXFLAGS -c ../static_state/city_flag_static_data.cpp -o city_flag_static_data.o
-g++ $INC $CXXFLAGS -c ../static_state/city_flag_static_data_load.cpp -o city_flag_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/toggle_city_static_data.cpp -o toggle_city_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/toggle_city_static_data_load.cpp -o toggle_city_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/toggle_civ_static_data.cpp -o toggle_civ_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/toggle_civ_static_data_load.cpp -o toggle_civ_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/toggle_global_static_data.cpp -o toggle_global_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/toggle_global_static_data_load.cpp -o toggle_global_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/city_job_static_data.cpp -o city_job_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/city_job_static_data_load.cpp -o city_job_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/civ_static_data.cpp -o civ_static_data.o
@@ -77,6 +84,8 @@ g++ $INC $CXXFLAGS -c ../static_state/unit_static_data.cpp -o unit_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/unit_static_data_load.cpp -o unit_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/wonder_static_data.cpp -o wonder_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/wonder_static_data_load.cpp -o wonder_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/worker_job_type_static_data.cpp -o worker_job_type_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/worker_job_type_static_data_load.cpp -o worker_job_type_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/worker_job_static_data.cpp -o worker_job_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/worker_job_static_data_load.cpp -o worker_job_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/worker_job_imp_static_data.cpp -o worker_job_imp_static_data.o
@@ -110,7 +119,9 @@ g++ $CXXFLAGS -o static_parsing_manager_tester \
     civ_bld_discount_map.o \
     civ_bld_discount_map_parsing.o \
     building_parser.o \
-    city_flag_parser.o \
+    toggle_city_parser.o \
+    toggle_civ_parser.o \
+    toggle_global_parser.o \
     city_job_parser.o \
     civ_parser.o \
     civ_trait_parser.o \
@@ -125,14 +136,19 @@ g++ $CXXFLAGS -o static_parsing_manager_tester \
     unit_type_parser.o \
     unit_parser.o \
     wonder_parser.o \
+    worker_job_type_parser.o \
     worker_job_parser.o \
     worker_job_imp_parser.o \
     tile_yield_type_parser.o \
     improvement_yield_parser.o \
     building_static_data.o \
     building_static_data_load.o \
-    city_flag_static_data.o \
-    city_flag_static_data_load.o \
+    toggle_city_static_data.o \
+    toggle_city_static_data_load.o \
+    toggle_civ_static_data.o \
+    toggle_civ_static_data_load.o \
+    toggle_global_static_data.o \
+    toggle_global_static_data_load.o \
     city_job_static_data.o \
     city_job_static_data_load.o \
     civ_static_data.o \
@@ -161,6 +177,8 @@ g++ $CXXFLAGS -o static_parsing_manager_tester \
     unit_static_data_load.o \
     wonder_static_data.o \
     wonder_static_data_load.o \
+    worker_job_type_static_data.o \
+    worker_job_type_static_data_load.o \
     worker_job_static_data.o \
     worker_job_static_data_load.o \
     worker_job_imp_static_data.o \
@@ -194,7 +212,9 @@ g++ $INC -c unit_type_action_map_parsing.cpp -o unit_type_action_map_parsing.o
 g++ $INC -c ../static_state/civ_bld_discount_map.cpp -o civ_bld_discount_map.o
 g++ $INC -c civ_bld_discount_map_parsing.cpp -o civ_bld_discount_map_parsing.o
 g++ $INC -c building_parser.cpp -o building_parser.o
-g++ $INC -c city_flag_parser.cpp -o city_flag_parser.o
+g++ $INC -c toggle_city_parser.cpp -o toggle_city_parser.o
+g++ $INC -c toggle_civ_parser.cpp -o toggle_civ_parser.o
+g++ $INC -c toggle_global_parser.cpp -o toggle_global_parser.o
 g++ $INC -c city_job_parser.cpp -o city_job_parser.o
 g++ $INC -c civ_parser.cpp -o civ_parser.o
 g++ $INC -c civ_trait_parser.cpp -o civ_trait_parser.o
@@ -209,6 +229,7 @@ g++ $INC -c unit_role_parser.cpp -o unit_role_parser.o
 g++ $INC -c unit_type_parser.cpp -o unit_type_parser.o
 g++ $INC -c unit_parser.cpp -o unit_parser.o
 g++ $INC -c wonder_parser.cpp -o wonder_parser.o
+g++ $INC -c worker_job_type_parser.cpp -o worker_job_type_parser.o
 g++ $INC -c worker_job_parser.cpp -o worker_job_parser.o
 g++ $INC -c worker_job_imp_parser.cpp -o worker_job_imp_parser.o
 g++ $INC -c tile_yield_type_parser.cpp -o tile_yield_type_parser.o
@@ -216,8 +237,12 @@ g++ $INC -c improvement_yield_parser.cpp -o improvement_yield_parser.o
 g++ $INC $CXXFLAGS -c ../misc/static_string_pool.cpp -o static_string_pool.o
 g++ $INC $CXXFLAGS -c ../static_state/building_static_data.cpp -o building_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/building_static_data_load.cpp -o building_static_data_load.o
-g++ $INC $CXXFLAGS -c ../static_state/city_flag_static_data.cpp -o city_flag_static_data.o
-g++ $INC $CXXFLAGS -c ../static_state/city_flag_static_data_load.cpp -o city_flag_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/toggle_city_static_data.cpp -o toggle_city_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/toggle_city_static_data_load.cpp -o toggle_city_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/toggle_civ_static_data.cpp -o toggle_civ_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/toggle_civ_static_data_load.cpp -o toggle_civ_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/toggle_global_static_data.cpp -o toggle_global_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/toggle_global_static_data_load.cpp -o toggle_global_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/city_job_static_data.cpp -o city_job_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/city_job_static_data_load.cpp -o city_job_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/civ_static_data.cpp -o civ_static_data.o
@@ -246,6 +271,8 @@ g++ $INC $CXXFLAGS -c ../static_state/unit_static_data.cpp -o unit_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/unit_static_data_load.cpp -o unit_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/wonder_static_data.cpp -o wonder_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/wonder_static_data_load.cpp -o wonder_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/worker_job_type_static_data.cpp -o worker_job_type_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/worker_job_type_static_data_load.cpp -o worker_job_type_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/worker_job_static_data.cpp -o worker_job_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/worker_job_static_data_load.cpp -o worker_job_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/worker_job_imp_static_data.cpp -o worker_job_imp_static_data.o
@@ -279,7 +306,9 @@ g++ $CXXFLAGS $OPT -o static_parsing_manager_opt_tester \
     civ_bld_discount_map.o \
     civ_bld_discount_map_parsing.o \
     building_parser.o \
-    city_flag_parser.o \
+    toggle_city_parser.o \
+    toggle_civ_parser.o \
+    toggle_global_parser.o \
     city_job_parser.o \
     civ_parser.o \
     civ_trait_parser.o \
@@ -294,14 +323,19 @@ g++ $CXXFLAGS $OPT -o static_parsing_manager_opt_tester \
     unit_type_parser.o \
     unit_parser.o \
     wonder_parser.o \
+    worker_job_type_parser.o \
     worker_job_parser.o \
     worker_job_imp_parser.o \
     tile_yield_type_parser.o \
     improvement_yield_parser.o \
     building_static_data.o \
     building_static_data_load.o \
-    city_flag_static_data.o \
-    city_flag_static_data_load.o \
+    toggle_city_static_data.o \
+    toggle_city_static_data_load.o \
+    toggle_civ_static_data.o \
+    toggle_civ_static_data_load.o \
+    toggle_global_static_data.o \
+    toggle_global_static_data_load.o \
     city_job_static_data.o \
     city_job_static_data_load.o \
     civ_static_data.o \
@@ -330,6 +364,8 @@ g++ $CXXFLAGS $OPT -o static_parsing_manager_opt_tester \
     unit_static_data_load.o \
     wonder_static_data.o \
     wonder_static_data_load.o \
+    worker_job_type_static_data.o \
+    worker_job_type_static_data_load.o \
     worker_job_static_data.o \
     worker_job_static_data_load.o \
     worker_job_imp_static_data.o \
@@ -364,7 +400,9 @@ rm \
     civ_bld_discount_map.o \
     civ_bld_discount_map_parsing.o \
     building_parser.o \
-    city_flag_parser.o \
+    toggle_city_parser.o \
+    toggle_civ_parser.o \
+    toggle_global_parser.o \
     city_job_parser.o \
     civ_parser.o \
     civ_trait_parser.o \
@@ -379,14 +417,19 @@ rm \
     unit_type_parser.o \
     unit_parser.o \
     wonder_parser.o \
+    worker_job_type_parser.o \
     worker_job_parser.o \
     worker_job_imp_parser.o \
     tile_yield_type_parser.o \
     improvement_yield_parser.o \
     building_static_data.o \
     building_static_data_load.o \
-    city_flag_static_data.o \
-    city_flag_static_data_load.o \
+    toggle_city_static_data.o \
+    toggle_city_static_data_load.o \
+    toggle_civ_static_data.o \
+    toggle_civ_static_data_load.o \
+    toggle_global_static_data.o \
+    toggle_global_static_data_load.o \
     city_job_static_data.o \
     city_job_static_data_load.o \
     civ_static_data.o \
@@ -415,6 +458,8 @@ rm \
     unit_static_data_load.o \
     wonder_static_data.o \
     wonder_static_data_load.o \
+    worker_job_type_static_data.o \
+    worker_job_type_static_data_load.o \
     worker_job_static_data.o \
     worker_job_static_data_load.o \
     worker_job_imp_static_data.o \

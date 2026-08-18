@@ -29,15 +29,15 @@ PARSER_SPECS = _load_gen_data_io_generate().PARSER_SPECS
 #================================================================================================================================#
 
 # Order is codegen order (switch cases, AssessorCtx members); put common types first.
-PREREQ_NAMES = ["tech", "resource", "building", "city_flag", "civ"]
+PREREQ_NAMES = ["tech", "resource", "building", "toggle_city", "civ"]
 
 def prereq_section (name):
-    if name == "city_flag":
+    if name == "toggle_city":
         return "FLAGS"
     return name.upper() + "S"
 
 def prereq_tok (name):
-    if name == "city_flag":
+    if name == "toggle_city":
         return "flag"
     return name
 
@@ -47,7 +47,7 @@ def prereq_class (name):
 
 def item_req_type_enum (name):
     suffix = name.upper()
-    if name == "city_flag":
+    if name == "toggle_city":
         suffix = "FLAG"
     return "ITEM_REQ_TYPE_" + suffix
 
@@ -64,7 +64,7 @@ PREREQ_TYPES = derive_prereq_types()
 #================================================================================================================================#
 
 def has_item_reqs (prefix, parsing_instructions):
-    if prefix == "city_flag":
+    if prefix == "toggle_city":
         return True
     if parsing_instructions is None:
         return False
@@ -213,10 +213,10 @@ def derive_run_ctx_snap ():
     lines.append("ctx.m_city_idx = 0;")
     lines.append("ctx.m_resource_bank = nullptr;")
     lines.append("ctx.m_building_bank = nullptr;")
-    lines.append("ctx.m_city_flag_bank = nullptr;")
+    lines.append("ctx.m_toggle_city_bank = nullptr;")
     lines.append("ctx.m_resource = &resource;")
     lines.append("ctx.m_building = &building;")
-    lines.append("ctx.m_city_flag = &city_flag;")
+    lines.append("ctx.m_toggle_city = &toggle_city;")
     return join_tag(lines, "        ")
 
 def derive_ablation_loop_lines (name):
@@ -313,10 +313,10 @@ def derive_assessor_ctx_members ():
     lines.append("u16 m_city_idx;")
     lines.append("const GeneralBitBank* m_resource_bank;")
     lines.append("const GeneralBitBank* m_building_bank;")
-    lines.append("const GeneralBitBank* m_city_flag_bank;")
+    lines.append("const GeneralBitBank* m_toggle_city_bank;")
     lines.append("const BitArrayCL* m_resource;")
     lines.append("const BitArrayCL* m_building;")
-    lines.append("const BitArrayCL* m_city_flag;")
+    lines.append("const BitArrayCL* m_toggle_city;")
     return join_tag(lines)
 
 def derive_assess_struct_fwd ():
@@ -458,7 +458,7 @@ def derive_assessor_main_body ():
     return join_tag(lines, "    ")
 
 def derive_chk_switch_cases ():
-    bank_names = {"resource", "building", "city_flag"}
+    bank_names = {"resource", "building", "toggle_city"}
     lines = []
     for name, section, tok, cls in PREREQ_TYPES:
         req_tp = item_req_type_enum(name)
@@ -537,7 +537,7 @@ def derive_cost_emit_for_spec (prefix, class_name, parsing_instructions):
         lines.append("if (items != nullptr) {")
         lines.append('    std::fprintf(out, " : %3u : %3u : %3u", items[idx].food, items[idx].shields, items[idx].commerce);')
         lines.append("}")
-    elif prefix == "city_flag":
+    elif prefix == "toggle_city":
         pass
     elif parsing_instructions and "cost,1,u32" in parsing_instructions:
         lines.append("const %s* items = mgr.get_%s_data();" % (struct_name, prefix))

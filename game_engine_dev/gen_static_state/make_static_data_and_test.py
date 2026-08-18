@@ -19,12 +19,14 @@ if __name__ == "__main__":
     specs = []
     
     specs.append(("building", "Building", std_members + "u32 cost; ItemEffectsStruct effects;", "cost", "effects.items[0].type"))
-    specs.append(("city_flag", "CityFlag", std_members + "ItemEffectsStruct effects;", "effects.items[0].type", "effects.items[1].type"))
+    specs.append(("toggle_city", "ToggleCity", std_members + "ItemEffectsStruct effects;", "effects.items[0].type", "effects.items[1].type"))
+    specs.append(("toggle_civ", "ToggleCiv", std_members + "ItemEffectsStruct effects;", "effects.items[0].type", "effects.items[1].type"))
+    specs.append(("toggle_global", "ToggleGlobal", std_members + "ItemEffectsStruct effects;", "effects.items[0].type", "effects.items[1].type"))
     specs.append(("city_job", "CityJob", "i16 food; u16 production; u16 commerce; u16 culture; u16 science; u16 religion; u16 slots; ItemEffectsStruct effects;", "food", "slots"))
     specs.append(("civ", "Civ", "CivTraitStruct traits;", "traits.indices[0]", "traits.indices[1]"))
     specs.append(("civ_trait", "CivTrait", "", "None", "None"))
     specs.append(("tile_attribute", "TileAttribute", "u16 mvt_cost; i16 food; u16 production; u16 commerce; u16 culture; u16 science; u16 religion; u16 attack_mod; u16 defense_mod;", "None", "None"))
-    specs.append(("resource", "Resource", std_members + "u16 food; u16 shields; u16 commerce; u16 culture; u16 science; u16 religion; u16 type; u16 res_dist_idx;", "food", "type"))
+    specs.append(("resource", "Resource", std_members + "u16 food; u16 shields; u16 commerce; u16 culture; u16 science; u16 religion; u16 type; u16 worker_job_idx; u16 res_dist_idx;", "food", "type"))
     specs.append(("res_dist", "ResDist", "u8 has_plc; ResPlacement plc;", "None", "None"))
     specs.append(("res_type", "ResType", "", "None", "None"))
     
@@ -36,7 +38,8 @@ if __name__ == "__main__":
     specs.append(("unit_type", "UnitType", "", "None", "None"))
     
     specs.append(("wonder", "Wonder", std_members + "u32 cost; ItemEffectsStruct effects;", "cost", "effects.items[0].type"))
-    specs.append(("worker_job", "WorkerJob", std_members + "u32 cost;", "cost", "reqs.types[0]"))
+    specs.append(("worker_job_type", "WorkerJobType", "", "None", "None"))
+    specs.append(("worker_job", "WorkerJob", std_members + "u32 cost; u16 type;", "cost", "type"))
     specs.append(("worker_job_imp", "WorkerJobImp", std_members + "u16 worker_job_idx; u32 cost; ItemEffectsStruct effects;", "cost", "effects.items[0].type"))
     specs.append(("tile_yield_type", "TileYieldType", "", "None", "None"))
     specs.append(("improvement_yield", "ImprovementYield", "u16 worker_job_idx; u16 yield_type; i16 amount; u16 cond_attr;", "amount", "yield_type"))

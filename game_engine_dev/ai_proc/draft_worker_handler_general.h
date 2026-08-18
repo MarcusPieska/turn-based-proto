@@ -14,7 +14,7 @@ class GameState;
 //================================================================================================================================
 //
 //  City-leashed draft-worker AI strategy (general). Implementation body is cpp-included from
-//  draft_worker_handler_impl/draft_worker_impl_general_mkNN.cpp via DRAFT_WORKER_GENERAL_IMPL.
+//  impl/draft_worker_impl_general_mkNN.cpp via DRAFT_WORKER_GENERAL_IMPL.
 //  WorkerHelper::get_data holds the home city index; workers must stay in that city's work disk.
 //
 //================================================================================================================================

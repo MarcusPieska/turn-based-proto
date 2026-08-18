@@ -13,7 +13,9 @@ sys.dont_write_bytecode = True
 
 path_config_endings = []
 path_config_endings.append("buildings")
-path_config_endings.append("city_flags")
+path_config_endings.append("toggle_city")
+path_config_endings.append("toggle_civ")
+path_config_endings.append("toggle_global")
 path_config_endings.append("city_jobs")
 path_config_endings.append("civ_traits")
 path_config_endings.append("civs")
@@ -30,6 +32,7 @@ path_config_endings.append("unit_roles")
 path_config_endings.append("unit_types")
 path_config_endings.append("units")
 path_config_endings.append("wonders")
+path_config_endings.append("worker_job_types")
 path_config_endings.append("worker_jobs")
 path_config_endings.append("worker_job_imps")
 path_config_endings.append("tile_yield_types")

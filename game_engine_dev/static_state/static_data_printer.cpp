@@ -17,7 +17,7 @@
 #include "item_effects.h"
 
 #include "building_static_data.h"
-#include "city_flag_static_data.h"
+#include "toggle_city_static_data.h"
 #include "civ_static_data.h"
 #include "civ_trait_static_data.h"
 #include "resource_static_data.h"
@@ -141,7 +141,7 @@ static void print_building_item (
     }
 }
 
-static void print_city_flag_item (
+static void print_toggle_city_item (
     const RuntimeStatics& statics,
     u16 idx,
     i32 print_lvl,
@@ -150,9 +150,9 @@ static void print_city_flag_item (
     if (print_lvl > max_lvl) {
         return;
     }
-    const CityFlagStaticDataStruct& item = statics.city_flag().get_item(CityFlagStaticDataKey::from_raw(idx));
+    const ToggleCityStaticDataStruct& item = statics.toggle_city().get_item(ToggleCityStaticDataKey::from_raw(idx));
     StaticDataPrinter::print_indent(print_lvl);
-    printf("city_flag[%u]\n", idx);
+    printf("toggle_city[%u]\n", idx);
     StaticDataPrinter::print_indent(print_lvl + 1);
     printf("name: %s\n", item.name.c_str());
     StaticDataPrinter::print_indent(print_lvl + 1);
@@ -679,7 +679,7 @@ void StaticDataPrinter::print_selected_items (
         print_building_item(statics, idx, print_lvl, max_lvl);
         break;
     case StaticDataPrintKind::CITY_FLAG:
-        print_city_flag_item(statics, idx, print_lvl, max_lvl);
+        print_toggle_city_item(statics, idx, print_lvl, max_lvl);
         break;
     case StaticDataPrintKind::CIV:
         print_civ_item(statics, idx, print_lvl, max_lvl);

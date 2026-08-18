@@ -10,7 +10,7 @@ if [ ! -f "$LIB_SO" ]; then
 fi
 
 IMPL_MK="${TILE_YIELDS_MK:-mk01}"
-IMPL_REL="tile_yields_impl/tile_yields_impl_${IMPL_MK}.cpp"
+IMPL_REL="impl/tile_yields_impl_${IMPL_MK}.cpp"
 IMPL_ABS="../${IMPL_REL}"
 if [ ! -f "$IMPL_ABS" ]; then
     echo "missing impl $IMPL_ABS"

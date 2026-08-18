@@ -16,12 +16,14 @@ from generater_commons import path_from_stem
 
 PARSER_SPECS = []
 PARSER_SPECS.append(("building", "Building", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStruct"))
-PARSER_SPECS.append(("city_flag", "CityFlag", ""))
+PARSER_SPECS.append(("toggle_city", "ToggleCity", ""))
+PARSER_SPECS.append(("toggle_civ", "ToggleCiv", ""))
+PARSER_SPECS.append(("toggle_global", "ToggleGlobal", ""))
 PARSER_SPECS.append(("city_job", "CityJob", "food,1,i16:production,2,u16:commerce,3,u16:culture,4,u16:science,5,u16:religion,6,u16:slots,7,u16:effects,8,ItemEffectsStructOpt"))
 PARSER_SPECS.append(("civ", "Civ", "traits,1,CivTraitStruct"))
 PARSER_SPECS.append(("civ_trait", "CivTrait", ""))
 PARSER_SPECS.append(("tile_attribute", "TileAttribute", "mvt_cost,1,u16:food,2,i16:production,3,u16:commerce,4,u16:culture,5,u16:science,6,u16:religion,7,u16:attack_mod,8,u16:defense_mod,9,u16"))
-PARSER_SPECS.append(("resource", "Resource", "food,1,u16:shields,2,u16:commerce,3,u16:culture,4,u16:science,5,u16:religion,6,u16:type,7,ResType:reqs,8,ItemReqsStruct:res_dist_idx,0,ResDistIdx"))
+PARSER_SPECS.append(("resource", "Resource", "food,1,u16:shields,2,u16:commerce,3,u16:culture,4,u16:science,5,u16:religion,6,u16:type,7,ResType:worker_job_idx,8,WorkerJobColIdx:reqs,9,ItemReqsStruct:res_dist_idx,0,ResDistIdx"))
 PARSER_SPECS.append(("res_dist", "ResDist", "plc,1,ResPlacement"))
 PARSER_SPECS.append(("res_type", "ResType", ""))
 PARSER_SPECS.append(("small_wonder", "SmallWonder", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStruct"))
@@ -31,13 +33,14 @@ PARSER_SPECS.append(("unit_action", "UnitAction", ""))
 PARSER_SPECS.append(("unit_role", "UnitRole", "mods,1,CombatModList"))
 PARSER_SPECS.append(("unit_type", "UnitType", ""))
 PARSER_SPECS.append(("wonder", "Wonder", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStruct"))
-PARSER_SPECS.append(("worker_job", "WorkerJob", "cost,1,u32:reqs,2,ItemReqsStruct"))
+PARSER_SPECS.append(("worker_job_type", "WorkerJobType", ""))
+PARSER_SPECS.append(("worker_job", "WorkerJob", "cost,1,u32:type,2,WorkerJobType:reqs,3,ItemReqsStruct"))
 PARSER_SPECS.append(("worker_job_imp", "WorkerJobImp", "worker_job_idx,1,WorkerJobColIdx:cost,2,u32:reqs,3,ItemReqsStruct:effects,4,ItemEffectsStruct"))
 PARSER_SPECS.append(("tile_yield_type", "TileYieldType", ""))
 PARSER_SPECS.append(("improvement_yield", "ImprovementYield", "cond_attr,1,TileAttributeIdx:yield_type,2,TileYieldType:amount,3,i16:worker_job_idx,0,WorkerJobIdx"))
 
 def derive_req_type(prefix):
-    if prefix == "city_flag":
+    if prefix == "toggle_city":
         return "ITEM_REQ_TYPE_FLAG"
     req_type = "ITEM_REQ_TYPE_" + prefix.upper()
     if req_type in ("ITEM_REQ_TYPE_BUILDING", "ITEM_REQ_TYPE_CIV", "ITEM_REQ_TYPE_RESOURCE", "ITEM_REQ_TYPE_TECH"):
@@ -70,6 +73,8 @@ def get_function_name_from_output_type(output_type):
         return "parse_unit_role"
     elif output_type == "ResType":
         return "parse_res_type"
+    elif output_type == "WorkerJobType":
+        return "parse_worker_job_type"
     elif output_type == "TileYieldType":
         return "parse_tile_yield_type"
     elif output_type == "TileAttributeIdx":
@@ -119,7 +124,7 @@ def derive_member_print_lines(parsing_instructions):
         return ["// No parsing instructions provided"]
     for instruction in parsing_instructions.split(":"):
         mem, idx, data_type = [part.strip() for part in instruction.strip().split(",")]
-        if data_type in ["u16", "UnitType", "UnitRole", "ResType", "ResDistIdx", "TileYieldType", "TileAttributeIdx", "WorkerJobIdx", "WorkerJobColIdx"]:
+        if data_type in ["u16", "UnitType", "UnitRole", "ResType", "WorkerJobType", "ResDistIdx", "TileYieldType", "TileAttributeIdx", "WorkerJobIdx", "WorkerJobColIdx"]:
             lines.append('pr_u16("%s", item.%s);' % (mem, mem))
         elif data_type == "i16":
             lines.append('pr_i16("%s", item.%s);' % (mem, mem))
@@ -373,7 +378,7 @@ def to_enum_ident (name):
 def unroll_catalog_enum_members (prefix):
     names = load_catalog_names(prefix)
     if len(names) == 0:
-        raise RuntimeError("no catalog names for %s" % prefix)
+        return "_EMPTY = 0"
     lines = []
     seen = {}
     for i, name in enumerate(names):

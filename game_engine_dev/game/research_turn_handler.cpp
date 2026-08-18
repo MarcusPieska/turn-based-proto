@@ -39,7 +39,7 @@ static void pick_target (PlayerState& ps, const RuntimeStatics& st) {
     GAME_EXPECT(ps.m_techs_researched != nullptr, "ResearchTurnHandler pick_target techs null");
     BitArrayCL resource(st.resource().get_item_count());
     BitArrayCL building(st.building().get_item_count());
-    BitArrayCL city_flag(st.city_flag().get_item_count());
+    BitArrayCL toggle_city(st.toggle_city().get_item_count());
     BitArrayCL civ(st.civ().get_item_count());
     for (u32 i = 0; i < resource.get_count(); ++i) {
         resource.set_bit(i);
@@ -52,10 +52,10 @@ static void pick_target (PlayerState& ps, const RuntimeStatics& st) {
     ctx.m_city_idx = 0;
     ctx.m_resource_bank = nullptr;
     ctx.m_building_bank = nullptr;
-    ctx.m_city_flag_bank = nullptr;
+    ctx.m_toggle_city_bank = nullptr;
     ctx.m_resource = &resource;
     ctx.m_building = &building;
-    ctx.m_city_flag = &city_flag;
+    ctx.m_toggle_city = &toggle_city;
     BitArrayCL available(tech_n);
     const TechStaticDataStruct* items = &st.tech().get_item(TechStaticDataKey::from_raw(0));
     GeneralAssessor::assess_tech(&available, tech_n, items, ctx);

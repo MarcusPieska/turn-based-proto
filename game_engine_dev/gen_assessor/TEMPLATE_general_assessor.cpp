@@ -50,11 +50,11 @@ static bool chk_building (const AssessorCtx& ctx, u16 idx) {
     return chk_bit(ctx.m_building, idx);
 }
 
-static bool chk_city_flag (const AssessorCtx& ctx, u16 idx) {
-    if (ctx.m_city_flag_bank != nullptr) {
-        return chk_bank(ctx.m_city_flag_bank, ctx.m_city_idx, idx);
+static bool chk_toggle_city (const AssessorCtx& ctx, u16 idx) {
+    if (ctx.m_toggle_city_bank != nullptr) {
+        return chk_bank(ctx.m_toggle_city_bank, ctx.m_city_idx, idx);
     }
-    return chk_bit(ctx.m_city_flag, idx);
+    return chk_bit(ctx.m_toggle_city, idx);
 }
 
 bool GeneralAssessor::chk (const ItemReqsStruct& reqs, const AssessorCtx& ctx) {

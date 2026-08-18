@@ -46,7 +46,7 @@ static void add_en (EnSlot& slot, u16 item_idx) {
     }
 }
 
-static void set_all (BitArrayCL& tech, BitArrayCL& resource, BitArrayCL& building, BitArrayCL& city_flag, BitArrayCL& civ, const StaticParsingManager& mgr, bool building_all) {
+static void set_all (BitArrayCL& tech, BitArrayCL& resource, BitArrayCL& building, BitArrayCL& toggle_city, BitArrayCL& civ, const StaticParsingManager& mgr, bool building_all) {
     u32 tech_count = mgr.get_tech_count();
     for (u32 i = 0; i < tech_count; ++i) {
         tech.set_bit(i);
@@ -55,9 +55,9 @@ static void set_all (BitArrayCL& tech, BitArrayCL& resource, BitArrayCL& buildin
     for (u32 i = 0; i < resource_count; ++i) {
         resource.set_bit(i);
     }
-    u32 city_flag_count = mgr.get_city_flag_count();
-    for (u32 i = 0; i < city_flag_count; ++i) {
-        city_flag.set_bit(i);
+    u32 toggle_city_count = mgr.get_toggle_city_count();
+    for (u32 i = 0; i < toggle_city_count; ++i) {
+        toggle_city.set_bit(i);
     }
     u32 civ_count = mgr.get_civ_count();
     for (u32 i = 0; i < civ_count; ++i) {
@@ -78,13 +78,13 @@ static void free_en_map (EnablesMap& en) {
     en.m_resource = nullptr;
     delete[] en.m_building;
     en.m_building = nullptr;
-    delete[] en.m_city_flag;
-    en.m_city_flag = nullptr;
+    delete[] en.m_toggle_city;
+    en.m_toggle_city = nullptr;
     delete[] en.m_civ;
     en.m_civ = nullptr;
 }
 
-static EnablesMap make_en_map (u32 tech_count, u32 resource_count, u32 building_count, u32 city_flag_count, u32 civ_count) {
+static EnablesMap make_en_map (u32 tech_count, u32 resource_count, u32 building_count, u32 toggle_city_count, u32 civ_count) {
     EnablesMap en = {};
     en.m_tech_count = tech_count;
     en.m_tech = new EnSlot[tech_count];
@@ -101,10 +101,10 @@ static EnablesMap make_en_map (u32 tech_count, u32 resource_count, u32 building_
     for (u32 i = 0; i < building_count; ++i) {
         en.m_building[i] = {};
     }
-    en.m_city_flag_count = city_flag_count;
-    en.m_city_flag = new EnSlot[city_flag_count];
-    for (u32 i = 0; i < city_flag_count; ++i) {
-        en.m_city_flag[i] = {};
+    en.m_toggle_city_count = toggle_city_count;
+    en.m_toggle_city = new EnSlot[toggle_city_count];
+    for (u32 i = 0; i < toggle_city_count; ++i) {
+        en.m_toggle_city[i] = {};
     }
     en.m_civ_count = civ_count;
     en.m_civ = new EnSlot[civ_count];
@@ -126,34 +126,34 @@ int AssessorBrute::run (const StaticParsingManager& mgr, const BruteRunCfg& cfg)
     u32 tech_count = mgr.get_tech_count();
     u32 resource_count = mgr.get_resource_count();
     u32 building_count = mgr.get_building_count();
-    u32 city_flag_count = mgr.get_city_flag_count();
+    u32 toggle_city_count = mgr.get_toggle_city_count();
     u32 civ_count = mgr.get_civ_count();
 
     BitArrayCL tech(tech_count);
     BitArrayCL resource(resource_count);
     BitArrayCL building(building_count);
-    BitArrayCL city_flag(city_flag_count);
+    BitArrayCL toggle_city(toggle_city_count);
     BitArrayCL civ(civ_count);
 
     InferredReqs* inferred = new InferredReqs[cfg.m_item_count];
     for (u16 i = 0; i < cfg.m_item_count; ++i) {
         inferred[i] = {};
     }
-    EnablesMap en = make_en_map(tech_count, resource_count, building_count, city_flag_count, civ_count);
+    EnablesMap en = make_en_map(tech_count, resource_count, building_count, toggle_city_count, civ_count);
     auto snap = [&](AssessorCtx& ctx) {
         ctx.m_tech = &tech;
         ctx.m_civ = &civ;
         ctx.m_city_idx = 0;
         ctx.m_resource_bank = nullptr;
         ctx.m_building_bank = nullptr;
-        ctx.m_city_flag_bank = nullptr;
+        ctx.m_toggle_city_bank = nullptr;
         ctx.m_resource = &resource;
         ctx.m_building = &building;
-        ctx.m_city_flag = &city_flag;
+        ctx.m_toggle_city = &toggle_city;
     };
     bool building_for_ablation = cfg.m_init_building_all || cfg.m_building_isolate;
     auto set_base = [&]() {
-        set_all(tech, resource, building, city_flag, civ, mgr, building_for_ablation);
+        set_all(tech, resource, building, toggle_city, civ, mgr, building_for_ablation);
     };
     AssessorCtx ctx = {};
     snap(ctx);
@@ -187,16 +187,16 @@ int AssessorBrute::run (const StaticParsingManager& mgr, const BruteRunCfg& cfg)
             }
         }
     }
-    for (u32 city_flag_i = 0; city_flag_i < city_flag_count; ++city_flag_i) {
+    for (u32 toggle_city_i = 0; toggle_city_i < toggle_city_count; ++toggle_city_i) {
         set_base();
-        city_flag.clear_bit(city_flag_i);
+        toggle_city.clear_bit(toggle_city_i);
         snap(ctx);
         BitArrayCL cur_scratch(cfg.m_item_count);
         cfg.m_assess(&cur_scratch, cfg.m_item_count, ctx);
         for (u16 i = 0; i < cfg.m_item_count; ++i) {
             if (baseline_scratch.get_bit(i) == 1 && cur_scratch.get_bit(i) != 1) {
-                add_u16(inferred[i].m_city_flag, &inferred[i].m_city_flag_n, (u16)city_flag_i);
-                add_en(en.m_city_flag[city_flag_i], i);
+                add_u16(inferred[i].m_toggle_city, &inferred[i].m_toggle_city_n, (u16)toggle_city_i);
+                add_en(en.m_toggle_city[toggle_city_i], i);
             }
         }
     }
@@ -216,7 +216,7 @@ int AssessorBrute::run (const StaticParsingManager& mgr, const BruteRunCfg& cfg)
 
     if (cfg.m_building_isolate) {
         for (u32 b = 0; b < building_count; ++b) {
-            set_all(tech, resource, building, city_flag, civ, mgr, true);
+            set_all(tech, resource, building, toggle_city, civ, mgr, true);
             for (u32 i = 0; i < building_count; ++i) {
                 building.set_bit(i);
             }

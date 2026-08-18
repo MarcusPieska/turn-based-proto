@@ -50,8 +50,12 @@ RuntimeStatics& runtime_statics () {
 void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_building.set_items(const_cast<BuildingStaticDataStruct*>(p.get_building_data()), p.get_building_count());
     m_building.load_names_from(p.get_building_name_parser(), p.get_building_count());
-    m_city_flag.set_items(const_cast<CityFlagStaticDataStruct*>(p.get_city_flag_data()), p.get_city_flag_count());
-    m_city_flag.load_names_from(p.get_city_flag_name_parser(), p.get_city_flag_count());
+    m_toggle_city.set_items(const_cast<ToggleCityStaticDataStruct*>(p.get_toggle_city_data()), p.get_toggle_city_count());
+    m_toggle_city.load_names_from(p.get_toggle_city_name_parser(), p.get_toggle_city_count());
+    m_toggle_civ.set_items(const_cast<ToggleCivStaticDataStruct*>(p.get_toggle_civ_data()), p.get_toggle_civ_count());
+    m_toggle_civ.load_names_from(p.get_toggle_civ_name_parser(), p.get_toggle_civ_count());
+    m_toggle_global.set_items(const_cast<ToggleGlobalStaticDataStruct*>(p.get_toggle_global_data()), p.get_toggle_global_count());
+    m_toggle_global.load_names_from(p.get_toggle_global_name_parser(), p.get_toggle_global_count());
     m_city_job.set_items(const_cast<CityJobStaticDataStruct*>(p.get_city_job_data()), p.get_city_job_count());
     m_city_job.load_names_from(p.get_city_job_name_parser(), p.get_city_job_count());
     m_civ.set_items(const_cast<CivStaticDataStruct*>(p.get_civ_data()), p.get_civ_count());
@@ -80,6 +84,8 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_unit.load_names_from(p.get_unit_name_parser(), p.get_unit_count());
     m_wonder.set_items(const_cast<WonderStaticDataStruct*>(p.get_wonder_data()), p.get_wonder_count());
     m_wonder.load_names_from(p.get_wonder_name_parser(), p.get_wonder_count());
+    m_worker_job_type.set_items(const_cast<WorkerJobTypeStaticDataStruct*>(p.get_worker_job_type_data()), p.get_worker_job_type_count());
+    m_worker_job_type.load_names_from(p.get_worker_job_type_name_parser(), p.get_worker_job_type_count());
     m_worker_job.set_items(const_cast<WorkerJobStaticDataStruct*>(p.get_worker_job_data()), p.get_worker_job_count());
     m_worker_job.load_names_from(p.get_worker_job_name_parser(), p.get_worker_job_count());
     m_worker_job_imp.set_items(const_cast<WorkerJobImpStaticDataStruct*>(p.get_worker_job_imp_data()), p.get_worker_job_imp_count());
@@ -102,7 +108,9 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     EffectRevMapper::release_flat_list(flat_fx);
 
     m_building.take_ownership();
-    m_city_flag.take_ownership();
+    m_toggle_city.take_ownership();
+    m_toggle_civ.take_ownership();
+    m_toggle_global.take_ownership();
     m_city_job.take_ownership();
     m_civ.take_ownership();
     m_civ_trait.take_ownership();
@@ -117,6 +125,7 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_unit_type.take_ownership();
     m_unit.take_ownership();
     m_wonder.take_ownership();
+    m_worker_job_type.take_ownership();
     m_worker_job.take_ownership();
     m_worker_job_imp.take_ownership();
     m_tile_yield_type.take_ownership();
@@ -166,12 +175,28 @@ const BuildingStaticData& RuntimeStatics::building () const {
     return m_building;
 }
 
-CityFlagStaticData& RuntimeStatics::city_flag () {
-    return m_city_flag;
+ToggleCityStaticData& RuntimeStatics::toggle_city () {
+    return m_toggle_city;
 }
 
-const CityFlagStaticData& RuntimeStatics::city_flag () const {
-    return m_city_flag;
+const ToggleCityStaticData& RuntimeStatics::toggle_city () const {
+    return m_toggle_city;
+}
+
+ToggleCivStaticData& RuntimeStatics::toggle_civ () {
+    return m_toggle_civ;
+}
+
+const ToggleCivStaticData& RuntimeStatics::toggle_civ () const {
+    return m_toggle_civ;
+}
+
+ToggleGlobalStaticData& RuntimeStatics::toggle_global () {
+    return m_toggle_global;
+}
+
+const ToggleGlobalStaticData& RuntimeStatics::toggle_global () const {
+    return m_toggle_global;
 }
 
 CityJobStaticData& RuntimeStatics::city_job () {
@@ -284,6 +309,14 @@ WonderStaticData& RuntimeStatics::wonder () {
 
 const WonderStaticData& RuntimeStatics::wonder () const {
     return m_wonder;
+}
+
+WorkerJobTypeStaticData& RuntimeStatics::worker_job_type () {
+    return m_worker_job_type;
+}
+
+const WorkerJobTypeStaticData& RuntimeStatics::worker_job_type () const {
+    return m_worker_job_type;
 }
 
 WorkerJobStaticData& RuntimeStatics::worker_job () {

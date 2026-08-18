@@ -198,28 +198,43 @@ void [CLASS_TAG]ParserTester::pr_fx (cstr label, const ItemEffectsStruct& e) {
             fprintf(out(), " build_mode=%s upkeep=%s", bm, um);
             break;
         }
-        case ItemEffectType::ENABLE: {
+        case ItemEffectType::ENABLE_CITY: {
             const ItemEffectEnable& en = slot.effect.enable;
-            const char* fn = "?";
-            switch (en.feature_id) {
-                case 1: fn = "ALL_GOVERNMENTS"; break;
-                case 2: fn = "UNIT_VETERAN"; break;
-                case 3: fn = "DIPLOMACY"; break;
-                case 4: fn = "NUKES"; break;
-                case 5: fn = "SPACE"; break;
-                case 6: fn = "SHIP_BUILD"; break;
-                case 7: fn = "AIR_UNIT"; break;
-                default: break;
+            if (en.feature_id == U16_KEY_NULL) {
+                fprintf(out(), " enableCity");
+            } else if (m_toggle_city_sd != NULL && en.feature_id < m_toggle_city_sd->get_item_count()) {
+                fprintf(out(), " enableCity %s (%u)", m_toggle_city_sd->get_name(ToggleCityStaticDataKey::from_raw(en.feature_id)), static_cast<u32>(en.feature_id));
+            } else if (m_toggle_city_psr != NULL) {
+                fprintf(out(), " enableCity %s (%u)", m_toggle_city_psr->idx_to_name(en.feature_id), static_cast<u32>(en.feature_id));
+            } else {
+                fprintf(out(), " enableCity <unknown> (%u)", static_cast<u32>(en.feature_id));
             }
-            const char* sc = "?";
-            switch (en.scope) {
-                case ItemEffectsScope::LOCAL: sc = "LOCAL"; break;
-                case ItemEffectsScope::CITY: sc = "CITY"; break;
-                case ItemEffectsScope::GLOBAL: sc = "CIV"; break;
-                default: break;
+            break;
+        }
+        case ItemEffectType::ENABLE_CIV: {
+            const ItemEffectEnable& en = slot.effect.enable;
+            if (en.feature_id == U16_KEY_NULL) {
+                fprintf(out(), " enableCiv");
+            } else if (m_toggle_civ_sd != NULL && en.feature_id < m_toggle_civ_sd->get_item_count()) {
+                fprintf(out(), " enableCiv %s (%u)", m_toggle_civ_sd->get_name(ToggleCivStaticDataKey::from_raw(en.feature_id)), static_cast<u32>(en.feature_id));
+            } else if (m_toggle_civ_psr != NULL) {
+                fprintf(out(), " enableCiv %s (%u)", m_toggle_civ_psr->idx_to_name(en.feature_id), static_cast<u32>(en.feature_id));
+            } else {
+                fprintf(out(), " enableCiv <unknown> (%u)", static_cast<u32>(en.feature_id));
             }
-            fprintf(out(), " enable %s (%u)", fn, static_cast<u32>(en.feature_id));
-            fprintf(out(), " scope=%s", sc);
+            break;
+        }
+        case ItemEffectType::ENABLE_GLOBAL: {
+            const ItemEffectEnable& en = slot.effect.enable;
+            if (en.feature_id == U16_KEY_NULL) {
+                fprintf(out(), " enableGlobal");
+            } else if (m_toggle_global_sd != NULL && en.feature_id < m_toggle_global_sd->get_item_count()) {
+                fprintf(out(), " enableGlobal %s (%u)", m_toggle_global_sd->get_name(ToggleGlobalStaticDataKey::from_raw(en.feature_id)), static_cast<u32>(en.feature_id));
+            } else if (m_toggle_global_psr != NULL) {
+                fprintf(out(), " enableGlobal %s (%u)", m_toggle_global_psr->idx_to_name(en.feature_id), static_cast<u32>(en.feature_id));
+            } else {
+                fprintf(out(), " enableGlobal <unknown> (%u)", static_cast<u32>(en.feature_id));
+            }
             break;
         }
         case ItemEffectType::RESEARCH_TECH: {
@@ -255,10 +270,10 @@ void [CLASS_TAG]ParserTester::pr_fx (cstr label, const ItemEffectsStruct& e) {
             }
             if (sf.flag_id == U16_KEY_NULL) {
                 fprintf(out(), " setFlag");
-            } else if (m_city_flag_sd != NULL && sf.flag_id < m_city_flag_sd->get_item_count()) {
-                fprintf(out(), " setFlag %s (%u)", m_city_flag_sd->get_name(CityFlagStaticDataKey::from_raw(sf.flag_id)), static_cast<u32>(sf.flag_id));
-            } else if (m_city_flag_psr != NULL) {
-                fprintf(out(), " setFlag %s (%u)", m_city_flag_psr->idx_to_name(sf.flag_id), static_cast<u32>(sf.flag_id));
+            } else if (m_toggle_city_sd != NULL && sf.flag_id < m_toggle_city_sd->get_item_count()) {
+                fprintf(out(), " setFlag %s (%u)", m_toggle_city_sd->get_name(ToggleCityStaticDataKey::from_raw(sf.flag_id)), static_cast<u32>(sf.flag_id));
+            } else if (m_toggle_city_psr != NULL) {
+                fprintf(out(), " setFlag %s (%u)", m_toggle_city_psr->idx_to_name(sf.flag_id), static_cast<u32>(sf.flag_id));
             } else {
                 fprintf(out(), " setFlag <unknown> (%u)", static_cast<u32>(sf.flag_id));
             }

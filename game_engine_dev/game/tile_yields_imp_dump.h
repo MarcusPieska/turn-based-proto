@@ -14,7 +14,7 @@
 //=> - TileYieldsImpDump -
 //================================================================================================================================
 //
-//  Friend of TileYields; dump_job and helpers are defined in the selected tile_yields_impl mk body.
+//  Friend of TileYields; dump_job and helpers are defined in the selected impl/tile_yields_impl mk body.
 //
 //================================================================================================================================
 

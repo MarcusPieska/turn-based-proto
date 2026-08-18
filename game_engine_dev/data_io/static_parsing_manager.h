@@ -19,7 +19,9 @@
 class StaticBitBank;
 
 #include "building_parser.h"
-#include "city_flag_parser.h"
+#include "toggle_city_parser.h"
+#include "toggle_civ_parser.h"
+#include "toggle_global_parser.h"
 #include "city_job_parser.h"
 #include "civ_parser.h"
 #include "civ_trait_parser.h"
@@ -34,13 +36,16 @@ class StaticBitBank;
 #include "unit_type_parser.h"
 #include "unit_parser.h"
 #include "wonder_parser.h"
+#include "worker_job_type_parser.h"
 #include "worker_job_parser.h"
 #include "worker_job_imp_parser.h"
 #include "tile_yield_type_parser.h"
 #include "improvement_yield_parser.h"
 
 #include "building_static_data.h"
-#include "city_flag_static_data.h"
+#include "toggle_city_static_data.h"
+#include "toggle_civ_static_data.h"
+#include "toggle_global_static_data.h"
 #include "city_job_static_data.h"
 #include "civ_static_data.h"
 #include "civ_trait_static_data.h"
@@ -55,6 +60,7 @@ class StaticBitBank;
 #include "unit_type_static_data.h"
 #include "unit_static_data.h"
 #include "wonder_static_data.h"
+#include "worker_job_type_static_data.h"
 #include "worker_job_static_data.h"
 #include "worker_job_imp_static_data.h"
 #include "tile_yield_type_static_data.h"
@@ -73,9 +79,17 @@ public:
 
     u16 get_building_count () const;
 
-    const CityFlagStaticDataStruct* get_city_flag_data () const;
+    const ToggleCityStaticDataStruct* get_toggle_city_data () const;
 
-    u16 get_city_flag_count () const;
+    u16 get_toggle_city_count () const;
+
+    const ToggleCivStaticDataStruct* get_toggle_civ_data () const;
+
+    u16 get_toggle_civ_count () const;
+
+    const ToggleGlobalStaticDataStruct* get_toggle_global_data () const;
+
+    u16 get_toggle_global_count () const;
 
     const CityJobStaticDataStruct* get_city_job_data () const;
 
@@ -133,6 +147,10 @@ public:
 
     u16 get_wonder_count () const;
 
+    const WorkerJobTypeStaticDataStruct* get_worker_job_type_data () const;
+
+    u16 get_worker_job_type_count () const;
+
     const WorkerJobStaticDataStruct* get_worker_job_data () const;
 
     u16 get_worker_job_count () const;
@@ -150,7 +168,11 @@ public:
     u16 get_improvement_yield_count () const;
     const DataParserBase& get_building_name_parser () const;
 
-    const DataParserBase& get_city_flag_name_parser () const;
+    const DataParserBase& get_toggle_city_name_parser () const;
+
+    const DataParserBase& get_toggle_civ_name_parser () const;
+
+    const DataParserBase& get_toggle_global_name_parser () const;
 
     const DataParserBase& get_city_job_name_parser () const;
 
@@ -179,6 +201,8 @@ public:
     const DataParserBase& get_unit_name_parser () const;
 
     const DataParserBase& get_wonder_name_parser () const;
+
+    const DataParserBase& get_worker_job_type_name_parser () const;
 
     const DataParserBase& get_worker_job_name_parser () const;
 
@@ -212,7 +236,9 @@ private:
 
     StringManager m_effect_items;
     StringManager m_building_items;
-    StringManager m_city_flag_items;
+    StringManager m_toggle_city_items;
+    StringManager m_toggle_civ_items;
+    StringManager m_toggle_global_items;
     StringManager m_city_job_items;
     StringManager m_civ_items;
     StringManager m_civ_trait_items;
@@ -227,13 +253,16 @@ private:
     StringManager m_unit_type_items;
     StringManager m_unit_items;
     StringManager m_wonder_items;
+    StringManager m_worker_job_type_items;
     StringManager m_worker_job_items;
     StringManager m_worker_job_imp_items;
     StringManager m_tile_yield_type_items;
     StringManager m_improvement_yield_items;
 
     DataParserBase* m_building_name_parser;
-    DataParserBase* m_city_flag_name_parser;
+    DataParserBase* m_toggle_city_name_parser;
+    DataParserBase* m_toggle_civ_name_parser;
+    DataParserBase* m_toggle_global_name_parser;
     DataParserBase* m_city_job_name_parser;
     DataParserBase* m_civ_name_parser;
     DataParserBase* m_civ_trait_name_parser;
@@ -248,6 +277,7 @@ private:
     DataParserBase* m_unit_type_name_parser;
     DataParserBase* m_unit_name_parser;
     DataParserBase* m_wonder_name_parser;
+    DataParserBase* m_worker_job_type_name_parser;
     DataParserBase* m_worker_job_name_parser;
     DataParserBase* m_worker_job_imp_name_parser;
     DataParserBase* m_tile_yield_type_name_parser;
@@ -260,7 +290,9 @@ private:
     StaticBitBank* m_civ_bld_discount_map_bank;
 
     BuildingStaticDataStruct* m_building_data;
-    CityFlagStaticDataStruct* m_city_flag_data;
+    ToggleCityStaticDataStruct* m_toggle_city_data;
+    ToggleCivStaticDataStruct* m_toggle_civ_data;
+    ToggleGlobalStaticDataStruct* m_toggle_global_data;
     CityJobStaticDataStruct* m_city_job_data;
     CivStaticDataStruct* m_civ_data;
     CivTraitStaticDataStruct* m_civ_trait_data;
@@ -275,6 +307,7 @@ private:
     UnitTypeStaticDataStruct* m_unit_type_data;
     UnitStaticDataStruct* m_unit_data;
     WonderStaticDataStruct* m_wonder_data;
+    WorkerJobTypeStaticDataStruct* m_worker_job_type_data;
     WorkerJobStaticDataStruct* m_worker_job_data;
     WorkerJobImpStaticDataStruct* m_worker_job_imp_data;
     TileYieldTypeStaticDataStruct* m_tile_yield_type_data;

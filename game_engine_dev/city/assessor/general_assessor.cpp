@@ -14,12 +14,14 @@
 #include "general_assessor.h"
 #include "general_bit_bank.h"
 #include "building_static_data.h"
-#include "city_flag_static_data.h"
+#include "toggle_city_static_data.h"
 #include "resource_static_data.h"
 #include "small_wonder_static_data.h"
 #include "tech_static_data.h"
 #include "unit_static_data.h"
 #include "wonder_static_data.h"
+#include "worker_job_static_data.h"
+#include "worker_job_imp_static_data.h"
 
 //================================================================================================================================
 //=> - GeneralAssessor implementation -
@@ -56,11 +58,11 @@ static bool chk_building (const AssessorCtx& ctx, u16 idx) {
     return chk_bit(ctx.m_building, idx);
 }
 
-static bool chk_city_flag (const AssessorCtx& ctx, u16 idx) {
-    if (ctx.m_city_flag_bank != nullptr) {
-        return chk_bank(ctx.m_city_flag_bank, ctx.m_city_idx, idx);
+static bool chk_toggle_city (const AssessorCtx& ctx, u16 idx) {
+    if (ctx.m_toggle_city_bank != nullptr) {
+        return chk_bank(ctx.m_toggle_city_bank, ctx.m_city_idx, idx);
     }
-    return chk_bit(ctx.m_city_flag, idx);
+    return chk_bit(ctx.m_toggle_city, idx);
 }
 
 bool GeneralAssessor::chk (const ItemReqsStruct& reqs, const AssessorCtx& ctx) {
@@ -90,7 +92,7 @@ bool GeneralAssessor::chk (const ItemReqsStruct& reqs, const AssessorCtx& ctx) {
                 }
                 break;
             case ITEM_REQ_TYPE_FLAG:
-                if (!chk_city_flag(ctx, ix)) {
+                if (!chk_toggle_city(ctx, ix)) {
                     return false;
                 }
                 break;
@@ -123,14 +125,14 @@ void GeneralAssessor::assess_building (BitArrayCL* out, u16 item_count, const Bu
     }
 }
 
-void GeneralAssessor::assess_city_flag (BitArrayCL* out, u16 item_count, const CityFlagStaticDataStruct* items, const AssessorCtx& ctx) {
+void GeneralAssessor::assess_toggle_city (BitArrayCL* out, u16 item_count, const ToggleCityStaticDataStruct* items, const AssessorCtx& ctx) {
     if (out == nullptr) {
-        GAME_EXPECT(false, "GeneralAssessor assess_city_flag out");
+        GAME_EXPECT(false, "GeneralAssessor assess_toggle_city out");
         return;
     }
     out->clear_all();
     if (items == nullptr) {
-        GAME_EXPECT(false, "GeneralAssessor assess_city_flag items");
+        GAME_EXPECT(false, "GeneralAssessor assess_toggle_city items");
         return;
     }
     for (u16 i = 0; i < item_count; ++i) {
@@ -216,6 +218,40 @@ void GeneralAssessor::assess_wonder (BitArrayCL* out, u16 item_count, const Wond
     out->clear_all();
     if (items == nullptr) {
         GAME_EXPECT(false, "GeneralAssessor assess_wonder items");
+        return;
+    }
+    for (u16 i = 0; i < item_count; ++i) {
+        if (chk(items[i].reqs, ctx)) {
+            out->set_bit(i);
+        }
+    }
+}
+
+void GeneralAssessor::assess_worker_job (BitArrayCL* out, u16 item_count, const WorkerJobStaticDataStruct* items, const AssessorCtx& ctx) {
+    if (out == nullptr) {
+        GAME_EXPECT(false, "GeneralAssessor assess_worker_job out");
+        return;
+    }
+    out->clear_all();
+    if (items == nullptr) {
+        GAME_EXPECT(false, "GeneralAssessor assess_worker_job items");
+        return;
+    }
+    for (u16 i = 0; i < item_count; ++i) {
+        if (chk(items[i].reqs, ctx)) {
+            out->set_bit(i);
+        }
+    }
+}
+
+void GeneralAssessor::assess_worker_job_imp (BitArrayCL* out, u16 item_count, const WorkerJobImpStaticDataStruct* items, const AssessorCtx& ctx) {
+    if (out == nullptr) {
+        GAME_EXPECT(false, "GeneralAssessor assess_worker_job_imp out");
+        return;
+    }
+    out->clear_all();
+    if (items == nullptr) {
+        GAME_EXPECT(false, "GeneralAssessor assess_worker_job_imp items");
         return;
     }
     for (u16 i = 0; i < item_count; ++i) {

@@ -64,7 +64,7 @@ def validate_worker_job_imps (
     techs_file,
     resources_file,
     buildings_file,
-    city_flags_file,
+    toggle_city_file,
     civs_file):
     print("Validating %s against mother imps, effects, and req catalogs" % imps_file)
     mothers = parse_names(worker_jobs_file)
@@ -73,7 +73,7 @@ def validate_worker_job_imps (
         "tech": parse_names(techs_file),
         "resource": parse_names(resources_file),
         "building": parse_names(buildings_file),
-        "flag": parse_names(city_flags_file),
+        "flag": parse_names(toggle_city_file),
         "civ": parse_names(civs_file),
     }
     rows = parse_worker_job_imps(imps_file)
@@ -163,7 +163,7 @@ if __name__ == "__main__":
         "game_config.techs",
         "game_config.resources",
         "game_config.buildings",
-        "game_config.city_flags",
+        "game_config.toggle_city",
         "game_config.civs")
     if not ok:
         sys.exit(1)

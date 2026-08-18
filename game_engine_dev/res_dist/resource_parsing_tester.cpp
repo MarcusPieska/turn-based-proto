@@ -12,7 +12,7 @@
 #include "res_dist_static_key.h"
 #include "tech_static_key.h"
 #include "building_static_key.h"
-#include "city_flag_static_key.h"
+#include "toggle_city_static_key.h"
 #include "civ_static_key.h"
 
 typedef const char* cstr;
@@ -72,8 +72,8 @@ static void pr_reqs (const RuntimeStatics& s, cstr label, const ItemReqsStruct& 
         cstr nm = "<unknown>";
         if (type == ITEM_REQ_TYPE_BUILDING && idx < s.building().get_item_count()) {
             nm = s.building().get_name(BuildingStaticDataKey::from_raw(idx));
-        } else if (type == ITEM_REQ_TYPE_FLAG && idx < s.city_flag().get_item_count()) {
-            nm = s.city_flag().get_name(CityFlagStaticDataKey::from_raw(idx));
+        } else if (type == ITEM_REQ_TYPE_FLAG && idx < s.toggle_city().get_item_count()) {
+            nm = s.toggle_city().get_name(ToggleCityStaticDataKey::from_raw(idx));
         } else if (type == ITEM_REQ_TYPE_CIV && idx < s.civ().get_item_count()) {
             nm = s.civ().get_name(CivStaticDataKey::from_raw(idx));
         } else if (type == ITEM_REQ_TYPE_RESOURCE && idx < s.resource().get_item_count()) {

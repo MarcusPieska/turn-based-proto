@@ -82,7 +82,7 @@ u16 get_req_limit_for_type (const RuntimeStatics& s, u8 req_type) {
         return s.resource().get_item_count();
     }
     if (req_type == ITEM_REQ_TYPE_FLAG) {
-        return s.city_flag().get_item_count();
+        return s.toggle_city().get_item_count();
     }
     if (req_type == ITEM_REQ_TYPE_CIV) {
         return s.civ().get_item_count();

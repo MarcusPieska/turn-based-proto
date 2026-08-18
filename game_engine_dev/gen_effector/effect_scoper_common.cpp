@@ -28,8 +28,14 @@ bool effect_matches_scope (const ItemEffectStruct& fx, ItemEffectsScope want) {
     if (fx.type == static_cast<u16>(ItemEffectType::BUILD)) {
         return fx.effect.build.scope == want;
     }
-    if (fx.type == static_cast<u16>(ItemEffectType::ENABLE)) {
-        return fx.effect.enable.scope == want;
+    if (fx.type == static_cast<u16>(ItemEffectType::ENABLE_CITY)) {
+        return want == ItemEffectsScope::CITY;
+    }
+    if (fx.type == static_cast<u16>(ItemEffectType::ENABLE_CIV)) {
+        return want == ItemEffectsScope::CIV;
+    }
+    if (fx.type == static_cast<u16>(ItemEffectType::ENABLE_GLOBAL)) {
+        return want == ItemEffectsScope::GLOBAL;
     }
     if (fx.type == static_cast<u16>(ItemEffectType::JOB_SLOTS)) {
         ItemEffectsScope sc = fx.effect.job_slots.scope;

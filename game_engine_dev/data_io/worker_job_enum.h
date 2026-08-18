@@ -23,15 +23,19 @@
 //================================================================================================================================
 
 enum class WorkerJob : u16 {
-    Dirt_path = 0,
-    Farm = 1,
-    Cobble_road = 2,
-    Irrigation = 3,
-    Mine = 4,
+    Dirt_Path = 0,
+    Cobble_Road = 1,
+    Clear_Forest = 2,
+    Farm = 3,
+    Irrigation = 4,
     Fort = 5,
-    Plantation = 6,
-    Asphalt_road = 7,
-    Railroad = 8
+    Mine = 6,
+    Plantation = 7,
+    Saw_Mill = 8,
+    Clear_Jungle = 9,
+    Clear_Swamp = 10,
+    Asphalt_Road = 11,
+    Railroad = 12
 };
 
 #endif // WORKER_JOB_ENUM_H

@@ -27,31 +27,49 @@ g++ $INC -c ../../data_io/unit_type_action_map_parsing.cpp -o unit_type_action_m
 g++ $INC -c ../../static_state/civ_bld_discount_map.cpp -o civ_bld_discount_map.o
 g++ $INC -c ../../data_io/civ_bld_discount_map_parsing.cpp -o civ_bld_discount_map_parsing.o
 g++ $INC -c ../../data_io/building_parser.cpp -o building_parser.o
-g++ $INC -c ../../data_io/city_flag_parser.cpp -o city_flag_parser.o
+g++ $INC -c ../../data_io/toggle_city_parser.cpp -o toggle_city_parser.o
+g++ $INC -c ../../data_io/toggle_civ_parser.cpp -o toggle_civ_parser.o
+g++ $INC -c ../../data_io/toggle_global_parser.cpp -o toggle_global_parser.o
+g++ $INC -c ../../data_io/city_job_parser.cpp -o city_job_parser.o
 g++ $INC -c ../../data_io/civ_parser.cpp -o civ_parser.o
 g++ $INC -c ../../data_io/civ_trait_parser.cpp -o civ_trait_parser.o
-g++ $INC -c ../../data_io/mvt_cost_parser.cpp -o mvt_cost_parser.o
+g++ $INC -c ../../data_io/tile_attribute_parser.cpp -o tile_attribute_parser.o
 g++ $INC -c ../../data_io/resource_parser.cpp -o resource_parser.o
 g++ $INC -c ../../data_io/res_dist_parser.cpp -o res_dist_parser.o
+g++ $INC -c ../../data_io/res_type_parser.cpp -o res_type_parser.o
 g++ $INC -c ../../data_io/small_wonder_parser.cpp -o small_wonder_parser.o
 g++ $INC -c ../../data_io/tech_parser.cpp -o tech_parser.o
 g++ $INC -c ../../data_io/unit_parser.cpp -o unit_parser.o
 g++ $INC -c ../../data_io/unit_action_parser.cpp -o unit_action_parser.o
+g++ $INC -c ../../data_io/unit_role_parser.cpp -o unit_role_parser.o
 g++ $INC -c ../../data_io/unit_type_parser.cpp -o unit_type_parser.o
 g++ $INC -c ../../data_io/wonder_parser.cpp -o wonder_parser.o
+g++ $INC -c ../../data_io/worker_job_parser.cpp -o worker_job_parser.o
+g++ $INC -c ../../data_io/worker_job_imp_parser.cpp -o worker_job_imp_parser.o
+g++ $INC -c ../../data_io/tile_yield_type_parser.cpp -o tile_yield_type_parser.o
+g++ $INC -c ../../data_io/improvement_yield_parser.cpp -o improvement_yield_parser.o
 g++ $INC -c ../../static_state/building_static_data.cpp -o building_static_data.o
-g++ $INC -c ../../static_state/city_flag_static_data.cpp -o city_flag_static_data.o
+g++ $INC -c ../../static_state/toggle_city_static_data.cpp -o toggle_city_static_data.o
+g++ $INC -c ../../static_state/toggle_civ_static_data.cpp -o toggle_civ_static_data.o
+g++ $INC -c ../../static_state/toggle_global_static_data.cpp -o toggle_global_static_data.o
+g++ $INC -c ../../static_state/city_job_static_data.cpp -o city_job_static_data.o
 g++ $INC -c ../../static_state/civ_static_data.cpp -o civ_static_data.o
 g++ $INC -c ../../static_state/civ_trait_static_data.cpp -o civ_trait_static_data.o
-g++ $INC -c ../../static_state/mvt_cost_static_data.cpp -o mvt_cost_static_data.o
+g++ $INC -c ../../static_state/tile_attribute_static_data.cpp -o tile_attribute_static_data.o
 g++ $INC -c ../../static_state/resource_static_data.cpp -o resource_static_data.o
 g++ $INC -c ../../static_state/res_dist_static_data.cpp -o res_dist_static_data.o
+g++ $INC -c ../../static_state/res_type_static_data.cpp -o res_type_static_data.o
 g++ $INC -c ../../static_state/small_wonder_static_data.cpp -o small_wonder_static_data.o
 g++ $INC -c ../../static_state/tech_static_data.cpp -o tech_static_data.o
 g++ $INC -c ../../static_state/unit_static_data.cpp -o unit_static_data.o
 g++ $INC -c ../../static_state/unit_action_static_data.cpp -o unit_action_static_data.o
+g++ $INC -c ../../static_state/unit_role_static_data.cpp -o unit_role_static_data.o
 g++ $INC -c ../../static_state/unit_type_static_data.cpp -o unit_type_static_data.o
 g++ $INC -c ../../static_state/wonder_static_data.cpp -o wonder_static_data.o
+g++ $INC -c ../../static_state/worker_job_static_data.cpp -o worker_job_static_data.o
+g++ $INC -c ../../static_state/worker_job_imp_static_data.cpp -o worker_job_imp_static_data.o
+g++ $INC -c ../../static_state/tile_yield_type_static_data.cpp -o tile_yield_type_static_data.o
+g++ $INC -c ../../static_state/improvement_yield_static_data.cpp -o improvement_yield_static_data.o
 g++ $INC -c $DIO/static_parsing_manager.cpp -o static_parsing_manager.o
 g++ $INC -c ../../gen_bit_banks/general_bit_bank.cpp -o general_bit_bank.o
 g++ $INC -c general_assessor.cpp -o general_assessor.o
@@ -74,36 +92,54 @@ g++ -o unit_assessor_tester \
     civ_bld_discount_map.o \
     civ_bld_discount_map_parsing.o \
     building_parser.o \
-    city_flag_parser.o \
+    toggle_city_parser.o \
+    toggle_civ_parser.o \
+    toggle_global_parser.o \
+    city_job_parser.o \
     civ_parser.o \
     civ_trait_parser.o \
-    mvt_cost_parser.o \
+    tile_attribute_parser.o \
     resource_parser.o \
     res_dist_parser.o \
+    res_type_parser.o \
     small_wonder_parser.o \
     tech_parser.o \
     unit_parser.o \
     unit_action_parser.o \
+    unit_role_parser.o \
     unit_type_parser.o \
     wonder_parser.o \
+    worker_job_parser.o \
+    worker_job_imp_parser.o \
+    tile_yield_type_parser.o \
+    improvement_yield_parser.o \
     static_parsing_manager.o \
     general_bit_bank.o \
     general_assessor.o \
     assessor_brute_shared.o \
     assessor_brute_write.o \
         building_static_data.o \
-        city_flag_static_data.o \
+        toggle_city_static_data.o \
+        toggle_civ_static_data.o \
+        toggle_global_static_data.o \
+        city_job_static_data.o \
         civ_static_data.o \
         civ_trait_static_data.o \
-        mvt_cost_static_data.o \
+        tile_attribute_static_data.o \
         resource_static_data.o \
         res_dist_static_data.o \
+        res_type_static_data.o \
         small_wonder_static_data.o \
         tech_static_data.o \
         unit_static_data.o \
         unit_action_static_data.o \
+        unit_role_static_data.o \
         unit_type_static_data.o \
         wonder_static_data.o \
+        worker_job_static_data.o \
+        worker_job_imp_static_data.o \
+        tile_yield_type_static_data.o \
+        improvement_yield_static_data.o \
     unit_assessor_tester_brute.o \
     unit_assessor_tester.o
 
@@ -121,35 +157,53 @@ rm \
     civ_bld_discount_map.o \
     civ_bld_discount_map_parsing.o \
     building_parser.o \
-    city_flag_parser.o \
+    toggle_city_parser.o \
+    toggle_civ_parser.o \
+    toggle_global_parser.o \
+    city_job_parser.o \
     civ_parser.o \
     civ_trait_parser.o \
-    mvt_cost_parser.o \
+    tile_attribute_parser.o \
     resource_parser.o \
     res_dist_parser.o \
+    res_type_parser.o \
     small_wonder_parser.o \
     tech_parser.o \
     unit_parser.o \
     unit_action_parser.o \
+    unit_role_parser.o \
     unit_type_parser.o \
     wonder_parser.o \
+    worker_job_parser.o \
+    worker_job_imp_parser.o \
+    tile_yield_type_parser.o \
+    improvement_yield_parser.o \
     static_parsing_manager.o \
     general_bit_bank.o \
     general_assessor.o \
     assessor_brute_shared.o \
     assessor_brute_write.o \
         building_static_data.o \
-        city_flag_static_data.o \
+        toggle_city_static_data.o \
+        toggle_civ_static_data.o \
+        toggle_global_static_data.o \
+        city_job_static_data.o \
         civ_static_data.o \
         civ_trait_static_data.o \
-        mvt_cost_static_data.o \
+        tile_attribute_static_data.o \
         resource_static_data.o \
         res_dist_static_data.o \
+        res_type_static_data.o \
         small_wonder_static_data.o \
         tech_static_data.o \
         unit_static_data.o \
         unit_action_static_data.o \
+        unit_role_static_data.o \
         unit_type_static_data.o \
         wonder_static_data.o \
+        worker_job_static_data.o \
+        worker_job_imp_static_data.o \
+        tile_yield_type_static_data.o \
+        improvement_yield_static_data.o \
     unit_assessor_tester_brute.o \
     unit_assessor_tester.o

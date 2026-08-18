@@ -1,6 +1,6 @@
 #!/bin/bash
 
-INC="-I.. -I../simple_map_gen"
+INC="-I.. -I../simple_map_gen -I../game"
 CXXFLAGS="-std=c++17 -Wall -Wextra"
 
 g++ $CXXFLAGS $INC -c map_terrain_validate.cpp -o map_terrain_validate.o

@@ -44,7 +44,7 @@ void CityArray::clear_banks () {
 
 bool CityArray::bind_statics (const RuntimeStatics& st) {
     clear_banks();
-    m_flag_bank = new GeneralBitBank(st.city_flag().get_item_count());
+    m_flag_bank = new GeneralBitBank(st.toggle_city().get_item_count());
     m_res_bank = new GeneralBitBank(st.resource().get_item_count());
     m_bld_bank = new GeneralBitBank(st.building().get_item_count());
     City::bind_statics(st);

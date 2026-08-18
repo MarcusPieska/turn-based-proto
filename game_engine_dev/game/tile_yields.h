@@ -44,7 +44,7 @@ struct TileYieldCtx {
 //
 //  Static yield lookup on the bound GameArraySimple map. setup unpacks tile attrs and improvement_yield rows into
 //  O(1) tables (job gate, then terr/clim/ov/riv ids). get sums land attrs, enabled resources, and improvement boosts.
-//  Body is cpp-included from tile_yields_impl/tile_yields_impl_mkNN.cpp via TILE_YIELDS_IMPL.
+//  Body is cpp-included from impl/tile_yields_impl_mkNN.cpp via TILE_YIELDS_IMPL.
 //
 //================================================================================================================================
 
@@ -57,6 +57,9 @@ public:
     static void bind_ctx (const TileYieldCtx* ctx);
     static TileYield get (u16 x, u16 y);
     static bool in_bounds (u16 x, u16 y);
+    static u8 food_no_imp (u16 x, u16 y);
+    static u8 food_with_job (u16 x, u16 y, u16 job_idx);
+    static bool job_raises_food (u16 x, u16 y, u16 job_idx);
 
 private:
     struct ImpYldSlot {
@@ -76,6 +79,8 @@ private:
     static bool add_amt (ImpYldSlot* s, u16 yld_typ, i16 amt);
     static ImpYldSlot* slot_for (ImpYldJob* job, u8 kind, u8 id);
     static u16 job_on_tile (const GameArraySimple& map, u16 x, u16 y);
+    static void add_land (i32* food, i32* prod, i32* comm, const GameArraySimple& map, u16 x, u16 y);
+    static void add_job (i32* food, i32* prod, i32* comm, const GameArraySimple& map, u16 x, u16 y, u16 job_idx);
     static void add_imp (i32* food, i32* prod, i32* comm, const GameArraySimple& map, u16 x, u16 y);
     static void add_res (i32* food, i32* prod, i32* comm, const GameArraySimple& map, u16 x, u16 y);
 

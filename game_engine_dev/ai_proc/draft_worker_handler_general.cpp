@@ -5,7 +5,7 @@
 #include "draft_worker_handler_general.h"
 
 #ifndef DRAFT_WORKER_GENERAL_IMPL
-#define DRAFT_WORKER_GENERAL_IMPL "draft_worker_handler_impl/draft_worker_impl_general_mk01.cpp"
+#define DRAFT_WORKER_GENERAL_IMPL "impl/draft_worker_impl_general_mk01.cpp"
 #endif
 
 #include DRAFT_WORKER_GENERAL_IMPL 

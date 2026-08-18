@@ -28,7 +28,9 @@ public:
     explicit PathMng (cstr path_offset);
 
     cstr get_path_to_buildings () const;
-    cstr get_path_to_city_flags () const;
+    cstr get_path_to_toggle_city () const;
+    cstr get_path_to_toggle_civ () const;
+    cstr get_path_to_toggle_global () const;
     cstr get_path_to_city_jobs () const;
     cstr get_path_to_civ_traits () const;
     cstr get_path_to_civs () const;
@@ -45,6 +47,7 @@ public:
     cstr get_path_to_unit_types () const;
     cstr get_path_to_units () const;
     cstr get_path_to_wonders () const;
+    cstr get_path_to_worker_job_types () const;
     cstr get_path_to_worker_jobs () const;
     cstr get_path_to_worker_job_imps () const;
     cstr get_path_to_tile_yield_types () const;
@@ -62,7 +65,9 @@ private:
     char m_path_offset[PATH_MNG_PATH_N];
 
     char m_path_buildings[PATH_MNG_PATH_N];
-    char m_path_city_flags[PATH_MNG_PATH_N];
+    char m_path_toggle_city[PATH_MNG_PATH_N];
+    char m_path_toggle_civ[PATH_MNG_PATH_N];
+    char m_path_toggle_global[PATH_MNG_PATH_N];
     char m_path_city_jobs[PATH_MNG_PATH_N];
     char m_path_civ_traits[PATH_MNG_PATH_N];
     char m_path_civs[PATH_MNG_PATH_N];
@@ -79,6 +84,7 @@ private:
     char m_path_unit_types[PATH_MNG_PATH_N];
     char m_path_units[PATH_MNG_PATH_N];
     char m_path_wonders[PATH_MNG_PATH_N];
+    char m_path_worker_job_types[PATH_MNG_PATH_N];
     char m_path_worker_jobs[PATH_MNG_PATH_N];
     char m_path_worker_job_imps[PATH_MNG_PATH_N];
     char m_path_tile_yield_types[PATH_MNG_PATH_N];

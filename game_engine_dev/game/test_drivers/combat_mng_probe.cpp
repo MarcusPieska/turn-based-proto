@@ -9,7 +9,7 @@
 #include "build_adds_array.h"
 #include "building_static_key.h"
 #include "city_array.h"
-#include "city_flag_static_key.h"
+#include "toggle_city_static_key.h"
 #include "combat_mng.h"
 #include "factory_game_array_simple.h"
 #include "game_map_defs.h"
@@ -255,9 +255,9 @@ static u16 find_bld (cstr name) {
 }
 
 static u16 find_flag (cstr name) {
-    const u16 n = g_st->city_flag().get_item_count();
+    const u16 n = g_st->toggle_city().get_item_count();
     for (u16 i = 0; i < n; ++i) {
-        if (std::strcmp(g_st->city_flag().get_name(CityFlagStaticDataKey::from_raw(i)), name) == 0) {
+        if (std::strcmp(g_st->toggle_city().get_name(ToggleCityStaticDataKey::from_raw(i)), name) == 0) {
             return i;
         }
     }

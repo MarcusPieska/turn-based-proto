@@ -13,7 +13,9 @@
 #define PARSER_TEST_MANAGER_H
 
 #include "building_parser_tester.h"
-#include "city_flag_parser_tester.h"
+#include "toggle_city_parser_tester.h"
+#include "toggle_civ_parser_tester.h"
+#include "toggle_global_parser_tester.h"
 #include "city_job_parser_tester.h"
 #include "civ_parser_tester.h"
 #include "civ_trait_parser_tester.h"
@@ -45,7 +47,9 @@ public:
     void print_all (const RuntimeStatics& statics);
 
     BuildingParserTester& building () { return m_building; }
-    CityFlagParserTester& city_flag () { return m_city_flag; }
+    ToggleCityParserTester& toggle_city () { return m_toggle_city; }
+    ToggleCivParserTester& toggle_civ () { return m_toggle_civ; }
+    ToggleGlobalParserTester& toggle_global () { return m_toggle_global; }
     CityJobParserTester& city_job () { return m_city_job; }
     CivParserTester& civ () { return m_civ; }
     CivTraitParserTester& civ_trait () { return m_civ_trait; }
@@ -69,7 +73,9 @@ private:
     int m_plvl;
     
     BuildingParserTester m_building;
-    CityFlagParserTester m_city_flag;
+    ToggleCityParserTester m_toggle_city;
+    ToggleCivParserTester m_toggle_civ;
+    ToggleGlobalParserTester m_toggle_global;
     CityJobParserTester m_city_job;
     CivParserTester m_civ;
     CivTraitParserTester m_civ_trait;

@@ -14,7 +14,9 @@ sys.dont_write_bytecode = True
 def get_entries ():
     return [
         "building",
-        "city_flag",
+        "toggle_city",
+        "toggle_civ",
+        "toggle_global",
         "city_job",
         "civ",
         "civ_trait",
@@ -29,6 +31,7 @@ def get_entries ():
         "unit_type",
         "unit",
         "wonder",
+        "worker_job_type",
         "worker_job",
         "worker_job_imp",
         "tile_yield_type",
@@ -39,7 +42,7 @@ def get_req_test_stems ():
     return [
         "tech",
         "resource",
-        "city_flag",
+        "toggle_city",
         "building",
         "unit",
         "wonder",
@@ -83,6 +86,8 @@ def static_data_key (stem):
     return "%sStaticDataKey" % to_pascal(stem)
 
 def path_from_stem (stem):
+    if stem in ("toggle_city", "toggle_civ", "toggle_global"):
+        return stem
     return stem + "s"
 
 def map_class_name (map_base):

@@ -80,7 +80,7 @@ u16 get_req_limit_for_type (const StaticParsingManager& parser, u8 req_type) {
         return parser.get_resource_count();
     }
     if (req_type == ITEM_REQ_TYPE_FLAG) {
-        return parser.get_city_flag_count();
+        return parser.get_toggle_city_count();
     }
     if (req_type == ITEM_REQ_TYPE_CIV) {
         return parser.get_civ_count();
