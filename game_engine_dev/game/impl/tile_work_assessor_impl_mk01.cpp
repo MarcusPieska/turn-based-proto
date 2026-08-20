@@ -9,6 +9,7 @@
 #include "general_assessor.h"
 #include "resource_static_key.h"
 #include "runtime_statics.h"
+#include "std_add_helper.h"
 #include "tile_yields.h"
 #include "worker_job_enum.h"
 #include "worker_job_imp_index.h"
@@ -57,18 +58,60 @@ static bool push_cand (TileWorkCand* out, u16 out_cap, u16* n, u16 job_idx, u16 
     return true;
 }
 
+static bool std_has_farm (const GameArraySimple& map, u16 x, u16 y) {
+    if (map.get_add_typ(x, y) != BUILD_ADD_STD || map.get_add_idx(x, y) == U16_KEY_NULL) {
+        return false;
+    }
+    return StdAddHelper::has_farm(map.tile(x, y));
+}
+
+static bool std_has_mill (const GameArraySimple& map, u16 x, u16 y) {
+    if (map.get_add_typ(x, y) != BUILD_ADD_STD || map.get_add_idx(x, y) == U16_KEY_NULL) {
+        return false;
+    }
+    return StdAddHelper::has_mill(map.tile(x, y));
+}
+
+static bool std_has_irr (const GameArraySimple& map, u16 x, u16 y) {
+    if (map.get_add_typ(x, y) != BUILD_ADD_STD || map.get_add_idx(x, y) == U16_KEY_NULL) {
+        return false;
+    }
+    return StdAddHelper::has_irr(map.tile(x, y));
+}
+
 static bool place_ok_farm (const GameArraySimple& map, u16 job_idx, u16 x, u16 y) {
     const u8 terr = map.get_terrain(x, y);
     const u8 ov = map.get_overlay(x, y);
-    return terr == TERR_PLAINS[0] && ov == OV_NONE[0] && TileYields::job_raises_food(x, y, job_idx);
+    if (terr != TERR_PLAINS[0] || ov != OV_NONE[0]) {
+        return false;
+    }
+    if (job_idx == static_cast<u16>(WorkerJob::Irrigation)) {
+        return std_has_farm(map, x, y) && !std_has_irr(map, x, y);
+    }
+    if (std_has_farm(map, x, y)) {
+        return false;
+    }
+    return TileYields::job_raises_food(x, y, job_idx);
 }
 
 static bool place_ok_road (const GameArraySimple& map, u16 x, u16 y) {
     return !overlay_is_water_terr(map.get_terrain(x, y));
 }
 
+static bool place_ok_on_forest (const GameArraySimple& map, u16 x, u16 y) {
+    return map.get_overlay(x, y) == OV_FOREST[0] && !std_has_mill(map, x, y);
+}
+
 static bool place_ok_forest (const GameArraySimple& map, u16 x, u16 y) {
-    return map.get_overlay(x, y) == OV_FOREST[0];
+    if (map.get_overlay(x, y) != OV_NONE[0]) {
+        return false;
+    }
+    const u8 terr = map.get_terrain(x, y);
+    if (terr != TERR_PLAINS[0] && terr != TERR_HILLS[0]) {
+        return false;
+    }
+    const u8 clim = map.get_climate(x, y);
+    return clim == CLIMATE_PLAINS || clim == CLIMATE_GRASSLAND || clim == CLIMATE_BLACK_SOIL;
 }
 
 static bool clear_target_ov (u16 job_idx, u8* out_ov) {
@@ -143,6 +186,10 @@ static bool place_ok_strategic (const GameArraySimple& map, u16 job_idx, u16 x, 
 }
 
 static bool place_ok_resource (const RuntimeStatics& st, const GameArraySimple& map, u16 job_idx, u16 x, u16 y) {
+    const u8 atyp = map.get_add_typ(x, y);
+    if (atyp == BUILD_ADD_MINE || atyp == BUILD_ADD_PLANTATION) {
+        return false;
+    }
     if (map.get_overlay(x, y) != OV_NONE[0]) {
         return false;
     }
@@ -205,6 +252,8 @@ bool TileWorkAssessor::tile_ok (u16 job_idx, u16 x, u16 y) {
             return place_ok_road(*m_map, x, y);
         case WorkerJobType::Forest:
             return place_ok_forest(*m_map, x, y);
+        case WorkerJobType::OnForest:
+            return place_ok_on_forest(*m_map, x, y);
         case WorkerJobType::Clearing:
             return place_ok_clearing(*m_map, job_idx, x, y);
         case WorkerJobType::Strategic:

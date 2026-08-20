@@ -273,15 +273,21 @@ int main (int argc, char* argv[]) {
 
     const u16 job_n = st.worker_job().get_item_count();
     u32 forest_job_n = 0;
+    u32 onforest_job_n = 0;
     for (u16 j = 0; j < job_n; ++j) {
         const WorkerJobStaticDataStruct& row = st.worker_job().get_item(WorkerJobStaticDataKey::from_raw(j));
-        if (static_cast<WorkerJobType>(row.type) != WorkerJobType::Forest) {
+        const WorkerJobType typ = static_cast<WorkerJobType>(row.type);
+        if (typ != WorkerJobType::Forest && typ != WorkerJobType::OnForest) {
             continue;
         }
-        ++forest_job_n;
+        if (typ == WorkerJobType::Forest) {
+            ++forest_job_n;
+        } else {
+            ++onforest_job_n;
+        }
         cstr job_nm = st.worker_job().get_name(WorkerJobStaticDataKey::from_raw(j));
         std::printf("-----------------------------------------------------------\n");
-        std::printf("FOREST JOB: %s (idx=%u)\n", job_nm, j);
+        std::printf("%s JOB: %s (idx=%u)\n", typ == WorkerJobType::Forest ? "FOREST" : "ONFOREST", job_nm, j);
 
         char ppm[384];
         std::snprintf(ppm, sizeof(ppm), "%s/place_forest_%s.ppm", g_dir, job_nm);
@@ -289,10 +295,11 @@ int main (int argc, char* argv[]) {
         run_mode("ov_default", j, map, ppm);
     }
     note_result(forest_job_n >= 1u, "found Forest jobs");
+    note_result(onforest_job_n >= 1u, "found OnForest jobs");
 
     loader.unload();
     std::printf("=======================================================\n");
-    std::printf(" FOREST PLACE: TOTAL FAILURES: %d/%d\n", total_test_fails, total_tests_run);
+    std::printf(" FOREST/ONFOREST PLACE: TOTAL FAILURES: %d/%d\n", total_test_fails, total_tests_run);
     std::printf("=======================================================\n");
     return total_test_fails > 0 ? 1 : 0;
 }

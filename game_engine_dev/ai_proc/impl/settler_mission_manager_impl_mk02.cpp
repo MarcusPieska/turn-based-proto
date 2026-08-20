@@ -4,6 +4,7 @@
 
 #include <cstring>
 
+#include "assert_log.h"
 #include "game_map_defs.h"
 #include "whiteboard_mng.h"
 
@@ -18,15 +19,15 @@ static const u32 k_none = 0xFFFFFFFFu;
 static const u8* g_terr = nullptr;
 static u16 g_w = 0;
 static u16 g_h = 0;
+static Whiteboard_4B* g_par_wb = nullptr;
+static Whiteboard_4B* g_que_wb = nullptr;
 
 static Whiteboard_4B& par () {
-    static Whiteboard_4B b("SettlerMissionManager", "par", 0);
-    return b;
+    return *g_par_wb;
 }
 
 static Whiteboard_4B& que () {
-    static Whiteboard_4B b("SettlerMissionManager", "que", 0);
-    return b;
+    return *g_que_wb;
 }
 
 static bool land_ok (u8 terr) {
@@ -56,6 +57,9 @@ static u8 dir_of (i32 dx, i32 dy) {
 }
 
 static bool pack (u8* ps, u16* pn, u16* pi, u16 x, u16 y, u16 tx, u16 ty) {
+    GAME_EXPECT(ps != nullptr, "SMM mk02 pack got nullptr path buffer");
+    GAME_EXPECT(pn != nullptr, "SMM mk02 pack got nullptr path length");
+    GAME_EXPECT(pi != nullptr, "SMM mk02 pack got nullptr path index");
     *pn = 0;
     *pi = 0;
     if (!pass(x, y) || !pass(tx, ty)) {
@@ -64,12 +68,16 @@ static bool pack (u8* ps, u16* pn, u16* pi, u16 x, u16 y, u16 tx, u16 ty) {
     if (x == tx && y == ty) {
         return true;
     }
+    GAME_EXPECT(g_par_wb != nullptr, "SMM mk02 pack parent wb missing");
+    GAME_EXPECT(g_que_wb != nullptr, "SMM mk02 pack queue wb missing");
     Whiteboard_4B& p = par();
     Whiteboard_4B& q = que();
     if (!p.ok() || !q.ok()) {
         return false;
     }
-    const u32 tn = static_cast<u32>(g_w) * static_cast<u32>(g_h);
+    GAME_EXPECT(p.w() == g_w && p.h() == g_h, "SMM mk02 pack parent wb size mismatch");
+    GAME_EXPECT(q.w() == g_w && q.h() == g_h, "SMM mk02 pack queue wb size mismatch");
+    const u32 tn = static_cast<u32>(p.w()) * static_cast<u32>(p.h());
     std::memset(p.raw(), 0xFF, static_cast<size_t>(tn) * sizeof(u32));
     const u32 src = static_cast<u32>(y) * static_cast<u32>(g_w) + static_cast<u32>(x);
     const u32 dst = static_cast<u32>(ty) * static_cast<u32>(g_w) + static_cast<u32>(tx);
@@ -163,7 +171,13 @@ bool SettlerMissionManager::wbeg (
     g_terr = terr;
     g_w = w;
     g_h = h;
-    return par().ok() && que().ok();
+    delete g_par_wb;
+    delete g_que_wb;
+    g_par_wb = new Whiteboard_4B("SettlerMissionManager", "par", 0);
+    g_que_wb = new Whiteboard_4B("SettlerMissionManager", "que", 0);
+    GAME_EXPECT(g_par_wb != nullptr, "SMM mk02 wbeg parent wb alloc failed");
+    GAME_EXPECT(g_que_wb != nullptr, "SMM mk02 queue wb alloc failed");
+    return g_par_wb->ok() && g_que_wb->ok();
 }
 
 bool SettlerMissionManager::aim (u16 s, u16 x0, u16 y0, u16 tx, u16 ty) {

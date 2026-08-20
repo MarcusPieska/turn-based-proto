@@ -25,6 +25,8 @@ public:
     static u16 get_worker (u16 x, u16 y);
     static bool mark_worked (u16 x, u16 y, u16 city_idx);
     static void clear_worked (u16 x, u16 y, u16 city_idx);
+    static GameArraySimple* map_ptr ();
+    static bool set_tile_usage (u16 x, u16 y, u8 usage);
 
 private:
     static GameArraySimple* m_map; // Active match tile grid; null until bind_map

@@ -79,9 +79,9 @@ g++ $CXXFLAGS $INC -c ../city.cpp -o city.o
 g++ $CXXFLAGS $INC -c ../circular_tile_areas.cpp -o circular_tile_areas.o
 g++ $CXXFLAGS $INC -c ../city_border.cpp -o city_border.o
 g++ $CXXFLAGS $INC -c ../city_tile_manager.cpp -o city_tile_manager.o
-g++ $CXXFLAGS $INC -c city_tile_manager_add_tester.cpp -o city_tile_manager_add_tester.o
+g++ $CXXFLAGS $INC -c city_tile_manager_usage_tester.cpp -o city_tile_manager_usage_tester.o
 
-g++ $CXXFLAGS -o city_tile_manager_add_tester \
+g++ $CXXFLAGS -o city_tile_manager_usage_tester \
     runtime_static_loader.o \
     map_terrain_validate.o \
     map_terrain_data.o \
@@ -136,7 +136,7 @@ g++ $CXXFLAGS -o city_tile_manager_add_tester \
     circular_tile_areas.o \
     city_border.o \
     city_tile_manager.o \
-    city_tile_manager_add_tester.o \
+    city_tile_manager_usage_tester.o \
     -ldl \
     $LIB_SO \
     -Wl,-rpath,'$ORIGIN/../../data_io'
@@ -152,4 +152,6 @@ rm runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.
     local_pop_growth_booster_register.o local_commerce_booster_register.o city_pop_growth_booster_register.o \
     civ_pop_growth_booster_register.o city_culture_booster_register.o local_sanitation_booster_register.o \
     city_sanitation_booster_register.o civ_sanitation_booster_register.o city.o circular_tile_areas.o \
-    city_border.o city_tile_manager.o city_tile_manager_add_tester.o
+    city_border.o city_tile_manager.o city_tile_manager_usage_tester.o
+
+./city_tile_manager_usage_tester "$@"

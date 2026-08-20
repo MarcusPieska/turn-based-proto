@@ -2,8 +2,6 @@
 //=> - Includes -
 //================================================================================================================================
 
-#include <cstring>
-
 #include "settler_turn_handler.h"
 #include "assert_log.h"
 #include "build_adds_array.h"
@@ -11,9 +9,10 @@
 #include "city_blocking_mask.h"
 #include "city_border.h"
 #include "game_state.h"
-#include "point_seq_flood_walker.h"
+#include "gen_settlement_order.h"
+#include "gen_settlement_targets.h"
+#include "settler_mission_manager.h"
 #include "runtime_statics.h"
-#include "sense_settling_pts_opt.h"
 #include "unit_add_vector_key.h"
 #include "unit_movement_mng.h"
 #include "unit_static_key.h"
@@ -25,7 +24,6 @@
 
 static const u16 k_slot_n = static_cast<u16>(SETTLER_MISSION_SLOTS);
 static const u16 k_tgt_sites = static_cast<u16>(SETTLER_MISSION_SLOTS);
-static const u16 k_tgt_none = 2u;
 static const u16 k_claim_cult = 25u;
 
 //================================================================================================================================
@@ -33,7 +31,6 @@ static const u16 k_claim_cult = 25u;
 //================================================================================================================================
 
 struct StmSlot {
-    PointSeqFloodWalker m_walk;
     u16 m_tx;
     u16 m_ty;
     u8 m_has;
@@ -46,6 +43,10 @@ static u16 g_w = 0;
 static u16 g_h = 0;
 static u16 g_player_n = 0;
 static StmSlot* g_slot = nullptr;
+static SettlerMissionManager* g_mgrs = nullptr;
+static GenSettlementOrder* g_ord = nullptr;
+static bool g_ord_ok = false;
+static SpgCoordPair g_starts[200];
 
 //================================================================================================================================
 //=> - Helpers -
@@ -64,9 +65,9 @@ static UnitAddStruct* unit_at (GameState& state, u16 unit_idx) {
 }
 
 static bool find_unit_slot (u16 player, u16 unit_idx, u16* out_i) {
-    if (player >= g_player_n || out_i == nullptr) {
-        return false;
-    }
+    GAME_EXPECT(out_i != nullptr, "find_unit_slot got nullptr out_i");
+    GAME_EXPECT(g_st != nullptr, "find_unit_slot missing game state");
+    GAME_EXPECT(player < g_player_n, "find_unit_slot player out of range");
     PlayerState& ps = g_st->m_player_states[player];
     for (u16 i = 0; i < k_slot_n; ++i) {
         if (*slot_idx_ptr(ps, i) == unit_idx) {
@@ -77,106 +78,12 @@ static bool find_unit_slot (u16 player, u16 unit_idx, u16* out_i) {
     return false;
 }
 
-static bool take_free_slot (u16 player, u16 unit_idx, u16* out_i) {
-    if (player >= g_player_n || out_i == nullptr) {
-        return false;
-    }
-    PlayerState& ps = g_st->m_player_states[player];
-    for (u16 i = 0; i < k_slot_n; ++i) {
-        u16* p = slot_idx_ptr(ps, i);
-        if (*p == U16_KEY_NULL) {
-            *p = unit_idx;
-            *out_i = i;
-            slot_at(player, i)->m_has = 0;
-            slot_at(player, i)->m_tx = U16_KEY_NULL;
-            slot_at(player, i)->m_ty = U16_KEY_NULL;
-            return true;
-        }
-    }
-    return false;
-}
-
-static bool tgt_taken (u16 player, u16 x, u16 y) {
-    for (u16 s = 0; s < k_slot_n; ++s) {
-        StmSlot* o = slot_at(player, s);
-        if (o->m_has != 0 && o->m_tx == x && o->m_ty == y) {
-            return true;
-        }
-    }
-    return false;
-}
-
-static void drop_settle_pt (PlayerState& ps, u16 x, u16 y) {
-    if (x == U16_KEY_NULL || y == U16_KEY_NULL) {
-        return;
-    }
-    for (u16 k = 0; k < ps.m_settle_n; ++k) {
-        if (ps.m_settle_x[k] != x || ps.m_settle_y[k] != y) {
-            continue;
-        }
-        const u16 last = static_cast<u16>(ps.m_settle_n - 1u);
-        ps.m_settle_x[k] = ps.m_settle_x[last];
-        ps.m_settle_y[k] = ps.m_settle_y[last];
-        ps.m_settle_x[last] = U16_KEY_NULL;
-        ps.m_settle_y[last] = U16_KEY_NULL;
-        ps.m_settle_n = last;
-        return;
-    }
-}
-
-static void fill_settle_pts (PlayerState& ps, const SmSettlerBestPts& best) {
-    u16 n = best.n;
-    if (n > k_slot_n) {
-        n = k_slot_n;
-    }
-    for (u16 k = 0; k < n; ++k) {
-        ps.m_settle_x[k] = best.pts[k].x;
-        ps.m_settle_y[k] = best.pts[k].y;
-    }
-    for (u16 k = n; k < k_slot_n; ++k) {
-        ps.m_settle_x[k] = U16_KEY_NULL;
-        ps.m_settle_y[k] = U16_KEY_NULL;
-    }
-    ps.m_settle_n = n;
-}
-
-static void prune_settle_pts (GameState& state, u16 player, PlayerState& ps) {
-    u16 w = 0;
-    for (u16 k = 0; k < ps.m_settle_n; ++k) {
-        const u16 x = ps.m_settle_x[k];
-        const u16 y = ps.m_settle_y[k];
-        if (x == U16_KEY_NULL || y == U16_KEY_NULL) {
-            continue;
-        }
-        if (tgt_taken(player, x, y)) {
-            ps.m_settle_x[w] = x;
-            ps.m_settle_y[w] = y;
-            w = static_cast<u16>(w + 1u);
-            continue;
-        }
-        if (state.m_map.get_settler_blocked(x, y) != 0) {
-            continue;
-        }
-        ps.m_settle_x[w] = x;
-        ps.m_settle_y[w] = y;
-        w = static_cast<u16>(w + 1u);
-    }
-    for (u16 k = w; k < k_slot_n; ++k) {
-        ps.m_settle_x[k] = U16_KEY_NULL;
-        ps.m_settle_y[k] = U16_KEY_NULL;
-    }
-    ps.m_settle_n = w;
-}
-
 static void clear_slot (u16 player, u16 i) {
-    if (player >= g_player_n || i >= k_slot_n) {
-        return;
-    }
+    GAME_EXPECT(g_st != nullptr, "clear_slot missing game state");
+    GAME_EXPECT(player < g_player_n, "clear_slot player out of range");
+    GAME_EXPECT(i < k_slot_n, "clear_slot slot out of range");
     PlayerState& ps = g_st->m_player_states[player];
     StmSlot* sl = slot_at(player, i);
-    if (sl->m_has != 0) {
-        drop_settle_pt(ps, sl->m_tx, sl->m_ty);
-    }
     *slot_idx_ptr(ps, i) = U16_KEY_NULL;
     sl->m_has = 0;
     sl->m_tx = U16_KEY_NULL;
@@ -198,105 +105,57 @@ static void stamp_all_cities (GameState& state) {
     }
 }
 
-static bool try_assign (GameState& state, u16 player, u16 i, UnitAddStruct* unit) {
-    StmSlot* sl = slot_at(player, i);
-    if (sl->m_has != 0) {
+static void clr_block (GameArraySimple& map) {
+    const u16 w = map.width();
+    const u16 h = map.height();
+    for (u16 y = 0; y < h; ++y) {
+        for (u16 x = 0; x < w; ++x) {
+            map.set_settler_blocked(x, y, 0u);
+        }
+    }
+}
+
+static bool player_city (GameState& state, u16 player, u16* x, u16* y) {
+    GAME_EXPECT(x != nullptr, "player_city got nullptr x");
+    GAME_EXPECT(y != nullptr, "player_city got nullptr y");
+    const u16 cn = state.m_cities.get_city_count();
+    for (u16 i = 0; i < cn; ++i) {
+        City* c = state.m_cities.get_city(i);
+        if (c == nullptr || c->get_owner() != player) {
+            continue;
+        }
+        *x = c->get_x();
+        *y = c->get_y();
         return true;
-    }
-    PlayerState& ps = state.m_player_states[player];
-    if (ps.m_target_settlements == 0) {
-        return false;
-    }
-    if (!sl->m_walk.is_valid()) {
-        return false;
-    }
-    for (u16 k = 0; k < ps.m_settle_n; ++k) {
-        const u16 tx = ps.m_settle_x[k];
-        const u16 ty = ps.m_settle_y[k];
-        if (tx == U16_KEY_NULL || ty == U16_KEY_NULL) {
-            continue;
-        }
-        if (tgt_taken(player, tx, ty)) {
-            continue;
-        }
-        if (state.m_map.get_settler_blocked(tx, ty) != 0) {
-            continue;
-        }
-        if (sl->m_walk.start(unit->m_x, unit->m_y, tx, ty)) {
-            sl->m_tx = tx;
-            sl->m_ty = ty;
-            sl->m_has = 1;
-            return true;
-        }
     }
     return false;
 }
 
 static bool found_city (GameState& state, u16 x, u16 y, u16 player) {
-    if (state.m_map.get_add_idx(x, y) != U16_KEY_NULL) {
-        return false;
-    }
-    if (state.m_map.get_settler_blocked(x, y) != 0) {
-        return false;
-    }
+    GAME_EXPECT(state.m_map.get_add_idx(x, y) == U16_KEY_NULL, "found_city tile already has add");
     const u16 city_idx = state.m_cities.get_next_new_city_idx();
     City* city = state.m_cities.get_city(city_idx);
-    if (city == nullptr) {
-        return false;
-    }
+    GAME_EXPECT(city != nullptr, "found_city city slot unavailable");
     city->init(player, x, y);
-    if (!state.m_map.set_tile_add(x, y, city_idx, BUILD_ADD_CITY)) {
-        return false;
-    }
+    GAME_EXPECT(state.m_map.set_tile_add(x, y, city_idx, BUILD_ADD_CITY), "found_city set_tile_add failed");
     CityBorder::claim_expand(x, y, 0, k_claim_cult, static_cast<u8>(player));
     stamp_block(state, x, y);
     return true;
 }
 
-static void finish_mission (GameState& state, u16 player, u16 i, UnitAddStruct* unit) {
-    StmSlot* sl = slot_at(player, i);
-    const u16 tx = sl->m_tx;
-    const u16 ty = sl->m_ty;
-    if (unit != nullptr && tx != U16_KEY_NULL && ty != U16_KEY_NULL) {
-        if (unit->m_x == tx && unit->m_y == ty) {
-            found_city(state, tx, ty, player);
+static void fill_starts (GameState& state) {
+    for (u16 p = 0; p < g_player_n; ++p) {
+        PlayerState& ps = state.m_player_states[p];
+        g_starts[p].x = 0;
+        g_starts[p].y = 0;
+        if (ps.m_target_settlements == 0) {
+            continue;
         }
-    }
-    clear_slot(player, i);
-}
-
-static void step_mission (GameState& state, u16 player, u16 i, u16 unit_idx, UnitAddStruct* unit) {
-    StmSlot* sl = slot_at(player, i);
-    if (sl->m_has == 0) {
-        return;
-    }
-    if (sl->m_walk.done()) {
-        finish_mission(state, player, i, unit);
-        return;
-    }
-    const UnitAddKey key = UnitAddKey::from_raw(unit_idx);
-    if (!sl->m_walk.step()) {
-        if (sl->m_walk.done()) {
-            finish_mission(state, player, i, unit);
-        } else {
-            clear_slot(player, i);
-        }
-        return;
-    }
-    const u16 nx = sl->m_walk.x();
-    const u16 ny = sl->m_walk.y();
-    if (nx == unit->m_x && ny == unit->m_y) {
-        if (sl->m_walk.done()) {
-            finish_mission(state, player, i, unit);
-        }
-        return;
-    }
-    if (!UnitMovementMng::apply_step(state, key, nx, ny)) {
-        clear_slot(player, i);
-        return;
-    }
-    if (sl->m_walk.done()) {
-        finish_mission(state, player, i, unit);
+        u16 sx = 0;
+        u16 sy = 0;
+        GAME_EXPECT(player_city(state, p, &sx, &sy), "SettlerTurnHandler fill_starts settling player missing city");
+        g_starts[p].x = sx;
+        g_starts[p].y = sy;
     }
 }
 
@@ -306,28 +165,24 @@ static void step_mission (GameState& state, u16 player, u16 i, u16 unit_idx, Uni
 
 bool SettlerTurnHandler::begin (GameState& state) {
     clear();
-    if (state.m_player_states == nullptr || state.m_player_n == 0) {
-        return false;
-    }
-    if (state.m_statics == nullptr) {
-        return false;
-    }
+    GAME_EXPECT(state.m_player_n <= 200u, "SettlerTurnHandler begin player count exceeds start buffer");
+    GAME_EXPECT(state.m_player_states != nullptr, "SettlerTurnHandler begin missing player states");
+    GAME_EXPECT(state.m_player_n != 0, "SettlerTurnHandler begin got zero players");
+    GAME_EXPECT(state.m_statics != nullptr, "SettlerTurnHandler begin missing statics");
     if (!UnitMovementMng::mvt_ready() && !UnitMovementMng::setup_mvt_costs(*state.m_statics)) {
         return false;
     }
     const u16 w = state.m_map.width();
     const u16 h = state.m_map.height();
-    if (w == 0 || h == 0) {
-        return false;
-    }
+    GAME_EXPECT(w != 0 && h != 0, "SettlerTurnHandler begin got empty map dimensions");
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
     const u32 slot_n = static_cast<u32>(state.m_player_n) * static_cast<u32>(k_slot_n);
     g_terr = new u8[n];
     g_slot = new StmSlot[slot_n];
-    if (g_terr == nullptr || g_slot == nullptr) {
-        clear();
-        return false;
-    }
+    g_mgrs = new SettlerMissionManager[state.m_player_n];
+    GAME_EXPECT(g_terr != nullptr, "SettlerTurnHandler begin terrain alloc failed");
+    GAME_EXPECT(g_slot != nullptr, "SettlerTurnHandler begin slot alloc failed");
+    GAME_EXPECT(g_mgrs != nullptr, "SettlerTurnHandler begin manager alloc failed");
     for (u16 y = 0; y < h; ++y) {
         for (u16 x = 0; x < w; ++x) {
             g_terr[static_cast<u32>(y) * static_cast<u32>(w) + static_cast<u32>(x)] = state.m_map.get_terrain(x, y);
@@ -337,14 +192,19 @@ bool SettlerTurnHandler::begin (GameState& state) {
     g_w = w;
     g_h = h;
     g_player_n = state.m_player_n;
+    g_ord = new GenSettlementOrder();
+    GAME_EXPECT(g_ord != nullptr, "SettlerTurnHandler begin order alloc failed");
+    for (u16 p = 0; p < g_player_n; ++p) {
+        if (!g_mgrs[p].begin(state.m_sector_net, state.m_sector_rt, g_terr, w, h)) {
+            clear();
+            return false;
+        }
+        g_mgrs[p].opp(false);
+    }
     for (u32 i = 0; i < slot_n; ++i) {
         g_slot[i].m_has = 0;
         g_slot[i].m_tx = U16_KEY_NULL;
         g_slot[i].m_ty = U16_KEY_NULL;
-        if (!g_slot[i].m_walk.begin(state.m_sector_net, state.m_sector_rt, g_terr, w, h)) {
-            clear();
-            return false;
-        }
     }
     stamp_all_cities(state);
     g_ok = true;
@@ -354,38 +214,68 @@ bool SettlerTurnHandler::begin (GameState& state) {
 void SettlerTurnHandler::clear () {
     delete[] g_terr;
     delete[] g_slot;
+    delete[] g_mgrs;
+    delete g_ord;
     g_terr = nullptr;
     g_slot = nullptr;
+    g_mgrs = nullptr;
+    g_ord = nullptr;
     g_st = nullptr;
     g_w = 0;
     g_h = 0;
     g_player_n = 0;
+    g_ord_ok = false;
     g_ok = false;
 }
 
 void SettlerTurnHandler::refresh_targets (GameState& state) {
-    if (!g_ok || g_st != &state || state.m_player_states == nullptr) {
+    GAME_EXPECT(g_ok, "SettlerTurnHandler refresh_targets got invalid state");
+    GAME_EXPECT(g_st == &state, "SettlerTurnHandler refresh_targets got wrong state");
+    GAME_EXPECT(state.m_player_states != nullptr, "SettlerTurnHandler refresh_targets missing player states");
+    GAME_EXPECT(g_ord != nullptr, "SettlerTurnHandler refresh_targets missing order object");
+    if (g_ord_ok) {
         return;
     }
+    u16 settle_pn = 0;
     for (u16 p = 0; p < g_player_n; ++p) {
         PlayerState& ps = state.m_player_states[p];
         if (ps.m_target_settlements == 0) {
             continue;
         }
-        prune_settle_pts(state, p, ps);
-        if (ps.m_settle_n == 0) {
-            const SmSettlerBestPts best = SenseSettlingPtsOpt::select_and_pick_pts(state.m_map, state.m_cities, p);
-            fill_settle_pts(ps, best);
+        settle_pn = static_cast<u16>(settle_pn + 1u);
+    }
+    if (settle_pn == 0) {
+        return;
+    }
+    fill_starts(state);
+    GenSettlementTargetsRslt rslt = {};
+    GAME_EXPECT(GenSettlementTargets::generate(state.m_map, g_starts, g_player_n, &rslt), "SettlerTurnHandler refresh_targets generate failed");
+    clr_block(state.m_map);
+    stamp_all_cities(state);
+    const u16 cn = state.m_cities.get_city_count();
+    for (u16 i = 0; i < cn; ++i) {
+        City* c = state.m_cities.get_city(i);
+        if (c == nullptr || c->get_owner() == U16_KEY_NULL) {
+            continue;
         }
-        ps.m_target_settlements = (ps.m_settle_n > 0) ? k_tgt_sites : k_tgt_none;
+        state.m_map.set_planned_city(c->get_x(), c->get_y(), 0u);
+    }
+    g_ord_ok = g_ord->gen_excl(state.m_map, g_starts, g_player_n);
+    GAME_EXPECT(g_ord_ok, "SettlerTurnHandler refresh_targets gen_excl failed");
+    SettlerMissionManager::punch(state.m_map);
+    for (u16 p = 0; p < g_player_n; ++p) {
+        PlayerState& ps = state.m_player_states[p];
+        if (ps.m_target_settlements == 0) {
+            continue;
+        }
+        ps.m_target_settlements = (g_ord->n(p) > 0u) ? k_tgt_sites : 2u;
     }
 }
 
-
 bool SettlerTurnHandler::need_settler (GameState& state, u16 player) {
-    if (!g_ok || g_st != &state || player >= g_player_n) {
-        return false;
-    }
+    GAME_EXPECT(g_ok, "SettlerTurnHandler need_settler got invalid state");
+    GAME_EXPECT(g_st == &state, "SettlerTurnHandler need_settler got wrong state");
+    GAME_EXPECT(player < g_player_n, "SettlerTurnHandler need_settler player out of range");
     PlayerState& ps = state.m_player_states[player];
     if (ps.m_target_settlements == 0) {
         return false;
@@ -397,30 +287,71 @@ void SettlerTurnHandler::handle (GameState& state, u16 unit_idx) {
     GAME_EXPECT(g_ok, "SettlerTurnHandler handle got invalid state");
     GAME_EXPECT(g_st == &state, "SettlerTurnHandler handle got invalid state");
     UnitAddStruct* unit = unit_at(state, unit_idx);
-    
     GAME_EXPECT(unit != nullptr, "SettlerTurnHandler handle got nullptr unit");
     GAME_EXPECT(unit->m_x != U16_KEY_NULL, "SettlerTurnHandler handle unit has null x");
     const u16 player = unit->m_player_idx;
-    
     GAME_EXPECT(player < g_player_n, "SettlerTurnHandler handle player out of bounds");
+    GAME_EXPECT(g_mgrs != nullptr, "SettlerTurnHandler handle missing manager array");
+    GAME_EXPECT(g_ord != nullptr, "SettlerTurnHandler handle missing order object");
     PlayerState& ps = state.m_player_states[player];
     ps.m_last_turn_settler_count = static_cast<u16>(ps.m_last_turn_settler_count + 1u);
     if (ps.m_target_settlements == 0) {
         return;
     }
-    u16 i = 0;
+    u16 i = U16_KEY_NULL;
     if (!find_unit_slot(player, unit_idx, &i)) {
-        if (!take_free_slot(player, unit_idx, &i)) {
+        GAME_EXPECT(g_ord_ok, "SettlerTurnHandler handle missing exclusive order generation");
+        const u16 s = g_mgrs[player].asgn(state.m_map, *g_ord, player, unit->m_x, unit->m_y);
+        if (s == U16_KEY_NULL) {
+            return;
+        }
+        GAME_EXPECT(s < k_slot_n, "SettlerTurnHandler handle assigned slot out of range");
+        ps.m_settler_idx[s] = unit_idx;
+        StmSlot* sl = slot_at(player, s);
+        sl->m_has = 1;
+        sl->m_tx = g_mgrs[player].tx(s);
+        sl->m_ty = g_mgrs[player].ty(s);
+        i = s;
+    } else {
+        StmSlot* sl = slot_at(player, i);
+        if (sl->m_has == 0) {
             return;
         }
     }
-    StmSlot* sl = slot_at(player, i);
-    if (sl->m_has == 0) {
-        if (!try_assign(state, player, i, unit)) {
-            return;
+
+    const u8 ev = g_mgrs[player].step(state.m_map, i);
+    const u16 nx = g_mgrs[player].x(i);
+    const u16 ny = g_mgrs[player].y(i);
+    const UnitAddKey key = UnitAddKey::from_raw(unit_idx);
+
+    if (ev == SMM_GO) {
+        if (nx != unit->m_x || ny != unit->m_y) {
+            if (!UnitMovementMng::apply_step(state, key, nx, ny)) {
+                g_mgrs[player].drop(i);
+                clear_slot(player, i);
+                return;
+            }
         }
+        return;
     }
-    step_mission(state, player, i, unit_idx, unit);
+
+    if (ev == SMM_FOUND) {
+        if (nx != unit->m_x || ny != unit->m_y) {
+            if (!UnitMovementMng::apply_step(state, key, nx, ny)) {
+                g_mgrs[player].drop(i);
+                clear_slot(player, i);
+                return;
+            }
+        }
+        found_city(state, nx, ny, player);
+        clear_slot(player, i);
+        return;
+    }
+
+    if (ev == SMM_DROP) {
+        clear_slot(player, i);
+        return;
+    }
 }
 
 bool SettlerTurnHandler::tgt_xy (u16 player, u16 slot, u16* x, u16* y) {

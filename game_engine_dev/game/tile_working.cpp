@@ -30,6 +30,15 @@ u16 TileWorking::get_worker (u16 x, u16 y) {
     return m_map->get_city_worker(x, y);
 }
 
+GameArraySimple* TileWorking::map_ptr () {
+    return m_map;
+}
+
+bool TileWorking::set_tile_usage (u16 x, u16 y, u8 usage) {
+    GAME_EXPECT(m_map != nullptr, "TileWorking map");
+    return m_map->set_tile_usage(x, y, usage);
+}
+
 bool TileWorking::mark_worked (u16 x, u16 y, u16 city_idx) {
     GAME_EXPECT(m_map != nullptr, "TileWorking map");
     return m_map->set_city_worker(x, y, city_idx);

@@ -10,6 +10,7 @@
 #include "city.h"
 #include "tile_yields.h"
 #include "tile_working.h"
+#include "worker_guidance.h"
 #include "city_tile_manager.h"
 #include "city_border.h"
 
@@ -59,6 +60,8 @@ void GameState::clear () {
     PlayerLedger::bind_state(nullptr);
     TileYields::bind_map(nullptr);
     TileWorking::bind_map(nullptr);
+    WorkerGuidance::bind_map(nullptr);
+    WorkerGuidance::bind_statics(nullptr);
     CityTileManager::bind_cities(nullptr);
     CityBorder::bind_map(nullptr);
     City::bind_wonder_cities(nullptr);

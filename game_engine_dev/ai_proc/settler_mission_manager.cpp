@@ -4,6 +4,7 @@
 
 #include "settler_mission_manager.h"
 
+#include "assert_log.h"
 #include "city_blocking_mask.h"
 #include "game_array_simple.h"
 #include "gen_settlement_order.h"
@@ -64,9 +65,8 @@ bool SettlerMissionManager::begin (
     u16 h)
 {
     clr();
-    if (terr == nullptr || w == 0 || h == 0) {
-        return false;
-    }
+    GAME_EXPECT(terr != nullptr, "SettlerMissionManager begin got nullptr terrain");
+    GAME_EXPECT(w != 0 && h != 0, "SettlerMissionManager begin got empty dimensions");
     if (!wbeg(net, rt, terr, w, h)) {
         clr();
         return false;
@@ -254,6 +254,8 @@ u16 SettlerMissionManager::asgn (
     u16 x,
     u16 y)
 {
+    GAME_EXPECT(m_ok, "SettlerMissionManager asgn called before begin");
+    GAME_EXPECT(pl < ord.pn(), "SettlerMissionManager asgn player out of range");
     if (!m_ok || m_fn == 0) {
         return U16_KEY_NULL;
     }
@@ -278,6 +280,8 @@ u16 SettlerMissionManager::asgn (
 }
 
 u8 SettlerMissionManager::step (GameArraySimple& map, u16 s) {
+    GAME_EXPECT(m_ok, "SettlerMissionManager step called before begin");
+    GAME_EXPECT(s < SMM_SLOT_N, "SettlerMissionManager step slot out of range");
     if (!m_ok || s >= SMM_SLOT_N || m_slot[s].m_on == 0) {
         return SMM_DROP;
     }
@@ -313,6 +317,11 @@ u8 SettlerMissionManager::step (GameArraySimple& map, u16 s) {
         return SMM_FOUND;
     }
     return SMM_GO;
+}
+
+void SettlerMissionManager::drop (u16 s) {
+    GAME_EXPECT(s < SMM_SLOT_N, "SettlerMissionManager drop slot out of range");
+    rel(s);
 }
 
 #ifndef SETTLER_MISSION_MANAGER_IMPL

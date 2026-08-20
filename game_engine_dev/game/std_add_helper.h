@@ -21,9 +21,15 @@ struct GameTileSimple;
 class StdAddHelper {
 public:
     static const u16 m_farm_bit = 1u; // First bit of m_add_idx: farm present
+    static const u16 m_mill_bit = 2u; // Second bit of m_add_idx: saw mill present
+    static const u16 m_irr_bit = 4u; // Third bit of m_add_idx: irrigation present
 
     static bool has_farm (const GameTileSimple* t);
     static void set_farm (GameTileSimple* t);
+    static bool has_mill (const GameTileSimple* t);
+    static void set_mill (GameTileSimple* t);
+    static bool has_irr (const GameTileSimple* t);
+    static void set_irr (GameTileSimple* t);
 
 private:
     StdAddHelper () = delete;

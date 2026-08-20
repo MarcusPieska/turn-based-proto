@@ -2,37 +2,38 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef SETTLER_TURN_HANDLER_H
-#define SETTLER_TURN_HANDLER_H
+#ifndef WORKER_GUIDANCE_H
+#define WORKER_GUIDANCE_H
 
 #include "game_primitives.h"
+#include "tile_usage.h"
 
-class GameState;
+class GameArraySimple;
+class RuntimeStatics;
 
 //================================================================================================================================
-//=> - SettlerTurnHandler -
+//=> - WorkerGuidance -
 //================================================================================================================================
 //
-//  AI settler lifecycle for one match. m_target_settlements is the desired settler count (0 = off). refresh_targets
-//  runs once: GenSettlementTargets, GenSettlementOrder::gen_excl, punch; then target SETTLER_MISSION_SLOTS if sites else 2.
-//  GameLoop zeros unit counts after cities then calls handle per settler; handle tallies into m_last_turn_settler_count.
+//  Static intent-to-job mapping for workers on assigned tiles. Placement uses TileWorkAssessor::tile_ok.
+//  bind_statics and bind_map also wire the assessor; bind a TileWorkCtx on the assessor when tech-gating.
 //
 //================================================================================================================================
 
-class SettlerTurnHandler {
+class WorkerGuidance {
 public:
-    SettlerTurnHandler () = delete;
+    static void bind_statics (const RuntimeStatics* st);
+    static void bind_map (GameArraySimple* map);
+    static u8 usage_for_intent (u16 x, u16 y, TileAssignIntent intent);
+    static u16 next_job (u16 x, u16 y, TileAssignIntent intent);
+    static bool apply_job (u16 x, u16 y, u16 job_idx);
 
-    static bool begin (GameState& state);
-    static void clear ();
-
-    static void refresh_targets (GameState& state);
-    static bool need_settler (GameState& state, u16 player);
-    static void handle (GameState& state, u16 unit_idx);
-    static bool tgt_xy (u16 player, u16 slot, u16* x, u16* y);
+private:
+    static const RuntimeStatics* m_st; // Runtime catalog; null until bind_statics
+    static GameArraySimple* m_map; // Active tile grid; null until bind_map
 };
 
-#endif // SETTLER_TURN_HANDLER_H
+#endif // WORKER_GUIDANCE_H
 
 //================================================================================================================================
 //=> - End of file -

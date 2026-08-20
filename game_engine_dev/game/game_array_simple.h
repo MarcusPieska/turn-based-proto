@@ -43,7 +43,7 @@ struct GameTileSimple {
     u64 m_road_typ : 3; // Road type (ROAD_* in game_map_defs.h)
     u64 m_settler_blocked : 1; // Settler blocked flag (0 none, nonzero is blocked by existing settlements)
 
-    // Almost static fields: Second 8 bytes: 16 + 4×3 + 1 = 29b  <= 64b
+    // Almost static fields: Second 8 bytes: 16 + 4×3 + 1 + 1 + 2 = 32b  <= 64b
 
     u64 m_res : 16; // Map resource index on this tile; UINT16_MAX if none
     u64 m_terr : 4; // Terrain class id (TERR_* in game_map_defs.h)
@@ -51,6 +51,7 @@ struct GameTileSimple {
     u64 m_ov : 4; // Base-map overlay id (OVERLAY_* in game_map_defs.h)
     u64 m_riv : 1; // River flag (0 none, nonzero has river)
     u64 m_planned_city : 1; // Planned city flag (if 1 the AI will target placing a city here)
+    u64 m_tile_usage : 2; // TileAssignIntent stamped by CityTileManager; 0 food, 1 prod
 };
 
 //================================================================================================================================
@@ -88,6 +89,7 @@ public:
     u8 get_civ_owner (u16 x, u16 y) const; // Civ/seat owner at tile; U8_KEY_NULL if none
     u8 get_settler_blocked (u16 x, u16 y) const; // 0 free, nonzero blocked for settling
     u8 get_planned_city (u16 x, u16 y) const; // 0 none, nonzero planned settle site
+    u8 get_tile_usage (u16 x, u16 y) const; // Assign intent (TileAssignIntent)
     u8 get_road_typ (u16 x, u16 y) const; // Road type at tile (ROAD_*; 0 none)
     GameTileSimple* tile (u16 x, u16 y); // Mutable tile at (x, y); for STD bit helpers
     const GameTileSimple* tile (u16 x, u16 y) const; // Const tile at (x, y)
@@ -100,6 +102,7 @@ public:
     bool set_civ_owner (u16 x, u16 y, u8 owner); // Civ/seat owner at tile; U8_KEY_NULL clears
     bool set_settler_blocked (u16 x, u16 y, u8 blocked); // Settler block flag; 0 clears
     bool set_planned_city (u16 x, u16 y, u8 planned); // Planned-city flag; 0 clears
+    bool set_tile_usage (u16 x, u16 y, u8 usage); // Assign intent; TileAssignIntent 0..1
 
 private:
     friend class Factory_GameArraySimple;

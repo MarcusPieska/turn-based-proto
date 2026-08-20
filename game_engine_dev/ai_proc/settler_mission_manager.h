@@ -49,6 +49,7 @@ public:
     u16 idle () const;
     u16 asgn (GameArraySimple& map, const GenSettlementOrder& ord, u16 pl, u16 x, u16 y);
     u8 step (GameArraySimple& map, u16 s);
+    void drop (u16 s);
     bool on (u16 s) const;
     u16 pl (u16 s) const;
     u16 x (u16 s) const;

@@ -28,14 +28,15 @@ enum class WorkerJob : u16 {
     Clear_Forest = 2,
     Farm = 3,
     Irrigation = 4,
-    Fort = 5,
-    Mine = 6,
-    Plantation = 7,
-    Saw_Mill = 8,
-    Clear_Jungle = 9,
-    Clear_Swamp = 10,
-    Asphalt_Road = 11,
-    Railroad = 12
+    Plant_Forest = 5,
+    Fort = 6,
+    Mine = 7,
+    Plantation = 8,
+    Saw_Mill = 9,
+    Clear_Jungle = 10,
+    Clear_Swamp = 11,
+    Asphalt_Road = 12,
+    Railroad = 13
 };
 
 #endif // WORKER_JOB_ENUM_H

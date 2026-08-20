@@ -2,37 +2,32 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef SETTLER_TURN_HANDLER_H
-#define SETTLER_TURN_HANDLER_H
+#ifndef TILE_USAGE_H
+#define TILE_USAGE_H
 
 #include "game_primitives.h"
 
-class GameState;
-
 //================================================================================================================================
-//=> - SettlerTurnHandler -
+//=> - TileUsage -
 //================================================================================================================================
 //
-//  AI settler lifecycle for one match. m_target_settlements is the desired settler count (0 = off). refresh_targets
-//  runs once: GenSettlementTargets, GenSettlementOrder::gen_excl, punch; then target SETTLER_MISSION_SLOTS if sites else 2.
-//  GameLoop zeros unit counts after cities then calls handle per settler; handle tallies into m_last_turn_settler_count.
+//  TileAssignIntent is stamped when CityTileManager assigns a tile. TileUsage is refined later by WorkerGuidance.
 //
 //================================================================================================================================
 
-class SettlerTurnHandler {
-public:
-    SettlerTurnHandler () = delete;
-
-    static bool begin (GameState& state);
-    static void clear ();
-
-    static void refresh_targets (GameState& state);
-    static bool need_settler (GameState& state, u16 player);
-    static void handle (GameState& state, u16 unit_idx);
-    static bool tgt_xy (u16 player, u16 slot, u16* x, u16* y);
+enum TileUsage : u8 {
+    TILE_USAGE_NONE = 0,
+    TILE_USAGE_FOOD = 1,
+    TILE_USAGE_PROD = 2,
+    TILE_USAGE_RESOURCE = 3
 };
 
-#endif // SETTLER_TURN_HANDLER_H
+enum TileAssignIntent : u8 {
+    TILE_ASSIGN_FOOD = 0,
+    TILE_ASSIGN_PROD = 1
+};
+
+#endif // TILE_USAGE_H
 
 //================================================================================================================================
 //=> - End of file -

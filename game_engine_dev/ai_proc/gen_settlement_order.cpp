@@ -6,6 +6,7 @@
 
 #include <cstring>
 
+#include "assert_log.h"
 #include "game_array_simple.h"
 #include "game_map_defs.h"
 
@@ -48,6 +49,8 @@ static void add_pt (
     u16 x,
     u16 y)
 {
+    GAME_EXPECT(wr != nullptr, "GenSettlementOrder add_pt got nullptr wr");
+    GAME_EXPECT(cap != nullptr, "GenSettlementOrder add_pt got nullptr cap");
     if (wr[p] >= cap[p]) {
         return;
     }
@@ -68,6 +71,9 @@ static bool flood (
     u32* wr,
     const u32* cap)
 {
+    GAME_EXPECT(starts != nullptr, "GenSettlementOrder flood got nullptr starts");
+    GAME_EXPECT(wr != nullptr, "GenSettlementOrder flood got nullptr wr");
+    GAME_EXPECT(cap != nullptr, "GenSettlementOrder flood got nullptr cap");
     const u16 w = map.width();
     const u16 h = map.height();
     const u32 tn = map.tile_n();

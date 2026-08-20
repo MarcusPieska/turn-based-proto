@@ -249,6 +249,7 @@ bool Factory_GameArraySimple::load_map_gen_data (
         t->m_road_typ = 0;
         t->m_settler_blocked = 0;
         t->m_planned_city = 0;
+        t->m_tile_usage = 0;
     }
     delete[] ov;
     delete[] riv;
@@ -308,6 +309,7 @@ bool Factory_GameArraySimple::load_from_rslt (GameArraySimple* out, const MakeMa
         t->m_road_typ = 0;
         t->m_settler_blocked = 0;
         t->m_planned_city = 0;
+        t->m_tile_usage = 0;
     }
     out->m_w = w;
     out->m_h = h;

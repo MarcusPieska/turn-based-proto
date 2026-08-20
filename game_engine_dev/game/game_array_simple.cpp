@@ -102,6 +102,11 @@ u8 GameArraySimple::get_planned_city (u16 x, u16 y) const {
     return static_cast<u8>(m_tiles[tidx(x, y)].m_planned_city);
 }
 
+u8 GameArraySimple::get_tile_usage (u16 x, u16 y) const {
+    CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
+    return static_cast<u8>(m_tiles[tidx(x, y)].m_tile_usage);
+}
+
 u8 GameArraySimple::get_road_typ (u16 x, u16 y) const {
     CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
     return static_cast<u8>(m_tiles[tidx(x, y)].m_road_typ);
@@ -163,6 +168,12 @@ bool GameArraySimple::set_settler_blocked (u16 x, u16 y, u8 blocked) {
 bool GameArraySimple::set_planned_city (u16 x, u16 y, u8 planned) {
     CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
     m_tiles[tidx(x, y)].m_planned_city = planned != 0 ? 1u : 0u;
+    return true;
+}
+
+bool GameArraySimple::set_tile_usage (u16 x, u16 y, u8 usage) {
+    CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
+    m_tiles[tidx(x, y)].m_tile_usage = static_cast<u64>(usage & 3u);
     return true;
 }
 

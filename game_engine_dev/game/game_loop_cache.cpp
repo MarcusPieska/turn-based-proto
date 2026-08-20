@@ -114,6 +114,7 @@ bool GameLoopCache::load_map (cstr path, GameArraySimple* out) {
         t->m_road_typ = 0;
         t->m_settler_blocked = 0;
         t->m_planned_city = 0;
+        t->m_tile_usage = 0;
         u8 terr = 0;
         u8 clim = 0;
         u8 ov = 0;

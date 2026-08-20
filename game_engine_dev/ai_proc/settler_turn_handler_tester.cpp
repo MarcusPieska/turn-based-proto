@@ -31,9 +31,9 @@
 static const char* G_MAP_ROOT = "/home/w/Projects/simple-map-gen";
 static const char* G_OUT_DIR = "/home/w/Projects/simple-map-gen/settler-turn-mng";
 static const char* G_TRACE = "/home/w/Projects/simple-map-gen/settler-turn-mng/game_loop.trace";
-static const u32 G_SEED = 42u;
-static const u16 G_PLAYERS = 31;
-static const u32 G_TURN_CAP = 50u;
+static const u32 G_SEED = 43u;
+static const u16 G_PLAYERS = 100;
+static const u32 G_TURN_CAP = 300u;
 static const u32 G_TURN_CAP_EXT = 1000u;
 static const u16 G_CLAIM_CULT = 25u;
 static u32 g_ppm_every = 10u;

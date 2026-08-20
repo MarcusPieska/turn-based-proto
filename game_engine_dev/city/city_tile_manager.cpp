@@ -7,6 +7,8 @@
 #include "circular_tile_areas.h"
 #include "city.h"
 #include "city_array.h"
+#include "game_map_defs.h"
+#include "tile_usage.h"
 #include "tile_working.h"
 #include "tile_yields.h"
 
@@ -29,6 +31,20 @@ const u16 CityTileManager::m_cand_max = 45;
 CityArray* CityTileManager::m_cities = nullptr;
 
 static const u16 k_cand_max = 45;
+
+static void mark_worked_stamp (u16 x, u16 y, u16 city_idx, TileAssignIntent intent) {
+    TileWorking::mark_worked(x, y, city_idx);
+    TileWorking::set_tile_usage(x, y, static_cast<u8>(intent));
+}
+
+static TileAssignIntent intent_from_sort (u8 sort_food, u8 sort_production, u8 sort_commerce) {
+    if (sort_food != 0) {
+        return TILE_ASSIGN_FOOD;
+    }
+    (void)sort_commerce;
+    (void)sort_production;
+    return TILE_ASSIGN_PROD;
+}
 
 //================================================================================================================================
 //=> - Pick helpers -
@@ -427,7 +443,7 @@ TotalTileYield CityTileManager::assign_sorted (u16 player, u16 city_idx, u8 sort
         tot.m_food += cands[i].m_yld.m_food;
         tot.m_production += cands[i].m_yld.m_production;
         tot.m_commerce += cands[i].m_yld.m_commerce;
-        TileWorking::mark_worked(cands[i].m_x, cands[i].m_y, city_idx);
+        mark_worked_stamp(cands[i].m_x, cands[i].m_y, city_idx, intent_from_sort(sort_food, sort_production, sort_commerce));
         ++assigned;
     }
     return tot;
@@ -492,7 +508,7 @@ TotalTileYield CityTileManager::assign_add_one (u16 player, u16 city_idx, u8 sor
     tot.m_food = best.m_yld.m_food;
     tot.m_production = best.m_yld.m_production;
     tot.m_commerce = best.m_yld.m_commerce;
-    TileWorking::mark_worked(best.m_x, best.m_y, city_idx);
+    mark_worked_stamp(best.m_x, best.m_y, city_idx, intent_from_sort(sort_food, sort_production, sort_commerce));
     return tot;
 }
 
@@ -561,6 +577,7 @@ TotalTileYield CityTileManager::assign_stable_food (u16 player, u16 city_idx, u1
     u16 assigned = 0;
     while (assigned < workers) {
         TileCand* pick = nullptr;
+        TileAssignIntent pick_intent = TILE_ASSIGN_FOOD;
         if (food_have >= min_food) {
             while (si < n && cands[si].m_yld.m_food != 0) {
                 si = static_cast<u16>(si + 1u);
@@ -570,6 +587,7 @@ TotalTileYield CityTileManager::assign_stable_food (u16 player, u16 city_idx, u1
             }
             pick = &cands[si];
             si = static_cast<u16>(si + 1u);
+            pick_intent = TILE_ASSIGN_PROD;
         } else {
             u8 take_sec = 0;
             if (si < n) {
@@ -580,12 +598,15 @@ TotalTileYield CityTileManager::assign_stable_food (u16 player, u16 city_idx, u1
             if (take_sec != 0) {
                 pick = &cands[si];
                 si = static_cast<u16>(si + 1u);
+                pick_intent = TILE_ASSIGN_FOOD;
             } else if (fi < split) {
                 pick = &cands[fi];
                 fi = static_cast<u16>(fi + 1u);
+                pick_intent = TILE_ASSIGN_FOOD;
             } else if (si < n) {
                 pick = &cands[si];
                 si = static_cast<u16>(si + 1u);
+                pick_intent = TILE_ASSIGN_FOOD;
             } else {
                 break;
             }
@@ -594,7 +615,7 @@ TotalTileYield CityTileManager::assign_stable_food (u16 player, u16 city_idx, u1
         tot.m_production += pick->m_yld.m_production;
         tot.m_commerce += pick->m_yld.m_commerce;
         food_have += pick->m_yld.m_food;
-        TileWorking::mark_worked(pick->m_x, pick->m_y, city_idx);
+        mark_worked_stamp(pick->m_x, pick->m_y, city_idx, pick_intent);
         assigned = static_cast<u16>(assigned + 1u);
     }
     tot.m_pops_assigned = assigned;

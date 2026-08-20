@@ -41,7 +41,8 @@ struct TileWorkCand {
 //=> - TileWorkAssessor -
 //================================================================================================================================
 //
-//  What worker jobs/imps can run on a tile given player tech (and resources). mk01 full-scans the
+//  What worker jobs/imps can run on a tile given player tech (and resources). Placement geography is
+//  resolved per WorkerJobType in tile_ok (single source of truth). mk01 full-scans the
 //  worker_job_imp_index; later mks may replace the scan with a tile_key map behind the same API.
 //  Body is cpp-included from impl/tile_work_assessor_impl_mkNN.cpp via TILE_WORK_ASSESSOR_IMPL.
 //
