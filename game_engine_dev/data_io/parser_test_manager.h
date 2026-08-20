@@ -30,6 +30,7 @@
 #include "unit_role_parser_tester.h"
 #include "unit_type_parser_tester.h"
 #include "wonder_parser_tester.h"
+#include "worker_job_type_parser_tester.h"
 #include "worker_job_parser_tester.h"
 #include "worker_job_imp_parser_tester.h"
 #include "tile_yield_type_parser_tester.h"
@@ -64,6 +65,7 @@ public:
     UnitRoleParserTester& unit_role () { return m_unit_role; }
     UnitTypeParserTester& unit_type () { return m_unit_type; }
     WonderParserTester& wonder () { return m_wonder; }
+    WorkerJobTypeParserTester& worker_job_type () { return m_worker_job_type; }
     WorkerJobParserTester& worker_job () { return m_worker_job; }
     WorkerJobImpParserTester& worker_job_imp () { return m_worker_job_imp; }
     TileYieldTypeParserTester& tile_yield_type () { return m_tile_yield_type; }
@@ -90,6 +92,7 @@ private:
     UnitRoleParserTester m_unit_role;
     UnitTypeParserTester m_unit_type;
     WonderParserTester m_wonder;
+    WorkerJobTypeParserTester m_worker_job_type;
     WorkerJobParserTester m_worker_job;
     WorkerJobImpParserTester m_worker_job_imp;
     TileYieldTypeParserTester m_tile_yield_type;

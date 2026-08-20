@@ -37,6 +37,7 @@ g++ $INC -c ../static_state/unit_action_static_data.cpp -o unit_action_static_da
 g++ $INC -c ../static_state/unit_role_static_data.cpp -o unit_role_static_data.o
 g++ $INC -c ../static_state/unit_type_static_data.cpp -o unit_type_static_data.o
 g++ $INC -c ../static_state/wonder_static_data.cpp -o wonder_static_data.o
+g++ $INC -c ../static_state/worker_job_type_static_data.cpp -o worker_job_type_static_data.o
 g++ $INC -c ../static_state/worker_job_static_data.cpp -o worker_job_static_data.o
 g++ $INC -c ../static_state/worker_job_imp_static_data.cpp -o worker_job_imp_static_data.o
 g++ $INC -c ../static_state/tile_yield_type_static_data.cpp -o tile_yield_type_static_data.o
@@ -71,6 +72,7 @@ g++ -o resource_parser_tester \
     unit_role_static_data.o \
     unit_type_static_data.o \
     wonder_static_data.o \
+    worker_job_type_static_data.o \
     worker_job_static_data.o \
     worker_job_imp_static_data.o \
     tile_yield_type_static_data.o \
@@ -105,6 +107,7 @@ rm \
     unit_role_static_data.o \
     unit_type_static_data.o \
     wonder_static_data.o \
+    worker_job_type_static_data.o \
     worker_job_static_data.o \
     worker_job_imp_static_data.o \
     tile_yield_type_static_data.o \

@@ -60,6 +60,8 @@ g++ $CXXFLAGS $INC -c ../tile_yields.cpp -o tile_yields.o
 g++ $CXXFLAGS $INC -c ../tile_working.cpp -o tile_working.o
 g++ $CXXFLAGS $INC -c ../tile_work_assessor.cpp -o tile_work_assessor.o
 g++ $CXXFLAGS $INC -c ../worker_guidance.cpp -o worker_guidance.o
+g++ $CXXFLAGS $INC -c ../worker_helper.cpp -o worker_helper.o
+g++ $CXXFLAGS $INC -c ../std_add_helper.cpp -o std_add_helper.o
 g++ $CXXFLAGS $INC -c ../civ_relations.cpp -o civ_relations.o
 g++ $CXXFLAGS $INC -c ../combat_mods.cpp -o combat_mods.o
 g++ $CXXFLAGS $INC -c ../../adv_map_gen/map_gen_loader.cpp -o map_gen_loader.o
@@ -143,6 +145,8 @@ g++ $CXXFLAGS -o game_setup_tester \
     tile_working.o \
     tile_work_assessor.o \
     worker_guidance.o \
+    worker_helper.o \
+    std_add_helper.o \
     civ_relations.o \
     combat_mods.o \
     map_gen_loader.o \
@@ -203,7 +207,7 @@ rm runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.
     outpost_add_vector.o plantation_add_vector.o shipyard_add_vector.o \
     trade_post_add_vector.o unit_add_vector.o unit_movement_mng.o tile_attr_tables.o \
     sector_network.o sector_network_router.o point_seq_flood_walker.o \
-    game_array_simple.o factory_game_array_simple.o game_state.o player_ledger.o tile_yields.o tile_working.o tile_work_assessor.o worker_guidance.o \
+    game_array_simple.o factory_game_array_simple.o game_state.o player_ledger.o tile_yields.o tile_working.o tile_work_assessor.o worker_guidance.o worker_helper.o std_add_helper.o \
     civ_relations.o combat_mods.o game_setup.o city_tile_manager.o circular_tile_areas.o city_blocking_mask.o city_border.o \
     perlin_noise.o generator_constants.o whiteboard_mng.o sense_settling_pts_opt.o \
     city_turn_handler_default.o \

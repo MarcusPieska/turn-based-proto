@@ -1,6 +1,7 @@
 Below are the next steps to take for various development pipelines.
 
 Tile improvement and working:
+ - We need to enforce tile improvement costs, and track progress towards that cost when building. 
  - We will need an effect type that boost tile improvement yields; e.g. "Gunpowder Blasting" for Mines.
  - We need the tile selector to return tiles that will be worked that miss improvements; this is to help the AI trigger draft workers.
  - We need a condition for terminating and returning draft workers.
@@ -15,3 +16,8 @@ Static data:
 
 Map generation:
  - We currently place some resources on water, or on mountains, that should not be placed there (see aux_res_imp_terrain_comp).
+
+
+AI procedures:
+ - We have AI worker manager options; we need to prove they help the AI, or else remove them.
+ - The AI will have to produce workers in cities every now and then. 

@@ -100,6 +100,7 @@ static void run_unit_turns (GameState& state) {
             refill_mp(state, unit_idx);
             SettlerTurnHandler::handle(state, unit_idx);
         } else if (ut == state.m_land_worker_type_idx) {
+            refill_mp(state, unit_idx);
             WorkerTurnHandler::handle(state, unit_idx);
         } else if (ut == state.m_land_defense_type_idx) {
             DefensiveUnitTurnHandler::handle(state, unit_idx);

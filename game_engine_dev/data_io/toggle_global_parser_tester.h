@@ -40,6 +40,7 @@
 #include "unit_role_static_data.h"
 #include "unit_type_static_data.h"
 #include "wonder_static_data.h"
+#include "worker_job_type_static_data.h"
 #include "worker_job_static_data.h"
 #include "worker_job_imp_static_data.h"
 #include "tile_yield_type_static_data.h"
@@ -76,6 +77,7 @@ public:
     void set_unit_role_sd (const UnitRoleStaticData* sd);
     void set_unit_type_sd (const UnitTypeStaticData* sd);
     void set_wonder_sd (const WonderStaticData* sd);
+    void set_worker_job_type_sd (const WorkerJobTypeStaticData* sd);
     void set_worker_job_sd (const WorkerJobStaticData* sd);
     void set_worker_job_imp_sd (const WorkerJobImpStaticData* sd);
     void set_tile_yield_type_sd (const TileYieldTypeStaticData* sd);
@@ -105,6 +107,7 @@ private:
     const UnitRoleStaticData* m_unit_role_sd;
     const UnitTypeStaticData* m_unit_type_sd;
     const WonderStaticData* m_wonder_sd;
+    const WorkerJobTypeStaticData* m_worker_job_type_sd;
     const WorkerJobStaticData* m_worker_job_sd;
     const WorkerJobImpStaticData* m_worker_job_imp_sd;
     const TileYieldTypeStaticData* m_tile_yield_type_sd;
@@ -128,6 +131,7 @@ private:
     const DataParserBase* m_unit_role_psr;
     const DataParserBase* m_unit_type_psr;
     const DataParserBase* m_wonder_psr;
+    const DataParserBase* m_worker_job_type_psr;
     const DataParserBase* m_worker_job_psr;
     const DataParserBase* m_worker_job_imp_psr;
     const DataParserBase* m_tile_yield_type_psr;
@@ -153,6 +157,7 @@ private:
     static u16 st_unit_role_n2i (cstr name);
     static u16 st_unit_type_n2i (cstr name);
     static u16 st_wonder_n2i (cstr name);
+    static u16 st_worker_job_type_n2i (cstr name);
     static u16 st_worker_job_n2i (cstr name);
     static u16 st_worker_job_imp_n2i (cstr name);
     static u16 st_tile_yield_type_n2i (cstr name);

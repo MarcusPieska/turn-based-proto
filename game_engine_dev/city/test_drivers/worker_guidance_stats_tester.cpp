@@ -448,7 +448,8 @@ static bool write_imp_ppm (cstr path, const GameArraySimple& map, const std::vec
 static void write_imp_maps (
     const GameArraySimple& map,
     const RuntimeStatics& st,
-    const std::vector<std::vector<u8>>& marks)
+    const std::vector<std::vector<u8>>& marks,
+    cstr file_pfx)
 {
     const u16 jn = st.worker_job().get_item_count();
     for (u16 j = 0; j < jn && j < marks.size(); ++j) {
@@ -466,7 +467,7 @@ static void write_imp_maps (
         char safe[96];
         job_file_nm(jnm, safe, sizeof(safe));
         char path[384];
-        if (std::snprintf(path, sizeof(path), "%s/wg_stats_%s.ppm", g_out_dir, safe) <= 0) {
+        if (std::snprintf(path, sizeof(path), "%s/%s_%s.ppm", g_out_dir, file_pfx, safe) <= 0) {
             continue;
         }
         if (write_imp_ppm(path, map, marks[j])) {
@@ -492,20 +493,82 @@ static bool setup_city (GameArraySimple& map, CityArray& cities, u16 player, u16
     return true;
 }
 
-static void apply_city_tiles (
+static bool try_apply_job (
     GameArraySimple& map,
     const RuntimeStatics& st,
-    u16 cx,
-    u16 cy,
-    u16 city_idx,
+    u16 ux,
+    u16 uy,
+    TileAssignIntent intent,
+    u16 job,
     std::vector<StatRow>& rows,
     std::vector<std::vector<u8>>& marks,
+    u16 mw,
     u32* job_n,
     u64* guide_ns,
     u32* guide_n)
 {
+    if (job == U16_KEY_NULL) {
+        return false;
+    }
+    char geo[96];
+    char geo_clr[256];
+    u8 clim = 0;
+    u8 terr = 0;
+    geo_parts(map, ux, uy, geo, sizeof(geo), geo_clr, sizeof(geo_clr), &clim, &terr);
+    cstr jnm = st.worker_job().get_name(WorkerJobStaticDataKey::from_raw(job));
+    if (jnm == nullptr) {
+        jnm = "unknown_job";
+    }
+    const auto a0 = std::chrono::steady_clock::now();
+    const bool ok = WorkerGuidance::apply_job(ux, uy, job);
+    const auto a1 = std::chrono::steady_clock::now();
+    *guide_ns = *guide_ns + static_cast<u64>(std::chrono::duration_cast<std::chrono::nanoseconds>(a1 - a0).count());
+    *guide_n = *guide_n + 1u;
+    if (!ok) {
+        return false;
+    }
+    bump_stat(rows, jnm, geo, geo_clr, intent_nm(static_cast<u8>(intent)), clim, terr);
+    mark_job(marks, job, mw, ux, uy);
+    *job_n = *job_n + 1u;
+    return true;
+}
+
+static bool try_apply_next (
+    GameArraySimple& map,
+    const RuntimeStatics& st,
+    u16 ux,
+    u16 uy,
+    TileAssignIntent intent,
+    std::vector<StatRow>& rows,
+    std::vector<std::vector<u8>>& marks,
+    u16 mw,
+    u32* job_n,
+    u64* guide_ns,
+    u32* guide_n)
+{
+    const auto t0 = std::chrono::steady_clock::now();
+    const u16 job = WorkerGuidance::next_job(ux, uy, intent);
+    const auto t1 = std::chrono::steady_clock::now();
+    *guide_ns = *guide_ns + static_cast<u64>(std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count());
+    *guide_n = *guide_n + 1u;
+    return try_apply_job(map, st, ux, uy, intent, job, rows, marks, mw, job_n, guide_ns, guide_n);
+}
+
+struct OptPick {
+    u16 m_x;
+    u16 m_y;
+    TileAssignIntent m_intent;
+    u16 m_job;
+};
+
+static bool scan_best_worked (GameArraySimple& map, u16 cx, u16 cy, u16 city_idx, OptPick* out) {
     const CircArea area = CircularTileAreas::get(4);
-    const u16 mw = map.width();
+    u8 have_food = 0;
+    u8 have_prod = 0;
+    u16 best_food = 0;
+    u16 best_prod = 0;
+    OptPick food_pick = {};
+    OptPick prod_pick = {};
     for (u16 i = 0; i < area.m_lim; ++i) {
         const i32 x = static_cast<i32>(cx) + static_cast<i32>(area.m_brd[i][0]);
         const i32 y = static_cast<i32>(cy) + static_cast<i32>(area.m_brd[i][1]);
@@ -521,44 +584,168 @@ static void apply_city_tiles (
             continue;
         }
         const TileAssignIntent intent = static_cast<TileAssignIntent>(map.get_tile_usage(ux, uy));
-        for (;;) {
-            const auto t0 = std::chrono::steady_clock::now();
-            const u16 job = WorkerGuidance::next_job(ux, uy, intent);
-            const auto t1 = std::chrono::steady_clock::now();
-            *guide_ns = *guide_ns + static_cast<u64>(std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count());
-            *guide_n = *guide_n + 1u;
-            if (job == U16_KEY_NULL) {
-                break;
+        const u16 job = WorkerGuidance::next_job(ux, uy, intent);
+        if (job == U16_KEY_NULL) {
+            continue;
+        }
+        const TileYield yld = TileYields::get(ux, uy);
+        if (intent == TILE_ASSIGN_FOOD) {
+            const u16 score = TileYields::food_no_imp(ux, uy);
+            if (have_food == 0 || score > best_food) {
+                best_food = score;
+                food_pick.m_x = ux;
+                food_pick.m_y = uy;
+                food_pick.m_intent = intent;
+                food_pick.m_job = job;
+                have_food = 1;
             }
-            char geo[96];
-            char geo_clr[256];
-            u8 clim = 0;
-            u8 terr = 0;
-            geo_parts(map, ux, uy, geo, sizeof(geo), geo_clr, sizeof(geo_clr), &clim, &terr);
-            cstr jnm = st.worker_job().get_name(WorkerJobStaticDataKey::from_raw(job));
-            if (jnm == nullptr) {
-                jnm = "unknown_job";
+        } else {
+            const u16 score = yld.m_production;
+            if (have_prod == 0 || score > best_prod) {
+                best_prod = score;
+                prod_pick.m_x = ux;
+                prod_pick.m_y = uy;
+                prod_pick.m_intent = intent;
+                prod_pick.m_job = job;
+                have_prod = 1;
             }
-            bump_stat(rows, jnm, geo, geo_clr, intent_nm(static_cast<u8>(intent)), clim, terr);
-            const auto a0 = std::chrono::steady_clock::now();
-            const bool ok = WorkerGuidance::apply_job(ux, uy, job);
-            const auto a1 = std::chrono::steady_clock::now();
-            *guide_ns = *guide_ns + static_cast<u64>(std::chrono::duration_cast<std::chrono::nanoseconds>(a1 - a0).count());
-            *guide_n = *guide_n + 1u;
-            if (!ok) {
-                break;
-            }
-            mark_job(marks, job, mw, ux, uy);
-            *job_n = *job_n + 1u;
         }
     }
+    if (have_food != 0) {
+        *out = food_pick;
+        return true;
+    }
+    if (have_prod != 0) {
+        *out = prod_pick;
+        return true;
+    }
+    return false;
+}
+
+static void apply_city_tiles (
+    GameArraySimple& map,
+    const RuntimeStatics& st,
+    u16 cx,
+    u16 cy,
+    u16 city_idx,
+    u16 player,
+    u16 start_food,
+    u16 pop,
+    bool do_update,
+    bool do_opt,
+    std::vector<StatRow>& rows,
+    std::vector<std::vector<u8>>& marks,
+    u32* job_n,
+    u64* guide_ns,
+    u32* guide_n,
+    u64* assign_ns,
+    u32* assign_n,
+    u64* scan_ns,
+    u32* scan_n)
+{
+    const CircArea area = CircularTileAreas::get(4);
+    const u16 mw = map.width();
+    if (do_opt) {
+        for (;;) {
+            if (do_update) {
+                const auto a0 = std::chrono::steady_clock::now();
+                CityTileManager::stable_food_max_production(player, city_idx, start_food, pop);
+                const auto a1 = std::chrono::steady_clock::now();
+                *assign_ns = *assign_ns + static_cast<u64>(
+                    std::chrono::duration_cast<std::chrono::nanoseconds>(a1 - a0).count());
+                *assign_n = *assign_n + 1u;
+            }
+            OptPick pick = {};
+            const auto s0 = std::chrono::steady_clock::now();
+            const bool found = scan_best_worked(map, cx, cy, city_idx, &pick);
+            const auto s1 = std::chrono::steady_clock::now();
+            *scan_ns = *scan_ns + static_cast<u64>(
+                std::chrono::duration_cast<std::chrono::nanoseconds>(s1 - s0).count());
+            *scan_n = *scan_n + 1u;
+            if (!found) {
+                break;
+            }
+            if (!try_apply_job(
+                    map, st, pick.m_x, pick.m_y, pick.m_intent, pick.m_job,
+                    rows, marks, mw, job_n, guide_ns, guide_n)) {
+                break;
+            }
+        }
+        return;
+    }
+    if (!do_update) {
+        for (u16 i = 0; i < area.m_lim; ++i) {
+            const i32 x = static_cast<i32>(cx) + static_cast<i32>(area.m_brd[i][0]);
+            const i32 y = static_cast<i32>(cy) + static_cast<i32>(area.m_brd[i][1]);
+            if (x < 0 || y < 0) {
+                continue;
+            }
+            const u16 ux = static_cast<u16>(x);
+            const u16 uy = static_cast<u16>(y);
+            if (ux >= map.width() || uy >= map.height()) {
+                continue;
+            }
+            if (map.get_city_worker(ux, uy) != city_idx) {
+                continue;
+            }
+            const TileAssignIntent intent = static_cast<TileAssignIntent>(map.get_tile_usage(ux, uy));
+            for (;;) {
+                if (!try_apply_next(map, st, ux, uy, intent, rows, marks, mw, job_n, guide_ns, guide_n)) {
+                    break;
+                }
+            }
+        }
+        return;
+    }
+    for (;;) {
+        const auto a0 = std::chrono::steady_clock::now();
+        CityTileManager::stable_food_max_production(player, city_idx, start_food, pop);
+        const auto a1 = std::chrono::steady_clock::now();
+        *assign_ns = *assign_ns + static_cast<u64>(std::chrono::duration_cast<std::chrono::nanoseconds>(a1 - a0).count());
+        *assign_n = *assign_n + 1u;
+        u8 applied = 0;
+        for (u16 i = 0; i < area.m_lim; ++i) {
+            const i32 x = static_cast<i32>(cx) + static_cast<i32>(area.m_brd[i][0]);
+            const i32 y = static_cast<i32>(cy) + static_cast<i32>(area.m_brd[i][1]);
+            if (x < 0 || y < 0) {
+                continue;
+            }
+            const u16 ux = static_cast<u16>(x);
+            const u16 uy = static_cast<u16>(y);
+            if (ux >= map.width() || uy >= map.height()) {
+                continue;
+            }
+            if (map.get_city_worker(ux, uy) != city_idx) {
+                continue;
+            }
+            const TileAssignIntent intent = static_cast<TileAssignIntent>(map.get_tile_usage(ux, uy));
+            if (try_apply_next(map, st, ux, uy, intent, rows, marks, mw, job_n, guide_ns, guide_n)) {
+                applied = 1;
+                break;
+            }
+        }
+        if (applied == 0) {
+            break;
+        }
+    }
+}
+
+static bool cli_has_flag (int argc, char** argv, cstr flag) {
+    for (int i = 1; i < argc; ++i) {
+        if (std::strcmp(argv[i], flag) == 0) {
+            return true;
+        }
+    }
+    return false;
 }
 
 //================================================================================================================================
 //=> - main -
 //================================================================================================================================
 
-int main () {
+int main (int argc, char** argv) {
+    const bool do_update = cli_has_flag(argc, argv, "--update");
+    const bool do_opt = cli_has_flag(argc, argv, "--opt");
     if (!build_paths()) {
         std::printf("fail build paths\n");
         return 1;
@@ -623,6 +810,10 @@ int main () {
     u32 city_ok = 0;
     u64 guide_ns = 0;
     u32 guide_n = 0;
+    u64 assign_ns = 0;
+    u32 assign_n = 0;
+    u64 scan_ns = 0;
+    u32 scan_n = 0;
     const auto t0 = std::chrono::steady_clock::now();
     for (u32 i = 0; i < G_CITY_N; ++i) {
         const u16 city_idx = cities.get_next_new_city_idx();
@@ -635,15 +826,27 @@ int main () {
             continue;
         }
         const u16 start_food = TileYields::get(loc_x[i], loc_y[i]).m_food;
-        CityTileManager::stable_food_max_production(player, city_idx, start_food, pop);
+        {
+            const auto a0 = std::chrono::steady_clock::now();
+            CityTileManager::stable_food_max_production(player, city_idx, start_food, pop);
+            const auto a1 = std::chrono::steady_clock::now();
+            assign_ns = assign_ns + static_cast<u64>(std::chrono::duration_cast<std::chrono::nanoseconds>(a1 - a0).count());
+            assign_n = assign_n + 1u;
+        }
+        apply_city_tiles(
+            map, st, loc_x[i], loc_y[i], city_idx, player, start_food, pop, do_update, do_opt,
+            rows, marks, &job_n, &guide_ns, &guide_n, &assign_ns, &assign_n, &scan_ns, &scan_n);
         worked_n += CityTileManager::count_worked(loc_x[i], loc_y[i], city_idx);
-        apply_city_tiles(map, st, loc_x[i], loc_y[i], city_idx, rows, marks, &job_n, &guide_ns, &guide_n);
         city_ok = city_ok + 1u;
     }
     const auto t1 = std::chrono::steady_clock::now();
     const double ms = std::chrono::duration<double, std::milli>(t1 - t0).count();
     const double guide_avg_ns = guide_n == 0 ? 0.0 : static_cast<double>(guide_ns) / static_cast<double>(guide_n);
     const double guide_tot_us = static_cast<double>(guide_ns) / 1.0e3;
+    const double assign_avg_ns = assign_n == 0 ? 0.0 : static_cast<double>(assign_ns) / static_cast<double>(assign_n);
+    const double assign_tot_us = static_cast<double>(assign_ns) / 1.0e3;
+    const double scan_avg_ns = scan_n == 0 ? 0.0 : static_cast<double>(scan_ns) / static_cast<double>(scan_n);
+    const double scan_tot_us = static_cast<double>(scan_ns) / 1.0e3;
 
     std::sort(rows.begin(), rows.end(), [](const StatRow& a, const StatRow& b) {
         if (a.m_job != b.m_job) {
@@ -664,10 +867,15 @@ int main () {
         return a.m_n > b.m_n;
     });
 
-    std::printf("worker_guidance stats: cities=%u/%u worked_tiles=%u jobs=%u wall_ms=%.3f\n",
-        (unsigned)city_ok, (unsigned)G_CITY_N, (unsigned)worked_n, (unsigned)job_n, ms);
+    std::printf("worker_guidance stats: cities=%u/%u worked_tiles=%u jobs=%u wall_ms=%.3f update=%s opt=%s\n",
+        (unsigned)city_ok, (unsigned)G_CITY_N, (unsigned)worked_n, (unsigned)job_n, ms,
+        do_update ? "on" : "off", do_opt ? "on" : "off");
     std::printf("guidance timing: calls=%u avg_ns=%.2f total_us=%.2f\n",
         (unsigned)guide_n, guide_avg_ns, guide_tot_us);
+    std::printf("stable_food_max_production timing: calls=%u avg_ns=%.2f total_us=%.2f\n",
+        (unsigned)assign_n, assign_avg_ns, assign_tot_us);
+    std::printf("scan_best_worked timing: calls=%u avg_ns=%.2f total_us=%.2f\n",
+        (unsigned)scan_n, scan_avg_ns, scan_tot_us);
     for (size_t i = 0; i < rows.size(); ++i) {
         std::printf("%s on [%s] intent=%s %u times\n",
             rows[i].m_job.c_str(), rows[i].m_geo_clr.c_str(), rows[i].m_intent.c_str(), (unsigned)rows[i].m_n);
@@ -697,7 +905,15 @@ int main () {
     }
     std::printf("-------------------------------------------------------\n");
     std::printf("improvement maps:\n");
-    write_imp_maps(map, st, marks);
+    {
+        const u32 idx = (do_update ? 2u : 0u) + (do_opt ? 1u : 0u);
+        char pfx[64];
+        if (std::snprintf(pfx, sizeof(pfx), "%u_wg_stats%s%s", (unsigned)idx,
+                do_update ? "_upd" : "", do_opt ? "_opt" : "") <= 0) {
+            std::snprintf(pfx, sizeof(pfx), "%u_wg_stats", (unsigned)idx);
+        }
+        write_imp_maps(map, st, marks, pfx);
+    }
 
     WorkerGuidance::bind_map(nullptr);
     WorkerGuidance::bind_statics(nullptr);

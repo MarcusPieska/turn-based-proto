@@ -9,7 +9,7 @@
 #
 #================================================================================================================================
 
-INC="-I. -I.. -I../misc -I../static_state -I../gen_effector"
+INC="-I. -I.. -I../misc -I../static_state -I../city -I../city/effector -I../gen_bit_banks -I../game -I../gen_effector"
 CXXFLAGS="-std=c++17"
 OPT="-O3 -DNDEBUG"
 
@@ -24,6 +24,7 @@ g++ $INC $CXXFLAGS -c ../static_state/static_bit_bank.cpp -o static_bit_bank.o
 [STATIC_PARSE_COMP_COMPILE_PARSERS_TAG]
 [STATIC_PARSE_COMP_COMPILE_HOLDERS_TAG]
 [STATIC_PARSE_COMP_COMPILE_EFFECTORS_TAG]
+[STATIC_PARSE_COMP_COMPILE_DYN_REGS_TAG]
 [STATIC_PARSE_COMP_COMPILE_RUNTIME_TAG]
 g++ $INC $CXXFLAGS -c static_parsing_manager.cpp -o static_parsing_manager.o
 g++ $INC $CXXFLAGS -c static_parsing_manager_tester.cpp -o static_parsing_manager_tester.o
@@ -40,6 +41,7 @@ g++ $CXXFLAGS -o static_parsing_manager_tester \
     [STATIC_PARSE_COMP_LINK_PARSERS_TAG]
     [STATIC_PARSE_COMP_LINK_HOLDERS_TAG]
     [STATIC_PARSE_COMP_LINK_EFFECTORS_TAG]
+    [STATIC_PARSE_COMP_LINK_DYN_REGS_TAG]
     [STATIC_PARSE_COMP_LINK_RUNTIME_TAG]
     static_parsing_manager.o \
     static_parsing_manager_tester.o
@@ -55,6 +57,7 @@ g++ $INC $CXXFLAGS $OPT -c ../static_state/static_bit_bank.cpp -o static_bit_ban
 [STATIC_PARSE_COMP_COMPILE_PARSERS_TAG]
 [STATIC_PARSE_COMP_COMPILE_HOLDERS_TAG]
 [STATIC_PARSE_COMP_COMPILE_EFFECTORS_TAG]
+[STATIC_PARSE_COMP_COMPILE_DYN_REGS_TAG]
 [STATIC_PARSE_COMP_COMPILE_RUNTIME_TAG]
 g++ $INC $CXXFLAGS $OPT -c static_parsing_manager.cpp -o static_parsing_manager.o
 g++ $INC $CXXFLAGS $OPT -c static_parsing_manager_tester.cpp -o static_parsing_manager_tester.o
@@ -71,6 +74,7 @@ g++ $CXXFLAGS $OPT -o static_parsing_manager_opt_tester \
     [STATIC_PARSE_COMP_LINK_PARSERS_TAG]
     [STATIC_PARSE_COMP_LINK_HOLDERS_TAG]
     [STATIC_PARSE_COMP_LINK_EFFECTORS_TAG]
+    [STATIC_PARSE_COMP_LINK_DYN_REGS_TAG]
     [STATIC_PARSE_COMP_LINK_RUNTIME_TAG]
     static_parsing_manager.o \
     static_parsing_manager_tester.o
@@ -87,6 +91,7 @@ rm \
     [STATIC_PARSE_COMP_CLEAN_PARSERS_TAG]
     [STATIC_PARSE_COMP_CLEAN_HOLDERS_TAG]
     [STATIC_PARSE_COMP_CLEAN_EFFECTORS_TAG]
+    [STATIC_PARSE_COMP_CLEAN_DYN_REGS_TAG]
     [STATIC_PARSE_COMP_CLEAN_RUNTIME_TAG]
     static_parsing_manager.o \
     static_parsing_manager_tester.o

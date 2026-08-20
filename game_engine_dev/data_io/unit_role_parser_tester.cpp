@@ -45,6 +45,7 @@ UnitRoleParserTester::UnitRoleParserTester () :
     m_unit_role_sd(NULL),
     m_unit_type_sd(NULL),
     m_wonder_sd(NULL),
+    m_worker_job_type_sd(NULL),
     m_worker_job_sd(NULL),
     m_worker_job_imp_sd(NULL),
     m_tile_yield_type_sd(NULL),
@@ -67,6 +68,7 @@ UnitRoleParserTester::UnitRoleParserTester () :
     m_unit_role_psr(NULL),
     m_unit_type_psr(NULL),
     m_wonder_psr(NULL),
+    m_worker_job_type_psr(NULL),
     m_worker_job_psr(NULL),
     m_worker_job_imp_psr(NULL),
     m_tile_yield_type_psr(NULL),
@@ -179,6 +181,12 @@ void UnitRoleParserTester::set_unit_type_sd (const UnitTypeStaticData* sd) {
 void UnitRoleParserTester::set_wonder_sd (const WonderStaticData* sd) {
 
     m_wonder_sd = sd;
+
+}
+
+void UnitRoleParserTester::set_worker_job_type_sd (const WorkerJobTypeStaticData* sd) {
+
+    m_worker_job_type_sd = sd;
 
 }
 
@@ -364,6 +372,13 @@ u16 UnitRoleParserTester::st_wonder_n2i (cstr name) {
         return U16_KEY_NULL;
     }
     return s_inst->m_wonder_psr->name_to_idx(name);
+}
+
+u16 UnitRoleParserTester::st_worker_job_type_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_worker_job_type_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_worker_job_type_psr->name_to_idx(name);
 }
 
 u16 UnitRoleParserTester::st_worker_job_n2i (cstr name) {
@@ -753,6 +768,7 @@ int UnitRoleParserTester::run () {
     cbs.unit_role_name_to_idx = st_unit_role_n2i;
     cbs.unit_type_name_to_idx = st_unit_type_n2i;
     cbs.wonder_name_to_idx = st_wonder_n2i;
+    cbs.worker_job_type_name_to_idx = st_worker_job_type_n2i;
     cbs.worker_job_name_to_idx = st_worker_job_n2i;
     cbs.worker_job_imp_name_to_idx = st_worker_job_imp_n2i;
     cbs.tile_yield_type_name_to_idx = st_tile_yield_type_n2i;
@@ -778,6 +794,7 @@ int UnitRoleParserTester::run () {
     StringManager unit_role_items;
     StringManager unit_type_items;
     StringManager wonder_items;
+    StringManager worker_job_type_items;
     StringManager worker_job_items;
     StringManager worker_job_imp_items;
     StringManager tile_yield_type_items;
@@ -803,6 +820,7 @@ int UnitRoleParserTester::run () {
     ld_sm(unit_role_items, paths.get_path_to_unit_roles());
     ld_sm(unit_type_items, paths.get_path_to_unit_types());
     ld_sm(wonder_items, paths.get_path_to_wonders());
+    ld_sm(worker_job_type_items, paths.get_path_to_worker_job_types());
     ld_sm(worker_job_items, paths.get_path_to_worker_jobs());
     ld_sm(worker_job_imp_items, paths.get_path_to_worker_job_imps());
     ld_sm(tile_yield_type_items, paths.get_path_to_tile_yield_types());
@@ -831,6 +849,7 @@ int UnitRoleParserTester::run () {
     DataParserBase unit_role_parser(unit_role_items, cbs);
     DataParserBase unit_type_parser(unit_type_items, cbs);
     DataParserBase wonder_parser(wonder_items, cbs);
+    DataParserBase worker_job_type_parser(worker_job_type_items, cbs);
     DataParserBase worker_job_parser(worker_job_items, cbs);
     DataParserBase worker_job_imp_parser(worker_job_imp_items, cbs);
     DataParserBase tile_yield_type_parser(tile_yield_type_items, cbs);
@@ -854,6 +873,7 @@ int UnitRoleParserTester::run () {
     m_unit_role_psr = &unit_role_parser;
     m_unit_type_psr = &unit_type_parser;
     m_wonder_psr = &wonder_parser;
+    m_worker_job_type_psr = &worker_job_type_parser;
     m_worker_job_psr = &worker_job_parser;
     m_worker_job_imp_psr = &worker_job_imp_parser;
     m_tile_yield_type_psr = &tile_yield_type_parser;

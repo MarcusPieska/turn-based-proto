@@ -9,7 +9,7 @@
 #
 #================================================================================================================================
 
-INC="-I. -I.. -I../misc -I../static_state -I../gen_effector"
+INC="-I. -I.. -I../misc -I../static_state -I../city -I../city/effector -I../gen_bit_banks -I../game -I../gen_effector"
 CXXFLAGS="-std=c++17"
 OPT="-O3 -DNDEBUG"
 
@@ -100,6 +100,18 @@ g++ $INC $CXXFLAGS -c ../gen_effector/local_effector.cpp -o local_effector.o
 g++ $INC $CXXFLAGS -c ../gen_effector/city_effector.cpp -o city_effector.o
 g++ $INC $CXXFLAGS -c ../gen_effector/civ_effector.cpp -o civ_effector.o
 g++ $INC $CXXFLAGS -c ../gen_effector/global_effector.cpp -o global_effector.o
+g++ $INC $CXXFLAGS -c ../misc/bit_array.cpp -o bit_array.o
+g++ $INC $CXXFLAGS -c ../gen_bit_banks/general_bit_bank.cpp -o general_bit_bank.o
+g++ $INC $CXXFLAGS -c ../city/effector/effect_enabler.cpp -o effect_enabler.o
+g++ $INC $CXXFLAGS -c ../city/effector/booster_effect_register.cpp -o booster_effect_register.o
+g++ $INC $CXXFLAGS -c ../city/effector/dyn_produce_register.cpp -o dyn_produce_register.o
+g++ $INC $CXXFLAGS -c ../city/effector/dyn_produce_register_setup.cpp -o dyn_produce_register_setup.o
+g++ $INC $CXXFLAGS -c ../city/effector/dyn_booster_register.cpp -o dyn_booster_register.o
+g++ $INC $CXXFLAGS -c ../city/effector/dyn_booster_register_setup.cpp -o dyn_booster_register_setup.o
+g++ $INC $CXXFLAGS -c ../city/effector/dyn_job_slot_register.cpp -o dyn_job_slot_register.o
+g++ $INC $CXXFLAGS -c ../city/effector/dyn_job_slot_register_setup.cpp -o dyn_job_slot_register_setup.o
+g++ $INC $CXXFLAGS -c worker_job_imp_index.cpp -o worker_job_imp_index.o
+g++ $INC $CXXFLAGS -c worker_job_imp_index_setup.cpp -o worker_job_imp_index_setup.o
 g++ $INC $CXXFLAGS -c ../static_state/config_settings_static.cpp -o config_settings_static.o
 g++ $INC $CXXFLAGS -c ../static_state/config_settings_parse.cpp -o config_settings_parse.o
 g++ $INC $CXXFLAGS -c runtime_statics.cpp -o runtime_statics.o
@@ -194,6 +206,18 @@ g++ $CXXFLAGS -o static_parsing_manager_tester \
     city_effector.o \
     civ_effector.o \
     global_effector.o \
+    bit_array.o \
+    general_bit_bank.o \
+    effect_enabler.o \
+    booster_effect_register.o \
+    dyn_produce_register.o \
+    dyn_produce_register_setup.o \
+    dyn_booster_register.o \
+    dyn_booster_register_setup.o \
+    dyn_job_slot_register.o \
+    dyn_job_slot_register_setup.o \
+    worker_job_imp_index.o \
+    worker_job_imp_index_setup.o \
     config_settings_static.o \
     config_settings_parse.o \
     runtime_statics.o \
@@ -287,6 +311,18 @@ g++ $INC $CXXFLAGS -c ../gen_effector/local_effector.cpp -o local_effector.o
 g++ $INC $CXXFLAGS -c ../gen_effector/city_effector.cpp -o city_effector.o
 g++ $INC $CXXFLAGS -c ../gen_effector/civ_effector.cpp -o civ_effector.o
 g++ $INC $CXXFLAGS -c ../gen_effector/global_effector.cpp -o global_effector.o
+g++ $INC $CXXFLAGS -c ../misc/bit_array.cpp -o bit_array.o
+g++ $INC $CXXFLAGS -c ../gen_bit_banks/general_bit_bank.cpp -o general_bit_bank.o
+g++ $INC $CXXFLAGS -c ../city/effector/effect_enabler.cpp -o effect_enabler.o
+g++ $INC $CXXFLAGS -c ../city/effector/booster_effect_register.cpp -o booster_effect_register.o
+g++ $INC $CXXFLAGS -c ../city/effector/dyn_produce_register.cpp -o dyn_produce_register.o
+g++ $INC $CXXFLAGS -c ../city/effector/dyn_produce_register_setup.cpp -o dyn_produce_register_setup.o
+g++ $INC $CXXFLAGS -c ../city/effector/dyn_booster_register.cpp -o dyn_booster_register.o
+g++ $INC $CXXFLAGS -c ../city/effector/dyn_booster_register_setup.cpp -o dyn_booster_register_setup.o
+g++ $INC $CXXFLAGS -c ../city/effector/dyn_job_slot_register.cpp -o dyn_job_slot_register.o
+g++ $INC $CXXFLAGS -c ../city/effector/dyn_job_slot_register_setup.cpp -o dyn_job_slot_register_setup.o
+g++ $INC $CXXFLAGS -c worker_job_imp_index.cpp -o worker_job_imp_index.o
+g++ $INC $CXXFLAGS -c worker_job_imp_index_setup.cpp -o worker_job_imp_index_setup.o
 g++ $INC $CXXFLAGS -c ../static_state/config_settings_static.cpp -o config_settings_static.o
 g++ $INC $CXXFLAGS -c ../static_state/config_settings_parse.cpp -o config_settings_parse.o
 g++ $INC $CXXFLAGS -c runtime_statics.cpp -o runtime_statics.o
@@ -381,6 +417,18 @@ g++ $CXXFLAGS $OPT -o static_parsing_manager_opt_tester \
     city_effector.o \
     civ_effector.o \
     global_effector.o \
+    bit_array.o \
+    general_bit_bank.o \
+    effect_enabler.o \
+    booster_effect_register.o \
+    dyn_produce_register.o \
+    dyn_produce_register_setup.o \
+    dyn_booster_register.o \
+    dyn_booster_register_setup.o \
+    dyn_job_slot_register.o \
+    dyn_job_slot_register_setup.o \
+    worker_job_imp_index.o \
+    worker_job_imp_index_setup.o \
     config_settings_static.o \
     config_settings_parse.o \
     runtime_statics.o \
@@ -475,6 +523,18 @@ rm \
     city_effector.o \
     civ_effector.o \
     global_effector.o \
+    bit_array.o \
+    general_bit_bank.o \
+    effect_enabler.o \
+    booster_effect_register.o \
+    dyn_produce_register.o \
+    dyn_produce_register_setup.o \
+    dyn_booster_register.o \
+    dyn_booster_register_setup.o \
+    dyn_job_slot_register.o \
+    dyn_job_slot_register_setup.o \
+    worker_job_imp_index.o \
+    worker_job_imp_index_setup.o \
     config_settings_static.o \
     config_settings_parse.o \
     runtime_statics.o \

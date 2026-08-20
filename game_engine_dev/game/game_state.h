@@ -84,6 +84,10 @@ public:
     // The counters below are incremented during the city turn loop, and copied to the last turn counters after that
     u32 m_this_turn_population_count = 0; // Population counted during this turn (CityTurnHandler::handle)
     u16 m_this_turn_city_count = 0; // Cities counted during this turn (CityTurnHandler::handle)
+
+    // AI procedure toggles
+    u8 m_worker_tile_opt_scan = 0; // Worker tile optimization toggle; 0 off, 1 scan best
+    u8 m_worker_tile_opt_reassign = 0; // Worker tile optimization toggle; 0 off, 1 reassign
 };
 
 //================================================================================================================================
