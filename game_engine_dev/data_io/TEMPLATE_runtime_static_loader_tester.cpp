@@ -98,6 +98,27 @@ bool are_reqs_in_bounds (const RuntimeStatics& s, const ItemReqsStruct& reqs, cs
             continue;
         }
         const u16 req_idx = reqs.indices[j];
+        if (req_type == ITEM_REQ_TYPE_TILE) {
+            const u8 kind = reqs.added_args[j];
+            u16 req_limit = 0;
+            if (kind == TILE_REQ_KIND_TERRAIN) {
+                req_limit = s.map_terrain().get_item_count();
+            } else if (kind == TILE_REQ_KIND_CLIMATE) {
+                req_limit = s.map_climate().get_item_count();
+            } else if (kind == TILE_REQ_KIND_OVERLAY) {
+                req_limit = s.map_overlay().get_item_count();
+            } else if (kind == TILE_REQ_KIND_ATTRIBUTE) {
+                req_limit = s.map_attribute().get_item_count();
+            }
+            if (req_idx >= req_limit) {
+                if (print_level > 0) {
+                    printf("*** OOB REQ: %s item=%u req_slot=%u type=tile kind=%u idx=%u limit=%u\n",
+                        label, item_idx, j, kind, req_idx, req_limit);
+                }
+                return false;
+            }
+            continue;
+        }
         const u16 req_limit = get_req_limit_for_type(s, req_type);
         cstr frm = "*** OOB REQ: %s item=%u req_slot=%u type=%u idx=%u limit=%u\n";
         if (req_idx >= req_limit) {

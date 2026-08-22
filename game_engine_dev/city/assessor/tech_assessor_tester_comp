@@ -44,6 +44,12 @@ g++ $INC -c ../../data_io/unit_action_parser.cpp -o unit_action_parser.o
 g++ $INC -c ../../data_io/unit_role_parser.cpp -o unit_role_parser.o
 g++ $INC -c ../../data_io/unit_type_parser.cpp -o unit_type_parser.o
 g++ $INC -c ../../data_io/wonder_parser.cpp -o wonder_parser.o
+g++ $INC -c ../../data_io/map_overlay_parser.cpp -o map_overlay_parser.o
+g++ $INC -c ../../data_io/map_attribute_parser.cpp -o map_attribute_parser.o
+g++ $INC -c ../../data_io/map_terrain_parser.cpp -o map_terrain_parser.o
+g++ $INC -c ../../data_io/map_climate_parser.cpp -o map_climate_parser.o
+g++ $INC -c ../../data_io/worker_job_target_parser.cpp -o worker_job_target_parser.o
+g++ $INC -c ../../data_io/worker_job_type_parser.cpp -o worker_job_type_parser.o
 g++ $INC -c ../../data_io/worker_job_parser.cpp -o worker_job_parser.o
 g++ $INC -c ../../data_io/worker_job_imp_parser.cpp -o worker_job_imp_parser.o
 g++ $INC -c ../../data_io/tile_yield_type_parser.cpp -o tile_yield_type_parser.o
@@ -66,13 +72,19 @@ g++ $INC -c ../../static_state/unit_action_static_data.cpp -o unit_action_static
 g++ $INC -c ../../static_state/unit_role_static_data.cpp -o unit_role_static_data.o
 g++ $INC -c ../../static_state/unit_type_static_data.cpp -o unit_type_static_data.o
 g++ $INC -c ../../static_state/wonder_static_data.cpp -o wonder_static_data.o
+g++ $INC -c ../../static_state/map_overlay_static_data.cpp -o map_overlay_static_data.o
+g++ $INC -c ../../static_state/map_attribute_static_data.cpp -o map_attribute_static_data.o
+g++ $INC -c ../../static_state/map_terrain_static_data.cpp -o map_terrain_static_data.o
+g++ $INC -c ../../static_state/map_climate_static_data.cpp -o map_climate_static_data.o
+g++ $INC -c ../../static_state/worker_job_target_static_data.cpp -o worker_job_target_static_data.o
+g++ $INC -c ../../static_state/worker_job_type_static_data.cpp -o worker_job_type_static_data.o
 g++ $INC -c ../../static_state/worker_job_static_data.cpp -o worker_job_static_data.o
 g++ $INC -c ../../static_state/worker_job_imp_static_data.cpp -o worker_job_imp_static_data.o
 g++ $INC -c ../../static_state/tile_yield_type_static_data.cpp -o tile_yield_type_static_data.o
 g++ $INC -c ../../static_state/improvement_yield_static_data.cpp -o improvement_yield_static_data.o
 g++ $INC -c $DIO/static_parsing_manager.cpp -o static_parsing_manager.o
 g++ $INC -c ../../gen_bit_banks/general_bit_bank.cpp -o general_bit_bank.o
-g++ $INC -c general_assessor.cpp -o general_assessor.o
+g++ $INC -DTILE_REQ_CHK_STUB -c general_assessor.cpp -o general_assessor.o
 g++ $INC -c assessor_brute_shared.cpp -o assessor_brute_shared.o
 g++ $INC -c assessor_brute_write.cpp -o assessor_brute_write.o
 g++ $INC -c tech_assessor_tester_brute.cpp -o tech_assessor_tester_brute.o
@@ -109,6 +121,12 @@ g++ -o tech_assessor_tester \
     unit_role_parser.o \
     unit_type_parser.o \
     wonder_parser.o \
+    map_overlay_parser.o \
+    map_attribute_parser.o \
+    map_terrain_parser.o \
+    map_climate_parser.o \
+    worker_job_target_parser.o \
+    worker_job_type_parser.o \
     worker_job_parser.o \
     worker_job_imp_parser.o \
     tile_yield_type_parser.o \
@@ -136,6 +154,12 @@ g++ -o tech_assessor_tester \
         unit_role_static_data.o \
         unit_type_static_data.o \
         wonder_static_data.o \
+        map_overlay_static_data.o \
+        map_attribute_static_data.o \
+        map_terrain_static_data.o \
+        map_climate_static_data.o \
+        worker_job_target_static_data.o \
+        worker_job_type_static_data.o \
         worker_job_static_data.o \
         worker_job_imp_static_data.o \
         tile_yield_type_static_data.o \
@@ -174,6 +198,12 @@ rm \
     unit_role_parser.o \
     unit_type_parser.o \
     wonder_parser.o \
+    map_overlay_parser.o \
+    map_attribute_parser.o \
+    map_terrain_parser.o \
+    map_climate_parser.o \
+    worker_job_target_parser.o \
+    worker_job_type_parser.o \
     worker_job_parser.o \
     worker_job_imp_parser.o \
     tile_yield_type_parser.o \
@@ -201,6 +231,12 @@ rm \
         unit_role_static_data.o \
         unit_type_static_data.o \
         wonder_static_data.o \
+        map_overlay_static_data.o \
+        map_attribute_static_data.o \
+        map_terrain_static_data.o \
+        map_climate_static_data.o \
+        worker_job_target_static_data.o \
+        worker_job_type_static_data.o \
         worker_job_static_data.o \
         worker_job_imp_static_data.o \
         tile_yield_type_static_data.o \

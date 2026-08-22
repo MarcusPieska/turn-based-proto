@@ -10,9 +10,11 @@
 #include "city.h"
 #include "tile_yields.h"
 #include "tile_working.h"
+#include "tile_imp_helper.h"
 #include "worker_guidance.h"
 #include "city_tile_manager.h"
 #include "city_border.h"
+#include "city_connector.h"
 
 //================================================================================================================================
 //=> - GameState -
@@ -54,6 +56,8 @@ void GameState::clear () {
     new (&m_sector_rt) SectorNetworkRouter();
     m_sector_net.~SectorNetwork();
     new (&m_sector_net) SectorNetwork();
+    m_city_net.~CityNetwork();
+    new (&m_city_net) CityNetwork();
 
     // Some static helper classes need access to the game state to be able to do anything useful.
     UnitMovementMng::bind_state(nullptr);
@@ -62,6 +66,7 @@ void GameState::clear () {
     TileWorking::bind_map(nullptr);
     WorkerGuidance::bind_map(nullptr);
     WorkerGuidance::bind_statics(nullptr);
+    TileImpHelper::bind_statics(nullptr);
     CityTileManager::bind_cities(nullptr);
     CityBorder::bind_map(nullptr);
     City::bind_wonder_cities(nullptr);
@@ -71,6 +76,19 @@ void GameState::clear () {
     m_turn_limit = 1000;
     m_player_n = 0;
     m_players_remaining = 0;
+}
+
+bool GameState::city_net_on_found (u16 city_idx) {
+    if (!m_city_net.is_valid()) {
+        if (!m_city_net.begin(m_cities, m_map)) {
+            return false;
+        }
+    }
+    if (!m_city_net.add(city_idx)) {
+        return false;
+    }
+    CityConnector::on_city_net_changed(*this, city_idx);
+    return true;
 }
 
 bool GameState::spawn (u16 x, u16 y, u16 player_idx, const u16* typ_idxs, u16 typ_n) {

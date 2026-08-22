@@ -25,7 +25,7 @@ g++ $INC -c $DIO/item_effect_helpers.cpp -o item_effect_helpers.o
 [DEP_COMP_COMPILE_HOLDERS_TAG]
 g++ $INC -c $DIO/static_parsing_manager.cpp -o static_parsing_manager.o
 g++ $INC -c ../../gen_bit_banks/general_bit_bank.cpp -o general_bit_bank.o
-g++ $INC -c general_assessor.cpp -o general_assessor.o
+g++ $INC -DTILE_REQ_CHK_STUB -c general_assessor.cpp -o general_assessor.o
 g++ $INC -c assessor_brute_shared.cpp -o assessor_brute_shared.o
 g++ $INC -c assessor_brute_write.cpp -o assessor_brute_write.o
 g++ $INC -c [FILE_TAG]_assessor_tester_brute.cpp -o [FILE_TAG]_assessor_tester_brute.o

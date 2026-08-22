@@ -56,6 +56,7 @@ public:
     static bool in_bounds (u16 x, u16 y);
     static u16 assess (u16 x, u16 y, TileWorkCand* out, u16 out_cap);
     static u16 assess_job (u16 x, u16 y, u16 job_idx, TileWorkCand* out, u16 out_cap);
+    static bool has_job_work (u16 x, u16 y, u16 job_idx);
     static bool tile_ok (u16 job_idx, u16 x, u16 y);
 
 private:

@@ -20,6 +20,7 @@
 #include "unit_add_vector_key.h"
 #include "unit_static_key.h"
 #include "whiteboard_mng.h"
+#include "worker_build_progress.h"
 #include "worker_turn_handler.h"
 
 //================================================================================================================================
@@ -59,6 +60,7 @@ static void after_city_turns (GameState& state) {
     GAME_EXPECT(state.m_player_states != nullptr, "GameLoop after_city_turns got nullptr player states");
     for (u16 p = 0; p < state.m_player_n; ++p) {
         ResearchTurnHandler::handle(state, p);
+        City::refresh_city_worker_flags(state, p);
         PlayerState& ps = state.m_player_states[p];
         ps.m_last_turn_population_count = ps.m_this_turn_population_count;
         ps.m_last_turn_city_count = ps.m_this_turn_city_count;
@@ -100,7 +102,7 @@ static void run_unit_turns (GameState& state) {
             refill_mp(state, unit_idx);
             SettlerTurnHandler::handle(state, unit_idx);
         } else if (ut == state.m_land_worker_type_idx) {
-            refill_mp(state, unit_idx);
+            WorkerBuildProgress::refill_mp(state, unit_idx);
             WorkerTurnHandler::handle(state, unit_idx);
         } else if (ut == state.m_land_defense_type_idx) {
             DefensiveUnitTurnHandler::handle(state, unit_idx);

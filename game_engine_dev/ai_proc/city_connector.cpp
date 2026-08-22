@@ -5,7 +5,7 @@
 #include "city_connector.h"
 #include "assert_log.h"
 #include "city.h"
-#include "city_network.h"
+#include "city_tile_manager.h"
 #include "game_map_defs.h"
 #include "game_state.h"
 #include "unit_add_struct.h"
@@ -14,12 +14,17 @@
 #include "worker_helper.h"
 
 //================================================================================================================================
+//=> - Constants -
+//================================================================================================================================
+
+#define CC_SPINE_MAX 128u
+#define CC_LINK_SLOTS 32768u
+
+//================================================================================================================================
 //=> - State -
 //================================================================================================================================
 
-static bool g_ok = false;
 static GameState* g_st = nullptr;
-static CityNetwork g_net;
 
 static const i32 k_dx[8] = {0, 1, 1, 1, 0, -1, -1, -1};
 static const i32 k_dy[8] = {-1, -1, 0, 1, 1, 1, 0, -1};
@@ -28,12 +33,46 @@ static const u8 k_win_r = 20u;
 static const u16 k_win = static_cast<u16>(k_win_r * 2u + 1u);
 static const u16 k_win_n = static_cast<u16>(k_win * k_win);
 
+struct CcSpine {
+    u16 m_x[CC_SPINE_MAX];
+    u16 m_y[CC_SPINE_MAX];
+    u16 m_n;
+};
+
+static CcSpine g_spine[CC_LINK_SLOTS];
+
 //================================================================================================================================
 //=> - Helpers -
 //================================================================================================================================
 
+static u32 link_slot (u16 home_idx, u8 dir) {
+    return static_cast<u32>(home_idx) * 4u + static_cast<u32>(dir);
+}
+
+static CcSpine* spine_get (u16 home_idx, u8 dir) {
+    const u32 slot = link_slot(home_idx, dir);
+    if (slot >= CC_LINK_SLOTS) {
+        return nullptr;
+    }
+    return &g_spine[slot];
+}
+
+static void spine_clr_all () {
+    for (u32 i = 0; i < CC_LINK_SLOTS; ++i) {
+        g_spine[i].m_n = 0;
+    }
+}
+
 static i32 sgn (i32 v) {
     return (v > 0) - (v < 0);
+}
+
+static u32 cheb (u16 ax, u16 ay, u16 bx, u16 by) {
+    const i32 dx = static_cast<i32>(ax) - static_cast<i32>(bx);
+    const i32 dy = static_cast<i32>(ay) - static_cast<i32>(by);
+    const u32 adx = static_cast<u32>(dx < 0 ? -dx : dx);
+    const u32 ady = static_cast<u32>(dy < 0 ? -dy : dy);
+    return adx > ady ? adx : ady;
 }
 
 static bool in_bounds (const GameState& state, u16 x, u16 y) {
@@ -63,9 +102,9 @@ static bool try_step (GameState& state, u16 unit_idx, u16 ux, u16 uy) {
     return UnitMovementMng::apply_step(state, key, ux, uy);
 }
 
-static void lay_road (GameState& state, u16 x, u16 y) {
+static void promote_virtual (GameState& state, u16 x, u16 y) {
     GameTileSimple* t = state.m_map.tile(x, y);
-    if (t->m_road_typ == ROAD_NONE) {
+    if (road_is_virtual(static_cast<u8>(t->m_road_typ))) {
         t->m_road_typ = ROAD_PATH;
     }
 }
@@ -242,20 +281,104 @@ static bool pick_step (
     return step_flood(state, wx, wy, tx, ty, ox, oy);
 }
 
-static bool pick_tgt (u16 home_idx, City* home, u16* out_tgt, u8* out_dir) {
-    for (u8 d = 0; d < 4u; ++d) {
-        const u16 j = home->get_conn_city(d);
-        if (j == U16_KEY_NULL || j <= home_idx) {
-            continue;
+static void build_spine (
+    GameState& state,
+    u16 x0,
+    u16 y0,
+    u16 x1,
+    u16 y1,
+    CcSpine* sp)
+{
+    sp->m_n = 0;
+    u16 x = x0;
+    u16 y = y0;
+    for (;;) {
+        if (sp->m_n < CC_SPINE_MAX) {
+            sp->m_x[sp->m_n] = x;
+            sp->m_y[sp->m_n] = y;
+            sp->m_n = static_cast<u16>(sp->m_n + 1u);
         }
-        if (home->is_conn_city_built(d)) {
-            continue;
+        if (x == x1 && y == y1) {
+            break;
         }
-        *out_tgt = j;
-        *out_dir = d;
-        return true;
+        u16 nx = 0;
+        u16 ny = 0;
+        if (!pick_step(state, x, y, x1, y1, &nx, &ny)) {
+            break;
+        }
+        x = nx;
+        y = ny;
+    }
+}
+
+static void stamp_spine (GameState& state, const CcSpine* sp) {
+    for (u16 i = 0; i < sp->m_n; ++i) {
+        GameTileSimple* t = state.m_map.tile(sp->m_x[i], sp->m_y[i]);
+        if (t->m_road_typ == ROAD_NONE) {
+            t->m_road_typ = ROAD_VIRTUAL;
+        }
+    }
+}
+
+static bool spine_has_virtual (const GameState& state, const CcSpine* sp) {
+    if (sp == nullptr) {
+        return false;
+    }
+    for (u16 i = 0; i < sp->m_n; ++i) {
+        if (road_is_virtual(state.m_map.get_road_typ(sp->m_x[i], sp->m_y[i]))) {
+            return true;
+        }
     }
     return false;
+}
+
+static bool spine_all_built (const GameState& state, const CcSpine* sp) {
+    if (sp == nullptr) {
+        return true;
+    }
+    for (u16 i = 0; i < sp->m_n; ++i) {
+        if (road_is_virtual(state.m_map.get_road_typ(sp->m_x[i], sp->m_y[i]))) {
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool spine_nearest_virtual (
+    const GameState& state,
+    u16 wx,
+    u16 wy,
+    const CcSpine* sp,
+    u16* ox,
+    u16* oy)
+{
+    if (sp == nullptr) {
+        return false;
+    }
+    u32 best_d = UINT32_MAX;
+    bool hit = false;
+    u16 bx = 0;
+    u16 by = 0;
+    for (u16 i = 0; i < sp->m_n; ++i) {
+        const u16 x = sp->m_x[i];
+        const u16 y = sp->m_y[i];
+        if (!road_is_virtual(state.m_map.get_road_typ(x, y))) {
+            continue;
+        }
+        const u32 d = cheb(wx, wy, x, y);
+        if (d < best_d) {
+            best_d = d;
+            bx = x;
+            by = y;
+            hit = true;
+        }
+    }
+    if (!hit) {
+        return false;
+    }
+    *ox = bx;
+    *oy = by;
+    return true;
 }
 
 static void claim_link (City* home, u8 hdir, City* tgt, u16 home_idx) {
@@ -275,9 +398,160 @@ static void mark_built (City* home, u8 hdir, City* tgt, u16 home_idx) {
         if (tgt->get_conn_city(d) == home_idx) {
             tgt->conn_city_is_built(d);
             tgt->conn_city_is_locked(d);
-            return;
+            break;
         }
     }
+    CcSpine* sp = spine_get(home_idx, hdir);
+    if (sp != nullptr) {
+        sp->m_n = 0;
+    }
+}
+
+static void arm_city_roads (City* city, u16 city_idx) {
+    if (city == nullptr) {
+        return;
+    }
+    for (u8 d = 0; d < 4u; ++d) {
+        const u16 j = city->get_conn_city(d);
+        if (j == U16_KEY_NULL || j <= city_idx) {
+            continue;
+        }
+        if (city->is_conn_city_built(d)) {
+            continue;
+        }
+        city->set_city_has_worker(1);
+        return;
+    }
+}
+
+static bool city_has_road_pending (const GameState& state, u16 home_idx, const City* home) {
+    if (home == nullptr || !state.m_city_net.is_valid()) {
+        return false;
+    }
+    for (u8 d = 0; d < 4u; ++d) {
+        const u16 j = home->get_conn_city(d);
+        if (j == U16_KEY_NULL || j <= home_idx) {
+            continue;
+        }
+        if (home->is_conn_city_built(d)) {
+            continue;
+        }
+        if (!home->is_conn_city_locked(d)) {
+            return true;
+        }
+        const CcSpine* sp = spine_get(home_idx, d);
+        if (sp != nullptr && spine_has_virtual(state, sp)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static CcSpine* ensure_stamped (GameState& state, City* home, u8 hdir, u16 home_idx, City* tgt) {
+    CcSpine* sp = spine_get(home_idx, hdir);
+    if (sp == nullptr) {
+        return nullptr;
+    }
+    if (home->is_conn_city_locked(hdir) && sp->m_n != 0u) {
+        return sp;
+    }
+    claim_link(home, hdir, tgt, home_idx);
+    build_spine(state, home->get_x(), home->get_y(), tgt->get_x(), tgt->get_y(), sp);
+    stamp_spine(state, sp);
+    home->set_city_has_worker(1);
+    return sp;
+}
+
+static bool pick_link_virtual (
+    GameState& state,
+    u16 home_idx,
+    City* home,
+    u16 wx,
+    u16 wy,
+    u16* ox,
+    u16* oy,
+    u16* out_tgt,
+    u8* out_dir)
+{
+    u32 best_d = UINT32_MAX;
+    bool hit = false;
+    for (u8 d = 0; d < 4u; ++d) {
+        const u16 j = home->get_conn_city(d);
+        if (j == U16_KEY_NULL || j <= home_idx) {
+            continue;
+        }
+        if (home->is_conn_city_built(d)) {
+            continue;
+        }
+        City* tgt = state.m_cities.get_city(j);
+        if (tgt == nullptr) {
+            continue;
+        }
+        CcSpine* sp = ensure_stamped(state, home, d, home_idx, tgt);
+        if (sp == nullptr) {
+            continue;
+        }
+        u16 vx = 0;
+        u16 vy = 0;
+        if (!spine_nearest_virtual(state, wx, wy, sp, &vx, &vy)) {
+            continue;
+        }
+        const u32 dist = cheb(wx, wy, vx, vy);
+        if (dist < best_d) {
+            best_d = dist;
+            *ox = vx;
+            *oy = vy;
+            *out_tgt = j;
+            *out_dir = d;
+            hit = true;
+        }
+    }
+    return hit;
+}
+
+void CityConnector::on_city_net_changed (GameState& state, u16 city_idx) {
+    City* city = state.m_cities.get_city(city_idx);
+    arm_city_roads(city, city_idx);
+    for (u16 i = 0; i < city_idx; ++i) {
+        City* c = state.m_cities.get_city(i);
+        if (c == nullptr) {
+            continue;
+        }
+        for (u8 d = 0; d < 4u; ++d) {
+            if (c->get_conn_city(d) != city_idx) {
+                continue;
+            }
+            if (c->is_conn_city_built(d)) {
+                break;
+            }
+            c->set_city_has_worker(1);
+            break;
+        }
+    }
+}
+
+void CityConnector::clear_idle_flag (
+    GameState& state,
+    u16 city_idx,
+    City* city,
+    u16 cx,
+    u16 cy,
+    bool imp_disk_done)
+{
+    if (city == nullptr || !imp_disk_done) {
+        return;
+    }
+    if (CityTileManager::count_worked(cx, cy, city_idx) == 0u) {
+        return;
+    }
+    if (city_has_road_pending(state, city_idx, city)) {
+        return;
+    }
+    city->set_city_has_worker(0);
+}
+
+bool CityConnector::has_virtual_at (const GameState& state, u16 x, u16 y) {
+    return road_is_virtual(state.m_map.get_road_typ(x, y));
 }
 
 //================================================================================================================================
@@ -298,30 +572,31 @@ bool CityConnector::begin (GameState& state) {
     if (state.m_map.width() == 0 || state.m_map.height() == 0) {
         return false;
     }
-    if (!g_net.begin(state.m_cities, state.m_map)) {
+    state.m_city_net.clear();
+    if (!state.m_city_net.begin(state.m_cities, state.m_map)) {
         return false;
     }
     const u16 n = state.m_cities.get_city_count();
     for (u16 i = 0; i < n; ++i) {
-        if (!g_net.add(i)) {
-            g_net.clear();
+        if (!state.m_city_net.add(i)) {
+            state.m_city_net.clear();
             return false;
         }
     }
     g_st = &state;
-    g_ok = true;
     return true;
 }
 
 void CityConnector::clear () {
-    g_net.clear();
+    spine_clr_all();
+    if (g_st != nullptr) {
+        g_st->m_city_net.clear();
+    }
     g_st = nullptr;
-    g_ok = false;
 }
 
-void CityConnector::handle (GameState& state, u16 unit_idx) {
-    GAME_EXPECT(g_ok, "CityConnector handle got invalid state");
-    GAME_EXPECT(g_st == &state, "CityConnector handle got mismatched state");
+bool CityConnector::handle (GameState& state, u16 unit_idx) {
+    GAME_EXPECT(state.m_city_net.is_valid(), "CityConnector handle got invalid city network");
     UnitAddStruct* unit = state.m_units.get_unit_add(UnitAddKey::from_raw(unit_idx));
     GAME_EXPECT(unit != nullptr, "CityConnector handle got nullptr unit");
     GAME_EXPECT(unit->m_x != U16_KEY_NULL, "CityConnector handle unit has null x");
@@ -330,34 +605,39 @@ void CityConnector::handle (GameState& state, u16 unit_idx) {
     GAME_EXPECT(home != nullptr, "CityConnector handle got nullptr home city");
     u16 tgt_idx = U16_KEY_NULL;
     u8 hdir = 0;
-    if (!pick_tgt(home_idx, home, &tgt_idx, &hdir)) {
-        return;
+    u16 vx = 0;
+    u16 vy = 0;
+    if (!pick_link_virtual(state, home_idx, home, unit->m_x, unit->m_y, &vx, &vy, &tgt_idx, &hdir)) {
+        return false;
     }
     City* tgt = state.m_cities.get_city(tgt_idx);
     GAME_EXPECT(tgt != nullptr, "CityConnector handle got nullptr tgt city");
-    if (!home->is_conn_city_locked(hdir)) {
-        claim_link(home, hdir, tgt, home_idx);
-    }
-    const u16 tx = tgt->get_x();
-    const u16 ty = tgt->get_y();
-    for (;;) {
-        lay_road(state, unit->m_x, unit->m_y);
-        if (unit->m_x == tx && unit->m_y == ty) {
+    CcSpine* sp = spine_get(home_idx, hdir);
+    if (unit->m_x == vx && unit->m_y == vy) {
+        promote_virtual(state, vx, vy);
+        if (sp != nullptr && spine_all_built(state, sp)) {
             mark_built(home, hdir, tgt, home_idx);
-            return;
         }
-        u16 nx = 0;
-        u16 ny = 0;
-        if (!pick_step(state, unit->m_x, unit->m_y, tx, ty, &nx, &ny)) {
-            return;
-        }
-        if (tile_block(state, nx, ny)) {
-            return;
-        }
-        if (!try_step(state, unit_idx, nx, ny)) {
-            return;
+        return true;
+    }
+    u16 nx = 0;
+    u16 ny = 0;
+    if (!pick_step(state, unit->m_x, unit->m_y, vx, vy, &nx, &ny)) {
+        return false;
+    }
+    if (tile_block(state, nx, ny)) {
+        return false;
+    }
+    if (!try_step(state, unit_idx, nx, ny)) {
+        return false;
+    }
+    if (unit->m_x == vx && unit->m_y == vy) {
+        promote_virtual(state, vx, vy);
+        if (sp != nullptr && spine_all_built(state, sp)) {
+            mark_built(home, hdir, tgt, home_idx);
         }
     }
+    return true;
 }
 
 //================================================================================================================================

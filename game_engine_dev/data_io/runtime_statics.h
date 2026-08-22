@@ -36,6 +36,8 @@ class StaticParsingManager;
 #include "wonder_static_data.h"
 #include "map_overlay_static_data.h"
 #include "map_attribute_static_data.h"
+#include "map_terrain_static_data.h"
+#include "map_climate_static_data.h"
 #include "worker_job_target_static_data.h"
 #include "worker_job_type_static_data.h"
 #include "worker_job_static_data.h"
@@ -144,6 +146,14 @@ public:
 
     const MapAttributeStaticData& map_attribute () const;
 
+    MapTerrainStaticData& map_terrain ();
+
+    const MapTerrainStaticData& map_terrain () const;
+
+    MapClimateStaticData& map_climate ();
+
+    const MapClimateStaticData& map_climate () const;
+
     WorkerJobTargetStaticData& worker_job_target ();
 
     const WorkerJobTargetStaticData& worker_job_target () const;
@@ -230,6 +240,8 @@ private:
     WonderStaticData m_wonder;
     MapOverlayStaticData m_map_overlay;
     MapAttributeStaticData m_map_attribute;
+    MapTerrainStaticData m_map_terrain;
+    MapClimateStaticData m_map_climate;
     WorkerJobTargetStaticData m_worker_job_target;
     WorkerJobTypeStaticData m_worker_job_type;
     WorkerJobStaticData m_worker_job;

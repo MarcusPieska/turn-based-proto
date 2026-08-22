@@ -34,6 +34,8 @@ typedef struct NameToIdxCbs {
     u16 (*wonder_name_to_idx)(cstr);
     u16 (*map_overlay_name_to_idx)(cstr);
     u16 (*map_attribute_name_to_idx)(cstr);
+    u16 (*map_terrain_name_to_idx)(cstr);
+    u16 (*map_climate_name_to_idx)(cstr);
     u16 (*worker_job_target_name_to_idx)(cstr);
     u16 (*worker_job_type_name_to_idx)(cstr);
     u16 (*worker_job_name_to_idx)(cstr);

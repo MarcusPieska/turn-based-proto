@@ -47,6 +47,8 @@ ToggleGlobalParserTester::ToggleGlobalParserTester () :
     m_wonder_sd(NULL),
     m_map_overlay_sd(NULL),
     m_map_attribute_sd(NULL),
+    m_map_terrain_sd(NULL),
+    m_map_climate_sd(NULL),
     m_worker_job_target_sd(NULL),
     m_worker_job_type_sd(NULL),
     m_worker_job_sd(NULL),
@@ -73,6 +75,8 @@ ToggleGlobalParserTester::ToggleGlobalParserTester () :
     m_wonder_psr(NULL),
     m_map_overlay_psr(NULL),
     m_map_attribute_psr(NULL),
+    m_map_terrain_psr(NULL),
+    m_map_climate_psr(NULL),
     m_worker_job_target_psr(NULL),
     m_worker_job_type_psr(NULL),
     m_worker_job_psr(NULL),
@@ -199,6 +203,18 @@ void ToggleGlobalParserTester::set_map_overlay_sd (const MapOverlayStaticData* s
 void ToggleGlobalParserTester::set_map_attribute_sd (const MapAttributeStaticData* sd) {
 
     m_map_attribute_sd = sd;
+
+}
+
+void ToggleGlobalParserTester::set_map_terrain_sd (const MapTerrainStaticData* sd) {
+
+    m_map_terrain_sd = sd;
+
+}
+
+void ToggleGlobalParserTester::set_map_climate_sd (const MapClimateStaticData* sd) {
+
+    m_map_climate_sd = sd;
 
 }
 
@@ -412,6 +428,20 @@ u16 ToggleGlobalParserTester::st_map_attribute_n2i (cstr name) {
     return s_inst->m_map_attribute_psr->name_to_idx(name);
 }
 
+u16 ToggleGlobalParserTester::st_map_terrain_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_map_terrain_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_map_terrain_psr->name_to_idx(name);
+}
+
+u16 ToggleGlobalParserTester::st_map_climate_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_map_climate_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_map_climate_psr->name_to_idx(name);
+}
+
 u16 ToggleGlobalParserTester::st_worker_job_target_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_worker_job_target_psr == NULL) {
         return U16_KEY_NULL;
@@ -508,6 +538,16 @@ void ToggleGlobalParserTester::pr_reqs (cstr label, const ItemReqsStruct& reqs) 
             } else if (m_tech_psr != NULL) {
                 fprintf(out(), "    [%u] type=%u %s (%u)", j, type, m_tech_psr->idx_to_name(idx), idx);
             }
+        } else if (type == ITEM_REQ_TYPE_TILE) {
+            static const char* k_tile_kinds[] = { "", "terrain", "climate", "overlay", "attribute" };
+            const u8 kind = reqs.added_args[j];
+            cstr kind_nm = (kind <= TILE_REQ_KIND_ATTRIBUTE) ? k_tile_kinds[kind] : "?";
+            cstr site_nm = "";
+            if (kind == TILE_REQ_KIND_TERRAIN && m_map_terrain_psr != NULL) { site_nm = m_map_terrain_psr->idx_to_name(idx); }
+            else if (kind == TILE_REQ_KIND_CLIMATE && m_map_climate_psr != NULL) { site_nm = m_map_climate_psr->idx_to_name(idx); }
+            else if (kind == TILE_REQ_KIND_OVERLAY && m_map_overlay_psr != NULL) { site_nm = m_map_overlay_psr->idx_to_name(idx); }
+            else if (kind == TILE_REQ_KIND_ATTRIBUTE && m_map_attribute_psr != NULL) { site_nm = m_map_attribute_psr->idx_to_name(idx); }
+            fprintf(out(), "    [%u] type=%u tile(%s,%s) (%u)", j, type, kind_nm, site_nm, idx);
 
         } else {
             fprintf(out(), "    [%u] type=%u <unknown> (%u)", j, type, idx);
@@ -798,6 +838,8 @@ int ToggleGlobalParserTester::run () {
     cbs.wonder_name_to_idx = st_wonder_n2i;
     cbs.map_overlay_name_to_idx = st_map_overlay_n2i;
     cbs.map_attribute_name_to_idx = st_map_attribute_n2i;
+    cbs.map_terrain_name_to_idx = st_map_terrain_n2i;
+    cbs.map_climate_name_to_idx = st_map_climate_n2i;
     cbs.worker_job_target_name_to_idx = st_worker_job_target_n2i;
     cbs.worker_job_type_name_to_idx = st_worker_job_type_n2i;
     cbs.worker_job_name_to_idx = st_worker_job_n2i;
@@ -827,6 +869,8 @@ int ToggleGlobalParserTester::run () {
     StringManager wonder_items;
     StringManager map_overlay_items;
     StringManager map_attribute_items;
+    StringManager map_terrain_items;
+    StringManager map_climate_items;
     StringManager worker_job_target_items;
     StringManager worker_job_type_items;
     StringManager worker_job_items;
@@ -856,6 +900,8 @@ int ToggleGlobalParserTester::run () {
     ld_sm(wonder_items, paths.get_path_to_wonders());
     ld_sm(map_overlay_items, paths.get_path_to_map_overlays());
     ld_sm(map_attribute_items, paths.get_path_to_map_attributes());
+    ld_sm(map_terrain_items, paths.get_path_to_map_terrains());
+    ld_sm(map_climate_items, paths.get_path_to_map_climates());
     ld_sm(worker_job_target_items, paths.get_path_to_worker_job_targets());
     ld_sm(worker_job_type_items, paths.get_path_to_worker_job_types());
     ld_sm(worker_job_items, paths.get_path_to_worker_jobs());
@@ -888,6 +934,8 @@ int ToggleGlobalParserTester::run () {
     DataParserBase wonder_parser(wonder_items, cbs);
     DataParserBase map_overlay_parser(map_overlay_items, cbs);
     DataParserBase map_attribute_parser(map_attribute_items, cbs);
+    DataParserBase map_terrain_parser(map_terrain_items, cbs);
+    DataParserBase map_climate_parser(map_climate_items, cbs);
     DataParserBase worker_job_target_parser(worker_job_target_items, cbs);
     DataParserBase worker_job_type_parser(worker_job_type_items, cbs);
     DataParserBase worker_job_parser(worker_job_items, cbs);
@@ -915,6 +963,8 @@ int ToggleGlobalParserTester::run () {
     m_wonder_psr = &wonder_parser;
     m_map_overlay_psr = &map_overlay_parser;
     m_map_attribute_psr = &map_attribute_parser;
+    m_map_terrain_psr = &map_terrain_parser;
+    m_map_climate_psr = &map_climate_parser;
     m_worker_job_target_psr = &worker_job_target_parser;
     m_worker_job_type_psr = &worker_job_type_parser;
     m_worker_job_psr = &worker_job_parser;

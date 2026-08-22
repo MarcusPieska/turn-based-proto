@@ -10,6 +10,6 @@ Mine : Overlay : TERR_HILLS         : PRODUCTION :   1
 Mine : Overlay : TERR_MOUNTAINS     : PRODUCTION :   1
 Mine : Overlay : TERR_VOLCANO       : PRODUCTION :   1
 
-Forest : Overlay : OV_FORESTS         : PRODUCTION :   1
-Forest : Overlay : OV_RIVERS          : PRODUCTION :   1
-Forest : Overlay : OV_RIVERS          : COMMERCE   :   1
+Forest : Overlay : OV_FORESTS       : PRODUCTION :   1
+Forest : Overlay : OV_RIVERS        : PRODUCTION :   1
+Forest : Overlay : OV_RIVERS        : COMMERCE   :   1

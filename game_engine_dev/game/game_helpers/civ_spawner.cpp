@@ -35,6 +35,7 @@ static bool found_city (GameState* state, u16 x, u16 y, u16 civ_idx) {
     GAME_EXPECT(city != nullptr, "found_city city slot unavailable");
     city->init(civ_idx, x, y);
     GAME_EXPECT(state->m_map.set_tile_add(x, y, city_idx, BUILD_ADD_CITY), "found_city set_tile_add failed");
+    GAME_EXPECT(state->city_net_on_found(city_idx), "found_city city_net_on_found failed");
     TRACE_CITY_FOUNDATION((x, y, civ_idx));
     return true;
 }

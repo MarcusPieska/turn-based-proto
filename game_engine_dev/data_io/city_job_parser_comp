@@ -39,6 +39,8 @@ g++ $INC -c ../static_state/unit_type_static_data.cpp -o unit_type_static_data.o
 g++ $INC -c ../static_state/wonder_static_data.cpp -o wonder_static_data.o
 g++ $INC -c ../static_state/map_overlay_static_data.cpp -o map_overlay_static_data.o
 g++ $INC -c ../static_state/map_attribute_static_data.cpp -o map_attribute_static_data.o
+g++ $INC -c ../static_state/map_terrain_static_data.cpp -o map_terrain_static_data.o
+g++ $INC -c ../static_state/map_climate_static_data.cpp -o map_climate_static_data.o
 g++ $INC -c ../static_state/worker_job_target_static_data.cpp -o worker_job_target_static_data.o
 g++ $INC -c ../static_state/worker_job_type_static_data.cpp -o worker_job_type_static_data.o
 g++ $INC -c ../static_state/worker_job_static_data.cpp -o worker_job_static_data.o
@@ -77,6 +79,8 @@ g++ -o city_job_parser_tester \
     wonder_static_data.o \
     map_overlay_static_data.o \
     map_attribute_static_data.o \
+    map_terrain_static_data.o \
+    map_climate_static_data.o \
     worker_job_target_static_data.o \
     worker_job_type_static_data.o \
     worker_job_static_data.o \
@@ -115,6 +119,8 @@ rm \
     wonder_static_data.o \
     map_overlay_static_data.o \
     map_attribute_static_data.o \
+    map_terrain_static_data.o \
+    map_climate_static_data.o \
     worker_job_target_static_data.o \
     worker_job_type_static_data.o \
     worker_job_static_data.o \

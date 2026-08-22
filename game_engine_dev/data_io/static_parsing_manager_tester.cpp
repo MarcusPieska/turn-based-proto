@@ -89,6 +89,8 @@ void print_item_counts (const StaticParsingManager& parser) {
     print_u16_member("wonder", parser.get_wonder_count());
     print_u16_member("map_overlay", parser.get_map_overlay_count());
     print_u16_member("map_attribute", parser.get_map_attribute_count());
+    print_u16_member("map_terrain", parser.get_map_terrain_count());
+    print_u16_member("map_climate", parser.get_map_climate_count());
     print_u16_member("worker_job_target", parser.get_worker_job_target_count());
     print_u16_member("worker_job_type", parser.get_worker_job_type_count());
     print_u16_member("worker_job", parser.get_worker_job_count());
@@ -124,6 +126,27 @@ bool are_reqs_in_bounds (const StaticParsingManager& parser, const ItemReqsStruc
             continue;
         }
         const u16 req_idx = reqs.indices[j];
+        if (req_type == ITEM_REQ_TYPE_TILE) {
+            const u8 kind = reqs.added_args[j];
+            u16 req_limit = 0;
+            if (kind == TILE_REQ_KIND_TERRAIN) {
+                req_limit = parser.get_map_terrain_count();
+            } else if (kind == TILE_REQ_KIND_CLIMATE) {
+                req_limit = parser.get_map_climate_count();
+            } else if (kind == TILE_REQ_KIND_OVERLAY) {
+                req_limit = parser.get_map_overlay_count();
+            } else if (kind == TILE_REQ_KIND_ATTRIBUTE) {
+                req_limit = parser.get_map_attribute_count();
+            }
+            if (req_idx >= req_limit) {
+                if (print_level > 0) {
+                    printf("*** OOB REQ: %s item=%u req_slot=%u type=tile kind=%u idx=%u limit=%u\n",
+                        label, item_idx, j, kind, req_idx, req_limit);
+                }
+                return false;
+            }
+            continue;
+        }
         const u16 req_limit = get_req_limit_for_type(parser, req_type);
         cstr frm = "*** OOB REQ: %s item=%u req_slot=%u type=%u idx=%u limit=%u\n";
         if (req_idx >= req_limit) {

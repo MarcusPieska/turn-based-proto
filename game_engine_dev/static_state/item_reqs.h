@@ -19,8 +19,17 @@ typedef enum ItemReqType {
     ITEM_REQ_TYPE_RESOURCE = 2,
     ITEM_REQ_TYPE_FLAG = 3,
     ITEM_REQ_TYPE_CIV = 4,
-    ITEM_REQ_TYPE_BUILDING = 5
+    ITEM_REQ_TYPE_BUILDING = 5,
+    ITEM_REQ_TYPE_TILE = 6
 } ItemReqType;
+
+typedef enum TileReqKind {
+    TILE_REQ_KIND_NONE = 0,
+    TILE_REQ_KIND_TERRAIN = 1,
+    TILE_REQ_KIND_CLIMATE = 2,
+    TILE_REQ_KIND_OVERLAY = 3,
+    TILE_REQ_KIND_ATTRIBUTE = 4
+} TileReqKind;
 
 typedef struct ItemReqsStruct {
     u16 indices[MAX_PREREQ_COUNT];

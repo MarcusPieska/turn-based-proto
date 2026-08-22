@@ -51,6 +51,7 @@ g++ $CXXFLAGS $INC -c ../factory_game_array_simple.cpp -o factory_game_array_sim
 g++ $CXXFLAGS $INC -c ../std_add_helper.cpp -o std_add_helper.o
 g++ $CXXFLAGS $INC -c ../tile_imp_helper.cpp -o tile_imp_helper.o
 g++ $CXXFLAGS $INC -c ../tile_attr_tables.cpp -o tile_attr_tables.o
+g++ $CXXFLAGS $INC -c ../overlay_yields.cpp -o overlay_yields.o
 g++ $CXXFLAGS $INC -c ../../city/assessor/general_assessor.cpp -o general_assessor.o
 g++ $CXXFLAGS $INC -c ../tile_yields.cpp -o tile_yields.o
 g++ $CXXFLAGS $INC -c ../tile_work_assessor.cpp -o tile_work_assessor.o
@@ -71,6 +72,7 @@ g++ $CXXFLAGS -o worker_guidance_tester \
     std_add_helper.o \
     tile_imp_helper.o \
     tile_attr_tables.o \
+    overlay_yields.o \
     general_assessor.o \
     tile_yields.o \
     tile_work_assessor.o \
@@ -85,5 +87,5 @@ g++ $CXXFLAGS -o worker_guidance_tester \
 
 rm runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.o \
     runtime_trace_dbg.o bit_array.o assert_log.o game_array_simple.o factory_game_array_simple.o \
-    std_add_helper.o tile_imp_helper.o tile_attr_tables.o general_assessor.o tile_yields.o \
+    std_add_helper.o tile_imp_helper.o tile_attr_tables.o overlay_yields.o general_assessor.o tile_yields.o \
     tile_work_assessor.o worker_imp_select.o worker_guidance.o worker_guidance_tester.o worker_guidance_tester

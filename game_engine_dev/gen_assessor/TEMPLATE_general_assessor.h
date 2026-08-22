@@ -16,6 +16,7 @@
 #include "game_primitives.h"
 
 class BitArrayCL;
+class GameArraySimple;
 class GeneralBitBank;
 
 [ASSESS_STRUCT_FWD_TAG]
@@ -26,6 +27,9 @@ class GeneralBitBank;
 
 struct AssessorCtx {
     [ASSESSOR_CTX_MEMBERS_TAG]
+    const GameArraySimple* m_map;
+    u16 m_x;
+    u16 m_y;
 };
 
 //================================================================================================================================

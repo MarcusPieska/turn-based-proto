@@ -103,6 +103,8 @@ void note_all_paths_exist (const PathMng& paths, cstr tag) {
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s wonders exists", tag); note_result(does_file_exist(paths.get_path_to_wonders()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s map_overlays exists", tag); note_result(does_file_exist(paths.get_path_to_map_overlays()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s map_attributes exists", tag); note_result(does_file_exist(paths.get_path_to_map_attributes()), _buf); }
+        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s map_terrains exists", tag); note_result(does_file_exist(paths.get_path_to_map_terrains()), _buf); }
+        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s map_climates exists", tag); note_result(does_file_exist(paths.get_path_to_map_climates()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s worker_job_targets exists", tag); note_result(does_file_exist(paths.get_path_to_worker_job_targets()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s worker_job_types exists", tag); note_result(does_file_exist(paths.get_path_to_worker_job_types()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s worker_jobs exists", tag); note_result(does_file_exist(paths.get_path_to_worker_jobs()), _buf); }

@@ -38,6 +38,8 @@ class StaticBitBank;
 #include "wonder_parser.h"
 #include "map_overlay_parser.h"
 #include "map_attribute_parser.h"
+#include "map_terrain_parser.h"
+#include "map_climate_parser.h"
 #include "worker_job_target_parser.h"
 #include "worker_job_type_parser.h"
 #include "worker_job_parser.h"
@@ -65,6 +67,8 @@ class StaticBitBank;
 #include "wonder_static_data.h"
 #include "map_overlay_static_data.h"
 #include "map_attribute_static_data.h"
+#include "map_terrain_static_data.h"
+#include "map_climate_static_data.h"
 #include "worker_job_target_static_data.h"
 #include "worker_job_type_static_data.h"
 #include "worker_job_static_data.h"
@@ -161,6 +165,14 @@ public:
 
     u16 get_map_attribute_count () const;
 
+    const MapTerrainStaticDataStruct* get_map_terrain_data () const;
+
+    u16 get_map_terrain_count () const;
+
+    const MapClimateStaticDataStruct* get_map_climate_data () const;
+
+    u16 get_map_climate_count () const;
+
     const WorkerJobTargetStaticDataStruct* get_worker_job_target_data () const;
 
     u16 get_worker_job_target_count () const;
@@ -224,6 +236,10 @@ public:
 
     const DataParserBase& get_map_attribute_name_parser () const;
 
+    const DataParserBase& get_map_terrain_name_parser () const;
+
+    const DataParserBase& get_map_climate_name_parser () const;
+
     const DataParserBase& get_worker_job_target_name_parser () const;
 
     const DataParserBase& get_worker_job_type_name_parser () const;
@@ -279,6 +295,8 @@ private:
     StringManager m_wonder_items;
     StringManager m_map_overlay_items;
     StringManager m_map_attribute_items;
+    StringManager m_map_terrain_items;
+    StringManager m_map_climate_items;
     StringManager m_worker_job_target_items;
     StringManager m_worker_job_type_items;
     StringManager m_worker_job_items;
@@ -306,6 +324,8 @@ private:
     DataParserBase* m_wonder_name_parser;
     DataParserBase* m_map_overlay_name_parser;
     DataParserBase* m_map_attribute_name_parser;
+    DataParserBase* m_map_terrain_name_parser;
+    DataParserBase* m_map_climate_name_parser;
     DataParserBase* m_worker_job_target_name_parser;
     DataParserBase* m_worker_job_type_name_parser;
     DataParserBase* m_worker_job_name_parser;
@@ -339,6 +359,8 @@ private:
     WonderStaticDataStruct* m_wonder_data;
     MapOverlayStaticDataStruct* m_map_overlay_data;
     MapAttributeStaticDataStruct* m_map_attribute_data;
+    MapTerrainStaticDataStruct* m_map_terrain_data;
+    MapClimateStaticDataStruct* m_map_climate_data;
     WorkerJobTargetStaticDataStruct* m_worker_job_target_data;
     WorkerJobTypeStaticDataStruct* m_worker_job_type_data;
     WorkerJobStaticDataStruct* m_worker_job_data;

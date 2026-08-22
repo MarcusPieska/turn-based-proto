@@ -138,6 +138,7 @@ static bool found_city (GameState& state, u16 x, u16 y, u16 player) {
     GAME_EXPECT(city != nullptr, "found_city city slot unavailable");
     city->init(player, x, y);
     GAME_EXPECT(state.m_map.set_tile_add(x, y, city_idx, BUILD_ADD_CITY), "found_city set_tile_add failed");
+    GAME_EXPECT(state.city_net_on_found(city_idx), "found_city city_net_on_found failed");
     CityBorder::claim_expand(x, y, 0, k_claim_cult, static_cast<u8>(player));
     stamp_block(state, x, y);
     return true;

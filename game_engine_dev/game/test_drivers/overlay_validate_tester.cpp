@@ -9,7 +9,11 @@
 #include "factory_game_array_simple.h"
 #include "game_map_defs.h"
 #include "map_overlay_enum.h"
+#include "runtime_static_loader.h"
+#include "runtime_statics.h"
 #include "std_add_helper.h"
+#include "tile_imp_helper.h"
+#include "worker_job_imp_index.h"
 
 //================================================================================================================================
 //=> - Globals -
@@ -17,6 +21,8 @@
 
 typedef const char* cstr;
 
+static const char* G_RT_LIB = "../../data_io/runtime_static_loader_lib.so";
+static const char* G_RT_DATA = "../../";
 static const char* G_MAP_ROOT = "/home/w/Projects/simple-map-gen";
 static const u32 G_SEED = 43u;
 
@@ -108,26 +114,38 @@ static void restore (GameArraySimple& map, u16 x, u16 y, TileSnap s) {
     map.set_add_idx(x, y, s.m_idx);
 }
 
-static void test_catalog_and_payload (GameArraySimple& map, u16 x, u16 y) {
+static void test_catalog_and_payload (GameArraySimple& map, const RuntimeStatics& st, u16 x, u16 y) {
     const TileSnap bak = snap(map, x, y);
+    const u16 farm_ov = static_cast<u16>(MapOverlay::Farm);
+    const u16 forest_ov = static_cast<u16>(MapOverlay::Forest);
+    const u16 mine_ov = static_cast<u16>(MapOverlay::Mine);
+    const u16 farm_mask = TileImpHelper::payload_mask_for_ov(st, farm_ov);
+    const u16 forest_mask = TileImpHelper::payload_mask_for_ov(st, forest_ov);
+    const u16 mine_mask = TileImpHelper::payload_mask_for_ov(st, mine_ov);
     if (print_level > 0) {
-        std::printf("*** tile (%u,%u) ov=%u idx=%u\n",
+        std::printf("*** tile (%u,%u) ov=%u idx=%u farm_mask=%u forest_mask=%u mine_mask=%u\n",
             static_cast<unsigned>(x),
             static_cast<unsigned>(y),
             static_cast<unsigned>(bak.m_ov),
-            static_cast<unsigned>(bak.m_idx));
+            static_cast<unsigned>(bak.m_idx),
+            static_cast<unsigned>(farm_mask),
+            static_cast<unsigned>(forest_mask),
+            static_cast<unsigned>(mine_mask));
     }
     note_result(!map.set_overlay(x, y, 999u), "overlay: reject unknown catalog index");
-    note_result(map.set_overlay(x, y, static_cast<u16>(MapOverlay::Farm)), "overlay: stamp Farm");
-    note_result(map.set_add_idx(x, y, StdAddHelper::m_irr_bit), "payload: Farm accepts Irrigation bit");
-    note_result(map.get_add_idx(x, y) == StdAddHelper::m_irr_bit, "payload: Farm Irrigation stored");
-    note_result(!map.set_add_idx(x, y, 8u), "payload: reject illegal Farm bit");
-    note_result(map.set_overlay(x, y, static_cast<u16>(MapOverlay::Forest)), "overlay: Farm -> Forest clears payload");
+    note_result(map.set_overlay(x, y, farm_ov), "overlay: stamp Farm");
+    note_result(map.set_add_idx(x, y, 1u), "payload: Farm accepts slot-0 bit");
+    note_result(map.get_add_idx(x, y) == 1u, "payload: Farm slot-0 stored");
+    note_result(!map.set_add_idx(x, y, static_cast<u16>(farm_mask + 1u)), "payload: reject illegal Farm bit");
+    note_result(map.set_overlay(x, y, forest_ov), "overlay: Farm -> Forest clears payload");
     note_result(map.get_add_idx(x, y) == 0u, "overlay: add_idx cleared on change");
-    note_result(map.set_add_idx(x, y, StdAddHelper::m_mill_bit), "payload: Forest accepts Saw Mill bit");
-    note_result(!map.set_add_idx(x, y, StdAddHelper::m_irr_bit), "payload: reject Irrigation on Forest");
-    note_result(map.set_overlay(x, y, static_cast<u16>(MapOverlay::Mine)), "overlay: stamp Mine");
-    note_result(!map.set_add_idx(x, y, 1u), "payload: reject nonzero Mine payload");
+    note_result(map.set_add_idx(x, y, 1u), "payload: Forest accepts slot-0 bit");
+    note_result(!map.set_add_idx(x, y, static_cast<u16>(forest_mask + 1u)), "payload: reject illegal Forest bit");
+    note_result(map.set_overlay(x, y, mine_ov), "overlay: stamp Mine");
+    note_result(map.set_add_idx(x, y, 1u), "payload: Mine accepts slot-0 bit");
+    if (mine_mask < 0xFFFFu) {
+        note_result(!map.set_add_idx(x, y, static_cast<u16>(mine_mask + 1u)), "payload: reject illegal Mine bit");
+    }
     note_result(map.set_tile_add(x, y, 3u, BUILD_ADD_CITY), "legacy: city via set_tile_add");
     note_result(map.get_overlay(x, y) == static_cast<u16>(MapOverlay::City), "legacy: city overlay set");
     note_result(map.get_add_idx(x, y) == 3u, "legacy: city external key stored");
@@ -146,6 +164,13 @@ int main (int argc, char* argv[]) {
         std::printf("path build failed\n");
         return 1;
     }
+    RuntimeStaticLoader loader;
+    note_result(loader.load(G_RT_LIB, G_RT_DATA), "load runtime statics");
+    if (total_test_fails > 0) {
+        return 1;
+    }
+    RuntimeStatics& st = loader.statics();
+    TileImpHelper::bind_statics(&st);
     GameArraySimple map;
     note_result(Factory_GameArraySimple::load_map_gen_data(&map, g_terr, g_clim, g_riv, g_ov), "load map gen data");
     if (total_test_fails > 0) {
@@ -155,18 +180,20 @@ int main (int argc, char* argv[]) {
         return 1;
     }
     if (print_level > 0) {
-        std::printf("*** map %u x %u seed=%u print_level=%d\n",
+        std::printf("*** map %u x %u seed=%u print_level=%d imp_index_overlays=%u\n",
             static_cast<unsigned>(map.width()),
             static_cast<unsigned>(map.height()),
             G_SEED,
-            print_level);
+            print_level,
+            static_cast<unsigned>(st.worker_job_imp_index().ov_n()));
     }
     u16 x = 0;
     u16 y = 0;
     note_result(find_empty(map, &x, &y), "find empty plains tile");
     if (total_test_fails == 0) {
-        test_catalog_and_payload(map, x, y);
+        test_catalog_and_payload(map, st, x, y);
     }
+    TileImpHelper::bind_statics(nullptr);
     std::printf("=======================================================\n");
     std::printf(" OVERLAY VALIDATE: TOTAL FAILURES: %d/%d\n", total_test_fails, total_tests_run);
     std::printf("=======================================================\n");

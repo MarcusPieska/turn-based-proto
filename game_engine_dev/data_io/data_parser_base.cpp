@@ -368,6 +368,14 @@ u16 DataParserBase::parse_map_attribute_idx (const StringManager& line_items, u1
     return m_name_to_idx_cbs.map_attribute_name_to_idx(line_items.get_string_content(start_idx));
 }
 
+u16 DataParserBase::parse_map_terrain_idx (const StringManager& line_items, u16 start_idx) const {
+    return m_name_to_idx_cbs.map_terrain_name_to_idx(line_items.get_string_content(start_idx));
+}
+
+u16 DataParserBase::parse_map_climate_idx (const StringManager& line_items, u16 start_idx) const {
+    return m_name_to_idx_cbs.map_climate_name_to_idx(line_items.get_string_content(start_idx));
+}
+
 u16 DataParserBase::parse_worker_job_site_idx (const StringManager& line_items, u16 start_idx) const {
     cstr name = line_items.get_string_content(start_idx);
     const u16 kind = m_name_to_idx_cbs.worker_job_target_name_to_idx(
@@ -595,6 +603,41 @@ ItemReqsStruct DataParserBase::parse_item_reqs (const StringManager& line_items,
         } else if (std::strcmp(type_name, "building") == 0) {
             reqs.types[write_idx] = ITEM_REQ_TYPE_BUILDING;
             reqs.indices[write_idx] = m_name_to_idx_cbs.building_name_to_idx(req_name);
+        } else if (std::strcmp(type_name, "tile") == 0) {
+            if (args.get_string_count() < 2u) {
+                printf("ERROR: DataParserBase tile req needs kind and name in token '%s'\n", token_raw);
+                ++m_error_count;
+                continue;
+            }
+            cstr kind_nm = args.get_string_content(0);
+            cstr site_nm = args.get_string_content(1);
+            u8 kind = TILE_REQ_KIND_NONE;
+            u16 site_idx = U16_KEY_NULL;
+            if (std::strcmp(kind_nm, "terrain") == 0) {
+                kind = TILE_REQ_KIND_TERRAIN;
+                site_idx = m_name_to_idx_cbs.map_terrain_name_to_idx(site_nm);
+            } else if (std::strcmp(kind_nm, "climate") == 0) {
+                kind = TILE_REQ_KIND_CLIMATE;
+                site_idx = m_name_to_idx_cbs.map_climate_name_to_idx(site_nm);
+            } else if (std::strcmp(kind_nm, "overlay") == 0) {
+                kind = TILE_REQ_KIND_OVERLAY;
+                site_idx = m_name_to_idx_cbs.map_overlay_name_to_idx(site_nm);
+            } else if (std::strcmp(kind_nm, "attribute") == 0) {
+                kind = TILE_REQ_KIND_ATTRIBUTE;
+                site_idx = m_name_to_idx_cbs.map_attribute_name_to_idx(site_nm);
+            } else {
+                printf("ERROR: DataParserBase unknown tile req kind '%s' in token '%s'\n", kind_nm, token_raw);
+                ++m_error_count;
+                continue;
+            }
+            if (kind == TILE_REQ_KIND_NONE || site_idx == U16_KEY_NULL) {
+                printf("ERROR: DataParserBase unresolved tile req '%s' '%s' in token '%s'\n", kind_nm, site_nm, token_raw);
+                ++m_error_count;
+                continue;
+            }
+            reqs.types[write_idx] = ITEM_REQ_TYPE_TILE;
+            reqs.indices[write_idx] = site_idx;
+            reqs.added_args[write_idx] = kind;
         } else if (std::strcmp(type_name, "tech") == 0) {
             reqs.types[write_idx] = ITEM_REQ_TYPE_TECH;
             reqs.indices[write_idx] = m_name_to_idx_cbs.tech_name_to_idx(req_name);

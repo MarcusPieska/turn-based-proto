@@ -186,7 +186,8 @@ City::City () : m_owner(U16_KEY_NULL),
     m_accumulated_food(0),
     m_build_type(BUILD_TYPE_NONE),
     m_is_frontier_city(0),
-    m_road_conn(0) {
+    m_road_conn(0),
+    m_misc{} {
 }
 
 City::~City () {
@@ -209,6 +210,7 @@ void City::init (u16 owner, u16 x, u16 y) {
     m_conn_city_sw = U16_KEY_NULL;
     m_conn_city_se = U16_KEY_NULL;
     m_road_conn = 0;
+    m_misc.m_city_has_worker = 1;
 }
 
 void City::bind_statics (const RuntimeStatics& st) {
@@ -540,6 +542,32 @@ bool City::is_frontier () const {
 
 void City::city_no_longer_frontier () {
     m_is_frontier_city = 0;
+}
+
+bool City::city_has_worker () const {
+    return m_misc.m_city_has_worker != 0;
+}
+
+void City::set_city_has_worker (u8 on) {
+    m_misc.m_city_has_worker = on != 0 ? 1u : 0u;
+}
+
+void City::refresh_city_worker_flags (GameState& state, u16 player) {
+    GAME_EXPECT(state.m_player_states != nullptr, "City::refresh_city_worker_flags null player states");
+    GAME_EXPECT(player < state.m_player_n, "City::refresh_city_worker_flags player out of bounds");
+    PlayerState& ps = state.m_player_states[player];
+    if (ps.m_tech_just_researched == 0) {
+        return;
+    }
+    const u16 cn = state.m_cities.get_city_count();
+    for (u16 i = 0; i < cn; ++i) {
+        City* c = state.m_cities.get_city(i);
+        if (c == nullptr || c->get_owner() != player) {
+            continue;
+        }
+        c->m_misc.m_city_has_worker = 1;
+    }
+    ps.m_tech_just_researched = 0;
 }
 
 //================================================================================================================================

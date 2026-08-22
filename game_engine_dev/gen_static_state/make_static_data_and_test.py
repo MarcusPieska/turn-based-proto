@@ -40,6 +40,8 @@ if __name__ == "__main__":
     specs.append(("wonder", "Wonder", std_members + "u32 cost; ItemEffectsStruct effects;", "cost", "effects.items[0].type"))
     specs.append(("map_overlay", "MapOverlay", "", "None", "None"))
     specs.append(("map_attribute", "MapAttribute", "", "None", "None"))
+    specs.append(("map_terrain", "MapTerrain", "", "None", "None"))
+    specs.append(("map_climate", "MapClimate", "", "None", "None"))
     specs.append(("worker_job_target", "WorkerJobTarget", "", "None", "None"))
     specs.append(("worker_job_type", "WorkerJobType", "", "None", "None"))
     specs.append(("worker_job", "WorkerJob", std_members + "u32 cost; u16 target_idx; u16 target_kind; u16 type;", "cost", "type"))

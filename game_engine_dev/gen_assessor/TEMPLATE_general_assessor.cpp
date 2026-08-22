@@ -13,6 +13,7 @@
 #include "assert_log.h"
 #include "general_assessor.h"
 #include "general_bit_bank.h"
+#include "tile_req_chk.h"
 [ASSESS_INCLUDES_TAG]
 
 //================================================================================================================================
@@ -69,6 +70,11 @@ bool GeneralAssessor::chk (const ItemReqsStruct& reqs, const AssessorCtx& ctx) {
         }
         switch (tp) {
             [CHK_SWITCH_CASES_TAG]
+            case ITEM_REQ_TYPE_TILE:
+                if (!TileReqChk::chk_req(reqs.added_args[j], ix, ctx)) {
+                    return false;
+                }
+                break;
             default:
                 return false;
         }
@@ -77,6 +83,32 @@ bool GeneralAssessor::chk (const ItemReqsStruct& reqs, const AssessorCtx& ctx) {
 }
 
 [ASSESS_IMPLEMENTATIONS_TAG]
+
+#ifdef TILE_REQ_CHK_STUB
+
+bool TileReqChk::chk_req (u8, u16, const AssessorCtx&) {
+    return false;
+}
+
+bool TileReqChk::chk_reqs (const ItemReqsStruct& reqs, const AssessorCtx& ctx) {
+    for (u32 j = 0; j < MAX_PREREQ_COUNT; ++j) {
+        if (reqs.types[j] == ITEM_REQ_TYPE_NONE) {
+            break;
+        }
+        if (reqs.types[j] == ITEM_REQ_TYPE_TILE) {
+            if (!chk_req(reqs.added_args[j], reqs.indices[j], ctx)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+#else
+
+#include "tile_req_chk.cpp"
+
+#endif
 
 //================================================================================================================================
 //=> - End -

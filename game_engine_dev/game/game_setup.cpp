@@ -21,6 +21,7 @@
 #include "player_ledger.h"
 #include "tile_yields.h"
 #include "tile_working.h"
+#include "tile_imp_helper.h"
 #include "worker_guidance.h"
 #include "city_tile_manager.h"
 #include "city_border.h"
@@ -363,6 +364,7 @@ bool GameSetup::finish_with_starts (GameState* state, const SpgPickCoords& start
     CityTileManager::bind_cities(&state->m_cities);
     WorkerGuidance::bind_statics(g_rt_statics);
     WorkerGuidance::bind_map(&state->m_map);
+    TileImpHelper::bind_statics(g_rt_statics);
     if (!init_players(state, player_n, sw_n)) {
         state->clear();
         return false;

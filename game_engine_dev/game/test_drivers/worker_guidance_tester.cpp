@@ -14,6 +14,7 @@
 #include "runtime_statics.h"
 #include "std_add_helper.h"
 #include "tile_usage.h"
+#include "tile_imp_helper.h"
 #include "tile_work_assessor.h"
 #include "tile_yields.h"
 #include "worker_guidance.h"
@@ -120,6 +121,14 @@ static cstr imp_nm (const RuntimeStatics& st, u16 idx) {
     return st.worker_job_imp().get_name(WorkerJobImpStaticDataKey::from_raw(idx));
 }
 
+static void cert_has_pending (u16 x, u16 y, TileAssignIntent intent, cstr tag) {
+    u16 job = 0;
+    u16 imp = 0;
+    const bool nw = WorkerGuidance::next_work(x, y, intent, &job, &imp);
+    const bool hp = WorkerGuidance::has_pending_work(x, y, intent);
+    note_result(nw == hp, tag);
+}
+
 static void test_farm_work_chain (const RuntimeStatics& st, GameArraySimple& map) {
     u16 x = 0;
     u16 y = 0;
@@ -128,6 +137,8 @@ static void test_farm_work_chain (const RuntimeStatics& st, GameArraySimple& map
         return;
     }
     note_result(true, "guidance: find empty plains");
+    map.tile(x, y)->m_riv = 1u;
+    cert_has_pending(x, y, TILE_ASSIGN_FOOD, "guidance: has_pending empty plains food");
     u16 job = 0;
     u16 imp = 0;
     note_result(WorkerGuidance::next_work(x, y, TILE_ASSIGN_FOOD, &job, &imp), "guidance: next on empty plains");
@@ -135,6 +146,7 @@ static void test_farm_work_chain (const RuntimeStatics& st, GameArraySimple& map
     note_result(imp == U16_KEY_NULL, "guidance: empty plains -> no imp");
     note_result(WorkerGuidance::apply_work(x, y, job, imp), "guidance: apply cultivate");
     note_result(map.get_overlay(x, y) == static_cast<u16>(MapOverlay::Farm), "guidance: tile is Farm");
+    cert_has_pending(x, y, TILE_ASSIGN_FOOD, "guidance: has_pending on Farm");
     note_result(WorkerGuidance::next_work(x, y, TILE_ASSIGN_FOOD, &job, &imp), "guidance: next on Farm");
     note_result(job == static_cast<u16>(WorkerJob::Cultivate_Farm), "guidance: Farm -> mother job");
     note_result(imp != U16_KEY_NULL, "guidance: Farm -> imp offered");
@@ -144,11 +156,39 @@ static void test_farm_work_chain (const RuntimeStatics& st, GameArraySimple& map
     note_result(std::strcmp(imp_nm(st, imp), "Irrigation") == 0, "guidance: first imp is Irrigation");
     note_result(WorkerGuidance::apply_work(x, y, job, imp), "guidance: apply Irrigation");
     note_result(StdAddHelper::has_irr(map.tile(x, y)), "guidance: Irrigation bit set");
+    cert_has_pending(x, y, TILE_ASSIGN_FOOD, "guidance: has_pending after Irrigation");
     note_result(WorkerGuidance::next_work(x, y, TILE_ASSIGN_FOOD, &job, &imp), "guidance: next after Irrigation");
     note_result(std::strcmp(imp_nm(st, imp), "Water Mill") == 0, "guidance: second imp is Water Mill");
     note_result(WorkerGuidance::apply_work(x, y, job, imp), "guidance: apply Water Mill");
     note_result(StdAddHelper::has_mill(map.tile(x, y)), "guidance: Water Mill bit set on Farm");
+    cert_has_pending(x, y, TILE_ASSIGN_FOOD, "guidance: has_pending farm done");
     note_result(!WorkerGuidance::next_work(x, y, TILE_ASSIGN_FOOD, &job, &imp), "guidance: Farm fully improved");
+}
+
+static void test_forest_work_chain (const RuntimeStatics& st, GameArraySimple& map) {
+    (void)st;
+    u16 x = 0;
+    u16 y = 0;
+    if (!find_empty_plains(map, &x, &y)) {
+        note_result(false, "guidance: find empty plains for forest");
+        return;
+    }
+    note_result(true, "guidance: find empty plains for forest");
+    u16 job = 0;
+    u16 imp = 0;
+    note_result(WorkerGuidance::next_work(x, y, TILE_ASSIGN_PROD, &job, &imp), "guidance: next prod on empty plains");
+    note_result(job == static_cast<u16>(WorkerJob::Plant_Forest), "guidance: empty plains -> Plant Forest");
+    note_result(imp == U16_KEY_NULL, "guidance: empty plains -> no imp");
+    note_result(WorkerGuidance::apply_work(x, y, job, imp), "guidance: apply plant forest");
+    note_result(map.get_overlay(x, y) == static_cast<u16>(MapOverlay::Forest), "guidance: tile is Forest");
+    note_result(WorkerGuidance::next_work(x, y, TILE_ASSIGN_PROD, &job, &imp), "guidance: next prod on Forest");
+    note_result(job == static_cast<u16>(WorkerJob::Plant_Forest), "guidance: Forest -> mother job");
+    note_result(imp != U16_KEY_NULL, "guidance: Forest -> imp offered");
+    note_result(WorkerGuidance::apply_work(x, y, job, imp), "guidance: apply first forest imp");
+    note_result(WorkerGuidance::next_work(x, y, TILE_ASSIGN_PROD, &job, &imp), "guidance: next after first forest imp");
+    note_result(imp != U16_KEY_NULL, "guidance: Forest -> second imp offered");
+    note_result(WorkerGuidance::apply_work(x, y, job, imp), "guidance: apply second forest imp");
+    note_result(!WorkerGuidance::next_work(x, y, TILE_ASSIGN_PROD, &job, &imp), "guidance: Forest fully improved");
 }
 
 static void test_clear_before_farm (GameArraySimple& map) {
@@ -225,7 +265,9 @@ int main (int argc, char* argv[]) {
     TileWorkAssessor::bind_ctx(&wctx);
     WorkerGuidance::bind_statics(&st);
     WorkerGuidance::bind_map(&map);
+    TileImpHelper::bind_statics(&st);
     test_farm_work_chain(st, map);
+    test_forest_work_chain(st, map);
     test_clear_before_farm(map);
     std::printf("=======================================================\n");
     std::printf(" WORKER GUIDANCE: TOTAL FAILURES: %d/%d\n", total_test_fails, total_tests_run);

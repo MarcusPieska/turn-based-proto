@@ -21,6 +21,7 @@
 #include "tech_static_key.h"
 #include "tile_work_assessor.h"
 #include "tile_yields.h"
+#include "tile_imp_helper.h"
 #include "worker_guidance.h"
 #include "worker_imp_select.h"
 #include "worker_job_enum.h"
@@ -619,6 +620,7 @@ int main (int argc, char* argv[]) {
     TileWorkAssessor::bind_ctx(&wctx);
     WorkerGuidance::bind_statics(&st);
     WorkerGuidance::bind_map(&map);
+    TileImpHelper::bind_statics(&st);
 
     std::printf("=======================================================\n");
     std::printf(" WORKER CATALOG CERT  seed=%u  print_level=%d\n", G_SEED, print_level);

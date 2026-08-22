@@ -7,18 +7,21 @@
 #include "assert_log.h"
 #include "game_array_simple.h"
 #include "game_map_defs.h"
+#include "map_overlay_enum.h"
+#include "overlay_yields.h"
 #include "resource_static_data.h"
 #include "resource_static_key.h"
 #include "runtime_statics.h"
 #include "std_add_helper.h"
+#include "tile_attr_tables.h"
 #include "tile_imp_helper.h"
 #include "tile_work_assessor.h"
 #include "worker_imp_select.h"
 #include "worker_job_enum.h"
 #include "worker_job_imp_static_key.h"
 #include "worker_job_static_key.h"
+#include "worker_job_target_enum.h"
 #include "worker_job_type_enum.h"
-#include "map_overlay_enum.h"
 
 #include <cstring>
 
@@ -61,6 +64,24 @@ static u16 res_job_idx (const RuntimeStatics* st, u16 ri) {
     return wj;
 }
 
+static u16 mother_job_for_ov (const RuntimeStatics* st, u16 ov) {
+    if (st == nullptr || ov >= OverlayYields::ov_n()) {
+        return U16_KEY_NULL;
+    }
+    const u16 jn = st->worker_job().get_item_count();
+    for (u16 j = 0; j < jn; ++j) {
+        const WorkerJobStaticDataStruct& row = st->worker_job().get_item(WorkerJobStaticDataKey::from_raw(j));
+        if (row.target_kind != static_cast<u16>(WorkerJobTarget::Overlay) || row.target_idx != ov) {
+            continue;
+        }
+        const WorkerJobType typ = static_cast<WorkerJobType>(row.type);
+        if (typ == WorkerJobType::Farm || typ == WorkerJobType::Forest) {
+            return j;
+        }
+    }
+    return U16_KEY_NULL;
+}
+
 static bool ensure_farm (GameArraySimple& map, u16 x, u16 y) {
     const u16 ov = map.get_overlay(x, y);
     if (ov == static_cast<u16>(MapOverlay::City) || ov == static_cast<u16>(MapOverlay::Mine)
@@ -78,6 +99,117 @@ static bool ensure_farm (GameArraySimple& map, u16 x, u16 y) {
 
 static bool job_ok (u16 job_idx, u16 x, u16 y) {
     return TileWorkAssessor::tile_ok(job_idx, x, y);
+}
+
+static bool clear_work_food (const RuntimeStatics* st, GameArraySimple& map, u16 x, u16 y, u16* job) {
+    (void)st;
+    if (map.get_terrain(x, y) != TERR_PLAINS[0]) {
+        return false;
+    }
+    const u16 cj = clear_job_for_ov(map.get_overlay(x, y));
+    if (cj == U16_KEY_NULL || !job_ok(cj, x, y)) {
+        return false;
+    }
+    *job = cj;
+    return true;
+}
+
+static bool res_has_work (const RuntimeStatics* st, GameArraySimple& map, u16 x, u16 y) {
+    const u16 rj = res_job_idx(st, map.get_res(x, y));
+    if (rj == U16_KEY_NULL) {
+        return false;
+    }
+    const u16 cj = clear_job_for_ov(map.get_overlay(x, y));
+    if (cj != U16_KEY_NULL && job_ok(cj, x, y)) {
+        return true;
+    }
+    const u16 job_ov = st->worker_job().get_item(WorkerJobStaticDataKey::from_raw(rj)).target_idx;
+    if (map.get_overlay(x, y) == job_ov) {
+        return TileWorkAssessor::has_job_work(x, y, rj);
+    }
+    return job_ok(rj, x, y);
+}
+
+static bool res_next_work (const RuntimeStatics* st, GameArraySimple& map, u16 x, u16 y, u16* job, u16* imp) {
+    const u16 rj = res_job_idx(st, map.get_res(x, y));
+    if (rj == U16_KEY_NULL) {
+        return false;
+    }
+    const u16 cj = clear_job_for_ov(map.get_overlay(x, y));
+    if (cj != U16_KEY_NULL && job_ok(cj, x, y)) {
+        *job = cj;
+        *imp = U16_KEY_NULL;
+        return true;
+    }
+    const u16 job_ov = st->worker_job().get_item(WorkerJobStaticDataKey::from_raw(rj)).target_idx;
+    if (map.get_overlay(x, y) == job_ov) {
+        const u16 pick = WorkerImpSelect::pick(x, y, rj);
+        if (pick == U16_KEY_NULL) {
+            return false;
+        }
+        *job = rj;
+        *imp = pick;
+        return true;
+    }
+    if (!job_ok(rj, x, y)) {
+        return false;
+    }
+    *job = rj;
+    *imp = U16_KEY_NULL;
+    return true;
+}
+
+static bool rank_has_work (const RuntimeStatics* st, GameArraySimple& map, u16 x, u16 y, TileAssignIntent intent) {
+    u16 rn = 0;
+    const u16* ranks = OverlayYields::rank(intent, &rn);
+    if (ranks == nullptr) {
+        return false;
+    }
+    for (u16 i = 0; i < rn; ++i) {
+        const u16 mj = mother_job_for_ov(st, ranks[i]);
+        if (mj == U16_KEY_NULL) {
+            continue;
+        }
+        if (map.get_overlay(x, y) == ranks[i]) {
+            if (TileWorkAssessor::has_job_work(x, y, mj)) {
+                return true;
+            }
+            continue;
+        }
+        if (job_ok(mj, x, y)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static bool rank_next_work (const RuntimeStatics* st, GameArraySimple& map, u16 x, u16 y, TileAssignIntent intent, u16* job, u16* imp) {
+    u16 rn = 0;
+    const u16* ranks = OverlayYields::rank(intent, &rn);
+    if (ranks == nullptr) {
+        return false;
+    }
+    for (u16 i = 0; i < rn; ++i) {
+        const u16 mj = mother_job_for_ov(st, ranks[i]);
+        if (mj == U16_KEY_NULL) {
+            continue;
+        }
+        if (map.get_overlay(x, y) == ranks[i]) {
+            const u16 pick = WorkerImpSelect::pick(x, y, mj);
+            if (pick == U16_KEY_NULL) {
+                continue;
+            }
+            *job = mj;
+            *imp = pick;
+            return true;
+        }
+        if (job_ok(mj, x, y)) {
+            *job = mj;
+            *imp = U16_KEY_NULL;
+            return true;
+        }
+    }
+    return false;
 }
 
 static bool apply_imp (const RuntimeStatics& st, GameArraySimple& map, u16 x, u16 y, u16 imp_idx) {
@@ -135,8 +267,13 @@ static bool apply_overlay_job (GameArraySimple& map, u16 x, u16 y, u16 job_idx) 
 
 void WorkerGuidance::bind_statics (const RuntimeStatics* st) {
     m_st = st;
-    if (st != nullptr) {
-        TileWorkAssessor::setup(*st);
+    if (st == nullptr) {
+        OverlayYields::clear();
+        return;
+    }
+    TileWorkAssessor::setup(*st);
+    if (TileAttrTables::ready()) {
+        OverlayYields::setup(*st);
     }
 }
 
@@ -150,26 +287,26 @@ u8 WorkerGuidance::usage_for_intent (u16 x, u16 y, TileAssignIntent intent) {
     if (res_job_idx(m_st, m_map->get_res(x, y)) != U16_KEY_NULL) {
         return TILE_USAGE_RESOURCE;
     }
-    if (intent == TILE_ASSIGN_FOOD) {
-        if (m_map->get_terrain(x, y) != TERR_PLAINS[0]) {
-            return TILE_USAGE_NONE;
-        }
-        const u16 cj = clear_job_for_ov(m_map->get_overlay(x, y));
-        if (cj != U16_KEY_NULL && job_ok(cj, x, y)) {
-            return TILE_USAGE_FOOD;
-        }
-        if (m_map->get_overlay(x, y) == static_cast<u16>(MapOverlay::Farm)) {
-            const u16 imp = WorkerImpSelect::pick(x, y, static_cast<u16>(WorkerJob::Cultivate_Farm));
-            if (imp != U16_KEY_NULL) {
-                return TILE_USAGE_FOOD;
-            }
-        }
-        if (job_ok(static_cast<u16>(WorkerJob::Cultivate_Farm), x, y)) {
-            return TILE_USAGE_FOOD;
-        }
-        return TILE_USAGE_NONE;
+    u16 job = U16_KEY_NULL;
+    if (intent == TILE_ASSIGN_FOOD && clear_work_food(m_st, *m_map, x, y, &job)) {
+        return TILE_USAGE_FOOD;
     }
-    return TILE_USAGE_PROD;
+    if (rank_has_work(m_st, *m_map, x, y, intent)) {
+        return intent == TILE_ASSIGN_FOOD ? TILE_USAGE_FOOD : TILE_USAGE_PROD;
+    }
+    return TILE_USAGE_NONE;
+}
+
+bool WorkerGuidance::has_pending_work (u16 x, u16 y, TileAssignIntent intent) {
+    GAME_EXPECT(m_map != nullptr, "WorkerGuidance map");
+    if (res_has_work(m_st, *m_map, x, y)) {
+        return true;
+    }
+    u16 job = U16_KEY_NULL;
+    if (intent == TILE_ASSIGN_FOOD && clear_work_food(m_st, *m_map, x, y, &job)) {
+        return true;
+    }
+    return rank_has_work(m_st, *m_map, x, y, intent);
 }
 
 bool WorkerGuidance::next_work (u16 x, u16 y, TileAssignIntent intent, u16* job, u16* imp) {
@@ -177,50 +314,14 @@ bool WorkerGuidance::next_work (u16 x, u16 y, TileAssignIntent intent, u16* job,
     GAME_EXPECT(job != nullptr && imp != nullptr, "WorkerGuidance next_work out");
     *job = U16_KEY_NULL;
     *imp = U16_KEY_NULL;
-    const u16 rj = res_job_idx(m_st, m_map->get_res(x, y));
-    if (rj != U16_KEY_NULL) {
-        const u16 cj = clear_job_for_ov(m_map->get_overlay(x, y));
-        if (cj != U16_KEY_NULL && job_ok(cj, x, y)) {
-            *job = cj;
-            return true;
-        }
-        if (job_ok(rj, x, y)) {
-            *job = rj;
-            return true;
-        }
-        return false;
-    }
-    if (intent == TILE_ASSIGN_FOOD) {
-        if (m_map->get_terrain(x, y) != TERR_PLAINS[0]) {
-            return false;
-        }
-        const u16 cj = clear_job_for_ov(m_map->get_overlay(x, y));
-        if (cj != U16_KEY_NULL && job_ok(cj, x, y)) {
-            *job = cj;
-            return true;
-        }
-        const u16 farm_job = static_cast<u16>(WorkerJob::Cultivate_Farm);
-        if (m_map->get_overlay(x, y) == static_cast<u16>(MapOverlay::Farm)) {
-            const u16 pick = WorkerImpSelect::pick(x, y, farm_job);
-            if (pick != U16_KEY_NULL) {
-                *job = farm_job;
-                *imp = pick;
-                return true;
-            }
-            return false;
-        }
-        if (job_ok(farm_job, x, y)) {
-            *job = farm_job;
-            return true;
-        }
-        return false;
-    }
-    const u16 pf = static_cast<u16>(WorkerJob::Plant_Forest);
-    if (job_ok(pf, x, y)) {
-        *job = pf;
+    if (res_next_work(m_st, *m_map, x, y, job, imp)) {
         return true;
     }
-    return false;
+    if (intent == TILE_ASSIGN_FOOD && clear_work_food(m_st, *m_map, x, y, job)) {
+        *imp = U16_KEY_NULL;
+        return true;
+    }
+    return rank_next_work(m_st, *m_map, x, y, intent, job, imp);
 }
 
 u16 WorkerGuidance::next_job (u16 x, u16 y, TileAssignIntent intent) {

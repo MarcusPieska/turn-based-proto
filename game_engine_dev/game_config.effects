@@ -117,6 +117,10 @@ National Serum Institute       : booster(SANITATION, 2, CIV, COUNT)
 National Intelligence Agency   : booster(CULTURE, 3, CITY, COUNT)
 Red Cross                      : booster(CULTURE, 3, CITY, COUNT)
 
+Irrigation                     : booster(FOOD, 1, LOCAL, COUNT)
+Water Mill                     : booster(PRODUCTION, 1, LOCAL, COUNT)
+
+Saw Mill                       : booster(PRODUCTION, 1, LOCAL, COUNT)
 
 Wooden Timbering               : booster(RESOURCE, 1, LOCAL, COUNT)
 Leat Systems                   : booster(RESOURCE, 1, LOCAL, COUNT)

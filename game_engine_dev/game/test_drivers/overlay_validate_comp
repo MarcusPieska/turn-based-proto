@@ -3,9 +3,16 @@ set -e
 
 cd "$(dirname "$0")"
 
-INC="-I.. -I../.. -I../../misc -I../../data_io -I../../map_loader -I../../simple_map_gen -I../../adv_map_gen -I../../game"
+LIB_SO="../../data_io/runtime_static_loader_lib.so"
+if [ ! -f "$LIB_SO" ]; then
+    echo "missing $LIB_SO - run ../../data_io/runtime_static_loader_lib_comp first"
+    exit 1
+fi
+
+INC="-I.. -I../.. -I../../misc -I../../data_io -I../../static_state -I../../city -I../../city/assessor -I../../city/effector -I../../gen_bit_banks -I../../map_loader -I../../simple_map_gen -I../../adv_map_gen -I../../game"
 CXXFLAGS="-std=c++17 -Wall -Wextra -g -DGAME_ASSERT_ENABLE"
 
+g++ $CXXFLAGS $INC -c ../../data_io/runtime_static_loader.cpp -o runtime_static_loader.o
 g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
 g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_data.cpp -o map_terrain_data.o
 g++ $CXXFLAGS $INC -c ../../map_loader/map_loader.cpp -o map_loader.o
@@ -18,6 +25,7 @@ g++ $CXXFLAGS $INC -c ../factory_game_array_simple.cpp -o factory_game_array_sim
 g++ $CXXFLAGS $INC -c overlay_validate_tester.cpp -o overlay_validate_tester.o
 
 g++ $CXXFLAGS -o overlay_validate_tester \
+    runtime_static_loader.o \
     map_terrain_validate.o \
     map_terrain_data.o \
     map_loader.o \
@@ -27,9 +35,12 @@ g++ $CXXFLAGS -o overlay_validate_tester \
     std_add_helper.o \
     tile_imp_helper.o \
     factory_game_array_simple.o \
-    overlay_validate_tester.o
+    overlay_validate_tester.o \
+    -ldl \
+    $LIB_SO \
+    -Wl,-rpath,'$ORIGIN/../../data_io'
 
 ./overlay_validate_tester "$@"
 
-rm -f map_terrain_validate.o map_terrain_data.o map_loader.o runtime_trace_dbg.o assert_log.o \
+rm -f runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.o runtime_trace_dbg.o assert_log.o \
     game_array_simple.o std_add_helper.o tile_imp_helper.o factory_game_array_simple.o overlay_validate_tester.o

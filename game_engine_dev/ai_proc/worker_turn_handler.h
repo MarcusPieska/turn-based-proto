@@ -13,9 +13,9 @@ class GameState;
 //=> - WorkerTurnHandler -
 //================================================================================================================================
 //
-//  Per-worker unit step. Tallies into m_last_turn_worker_count, then applies one WorkerGuidance job on a
-//  home-city worked tile. PlayerState::m_worker_tile_opt_scan picks best vs first hit;
-//  m_worker_tile_opt_reassign re-runs stable_food_max_production after a successful job.
+//  Per-worker unit step. Tallies into m_last_turn_worker_count, applies one WorkerGuidance job on a
+//  home-city worked tile via WorkerBuildProgress (mp deficit freeze). Each worker keeps a work tile until
+//  it is fully upgraded; only then scan (resource overlay, pick_first, or pick_best when disk is done).
 //
 //================================================================================================================================
 
@@ -27,6 +27,7 @@ public:
 
     static void handle (GameState& state, u16 unit_idx);
     static void set_job_note (JobNoteFn fn);
+    static void clear_work_tgt (u16 unit_idx);
 
 private:
     static JobNoteFn m_job_note; // Optional sink for each successful apply

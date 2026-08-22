@@ -28,12 +28,15 @@
 //=> - Local helpers -
 //================================================================================================================================
 
-static AssessorCtx make_ctx (const TileWorkCtx* tw) {
+static AssessorCtx make_ctx (const TileWorkCtx* tw, const GameArraySimple* map, u16 x, u16 y) {
     AssessorCtx ctx = {};
     if (tw != nullptr) {
         ctx.m_tech = tw->m_tech;
         ctx.m_resource = tw->m_resource;
     }
+    ctx.m_map = map;
+    ctx.m_x = x;
+    ctx.m_y = y;
     return ctx;
 }
 
@@ -183,7 +186,7 @@ static bool place_ok_resource (const RuntimeStatics& st, const GameArraySimple& 
     }
     const u8 terr = map.get_terrain(x, y);
     if (terr == TERR_MOUNTAINS[0] || terr == TERR_VOLCANO[0]) {
-        return map.get_road_typ(x, y) != ROAD_NONE;
+        return road_is_built(map.get_road_typ(x, y));
     }
     return true;
 }
@@ -283,7 +286,7 @@ u16 TileWorkAssessor::assess_job (u16 x, u16 y, u16 job_idx, TileWorkCand* out, 
     if (out == nullptr || out_cap == 0 || m_st == nullptr) {
         return 0;
     }
-    const AssessorCtx ctx = make_ctx(m_ctx);
+    const AssessorCtx ctx = make_ctx(m_ctx, m_map, x, y);
     if (!job_unlocked(*m_st, job_idx, ctx)) {
         return 0;
     }
@@ -308,6 +311,50 @@ u16 TileWorkAssessor::assess_job (u16 x, u16 y, u16 job_idx, TileWorkCand* out, 
     u16 n = 0;
     push_cand(out, out_cap, &n, job_idx, U16_KEY_NULL);
     return n;
+}
+
+bool TileWorkAssessor::has_job_work (u16 x, u16 y, u16 job_idx) {
+    if (m_st == nullptr || m_map == nullptr) {
+        return false;
+    }
+    if (job_idx >= m_st->worker_job().get_item_count()) {
+        return false;
+    }
+    const AssessorCtx ctx = make_ctx(m_ctx, m_map, x, y);
+    if (!job_unlocked(*m_st, job_idx, ctx)) {
+        return false;
+    }
+    const WorkerJobStaticDataStruct& job = m_st->worker_job().get_item(WorkerJobStaticDataKey::from_raw(job_idx));
+    if (job.target_kind != static_cast<u16>(WorkerJobTarget::Overlay)
+        || job.type == static_cast<u16>(WorkerJobType::Clearing)) {
+        return tile_ok(job_idx, x, y);
+    }
+    const u16 tile_ov = m_map->get_overlay(x, y);
+    const u16 job_ov = job.target_idx;
+    if (tile_ov == job_ov) {
+        const u16 mask = TileImpHelper::payload_mask_for_ov(*m_st, job_ov);
+        const u16 add = m_map->get_add_idx(x, y);
+        if ((mask & static_cast<u16>(~add)) == 0u) {
+            return false;
+        }
+        const WorkerJobImpIndex& ix = m_st->worker_job_imp_index();
+        const u16 imp_n = ix.imp_n(job_ov);
+        const u16* imps = ix.imps(job_ov);
+        if (imps == nullptr || imp_n == 0u) {
+            return false;
+        }
+        for (u16 i = 0; i < imp_n; ++i) {
+            const u16 imp_idx = imps[i];
+            if (imp_already_set(*m_map, x, y, imp_idx, *m_st)) {
+                continue;
+            }
+            if (imp_unlocked(*m_st, imp_idx, ctx)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    return tile_ok(job_idx, x, y);
 }
 
 u16 TileWorkAssessor::assess (u16 x, u16 y, TileWorkCand* out, u16 out_cap) {

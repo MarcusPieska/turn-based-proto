@@ -7,9 +7,14 @@
 #include "worker_turn_handler.h"
 #include "assert_log.h"
 #include "city.h"
+#include "city_connector.h"
 #include "city_tile_manager.h"
 #include "circular_tile_areas.h"
 #include "game_state.h"
+#include "map_overlay_enum.h"
+#include "overlay_yields.h"
+#include "resource_static_data.h"
+#include "resource_static_key.h"
 #include "runtime_statics.h"
 #include "tile_usage.h"
 #include "tile_working.h"
@@ -17,9 +22,12 @@
 #include "unit_add_struct.h"
 #include "unit_add_vector_key.h"
 #include "unit_static_key.h"
-#include "unit_type_static_key.h"
+#include "worker_build_progress.h"
 #include "worker_guidance.h"
 #include "worker_helper.h"
+#include "worker_job_static_key.h"
+#include "worker_job_target_enum.h"
+#include "worker_job_type_enum.h"
 
 //================================================================================================================================
 //=> - Statics -
@@ -27,15 +35,128 @@
 
 WorkerTurnHandler::JobNoteFn WorkerTurnHandler::m_job_note = nullptr;
 
+struct WthWorkTgt {
+    u16 m_x; // Active work tile x; U16_KEY_NULL if unset
+    u16 m_y; // Active work tile y; U16_KEY_NULL if unset
+    u8 m_on; // 1 when this worker is committed to m_x/m_y
+};
+
+static WthWorkTgt* m_wtgt = nullptr; 
+static u32 m_wtgt_n = 0;
+
+static void wtgt_ensure (u16 unit_idx) {
+    if (unit_idx < m_wtgt_n) {
+        return;
+    }
+    const u32 new_n = static_cast<u32>(unit_idx) + 1u;
+    WthWorkTgt* p = new WthWorkTgt[new_n]();
+    if (m_wtgt != nullptr) {
+        std::memcpy(p, m_wtgt, static_cast<size_t>(m_wtgt_n) * sizeof(WthWorkTgt));
+        delete[] m_wtgt;
+    }
+    m_wtgt = p;
+    m_wtgt_n = new_n;
+}
+
+static void wtgt_clr (u16 unit_idx) {
+    if (unit_idx >= m_wtgt_n || m_wtgt == nullptr) {
+        return;
+    }
+    m_wtgt[unit_idx].m_x = U16_KEY_NULL;
+    m_wtgt[unit_idx].m_y = U16_KEY_NULL;
+    m_wtgt[unit_idx].m_on = 0u;
+}
+
+static void wtgt_set (u16 unit_idx, u16 x, u16 y) {
+    wtgt_ensure(unit_idx);
+    m_wtgt[unit_idx].m_x = x;
+    m_wtgt[unit_idx].m_y = y;
+    m_wtgt[unit_idx].m_on = 1u;
+}
+
+static bool wtgt_get (u16 unit_idx, u16* x, u16* y) {
+    if (unit_idx >= m_wtgt_n || m_wtgt == nullptr || m_wtgt[unit_idx].m_on == 0u) {
+        return false;
+    }
+    *x = m_wtgt[unit_idx].m_x;
+    *y = m_wtgt[unit_idx].m_y;
+    return true;
+}
+
+static bool tile_cand (
+    GameState& state,
+    u16 city_idx,
+    u16 ux,
+    u16 uy,
+    TileAssignIntent* ointent,
+    u16* ojob,
+    u16* oimp);
+
+static bool pick_active (
+    GameState& state,
+    u16 unit_idx,
+    u16 city_idx,
+    u16* ox,
+    u16* oy,
+    TileAssignIntent* ointent,
+    u16* ojob,
+    u16* oimp)
+{
+    u16 x = 0;
+    u16 y = 0;
+    if (!wtgt_get(unit_idx, &x, &y)) {
+        return false;
+    }
+    if (state.m_map.get_planned_city(x, y) != 0u) {
+        wtgt_clr(unit_idx);
+        return false;
+    }
+    if (tile_cand(state, city_idx, x, y, ointent, ojob, oimp)) {
+        *ox = x;
+        *oy = y;
+        return true;
+    }
+    const TileAssignIntent intent = static_cast<TileAssignIntent>(state.m_map.get_tile_usage(x, y));
+    u16 job = U16_KEY_NULL;
+    u16 imp = U16_KEY_NULL;
+    if (!WorkerGuidance::next_work(x, y, intent, &job, &imp)) {
+        wtgt_clr(unit_idx);
+        return false;
+    }
+    *ox = x;
+    *oy = y;
+    *ointent = intent;
+    *ojob = job;
+    *oimp = imp;
+    return true;
+}
+
 //================================================================================================================================
 //=> - Helpers -
 //================================================================================================================================
 
 static bool is_worker_typ (const GameState& state, u16 typ_idx) {
     const UnitStaticDataKey uk = UnitStaticDataKey::from_raw(typ_idx);
-    const u16 ut = state.m_statics->unit().get_item(uk).type;
-    const UnitTypeStaticDataKey tk = UnitTypeStaticDataKey::from_raw(ut);
-    return std::strcmp(state.m_statics->unit_type().get_name(tk), "LAND_WORKER") == 0;
+    return state.m_statics->unit().get_item(uk).type == state.m_land_worker_type_idx;
+}
+
+static u16 res_job_idx (const RuntimeStatics* st, u16 ri) {
+    if (st == nullptr || ri == U16_KEY_NULL) {
+        return U16_KEY_NULL;
+    }
+    const ResourceStaticData& rs = st->resource();
+    if (ri >= rs.get_item_count()) {
+        return U16_KEY_NULL;
+    }
+    const u16 wj = rs.get_item(ResourceStaticDataKey::from_raw(ri)).worker_job_idx;
+    if (wj == U16_KEY_NULL || wj >= st->worker_job().get_item_count()) {
+        return U16_KEY_NULL;
+    }
+    const u16 typ = st->worker_job().get_item(WorkerJobStaticDataKey::from_raw(wj)).type;
+    if (static_cast<WorkerJobType>(typ) != WorkerJobType::Resource) {
+        return U16_KEY_NULL;
+    }
+    return wj;
 }
 
 static bool home_city (const GameState& state, const UnitAddStruct* unit, u16* city_idx, u16* cx, u16* cy) {
@@ -86,6 +207,171 @@ static bool tile_cand (
     return true;
 }
 
+static bool tile_has_work (GameState& state, u16 city_idx, u16 ux, u16 uy) {
+    u16 job = U16_KEY_NULL;
+    u16 imp = U16_KEY_NULL;
+    TileAssignIntent intent = TILE_ASSIGN_FOOD;
+    if (state.m_map.get_planned_city(ux, uy) != 0u) {
+        return false;
+    }
+    if (tile_cand(state, city_idx, ux, uy, &intent, &job, &imp)) {
+        return true;
+    }
+    intent = static_cast<TileAssignIntent>(state.m_map.get_tile_usage(ux, uy));
+    return WorkerGuidance::next_work(ux, uy, intent, &job, &imp);
+}
+
+static bool disk_tile_imp_pending (GameState& state, u16 ux, u16 uy) {
+    if (state.m_map.get_planned_city(ux, uy) != 0u) {
+        return false;
+    }
+    const TileAssignIntent intent = static_cast<TileAssignIntent>(state.m_map.get_tile_usage(ux, uy));
+    return WorkerGuidance::has_pending_work(ux, uy, intent);
+}
+
+static bool disk_tile_pending (GameState& state, u16 ux, u16 uy) {
+    if (CityConnector::has_virtual_at(state, ux, uy)) {
+        return true;
+    }
+    return disk_tile_imp_pending(state, ux, uy);
+}
+
+static bool local_imp_fully_built (GameState& state, u16 city_idx, u16 cx, u16 cy) {
+    const CircArea area = CityTileManager::work_area();
+    for (u16 i = 0; i < area.m_lim; ++i) {
+        const i32 x = static_cast<i32>(cx) + static_cast<i32>(area.m_brd[i][0]);
+        const i32 y = static_cast<i32>(cy) + static_cast<i32>(area.m_brd[i][1]);
+        if (x < 0 || y < 0) {
+            continue;
+        }
+        const u16 ux = static_cast<u16>(x);
+        const u16 uy = static_cast<u16>(y);
+        if (ux >= state.m_map.width() || uy >= state.m_map.height()) {
+            continue;
+        }
+        if (TileWorking::get_worker(ux, uy) != city_idx) {
+            continue;
+        }
+        if (disk_tile_imp_pending(state, ux, uy)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool local_is_fully_built (GameState& state, u16 city_idx, u16 cx, u16 cy) {
+    const CircArea area = CityTileManager::work_area();
+    for (u16 i = 0; i < area.m_lim; ++i) {
+        const i32 x = static_cast<i32>(cx) + static_cast<i32>(area.m_brd[i][0]);
+        const i32 y = static_cast<i32>(cy) + static_cast<i32>(area.m_brd[i][1]);
+        if (x < 0 || y < 0) {
+            continue;
+        }
+        const u16 ux = static_cast<u16>(x);
+        const u16 uy = static_cast<u16>(y);
+        if (ux >= state.m_map.width() || uy >= state.m_map.height()) {
+            continue;
+        }
+        if (TileWorking::get_worker(ux, uy) != city_idx) {
+            continue;
+        }
+        if (state.m_map.get_planned_city(ux, uy) != 0u) {
+            continue;
+        }
+        if (disk_tile_pending(state, ux, uy)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool res_needs_overlay (const GameState& state, u16 x, u16 y, u16 rj) {
+    if (state.m_statics == nullptr || rj == U16_KEY_NULL) {
+        return false;
+    }
+    const u16 job_ov = state.m_statics->worker_job().get_item(WorkerJobStaticDataKey::from_raw(rj)).target_idx;
+    return state.m_map.get_overlay(x, y) != job_ov;
+}
+
+static bool pick_resource (
+    GameState& state,
+    u16 city_idx,
+    u16 cx,
+    u16 cy,
+    u16* ox,
+    u16* oy,
+    TileAssignIntent* ointent,
+    u16* ojob,
+    u16* oimp)
+{
+    const CircArea area = CityTileManager::work_area();
+    for (u16 i = 0; i < area.m_lim; ++i) {
+        const i32 x = static_cast<i32>(cx) + static_cast<i32>(area.m_brd[i][0]);
+        const i32 y = static_cast<i32>(cy) + static_cast<i32>(area.m_brd[i][1]);
+        if (x < 0 || y < 0) {
+            continue;
+        }
+        const u16 ux = static_cast<u16>(x);
+        const u16 uy = static_cast<u16>(y);
+        if (ux >= state.m_map.width() || uy >= state.m_map.height()) {
+            continue;
+        }
+        const u16 rj = res_job_idx(state.m_statics, state.m_map.get_res(ux, uy));
+        if (rj == U16_KEY_NULL || !res_needs_overlay(state, ux, uy, rj)) {
+            continue;
+        }
+        u16 job = U16_KEY_NULL;
+        u16 imp = U16_KEY_NULL;
+        TileAssignIntent intent = TILE_ASSIGN_FOOD;
+        if (!tile_cand(state, city_idx, ux, uy, &intent, &job, &imp)) {
+            continue;
+        }
+        *ox = ux;
+        *oy = uy;
+        *ointent = intent;
+        *ojob = job;
+        *oimp = imp;
+        return true;
+    }
+    return false;
+}
+
+static bool pick_virtual_disk (
+    GameState& state,
+    u16 city_idx,
+    u16 cx,
+    u16 cy,
+    u16* ox,
+    u16* oy)
+{
+    const CircArea area = CityTileManager::work_area();
+    for (u16 i = 0; i < area.m_lim; ++i) {
+        const i32 x = static_cast<i32>(cx) + static_cast<i32>(area.m_brd[i][0]);
+        const i32 y = static_cast<i32>(cy) + static_cast<i32>(area.m_brd[i][1]);
+        if (x < 0 || y < 0) {
+            continue;
+        }
+        const u16 ux = static_cast<u16>(x);
+        const u16 uy = static_cast<u16>(y);
+        if (ux >= state.m_map.width() || uy >= state.m_map.height()) {
+            continue;
+        }
+        if (TileWorking::get_worker(ux, uy) != city_idx) {
+            continue;
+        }
+        if (!CityConnector::has_virtual_at(state, ux, uy)) {
+            continue;
+        }
+        if (disk_tile_imp_pending(state, ux, uy)) {
+            continue;
+        }
+        *ox = ux;
+        *oy = uy;
+        return true;
+    }
+    return false;
+}
+
 static bool pick_first (
     GameState& state,
     u16 city_idx,
@@ -123,6 +409,23 @@ static bool pick_first (
         return true;
     }
     return false;
+}
+
+static OvYldTot pick_tot_for_job (const RuntimeStatics* st, u16 job, TileAssignIntent intent) {
+    OvYldTot z = {};
+    if (st == nullptr || job >= st->worker_job().get_item_count()) {
+        return z;
+    }
+    const WorkerJobStaticDataStruct& row = st->worker_job().get_item(WorkerJobStaticDataKey::from_raw(job));
+    u16 ov = U16_KEY_NULL;
+    if (row.target_kind == static_cast<u16>(WorkerJobTarget::Overlay)) {
+        ov = row.target_idx;
+    } else if (intent == TILE_ASSIGN_FOOD) {
+        ov = static_cast<u16>(MapOverlay::Farm);
+    } else {
+        return z;
+    }
+    return OverlayYields::tot(ov);
 }
 
 static bool pick_best (
@@ -169,7 +472,8 @@ static bool pick_best (
             continue;
         }
         if (intent == TILE_ASSIGN_FOOD) {
-            const u16 score = TileYields::food_no_imp(ux, uy);
+            const OvYldTot yt = pick_tot_for_job(state.m_statics, job, intent);
+            const u16 score = static_cast<u16>(yt.m_food > 0 ? yt.m_food : 0);
             if (have_food == 0 || score > best_food) {
                 best_food = score;
                 fx = ux;
@@ -180,7 +484,8 @@ static bool pick_best (
                 have_food = 1;
             }
         } else {
-            const u16 score = TileYields::get(ux, uy).m_production;
+            const OvYldTot yt = pick_tot_for_job(state.m_statics, job, intent);
+            const u16 score = static_cast<u16>(yt.m_prod > 0 ? yt.m_prod : 0);
             if (have_prod == 0 || score > best_prod) {
                 best_prod = score;
                 px = ux;
@@ -229,12 +534,38 @@ static void reassign (GameState& state, u16 x, u16 y, u16 fallback_city) {
     CityTileManager::stable_food_max_production(player, city_idx, start_food, sanit);
 }
 
+static bool apply_one (
+    GameState& state,
+    UnitAddStruct* unit,
+    PlayerState& ps,
+    u16 city_idx,
+    u16 x,
+    u16 y,
+    u16 job,
+    u16 imp)
+{
+    if (!WorkerGuidance::apply_work(x, y, job, imp)) {
+        return false;
+    }
+    const u32 cost = WorkerBuildProgress::work_cost(*state.m_statics, job, imp);
+    const i16 deficit = WorkerBuildProgress::mvt_deficit(*state.m_statics, ps.m_worker_mvt_to_build_perc, cost);
+    WorkerBuildProgress::apply_deficit(unit, deficit);
+    if (ps.m_worker_tile_opt_reassign != 0) {
+        reassign(state, x, y, city_idx);
+    }
+    return true;
+}
+
 //================================================================================================================================
 //=> - WorkerTurnHandler -
 //================================================================================================================================
 
 void WorkerTurnHandler::set_job_note (JobNoteFn fn) {
     m_job_note = fn;
+}
+
+void WorkerTurnHandler::clear_work_tgt (u16 unit_idx) {
+    wtgt_clr(unit_idx);
 }
 
 void WorkerTurnHandler::handle (GameState& state, u16 unit_idx) {
@@ -250,6 +581,9 @@ void WorkerTurnHandler::handle (GameState& state, u16 unit_idx) {
     GAME_EXPECT(player < state.m_player_n, "WorkerTurnHandler player out of bounds");
     PlayerState& ps = state.m_player_states[player];
     ps.m_last_turn_worker_count = static_cast<u16>(ps.m_last_turn_worker_count + 1u);
+    if (!WorkerBuildProgress::can_start(unit)) {
+        return;
+    }
 
     u16 city_idx = 0;
     u16 cx = 0;
@@ -257,25 +591,72 @@ void WorkerTurnHandler::handle (GameState& state, u16 unit_idx) {
     if (!home_city(state, unit, &city_idx, &cx, &cy)) {
         return;
     }
+    City* city = state.m_cities.get_city(city_idx);
+    GAME_EXPECT(city != nullptr, "WorkerTurnHandler home city null");
     u16 x = 0;
     u16 y = 0;
     TileAssignIntent intent = TILE_ASSIGN_FOOD;
     u16 job = U16_KEY_NULL;
     u16 imp = U16_KEY_NULL;
-    const bool found = (ps.m_worker_tile_opt_scan != 0)
-        ? pick_best(state, city_idx, cx, cy, &x, &y, &intent, &job, &imp)
-        : pick_first(state, city_idx, cx, cy, &x, &y, &intent, &job, &imp);
+    bool found = pick_active(state, unit_idx, city_idx, &x, &y, &intent, &job, &imp);
+    if (!found && !city->city_has_worker()) {
+        wtgt_clr(unit_idx);
+        return;
+    }
+    bool fully = false;
+    bool know_fully = false;
+    bool imp_fully = false;
+    bool know_imp_fully = false;
     if (!found) {
+        found = pick_resource(state, city_idx, cx, cy, &x, &y, &intent, &job, &imp);
+    }
+    if (!found) {
+        imp_fully = local_imp_fully_built(state, city_idx, cx, cy);
+        know_imp_fully = true;
+        fully = local_is_fully_built(state, city_idx, cx, cy);
+        know_fully = true;
+        if (!imp_fully) {
+            found = pick_first(state, city_idx, cx, cy, &x, &y, &intent, &job, &imp);
+        }
+    }
+    if (!found && ps.m_worker_tile_opt_scan != 0 && imp_fully) {
+        found = pick_best(state, city_idx, cx, cy, &x, &y, &intent, &job, &imp);
+    }
+    if (!found && ps.m_worker_tile_opt_scan == 0 && !imp_fully) {
+        found = pick_first(state, city_idx, cx, cy, &x, &y, &intent, &job, &imp);
+    }
+    if (!found) {
+        if (!know_imp_fully) {
+            imp_fully = local_imp_fully_built(state, city_idx, cx, cy);
+        }
+        if (imp_fully) {
+            found = pick_virtual_disk(state, city_idx, cx, cy, &x, &y);
+        }
+    }
+    if (!found) {
+        if (!know_fully) {
+            fully = local_is_fully_built(state, city_idx, cx, cy);
+        }
+        CityConnector::clear_idle_flag(state, city_idx, city, cx, cy, fully);
+        wtgt_clr(unit_idx);
+        if (city->city_has_worker()) {
+            CityConnector::handle(state, unit_idx);
+        }
         return;
     }
-    if (!WorkerGuidance::apply_work(x, y, job, imp)) {
+    if (CityConnector::has_virtual_at(state, x, y)) {
+        wtgt_clr(unit_idx);
+        CityConnector::handle(state, unit_idx);
         return;
     }
-    if (m_job_note != nullptr) {
-        m_job_note(x, y, job, imp, static_cast<u8>(intent));
-    }
-    if (ps.m_worker_tile_opt_reassign != 0) {
-        reassign(state, x, y, city_idx);
+    wtgt_set(unit_idx, x, y);
+    if (apply_one(state, unit, ps, city_idx, x, y, job, imp)) {
+        if (m_job_note != nullptr) {
+            m_job_note(x, y, job, imp, static_cast<u8>(intent));
+        }
+        if (!tile_has_work(state, city_idx, x, y)) {
+            wtgt_clr(unit_idx);
+        }
     }
 }
 

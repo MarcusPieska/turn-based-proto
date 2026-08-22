@@ -23,9 +23,11 @@
 #include "unit_add_vector_key.h"
 #include "civ_relations.h"
 #include "combat_mods.h"
+#include "city.h"
 #include "city_array.h"
 #include "sector_network.h"
 #include "sector_network_router.h"
+#include "city_network.h"
 
 #include "game_primitives.h"
 
@@ -61,7 +63,7 @@ public:
     u16 m_current_research_target_idx = U16_KEY_NULL; // Current research index
     u16 m_research_spending_perc = 100; // Percentage of commerce to spend on research; 0-100
     u16 m_free_unit_support = 0; // Max number of units before upkeep is required
-    u16 m_worker_build_pts_per_turn = 100; // Worker points added per turn towards completing worker jobs
+    u16 m_worker_mvt_to_build_perc = 1000; // Build-cost multiplier in percent; 1000 means 10x for mp deficit
 
     u16 m_target_settlements = 0; // Desired settler count; 0 off; STM sets SETTLER_MISSION_SLOTS with sites / 2 with none
     u16 m_settler_idx[SETTLER_MISSION_SLOTS]; // Settler mission slots; length SETTLER_MISSION_SLOTS
@@ -89,6 +91,7 @@ public:
     // AI procedure toggles
     u8 m_worker_tile_opt_scan = 0; // Worker tile optimization toggle; 0 off, 1 scan best
     u8 m_worker_tile_opt_reassign = 0; // Worker tile optimization toggle; 0 off, 1 reassign
+    u8 m_tech_just_researched = 0; // 1 when a tech completed this turn; arms city worker-disk flags
 };
 
 //================================================================================================================================
@@ -104,6 +107,7 @@ public:
 class GameState {
 public:
     void clear (); // Release map, players, overlays; reset counters
+    bool city_net_on_found (u16 city_idx); // Extend city hop links after a city is placed
 
     // Transitional: stacks/unstack not fully wired; see UnitMovementMng
     bool spawn (u16 x, u16 y, u16 player_idx, const u16* typ_idxs, u16 typ_n);
@@ -125,6 +129,7 @@ public:
     GameArraySimple m_map; // World grid; terrain, rivers, tile handles
     SectorNetwork m_sector_net; // Land/water sector lattice for general pathing
     SectorNetworkRouter m_sector_rt; // Hop router over m_sector_net land links
+    CityNetwork m_city_net; // Virtual hop links between cities for road routing
 
     // Adds on map, owned by tile owner via GameTileSimple::m_civ_owner
     FortAddVector m_adds_fort; 

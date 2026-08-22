@@ -100,6 +100,7 @@ static void finish_ready (PlayerState& ps, const RuntimeStatics& st) {
         }
         ps.m_research = ps.m_research - cost;
         ps.m_techs_researched->set_bit(tgt);
+        ps.m_tech_just_researched = 1;
         ps.m_current_research_target_idx = U16_KEY_NULL;
     }
 }

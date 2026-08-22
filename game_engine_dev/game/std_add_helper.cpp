@@ -28,6 +28,9 @@ bool StdAddHelper::has_mill (const GameTileSimple* t) {
     if (ov != static_cast<u16>(MapOverlay::Farm) && ov != static_cast<u16>(MapOverlay::Forest)) {
         return false;
     }
+    if (ov == static_cast<u16>(MapOverlay::Forest)) {
+        return (static_cast<u16>(t->m_add_idx) & 1u) != 0u;
+    }
     return (static_cast<u16>(t->m_add_idx) & m_mill_bit) != 0u;
 }
 
@@ -39,7 +42,7 @@ void StdAddHelper::set_mill (GameTileSimple* t) {
         return;
     }
     t->m_ov = static_cast<u16>(MapOverlay::Forest);
-    t->m_add_idx = static_cast<u16>(t->m_add_idx) | m_mill_bit;
+    t->m_add_idx = static_cast<u16>(t->m_add_idx) | 1u;
 }
 
 bool StdAddHelper::has_irr (const GameTileSimple* t) {

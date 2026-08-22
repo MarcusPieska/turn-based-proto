@@ -33,6 +33,8 @@ def get_entries ():
         "wonder",
         "map_overlay",
         "map_attribute",
+        "map_terrain",
+        "map_climate",
         "worker_job_target",
         "worker_job_type",
         "worker_job",

@@ -20,15 +20,15 @@
 //=> - Constants -
 //================================================================================================================================
 
-static const char* G_IN_TERR = "/home/w/Projects/simple-map-gen/p1-seed-42/terrain.ppm";
-static const char* G_IN_CLIM = "/home/w/Projects/simple-map-gen/p1-seed-42/climate.ppm";
-static const char* G_IN_RIV = "/home/w/Projects/simple-map-gen/p1-seed-42/rivers.ppm";
-static const char* G_IN_OV = "/home/w/Projects/simple-map-gen/p1-seed-42/overlay.ppm";
+static const char* G_IN_TERR = "/home/w/Projects/simple-map-gen/p1-seed-43/terrain.ppm";
+static const char* G_IN_CLIM = "/home/w/Projects/simple-map-gen/p1-seed-43/climate.ppm";
+static const char* G_IN_RIV = "/home/w/Projects/simple-map-gen/p1-seed-43/rivers.ppm";
+static const char* G_IN_OV = "/home/w/Projects/simple-map-gen/p1-seed-43/overlay.ppm";
 static const char* G_OUT_DIR = "/home/w/Projects/simple-map-gen/city-network-router-test";
 
 static const u32 G_CITY_TGT = 10000u;
 static const u32 G_CITY_CAP = 65535u;
-static const u32 G_SEED = 42u;
+static const u32 G_SEED = 43u;
 static const u32 G_SHUF_SEED = 99u;
 static const f64 G_NOISE_FRAC = 0.4;
 static const i32 G_BLUE_R = 3;

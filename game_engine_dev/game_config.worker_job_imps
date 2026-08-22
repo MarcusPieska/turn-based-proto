@@ -1,5 +1,5 @@
 
-Irrigation            : Farm :  400 : tech(Masonry)
+Irrigation            : Farm :  400 : tech(Masonry) : tile(attribute, River)
 Water Mill            : Farm :  250 : tech(Mathematics)
 
 Saw Mill              : Forest :  250 : tech(Machinery)

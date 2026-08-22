@@ -8,14 +8,14 @@
 #include "game_primitives.h"
 
 class GameState;
+class City;
 
 //================================================================================================================================
 //=> - CityConnector -
 //================================================================================================================================
 //
-//  Worker AI: uses CityNetwork links on the home city (WorkerHelper::get_data) to pick an unbuilt
-//  neighbor, lays ROAD_PATH on tiles, and steps toward the target. Straight 8-adj walk if clear of
-//  water/mountains; else a small stack-window flood from the target.
+//  Worker AI: on link lock stamps ROAD_VIRTUAL along the planned spine; workers promote virtual
+//  tiles to ROAD_PATH and step toward the nearest virtual on pending home-city links.
 //
 //================================================================================================================================
 
@@ -25,7 +25,10 @@ public:
 
     static bool begin (GameState& state);
     static void clear ();
-    static void handle (GameState& state, u16 unit_idx);
+    static void on_city_net_changed (GameState& state, u16 city_idx);
+    static void clear_idle_flag (GameState& state, u16 city_idx, City* city, u16 cx, u16 cy, bool imp_disk_done);
+    static bool has_virtual_at (const GameState& state, u16 x, u16 y);
+    static bool handle (GameState& state, u16 unit_idx);
 };
 
 #endif // CITY_CONNECTOR_H

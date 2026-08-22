@@ -1,15 +1,69 @@
-TODO — mutable tile data (overlay + improvements)
+TODO — mutable tile data (overlay + payload)
 
-Today's split is wrong for the long term: overlay is natural-only (forest / swamp / jungle / glacier), while tile adds mix exclusive stamps (city, mine, plantation, fort, …) with a BUILD_ADD_STD bitfield (farm / mill / irrigation). Mutual exclusion is enforced in call sites, not in the data shape. Replace that with one primary overlay per tile that describes what the tile is currently used as, natural or man-made, plus a payload whose meaning is defined by that overlay. Terrain and climate stay orthogonal; they never stand in for occupancy. Also, some things that have been referred to as an overlay will be referred to as attributes going forward; the clearest example of this is rivers. Attributes remain orthogonal to terrain, climate, resources, and overlays, but may serve as a requirement for some improvements. What improvements belong under what overlays is completely determined by game data. 
+Rivers and other map attributes are still stored separately from the attribute catalog (e.g. m_riv on the tile, not MapAttribute bits). tile(attribute, ...) requirements now gate improvements at runtime (River → m_riv) but do not unify storage. Legacy BUILD_ADD_* / get_add_typ / set_tile_add bridges remain in wide use alongside m_ov + m_add_idx; StdAddHelper and call-site checks still duplicate farm/forest payload semantics in places. Full structural exclusivity (one overlay, payload meaning fixed per overlay in data, no parallel occupancy paths) is not finished.
 
 TODO — overlay catalog and grouped improvements
 
-Each overlay maps to a fixed improvement vocabulary packed into a u16 (or similar). Some overlays have none; some have a few bits; some have more. Under farm we have things like irrigation, water mill, wind mill, dikes, and similar farm-side works — not peer overlays. Forest (and other natural/man-made uses with upgrades) get their own bit lists the same way. Map gen must emit only valid natural overlays for virgin tiles; game data / runtime helpers should reject illegal overlay transitions and illegal bits for the active overlay so exclusivity stays structural. With this design, it would be entirely fine to have a water mill both under forest and farm. One of the key virtues is it becomes crystal clear what things are mutually exclusive, and the AI choice gets reduced to picking the desired overlay. 
+Map-gen still emits the old OV_* PPM vocabulary; translation to game_config.map_overlays happens at load (map_ov_bridge), not inside map-gen itself. Overlay transition rules and illegal-bit rejection are not yet fully data-driven (TileImpHelper masks come from imp_n). Fort and strategic overlays are not in guidance rank lists. AI tile choice is still geographic disk scan + tile_cand, not a city work queue.
 
 TODO — payload dual use (bits vs external key)
 
-When an overlay has too many associated items for a bitfield (cities are the clearest case), the same u16 is an index into an external list rather than a bit array. Resolve the ambiguity with a typed payload larger than two bytes where needed, plus a small helper that interprets storage from the active overlay (bits-only, key-only, or a tagged scheme). Do not let one overlay flip between bit and key semantics at runtime; the contract is per overlay and fixed in data.
+Per-overlay payload contract (bits-only vs external-key vs tagged) is not declared in game data. City uses m_add_idx as an external city key in practice, and TileImpHelper treats City as 0xFFFF for validation, but there is no typed payload helper or fixed per-overlay semantics table. No larger-than-u16 payload where catalog size demands it.
 
 TODO — migration / realization
 
-When we take this on: define the overlay enum and per-overlay payload contracts in game data first, then migrate StdAddHelper / BUILD_ADD_* / WorkerGuidance apply paths onto overlay transitions and bit sets. Worker jobs become “change overlay” or “set bit under current overlay,” which also sets up multi-turn improvement cost/progress cleanly. Map-gen overlay PPMs and assessors follow the new vocabulary; leave the live worker loop alone until that contract exists. 
+Remove StdAddHelper and BUILD_ADD_* once all readers/writers go through m_ov + TileImpHelper (or successor). Migrate map-gen overlay output to catalog vocabulary and validate virgin tiles against allowed natural overlays. Extend tile(attribute, ...) beyond River as more attribute storage is unified (roads, etc.). Optional: expand overlay_validate / cert coverage as the contract hardens.
+
+
+
+
+
+CURRENT STATE BELOW (IF CURRENT, REMOVE FROM ABOVE):
+
+DONE — tile storage model
+
+GameTileSimple uses m_ov (game_config.map_overlays index) plus m_add_idx as overlay payload (imp bitfield or external key). Terrain, climate, and resources stay orthogonal. m_add_typ removed from the live tile layout (legacy bridge only). GameArraySimple::set_overlay / set_add_idx validate via TileImpHelper::add_idx_ok; overlay change clears payload unless staying on the same overlay.
+
+DONE — game data and derived index
+
+map_overlays, map_terrains, map_climates, and worker_job_imps catalogs loaded via data_io. worker_job_imp.map_overlay_idx ties each imp to its mother overlay. WorkerJobImpIndex (CSR by overlay) built at static load. MapOverlay / MapTerrain / MapClimate enums match catalog order. worker_job_imp_index_comp and parser test infra exercise the load path.
+
+DONE — tile requirement catalogs and parsing
+
+tile(kind, name) in parse_item_reqs: kind terrain | climate | overlay | attribute (ITEM_REQ_TYPE_TILE + TileReqKind). map_terrain_name_to_idx / map_climate_name_to_idx callbacks; attribute/overlay kinds resolve via map_attributes / map_overlays. Example data: Irrigation : tile(attribute, River). map_terrain_parser_comp, map_climate_parser_comp, worker_job_imp_parser_comp, runtime_static_loader_tester pass.
+
+DONE — tile requirement evaluation
+
+TileReqChk: terrain/climate via catalog→game_map_defs ids, overlay via m_ov, attribute via live tile fields (River → m_riv). GeneralAssessor::chk handles ITEM_REQ_TYPE_TILE; AssessorCtx carries m_map / m_x / m_y. TileWorkAssessor passes map coords into make_ctx so imp rows evaluate tile reqs alongside tech/resource. tile_req_chk.cpp included from general_assessor.o (assessor brute comps compile with TILE_REQ_CHK_STUB).
+
+DONE — payload runtime helper
+
+TileImpHelper: imp slot → payload bit (1 << slot), payload_mask_for_ov from imp_n per overlay, has_imp / set_imp, add_idx_ok. City overlay accepts any u16 payload (external key); imp overlays enforce bitmask. Bound at game setup; used by GameArraySimple, WorkerGuidance::apply_work (imps), TileWorkAssessor (imp_already_set).
+
+DONE — assessor and certification
+
+TileWorkAssessor::assess_job enumerates imps under matching overlay via WorkerJobImpIndex + GeneralAssessor reqs (tech, resource, tile) on imp rows. worker_catalog_cert_tester certifies per-overlay imp select/apply chains. overlay_validate_tester checks payload masks and legacy set_tile_add mapping. tile_work_assessor_tester covers overlay-gated imp offers. worker_guidance_tester covers Irrigation River gate + imp chain.
+
+DONE — overlay yield ranking
+
+OverlayYields precomputes per-overlay fully-developed yields (terrain + natural overlay + improvement rows + imp booster effects). rank(TILE_ASSIGN_FOOD/PROD) returns sorted Farm/Forest mother-overlay lists; is_res flags Mine/Plantation. setup after TileAttrTables via WorkerGuidance::bind_statics. overlay_yields_comp certifies totals and rank order.
+
+DONE — data-driven worker guidance (partial)
+
+WorkerGuidance::next_work / has_pending_work / usage_for_intent: resource get_res short-circuit first; FOOD clear jobs before intent rank walk; then OverlayYields::rank(intent) overlay→mother job→imp chain (tile_ok / pick / has_job_work). Farm/Forest enum branches retired from guidance pick logic. Fort not ranked yet. WorkerTurnHandler::pick_best scores candidates via OverlayYields::tot on the job mother overlay (clear jobs on FOOD intent use Farm tot).
+
+DONE — apply path (partial)
+
+WorkerGuidance overlay jobs set m_ov (+ reset payload) for Plant_Forest, Cultivate_Farm, Build_Mine, Build_Plantation, Build_Fort, clears for clearing jobs. Improvements applied through TileImpHelper::set_imp. WorkerBuildProgress + WorkerTurnHandler run the live worker loop (sticky tile until fully upgraded).
+
+DONE — worker disk gate + fast pending check
+
+City::m_misc.m_city_has_worker: 1 = disk may still need jobs, 0 = skip worker disk scans. Cleared when pick fails and disk fully built (with worked tiles); re-armed on mark_worked_stamp and via PlayerState::m_tech_just_researched → City::refresh_city_worker_flags after research. WorkerGuidance::has_pending_work + TileWorkAssessor::has_job_work accelerate local_is_fully_built only; sticky, pick, and post-apply still use full next_work.
+
+DONE — load boundary
+
+map_ov_bridge.h translates map-gen OV_* class ids to MapOverlay catalog at Factory_GameArraySimple load. Empty tile occupancy is U16_KEY_NULL, not a catalog row.
+
+DONE — legacy compatibility layer
+
+get_add_typ / set_tile_add map BUILD_ADD_CITY/MINE/PLANTATION/FORT/STD to MapOverlay rows for callers not yet migrated. StdAddHelper retained for farm occupancy and test assertions; farm irr/mill bits align with WorkerJobImpIndex slots (irr=1, mill=2 on Farm).

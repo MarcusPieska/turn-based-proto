@@ -88,6 +88,10 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_map_overlay.load_names_from(p.get_map_overlay_name_parser(), p.get_map_overlay_count());
     m_map_attribute.set_items(const_cast<MapAttributeStaticDataStruct*>(p.get_map_attribute_data()), p.get_map_attribute_count());
     m_map_attribute.load_names_from(p.get_map_attribute_name_parser(), p.get_map_attribute_count());
+    m_map_terrain.set_items(const_cast<MapTerrainStaticDataStruct*>(p.get_map_terrain_data()), p.get_map_terrain_count());
+    m_map_terrain.load_names_from(p.get_map_terrain_name_parser(), p.get_map_terrain_count());
+    m_map_climate.set_items(const_cast<MapClimateStaticDataStruct*>(p.get_map_climate_data()), p.get_map_climate_count());
+    m_map_climate.load_names_from(p.get_map_climate_name_parser(), p.get_map_climate_count());
     m_worker_job_target.set_items(const_cast<WorkerJobTargetStaticDataStruct*>(p.get_worker_job_target_data()), p.get_worker_job_target_count());
     m_worker_job_target.load_names_from(p.get_worker_job_target_name_parser(), p.get_worker_job_target_count());
     m_worker_job_type.set_items(const_cast<WorkerJobTypeStaticDataStruct*>(p.get_worker_job_type_data()), p.get_worker_job_type_count());
@@ -133,6 +137,8 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_wonder.take_ownership();
     m_map_overlay.take_ownership();
     m_map_attribute.take_ownership();
+    m_map_terrain.take_ownership();
+    m_map_climate.take_ownership();
     m_worker_job_target.take_ownership();
     m_worker_job_type.take_ownership();
     m_worker_job.take_ownership();
@@ -334,6 +340,22 @@ MapAttributeStaticData& RuntimeStatics::map_attribute () {
 
 const MapAttributeStaticData& RuntimeStatics::map_attribute () const {
     return m_map_attribute;
+}
+
+MapTerrainStaticData& RuntimeStatics::map_terrain () {
+    return m_map_terrain;
+}
+
+const MapTerrainStaticData& RuntimeStatics::map_terrain () const {
+    return m_map_terrain;
+}
+
+MapClimateStaticData& RuntimeStatics::map_climate () {
+    return m_map_climate;
+}
+
+const MapClimateStaticData& RuntimeStatics::map_climate () const {
+    return m_map_climate;
 }
 
 WorkerJobTargetStaticData& RuntimeStatics::worker_job_target () {

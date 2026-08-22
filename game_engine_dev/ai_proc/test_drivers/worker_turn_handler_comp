@@ -28,6 +28,7 @@ INC="-I../.. \
      -I../../gen_bit_banks \
      -I../../adv_map_gen \
      -I../../ai_pathing/walk_general \
+     -I../../ai_pathing/walk_cities \
      -I../../game"
 CXXFLAGS="-std=c++17 -Wall -Wextra -g -DGAME_ASSERT_ENABLE"
 
@@ -51,6 +52,7 @@ g++ $CXXFLAGS $INC -c ../../dyn_state/trade_post_add_vector.cpp -o trade_post_ad
 g++ $CXXFLAGS $INC -c ../../dyn_state/unit_add_vector.cpp -o unit_add_vector.o
 g++ $CXXFLAGS $INC -c ../../dyn_state/unit_movement_mng.cpp -o unit_movement_mng.o
 g++ $CXXFLAGS $INC -c ../../game/tile_attr_tables.cpp -o tile_attr_tables.o
+g++ $CXXFLAGS $INC -c ../../game/overlay_yields.cpp -o overlay_yields.o
 g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_general/sector_network.cpp -o sector_network.o
 g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_general/sector_network_router.cpp -o sector_network_router.o
 g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_general/point_seq_flood_walker.cpp -o point_seq_flood_walker.o
@@ -64,6 +66,7 @@ g++ $CXXFLAGS $INC -c ../../game/tile_working.cpp -o tile_working.o
 g++ $CXXFLAGS $INC -c ../../game/tile_work_assessor.cpp -o tile_work_assessor.o
 g++ $CXXFLAGS $INC -c ../../game/worker_imp_select.cpp -o worker_imp_select.o
 g++ $CXXFLAGS $INC -c ../../game/tile_imp_helper.cpp -o tile_imp_helper.o
+g++ $CXXFLAGS $INC -c ../../game/worker_build_progress.cpp -o worker_build_progress.o
 g++ $CXXFLAGS $INC -c ../../game/worker_guidance.cpp -o worker_guidance.o
 g++ $CXXFLAGS $INC -c ../../game/worker_helper.cpp -o worker_helper.o
 g++ $CXXFLAGS $INC -c ../../game/civ_relations.cpp -o civ_relations.o
@@ -112,6 +115,8 @@ g++ $CXXFLAGS $INC -c ../settler_mission_manager.cpp -o settler_mission_manager.
 g++ $CXXFLAGS $INC -c ../gen_settlement_order.cpp -o gen_settlement_order.o
 g++ $CXXFLAGS $INC -c ../gen_settlement_targets.cpp -o gen_settlement_targets.o
 g++ $CXXFLAGS $INC -c ../linear_bld.cpp -o linear_bld.o
+g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_cities/city_network.cpp -o city_network.o
+g++ $CXXFLAGS $INC -c ../city_connector.cpp -o city_connector.o
 g++ $CXXFLAGS $INC -c ../settler_turn_handler.cpp -o settler_turn_handler.o
 g++ $CXXFLAGS $INC -c ../worker_turn_handler.cpp -o worker_turn_handler.o
 g++ $CXXFLAGS $INC -c ../defensive_unit_turn_handler.cpp -o defensive_unit_turn_handler.o
@@ -148,8 +153,11 @@ g++ $CXXFLAGS -o worker_turn_handler_tester \
     unit_add_vector.o \
     unit_movement_mng.o \
     tile_attr_tables.o \
+    overlay_yields.o \
     sector_network.o \
     sector_network_router.o \
+    city_network.o \
+    city_connector.o \
     point_seq_flood_walker.o \
     settle_rules.o \
     game_array_simple.o \
@@ -161,6 +169,7 @@ g++ $CXXFLAGS -o worker_turn_handler_tester \
     tile_work_assessor.o \
     worker_imp_select.o \
     tile_imp_helper.o \
+    worker_build_progress.o \
     worker_guidance.o \
     worker_helper.o \
     civ_relations.o \
@@ -229,8 +238,8 @@ rm -f runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_load
     fort_add_vector.o mine_add_vector.o monastery_add_vector.o \
     outpost_add_vector.o plantation_add_vector.o shipyard_add_vector.o \
     trade_post_add_vector.o unit_add_vector.o unit_movement_mng.o \
-    tile_attr_tables.o sector_network.o sector_network_router.o point_seq_flood_walker.o settle_rules.o \
-    game_array_simple.o factory_game_array_simple.o game_state.o player_ledger.o tile_yields.o tile_working.o tile_work_assessor.o worker_imp_select.o tile_imp_helper.o worker_guidance.o worker_helper.o \
+    tile_attr_tables.o overlay_yields.o sector_network.o sector_network_router.o city_network.o city_connector.o point_seq_flood_walker.o settle_rules.o \
+    game_array_simple.o factory_game_array_simple.o game_state.o player_ledger.o tile_yields.o tile_working.o tile_work_assessor.o worker_imp_select.o tile_imp_helper.o worker_build_progress.o worker_guidance.o worker_helper.o \
     civ_relations.o game_setup.o city_tile_manager.o circular_tile_areas.o city_blocking_mask.o city_border.o \
     map_gen_loader.o city.o general_bit_bank.o general_assessor.o effect_ctx.o effect_enabler.o \
     booster_effect_register.o local_unit_exp_booster_register.o civ_ship_training_booster_register.o \

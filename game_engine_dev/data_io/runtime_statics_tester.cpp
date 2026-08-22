@@ -91,6 +91,8 @@ void print_holder_counts (const RuntimeStatics& s) {
     print_u16_member("wonder", s.wonder().get_item_count());
     print_u16_member("map_overlay", s.map_overlay().get_item_count());
     print_u16_member("map_attribute", s.map_attribute().get_item_count());
+    print_u16_member("map_terrain", s.map_terrain().get_item_count());
+    print_u16_member("map_climate", s.map_climate().get_item_count());
     print_u16_member("worker_job_target", s.worker_job_target().get_item_count());
     print_u16_member("worker_job_type", s.worker_job_type().get_item_count());
     print_u16_member("worker_job", s.worker_job().get_item_count());
@@ -125,6 +127,27 @@ bool are_reqs_in_bounds (const RuntimeStatics& s, const ItemReqsStruct& reqs, cs
             continue;
         }
         const u16 req_idx = reqs.indices[j];
+        if (req_type == ITEM_REQ_TYPE_TILE) {
+            const u8 kind = reqs.added_args[j];
+            u16 req_limit = 0;
+            if (kind == TILE_REQ_KIND_TERRAIN) {
+                req_limit = s.map_terrain().get_item_count();
+            } else if (kind == TILE_REQ_KIND_CLIMATE) {
+                req_limit = s.map_climate().get_item_count();
+            } else if (kind == TILE_REQ_KIND_OVERLAY) {
+                req_limit = s.map_overlay().get_item_count();
+            } else if (kind == TILE_REQ_KIND_ATTRIBUTE) {
+                req_limit = s.map_attribute().get_item_count();
+            }
+            if (req_idx >= req_limit) {
+                if (print_level > 0) {
+                    printf("*** OOB REQ: %s item=%u req_slot=%u type=tile kind=%u idx=%u limit=%u\n",
+                        label, item_idx, j, kind, req_idx, req_limit);
+                }
+                return false;
+            }
+            continue;
+        }
         const u16 req_limit = get_req_limit_for_type(s, req_type);
         cstr frm = "*** OOB REQ: %s item=%u req_slot=%u type=%u idx=%u limit=%u\n";
         if (req_idx >= req_limit) {
@@ -160,6 +183,8 @@ void run_load_tests (const RuntimeStaticLoader& loader) {
     note_result(s.wonder().get_item_count() > 0, "wonder holder has items");
     note_result(s.map_overlay().get_item_count() > 0, "map_overlay holder has items");
     note_result(s.map_attribute().get_item_count() > 0, "map_attribute holder has items");
+    note_result(s.map_terrain().get_item_count() > 0, "map_terrain holder has items");
+    note_result(s.map_climate().get_item_count() > 0, "map_climate holder has items");
     note_result(s.worker_job_target().get_item_count() > 0, "worker_job_target holder has items");
     note_result(s.worker_job_type().get_item_count() > 0, "worker_job_type holder has items");
     note_result(s.worker_job().get_item_count() > 0, "worker_job holder has items");

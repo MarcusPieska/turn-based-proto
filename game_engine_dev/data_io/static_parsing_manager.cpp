@@ -47,6 +47,8 @@ const DataParserBase* g_unit_name_parser = nullptr;
 const DataParserBase* g_wonder_name_parser = nullptr;
 const DataParserBase* g_map_overlay_name_parser = nullptr;
 const DataParserBase* g_map_attribute_name_parser = nullptr;
+const DataParserBase* g_map_terrain_name_parser = nullptr;
+const DataParserBase* g_map_climate_name_parser = nullptr;
 const DataParserBase* g_worker_job_target_name_parser = nullptr;
 const DataParserBase* g_worker_job_type_name_parser = nullptr;
 const DataParserBase* g_worker_job_name_parser = nullptr;
@@ -134,6 +136,14 @@ u16 cb_map_attribute_name_to_idx (cstr name) {
     return g_map_attribute_name_parser->name_to_idx(name);
 }
 
+u16 cb_map_terrain_name_to_idx (cstr name) {
+    return g_map_terrain_name_parser->name_to_idx(name);
+}
+
+u16 cb_map_climate_name_to_idx (cstr name) {
+    return g_map_climate_name_parser->name_to_idx(name);
+}
+
 u16 cb_worker_job_target_name_to_idx (cstr name) {
     return g_worker_job_target_name_parser->name_to_idx(name);
 }
@@ -188,6 +198,8 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_wonder_items(),
     m_map_overlay_items(),
     m_map_attribute_items(),
+    m_map_terrain_items(),
+    m_map_climate_items(),
     m_worker_job_target_items(),
     m_worker_job_type_items(),
     m_worker_job_items(),
@@ -215,6 +227,8 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_wonder_name_parser(nullptr),
     m_map_overlay_name_parser(nullptr),
     m_map_attribute_name_parser(nullptr),
+    m_map_terrain_name_parser(nullptr),
+    m_map_climate_name_parser(nullptr),
     m_worker_job_target_name_parser(nullptr),
     m_worker_job_type_name_parser(nullptr),
     m_worker_job_name_parser(nullptr),
@@ -248,6 +262,8 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_wonder_data(nullptr),
     m_map_overlay_data(nullptr),
     m_map_attribute_data(nullptr),
+    m_map_terrain_data(nullptr),
+    m_map_climate_data(nullptr),
     m_worker_job_target_data(nullptr),
     m_worker_job_type_data(nullptr),
     m_worker_job_data(nullptr),
@@ -318,6 +334,12 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_map_attribute_items.load_file_content(m_paths.get_path_to_map_attributes());
     m_map_attribute_items.split_string_by_char(0, '\n');
     DataParserBase::normalize_lines(m_map_attribute_items);
+    m_map_terrain_items.load_file_content(m_paths.get_path_to_map_terrains());
+    m_map_terrain_items.split_string_by_char(0, '\n');
+    DataParserBase::normalize_lines(m_map_terrain_items);
+    m_map_climate_items.load_file_content(m_paths.get_path_to_map_climates());
+    m_map_climate_items.split_string_by_char(0, '\n');
+    DataParserBase::normalize_lines(m_map_climate_items);
     m_worker_job_target_items.load_file_content(m_paths.get_path_to_worker_job_targets());
     m_worker_job_target_items.split_string_by_char(0, '\n');
     DataParserBase::normalize_lines(m_worker_job_target_items);
@@ -356,6 +378,8 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_wonder_name_parser = new DataParserBase(m_wonder_items, NameToIdxCbs());
     m_map_overlay_name_parser = new DataParserBase(m_map_overlay_items, NameToIdxCbs());
     m_map_attribute_name_parser = new DataParserBase(m_map_attribute_items, NameToIdxCbs());
+    m_map_terrain_name_parser = new DataParserBase(m_map_terrain_items, NameToIdxCbs());
+    m_map_climate_name_parser = new DataParserBase(m_map_climate_items, NameToIdxCbs());
     m_worker_job_target_name_parser = new DataParserBase(m_worker_job_target_items, NameToIdxCbs());
     m_worker_job_type_name_parser = new DataParserBase(m_worker_job_type_items, NameToIdxCbs());
     m_worker_job_name_parser = new DataParserBase(m_worker_job_items, NameToIdxCbs());
@@ -389,6 +413,8 @@ StaticParsingManager::~StaticParsingManager () {
     delete m_wonder_name_parser;
     delete m_map_overlay_name_parser;
     delete m_map_attribute_name_parser;
+    delete m_map_terrain_name_parser;
+    delete m_map_climate_name_parser;
     delete m_worker_job_target_name_parser;
     delete m_worker_job_type_name_parser;
     delete m_worker_job_name_parser;
@@ -557,6 +583,22 @@ u16 StaticParsingManager::get_map_attribute_count () const {
     return safe_size_to_u16(m_map_attribute_items.get_string_count());
 }
 
+const MapTerrainStaticDataStruct* StaticParsingManager::get_map_terrain_data () const {
+    return m_map_terrain_data;
+}
+
+u16 StaticParsingManager::get_map_terrain_count () const {
+    return safe_size_to_u16(m_map_terrain_items.get_string_count());
+}
+
+const MapClimateStaticDataStruct* StaticParsingManager::get_map_climate_data () const {
+    return m_map_climate_data;
+}
+
+u16 StaticParsingManager::get_map_climate_count () const {
+    return safe_size_to_u16(m_map_climate_items.get_string_count());
+}
+
 const WorkerJobTargetStaticDataStruct* StaticParsingManager::get_worker_job_target_data () const {
     return m_worker_job_target_data;
 }
@@ -684,6 +726,14 @@ const DataParserBase& StaticParsingManager::get_map_attribute_name_parser () con
     return *m_map_attribute_name_parser;
 }
 
+const DataParserBase& StaticParsingManager::get_map_terrain_name_parser () const {
+    return *m_map_terrain_name_parser;
+}
+
+const DataParserBase& StaticParsingManager::get_map_climate_name_parser () const {
+    return *m_map_climate_name_parser;
+}
+
 const DataParserBase& StaticParsingManager::get_worker_job_target_name_parser () const {
     return *m_worker_job_target_name_parser;
 }
@@ -754,6 +804,8 @@ void StaticParsingManager::build_name_to_idx_callbacks () {
     g_wonder_name_parser = m_wonder_name_parser;
     g_map_overlay_name_parser = m_map_overlay_name_parser;
     g_map_attribute_name_parser = m_map_attribute_name_parser;
+    g_map_terrain_name_parser = m_map_terrain_name_parser;
+    g_map_climate_name_parser = m_map_climate_name_parser;
     g_worker_job_target_name_parser = m_worker_job_target_name_parser;
     g_worker_job_type_name_parser = m_worker_job_type_name_parser;
     g_worker_job_name_parser = m_worker_job_name_parser;
@@ -781,6 +833,8 @@ void StaticParsingManager::build_name_to_idx_callbacks () {
     m_name_to_idx_cbs.wonder_name_to_idx = cb_wonder_name_to_idx;
     m_name_to_idx_cbs.map_overlay_name_to_idx = cb_map_overlay_name_to_idx;
     m_name_to_idx_cbs.map_attribute_name_to_idx = cb_map_attribute_name_to_idx;
+    m_name_to_idx_cbs.map_terrain_name_to_idx = cb_map_terrain_name_to_idx;
+    m_name_to_idx_cbs.map_climate_name_to_idx = cb_map_climate_name_to_idx;
     m_name_to_idx_cbs.worker_job_target_name_to_idx = cb_worker_job_target_name_to_idx;
     m_name_to_idx_cbs.worker_job_type_name_to_idx = cb_worker_job_type_name_to_idx;
     m_name_to_idx_cbs.worker_job_name_to_idx = cb_worker_job_name_to_idx;
@@ -788,7 +842,7 @@ void StaticParsingManager::build_name_to_idx_callbacks () {
     m_name_to_idx_cbs.tile_yield_type_name_to_idx = cb_tile_yield_type_name_to_idx;
     m_name_to_idx_cbs.improvement_yield_name_to_idx = cb_improvement_yield_name_to_idx;
 
-    m_callback_count = 26;
+    m_callback_count = 28;
     DataParserBase::set_item_effect_handler(&m_name_to_idx_cbs, &m_effect_items);
 }
 
@@ -813,6 +867,8 @@ void StaticParsingManager::parse_supported_data () {
     WonderParser wonder_parser(m_wonder_items, m_name_to_idx_cbs);
     MapOverlayParser map_overlay_parser(m_map_overlay_items, m_name_to_idx_cbs);
     MapAttributeParser map_attribute_parser(m_map_attribute_items, m_name_to_idx_cbs);
+    MapTerrainParser map_terrain_parser(m_map_terrain_items, m_name_to_idx_cbs);
+    MapClimateParser map_climate_parser(m_map_climate_items, m_name_to_idx_cbs);
     WorkerJobTargetParser worker_job_target_parser(m_worker_job_target_items, m_name_to_idx_cbs);
     WorkerJobTypeParser worker_job_type_parser(m_worker_job_type_items, m_name_to_idx_cbs);
     WorkerJobParser worker_job_parser(m_worker_job_items, m_name_to_idx_cbs);
@@ -840,6 +896,8 @@ void StaticParsingManager::parse_supported_data () {
     m_wonder_data = wonder_parser.parse_data_dependencies();
     m_map_overlay_data = map_overlay_parser.parse_data_dependencies();
     m_map_attribute_data = map_attribute_parser.parse_data_dependencies();
+    m_map_terrain_data = map_terrain_parser.parse_data_dependencies();
+    m_map_climate_data = map_climate_parser.parse_data_dependencies();
     m_worker_job_target_data = worker_job_target_parser.parse_data_dependencies();
     m_worker_job_type_data = worker_job_type_parser.parse_data_dependencies();
     m_worker_job_data = worker_job_parser.parse_data_dependencies();

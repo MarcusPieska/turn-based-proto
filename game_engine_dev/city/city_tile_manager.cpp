@@ -32,9 +32,12 @@ CityArray* CityTileManager::m_cities = nullptr;
 
 static const u16 k_cand_max = 45;
 
-static void mark_worked_stamp (u16 x, u16 y, u16 city_idx, TileAssignIntent intent) {
+static void mark_worked_stamp (u16 x, u16 y, u16 city_idx, TileAssignIntent intent, City* city) {
     TileWorking::mark_worked(x, y, city_idx);
     TileWorking::set_tile_usage(x, y, static_cast<u8>(intent));
+    if (city != nullptr) {
+        city->set_city_has_worker(1);
+    }
 }
 
 static TileAssignIntent intent_from_sort (u8 sort_food, u8 sort_production, u8 sort_commerce) {
@@ -443,7 +446,7 @@ TotalTileYield CityTileManager::assign_sorted (u16 player, u16 city_idx, u8 sort
         tot.m_food += cands[i].m_yld.m_food;
         tot.m_production += cands[i].m_yld.m_production;
         tot.m_commerce += cands[i].m_yld.m_commerce;
-        mark_worked_stamp(cands[i].m_x, cands[i].m_y, city_idx, intent_from_sort(sort_food, sort_production, sort_commerce));
+        mark_worked_stamp(cands[i].m_x, cands[i].m_y, city_idx, intent_from_sort(sort_food, sort_production, sort_commerce), city);
         ++assigned;
     }
     return tot;
@@ -508,7 +511,7 @@ TotalTileYield CityTileManager::assign_add_one (u16 player, u16 city_idx, u8 sor
     tot.m_food = best.m_yld.m_food;
     tot.m_production = best.m_yld.m_production;
     tot.m_commerce = best.m_yld.m_commerce;
-    mark_worked_stamp(best.m_x, best.m_y, city_idx, intent_from_sort(sort_food, sort_production, sort_commerce));
+    mark_worked_stamp(best.m_x, best.m_y, city_idx, intent_from_sort(sort_food, sort_production, sort_commerce), city);
     return tot;
 }
 
@@ -615,7 +618,7 @@ TotalTileYield CityTileManager::assign_stable_food (u16 player, u16 city_idx, u1
         tot.m_production += pick->m_yld.m_production;
         tot.m_commerce += pick->m_yld.m_commerce;
         food_have += pick->m_yld.m_food;
-        mark_worked_stamp(pick->m_x, pick->m_y, city_idx, pick_intent);
+        mark_worked_stamp(pick->m_x, pick->m_y, city_idx, pick_intent, city);
         assigned = static_cast<u16>(assigned + 1u);
     }
     tot.m_pops_assigned = assigned;

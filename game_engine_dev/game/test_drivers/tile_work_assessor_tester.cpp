@@ -17,6 +17,8 @@
 #include "runtime_statics.h"
 #include "std_add_helper.h"
 #include "tech_static_key.h"
+#include "tile_imp_helper.h"
+#include "tile_attr_tables.h"
 #include "tile_work_assessor.h"
 #include "tile_yields.h"
 #include "worker_job_enum.h"
@@ -453,8 +455,10 @@ int main (int argc, char* argv[]) {
         return 1;
     }
     RuntimeStatics& st = loader.statics();
+    note_result(TileAttrTables::setup(st), "TileAttrTables::setup");
     note_result(TileYields::setup(st), "TileYields::setup");
     note_result(TileWorkAssessor::setup(st), "TileWorkAssessor::setup");
+    TileImpHelper::bind_statics(&st);
     GameArraySimple map;
     note_result(Factory_GameArraySimple::load_map_gen_data(&map, g_terr, g_clim, g_riv, g_ov), "load map");
     note_result(Factory_GameArraySimple::load_res_dist_data(&map, g_res), "load resources");

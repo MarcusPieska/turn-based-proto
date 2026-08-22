@@ -8,6 +8,7 @@ Tile improvement and working:
  - We might want a second stage to mk01-general draft workers that add a few unworked improvements at the end of its run. 
  - Make sure the improvement yield boost lookup table is moved to data IO.   
  - We will need a O(1) lookup structure for effects pertaining to tile improvement yields.
+ - Tile attributes, climates, and terrains need to be requirement types. 
 
 
 Static data:

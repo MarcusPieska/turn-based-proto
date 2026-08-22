@@ -49,7 +49,7 @@ private:
     static const u16 k_terr_n = 16u; // TERR_TILE_SENTINEL id + 1
     static const u16 k_clim_n = 5u; // CLIMATE_BLACK_SOIL + 1
     static const u16 k_ov_n = 16u; // OV_MAX id + 1
-    static const u16 k_road_n = 5u; // ROAD_RAIL + 1
+    static const u16 k_road_n = 8u; // ROAD_VIRTUAL + 1
 
     static bool m_ready; // True after a successful setup
     static TileAttributeStaticDataStruct m_terr[k_terr_n]; // Terrain attrs by TERR_*[0]

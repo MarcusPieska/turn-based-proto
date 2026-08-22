@@ -156,6 +156,14 @@ cstr PathMng::get_path_to_map_attributes () const {
     return m_path_map_attributes;
 }
 
+cstr PathMng::get_path_to_map_terrains () const {
+    return m_path_map_terrains;
+}
+
+cstr PathMng::get_path_to_map_climates () const {
+    return m_path_map_climates;
+}
+
 cstr PathMng::get_path_to_worker_job_targets () const {
     return m_path_worker_job_targets;
 }
@@ -207,6 +215,8 @@ void PathMng::build_paths () {
     join_path(m_path_wonders, PATH_MNG_PATH_N, m_path_offset, "game_config.wonders");
     join_path(m_path_map_overlays, PATH_MNG_PATH_N, m_path_offset, "game_config.map_overlays");
     join_path(m_path_map_attributes, PATH_MNG_PATH_N, m_path_offset, "game_config.map_attributes");
+    join_path(m_path_map_terrains, PATH_MNG_PATH_N, m_path_offset, "game_config.map_terrains");
+    join_path(m_path_map_climates, PATH_MNG_PATH_N, m_path_offset, "game_config.map_climates");
     join_path(m_path_worker_job_targets, PATH_MNG_PATH_N, m_path_offset, "game_config.worker_job_targets");
     join_path(m_path_worker_job_types, PATH_MNG_PATH_N, m_path_offset, "game_config.worker_job_types");
     join_path(m_path_worker_jobs, PATH_MNG_PATH_N, m_path_offset, "game_config.worker_jobs");
@@ -305,6 +315,14 @@ void PathMng::validate_paths_or_exit () const {
     }
     if (!does_file_exist(m_path_map_attributes)) {
         printf("ERROR: Missing file: %s\n", m_path_map_attributes);
+        ++error_count;
+    }
+    if (!does_file_exist(m_path_map_terrains)) {
+        printf("ERROR: Missing file: %s\n", m_path_map_terrains);
+        ++error_count;
+    }
+    if (!does_file_exist(m_path_map_climates)) {
+        printf("ERROR: Missing file: %s\n", m_path_map_climates);
         ++error_count;
     }
     if (!does_file_exist(m_path_worker_job_targets)) {

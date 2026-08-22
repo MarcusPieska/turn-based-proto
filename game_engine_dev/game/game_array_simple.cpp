@@ -17,35 +17,8 @@ static bool ov_catalog_ok (u16 ov) {
     return ov <= static_cast<u16>(MapOverlay::Plantation);
 }
 
-static u16 add_idx_mask_for_ov (u16 ov) {
-    if (ov == static_cast<u16>(MapOverlay::Farm)) {
-        return static_cast<u16>(StdAddHelper::m_farm_bit | StdAddHelper::m_irr_bit | StdAddHelper::m_mill_bit);
-    }
-    if (ov == static_cast<u16>(MapOverlay::Forest)) {
-        return static_cast<u16>(StdAddHelper::m_mill_bit | TileImpHelper::m_fr_wm_bit);
-    }
-    if (ov == static_cast<u16>(MapOverlay::Mine) || ov == static_cast<u16>(MapOverlay::Plantation)
-        || ov == static_cast<u16>(MapOverlay::Fort)) {
-        return 0xFFFFu;
-    }
-    if (ov == static_cast<u16>(MapOverlay::City)) {
-        return 0xFFFFu;
-    }
-    return 0u;
-}
-
 static bool add_idx_ok (u16 ov, u16 add_idx) {
-    if (!ov_catalog_ok(ov)) {
-        return false;
-    }
-    if (ov == static_cast<u16>(MapOverlay::City)) {
-        return true;
-    }
-    const u16 mask = add_idx_mask_for_ov(ov);
-    if (mask == 0u) {
-        return add_idx == 0u;
-    }
-    return (add_idx & static_cast<u16>(~mask)) == 0u;
+    return TileImpHelper::add_idx_ok(ov, add_idx);
 }
 
 static bool apply_tile_ov (GameTileSimple* t, u16 ov, u16 add_idx) {

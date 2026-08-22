@@ -1,14 +1,16 @@
 #!/bin/bash
+set -e
 
 cd "$(dirname "$0")"
 
-INC="-I. -I.. -I../.. -I../../game -I../../map_loader -I../../simple_map_gen -I../../adv_map_gen -I../walk_general"
-CXXFLAGS="-std=c++17 -Wall -Wextra"
+INC="-I. -I.. -I../.. -I../../game -I../../map_loader -I../../simple_map_gen -I../../adv_map_gen -I../walk_general -I../../misc -I../../static_state -I../../data_io -I../../dyn_state"
+CXXFLAGS="-std=c++17 -Wall -Wextra -DGAME_ASSERT_ENABLE"
 
 g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
 g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_data.cpp -o map_terrain_data.o
 g++ $CXXFLAGS $INC -c ../../map_loader/map_loader.cpp -o map_loader.o
 g++ $CXXFLAGS $INC -c ../../game/runtime_trace_dbg.cpp -o runtime_trace_dbg.o
+g++ $CXXFLAGS $INC -c ../../misc/assert_log.cpp -o assert_log.o
 g++ $CXXFLAGS $INC -c ../../game/game_array_simple.cpp -o game_array_simple.o
 g++ $CXXFLAGS $INC -c ../../game/factory_game_array_simple.cpp -o factory_game_array_simple.o
 g++ $CXXFLAGS $INC -c ../walk_general/land_mass_index.cpp -o land_mass_index.o
@@ -22,6 +24,7 @@ g++ $CXXFLAGS -o city_network_router_reach_tester \
     map_terrain_data.o \
     map_loader.o \
     runtime_trace_dbg.o \
+    assert_log.o \
     game_array_simple.o \
     factory_game_array_simple.o \
     land_mass_index.o \
@@ -30,6 +33,9 @@ g++ $CXXFLAGS -o city_network_router_reach_tester \
     city_network_router.o \
     city_network_router_reach_tester.o
 
+./city_network_router_reach_tester "$@"
+
 rm map_terrain_validate.o map_terrain_data.o map_loader.o runtime_trace_dbg.o \
+    assert_log.o \
     game_array_simple.o factory_game_array_simple.o land_mass_index.o \
     city_network_stubs.o city_network.o city_network_router.o city_network_router_reach_tester.o

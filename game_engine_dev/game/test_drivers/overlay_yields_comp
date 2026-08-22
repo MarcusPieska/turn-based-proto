@@ -1,0 +1,31 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")"
+
+LIB_SO="../../data_io/runtime_static_loader_lib.so"
+if [ ! -f "$LIB_SO" ]; then
+    echo "missing $LIB_SO - run ../../data_io/runtime_static_loader_lib_comp first"
+    exit 1
+fi
+
+INC="-I.. -I../.. -I../../misc -I../../data_io -I../../static_state -I../../game -I../../city -I../../city/assessor -I../../city/effector -I../../gen_bit_banks -I../../static_variable_state"
+CXXFLAGS="-std=c++17 -Wall -Wextra"
+
+g++ $CXXFLAGS $INC -c ../../data_io/runtime_static_loader.cpp -o runtime_static_loader.o
+g++ $CXXFLAGS $INC -c ../tile_attr_tables.cpp -o tile_attr_tables.o
+g++ $CXXFLAGS $INC -c ../overlay_yields.cpp -o overlay_yields.o
+g++ $CXXFLAGS $INC -c overlay_yields_tester.cpp -o overlay_yields_tester.o
+
+g++ $CXXFLAGS -o overlay_yields_tester \
+    runtime_static_loader.o \
+    tile_attr_tables.o \
+    overlay_yields.o \
+    overlay_yields_tester.o \
+    -ldl \
+    $LIB_SO \
+    -Wl,-rpath,'$ORIGIN/../../data_io'
+
+./overlay_yields_tester "$@"
+
+rm -f runtime_static_loader.o tile_attr_tables.o overlay_yields.o overlay_yields_tester.o overlay_yields_tester

@@ -9,6 +9,7 @@
 
 class BitArrayCL;
 class GeneralBitBank;
+class GameState;
 class RuntimeStatics;
 class UnitAddVector;
 
@@ -22,6 +23,10 @@ struct PlayerState;
 //  Location and owner are set via init when a dormant page slot is activated; constructor only zeroes production fields.
 //
 //================================================================================================================================
+
+typedef struct MiscCityData {
+    u64 m_city_has_worker : 1; // 1 = disk may need jobs; 0 = no work left on disk
+} MiscCityData;
 
 class alignas(8) City {
 public:
@@ -68,6 +73,10 @@ public:
     bool is_frontier () const;
     void city_no_longer_frontier ();
 
+    bool city_has_worker () const;
+    void set_city_has_worker (u8 on);
+    static void refresh_city_worker_flags (GameState& state, u16 player);
+
     bool finish_if_ready (u16 city_idx);
     bool has_building (u16 city_idx, u16 building_idx) const;
     bool need_prod_pick () const;
@@ -100,6 +109,8 @@ private:
     u8 m_build_type; // Active build category 
     u8 m_is_frontier_city; // Helper for AI settler sensing; true if city is near unclaimed territory
     u8 m_road_conn; // Four 2-bit fields (NE,NW,SE,SW): bit0 locked, bit1 built
+
+    MiscCityData m_misc;
 };
 
 #endif // CITY_H

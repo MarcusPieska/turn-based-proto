@@ -35,6 +35,8 @@ PARSER_SPECS.append(("unit_type", "UnitType", ""))
 PARSER_SPECS.append(("wonder", "Wonder", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStruct"))
 PARSER_SPECS.append(("map_overlay", "MapOverlay", ""))
 PARSER_SPECS.append(("map_attribute", "MapAttribute", ""))
+PARSER_SPECS.append(("map_terrain", "MapTerrain", ""))
+PARSER_SPECS.append(("map_climate", "MapClimate", ""))
 PARSER_SPECS.append(("worker_job_target", "WorkerJobTarget", ""))
 PARSER_SPECS.append(("worker_job_type", "WorkerJobType", ""))
 PARSER_SPECS.append(("worker_job", "WorkerJob", "cost,1,u32:target_idx,2,WorkerJobSiteIdx:target_kind,3,WorkerJobTarget:type,4,WorkerJobType:reqs,5,ItemReqsStruct"))
@@ -84,6 +86,10 @@ def get_function_name_from_output_type(output_type):
         return "parse_map_overlay_idx"
     elif output_type == "MapAttributeColIdx":
         return "parse_map_attribute_idx"
+    elif output_type == "MapTerrainColIdx":
+        return "parse_map_terrain_idx"
+    elif output_type == "MapClimateColIdx":
+        return "parse_map_climate_idx"
     elif output_type == "WorkerJobSiteIdx":
         return "parse_worker_job_site_idx"
     elif output_type == "TileYieldType":
@@ -332,6 +338,17 @@ def derive_dep_reqs_print():
         lines.append("    } else if (m_%s_psr != NULL) {" % prefix)
         lines.append('        fprintf(out(), "    [%%u] type=%%u %%s (%%u)", j, type, m_%s_psr->idx_to_name(idx), idx);' % prefix)
         lines.append("    }")
+    if lines:
+        lines.append("} else if (type == ITEM_REQ_TYPE_TILE) {")
+        lines.append("    static const char* k_tile_kinds[] = { \"\", \"terrain\", \"climate\", \"overlay\", \"attribute\" };")
+        lines.append("    const u8 kind = reqs.added_args[j];")
+        lines.append("    cstr kind_nm = (kind <= TILE_REQ_KIND_ATTRIBUTE) ? k_tile_kinds[kind] : \"?\";")
+        lines.append("    cstr site_nm = \"\";")
+        lines.append("    if (kind == TILE_REQ_KIND_TERRAIN && m_map_terrain_psr != NULL) { site_nm = m_map_terrain_psr->idx_to_name(idx); }")
+        lines.append("    else if (kind == TILE_REQ_KIND_CLIMATE && m_map_climate_psr != NULL) { site_nm = m_map_climate_psr->idx_to_name(idx); }")
+        lines.append("    else if (kind == TILE_REQ_KIND_OVERLAY && m_map_overlay_psr != NULL) { site_nm = m_map_overlay_psr->idx_to_name(idx); }")
+        lines.append("    else if (kind == TILE_REQ_KIND_ATTRIBUTE && m_map_attribute_psr != NULL) { site_nm = m_map_attribute_psr->idx_to_name(idx); }")
+        lines.append('    fprintf(out(), "    [%u] type=%u tile(%s,%s) (%u)", j, type, kind_nm, site_nm, idx);')
     return lines
 
 def derive_comp_compile_holders():

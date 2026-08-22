@@ -42,6 +42,8 @@
 #include "wonder_static_data.h"
 #include "map_overlay_static_data.h"
 #include "map_attribute_static_data.h"
+#include "map_terrain_static_data.h"
+#include "map_climate_static_data.h"
 #include "worker_job_target_static_data.h"
 #include "worker_job_type_static_data.h"
 #include "worker_job_static_data.h"
@@ -82,6 +84,8 @@ public:
     void set_wonder_sd (const WonderStaticData* sd);
     void set_map_overlay_sd (const MapOverlayStaticData* sd);
     void set_map_attribute_sd (const MapAttributeStaticData* sd);
+    void set_map_terrain_sd (const MapTerrainStaticData* sd);
+    void set_map_climate_sd (const MapClimateStaticData* sd);
     void set_worker_job_target_sd (const WorkerJobTargetStaticData* sd);
     void set_worker_job_type_sd (const WorkerJobTypeStaticData* sd);
     void set_worker_job_sd (const WorkerJobStaticData* sd);
@@ -115,6 +119,8 @@ private:
     const WonderStaticData* m_wonder_sd;
     const MapOverlayStaticData* m_map_overlay_sd;
     const MapAttributeStaticData* m_map_attribute_sd;
+    const MapTerrainStaticData* m_map_terrain_sd;
+    const MapClimateStaticData* m_map_climate_sd;
     const WorkerJobTargetStaticData* m_worker_job_target_sd;
     const WorkerJobTypeStaticData* m_worker_job_type_sd;
     const WorkerJobStaticData* m_worker_job_sd;
@@ -142,6 +148,8 @@ private:
     const DataParserBase* m_wonder_psr;
     const DataParserBase* m_map_overlay_psr;
     const DataParserBase* m_map_attribute_psr;
+    const DataParserBase* m_map_terrain_psr;
+    const DataParserBase* m_map_climate_psr;
     const DataParserBase* m_worker_job_target_psr;
     const DataParserBase* m_worker_job_type_psr;
     const DataParserBase* m_worker_job_psr;
@@ -171,6 +179,8 @@ private:
     static u16 st_wonder_n2i (cstr name);
     static u16 st_map_overlay_n2i (cstr name);
     static u16 st_map_attribute_n2i (cstr name);
+    static u16 st_map_terrain_n2i (cstr name);
+    static u16 st_map_climate_n2i (cstr name);
     static u16 st_worker_job_target_n2i (cstr name);
     static u16 st_worker_job_type_n2i (cstr name);
     static u16 st_worker_job_n2i (cstr name);

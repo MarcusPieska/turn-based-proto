@@ -165,7 +165,7 @@ int main () {
     note_result(TileAttrTables::terr_n() == 16u, "terr table size 16");
     note_result(TileAttrTables::clim_n() == 5u, "clim table size 5");
     note_result(TileAttrTables::ov_n() == 16u, "ov table size 16");
-    note_result(TileAttrTables::road_n() == 5u, "road table size 5");
+    note_result(TileAttrTables::road_n() == 8u, "road table size 8");
 
     note_result(TileAttrTables::terr(TERR_HILLS[0]).mvt_cost == 2000u, "TERR_HILLS mvt_cost");
     note_result(TileAttrTables::terr(TERR_HILLS[0]).food == -1, "TERR_HILLS food");

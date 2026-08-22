@@ -16,6 +16,15 @@
 #define ROAD_COBBLE 2
 #define ROAD_ASPHALT 3
 #define ROAD_RAIL 4
+#define ROAD_VIRTUAL 7
+
+static inline bool road_is_virtual (u8 r) {
+    return r == static_cast<u8>(ROAD_VIRTUAL);
+}
+
+static inline bool road_is_built (u8 r) {
+    return r != static_cast<u8>(ROAD_NONE) && !road_is_virtual(r);
+}
 
 //================================================================================================================================
 //=> - Climate classes -
