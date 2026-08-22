@@ -2,37 +2,28 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef WORKER_TURN_HANDLER_H
-#define WORKER_TURN_HANDLER_H
+#ifndef WORKER_IMP_SELECT_H
+#define WORKER_IMP_SELECT_H
 
 #include "game_primitives.h"
 
-class GameState;
-
 //================================================================================================================================
-//=> - WorkerTurnHandler -
+//=> - WorkerImpSelect -
 //================================================================================================================================
 //
-//  Per-worker unit step. Tallies into m_last_turn_worker_count, then applies one WorkerGuidance job on a
-//  home-city worked tile. PlayerState::m_worker_tile_opt_scan picks best vs first hit;
-//  m_worker_tile_opt_reassign re-runs stable_food_max_production after a successful job.
+//  Picks one worker_job_imp under the tile overlay from assessor-eligible candidates.
+//  Strategy body is cpp-included from impl/worker_imp_select_linear_mkNN.cpp via WORKER_IMP_SELECT_IMPL.
 //
 //================================================================================================================================
 
-class WorkerTurnHandler {
+class WorkerImpSelect {
 public:
-    typedef void (*JobNoteFn) (u16 x, u16 y, u16 job, u16 imp, u8 intent);
+    WorkerImpSelect () = delete;
 
-    WorkerTurnHandler () = delete;
-
-    static void handle (GameState& state, u16 unit_idx);
-    static void set_job_note (JobNoteFn fn);
-
-private:
-    static JobNoteFn m_job_note; // Optional sink for each successful apply
+    static u16 pick (u16 x, u16 y, u16 job_idx);
 };
 
-#endif // WORKER_TURN_HANDLER_H
+#endif // WORKER_IMP_SELECT_H
 
 //================================================================================================================================
 //=> - End of file -

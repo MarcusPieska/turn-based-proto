@@ -24,7 +24,8 @@ void StdAddHelper::set_farm (GameTileSimple* t) {
 
 bool StdAddHelper::has_mill (const GameTileSimple* t) {
     GAME_EXPECT(t != nullptr, "StdAddHelper::has_mill null tile");
-    if (static_cast<u16>(t->m_ov) != static_cast<u16>(MapOverlay::Forest)) {
+    const u16 ov = static_cast<u16>(t->m_ov);
+    if (ov != static_cast<u16>(MapOverlay::Farm) && ov != static_cast<u16>(MapOverlay::Forest)) {
         return false;
     }
     return (static_cast<u16>(t->m_add_idx) & m_mill_bit) != 0u;
@@ -32,6 +33,11 @@ bool StdAddHelper::has_mill (const GameTileSimple* t) {
 
 void StdAddHelper::set_mill (GameTileSimple* t) {
     GAME_EXPECT(t != nullptr, "StdAddHelper::set_mill null tile");
+    const u16 ov = static_cast<u16>(t->m_ov);
+    if (ov == static_cast<u16>(MapOverlay::Farm)) {
+        t->m_add_idx = static_cast<u16>(t->m_add_idx) | m_mill_bit;
+        return;
+    }
     t->m_ov = static_cast<u16>(MapOverlay::Forest);
     t->m_add_idx = static_cast<u16>(t->m_add_idx) | m_mill_bit;
 }

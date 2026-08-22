@@ -26,7 +26,9 @@ public:
     static void bind_map (GameArraySimple* map);
     static u8 usage_for_intent (u16 x, u16 y, TileAssignIntent intent);
     static u16 next_job (u16 x, u16 y, TileAssignIntent intent);
+    static bool next_work (u16 x, u16 y, TileAssignIntent intent, u16* job, u16* imp);
     static bool apply_job (u16 x, u16 y, u16 job_idx);
+    static bool apply_work (u16 x, u16 y, u16 job_idx, u16 imp_idx);
 
 private:
     static const RuntimeStatics* m_st; // Runtime catalog; null until bind_statics

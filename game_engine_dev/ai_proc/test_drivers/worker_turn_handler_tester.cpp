@@ -2,6 +2,7 @@
 //=> - Includes -
 //================================================================================================================================
 
+#include <algorithm>
 #include <cerrno>
 #include <chrono>
 #include <cstdio>
@@ -20,6 +21,10 @@
 #include "game_map_defs.h"
 #include "game_setup.h"
 #include "game_state.h"
+#include "map_overlay_enum.h"
+#include "map_overlay_static_key.h"
+#include "tile_imp_helper.h"
+#include "worker_job_imp_index.h"
 #include "research_turn_handler.h"
 #include "runtime_statics.h"
 #include "settler_turn_handler.h"
@@ -35,6 +40,8 @@
 #include "whiteboard_mng.h"
 #include "worker_helper.h"
 #include "worker_job_static_key.h"
+#include "worker_job_imp_enum.h"
+#include "worker_job_imp_static_key.h"
 #include "worker_turn_handler.h"
 
 //================================================================================================================================
@@ -128,7 +135,8 @@ static void tm_report_all () {
 }
 
 struct JobTot {
-    std::string m_nm;
+    u16 m_job;
+    u16 m_imp;
     u32 m_n;
 };
 
@@ -136,28 +144,79 @@ static std::vector<JobTot> g_job_tot;
 static const RuntimeStatics* g_st = nullptr;
 static u32 g_job_apps = 0;
 
-static void on_job (u16 x, u16 y, u16 job, u8 intent) {
+static u32 job_tot_n (u16 job, u16 imp) {
+    for (size_t i = 0; i < g_job_tot.size(); ++i) {
+        if (g_job_tot[i].m_job == job && g_job_tot[i].m_imp == imp) {
+            return g_job_tot[i].m_n;
+        }
+    }
+    return 0u;
+}
+
+static void on_job (u16 x, u16 y, u16 job, u16 imp, u8 intent) {
     (void)x;
     (void)y;
     (void)intent;
     if (g_st == nullptr) {
         return;
     }
-    cstr nm = g_st->worker_job().get_name(WorkerJobStaticDataKey::from_raw(job));
-    if (nm == nullptr) {
-        nm = "unknown_job";
-    }
     g_job_apps = g_job_apps + 1u;
     for (size_t i = 0; i < g_job_tot.size(); ++i) {
-        if (g_job_tot[i].m_nm == nm) {
+        if (g_job_tot[i].m_job == job && g_job_tot[i].m_imp == imp) {
             g_job_tot[i].m_n = g_job_tot[i].m_n + 1u;
             return;
         }
     }
     JobTot t;
-    t.m_nm = nm;
+    t.m_job = job;
+    t.m_imp = imp;
     t.m_n = 1u;
     g_job_tot.push_back(t);
+}
+
+static void print_job_tots () {
+    std::printf(" totals by job:\n");
+    if (g_st == nullptr) {
+        return;
+    }
+    std::vector<u16> jobs;
+    for (size_t i = 0; i < g_job_tot.size(); ++i) {
+        const u16 j = g_job_tot[i].m_job;
+        bool seen = false;
+        for (size_t k = 0; k < jobs.size(); ++k) {
+            if (jobs[k] == j) {
+                seen = true;
+                break;
+            }
+        }
+        if (!seen) {
+            jobs.push_back(j);
+        }
+    }
+    std::sort(jobs.begin(), jobs.end());
+    for (size_t ji = 0; ji < jobs.size(); ++ji) {
+        const u16 job = jobs[ji];
+        cstr jnm = g_st->worker_job().get_name(WorkerJobStaticDataKey::from_raw(job));
+        if (jnm == nullptr) {
+            jnm = "unknown_job";
+        }
+        std::printf("  %s: %u\n", jnm, (unsigned)job_tot_n(job, U16_KEY_NULL));
+        std::vector<u16> imps;
+        for (size_t i = 0; i < g_job_tot.size(); ++i) {
+            if (g_job_tot[i].m_job != job || g_job_tot[i].m_imp == U16_KEY_NULL) {
+                continue;
+            }
+            imps.push_back(g_job_tot[i].m_imp);
+        }
+        std::sort(imps.begin(), imps.end());
+        for (size_t ii = 0; ii < imps.size(); ++ii) {
+            cstr inm = g_st->worker_job_imp().get_name(WorkerJobImpStaticDataKey::from_raw(imps[ii]));
+            if (inm == nullptr) {
+                inm = "unknown_imp";
+            }
+            std::printf("    %s: %u\n", inm, (unsigned)job_tot_n(job, imps[ii]));
+        }
+    }
 }
 
 //================================================================================================================================
@@ -447,7 +506,7 @@ static void paint_imp (u8* rgb, u16 w, u16 h, u16 x, u16 y, const GameState& sta
         set_px(rgb, w, h, x, y, 160, 60, 200);
         return;
     }
-    if (typ != BUILD_ADD_STD || state.m_map.get_add_idx(x, y) == U16_KEY_NULL) {
+    if (typ != BUILD_ADD_STD) {
         return;
     }
     const GameTileSimple* t = state.m_map.tile(x, y);
@@ -460,40 +519,77 @@ static void paint_imp (u8* rgb, u16 w, u16 h, u16 x, u16 y, const GameState& sta
     }
 }
 
-static void count_imps (const GameState& state, u32* farms, u32* mills, u32* irrs, u32* mines, u32* plants) {
-    *farms = 0;
-    *mills = 0;
-    *irrs = 0;
-    *mines = 0;
-    *plants = 0;
+static u32 count_imp_on_map (const GameState& state, u16 imp_idx) {
+    if (state.m_statics == nullptr || imp_idx >= state.m_statics->worker_job_imp().get_item_count()) {
+        return 0u;
+    }
+    const RuntimeStatics& st = *state.m_statics;
     const u16 w = state.m_map.width();
     const u16 h = state.m_map.height();
+    u32 n = 0u;
     for (u16 y = 0; y < h; ++y) {
         for (u16 x = 0; x < w; ++x) {
-            const u8 typ = state.m_map.get_add_typ(x, y);
-            if (typ == BUILD_ADD_MINE) {
-                *mines = *mines + 1u;
-                continue;
-            }
-            if (typ == BUILD_ADD_PLANTATION) {
-                *plants = *plants + 1u;
-                continue;
-            }
-            if (typ != BUILD_ADD_STD || state.m_map.get_add_idx(x, y) == U16_KEY_NULL) {
-                continue;
-            }
             const GameTileSimple* t = state.m_map.tile(x, y);
-            if (StdAddHelper::has_farm(t)) {
-                *farms = *farms + 1u;
-            }
-            if (StdAddHelper::has_mill(t)) {
-                *mills = *mills + 1u;
-            }
-            if (StdAddHelper::has_irr(t)) {
-                *irrs = *irrs + 1u;
+            if (TileImpHelper::has_imp(t, st, imp_idx)) {
+                n = n + 1u;
             }
         }
     }
+    return n;
+}
+
+static u32 count_overlay_on_map (const GameState& state, u16 ov_idx) {
+    const u16 w = state.m_map.width();
+    const u16 h = state.m_map.height();
+    u32 n = 0u;
+    for (u16 y = 0; y < h; ++y) {
+        for (u16 x = 0; x < w; ++x) {
+            if (state.m_map.get_overlay(x, y) == ov_idx) {
+                n = n + 1u;
+            }
+        }
+    }
+    return n;
+}
+
+static void print_overlay_imps_on_map (const GameState& state, MapOverlay ov) {
+    if (state.m_statics == nullptr) {
+        return;
+    }
+    const RuntimeStatics& st = *state.m_statics;
+    const u16 ov_i = static_cast<u16>(ov);
+    cstr ov_nm = st.map_overlay().get_name(MapOverlayStaticDataKey::from_raw(ov_i));
+    if (ov_nm == nullptr) {
+        ov_nm = "unknown_overlay";
+    }
+    const u32 ov_tiles = count_overlay_on_map(state, ov_i);
+    std::printf("  %s: %u\n", ov_nm, (unsigned)ov_tiles);
+    const WorkerJobImpIndex& ix = st.worker_job_imp_index();
+    const u16 imp_n = ix.imp_n(ov_i);
+    const u16* imp_ids = ix.imps(ov_i);
+    if (imp_ids == nullptr || imp_n == 0u) {
+        return;
+    }
+    for (u16 i = 0; i < imp_n; ++i) {
+        const u32 cnt = count_imp_on_map(state, imp_ids[i]);
+        if (cnt == 0u) {
+            continue;
+        }
+        cstr inm = st.worker_job_imp().get_name(WorkerJobImpStaticDataKey::from_raw(imp_ids[i]));
+        if (inm == nullptr) {
+            inm = "unknown_imp";
+        }
+        std::printf("    %s: %u\n", inm, (unsigned)cnt);
+    }
+}
+
+static void print_imps_on_map (const GameState& state) {
+    std::printf(" imps on map:\n");
+    print_overlay_imps_on_map(state, MapOverlay::Farm);
+    print_overlay_imps_on_map(state, MapOverlay::Forest);
+    print_overlay_imps_on_map(state, MapOverlay::Mine);
+    print_overlay_imps_on_map(state, MapOverlay::Plantation);
+    print_overlay_imps_on_map(state, MapOverlay::Fort);
 }
 
 static bool save_turn_ppm (const GameState& state, u32 turn) {
@@ -719,17 +815,13 @@ int main (int argc, char** argv) {
                 state.clear();
                 return 1;
             }
-            u32 farms = 0;
-            u32 mills = 0;
-            u32 irrs = 0;
-            u32 mines = 0;
-            u32 plants = 0;
-            count_imps(state, &farms, &mills, &irrs, &mines, &plants);
-            std::printf("t=%u cities=%u workers=%u farms=%u mills=%u irr=%u mines=%u plants=%u jobs=%u\n",
+            u32 irrs = count_imp_on_map(state, static_cast<u16>(WorkerJobImp::Irrigation));
+            std::printf("t=%u cities=%u workers=%u farm_ov=%u irr=%u jobs=%u\n",
                 (unsigned)state.m_current_turn,
                 (unsigned)count_cities(state),
                 (unsigned)count_workers(state),
-                (unsigned)farms, (unsigned)mills, (unsigned)irrs, (unsigned)mines, (unsigned)plants,
+                (unsigned)count_overlay_on_map(state, static_cast<u16>(MapOverlay::Farm)),
+                (unsigned)irrs,
                 (unsigned)g_job_apps);
         }
     }
@@ -750,13 +842,8 @@ int main (int argc, char** argv) {
 
     const u16 cities1 = count_cities(state);
     const u16 workers1 = count_workers(state);
-    u32 farms = 0;
-    u32 mills = 0;
-    u32 irrs = 0;
-    u32 mines = 0;
-    u32 plants = 0;
-    count_imps(state, &farms, &mills, &irrs, &mines, &plants);
-    const bool ok = state.m_current_turn == turn_cap && g_job_apps > 0;
+    const u32 irrs = count_imp_on_map(state, static_cast<u16>(WorkerJobImp::Irrigation));
+    const bool ok = state.m_current_turn == turn_cap && g_job_apps > 0 && irrs > 0;
     const double loop_ms = static_cast<double>(
         std::chrono::duration_cast<std::chrono::nanoseconds>(t_loop1 - t_loop0).count()) / 1.0e6;
     const double avg_ms = (turn_cap == 0) ? 0.0 : loop_ms / static_cast<double>(turn_cap);
@@ -764,8 +851,8 @@ int main (int argc, char** argv) {
     std::printf("=======================================================\n");
     std::printf(" WORKER TURN MNG: %s after %u turns (players=%u cities %u -> %u workers %u -> %u)\n",
         ok ? "PASS" : "FAIL", state.m_current_turn, state.m_player_n, cities0, cities1, workers0, workers1);
-    std::printf(" imps: farms=%u mills=%u irr=%u mines=%u plants=%u  jobs_applied=%u\n",
-        (unsigned)farms, (unsigned)mills, (unsigned)irrs, (unsigned)mines, (unsigned)plants, (unsigned)g_job_apps);
+    std::printf(" imps: jobs_applied=%u\n", (unsigned)g_job_apps);
+    print_imps_on_map(state);
     std::printf(" loop wall: %.3f ms total  %.3f ms/turn (includes tester spawn + ppm)\n", loop_ms, avg_ms);
     std::printf(" turn e2e:  %.3f ms total  %.3f ms/turn (city+unit only)\n",
         static_cast<double>(g_tm_turn.ns) / 1.0e6,
@@ -773,10 +860,7 @@ int main (int argc, char** argv) {
     std::printf(" maps: %s/turn_XXXX.ppm\n", G_OUT_DIR);
     std::printf(" hot-path timings:\n");
     tm_report_all();
-    std::printf(" totals by job:\n");
-    for (size_t i = 0; i < g_job_tot.size(); ++i) {
-        std::printf("  %s: %u\n", g_job_tot[i].m_nm.c_str(), (unsigned)g_job_tot[i].m_n);
-    }
+    print_job_tots();
     std::printf("=======================================================\n");
 
     g_st = nullptr;

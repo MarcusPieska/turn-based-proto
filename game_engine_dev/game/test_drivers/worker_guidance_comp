@@ -9,14 +9,21 @@ if [ ! -f "$LIB_SO" ]; then
     exit 1
 fi
 
-IMPL_MK="${TILE_WORK_ASSESSOR_MK:-mk01}"
-IMPL_REL="impl/tile_work_assessor_impl_${IMPL_MK}.cpp"
-IMPL_ABS="../${IMPL_REL}"
-if [ ! -f "$IMPL_ABS" ]; then
-    echo "missing impl $IMPL_ABS"
+IMP_SEL_MK="${WORKER_IMP_SELECT_MK:-linear_mk01}"
+IMP_SEL_REL="impl/worker_imp_select_${IMP_SEL_MK}.cpp"
+IMP_SEL_ABS="../${IMP_SEL_REL}"
+if [ ! -f "$IMP_SEL_ABS" ]; then
+    echo "missing impl $IMP_SEL_ABS"
     exit 1
 fi
-IMPL_TAG="${IMPL_MK}"
+
+ASM_MK="${TILE_WORK_ASSESSOR_MK:-mk01}"
+ASM_REL="impl/tile_work_assessor_impl_${ASM_MK}.cpp"
+ASM_ABS="../${ASM_REL}"
+if [ ! -f "$ASM_ABS" ]; then
+    echo "missing impl $ASM_ABS"
+    exit 1
+fi
 
 YLD_MK="${TILE_YIELDS_MK:-mk01}"
 YLD_REL="impl/tile_yields_impl_${YLD_MK}.cpp"
@@ -27,13 +34,10 @@ if [ ! -f "$YLD_ABS" ]; then
 fi
 
 INC="-I.. -I../.. -I../../misc -I../../data_io -I../../static_state -I../../map_loader -I../../simple_map_gen -I../../adv_map_gen -I../../city -I../../city/assessor -I../../city/effector -I../../gen_bit_banks -I../../game"
-CXXFLAGS="-std=c++17 -Wall -Wextra"
-CXXFLAGS="$CXXFLAGS -DTILE_WORK_ASSESSOR_IMPL=\"${IMPL_REL}\""
-CXXFLAGS="$CXXFLAGS -DTILE_WORK_ASSESSOR_IMPL_TAG=\"${IMPL_TAG}\""
-CXXFLAGS="$CXXFLAGS -DTILE_WORK_ASSESSOR_MK=\"${IMPL_MK}\""
+CXXFLAGS="-std=c++17 -Wall -Wextra -g -DGAME_ASSERT_ENABLE"
+CXXFLAGS="$CXXFLAGS -DWORKER_IMP_SELECT_IMPL=\"${IMP_SEL_REL}\""
+CXXFLAGS="$CXXFLAGS -DTILE_WORK_ASSESSOR_IMPL=\"${ASM_REL}\""
 CXXFLAGS="$CXXFLAGS -DTILE_YIELDS_IMPL=\"${YLD_REL}\""
-CXXFLAGS="$CXXFLAGS -DTILE_YIELDS_IMPL_TAG=\"${YLD_MK}\""
-CXXFLAGS="$CXXFLAGS -DTILE_YIELDS_MK=\"${YLD_MK}\""
 
 g++ $CXXFLAGS $INC -c ../../data_io/runtime_static_loader.cpp -o runtime_static_loader.o
 g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
@@ -41,6 +45,7 @@ g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_data.cpp -o map_terrain_data.
 g++ $CXXFLAGS $INC -c ../../map_loader/map_loader.cpp -o map_loader.o
 g++ $CXXFLAGS $INC -c ../runtime_trace_dbg.cpp -o runtime_trace_dbg.o
 g++ $CXXFLAGS $INC -c ../../misc/bit_array.cpp -o bit_array.o
+g++ $CXXFLAGS $INC -c ../../misc/assert_log.cpp -o assert_log.o
 g++ $CXXFLAGS $INC -c ../game_array_simple.cpp -o game_array_simple.o
 g++ $CXXFLAGS $INC -c ../factory_game_array_simple.cpp -o factory_game_array_simple.o
 g++ $CXXFLAGS $INC -c ../std_add_helper.cpp -o std_add_helper.o
@@ -49,15 +54,18 @@ g++ $CXXFLAGS $INC -c ../tile_attr_tables.cpp -o tile_attr_tables.o
 g++ $CXXFLAGS $INC -c ../../city/assessor/general_assessor.cpp -o general_assessor.o
 g++ $CXXFLAGS $INC -c ../tile_yields.cpp -o tile_yields.o
 g++ $CXXFLAGS $INC -c ../tile_work_assessor.cpp -o tile_work_assessor.o
-g++ $CXXFLAGS $INC -c tile_work_assessor_tester.cpp -o tile_work_assessor_tester.o
+g++ $CXXFLAGS $INC -c ../worker_imp_select.cpp -o worker_imp_select.o
+g++ $CXXFLAGS $INC -c ../worker_guidance.cpp -o worker_guidance.o
+g++ $CXXFLAGS $INC -c worker_guidance_tester.cpp -o worker_guidance_tester.o
 
-g++ $CXXFLAGS -o tile_work_assessor_tester \
+g++ $CXXFLAGS -o worker_guidance_tester \
     runtime_static_loader.o \
     map_terrain_validate.o \
     map_terrain_data.o \
     map_loader.o \
     runtime_trace_dbg.o \
     bit_array.o \
+    assert_log.o \
     game_array_simple.o \
     factory_game_array_simple.o \
     std_add_helper.o \
@@ -66,14 +74,16 @@ g++ $CXXFLAGS -o tile_work_assessor_tester \
     general_assessor.o \
     tile_yields.o \
     tile_work_assessor.o \
-    tile_work_assessor_tester.o \
+    worker_imp_select.o \
+    worker_guidance.o \
+    worker_guidance_tester.o \
     -ldl \
     $LIB_SO \
     -Wl,-rpath,'$ORIGIN/../../data_io'
 
-./tile_work_assessor_tester "$@"
+./worker_guidance_tester "$@"
 
 rm runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.o \
-    runtime_trace_dbg.o bit_array.o game_array_simple.o factory_game_array_simple.o \
+    runtime_trace_dbg.o bit_array.o assert_log.o game_array_simple.o factory_game_array_simple.o \
     std_add_helper.o tile_imp_helper.o tile_attr_tables.o general_assessor.o tile_yields.o \
-    tile_work_assessor.o tile_work_assessor_tester.o tile_work_assessor_tester
+    tile_work_assessor.o worker_imp_select.o worker_guidance.o worker_guidance_tester.o worker_guidance_tester

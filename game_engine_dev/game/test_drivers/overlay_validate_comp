@@ -1,0 +1,35 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")"
+
+INC="-I.. -I../.. -I../../misc -I../../data_io -I../../map_loader -I../../simple_map_gen -I../../adv_map_gen -I../../game"
+CXXFLAGS="-std=c++17 -Wall -Wextra -g -DGAME_ASSERT_ENABLE"
+
+g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
+g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_data.cpp -o map_terrain_data.o
+g++ $CXXFLAGS $INC -c ../../map_loader/map_loader.cpp -o map_loader.o
+g++ $CXXFLAGS $INC -c ../runtime_trace_dbg.cpp -o runtime_trace_dbg.o
+g++ $CXXFLAGS $INC -c ../../misc/assert_log.cpp -o assert_log.o
+g++ $CXXFLAGS $INC -c ../game_array_simple.cpp -o game_array_simple.o
+g++ $CXXFLAGS $INC -c ../std_add_helper.cpp -o std_add_helper.o
+g++ $CXXFLAGS $INC -c ../tile_imp_helper.cpp -o tile_imp_helper.o
+g++ $CXXFLAGS $INC -c ../factory_game_array_simple.cpp -o factory_game_array_simple.o
+g++ $CXXFLAGS $INC -c overlay_validate_tester.cpp -o overlay_validate_tester.o
+
+g++ $CXXFLAGS -o overlay_validate_tester \
+    map_terrain_validate.o \
+    map_terrain_data.o \
+    map_loader.o \
+    runtime_trace_dbg.o \
+    assert_log.o \
+    game_array_simple.o \
+    std_add_helper.o \
+    tile_imp_helper.o \
+    factory_game_array_simple.o \
+    overlay_validate_tester.o
+
+./overlay_validate_tester "$@"
+
+rm -f map_terrain_validate.o map_terrain_data.o map_loader.o runtime_trace_dbg.o assert_log.o \
+    game_array_simple.o std_add_helper.o tile_imp_helper.o factory_game_array_simple.o overlay_validate_tester.o

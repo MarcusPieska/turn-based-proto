@@ -11,6 +11,7 @@
 #include "resource_static_key.h"
 #include "runtime_statics.h"
 #include "std_add_helper.h"
+#include "tile_imp_helper.h"
 #include "tile_yields.h"
 #include "worker_job_enum.h"
 #include "worker_job_imp_index.h"
@@ -20,6 +21,8 @@
 #include "worker_job_static_key.h"
 #include "worker_job_target_enum.h"
 #include "worker_job_type_enum.h"
+
+#include <cstring>
 
 //================================================================================================================================
 //=> - Local helpers -
@@ -235,41 +238,75 @@ bool TileWorkAssessor::tile_ok (u16 job_idx, u16 x, u16 y) {
     }
 }
 
-u16 TileWorkAssessor::assess_job (u16 x, u16 y, u16 job_idx, TileWorkCand* out, u16 out_cap) {
-    if (out == nullptr || out_cap == 0 || m_st == nullptr) {
-        return 0;
+static bool imp_already_set (const GameArraySimple& map, u16 x, u16 y, u16 imp_idx, const RuntimeStatics& st) {
+    const GameTileSimple* t = map.tile(x, y);
+    if (t == nullptr) {
+        return false;
     }
-    if (!tile_ok(job_idx, x, y)) {
-        return 0;
-    }
-    const AssessorCtx ctx = make_ctx(m_ctx);
-    if (!job_unlocked(*m_st, job_idx, ctx)) {
-        return 0;
-    }
-    u16 n = 0;
-    const WorkerJobStaticDataStruct& job = m_st->worker_job().get_item(WorkerJobStaticDataKey::from_raw(job_idx));
-    if (job.target_kind != static_cast<u16>(WorkerJobTarget::Overlay)
-        || job.type == static_cast<u16>(WorkerJobType::Clearing)) {
-        push_cand(out, out_cap, &n, job_idx, U16_KEY_NULL);
-        return n;
-    }
-    const WorkerJobImpIndex& ix = m_st->worker_job_imp_index();
-    const u16 ov = job.target_idx;
+    return TileImpHelper::has_imp(t, st, imp_idx);
+}
+
+static u16 assess_imps_under_overlay (
+    const RuntimeStatics& st,
+    const GameArraySimple& map,
+    u16 x,
+    u16 y,
+    u16 job_idx,
+    u16 ov,
+    const AssessorCtx& ctx,
+    TileWorkCand* out,
+    u16 out_cap)
+{
+    const WorkerJobImpIndex& ix = st.worker_job_imp_index();
     const u16 imp_n = ix.imp_n(ov);
+    u16 n = 0;
     if (imp_n == 0) {
-        push_cand(out, out_cap, &n, job_idx, U16_KEY_NULL);
-        return n;
+        return 0;
     }
     const u16* imps = ix.imps(ov);
     for (u16 i = 0; i < imp_n; ++i) {
         const u16 imp_idx = imps[i];
-        if (!imp_unlocked(*m_st, imp_idx, ctx)) {
+        if (!imp_unlocked(st, imp_idx, ctx)) {
+            continue;
+        }
+        if (imp_already_set(map, x, y, imp_idx, st)) {
             continue;
         }
         if (!push_cand(out, out_cap, &n, job_idx, imp_idx)) {
             break;
         }
     }
+    return n;
+}
+
+u16 TileWorkAssessor::assess_job (u16 x, u16 y, u16 job_idx, TileWorkCand* out, u16 out_cap) {
+    if (out == nullptr || out_cap == 0 || m_st == nullptr) {
+        return 0;
+    }
+    const AssessorCtx ctx = make_ctx(m_ctx);
+    if (!job_unlocked(*m_st, job_idx, ctx)) {
+        return 0;
+    }
+    const WorkerJobStaticDataStruct& job = m_st->worker_job().get_item(WorkerJobStaticDataKey::from_raw(job_idx));
+    if (job.target_kind != static_cast<u16>(WorkerJobTarget::Overlay)
+        || job.type == static_cast<u16>(WorkerJobType::Clearing)) {
+        if (!tile_ok(job_idx, x, y)) {
+            return 0;
+        }
+        u16 n = 0;
+        push_cand(out, out_cap, &n, job_idx, U16_KEY_NULL);
+        return n;
+    }
+    const u16 tile_ov = m_map->get_overlay(x, y);
+    const u16 job_ov = job.target_idx;
+    if (tile_ov == job_ov) {
+        return assess_imps_under_overlay(*m_st, *m_map, x, y, job_idx, job_ov, ctx, out, out_cap);
+    }
+    if (!tile_ok(job_idx, x, y)) {
+        return 0;
+    }
+    u16 n = 0;
+    push_cand(out, out_cap, &n, job_idx, U16_KEY_NULL);
     return n;
 }
 

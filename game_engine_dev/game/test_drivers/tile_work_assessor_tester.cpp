@@ -12,11 +12,14 @@
 #include "factory_game_array_simple.h"
 #include "game_map_defs.h"
 #include "item_reqs.h"
+#include "map_overlay_enum.h"
 #include "runtime_static_loader.h"
 #include "runtime_statics.h"
+#include "std_add_helper.h"
 #include "tech_static_key.h"
 #include "tile_work_assessor.h"
 #include "tile_yields.h"
+#include "worker_job_enum.h"
 #include "worker_job_imp_index.h"
 #include "worker_job_imp_static_key.h"
 #include "worker_job_static_data.h"
@@ -174,6 +177,88 @@ struct WorkTarget {
     u16 m_y;
     bool m_has_tile;
 };
+
+static bool cand_has_imp_for_job (const TileWorkCand* cands, u16 n, u16 job_idx) {
+    for (u16 i = 0; i < n; ++i) {
+        if (cands[i].m_job == job_idx && cands[i].m_imp != U16_KEY_NULL) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static bool find_farm_place (const GameArraySimple& map, u16* ox, u16* oy) {
+    const u16 w = map.width();
+    const u16 h = map.height();
+    for (u16 y = 0; y < h; ++y) {
+        for (u16 x = 0; x < w; ++x) {
+            if (map.get_terrain(x, y) != TERR_PLAINS[0]) {
+                continue;
+            }
+            if (map.get_overlay(x, y) != U16_KEY_NULL) {
+                continue;
+            }
+            *ox = x;
+            *oy = y;
+            return true;
+        }
+    }
+    return false;
+}
+
+static void test_overlay_imp_gate (const RuntimeStatics& st, GameArraySimple& map) {
+    const u16 farm_job = static_cast<u16>(WorkerJob::Cultivate_Farm);
+    TileWorkCand cands[G_CAND_CAP];
+    u16 px = 0;
+    u16 py = 0;
+    if (!find_farm_place(map, &px, &py)) {
+        note_result(false, "overlay gate: find empty plains tile");
+        return;
+    }
+    note_result(true, "overlay gate: find empty plains tile");
+    const u16 n0 = TileWorkAssessor::assess_job(px, py, farm_job, cands, G_CAND_CAP);
+    note_result(cand_has(cands, n0, farm_job, U16_KEY_NULL), "overlay gate: placement offers job-only");
+    note_result(!cand_has_imp_for_job(cands, n0, farm_job), "overlay gate: placement offers no imps");
+    note_result(map.set_overlay(px, py, static_cast<u16>(MapOverlay::Farm)), "overlay gate: stamp Farm");
+    const u16 n1 = TileWorkAssessor::assess_job(px, py, farm_job, cands, G_CAND_CAP);
+    note_result(n1 > 0, "overlay gate: Farm tile offers imps");
+    note_result(!cand_has(cands, n1, farm_job, U16_KEY_NULL), "overlay gate: Farm tile skips job-only");
+    u16 forest_job = U16_KEY_NULL;
+    const u16 job_n = st.worker_job().get_item_count();
+    for (u16 j = 0; j < job_n; ++j) {
+        const WorkerJobStaticDataStruct& row = st.worker_job().get_item(WorkerJobStaticDataKey::from_raw(j));
+        if (row.target_kind == static_cast<u16>(WorkerJobTarget::Overlay)
+            && row.target_idx == static_cast<u16>(MapOverlay::Forest)
+            && row.type != static_cast<u16>(WorkerJobType::Clearing)) {
+            forest_job = j;
+            break;
+        }
+    }
+    note_result(forest_job != U16_KEY_NULL, "overlay gate: find forest mother job");
+    if (forest_job == U16_KEY_NULL) {
+        return;
+    }
+    u16 fx = 0;
+    u16 fy = 0;
+    bool got_f = false;
+    for (u16 y = 0; y < map.height() && !got_f; ++y) {
+        for (u16 x = 0; x < map.width() && !got_f; ++x) {
+            if (map.get_overlay(x, y) != static_cast<u16>(MapOverlay::Forest)) {
+                continue;
+            }
+            fx = x;
+            fy = y;
+            got_f = true;
+        }
+    }
+    note_result(got_f, "overlay gate: find natural Forest tile");
+    if (!got_f) {
+        return;
+    }
+    const u16 nf = TileWorkAssessor::assess_job(fx, fy, forest_job, cands, G_CAND_CAP);
+    note_result(nf > 0, "overlay gate: Forest tile offers imps");
+    note_result(!cand_has(cands, nf, forest_job, U16_KEY_NULL), "overlay gate: Forest tile skips job-only");
+}
 
 //================================================================================================================================
 //=> - Tech ablation via assessor -
@@ -392,6 +477,8 @@ int main (int argc, char* argv[]) {
     TileYields::bind_ctx(&yctx);
     TileWorkAssessor::bind_map(&map);
     TileWorkAssessor::bind_ctx(&ctx);
+
+    test_overlay_imp_gate(st, map);
 
     std::vector<WorkTarget> targets;
     build_targets(st, map, tech, &targets);

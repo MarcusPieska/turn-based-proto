@@ -69,7 +69,8 @@ static bool tile_cand (
     u16 ux,
     u16 uy,
     TileAssignIntent* ointent,
-    u16* ojob)
+    u16* ojob,
+    u16* oimp)
 {
     if (TileWorking::get_worker(ux, uy) != city_idx) {
         return false;
@@ -78,12 +79,10 @@ static bool tile_cand (
         return false;
     }
     const TileAssignIntent intent = static_cast<TileAssignIntent>(state.m_map.get_tile_usage(ux, uy));
-    const u16 job = WorkerGuidance::next_job(ux, uy, intent);
-    if (job == U16_KEY_NULL) {
+    if (!WorkerGuidance::next_work(ux, uy, intent, ojob, oimp)) {
         return false;
     }
     *ointent = intent;
-    *ojob = job;
     return true;
 }
 
@@ -95,7 +94,8 @@ static bool pick_first (
     u16* ox,
     u16* oy,
     TileAssignIntent* ointent,
-    u16* ojob)
+    u16* ojob,
+    u16* oimp)
 {
     const CircArea area = CityTileManager::work_area();
     for (u16 i = 0; i < area.m_lim; ++i) {
@@ -109,11 +109,17 @@ static bool pick_first (
         if (ux >= state.m_map.width() || uy >= state.m_map.height()) {
             continue;
         }
-        if (!tile_cand(state, city_idx, ux, uy, ointent, ojob)) {
+        u16 job = U16_KEY_NULL;
+        u16 imp = U16_KEY_NULL;
+        TileAssignIntent intent = TILE_ASSIGN_FOOD;
+        if (!tile_cand(state, city_idx, ux, uy, &intent, &job, &imp)) {
             continue;
         }
         *ox = ux;
         *oy = uy;
+        *ointent = intent;
+        *ojob = job;
+        *oimp = imp;
         return true;
     }
     return false;
@@ -127,7 +133,8 @@ static bool pick_best (
     u16* ox,
     u16* oy,
     TileAssignIntent* ointent,
-    u16* ojob)
+    u16* ojob,
+    u16* oimp)
 {
     const CircArea area = CityTileManager::work_area();
     u8 have_food = 0;
@@ -137,9 +144,11 @@ static bool pick_best (
     u16 fx = 0;
     u16 fy = 0;
     u16 fjob = U16_KEY_NULL;
+    u16 fimp = U16_KEY_NULL;
     u16 px = 0;
     u16 py = 0;
     u16 pjob = U16_KEY_NULL;
+    u16 pimp = U16_KEY_NULL;
     TileAssignIntent fintent = TILE_ASSIGN_FOOD;
     TileAssignIntent pintent = TILE_ASSIGN_PROD;
     for (u16 i = 0; i < area.m_lim; ++i) {
@@ -155,7 +164,8 @@ static bool pick_best (
         }
         TileAssignIntent intent = TILE_ASSIGN_FOOD;
         u16 job = U16_KEY_NULL;
-        if (!tile_cand(state, city_idx, ux, uy, &intent, &job)) {
+        u16 imp = U16_KEY_NULL;
+        if (!tile_cand(state, city_idx, ux, uy, &intent, &job, &imp)) {
             continue;
         }
         if (intent == TILE_ASSIGN_FOOD) {
@@ -165,6 +175,7 @@ static bool pick_best (
                 fx = ux;
                 fy = uy;
                 fjob = job;
+                fimp = imp;
                 fintent = intent;
                 have_food = 1;
             }
@@ -175,6 +186,7 @@ static bool pick_best (
                 px = ux;
                 py = uy;
                 pjob = job;
+                pimp = imp;
                 pintent = intent;
                 have_prod = 1;
             }
@@ -185,6 +197,7 @@ static bool pick_best (
         *oy = fy;
         *ointent = fintent;
         *ojob = fjob;
+        *oimp = fimp;
         return true;
     }
     if (have_prod != 0) {
@@ -192,6 +205,7 @@ static bool pick_best (
         *oy = py;
         *ointent = pintent;
         *ojob = pjob;
+        *oimp = pimp;
         return true;
     }
     return false;
@@ -247,17 +261,18 @@ void WorkerTurnHandler::handle (GameState& state, u16 unit_idx) {
     u16 y = 0;
     TileAssignIntent intent = TILE_ASSIGN_FOOD;
     u16 job = U16_KEY_NULL;
+    u16 imp = U16_KEY_NULL;
     const bool found = (ps.m_worker_tile_opt_scan != 0)
-        ? pick_best(state, city_idx, cx, cy, &x, &y, &intent, &job)
-        : pick_first(state, city_idx, cx, cy, &x, &y, &intent, &job);
+        ? pick_best(state, city_idx, cx, cy, &x, &y, &intent, &job, &imp)
+        : pick_first(state, city_idx, cx, cy, &x, &y, &intent, &job, &imp);
     if (!found) {
         return;
     }
-    if (!WorkerGuidance::apply_job(x, y, job)) {
+    if (!WorkerGuidance::apply_work(x, y, job, imp)) {
         return;
     }
     if (m_job_note != nullptr) {
-        m_job_note(x, y, job, static_cast<u8>(intent));
+        m_job_note(x, y, job, imp, static_cast<u8>(intent));
     }
     if (ps.m_worker_tile_opt_reassign != 0) {
         reassign(state, x, y, city_idx);

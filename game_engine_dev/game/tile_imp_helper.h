@@ -2,37 +2,37 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef WORKER_TURN_HANDLER_H
-#define WORKER_TURN_HANDLER_H
+#ifndef TILE_IMP_HELPER_H
+#define TILE_IMP_HELPER_H
 
 #include "game_primitives.h"
 
-class GameState;
+struct GameTileSimple;
+class RuntimeStatics;
 
 //================================================================================================================================
-//=> - WorkerTurnHandler -
+//=> - TileImpHelper -
 //================================================================================================================================
 //
-//  Per-worker unit step. Tallies into m_last_turn_worker_count, then applies one WorkerGuidance job on a
-//  home-city worked tile. PlayerState::m_worker_tile_opt_scan picks best vs first hit;
-//  m_worker_tile_opt_reassign re-runs stable_food_max_production after a successful job.
+//  Maps worker_job_imp catalog rows to m_add_idx payload bits per overlay. Farm/Forest keep legacy bit
+//  positions; Mine, Plantation, and Fort use imp_index slot as (1 << slot) under their overlay.
 //
 //================================================================================================================================
 
-class WorkerTurnHandler {
+class TileImpHelper {
 public:
-    typedef void (*JobNoteFn) (u16 x, u16 y, u16 job, u16 imp, u8 intent);
+    static const u16 m_fr_wm_bit = 8u; // Forest slot-1 Water Mill; distinct from Saw Mill mill_bit
 
-    WorkerTurnHandler () = delete;
-
-    static void handle (GameState& state, u16 unit_idx);
-    static void set_job_note (JobNoteFn fn);
+    static u16 imp_slot (const RuntimeStatics& st, u16 imp_idx);
+    static u16 payload_bit (const RuntimeStatics& st, u16 imp_idx);
+    static bool has_imp (const GameTileSimple* t, const RuntimeStatics& st, u16 imp_idx);
+    static bool set_imp (GameTileSimple* t, const RuntimeStatics& st, u16 imp_idx);
 
 private:
-    static JobNoteFn m_job_note; // Optional sink for each successful apply
+    TileImpHelper () = delete;
 };
 
-#endif // WORKER_TURN_HANDLER_H
+#endif // TILE_IMP_HELPER_H
 
 //================================================================================================================================
 //=> - End of file -

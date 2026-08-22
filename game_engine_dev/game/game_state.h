@@ -61,6 +61,7 @@ public:
     u16 m_current_research_target_idx = U16_KEY_NULL; // Current research index
     u16 m_research_spending_perc = 100; // Percentage of commerce to spend on research; 0-100
     u16 m_free_unit_support = 0; // Max number of units before upkeep is required
+    u16 m_worker_build_pts_per_turn = 100; // Worker points added per turn towards completing worker jobs
 
     u16 m_target_settlements = 0; // Desired settler count; 0 off; STM sets SETTLER_MISSION_SLOTS with sites / 2 with none
     u16 m_settler_idx[SETTLER_MISSION_SLOTS]; // Settler mission slots; length SETTLER_MISSION_SLOTS

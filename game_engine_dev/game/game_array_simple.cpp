@@ -3,9 +3,59 @@
 //================================================================================================================================
 
 #include "game_array_simple.h"
+#include "assert_log.h"
 #include "build_adds_array.h"
 #include "map_overlay_enum.h"
 #include "runtime_trace_dbg.h"
+#include "std_add_helper.h"
+#include "tile_imp_helper.h"
+
+static bool ov_catalog_ok (u16 ov) {
+    if (ov == U16_KEY_NULL) {
+        return true;
+    }
+    return ov <= static_cast<u16>(MapOverlay::Plantation);
+}
+
+static u16 add_idx_mask_for_ov (u16 ov) {
+    if (ov == static_cast<u16>(MapOverlay::Farm)) {
+        return static_cast<u16>(StdAddHelper::m_farm_bit | StdAddHelper::m_irr_bit | StdAddHelper::m_mill_bit);
+    }
+    if (ov == static_cast<u16>(MapOverlay::Forest)) {
+        return static_cast<u16>(StdAddHelper::m_mill_bit | TileImpHelper::m_fr_wm_bit);
+    }
+    if (ov == static_cast<u16>(MapOverlay::Mine) || ov == static_cast<u16>(MapOverlay::Plantation)
+        || ov == static_cast<u16>(MapOverlay::Fort)) {
+        return 0xFFFFu;
+    }
+    if (ov == static_cast<u16>(MapOverlay::City)) {
+        return 0xFFFFu;
+    }
+    return 0u;
+}
+
+static bool add_idx_ok (u16 ov, u16 add_idx) {
+    if (!ov_catalog_ok(ov)) {
+        return false;
+    }
+    if (ov == static_cast<u16>(MapOverlay::City)) {
+        return true;
+    }
+    const u16 mask = add_idx_mask_for_ov(ov);
+    if (mask == 0u) {
+        return add_idx == 0u;
+    }
+    return (add_idx & static_cast<u16>(~mask)) == 0u;
+}
+
+static bool apply_tile_ov (GameTileSimple* t, u16 ov, u16 add_idx) {
+    if (t == nullptr || !ov_catalog_ok(ov) || !add_idx_ok(ov, add_idx)) {
+        return false;
+    }
+    t->m_ov = ov;
+    t->m_add_idx = add_idx;
+    return true;
+}
 
 //================================================================================================================================
 //=> - GameArraySimple -
@@ -150,29 +200,23 @@ bool GameArraySimple::set_tile_add (u16 x, u16 y, u16 add_idx, u8 add_typ) {
     CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
     GameTileSimple* t = &m_tiles[tidx(x, y)];
     if (add_typ == BUILD_ADD_CITY) {
-        t->m_ov = static_cast<u16>(MapOverlay::City);
-        t->m_add_idx = add_idx;
-        return true;
+        return apply_tile_ov(t, static_cast<u16>(MapOverlay::City), add_idx);
     }
     if (add_typ == BUILD_ADD_MINE) {
-        t->m_ov = static_cast<u16>(MapOverlay::Mine);
-        t->m_add_idx = 0u;
-        return true;
+        return apply_tile_ov(t, static_cast<u16>(MapOverlay::Mine), 0u);
     }
     if (add_typ == BUILD_ADD_PLANTATION) {
-        t->m_ov = static_cast<u16>(MapOverlay::Plantation);
-        t->m_add_idx = 0u;
-        return true;
+        return apply_tile_ov(t, static_cast<u16>(MapOverlay::Plantation), 0u);
     }
     if (add_typ == BUILD_ADD_FORT) {
-        t->m_ov = static_cast<u16>(MapOverlay::Fort);
-        t->m_add_idx = 0u;
-        return true;
+        return apply_tile_ov(t, static_cast<u16>(MapOverlay::Fort), 0u);
     }
     if (add_typ == BUILD_ADD_STD) {
-        t->m_ov = static_cast<u16>(MapOverlay::Farm);
-        t->m_add_idx = (add_idx == U16_KEY_NULL) ? 0u : add_idx;
-        return true;
+        const u16 idx = (add_idx == U16_KEY_NULL) ? 0u : add_idx;
+        return apply_tile_ov(t, static_cast<u16>(MapOverlay::Farm), idx);
+    }
+    if (!add_idx_ok(static_cast<u16>(t->m_ov), add_idx)) {
+        return false;
     }
     t->m_add_idx = add_idx;
     return true;
@@ -180,13 +224,25 @@ bool GameArraySimple::set_tile_add (u16 x, u16 y, u16 add_idx, u8 add_typ) {
 
 bool GameArraySimple::set_overlay (u16 x, u16 y, u16 ov) {
     CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
-    m_tiles[tidx(x, y)].m_ov = ov;
-    return true;
+    if (!ov_catalog_ok(ov)) {
+        return false;
+    }
+    GameTileSimple* t = &m_tiles[tidx(x, y)];
+    const u16 cur = static_cast<u16>(t->m_ov);
+    u16 idx = static_cast<u16>(t->m_add_idx);
+    if (ov != cur) {
+        idx = 0u;
+    }
+    return apply_tile_ov(t, ov, idx);
 }
 
 bool GameArraySimple::set_add_idx (u16 x, u16 y, u16 add_idx) {
     CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
-    m_tiles[tidx(x, y)].m_add_idx = add_idx;
+    GameTileSimple* t = &m_tiles[tidx(x, y)];
+    if (!add_idx_ok(static_cast<u16>(t->m_ov), add_idx)) {
+        return false;
+    }
+    t->m_add_idx = add_idx;
     return true;
 }
 

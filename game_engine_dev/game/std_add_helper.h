@@ -14,14 +14,14 @@ struct GameTileSimple;
 //================================================================================================================================
 //
 //  Interprets GameTileSimple::m_add_idx as a bit field when m_ov is Farm or Forest.
-//  Farm occupancy is m_ov itself; irrigation bits live under Farm; mill bits under Forest.
+//  Farm occupancy is m_ov itself; irrigation and water mill bits live under Farm; saw mill under Forest.
 //
 //================================================================================================================================
 
 class StdAddHelper {
 public:
     static const u16 m_farm_bit = 1u; // Legacy; Farm occupancy is m_ov == Farm
-    static const u16 m_mill_bit = 2u; // Forest payload bit: saw mill present
+    static const u16 m_mill_bit = 2u; // Farm or Forest payload bit: water mill / saw mill
     static const u16 m_irr_bit = 4u; // Farm payload bit: irrigation present
 
     static bool has_farm (const GameTileSimple* t);
