@@ -27,7 +27,8 @@ class DataParserBase;
 //================================================================================================================================
 
 typedef struct ImprovementYieldStaticDataStruct {
-    u16 worker_job_idx;
+    u16 site_idx;
+    u16 site_kind;
     u16 yield_type;
     i16 amount;
     u16 cond_attr;

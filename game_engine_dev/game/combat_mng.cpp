@@ -116,7 +116,7 @@ i16 CombatMng::city_def_pct (const GameState& st, u16 x, u16 y) {
         return 0;
     }
     const GameTileSimple* t = map.tile(x, y);
-    if (t->m_add_typ != BUILD_ADD_CITY) {
+    if (map.get_add_typ(x, y) != BUILD_ADD_CITY) {
         return 0;
     }
     const u16 city_idx = static_cast<u16>(t->m_add_idx);
@@ -164,7 +164,7 @@ void CombatMng::resolve (UnitAddStruct& atk, UnitAddStruct& def, const GameState
     const GameArraySimple& map = st.m_map;
     bool on_city = false;
     if (x < map.width() && y < map.height()) {
-        on_city = (map.tile(x, y)->m_add_typ == BUILD_ADD_CITY);
+        on_city = (map.get_add_typ(x, y) == BUILD_ADD_CITY);
     }
     const CombatBoost roles = st.m_combat_mods.get(as.role, ds.role, on_city);
     const i32 atk_pct = static_cast<i32>(atk_mod(st, x, y)) + static_cast<i32>(roles.m_atk);

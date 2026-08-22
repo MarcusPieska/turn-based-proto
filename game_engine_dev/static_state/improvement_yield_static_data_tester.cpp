@@ -73,9 +73,9 @@ public:
 
 void test_set_items_updates_count () {
     static ImprovementYieldStaticDataStruct items[3];
-    items[0].amount = 1;  items[0].yield_type = 10;
-    items[1].amount = 2;  items[1].yield_type = 20;
-    items[2].amount = 3;  items[2].yield_type = 30;
+    items[0].amount = 1;  items[0].site_idx = 10;
+    items[1].amount = 2;  items[1].site_idx = 20;
+    items[2].amount = 3;  items[2].site_idx = 30;
     ImprovementYieldStaticData data;
     data.set_items(items, 3);
     note_result(data.get_item_count() == 3, "set_items updates item count");
@@ -84,10 +84,10 @@ void test_set_items_updates_count () {
 
 void test_get_item_returns_expected_struct_by_key () {
     static ImprovementYieldStaticDataStruct items[4];
-    items[0].amount = 7;   items[0].yield_type = 70;
-    items[1].amount = 8;   items[1].yield_type = 80;
-    items[2].amount = 9;   items[2].yield_type = 90;
-    items[3].amount = 10;  items[3].yield_type = 100;
+    items[0].amount = 7;   items[0].site_idx = 70;
+    items[1].amount = 8;   items[1].site_idx = 80;
+    items[2].amount = 9;   items[2].site_idx = 90;
+    items[3].amount = 10;  items[3].site_idx = 100;
     ImprovementYieldStaticData data;
     data.set_items(items, 4);
 
@@ -95,14 +95,14 @@ void test_get_item_returns_expected_struct_by_key () {
     const ImprovementYieldStaticDataStruct& item = data.get_item(key);
 
     note_result(item.amount == 9, "get_item returns expected member1");
-    note_result(item.yield_type == 90, "get_item returns expected member2");
+    note_result(item.site_idx == 90, "get_item returns expected member2");
     summarize_test_results();
 }
 
 void test_get_item_returns_reference_to_backing_array () {
     static ImprovementYieldStaticDataStruct items[2];
-    items[0].amount = 11;  items[0].yield_type = 110;
-    items[1].amount = 12;  items[1].yield_type = 120;
+    items[0].amount = 11;  items[0].site_idx = 110;
+    items[1].amount = 12;  items[1].site_idx = 120;
     ImprovementYieldStaticData data;
     data.set_items(items, 2);
 
@@ -115,14 +115,14 @@ void test_get_item_returns_reference_to_backing_array () {
 
 void test_set_items_can_replace_array_and_count () {
     static ImprovementYieldStaticDataStruct items_a[2];
-    items_a[0].amount = 21; items_a[0].yield_type = 210;
-    items_a[1].amount = 22; items_a[1].yield_type = 220;
+    items_a[0].amount = 21; items_a[0].site_idx = 210;
+    items_a[1].amount = 22; items_a[1].site_idx = 220;
     static ImprovementYieldStaticDataStruct items_b[5];
-    items_b[0].amount = 31; items_b[0].yield_type = 131;
-    items_b[1].amount = 32; items_b[1].yield_type = 132;
-    items_b[2].amount = 33; items_b[2].yield_type = 133;
-    items_b[3].amount = 34; items_b[3].yield_type = 134;
-    items_b[4].amount = 35; items_b[4].yield_type = 135;
+    items_b[0].amount = 31; items_b[0].site_idx = 131;
+    items_b[1].amount = 32; items_b[1].site_idx = 132;
+    items_b[2].amount = 33; items_b[2].site_idx = 133;
+    items_b[3].amount = 34; items_b[3].site_idx = 134;
+    items_b[4].amount = 35; items_b[4].site_idx = 135;
 
     ImprovementYieldStaticData data;
     data.set_items(items_a, 2);
@@ -138,7 +138,7 @@ void test_set_items_can_replace_array_and_count () {
 
 void test_zero_count_is_allowed () {
     static ImprovementYieldStaticDataStruct items[1];
-    items[0].amount = 41; items[0].yield_type = 141;
+    items[0].amount = 41; items[0].site_idx = 141;
     ImprovementYieldStaticData data;
     data.set_items(items, 0);
     note_result(data.get_item_count() == 0, "zero item count can be stored");
@@ -147,8 +147,8 @@ void test_zero_count_is_allowed () {
 
 void test_take_ownership_copies_backing_array () {
     ImprovementYieldStaticDataStruct* items = new ImprovementYieldStaticDataStruct[2];
-    items[0].amount = 51; items[0].yield_type = 151;
-    items[1].amount = 52; items[1].yield_type = 152;
+    items[0].amount = 51; items[0].site_idx = 151;
+    items[1].amount = 52; items[1].site_idx = 152;
     ImprovementYieldStaticData data;
     data.set_items(items, 2);
     ImprovementYieldStaticDataKey key = ImprovementYieldStaticDataTester::make_key(1);
@@ -158,7 +158,7 @@ void test_take_ownership_copies_backing_array () {
 
     note_result(&item != src_ref, "take_ownership uses a distinct buffer");
     note_result(item.amount == 52, "take_ownership preserves member1");
-    note_result(item.yield_type == 152, "take_ownership preserves member2");
+    note_result(item.site_idx == 152, "take_ownership preserves member2");
     data.release_items();
     summarize_test_results();
 }

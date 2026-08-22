@@ -45,6 +45,9 @@ ImprovementYieldParserTester::ImprovementYieldParserTester () :
     m_unit_role_sd(NULL),
     m_unit_type_sd(NULL),
     m_wonder_sd(NULL),
+    m_map_overlay_sd(NULL),
+    m_map_attribute_sd(NULL),
+    m_worker_job_target_sd(NULL),
     m_worker_job_type_sd(NULL),
     m_worker_job_sd(NULL),
     m_worker_job_imp_sd(NULL),
@@ -68,6 +71,9 @@ ImprovementYieldParserTester::ImprovementYieldParserTester () :
     m_unit_role_psr(NULL),
     m_unit_type_psr(NULL),
     m_wonder_psr(NULL),
+    m_map_overlay_psr(NULL),
+    m_map_attribute_psr(NULL),
+    m_worker_job_target_psr(NULL),
     m_worker_job_type_psr(NULL),
     m_worker_job_psr(NULL),
     m_worker_job_imp_psr(NULL),
@@ -181,6 +187,24 @@ void ImprovementYieldParserTester::set_unit_type_sd (const UnitTypeStaticData* s
 void ImprovementYieldParserTester::set_wonder_sd (const WonderStaticData* sd) {
 
     m_wonder_sd = sd;
+
+}
+
+void ImprovementYieldParserTester::set_map_overlay_sd (const MapOverlayStaticData* sd) {
+
+    m_map_overlay_sd = sd;
+
+}
+
+void ImprovementYieldParserTester::set_map_attribute_sd (const MapAttributeStaticData* sd) {
+
+    m_map_attribute_sd = sd;
+
+}
+
+void ImprovementYieldParserTester::set_worker_job_target_sd (const WorkerJobTargetStaticData* sd) {
+
+    m_worker_job_target_sd = sd;
 
 }
 
@@ -372,6 +396,27 @@ u16 ImprovementYieldParserTester::st_wonder_n2i (cstr name) {
         return U16_KEY_NULL;
     }
     return s_inst->m_wonder_psr->name_to_idx(name);
+}
+
+u16 ImprovementYieldParserTester::st_map_overlay_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_map_overlay_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_map_overlay_psr->name_to_idx(name);
+}
+
+u16 ImprovementYieldParserTester::st_map_attribute_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_map_attribute_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_map_attribute_psr->name_to_idx(name);
+}
+
+u16 ImprovementYieldParserTester::st_worker_job_target_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_worker_job_target_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_worker_job_target_psr->name_to_idx(name);
 }
 
 u16 ImprovementYieldParserTester::st_worker_job_type_n2i (cstr name) {
@@ -726,10 +771,11 @@ void ImprovementYieldParserTester::pr_traits (cstr label, const CivTraitStruct& 
 
 void ImprovementYieldParserTester::pr_item (cstr name, const ImprovementYieldStaticDataStruct& item) {
     fprintf(out(), "name: %s\n", name);
+    pr_u16("site_idx", item.site_idx);
+    pr_u16("site_kind", item.site_kind);
     pr_u16("cond_attr", item.cond_attr);
     pr_u16("yield_type", item.yield_type);
     pr_i16("amount", item.amount);
-    pr_u16("worker_job_idx", item.worker_job_idx);
 }
 
 int ImprovementYieldParserTester::run () {
@@ -754,6 +800,9 @@ int ImprovementYieldParserTester::run () {
     cbs.unit_role_name_to_idx = st_unit_role_n2i;
     cbs.unit_type_name_to_idx = st_unit_type_n2i;
     cbs.wonder_name_to_idx = st_wonder_n2i;
+    cbs.map_overlay_name_to_idx = st_map_overlay_n2i;
+    cbs.map_attribute_name_to_idx = st_map_attribute_n2i;
+    cbs.worker_job_target_name_to_idx = st_worker_job_target_n2i;
     cbs.worker_job_type_name_to_idx = st_worker_job_type_n2i;
     cbs.worker_job_name_to_idx = st_worker_job_n2i;
     cbs.worker_job_imp_name_to_idx = st_worker_job_imp_n2i;
@@ -780,6 +829,9 @@ int ImprovementYieldParserTester::run () {
     StringManager unit_role_items;
     StringManager unit_type_items;
     StringManager wonder_items;
+    StringManager map_overlay_items;
+    StringManager map_attribute_items;
+    StringManager worker_job_target_items;
     StringManager worker_job_type_items;
     StringManager worker_job_items;
     StringManager worker_job_imp_items;
@@ -806,6 +858,9 @@ int ImprovementYieldParserTester::run () {
     ld_sm(unit_role_items, paths.get_path_to_unit_roles());
     ld_sm(unit_type_items, paths.get_path_to_unit_types());
     ld_sm(wonder_items, paths.get_path_to_wonders());
+    ld_sm(map_overlay_items, paths.get_path_to_map_overlays());
+    ld_sm(map_attribute_items, paths.get_path_to_map_attributes());
+    ld_sm(worker_job_target_items, paths.get_path_to_worker_job_targets());
     ld_sm(worker_job_type_items, paths.get_path_to_worker_job_types());
     ld_sm(worker_job_items, paths.get_path_to_worker_jobs());
     ld_sm(worker_job_imp_items, paths.get_path_to_worker_job_imps());
@@ -835,6 +890,9 @@ int ImprovementYieldParserTester::run () {
     DataParserBase unit_role_parser(unit_role_items, cbs);
     DataParserBase unit_type_parser(unit_type_items, cbs);
     DataParserBase wonder_parser(wonder_items, cbs);
+    DataParserBase map_overlay_parser(map_overlay_items, cbs);
+    DataParserBase map_attribute_parser(map_attribute_items, cbs);
+    DataParserBase worker_job_target_parser(worker_job_target_items, cbs);
     DataParserBase worker_job_type_parser(worker_job_type_items, cbs);
     DataParserBase worker_job_parser(worker_job_items, cbs);
     DataParserBase worker_job_imp_parser(worker_job_imp_items, cbs);
@@ -859,6 +917,9 @@ int ImprovementYieldParserTester::run () {
     m_unit_role_psr = &unit_role_parser;
     m_unit_type_psr = &unit_type_parser;
     m_wonder_psr = &wonder_parser;
+    m_map_overlay_psr = &map_overlay_parser;
+    m_map_attribute_psr = &map_attribute_parser;
+    m_worker_job_target_psr = &worker_job_target_parser;
     m_worker_job_type_psr = &worker_job_type_parser;
     m_worker_job_psr = &worker_job_parser;
     m_worker_job_imp_psr = &worker_job_imp_parser;

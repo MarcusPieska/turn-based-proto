@@ -34,6 +34,9 @@ class StaticParsingManager;
 #include "unit_type_static_data.h"
 #include "unit_static_data.h"
 #include "wonder_static_data.h"
+#include "map_overlay_static_data.h"
+#include "map_attribute_static_data.h"
+#include "worker_job_target_static_data.h"
 #include "worker_job_type_static_data.h"
 #include "worker_job_static_data.h"
 #include "worker_job_imp_static_data.h"
@@ -133,6 +136,18 @@ public:
 
     const WonderStaticData& wonder () const;
 
+    MapOverlayStaticData& map_overlay ();
+
+    const MapOverlayStaticData& map_overlay () const;
+
+    MapAttributeStaticData& map_attribute ();
+
+    const MapAttributeStaticData& map_attribute () const;
+
+    WorkerJobTargetStaticData& worker_job_target ();
+
+    const WorkerJobTargetStaticData& worker_job_target () const;
+
     WorkerJobTypeStaticData& worker_job_type ();
 
     const WorkerJobTypeStaticData& worker_job_type () const;
@@ -213,6 +228,9 @@ private:
     UnitTypeStaticData m_unit_type;
     UnitStaticData m_unit;
     WonderStaticData m_wonder;
+    MapOverlayStaticData m_map_overlay;
+    MapAttributeStaticData m_map_attribute;
+    WorkerJobTargetStaticData m_worker_job_target;
     WorkerJobTypeStaticData m_worker_job_type;
     WorkerJobStaticData m_worker_job;
     WorkerJobImpStaticData m_worker_job_imp;

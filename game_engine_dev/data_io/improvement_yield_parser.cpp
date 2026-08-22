@@ -23,10 +23,11 @@ ImprovementYieldStaticDataStruct* ImprovementYieldParser::parse_data_dependencie
     for (u32 i = 0; i < m_item_count; ++i) {
         StringManager line_items;
         get_line_items(get_raw_lines().get_string_content(i), line_items);
-        parsed_data[i].cond_attr = parse_tile_attribute_idx(line_items, 1);
-        parsed_data[i].yield_type = parse_tile_yield_type(line_items, 2);
-        parsed_data[i].amount = parse_i16(line_items, 3);
-        parsed_data[i].worker_job_idx = m_name_to_idx_cbs.worker_job_name_to_idx(get_names().get_string_content(i));
+        parsed_data[i].site_idx = parse_worker_job_site_idx(line_items, 0);
+        parsed_data[i].site_kind = parse_worker_job_target(line_items, 1);
+        parsed_data[i].cond_attr = parse_tile_attribute_idx(line_items, 2);
+        parsed_data[i].yield_type = parse_tile_yield_type(line_items, 3);
+        parsed_data[i].amount = parse_i16(line_items, 4);
     }
     return parsed_data;
 }

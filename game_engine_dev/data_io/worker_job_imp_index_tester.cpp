@@ -4,11 +4,11 @@
 
 #include <cstdio>
 
+#include "map_overlay_static_key.h"
 #include "runtime_static_loader.h"
 #include "runtime_statics.h"
 #include "worker_job_imp_index.h"
 #include "worker_job_imp_static_key.h"
-#include "worker_job_static_key.h"
 
 //================================================================================================================================
 //=> - Globals -
@@ -47,19 +47,19 @@ void note_result (bool cond, cstr msg) {
 
 static void print_index (const RuntimeStatics& st) {
     const WorkerJobImpIndex& idx = st.worker_job_imp_index();
-    std::printf("WorkerJobImpIndex jobs=%u imps=%u\n",
-        static_cast<unsigned>(idx.job_n()),
+    std::printf("WorkerJobImpIndex overlays=%u imps=%u\n",
+        static_cast<unsigned>(idx.ov_n()),
         static_cast<unsigned>(idx.imp_total()));
-    for (u16 j = 0; j < idx.job_n(); ++j) {
+    for (u16 j = 0; j < idx.ov_n(); ++j) {
         const u16 n = idx.imp_n(j);
         if (n == 0u) {
             continue;
         }
-        cstr jnm = st.worker_job().get_name(WorkerJobStaticDataKey::from_raw(j));
-        if (jnm == nullptr) {
-            jnm = "?";
+        cstr onm = st.map_overlay().get_name(MapOverlayStaticDataKey::from_raw(j));
+        if (onm == nullptr) {
+            onm = "?";
         }
-        std::printf("%s (%u):\n", jnm, static_cast<unsigned>(n));
+        std::printf("%s (%u):\n", onm, static_cast<unsigned>(n));
         const u16* imps = idx.imps(j);
         for (u16 k = 0; k < n; ++k) {
             const u16 ii = imps[k];
@@ -88,14 +88,14 @@ int main () {
 
     RuntimeStatics& st = loader.statics();
     const WorkerJobImpIndex& idx = st.worker_job_imp_index();
-    note_result(idx.job_n() == st.worker_job().get_item_count(), "index job_n matches worker_job catalog");
+    note_result(idx.ov_n() == st.map_overlay().get_item_count(), "index ov_n matches map_overlay catalog");
     note_result(idx.imp_total() == st.worker_job_imp().get_item_count(), "index imp_total matches worker_job_imp catalog");
 
     u32 seen = 0;
-    for (u16 j = 0; j < idx.job_n(); ++j) {
+    for (u16 j = 0; j < idx.ov_n(); ++j) {
         seen += idx.imp_n(j);
     }
-    note_result(seen == idx.imp_total(), "sum of per-job lists equals imp_total");
+    note_result(seen == idx.imp_total(), "sum of per-overlay lists equals imp_total");
 
     print_index(st);
 

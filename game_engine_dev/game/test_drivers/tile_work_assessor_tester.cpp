@@ -19,7 +19,10 @@
 #include "tile_yields.h"
 #include "worker_job_imp_index.h"
 #include "worker_job_imp_static_key.h"
+#include "worker_job_static_data.h"
 #include "worker_job_static_key.h"
+#include "worker_job_target_enum.h"
+#include "worker_job_type_enum.h"
 
 //================================================================================================================================
 //=> - Globals -
@@ -181,7 +184,20 @@ static void build_targets (const RuntimeStatics& st, const GameArraySimple& map,
     const u16 job_n = st.worker_job().get_item_count();
     const WorkerJobImpIndex& ix = st.worker_job_imp_index();
     for (u16 j = 0; j < job_n; ++j) {
-        const u16 imp_n = ix.imp_n(j);
+        const WorkerJobStaticDataStruct& job = st.worker_job().get_item(WorkerJobStaticDataKey::from_raw(j));
+        if (job.target_kind != static_cast<u16>(WorkerJobTarget::Overlay)
+            || job.type == static_cast<u16>(WorkerJobType::Clearing)) {
+            WorkTarget t;
+            t.m_job = j;
+            t.m_imp = U16_KEY_NULL;
+            t.m_x = 0;
+            t.m_y = 0;
+            t.m_has_tile = false;
+            out->push_back(t);
+            continue;
+        }
+        const u16 ov = job.target_idx;
+        const u16 imp_n = ix.imp_n(ov);
         if (imp_n == 0) {
             WorkTarget t;
             t.m_job = j;
@@ -192,7 +208,7 @@ static void build_targets (const RuntimeStatics& st, const GameArraySimple& map,
             out->push_back(t);
             continue;
         }
-        const u16* imps = ix.imps(j);
+        const u16* imps = ix.imps(ov);
         for (u16 i = 0; i < imp_n; ++i) {
             WorkTarget t;
             t.m_job = j;

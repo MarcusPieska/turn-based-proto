@@ -4,8 +4,10 @@
 
 #include "factory_game_array_simple.h"
 
+#include "assert_log.h"
 #include "game_map_defs.h"
 #include "map_loader.h"
+#include "map_ov_bridge.h"
 #include "map_terrain_data.h"
 
 #include <cstdio>
@@ -237,13 +239,13 @@ bool Factory_GameArraySimple::load_map_gen_data (
     for (u32 i = 0; i < n; ++i) {
         GameTileSimple* t = &tiles[i];
         t->m_unit_hd = U16_KEY_NULL;
-        t->m_add_idx = U16_KEY_NULL;
+        t->m_add_idx = 0u;
         t->m_res = U16_KEY_NULL;
         t->m_terr = terr[i];
         t->m_clim = clim[i];
-        t->m_ov = ov != nullptr ? ov[i] : OVERLAY_NONE;
+        t->m_ov = ov != nullptr ? map_gen_ov_to_catalog(ov[i]) : U16_KEY_NULL;
         t->m_riv = riv[i];
-        t->m_add_typ = 0;
+        t->m_unused = 0;
         t->m_civ_owner = U8_KEY_NULL;
         t->m_city_worker = U16_KEY_NULL;
         t->m_road_typ = 0;
@@ -297,13 +299,13 @@ bool Factory_GameArraySimple::load_from_rslt (GameArraySimple* out, const MakeMa
     for (u32 i = 0; i < n; ++i) {
         GameTileSimple* t = &tiles[i];
         t->m_unit_hd = U16_KEY_NULL;
-        t->m_add_idx = U16_KEY_NULL;
+        t->m_add_idx = 0u;
         t->m_res = rslt.m_resources[i];
         t->m_terr = rslt.m_terrain[i];
         t->m_clim = rslt.m_climate[i];
-        t->m_ov = rslt.m_overlay[i];
+        t->m_ov = map_gen_ov_to_catalog(rslt.m_overlay[i]);
         t->m_riv = rslt.m_rivers[i];
-        t->m_add_typ = 0;
+        t->m_unused = 0;
         t->m_civ_owner = U8_KEY_NULL;
         t->m_city_worker = U16_KEY_NULL;
         t->m_road_typ = 0;
@@ -327,7 +329,8 @@ bool Factory_GameArraySimple::init_test_grid (GameArraySimple* out, u16 w, u16 h
     for (u32 i = 0; i < n; ++i) {
         tiles[i] = {};
         tiles[i].m_unit_hd = U16_KEY_NULL;
-        tiles[i].m_add_idx = U16_KEY_NULL;
+        tiles[i].m_add_idx = 0u;
+        tiles[i].m_ov = U16_KEY_NULL;
         tiles[i].m_res = UINT16_MAX;
         tiles[i].m_civ_owner = U8_KEY_NULL;
     }

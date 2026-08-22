@@ -17,7 +17,10 @@
 #include "tile_attribute_static_key.h"
 #include "tile_yield_type_enum.h"
 #include "tile_yields_imp_dump.h"
+#include "map_overlay_enum.h"
 #include "worker_job_enum.h"
+#include "worker_job_static_key.h"
+#include "worker_job_target_enum.h"
 
 //================================================================================================================================
 //=> - ImpYldJob (mk02) -
@@ -58,22 +61,38 @@ static void add_row (i32* food, i32* prod, i32* comm, const TileAttributeStaticD
 //================================================================================================================================
 
 void TileYields::clear_jobs () {
-    if (m_jobs != nullptr) {
-        for (u16 i = 0; i < m_job_n; ++i) {
-            delete[] m_jobs[i].m_terr;
-            delete[] m_jobs[i].m_clim;
-            delete[] m_jobs[i].m_ov;
-            delete[] m_jobs[i].m_riv;
-            m_jobs[i].m_terr = nullptr;
-            m_jobs[i].m_clim = nullptr;
-            m_jobs[i].m_ov = nullptr;
-            m_jobs[i].m_riv = nullptr;
-            m_jobs[i].m_on = false;
+    if (m_ov_sites != nullptr) {
+        for (u16 i = 0; i < m_ov_n; ++i) {
+            delete[] m_ov_sites[i].m_terr;
+            delete[] m_ov_sites[i].m_clim;
+            delete[] m_ov_sites[i].m_ov;
+            delete[] m_ov_sites[i].m_riv;
+            m_ov_sites[i].m_terr = nullptr;
+            m_ov_sites[i].m_clim = nullptr;
+            m_ov_sites[i].m_ov = nullptr;
+            m_ov_sites[i].m_riv = nullptr;
+            m_ov_sites[i].m_on = false;
         }
     }
-    delete[] m_jobs;
-    m_jobs = nullptr;
-    m_job_n = 0;
+    if (m_attr_sites != nullptr) {
+        for (u16 i = 0; i < m_attr_n; ++i) {
+            delete[] m_attr_sites[i].m_terr;
+            delete[] m_attr_sites[i].m_clim;
+            delete[] m_attr_sites[i].m_ov;
+            delete[] m_attr_sites[i].m_riv;
+            m_attr_sites[i].m_terr = nullptr;
+            m_attr_sites[i].m_clim = nullptr;
+            m_attr_sites[i].m_ov = nullptr;
+            m_attr_sites[i].m_riv = nullptr;
+            m_attr_sites[i].m_on = false;
+        }
+    }
+    delete[] m_ov_sites;
+    delete[] m_attr_sites;
+    m_ov_sites = nullptr;
+    m_attr_sites = nullptr;
+    m_ov_n = 0;
+    m_attr_n = 0;
 }
 
 bool TileYields::add_amt (ImpYldSlot* s, u16 yld_typ, i16 amt) {
@@ -137,18 +156,33 @@ TileYields::ImpYldSlot* TileYields::slot_for (ImpYldJob* job, u8 kind, u8 id) {
 
 bool TileYields::setup_imp (const RuntimeStatics& st) {
     clear_jobs();
-    m_job_n = st.worker_job().get_item_count();
-    if (m_job_n == 0u) {
-        return true;
+    m_ov_n = st.map_overlay().get_item_count();
+    m_attr_n = st.map_attribute().get_item_count();
+    if (m_ov_n > 0u) {
+        m_ov_sites = new ImpYldJob[m_ov_n]();
     }
-    m_jobs = new ImpYldJob[m_job_n]();
+    if (m_attr_n > 0u) {
+        m_attr_sites = new ImpYldJob[m_attr_n]();
+    }
     const ImprovementYieldStaticData& src = st.improvement_yield();
     const TileAttributeStaticData& attrs = st.tile_attribute();
     const u16 n = src.get_item_count();
     for (u16 i = 0; i < n; ++i) {
         const ImprovementYieldStaticDataKey key = ImprovementYieldStaticDataKey::from_raw(i);
         const ImprovementYieldStaticDataStruct& row = src.get_item(key);
-        if (row.worker_job_idx >= m_job_n) {
+        ImpYldJob* sites = nullptr;
+        u16 site_n = 0;
+        if (row.site_kind == static_cast<u16>(WorkerJobTarget::Overlay)) {
+            sites = m_ov_sites;
+            site_n = m_ov_n;
+        } else if (row.site_kind == static_cast<u16>(WorkerJobTarget::Attribute)) {
+            sites = m_attr_sites;
+            site_n = m_attr_n;
+        } else {
+            clear_jobs();
+            return false;
+        }
+        if (sites == nullptr || row.site_idx >= site_n) {
             clear_jobs();
             return false;
         }
@@ -164,7 +198,7 @@ bool TileYields::setup_imp (const RuntimeStatics& st) {
             clear_jobs();
             return false;
         }
-        ImpYldJob* job = &m_jobs[row.worker_job_idx];
+        ImpYldJob* job = &sites[row.site_idx];
         ImpYldSlot* slot = slot_for(job, kind, id);
         if (!add_amt(slot, row.yield_type, row.amount)) {
             clear_jobs();
@@ -176,12 +210,32 @@ bool TileYields::setup_imp (const RuntimeStatics& st) {
 }
 
 u16 TileYields::job_on_tile (const GameArraySimple& map, u16 x, u16 y) {
-    const u8 typ = map.get_add_typ(x, y);
-    const u16 idx = map.get_add_idx(x, y);
-    if (typ == BUILD_ADD_STD && idx != U16_KEY_NULL && StdAddHelper::has_farm(map.tile(x, y))) {
-        return static_cast<u16>(WorkerJob::Farm);
+    const u16 ov = map.get_overlay(x, y);
+    if (ov == static_cast<u16>(MapOverlay::Farm)) {
+        return static_cast<u16>(MapOverlay::Farm);
+    }
+    if (ov == static_cast<u16>(MapOverlay::Mine)) {
+        return static_cast<u16>(MapOverlay::Mine);
+    }
+    if (ov == static_cast<u16>(MapOverlay::Plantation)) {
+        return static_cast<u16>(MapOverlay::Plantation);
+    }
+    if (ov == static_cast<u16>(MapOverlay::Forest)) {
+        return static_cast<u16>(MapOverlay::Forest);
     }
     return U16_KEY_NULL;
+}
+
+u16 TileYields::site_for_job (u16 job_idx, u16* out_kind) {
+    if (m_st == nullptr || out_kind == nullptr) {
+        return U16_KEY_NULL;
+    }
+    if (job_idx >= m_st->worker_job().get_item_count()) {
+        return U16_KEY_NULL;
+    }
+    const WorkerJobStaticDataStruct& row = m_st->worker_job().get_item(WorkerJobStaticDataKey::from_raw(job_idx));
+    *out_kind = row.target_kind;
+    return row.target_idx;
 }
 
 void TileYields::add_land (i32* food, i32* prod, i32* comm, const GameArraySimple& map, u16 x, u16 y) {
@@ -193,11 +247,22 @@ void TileYields::add_land (i32* food, i32* prod, i32* comm, const GameArraySimpl
     }
 }
 
-void TileYields::add_job (i32* food, i32* prod, i32* comm, const GameArraySimple& map, u16 x, u16 y, u16 job_idx) {
-    if (m_jobs == nullptr || m_job_n == 0u || job_idx >= m_job_n) {
+void TileYields::add_site (i32* food, i32* prod, i32* comm, const GameArraySimple& map, u16 x, u16 y, u16 site_kind, u16 site_idx) {
+    ImpYldJob* sites = nullptr;
+    u16 site_n = 0;
+    if (site_kind == static_cast<u16>(WorkerJobTarget::Overlay)) {
+        sites = m_ov_sites;
+        site_n = m_ov_n;
+    } else if (site_kind == static_cast<u16>(WorkerJobTarget::Attribute)) {
+        sites = m_attr_sites;
+        site_n = m_attr_n;
+    } else {
         return;
     }
-    const ImpYldJob& job = m_jobs[job_idx];
+    if (sites == nullptr || site_n == 0u || site_idx >= site_n) {
+        return;
+    }
+    const ImpYldJob& job = sites[site_idx];
     if (!job.m_on) {
         return;
     }
@@ -226,12 +291,21 @@ void TileYields::add_job (i32* food, i32* prod, i32* comm, const GameArraySimple
     }
 }
 
-void TileYields::add_imp (i32* food, i32* prod, i32* comm, const GameArraySimple& map, u16 x, u16 y) {
-    const u16 job_idx = job_on_tile(map, x, y);
-    if (job_idx == U16_KEY_NULL) {
+void TileYields::add_job (i32* food, i32* prod, i32* comm, const GameArraySimple& map, u16 x, u16 y, u16 job_idx) {
+    u16 kind = U16_KEY_NULL;
+    const u16 site = site_for_job(job_idx, &kind);
+    if (site == U16_KEY_NULL) {
         return;
     }
-    add_job(food, prod, comm, map, x, y, job_idx);
+    add_site(food, prod, comm, map, x, y, kind, site);
+}
+
+void TileYields::add_imp (i32* food, i32* prod, i32* comm, const GameArraySimple& map, u16 x, u16 y) {
+    const u16 site_idx = job_on_tile(map, x, y);
+    if (site_idx == U16_KEY_NULL) {
+        return;
+    }
+    add_site(food, prod, comm, map, x, y, static_cast<u16>(WorkerJobTarget::Overlay), site_idx);
 }
 
 void TileYields::add_res (i32* food, i32* prod, i32* comm, const GameArraySimple& map, u16 x, u16 y) {
@@ -467,18 +541,19 @@ u16 TileYieldsImpDump::dump_job (u16 job_idx, FILE* out) {
         out = stdout;
     }
     std::fprintf(out, "-----------------------------------------------------------\n");
-    std::fprintf(out, "IMP YIELD TABLE DUMP mk02 job_idx=%u job_n=%u jobs_ptr=%p\n",
+    std::fprintf(out, "IMP YIELD TABLE DUMP mk02 overlay_site=%u ov_n=%u attr_n=%u ov_ptr=%p\n",
         static_cast<unsigned>(job_idx),
-        static_cast<unsigned>(TileYields::m_job_n),
-        static_cast<const void*>(TileYields::m_jobs));
+        static_cast<unsigned>(TileYields::m_ov_n),
+        static_cast<unsigned>(TileYields::m_attr_n),
+        static_cast<const void*>(TileYields::m_ov_sites));
     std::fprintf(out, " sizeof(ImpYldJob)=%zu sizeof(ImpYldSlot)=%zu\n",
         sizeof(TileYields::ImpYldJob), sizeof(TileYields::ImpYldSlot));
-    if (TileYields::m_jobs == nullptr || job_idx >= TileYields::m_job_n) {
-        std::fprintf(out, " (no job table for this index)\n");
+    if (TileYields::m_ov_sites == nullptr || job_idx >= TileYields::m_ov_n) {
+        std::fprintf(out, " (no overlay site table for this index)\n");
         std::fprintf(out, "-----------------------------------------------------------\n");
         return 0;
     }
-    const TileYields::ImpYldJob& job = TileYields::m_jobs[job_idx];
+    const TileYields::ImpYldJob& job = TileYields::m_ov_sites[job_idx];
     if (!job.m_on) {
         std::fprintf(out, " m_on=0 (job branch not used; skip axes)\n");
         std::fprintf(out, "-----------------------------------------------------------\n");

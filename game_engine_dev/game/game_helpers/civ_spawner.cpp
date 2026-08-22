@@ -6,6 +6,7 @@
 
 #include <cstring>
 
+#include "assert_log.h"
 #include "build_adds_array.h"
 #include "config_settings_static.h"
 #include "city.h"
@@ -28,23 +29,17 @@ static bool is_settler_typ (const RuntimeStatics& st, u16 typ_idx) {
 }
 
 static bool found_city (GameState* state, u16 x, u16 y, u16 civ_idx) {
-    if (state->m_map.get_add_idx(x, y) != U16_KEY_NULL) {
-        return false;
-    }
+    GAME_EXPECT(state->m_map.get_add_typ(x, y) != BUILD_ADD_CITY, "found_city tile already city");
     const u16 city_idx = state->m_cities.get_next_new_city_idx();
     City* city = state->m_cities.get_city(city_idx);
-    if (city == nullptr) {
-        return false;
-    }
+    GAME_EXPECT(city != nullptr, "found_city city slot unavailable");
     city->init(civ_idx, x, y);
-    if (!state->m_map.set_tile_add(x, y, city_idx, BUILD_ADD_CITY)) {
-        return false;
-    }
+    GAME_EXPECT(state->m_map.set_tile_add(x, y, city_idx, BUILD_ADD_CITY), "found_city set_tile_add failed");
     TRACE_CITY_FOUNDATION((x, y, civ_idx));
     return true;
 }
 
-bool CivSpawner::spawn (GameState* state, u16 x, u16 y, u16 civ_idx) {
+bool CivSpawner::spawn (GameState* state, u16 x, u16 y, u16 civ_idx) { 
     if (state == nullptr || state->m_statics == nullptr) {
         return false;
     }

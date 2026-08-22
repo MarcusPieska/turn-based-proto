@@ -12,6 +12,7 @@
 #include "game_state.h"
 #include "game_loop_cache.h"
 #include "game_helpers/civ_spawner.h"
+#include "map_ov_bridge.h"
 #include "map_terrain_data.h"
 #include "map_gen_loader.h"
 #include "runtime_static_loader.h"
@@ -119,7 +120,7 @@ static bool fill_tile_layers_from_map (const GameArraySimple& map, MapTerrainDat
             const u32 i = static_cast<u32>(y) * static_cast<u32>(w) + static_cast<u32>(x);
             terr_buf[i] = map.get_terrain(x, y);
             clim_buf[i] = map.get_climate(x, y);
-            ov_buf[i] = map.get_overlay(x, y);
+            ov_buf[i] = catalog_ov_to_map_gen(map.get_overlay(x, y));
         }
     }
     if (!terr->assign_copy(w, h, terr_buf)) {

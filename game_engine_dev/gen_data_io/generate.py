@@ -33,11 +33,14 @@ PARSER_SPECS.append(("unit_action", "UnitAction", ""))
 PARSER_SPECS.append(("unit_role", "UnitRole", "mods,1,CombatModList"))
 PARSER_SPECS.append(("unit_type", "UnitType", ""))
 PARSER_SPECS.append(("wonder", "Wonder", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStruct"))
+PARSER_SPECS.append(("map_overlay", "MapOverlay", ""))
+PARSER_SPECS.append(("map_attribute", "MapAttribute", ""))
+PARSER_SPECS.append(("worker_job_target", "WorkerJobTarget", ""))
 PARSER_SPECS.append(("worker_job_type", "WorkerJobType", ""))
-PARSER_SPECS.append(("worker_job", "WorkerJob", "cost,1,u32:type,2,WorkerJobType:reqs,3,ItemReqsStruct"))
-PARSER_SPECS.append(("worker_job_imp", "WorkerJobImp", "worker_job_idx,1,WorkerJobColIdx:cost,2,u32:reqs,3,ItemReqsStruct:effects,4,ItemEffectsStruct"))
+PARSER_SPECS.append(("worker_job", "WorkerJob", "cost,1,u32:target_idx,2,WorkerJobSiteIdx:target_kind,3,WorkerJobTarget:type,4,WorkerJobType:reqs,5,ItemReqsStruct"))
+PARSER_SPECS.append(("worker_job_imp", "WorkerJobImp", "map_overlay_idx,1,MapOverlayColIdx:cost,2,u32:reqs,3,ItemReqsStruct:effects,4,ItemEffectsStructOpt"))
 PARSER_SPECS.append(("tile_yield_type", "TileYieldType", ""))
-PARSER_SPECS.append(("improvement_yield", "ImprovementYield", "cond_attr,1,TileAttributeIdx:yield_type,2,TileYieldType:amount,3,i16:worker_job_idx,0,WorkerJobIdx"))
+PARSER_SPECS.append(("improvement_yield", "ImprovementYield", "site_idx,0,WorkerJobSiteIdx:site_kind,1,WorkerJobTarget:cond_attr,2,TileAttributeIdx:yield_type,3,TileYieldType:amount,4,i16"))
 
 def derive_req_type(prefix):
     if prefix == "toggle_city":
@@ -75,6 +78,14 @@ def get_function_name_from_output_type(output_type):
         return "parse_res_type"
     elif output_type == "WorkerJobType":
         return "parse_worker_job_type"
+    elif output_type == "WorkerJobTarget":
+        return "parse_worker_job_target"
+    elif output_type == "MapOverlayColIdx":
+        return "parse_map_overlay_idx"
+    elif output_type == "MapAttributeColIdx":
+        return "parse_map_attribute_idx"
+    elif output_type == "WorkerJobSiteIdx":
+        return "parse_worker_job_site_idx"
     elif output_type == "TileYieldType":
         return "parse_tile_yield_type"
     elif output_type == "TileAttributeIdx":
@@ -115,6 +126,8 @@ def derive_parsing_lines(parsing_instructions):
             parsing_lines.append("parsed_data[i].%s = m_name_to_idx_cbs.worker_job_name_to_idx(get_names().get_string_content(i));" % member)
             continue
         function_name = get_function_name_from_output_type(data_type)
+        if function_name is None:
+            raise ValueError("unknown parse type '%s' for member '%s'" % (data_type, member))
         parsing_lines.append("parsed_data[i].%s = %s(line_items, %d);" %(member, function_name, int(idx)))
     return parsing_lines
 
@@ -124,7 +137,7 @@ def derive_member_print_lines(parsing_instructions):
         return ["// No parsing instructions provided"]
     for instruction in parsing_instructions.split(":"):
         mem, idx, data_type = [part.strip() for part in instruction.strip().split(",")]
-        if data_type in ["u16", "UnitType", "UnitRole", "ResType", "WorkerJobType", "ResDistIdx", "TileYieldType", "TileAttributeIdx", "WorkerJobIdx", "WorkerJobColIdx"]:
+        if data_type in ["u16", "UnitType", "UnitRole", "ResType", "WorkerJobType", "WorkerJobTarget", "ResDistIdx", "TileYieldType", "TileAttributeIdx", "WorkerJobIdx", "WorkerJobColIdx", "MapOverlayColIdx", "MapAttributeColIdx", "WorkerJobSiteIdx"]:
             lines.append('pr_u16("%s", item.%s);' % (mem, mem))
         elif data_type == "i16":
             lines.append('pr_i16("%s", item.%s);' % (mem, mem))

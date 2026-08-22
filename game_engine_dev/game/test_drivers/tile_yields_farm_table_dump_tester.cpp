@@ -4,10 +4,10 @@
 
 #include <cstdio>
 
+#include "map_overlay_enum.h"
 #include "runtime_static_loader.h"
 #include "tile_yields.h"
 #include "tile_yields_imp_dump.h"
-#include "worker_job_enum.h"
 
 //================================================================================================================================
 //=> - Globals -
@@ -63,9 +63,9 @@ int TileYieldsImpDump::run () {
     if (total_test_fails > 0) {
         return 1;
     }
-    const u16 farm = static_cast<u16>(WorkerJob::Farm);
+    const u16 farm = static_cast<u16>(MapOverlay::Farm);
     const u16 nz = dump_job(farm, stdout);
-    note_result(nz >= 5u, "farm dump has clim+riv nonzero slots");
+    note_result(nz >= 4u, "farm dump has clim+riv nonzero slots");
     std::printf("=======================================================\n");
     std::printf(" TESTING FARM TABLE DUMP: TOTAL FAILURES: %d/%d\n", total_test_fails, total_tests_run);
     std::printf("=======================================================\n");

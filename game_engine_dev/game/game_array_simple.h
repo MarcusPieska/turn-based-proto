@@ -36,19 +36,19 @@ struct GameTileSimple {
     // Highly volatile fields: First 8 bytes: 16×3 + 8 + 4*2 = 64b <= 64b
 
     u64 m_unit_hd : 16; // Unit pool key on this tile; U16_KEY_NULL if empty
-    u64 m_add_idx : 16; // Improvement pool key; U16_KEY_NULL if none
+    u64 m_add_idx : 16; // Payload for m_ov: bitfield of imps, or external key (e.g. city); 0 for empty bit payloads
     u64 m_city_worker : 16; // Currently working on this tile, city pool key; U16_KEY_NULL if none
     u64 m_civ_owner : 8; // Civilization owner pool key; U8_KEY_NULL if none
-    u64 m_add_typ : 4; // Which add vector m_add_idx refers to
+    u64 m_unused : 4; // This used to be m_add_typ; now unused
     u64 m_road_typ : 3; // Road type (ROAD_* in game_map_defs.h)
     u64 m_settler_blocked : 1; // Settler blocked flag (0 none, nonzero is blocked by existing settlements)
 
     // Almost static fields: Second 8 bytes: 16 + 4×3 + 1 + 1 + 2 = 32b  <= 64b
 
     u64 m_res : 16; // Map resource index on this tile; UINT16_MAX if none
+    u64 m_ov : 16; // Base-map overlay id in game_data.map_overlays
     u64 m_terr : 4; // Terrain class id (TERR_* in game_map_defs.h)
     u64 m_clim : 4; // Climate class id (CLIMATE_* in game_map_defs.h)
-    u64 m_ov : 4; // Base-map overlay id (OVERLAY_* in game_map_defs.h)
     u64 m_riv : 1; // River flag (0 none, nonzero has river)
     u64 m_planned_city : 1; // Planned city flag (if 1 the AI will target placing a city here)
     u64 m_tile_usage : 2; // TileAssignIntent stamped by CityTileManager; 0 food, 1 prod
@@ -79,11 +79,11 @@ public:
 
     u8 get_terrain (u16 x, u16 y) const; // Terrain class at tile
     u8 get_climate (u16 x, u16 y) const; // Climate class at tile
-    u8 get_overlay (u16 x, u16 y) const; // Base overlay at tile
+    u16 get_overlay (u16 x, u16 y) const; // Occupancy overlay at tile (map_overlays idx; U16_KEY_NULL if none)
     u8 get_river (u16 x, u16 y) const; // River flag at tile
     u16 get_unit_hd (u16 x, u16 y) const;// Unit handle at tile
-    u16 get_add_idx (u16 x, u16 y) const;// Improvement handle at tile
-    u8 get_add_typ (u16 x, u16 y) const; // Improvement type tag at tile
+    u16 get_add_idx (u16 x, u16 y) const;// Overlay payload (bits or key); see m_ov
+    u8 get_add_typ (u16 x, u16 y) const; // Legacy BUILD_ADD_* bridge from m_ov
     u16 get_res (u16 x, u16 y) const;  // Resource index at tile
     u16 get_city_worker (u16 x, u16 y) const; // City pool key working this tile; U16_KEY_NULL if none
     u8 get_civ_owner (u16 x, u16 y) const; // Civ/seat owner at tile; U8_KEY_NULL if none
@@ -95,8 +95,9 @@ public:
     const GameTileSimple* tile (u16 x, u16 y) const; // Const tile at (x, y)
     
     bool set_unit_hd (u16 x, u16 y, u16 unit_hd); // Unit handle at tile; U16_KEY_NULL clears
-    bool set_tile_add (u16 x, u16 y, u16 add_idx, u8 add_typ); // Improvement handle at tile
-    bool set_overlay (u16 x, u16 y, u8 ov); // Base overlay at tile (OVERLAY_* / OV_*[0])
+    bool set_tile_add (u16 x, u16 y, u16 add_idx, u8 add_typ); // Legacy: maps BUILD_ADD_* into m_ov + m_add_idx
+    bool set_overlay (u16 x, u16 y, u16 ov); // Occupancy overlay; U16_KEY_NULL clears
+    bool set_add_idx (u16 x, u16 y, u16 add_idx); // Overlay payload only
     bool set_road_typ (u16 x, u16 y, u8 road); // Road type at tile; ROAD_NONE clears
     bool set_city_worker (u16 x, u16 y, u16 city_idx); // City worker key at tile; U16_KEY_NULL clears
     bool set_civ_owner (u16 x, u16 y, u8 owner); // Civ/seat owner at tile; U8_KEY_NULL clears

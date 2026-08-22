@@ -257,7 +257,7 @@ int main (int argc, char* argv[]) {
     TileWorkAssessor::bind_map(&map);
     TileWorkAssessor::bind_ctx(&wctx);
 
-    const u16 farm = static_cast<u16>(WorkerJob::Farm);
+    const u16 farm = static_cast<u16>(WorkerJob::Cultivate_Farm);
     const u32 tiles = map.tile_n();
 
     ArableStats st_def = {};

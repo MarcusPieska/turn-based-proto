@@ -11,8 +11,10 @@
 const GameArraySimple* TileYields::m_map = nullptr;
 const RuntimeStatics* TileYields::m_st = nullptr;
 const TileYieldCtx* TileYields::m_ctx = nullptr;
-TileYields::ImpYldJob* TileYields::m_jobs = nullptr;
-u16 TileYields::m_job_n = 0;
+TileYields::ImpYldJob* TileYields::m_ov_sites = nullptr;
+TileYields::ImpYldJob* TileYields::m_attr_sites = nullptr;
+u16 TileYields::m_ov_n = 0;
+u16 TileYields::m_attr_n = 0;
 
 //================================================================================================================================
 //=> - Impl select -

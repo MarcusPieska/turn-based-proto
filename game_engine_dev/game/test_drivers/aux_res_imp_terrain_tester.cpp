@@ -192,8 +192,8 @@ int main (int argc, char* argv[]) {
     note_result(Factory_GameArraySimple::load_map_gen_data(&map, g_terr, g_clim, g_riv, g_ov), "load map");
     note_result(Factory_GameArraySimple::load_res_dist_data(&map, g_res), "load resources");
 
-    const u16 mine_job = static_cast<u16>(WorkerJob::Mine);
-    const u16 plant_job = static_cast<u16>(WorkerJob::Plantation);
+    const u16 mine_job = static_cast<u16>(WorkerJob::Build_Mine);
+    const u16 plant_job = static_cast<u16>(WorkerJob::Build_Plantation);
     const u16 w = map.width();
     const u16 h = map.height();
     std::vector<u8> kind(static_cast<size_t>(w) * static_cast<size_t>(h), 0u);

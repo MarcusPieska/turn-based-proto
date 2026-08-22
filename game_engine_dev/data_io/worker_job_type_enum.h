@@ -28,8 +28,7 @@ enum class WorkerJobType : u16 {
     Farm = 2,
     Strategic = 3,
     Resource = 4,
-    Forest = 5,
-    OnForest = 6
+    Forest = 5
 };
 
 #endif // WORKER_JOB_TYPE_ENUM_H

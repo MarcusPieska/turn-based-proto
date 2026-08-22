@@ -132,7 +132,7 @@ static bool player_city (GameState& state, u16 player, u16* x, u16* y) {
 }
 
 static bool found_city (GameState& state, u16 x, u16 y, u16 player) {
-    GAME_EXPECT(state.m_map.get_add_idx(x, y) == U16_KEY_NULL, "found_city tile already has add");
+    GAME_EXPECT(state.m_map.get_add_typ(x, y) != BUILD_ADD_CITY, "found_city tile already city");
     const u16 city_idx = state.m_cities.get_next_new_city_idx();
     City* city = state.m_cities.get_city(city_idx);
     GAME_EXPECT(city != nullptr, "found_city city slot unavailable");

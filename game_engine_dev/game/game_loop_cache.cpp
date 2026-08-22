@@ -7,6 +7,9 @@
 #include <cstdio>
 #include <cstring>
 
+#include "game_array_simple.h"
+#include "map_ov_bridge.h"
+
 //================================================================================================================================
 //=> - Constants -
 //================================================================================================================================
@@ -63,7 +66,7 @@ bool GameLoopCache::save_map (cstr path, const GameArraySimple& map) {
         const GameTileSimple& t = map.m_tiles[i];
         const u8 terr = static_cast<u8>(t.m_terr);
         const u8 clim = static_cast<u8>(t.m_clim);
-        const u8 ov = static_cast<u8>(t.m_ov);
+        const u8 ov = catalog_ov_to_map_gen(static_cast<u16>(t.m_ov));
         const u8 riv = static_cast<u8>(t.m_riv);
         const u16 res = static_cast<u16>(t.m_res);
         if (std::fwrite(&terr, sizeof(terr), 1, fp) != 1
@@ -107,10 +110,10 @@ bool GameLoopCache::load_map (cstr path, GameArraySimple* out) {
     for (u32 i = 0; i < n; ++i) {
         GameTileSimple* t = &tiles[i];
         t->m_unit_hd = U16_KEY_NULL;
-        t->m_add_idx = U16_KEY_NULL;
+        t->m_add_idx = 0u;
         t->m_city_worker = U16_KEY_NULL;
         t->m_civ_owner = U8_KEY_NULL;
-        t->m_add_typ = 0;
+        t->m_unused = 0;
         t->m_road_typ = 0;
         t->m_settler_blocked = 0;
         t->m_planned_city = 0;
@@ -131,7 +134,7 @@ bool GameLoopCache::load_map (cstr path, GameArraySimple* out) {
         }
         t->m_terr = terr;
         t->m_clim = clim;
-        t->m_ov = ov;
+        t->m_ov = map_gen_ov_to_catalog(ov);
         t->m_riv = riv;
         t->m_res = res;
     }

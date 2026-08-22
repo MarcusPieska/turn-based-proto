@@ -28,7 +28,7 @@ class DataParserBase;
 
 typedef struct WorkerJobImpStaticDataStruct {
     ItemReqsStruct reqs;
-    u16 worker_job_idx;
+    u16 map_overlay_idx;
     u32 cost;
     ItemEffectsStruct effects;
 } WorkerJobImpStaticDataStruct;

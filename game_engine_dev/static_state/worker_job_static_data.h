@@ -29,6 +29,8 @@ class DataParserBase;
 typedef struct WorkerJobStaticDataStruct {
     ItemReqsStruct reqs;
     u32 cost;
+    u16 target_idx;
+    u16 target_kind;
     u16 type;
 } WorkerJobStaticDataStruct;
 

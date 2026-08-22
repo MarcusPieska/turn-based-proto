@@ -84,6 +84,12 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_unit.load_names_from(p.get_unit_name_parser(), p.get_unit_count());
     m_wonder.set_items(const_cast<WonderStaticDataStruct*>(p.get_wonder_data()), p.get_wonder_count());
     m_wonder.load_names_from(p.get_wonder_name_parser(), p.get_wonder_count());
+    m_map_overlay.set_items(const_cast<MapOverlayStaticDataStruct*>(p.get_map_overlay_data()), p.get_map_overlay_count());
+    m_map_overlay.load_names_from(p.get_map_overlay_name_parser(), p.get_map_overlay_count());
+    m_map_attribute.set_items(const_cast<MapAttributeStaticDataStruct*>(p.get_map_attribute_data()), p.get_map_attribute_count());
+    m_map_attribute.load_names_from(p.get_map_attribute_name_parser(), p.get_map_attribute_count());
+    m_worker_job_target.set_items(const_cast<WorkerJobTargetStaticDataStruct*>(p.get_worker_job_target_data()), p.get_worker_job_target_count());
+    m_worker_job_target.load_names_from(p.get_worker_job_target_name_parser(), p.get_worker_job_target_count());
     m_worker_job_type.set_items(const_cast<WorkerJobTypeStaticDataStruct*>(p.get_worker_job_type_data()), p.get_worker_job_type_count());
     m_worker_job_type.load_names_from(p.get_worker_job_type_name_parser(), p.get_worker_job_type_count());
     m_worker_job.set_items(const_cast<WorkerJobStaticDataStruct*>(p.get_worker_job_data()), p.get_worker_job_count());
@@ -125,6 +131,9 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_unit_type.take_ownership();
     m_unit.take_ownership();
     m_wonder.take_ownership();
+    m_map_overlay.take_ownership();
+    m_map_attribute.take_ownership();
+    m_worker_job_target.take_ownership();
     m_worker_job_type.take_ownership();
     m_worker_job.take_ownership();
     m_worker_job_imp.take_ownership();
@@ -309,6 +318,30 @@ WonderStaticData& RuntimeStatics::wonder () {
 
 const WonderStaticData& RuntimeStatics::wonder () const {
     return m_wonder;
+}
+
+MapOverlayStaticData& RuntimeStatics::map_overlay () {
+    return m_map_overlay;
+}
+
+const MapOverlayStaticData& RuntimeStatics::map_overlay () const {
+    return m_map_overlay;
+}
+
+MapAttributeStaticData& RuntimeStatics::map_attribute () {
+    return m_map_attribute;
+}
+
+const MapAttributeStaticData& RuntimeStatics::map_attribute () const {
+    return m_map_attribute;
+}
+
+WorkerJobTargetStaticData& RuntimeStatics::worker_job_target () {
+    return m_worker_job_target;
+}
+
+const WorkerJobTargetStaticData& RuntimeStatics::worker_job_target () const {
+    return m_worker_job_target;
 }
 
 WorkerJobTypeStaticData& RuntimeStatics::worker_job_type () {

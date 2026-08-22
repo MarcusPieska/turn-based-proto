@@ -47,6 +47,9 @@ public:
     cstr get_path_to_unit_types () const;
     cstr get_path_to_units () const;
     cstr get_path_to_wonders () const;
+    cstr get_path_to_map_overlays () const;
+    cstr get_path_to_map_attributes () const;
+    cstr get_path_to_worker_job_targets () const;
     cstr get_path_to_worker_job_types () const;
     cstr get_path_to_worker_jobs () const;
     cstr get_path_to_worker_job_imps () const;
@@ -84,6 +87,9 @@ private:
     char m_path_unit_types[PATH_MNG_PATH_N];
     char m_path_units[PATH_MNG_PATH_N];
     char m_path_wonders[PATH_MNG_PATH_N];
+    char m_path_map_overlays[PATH_MNG_PATH_N];
+    char m_path_map_attributes[PATH_MNG_PATH_N];
+    char m_path_worker_job_targets[PATH_MNG_PATH_N];
     char m_path_worker_job_types[PATH_MNG_PATH_N];
     char m_path_worker_jobs[PATH_MNG_PATH_N];
     char m_path_worker_job_imps[PATH_MNG_PATH_N];

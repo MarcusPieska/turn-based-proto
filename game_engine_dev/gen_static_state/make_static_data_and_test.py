@@ -38,11 +38,14 @@ if __name__ == "__main__":
     specs.append(("unit_type", "UnitType", "", "None", "None"))
     
     specs.append(("wonder", "Wonder", std_members + "u32 cost; ItemEffectsStruct effects;", "cost", "effects.items[0].type"))
+    specs.append(("map_overlay", "MapOverlay", "", "None", "None"))
+    specs.append(("map_attribute", "MapAttribute", "", "None", "None"))
+    specs.append(("worker_job_target", "WorkerJobTarget", "", "None", "None"))
     specs.append(("worker_job_type", "WorkerJobType", "", "None", "None"))
-    specs.append(("worker_job", "WorkerJob", std_members + "u32 cost; u16 type;", "cost", "type"))
-    specs.append(("worker_job_imp", "WorkerJobImp", std_members + "u16 worker_job_idx; u32 cost; ItemEffectsStruct effects;", "cost", "effects.items[0].type"))
+    specs.append(("worker_job", "WorkerJob", std_members + "u32 cost; u16 target_idx; u16 target_kind; u16 type;", "cost", "type"))
+    specs.append(("worker_job_imp", "WorkerJobImp", std_members + "u16 map_overlay_idx; u32 cost; ItemEffectsStruct effects;", "cost", "map_overlay_idx"))
     specs.append(("tile_yield_type", "TileYieldType", "", "None", "None"))
-    specs.append(("improvement_yield", "ImprovementYield", "u16 worker_job_idx; u16 yield_type; i16 amount; u16 cond_attr;", "amount", "yield_type"))
+    specs.append(("improvement_yield", "ImprovementYield", "u16 site_idx; u16 site_kind; u16 yield_type; i16 amount; u16 cond_attr;", "amount", "site_idx"))
 
     total_failures = 0
 

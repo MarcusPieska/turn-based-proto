@@ -9,6 +9,7 @@
 #include "data_parser_base.h"
 #include "game_map_defs.h"
 #include "item_effect_handler.h"
+#include "worker_job_target_enum.h"
 
 typedef struct PlcTokRow {
     cstr m_tok;
@@ -353,6 +354,33 @@ u16 DataParserBase::parse_res_type (const StringManager& line_items, u16 start_i
 
 u16 DataParserBase::parse_worker_job_type (const StringManager& line_items, u16 start_idx) const {
     return m_name_to_idx_cbs.worker_job_type_name_to_idx(line_items.get_string_content(start_idx));
+}
+
+u16 DataParserBase::parse_worker_job_target (const StringManager& line_items, u16 start_idx) const {
+    return m_name_to_idx_cbs.worker_job_target_name_to_idx(line_items.get_string_content(start_idx));
+}
+
+u16 DataParserBase::parse_map_overlay_idx (const StringManager& line_items, u16 start_idx) const {
+    return m_name_to_idx_cbs.map_overlay_name_to_idx(line_items.get_string_content(start_idx));
+}
+
+u16 DataParserBase::parse_map_attribute_idx (const StringManager& line_items, u16 start_idx) const {
+    return m_name_to_idx_cbs.map_attribute_name_to_idx(line_items.get_string_content(start_idx));
+}
+
+u16 DataParserBase::parse_worker_job_site_idx (const StringManager& line_items, u16 start_idx) const {
+    cstr name = line_items.get_string_content(start_idx);
+    const u16 kind = m_name_to_idx_cbs.worker_job_target_name_to_idx(
+        line_items.get_string_content(static_cast<u16>(start_idx + 1u)));
+    if (kind == static_cast<u16>(WorkerJobTarget::Overlay)) {
+        return m_name_to_idx_cbs.map_overlay_name_to_idx(name);
+    }
+    if (kind == static_cast<u16>(WorkerJobTarget::Attribute)) {
+        return m_name_to_idx_cbs.map_attribute_name_to_idx(name);
+    }
+    printf("ERROR: DataParserBase parse_worker_job_site_idx: bad target kind idx %u\n", kind);
+    ++m_error_count;
+    return U16_KEY_NULL;
 }
 
 u16 DataParserBase::parse_tile_yield_type (const StringManager& line_items, u16 start_idx) const {

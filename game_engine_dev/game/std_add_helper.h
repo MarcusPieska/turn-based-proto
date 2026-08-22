@@ -13,16 +13,16 @@ struct GameTileSimple;
 //=> - StdAddHelper -
 //================================================================================================================================
 //
-//  Interprets GameTileSimple::m_add_idx as a local bit field when m_add_typ is BUILD_ADD_STD.
-//  Callers must only use these helpers on STD tiles; mistyped tiles trip GAME_EXPECT.
+//  Interprets GameTileSimple::m_add_idx as a bit field when m_ov is Farm or Forest.
+//  Farm occupancy is m_ov itself; irrigation bits live under Farm; mill bits under Forest.
 //
 //================================================================================================================================
 
 class StdAddHelper {
 public:
-    static const u16 m_farm_bit = 1u; // First bit of m_add_idx: farm present
-    static const u16 m_mill_bit = 2u; // Second bit of m_add_idx: saw mill present
-    static const u16 m_irr_bit = 4u; // Third bit of m_add_idx: irrigation present
+    static const u16 m_farm_bit = 1u; // Legacy; Farm occupancy is m_ov == Farm
+    static const u16 m_mill_bit = 2u; // Forest payload bit: saw mill present
+    static const u16 m_irr_bit = 4u; // Farm payload bit: irrigation present
 
     static bool has_farm (const GameTileSimple* t);
     static void set_farm (GameTileSimple* t);

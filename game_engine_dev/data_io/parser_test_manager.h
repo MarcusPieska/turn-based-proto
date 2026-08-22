@@ -30,6 +30,9 @@
 #include "unit_role_parser_tester.h"
 #include "unit_type_parser_tester.h"
 #include "wonder_parser_tester.h"
+#include "map_overlay_parser_tester.h"
+#include "map_attribute_parser_tester.h"
+#include "worker_job_target_parser_tester.h"
 #include "worker_job_type_parser_tester.h"
 #include "worker_job_parser_tester.h"
 #include "worker_job_imp_parser_tester.h"
@@ -65,6 +68,9 @@ public:
     UnitRoleParserTester& unit_role () { return m_unit_role; }
     UnitTypeParserTester& unit_type () { return m_unit_type; }
     WonderParserTester& wonder () { return m_wonder; }
+    MapOverlayParserTester& map_overlay () { return m_map_overlay; }
+    MapAttributeParserTester& map_attribute () { return m_map_attribute; }
+    WorkerJobTargetParserTester& worker_job_target () { return m_worker_job_target; }
     WorkerJobTypeParserTester& worker_job_type () { return m_worker_job_type; }
     WorkerJobParserTester& worker_job () { return m_worker_job; }
     WorkerJobImpParserTester& worker_job_imp () { return m_worker_job_imp; }
@@ -92,6 +98,9 @@ private:
     UnitRoleParserTester m_unit_role;
     UnitTypeParserTester m_unit_type;
     WonderParserTester m_wonder;
+    MapOverlayParserTester m_map_overlay;
+    MapAttributeParserTester m_map_attribute;
+    WorkerJobTargetParserTester m_worker_job_target;
     WorkerJobTypeParserTester m_worker_job_type;
     WorkerJobParserTester m_worker_job;
     WorkerJobImpParserTester m_worker_job_imp;

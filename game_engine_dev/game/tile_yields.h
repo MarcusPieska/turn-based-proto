@@ -43,8 +43,8 @@ struct TileYieldCtx {
 //================================================================================================================================
 //
 //  Static yield lookup on the bound GameArraySimple map. setup unpacks tile attrs and improvement_yield rows into
-//  O(1) tables (job gate, then terr/clim/ov/riv ids). get sums land attrs, enabled resources, and improvement boosts.
-//  Body is cpp-included from impl/tile_yields_impl_mkNN.cpp via TILE_YIELDS_IMPL.
+//  O(1) tables (map overlay/attribute site, then terr/clim/ov/riv ids). get sums land attrs, enabled resources, and
+//  improvement boosts. Body is cpp-included from impl/tile_yields_impl_mkNN.cpp via TILE_YIELDS_IMPL.
 //
 //================================================================================================================================
 
@@ -81,14 +81,18 @@ private:
     static u16 job_on_tile (const GameArraySimple& map, u16 x, u16 y);
     static void add_land (i32* food, i32* prod, i32* comm, const GameArraySimple& map, u16 x, u16 y);
     static void add_job (i32* food, i32* prod, i32* comm, const GameArraySimple& map, u16 x, u16 y, u16 job_idx);
+    static void add_site (i32* food, i32* prod, i32* comm, const GameArraySimple& map, u16 x, u16 y, u16 site_kind, u16 site_idx);
     static void add_imp (i32* food, i32* prod, i32* comm, const GameArraySimple& map, u16 x, u16 y);
     static void add_res (i32* food, i32* prod, i32* comm, const GameArraySimple& map, u16 x, u16 y);
+    static u16 site_for_job (u16 job_idx, u16* out_kind);
 
     static const GameArraySimple* m_map; // Active match tile grid; null until bind_map
     static const RuntimeStatics* m_st; // Statics from setup; used for resource rows
     static const TileYieldCtx* m_ctx; // Visibility context; null until bind_ctx
-    static ImpYldJob* m_jobs; // Per worker_job_idx land boost tables; null if none
-    static u16 m_job_n; // Length of m_jobs
+    static ImpYldJob* m_ov_sites; // Per map_overlay site land boost tables; null if none
+    static ImpYldJob* m_attr_sites; // Per map_attribute site land boost tables; null if none
+    static u16 m_ov_n; // Length of m_ov_sites
+    static u16 m_attr_n; // Length of m_attr_sites
 };
 
 #endif // TILE_YIELDS_H

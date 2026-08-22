@@ -23,10 +23,10 @@ WorkerJobImpStaticDataStruct* WorkerJobImpParser::parse_data_dependencies () {
     for (u32 i = 0; i < m_item_count; ++i) {
         StringManager line_items;
         get_line_items(get_raw_lines().get_string_content(i), line_items);
-        parsed_data[i].worker_job_idx = parse_worker_job_idx(line_items, 1);
+        parsed_data[i].map_overlay_idx = parse_map_overlay_idx(line_items, 1);
         parsed_data[i].cost = parse_u32(line_items, 2);
         parsed_data[i].reqs = parse_item_reqs(line_items, 3);
-        parsed_data[i].effects = parse_item_effects(line_items, 4);
+        parsed_data[i].effects = parse_item_effects_optional(line_items, 4);
     }
     return parsed_data;
 }

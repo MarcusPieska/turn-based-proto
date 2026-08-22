@@ -89,6 +89,9 @@ void print_holder_counts (const RuntimeStatics& s) {
     print_u16_member("unit_type", s.unit_type().get_item_count());
     print_u16_member("unit", s.unit().get_item_count());
     print_u16_member("wonder", s.wonder().get_item_count());
+    print_u16_member("map_overlay", s.map_overlay().get_item_count());
+    print_u16_member("map_attribute", s.map_attribute().get_item_count());
+    print_u16_member("worker_job_target", s.worker_job_target().get_item_count());
     print_u16_member("worker_job_type", s.worker_job_type().get_item_count());
     print_u16_member("worker_job", s.worker_job().get_item_count());
     print_u16_member("worker_job_imp", s.worker_job_imp().get_item_count());
@@ -155,6 +158,9 @@ void run_load_tests (const RuntimeStaticLoader& loader) {
     note_result(s.unit_type().get_item_count() > 0, "unit_type holder has items");
     note_result(s.unit().get_item_count() > 0, "unit holder has items");
     note_result(s.wonder().get_item_count() > 0, "wonder holder has items");
+    note_result(s.map_overlay().get_item_count() > 0, "map_overlay holder has items");
+    note_result(s.map_attribute().get_item_count() > 0, "map_attribute holder has items");
+    note_result(s.worker_job_target().get_item_count() > 0, "worker_job_target holder has items");
     note_result(s.worker_job_type().get_item_count() > 0, "worker_job_type holder has items");
     note_result(s.worker_job().get_item_count() > 0, "worker_job holder has items");
     note_result(s.worker_job_imp().get_item_count() > 0, "worker_job_imp holder has items");

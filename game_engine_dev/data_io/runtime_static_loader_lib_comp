@@ -41,6 +41,9 @@ g++ $INC $CXXFLAGS -c unit_role_parser.cpp -o unit_role_parser.o
 g++ $INC $CXXFLAGS -c unit_type_parser.cpp -o unit_type_parser.o
 g++ $INC $CXXFLAGS -c unit_parser.cpp -o unit_parser.o
 g++ $INC $CXXFLAGS -c wonder_parser.cpp -o wonder_parser.o
+g++ $INC $CXXFLAGS -c map_overlay_parser.cpp -o map_overlay_parser.o
+g++ $INC $CXXFLAGS -c map_attribute_parser.cpp -o map_attribute_parser.o
+g++ $INC $CXXFLAGS -c worker_job_target_parser.cpp -o worker_job_target_parser.o
 g++ $INC $CXXFLAGS -c worker_job_type_parser.cpp -o worker_job_type_parser.o
 g++ $INC $CXXFLAGS -c worker_job_parser.cpp -o worker_job_parser.o
 g++ $INC $CXXFLAGS -c worker_job_imp_parser.cpp -o worker_job_imp_parser.o
@@ -83,6 +86,12 @@ g++ $INC $CXXFLAGS -c ../static_state/unit_static_data.cpp -o unit_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/unit_static_data_load.cpp -o unit_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/wonder_static_data.cpp -o wonder_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/wonder_static_data_load.cpp -o wonder_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/map_overlay_static_data.cpp -o map_overlay_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/map_overlay_static_data_load.cpp -o map_overlay_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/map_attribute_static_data.cpp -o map_attribute_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/map_attribute_static_data_load.cpp -o map_attribute_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/worker_job_target_static_data.cpp -o worker_job_target_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/worker_job_target_static_data_load.cpp -o worker_job_target_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/worker_job_type_static_data.cpp -o worker_job_type_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/worker_job_type_static_data_load.cpp -o worker_job_type_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/worker_job_static_data.cpp -o worker_job_static_data.o
@@ -146,6 +155,9 @@ g++ -shared -o $OUT_SO \
     unit_type_parser.o \
     unit_parser.o \
     wonder_parser.o \
+    map_overlay_parser.o \
+    map_attribute_parser.o \
+    worker_job_target_parser.o \
     worker_job_type_parser.o \
     worker_job_parser.o \
     worker_job_imp_parser.o \
@@ -187,6 +199,12 @@ g++ -shared -o $OUT_SO \
     unit_static_data_load.o \
     wonder_static_data.o \
     wonder_static_data_load.o \
+    map_overlay_static_data.o \
+    map_overlay_static_data_load.o \
+    map_attribute_static_data.o \
+    map_attribute_static_data_load.o \
+    worker_job_target_static_data.o \
+    worker_job_target_static_data_load.o \
     worker_job_type_static_data.o \
     worker_job_type_static_data_load.o \
     worker_job_static_data.o \
@@ -251,6 +269,9 @@ rm \
     unit_type_parser.o \
     unit_parser.o \
     wonder_parser.o \
+    map_overlay_parser.o \
+    map_attribute_parser.o \
+    worker_job_target_parser.o \
     worker_job_type_parser.o \
     worker_job_parser.o \
     worker_job_imp_parser.o \
@@ -292,6 +313,12 @@ rm \
     unit_static_data_load.o \
     wonder_static_data.o \
     wonder_static_data_load.o \
+    map_overlay_static_data.o \
+    map_overlay_static_data_load.o \
+    map_attribute_static_data.o \
+    map_attribute_static_data_load.o \
+    worker_job_target_static_data.o \
+    worker_job_target_static_data_load.o \
     worker_job_type_static_data.o \
     worker_job_type_static_data_load.o \
     worker_job_static_data.o \

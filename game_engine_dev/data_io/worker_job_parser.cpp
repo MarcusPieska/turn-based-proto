@@ -24,8 +24,10 @@ WorkerJobStaticDataStruct* WorkerJobParser::parse_data_dependencies () {
         StringManager line_items;
         get_line_items(get_raw_lines().get_string_content(i), line_items);
         parsed_data[i].cost = parse_u32(line_items, 1);
-        parsed_data[i].type = parse_worker_job_type(line_items, 2);
-        parsed_data[i].reqs = parse_item_reqs(line_items, 3);
+        parsed_data[i].target_idx = parse_worker_job_site_idx(line_items, 2);
+        parsed_data[i].target_kind = parse_worker_job_target(line_items, 3);
+        parsed_data[i].type = parse_worker_job_type(line_items, 4);
+        parsed_data[i].reqs = parse_item_reqs(line_items, 5);
     }
     return parsed_data;
 }

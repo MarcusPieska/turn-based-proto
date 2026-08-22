@@ -1,3 +1,10 @@
+
+Irrigation            : Farm :  400 : tech(Masonry)
+Water Mill            : Farm :  250 : tech(Mathematics)
+
+Saw Mill              : Forest :  250 : tech(Machinery)
+Water Mill            : Forest :  250 : tech(Mathematics)
+
 Wooden Timbering      : Mine :  200 : tech(Mining)
 Leat Systems          : Mine :  200 : tech(Masonry)
 Animal-Powered Whims  : Mine :  200 : tech(Animal Husbandry)

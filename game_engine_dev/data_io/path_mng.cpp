@@ -148,6 +148,18 @@ cstr PathMng::get_path_to_wonders () const {
     return m_path_wonders;
 }
 
+cstr PathMng::get_path_to_map_overlays () const {
+    return m_path_map_overlays;
+}
+
+cstr PathMng::get_path_to_map_attributes () const {
+    return m_path_map_attributes;
+}
+
+cstr PathMng::get_path_to_worker_job_targets () const {
+    return m_path_worker_job_targets;
+}
+
 cstr PathMng::get_path_to_worker_job_types () const {
     return m_path_worker_job_types;
 }
@@ -193,6 +205,9 @@ void PathMng::build_paths () {
     join_path(m_path_unit_types, PATH_MNG_PATH_N, m_path_offset, "game_config.unit_types");
     join_path(m_path_units, PATH_MNG_PATH_N, m_path_offset, "game_config.units");
     join_path(m_path_wonders, PATH_MNG_PATH_N, m_path_offset, "game_config.wonders");
+    join_path(m_path_map_overlays, PATH_MNG_PATH_N, m_path_offset, "game_config.map_overlays");
+    join_path(m_path_map_attributes, PATH_MNG_PATH_N, m_path_offset, "game_config.map_attributes");
+    join_path(m_path_worker_job_targets, PATH_MNG_PATH_N, m_path_offset, "game_config.worker_job_targets");
     join_path(m_path_worker_job_types, PATH_MNG_PATH_N, m_path_offset, "game_config.worker_job_types");
     join_path(m_path_worker_jobs, PATH_MNG_PATH_N, m_path_offset, "game_config.worker_jobs");
     join_path(m_path_worker_job_imps, PATH_MNG_PATH_N, m_path_offset, "game_config.worker_job_imps");
@@ -282,6 +297,18 @@ void PathMng::validate_paths_or_exit () const {
     }
     if (!does_file_exist(m_path_wonders)) {
         printf("ERROR: Missing file: %s\n", m_path_wonders);
+        ++error_count;
+    }
+    if (!does_file_exist(m_path_map_overlays)) {
+        printf("ERROR: Missing file: %s\n", m_path_map_overlays);
+        ++error_count;
+    }
+    if (!does_file_exist(m_path_map_attributes)) {
+        printf("ERROR: Missing file: %s\n", m_path_map_attributes);
+        ++error_count;
+    }
+    if (!does_file_exist(m_path_worker_job_targets)) {
+        printf("ERROR: Missing file: %s\n", m_path_worker_job_targets);
         ++error_count;
     }
     if (!does_file_exist(m_path_worker_job_types)) {

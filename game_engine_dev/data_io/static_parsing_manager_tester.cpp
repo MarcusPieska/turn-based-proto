@@ -87,6 +87,9 @@ void print_item_counts (const StaticParsingManager& parser) {
     print_u16_member("unit_type", parser.get_unit_type_count());
     print_u16_member("unit", parser.get_unit_count());
     print_u16_member("wonder", parser.get_wonder_count());
+    print_u16_member("map_overlay", parser.get_map_overlay_count());
+    print_u16_member("map_attribute", parser.get_map_attribute_count());
+    print_u16_member("worker_job_target", parser.get_worker_job_target_count());
     print_u16_member("worker_job_type", parser.get_worker_job_type_count());
     print_u16_member("worker_job", parser.get_worker_job_count());
     print_u16_member("worker_job_imp", parser.get_worker_job_imp_count());

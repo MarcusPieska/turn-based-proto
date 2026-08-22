@@ -16,6 +16,7 @@
 #include "worker_job_enum.h"
 #include "worker_job_static_key.h"
 #include "worker_job_type_enum.h"
+#include "map_overlay_enum.h"
 
 //================================================================================================================================
 //=> - Statics -
@@ -24,14 +25,14 @@
 const RuntimeStatics* WorkerGuidance::m_st = nullptr;
 GameArraySimple* WorkerGuidance::m_map = nullptr;
 
-static u16 clear_job_for_ov (u8 ov) {
-    if (ov == OV_FOREST[0]) {
+static u16 clear_job_for_ov (u16 ov) {
+    if (ov == static_cast<u16>(MapOverlay::Forest)) {
         return static_cast<u16>(WorkerJob::Clear_Forest);
     }
-    if (ov == OV_JUNGLE[0]) {
+    if (ov == static_cast<u16>(MapOverlay::Jungle)) {
         return static_cast<u16>(WorkerJob::Clear_Jungle);
     }
-    if (ov == OV_SWAMP[0]) {
+    if (ov == static_cast<u16>(MapOverlay::Swamp)) {
         return static_cast<u16>(WorkerJob::Clear_Swamp);
     }
     return U16_KEY_NULL;
@@ -56,17 +57,19 @@ static u16 res_job_idx (const RuntimeStatics* st, u16 ri) {
     return wj;
 }
 
-static bool ensure_std (GameArraySimple& map, u16 x, u16 y) {
-    const u8 typ = map.get_add_typ(x, y);
-    if (typ == BUILD_ADD_CITY || typ == BUILD_ADD_MINE || typ == BUILD_ADD_PLANTATION
-        || typ == BUILD_ADD_FORT || typ == BUILD_ADD_SHIPYARD || typ == BUILD_ADD_OUTPOST
-        || typ == BUILD_ADD_TRADE_POST || typ == BUILD_ADD_MONASTERY) {
+static bool ensure_farm (GameArraySimple& map, u16 x, u16 y) {
+    const u16 ov = map.get_overlay(x, y);
+    if (ov == static_cast<u16>(MapOverlay::City) || ov == static_cast<u16>(MapOverlay::Mine)
+        || ov == static_cast<u16>(MapOverlay::Plantation) || ov == static_cast<u16>(MapOverlay::Fort)) {
         return false;
     }
-    if (typ != BUILD_ADD_STD || map.get_add_idx(x, y) == U16_KEY_NULL) {
-        return map.set_tile_add(x, y, 0u, BUILD_ADD_STD);
+    if (ov == static_cast<u16>(MapOverlay::Farm)) {
+        return true;
     }
-    return true;
+    if (!map.set_overlay(x, y, static_cast<u16>(MapOverlay::Farm))) {
+        return false;
+    }
+    return map.set_add_idx(x, y, 0u);
 }
 
 static bool job_ok (u16 job_idx, u16 x, u16 y) {
@@ -102,10 +105,7 @@ u8 WorkerGuidance::usage_for_intent (u16 x, u16 y, TileAssignIntent intent) {
         if (cj != U16_KEY_NULL && job_ok(cj, x, y)) {
             return TILE_USAGE_FOOD;
         }
-        if (job_ok(static_cast<u16>(WorkerJob::Farm), x, y)) {
-            return TILE_USAGE_FOOD;
-        }
-        if (job_ok(static_cast<u16>(WorkerJob::Irrigation), x, y)) {
+        if (job_ok(static_cast<u16>(WorkerJob::Cultivate_Farm), x, y)) {
             return TILE_USAGE_FOOD;
         }
         return TILE_USAGE_NONE;
@@ -132,17 +132,11 @@ u16 WorkerGuidance::next_job (u16 x, u16 y, TileAssignIntent intent) {
             if (cj != U16_KEY_NULL && job_ok(cj, x, y)) {
                 return cj;
             }
-            if (job_ok(static_cast<u16>(WorkerJob::Farm), x, y)) {
-                return static_cast<u16>(WorkerJob::Farm);
-            }
-            if (job_ok(static_cast<u16>(WorkerJob::Irrigation), x, y)) {
-                return static_cast<u16>(WorkerJob::Irrigation);
+            if (job_ok(static_cast<u16>(WorkerJob::Cultivate_Farm), x, y)) {
+                return static_cast<u16>(WorkerJob::Cultivate_Farm);
             }
         }
         return U16_KEY_NULL;
-    }
-    if (job_ok(static_cast<u16>(WorkerJob::Saw_Mill), x, y)) {
-        return static_cast<u16>(WorkerJob::Saw_Mill);
     }
     if (job_ok(static_cast<u16>(WorkerJob::Plant_Forest), x, y)) {
         return static_cast<u16>(WorkerJob::Plant_Forest);
@@ -159,34 +153,25 @@ bool WorkerGuidance::apply_job (u16 x, u16 y, u16 job_idx) {
         case WorkerJob::Clear_Forest:
         case WorkerJob::Clear_Jungle:
         case WorkerJob::Clear_Swamp:
-            return m_map->set_overlay(x, y, OV_NONE[0]);
-        case WorkerJob::Farm: {
-            if (!ensure_std(*m_map, x, y)) {
+            return m_map->set_overlay(x, y, U16_KEY_NULL);
+        case WorkerJob::Cultivate_Farm: {
+            if (!ensure_farm(*m_map, x, y)) {
                 return false;
             }
             StdAddHelper::set_farm(m_map->tile(x, y));
             return true;
         }
-        case WorkerJob::Irrigation: {
-            if (!ensure_std(*m_map, x, y)) {
-                return false;
-            }
-            StdAddHelper::set_irr(m_map->tile(x, y));
-            return true;
-        }
-        case WorkerJob::Saw_Mill: {
-            if (!ensure_std(*m_map, x, y)) {
-                return false;
-            }
-            StdAddHelper::set_mill(m_map->tile(x, y));
-            return true;
-        }
         case WorkerJob::Plant_Forest:
-            return m_map->set_overlay(x, y, OV_FOREST[0]);
-        case WorkerJob::Mine:
+            if (!m_map->set_overlay(x, y, static_cast<u16>(MapOverlay::Forest))) {
+                return false;
+            }
+            return m_map->set_add_idx(x, y, 0u);
+        case WorkerJob::Build_Mine:
             return m_map->set_tile_add(x, y, 0u, BUILD_ADD_MINE);
-        case WorkerJob::Plantation:
+        case WorkerJob::Build_Plantation:
             return m_map->set_tile_add(x, y, 0u, BUILD_ADD_PLANTATION);
+        case WorkerJob::Build_Fort:
+            return m_map->set_tile_add(x, y, 0u, BUILD_ADD_FORT);
         default:
             return false;
     }

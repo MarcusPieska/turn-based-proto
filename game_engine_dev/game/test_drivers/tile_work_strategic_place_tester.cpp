@@ -124,7 +124,7 @@ static void terr_rgb (u8 terr, u8* r, u8* g, u8* b) {
 }
 
 static u8 add_typ_for_job (u16 job_idx) {
-    if (job_idx == static_cast<u16>(WorkerJob::Fort)) {
+    if (job_idx == static_cast<u16>(WorkerJob::Build_Fort)) {
         return static_cast<u8>(BUILD_ADD_FORT);
     }
     return static_cast<u8>(BUILD_ADD_FORT);

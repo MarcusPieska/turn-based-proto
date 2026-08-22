@@ -33,9 +33,9 @@ enum class ImprovementYield : u16 {
     Mine_7 = 7,
     Mine_8 = 8,
     Mine_9 = 9,
-    Saw_Mill = 10,
-    Saw_Mill_11 = 11,
-    Saw_Mill_12 = 12
+    Forest = 10,
+    Forest_11 = 11,
+    Forest_12 = 12
 };
 
 #endif // IMPROVEMENT_YIELD_ENUM_H
