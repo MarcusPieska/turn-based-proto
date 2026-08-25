@@ -7,6 +7,7 @@
 #include "build_adds_array.h"
 #include "map_overlay_enum.h"
 #include "runtime_trace_dbg.h"
+#include "add_access_helper.h"
 #include "std_add_helper.h"
 #include "tile_imp_helper.h"
 
@@ -204,7 +205,7 @@ bool GameArraySimple::set_overlay (u16 x, u16 y, u16 ov) {
     const u16 cur = static_cast<u16>(t->m_ov);
     u16 idx = static_cast<u16>(t->m_add_idx);
     if (ov != cur) {
-        idx = 0u;
+        idx = AddAccessHelper::empty_add(ov);
     }
     return apply_tile_ov(t, ov, idx);
 }

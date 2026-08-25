@@ -86,6 +86,7 @@ g++ $CXXFLAGS $INC -c ../../city/effector/local_commerce_booster_register.cpp -o
 g++ $CXXFLAGS $INC -c ../../city/effector/city_pop_growth_booster_register.cpp -o city_pop_growth_booster_register.o
 g++ $CXXFLAGS $INC -c ../../city/effector/civ_pop_growth_booster_register.cpp -o civ_pop_growth_booster_register.o
 g++ $CXXFLAGS $INC -c ../../city/effector/city_culture_booster_register.cpp -o city_culture_booster_register.o
+g++ $CXXFLAGS $INC -c ../../city/effector/local_culture_booster_register.cpp -o local_culture_booster_register.o
 g++ $CXXFLAGS $INC -c ../../city/effector/local_sanitation_booster_register.cpp -o local_sanitation_booster_register.o
 g++ $CXXFLAGS $INC -c ../../city/effector/city_sanitation_booster_register.cpp -o city_sanitation_booster_register.o
 g++ $CXXFLAGS $INC -c ../../city/effector/civ_sanitation_booster_register.cpp -o civ_sanitation_booster_register.o
@@ -120,8 +121,8 @@ g++ $CXXFLAGS $INC -c ../city_connector.cpp -o city_connector.o
 g++ $CXXFLAGS $INC -c ../settler_turn_handler.cpp -o settler_turn_handler.o
 g++ $CXXFLAGS $INC -c ../worker_turn_handler.cpp -o worker_turn_handler.o
 g++ $CXXFLAGS $INC -c ../defensive_unit_turn_handler.cpp -o defensive_unit_turn_handler.o
-g++ $CXXFLAGS $INC -c ../../game/city_turn_handler.cpp -o city_turn_handler.o
 g++ $CXXFLAGS $INC -c ../../game/city_tracer.cpp -o city_tracer.o
+g++ $CXXFLAGS $INC -c ../../game/city_turn_handler.cpp -o city_turn_handler.o
 g++ $CXXFLAGS $INC -c ../city_turn_handler_core.cpp -o city_turn_handler_core.o
 g++ $CXXFLAGS $INC -c ../city_turn_handler_default.cpp -o city_turn_handler_default.o
 g++ $CXXFLAGS $INC -c ../city_turn_handler_industrious.cpp -o city_turn_handler_industrious.o
@@ -131,9 +132,9 @@ g++ $CXXFLAGS $INC -c ../city_turn_handler_expansionist.cpp -o city_turn_handler
 g++ $CXXFLAGS $INC -c ../city_turn_handler_religious.cpp -o city_turn_handler_religious.o
 g++ $CXXFLAGS $INC -c ../city_turn_handler_militaristic.cpp -o city_turn_handler_militaristic.o
 g++ $CXXFLAGS $INC -c ../city_turn_handler_scientific.cpp -o city_turn_handler_scientific.o
-g++ $CXXFLAGS $INC -c worker_turn_handler_tester.cpp -o worker_turn_handler_tester.o
+g++ $CXXFLAGS $INC -c city_production_turn_handler_tester.cpp -o city_production_turn_handler_tester.o
 
-g++ $CXXFLAGS -o worker_turn_handler_tester \
+g++ $CXXFLAGS -o city_production_turn_handler_tester \
     runtime_static_loader.o \
     map_terrain_validate.o \
     map_terrain_data.o \
@@ -191,6 +192,7 @@ g++ $CXXFLAGS -o worker_turn_handler_tester \
     city_pop_growth_booster_register.o \
     civ_pop_growth_booster_register.o \
     city_culture_booster_register.o \
+    local_culture_booster_register.o \
     local_sanitation_booster_register.o \
     city_sanitation_booster_register.o \
     civ_sanitation_booster_register.o \
@@ -214,8 +216,8 @@ g++ $CXXFLAGS -o worker_turn_handler_tester \
     settler_turn_handler.o \
     worker_turn_handler.o \
     defensive_unit_turn_handler.o \
-    city_turn_handler.o \
     city_tracer.o \
+    city_turn_handler.o \
     city_turn_handler_core.o \
     city_turn_handler_default.o \
     city_turn_handler_industrious.o \
@@ -225,14 +227,14 @@ g++ $CXXFLAGS -o worker_turn_handler_tester \
     city_turn_handler_religious.o \
     city_turn_handler_militaristic.o \
     city_turn_handler_scientific.o \
-    worker_turn_handler_tester.o \
+    city_production_turn_handler_tester.o \
     -ldl \
     $LIB_SO \
     -Wl,-rpath,'$ORIGIN/../../data_io' \
     -lm
 
-mkdir -p /home/w/Projects/simple-map-gen/worker-turn-mng
-./worker_turn_handler_tester "$@"
+mkdir -p /home/w/Projects/simple-map-gen/city-production-turn-handler-test
+./city_production_turn_handler_tester "$@"
 
 rm -f runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.o \
     starting_point_generator.o runtime_trace_dbg.o map_bit_overlay.o \
@@ -250,4 +252,4 @@ rm -f runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_load
     civ_pop_growth_booster_register.o city_culture_booster_register.o local_sanitation_booster_register.o city_array.o civ_spawner.o \
     game_loop_cache.o game_loop.o perlin_noise.o generator_constants.o whiteboard_mng.o sense_settling_pts_opt.o \
     combat_mods.o std_add_helper.o research_turn_handler.o city_sanitation_booster_register.o civ_sanitation_booster_register.o \
-    settler_mission_manager.o gen_settlement_order.o linear_bld.o city_tracer.o \
+    settler_mission_manager.o gen_settlement_order.o linear_bld.o \

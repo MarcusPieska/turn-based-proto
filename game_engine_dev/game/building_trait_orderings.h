@@ -30,7 +30,7 @@ public:
     static bool ready ();
     static u16 building_n ();
     static u16 at (u16 trait_idx, u16 slot);
-    static u16 pick (const BitArrayCL& available, u16 trait_idx);
+    static u16 pick (const BitArrayCL& available, u16 trait_idx, u16 start_slot = 0u);
 
 private:
     static u16* m_orders; // k_n rows of building_n indices

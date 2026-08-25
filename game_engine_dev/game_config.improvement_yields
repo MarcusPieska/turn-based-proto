@@ -1,3 +1,10 @@
+City : Overlay : CLIMATE_DESERT     : FOOD       :   1 
+City : Overlay : CLIMATE_PLAINS     : FOOD       :   1 
+City : Overlay : CLIMATE_DESERT     : PRODUCTION :   1 
+City : Overlay : CLIMATE_PLAINS     : PRODUCTION :   1 
+City : Overlay : CLIMATE_GRASSLAND  : PRODUCTION :   1
+City : Overlay : CLIMATE_BLACK_SOIL : PRODUCTION :   1 
+
 Farm : Overlay : CLIMATE_DESERT     : FOOD       :   0 
 Farm : Overlay : CLIMATE_PLAINS     : FOOD       :   1 
 Farm : Overlay : CLIMATE_GRASSLAND  : FOOD       :   1

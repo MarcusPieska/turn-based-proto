@@ -7,6 +7,7 @@
 
 #include "game_primitives.h"
 
+class AddAccessHelper;
 class City;
 class CityArray;
 class GeneralAssessor;
@@ -25,6 +26,7 @@ public:
     void clear_flag (u16 batch_idx, u16 flag_idx);
 
 private:
+    friend class AddAccessHelper;
     friend class City;
     friend class CityArray;
     friend class GeneralAssessor;

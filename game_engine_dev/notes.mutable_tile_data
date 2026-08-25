@@ -6,13 +6,9 @@ TODO — overlay catalog and grouped improvements
 
 Map-gen still emits the old OV_* PPM vocabulary; translation to game_config.map_overlays happens at load (map_ov_bridge), not inside map-gen itself. Overlay transition rules and illegal-bit rejection are not yet fully data-driven (TileImpHelper masks come from imp_n). Fort and strategic overlays are not in guidance rank lists. AI tile choice is still geographic disk scan + tile_cand, not a city work queue.
 
-TODO — payload dual use (bits vs external key)
-
-Per-overlay payload contract (bits-only vs external-key vs tagged) is not declared in game data. City uses m_add_idx as an external city key in practice, and TileImpHelper treats City as 0xFFFF for validation, but there is no typed payload helper or fixed per-overlay semantics table. No larger-than-u16 payload where catalog size demands it.
-
 TODO — migration / realization
 
-Remove StdAddHelper and BUILD_ADD_* once all readers/writers go through m_ov + TileImpHelper (or successor). Migrate map-gen overlay output to catalog vocabulary and validate virgin tiles against allowed natural overlays. Extend tile(attribute, ...) beyond River as more attribute storage is unified (roads, etc.). Optional: expand overlay_validate / cert coverage as the contract hardens.
+Remove StdAddHelper and BUILD_ADD_* once all readers/writers go through m_ov + TileImpHelper / AddAccessHelper. Migrate map-gen overlay output to catalog vocabulary and validate virgin tiles against allowed natural overlays. Extend tile(attribute, ...) beyond River as more attribute storage is unified (roads, etc.). Optional: expand overlay_validate / cert coverage as the contract hardens. Route remaining MapOverlay::City enum compares through AddAccessHelper::city_ov / is_city where layout may change.
 
 
 
@@ -22,7 +18,7 @@ CURRENT STATE BELOW (IF CURRENT, REMOVE FROM ABOVE):
 
 DONE — tile storage model
 
-GameTileSimple uses m_ov (game_config.map_overlays index) plus m_add_idx as overlay payload (imp bitfield or external key). Terrain, climate, and resources stay orthogonal. m_add_typ removed from the live tile layout (legacy bridge only). GameArraySimple::set_overlay / set_add_idx validate via TileImpHelper::add_idx_ok; overlay change clears payload unless staying on the same overlay.
+GameTileSimple uses m_ov (game_config.map_overlays index) plus m_add_idx as overlay payload (imp bitfield or external key). Terrain, climate, and resources stay orthogonal. m_add_typ removed from the live tile layout (legacy bridge only). GameArraySimple::set_overlay / set_add_idx validate via TileImpHelper::add_idx_ok; overlay change clears payload via AddAccessHelper::empty_add (0 inline/city, U16_KEY_NULL for bank overlays).
 
 DONE — game data and derived index
 
@@ -36,9 +32,13 @@ DONE — tile requirement evaluation
 
 TileReqChk: terrain/climate via catalog→game_map_defs ids, overlay via m_ov, attribute via live tile fields (River → m_riv). GeneralAssessor::chk handles ITEM_REQ_TYPE_TILE; AssessorCtx carries m_map / m_x / m_y. TileWorkAssessor passes map coords into make_ctx so imp rows evaluate tile reqs alongside tech/resource. tile_req_chk.cpp included from general_assessor.o (assessor brute comps compile with TILE_REQ_CHK_STUB).
 
+DONE — payload access helper (City vs bits vs bank)
+
+AddAccessHelper (setup via TileImpHelper::bind_statics): resolves City overlay index by catalog name at setup (not hardcoded 0). Per-overlay bank pointer array sized to map_overlays. City: m_add_idx is external city key. Other overlays: imp bits in m_add_idx while imp_n <= 16; if imp_n > 16 allocate GeneralBitBank(imp_n) and store batch in m_add_idx (claim on first set_imp). TileImpHelper masks / add_idx_ok / has_imp / set_imp delegate to AddAccessHelper. No new game-data payload-mode column.
+
 DONE — payload runtime helper
 
-TileImpHelper: imp slot → payload bit (1 << slot), payload_mask_for_ov from imp_n per overlay, has_imp / set_imp, add_idx_ok. City overlay accepts any u16 payload (external key); imp overlays enforce bitmask. Bound at game setup; used by GameArraySimple, WorkerGuidance::apply_work (imps), TileWorkAssessor (imp_already_set).
+TileImpHelper: imp slot lookup, payload_bit for inline slots, bind_statics wires AddAccessHelper. Used by GameArraySimple, WorkerGuidance::apply_work (imps), TileWorkAssessor (imp_already_set).
 
 DONE — assessor and certification
 

@@ -21,7 +21,7 @@ class LinearBld {
 public:
     LinearBld () = delete;
 
-    static bool pick (const BitArrayCL& available, u16* out_idx);
+    static bool pick (const BitArrayCL& available, u16* out_idx, u16 start_slot = 0u);
 };
 
 #endif // LINEAR_BLD_H

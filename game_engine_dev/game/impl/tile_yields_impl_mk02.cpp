@@ -211,19 +211,13 @@ bool TileYields::setup_imp (const RuntimeStatics& st) {
 
 u16 TileYields::job_on_tile (const GameArraySimple& map, u16 x, u16 y) {
     const u16 ov = map.get_overlay(x, y);
-    if (ov == static_cast<u16>(MapOverlay::Farm)) {
-        return static_cast<u16>(MapOverlay::Farm);
+    if (m_ov_sites == nullptr || ov >= m_ov_n) {
+        return U16_KEY_NULL;
     }
-    if (ov == static_cast<u16>(MapOverlay::Mine)) {
-        return static_cast<u16>(MapOverlay::Mine);
+    if (!m_ov_sites[ov].m_on) {
+        return U16_KEY_NULL;
     }
-    if (ov == static_cast<u16>(MapOverlay::Plantation)) {
-        return static_cast<u16>(MapOverlay::Plantation);
-    }
-    if (ov == static_cast<u16>(MapOverlay::Forest)) {
-        return static_cast<u16>(MapOverlay::Forest);
-    }
-    return U16_KEY_NULL;
+    return ov;
 }
 
 u16 TileYields::site_for_job (u16 job_idx, u16* out_kind) {

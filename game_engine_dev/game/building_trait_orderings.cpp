@@ -104,13 +104,13 @@ u16 BuildingTraitOrderings::at (u16 trait_idx, u16 slot) {
     return m_orders[static_cast<u32>(trait_idx) * static_cast<u32>(m_n) + static_cast<u32>(slot)];
 }
 
-u16 BuildingTraitOrderings::pick (const BitArrayCL& available, u16 trait_idx) {
+u16 BuildingTraitOrderings::pick (const BitArrayCL& available, u16 trait_idx, u16 start_slot) {
     if (m_orders == nullptr || trait_idx >= CivTraitAffinity::k_n) {
         return U16_KEY_NULL;
     }
     const u16* row = m_orders + static_cast<u32>(trait_idx) * static_cast<u32>(m_n);
     const u32 avail_n = available.get_count();
-    for (u16 s = 0; s < m_n; ++s) {
+    for (u16 s = start_slot; s < m_n; ++s) {
         const u16 b = row[s];
         if (static_cast<u32>(b) >= avail_n) {
             continue;

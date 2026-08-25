@@ -10,13 +10,13 @@
 //=> - LinearBld -
 //================================================================================================================================
 
-bool LinearBld::pick (const BitArrayCL& available, u16* out_idx) {
+bool LinearBld::pick (const BitArrayCL& available, u16* out_idx, u16 start_slot) {
     if (out_idx == nullptr) {
         return false;
     }
     *out_idx = U16_KEY_NULL;
     const u32 n = available.get_count();
-    for (u32 i = 0; i < n; ++i) {
+    for (u32 i = start_slot; i < n; ++i) {
         if (available.get_bit(i) != 0) {
             *out_idx = static_cast<u16>(i);
             return true;

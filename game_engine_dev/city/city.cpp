@@ -39,6 +39,7 @@
 #include "city_sanitation_booster_register.h"
 #include "civ_sanitation_booster_register.h"
 #include "city_border.h"
+#include "city_tracer.h"
 #include "tile_yields.h"
 
 #include <cstring>
@@ -343,34 +344,61 @@ BitArrayCL* City::get_trainable_units (u16 city_idx, BitArrayCL* techs, BitArray
 //=> - City build instructions -
 //================================================================================================================================
 
+static cstr cur_bld_name (u8 build_type, u16 bld_idx) {
+    if (build_type == ACCUMULATE_COMMERCE) {
+        return "Wealth";
+    }
+    if (s_statics == nullptr || bld_idx == U16_KEY_NULL) {
+        return "";
+    }
+    if (build_type == BUILD_TYPE_BUILDING) {
+        return s_statics->building().get_name(BuildingStaticDataKey::from_raw(bld_idx));
+    }
+    if (build_type == BUILD_TYPE_WONDER) {
+        return s_statics->wonder().get_name(WonderStaticDataKey::from_raw(bld_idx));
+    }
+    if (build_type == BUILD_TYPE_SMALL_WONDER) {
+        return s_statics->small_wonder().get_name(SmallWonderStaticDataKey::from_raw(bld_idx));
+    }
+    if (build_type == BUILD_TYPE_UNIT) {
+        return s_statics->unit().get_name(UnitStaticDataKey::from_raw(bld_idx));
+    }
+    return "";
+}
+
 void City::build_building (u16 building_idx) {
     m_build_type = BUILD_TYPE_BUILDING;
     m_bld_idx = building_idx;
     m_build_cost = static_cast<u16>(s_statics->building().get_item(BuildingStaticDataKey::from_raw(building_idx)).cost);
+    LOG_CITY_BUILD((cur_bld_name(m_build_type, m_bld_idx), 1, 0));
 }
 
 void City::build_wonder (u16 wonder_idx) {
     m_build_type = BUILD_TYPE_WONDER;
     m_bld_idx = wonder_idx;
     m_build_cost = static_cast<u16>(s_statics->wonder().get_item(WonderStaticDataKey::from_raw(wonder_idx)).cost);
+    LOG_CITY_BUILD((cur_bld_name(m_build_type, m_bld_idx), 1, 0));
 }
 
 void City::build_small_wonder (u16 small_wonder_idx) {
     m_build_type = BUILD_TYPE_SMALL_WONDER;
     m_bld_idx = small_wonder_idx;
     m_build_cost = static_cast<u16>(s_statics->small_wonder().get_item(SmallWonderStaticDataKey::from_raw(small_wonder_idx)).cost);
+    LOG_CITY_BUILD((cur_bld_name(m_build_type, m_bld_idx), 1, 0));
 }
 
 void City::build_unit (u16 unit_idx) {
     m_build_type = BUILD_TYPE_UNIT;
     m_bld_idx = unit_idx;
     m_build_cost = static_cast<u16>(s_statics->unit().get_item(UnitStaticDataKey::from_raw(unit_idx)).cost);
+    LOG_CITY_BUILD((cur_bld_name(m_build_type, m_bld_idx), 1, 0));
 }
 
 void City::accumulate_commerce () {
     m_build_type = ACCUMULATE_COMMERCE;
     m_bld_idx = U16_KEY_NULL;
     m_build_cost = 0;
+    LOG_CITY_BUILD((cur_bld_name(m_build_type, m_bld_idx), 1, 0));
 }
 
 //================================================================================================================================
@@ -379,10 +407,14 @@ void City::accumulate_commerce () {
 
 i16 City::add_food (u16 city_idx, u16 amount, i16 net_sanitation) {
     const EffectCtx ctx = make_city_effect_ctx(*this, city_idx);
+    LOG_CITY_SAN((net_sanitation));
+    LOG_CITY_SCI((0));
+    LOG_CITY_REL((0));
 
     // Pull local tile food yield (no POP_GROWTH on gross food)
     const TileYield cy = TileYields::get(m_x, m_y);
     amount = static_cast<u16>(cy.m_food + amount);
+    LOG_CITY_FOOD((amount));
 
     // Feed the population; 2 food per pop per turn; bank toward growth at 20; starve at most 1 per turn
     i16 food_surplus = static_cast<i16>(amount) - static_cast<i16>(m_pop_count * 2);
@@ -416,6 +448,7 @@ i16 City::add_food (u16 city_idx, u16 amount, i16 net_sanitation) {
         }
     }
     m_accumulated_food = static_cast<i8>(bank);
+    LOG_CITY_POP((m_pop_count));
     return pop_change;
 }
 
@@ -430,6 +463,7 @@ bool City::add_production (u16 city_idx, u16 amount) {
     // Handle the remaining production, and the non-local boosters
     const u16 boosted = apply_booster_u16(amount, CityProductionBoosterRegister::determine_effect(ctx));
     m_accumulated_production = static_cast<u16>(m_accumulated_production + boosted);
+    LOG_CITY_PROD((boosted));
     
     // Do not trigger build-is-done if we are not building a building, or if we are converting production to commerce
     if (m_build_type == BUILD_TYPE_NONE || m_build_type == ACCUMULATE_COMMERCE) {
@@ -456,6 +490,7 @@ void City::add_commerce (u16 city_idx, u16 amount) {
     if (!PlayerLedger::add_commerce(m_owner, commerce)) {
         GAME_EXPECT(false, "City commerce ledger");
     }
+    LOG_CITY_COM((commerce));
 }
 
 void City::add_culture (u16 city_idx, u16 amount) {
@@ -468,6 +503,7 @@ void City::add_culture (u16 city_idx, u16 amount) {
     // Handle the remaining culture, and the non-local boosters
     const u16 boosted = apply_booster_u16(amount, CityCultureBoosterRegister::determine_effect(ctx));
     const u16 new_culture = static_cast<u16>(m_culture + boosted);
+    LOG_CITY_CULT((boosted));
     
     // Check if the city will expand its borders with the new culture amount
     if (CityBorder::will_expand(m_culture, new_culture)) {
@@ -589,6 +625,7 @@ bool City::finish_if_ready (u16 city_idx) {
     switch (m_build_type) {
         case BUILD_TYPE_BUILDING: {
             GAME_EXPECT_RET(s_bld_bank != nullptr, false, "City building bank");
+            LOG_CITY_BUILD((cur_bld_name(m_build_type, m_bld_idx), 0, 1));
             m_accumulated_production = static_cast<u16>(m_accumulated_production - m_build_cost);
             s_bld_bank->set_flag(city_idx, m_bld_idx);
             m_build_type = BUILD_TYPE_NONE;
@@ -598,6 +635,7 @@ bool City::finish_if_ready (u16 city_idx) {
         }
         case BUILD_TYPE_WONDER: {
             GAME_EXPECT_RET(s_wonder_city != nullptr, false, "City wonder cities");
+            LOG_CITY_BUILD((cur_bld_name(m_build_type, m_bld_idx), 0, 1));
             m_accumulated_production = static_cast<u16>(m_accumulated_production - m_build_cost);
             s_wonder_city[m_bld_idx] = city_idx;
             set_toggle_city(city_idx, s_flag_has_wonder);
@@ -609,6 +647,7 @@ bool City::finish_if_ready (u16 city_idx) {
         case BUILD_TYPE_SMALL_WONDER: {
             u16* built = small_wonder_row(m_owner);
             GAME_EXPECT_RET(built != nullptr, false, "City small wonder cities");
+            LOG_CITY_BUILD((cur_bld_name(m_build_type, m_bld_idx), 0, 1));
             m_accumulated_production = static_cast<u16>(m_accumulated_production - m_build_cost);
             built[m_bld_idx] = city_idx;
             set_toggle_city(city_idx, s_flag_has_wonder_small);
@@ -627,6 +666,7 @@ bool City::finish_if_ready (u16 city_idx) {
                 GAME_EXPECT(false, "City unit add");
                 return false;
             }
+            LOG_CITY_BUILD((cur_bld_name(m_build_type, m_bld_idx), 0, 1));
             unit->m_x = m_x;
             unit->m_y = m_y;
             unit->m_player_idx = m_owner;

@@ -16,6 +16,7 @@
 #include "city_turn_handler_militaristic.h"
 #include "city_turn_handler_religious.h"
 #include "city_turn_handler_scientific.h"
+#include "city_tracer.h"
 #include "civ_static_key.h"
 #include "civ_trait_enum.h"
 #include "game_state.h"
@@ -26,7 +27,7 @@
 //================================================================================================================================
 
 void CityTurnHandler::handle (GameState& state, u16 city_idx) {
-    City* city = state.m_cities.get_city(city_idx);
+    City* city = state.m_cities.get_city(city_idx); 
     GAME_EXPECT(city != nullptr, "CityTurnHandler got nullptr city");
 
     const u16 player = city->get_owner();
@@ -36,6 +37,8 @@ void CityTurnHandler::handle (GameState& state, u16 city_idx) {
     const u16 commerce = static_cast<u16>(yld.m_commerce > 65535u ? 65535u : yld.m_commerce);
     const u16 sanitation_boost = city->get_city_sanitation_boost(city_idx);
     const i16 net_sanitation = city->get_city_net_sanitation(sanitation_boost);
+
+    LOG_CITY_BEGIN((city_idx, player, state.m_current_turn));
 
     city->add_commerce(city_idx, commerce);
     city->add_culture(city_idx, 0);
@@ -87,6 +90,8 @@ void CityTurnHandler::handle (GameState& state, u16 city_idx) {
         CityTurnHandler_Default::handle(ctx);
         break;
     }
+
+    LOG_CITY_COMMIT(());
 
     ps.m_this_turn_city_count = static_cast<u16>(ps.m_this_turn_city_count + 1u);
     ps.m_this_turn_population_count = ps.m_this_turn_population_count + static_cast<u32>(city->get_current_population());

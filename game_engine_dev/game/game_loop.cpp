@@ -6,6 +6,7 @@
 #include "assert_log.h"
 #include "city.h"
 #include "city_border.h"
+#include "city_tracer.h"
 #include "city_turn_handler.h"
 #include "defensive_unit_turn_handler.h"
 #include "game_map_defs.h"
@@ -80,6 +81,7 @@ static void run_city_turns (GameState& state) {
         GAME_EXPECT(state.m_cities.get_city(i) != nullptr, "GameLoop run_city_turns got nullptr city");
         CityTurnHandler::handle(state, i);
     }
+    LOG_CITY_FLUSH(());
     after_city_turns(state);
     PTO_STOP(PtoId::PTO_CITY_LOOP);
 }

@@ -26,6 +26,7 @@ struct PlayerState;
 
 typedef struct MiscCityData {
     u64 m_city_has_worker : 1; // 1 = disk may need jobs; 0 = no work left on disk
+
 } MiscCityData;
 
 class alignas(8) City {
