@@ -7,6 +7,7 @@
 #include "assert_log.h"
 #include "civ_relations.h"
 #include "unit_add_vector.h"
+#include "unit_add_struct.h"
 #include "civ_static_key.h"
 #include "game_map_defs.h"
 #include "game_state.h"
@@ -516,6 +517,7 @@ bool UnitMovementMng::finish_unit_spawn (UnitAddKey key, u16 x, u16 y, u16 playe
     GAME_EXPECT_RET(in_bounds(*s_state, x, y), false, "UnitMovementMng spawn bounds");
     UnitAddStruct* unit = u_get(*s_state, key);
     GAME_EXPECT_RET(unit != nullptr, false, "UnitMovementMng unit");
+    unit_add_clr_work_dest(unit);
     const u16 hd = s_state->m_map.get_unit_hd(x, y);
     if (hd != U16_KEY_NULL) {
         const UnitAddStruct* eu = u_get(*s_state, UnitAddKey::from_raw(hd));
@@ -551,6 +553,7 @@ bool UnitMovementMng::place_on_tile (GameState& s, u16 x, u16 y, u16 player_idx,
         s.m_units.return_unit_add(key);
         return false;
     }
+    unit_add_clr_work_dest(unit);
     unit->m_player_idx = player_idx;
     unit->m_unit_typ_idx = typ_idx;
     unit->m_health = UNIT_HEALTH;

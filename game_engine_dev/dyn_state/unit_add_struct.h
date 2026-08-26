@@ -22,6 +22,9 @@
 #define COMMANDO 6
 #define ELITE 7
 
+#define UNIT_DELTA_DEST_NONE (-128) // Per-axis sentinel: no work destination
+#define UNIT_DELTA_DEST_ARRIVED 0 // Both axes zero: standing on work tile
+
 //================================================================================================================================
 //=> - UnitAddStruct -
 //================================================================================================================================
@@ -57,7 +60,24 @@ struct UnitAddStruct {
     u8 m_health; // Reduced via combat and attrition; increased when healing; UNIT_HEALTH at full
     u8 m_level; // Nerf or boost to damage dealt and taken; green, regular, elite, etc'
     u8 m_misc; // Only used by worker helper
+
+    i8 m_delta_x_dest; // Work tile dx from m_x; UNIT_DELTA_DEST_NONE or UNIT_DELTA_DEST_ARRIVED
+    i8 m_delta_y_dest; // Work tile dy from m_y; UNIT_DELTA_DEST_NONE or UNIT_DELTA_DEST_ARRIVED
+    u8 un_used1;
+    u8 un_used2;
+    u8 un_used3;
+    u8 un_used4;
+    u8 un_used5;
+    u8 un_used6; // Extra padding to align to 16 bytes, keep these
 };
+
+inline void unit_add_clr_work_dest (UnitAddStruct* u) {
+    if (u == nullptr) {
+        return;
+    }
+    u->m_delta_x_dest = static_cast<i8>(UNIT_DELTA_DEST_NONE);
+    u->m_delta_y_dest = static_cast<i8>(UNIT_DELTA_DEST_NONE);
+}
 
 #endif // UNIT_ADD_STRUCT_H
 

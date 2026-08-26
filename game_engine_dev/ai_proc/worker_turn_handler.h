@@ -16,6 +16,7 @@ class GameState;
 //  Per-worker unit step. Tallies into m_last_turn_worker_count, applies one WorkerGuidance job on a
 //  home-city worked tile via WorkerBuildProgress (mp deficit freeze). Each worker keeps a work tile until
 //  it is fully upgraded; only then scan (resource overlay, pick_first, or pick_best when disk is done).
+//  When GameState::m_path_worker != 0, steps toward the job tile before apply; else applies remotely.
 //
 //================================================================================================================================
 
@@ -27,7 +28,7 @@ public:
 
     static void handle (GameState& state, u16 unit_idx);
     static void set_job_note (JobNoteFn fn);
-    static void clear_work_tgt (u16 unit_idx);
+    static void clear_work_tgt (GameState& state, u16 unit_idx);
 
 private:
     static JobNoteFn m_job_note; // Optional sink for each successful apply

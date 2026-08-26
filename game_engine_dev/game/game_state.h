@@ -149,6 +149,7 @@ public:
     u16 m_land_mobile_type_idx = U16_KEY_NULL; // Mobile type index
     u16 m_land_artillery_type_idx = U16_KEY_NULL; // Artillery type index
     u16 m_land_paradrop_type_idx = U16_KEY_NULL; // Paradrop type index
+    u8 m_path_worker = 1; // 1 workers step to job tiles; 0 apply remotely
 };
 
 #endif // GAME_STATE_H

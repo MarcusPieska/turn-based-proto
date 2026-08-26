@@ -554,6 +554,27 @@ bool CityConnector::has_virtual_at (const GameState& state, u16 x, u16 y) {
     return road_is_virtual(state.m_map.get_road_typ(x, y));
 }
 
+bool CityConnector::step_toward (GameState& state, u16 unit_idx, u16 tx, u16 ty) {
+    UnitAddStruct* unit = state.m_units.get_unit_add(UnitAddKey::from_raw(unit_idx));
+    GAME_EXPECT(unit != nullptr, "CityConnector step_toward got nullptr unit");
+    GAME_EXPECT(unit->m_x != U16_KEY_NULL, "CityConnector step_toward unit has null x");
+    if (unit->m_x == tx && unit->m_y == ty) {
+        return true;
+    }
+    u16 nx = 0;
+    u16 ny = 0;
+    if (!pick_step(state, unit->m_x, unit->m_y, tx, ty, &nx, &ny)) {
+        return false;
+    }
+    if (tile_block(state, nx, ny)) {
+        return false;
+    }
+    if (!try_step(state, unit_idx, nx, ny)) {
+        return false;
+    }
+    return unit->m_x == tx && unit->m_y == ty;
+}
+
 //================================================================================================================================
 //=> - CityConnector -
 //================================================================================================================================

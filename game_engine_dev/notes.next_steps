@@ -13,6 +13,7 @@ Tile improvement and working:
 
 Static data:
  - Need to implement dynamic enums for those cases when the hot-path need to lookup static data without a string compare. 
+ - The unit struct needs some additional space; e.g., for storing a map destination 
 
 
 Map generation:

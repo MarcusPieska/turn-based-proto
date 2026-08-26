@@ -2,8 +2,6 @@
 //=> - Includes -
 //================================================================================================================================
 
-#include <cstring>
-
 #include "worker_turn_handler.h"
 #include "assert_log.h"
 #include "city.h"
@@ -35,100 +33,52 @@
 
 WorkerTurnHandler::JobNoteFn WorkerTurnHandler::m_job_note = nullptr;
 
-struct WthWorkTgt {
-    u16 m_x; // Active work tile x; U16_KEY_NULL if unset
-    u16 m_y; // Active work tile y; U16_KEY_NULL if unset
-    u8 m_on; // 1 when this worker is committed to m_x/m_y
-};
-
-static WthWorkTgt* m_wtgt = nullptr; 
-static u32 m_wtgt_n = 0;
-
-static void wtgt_ensure (u16 unit_idx) {
-    if (unit_idx < m_wtgt_n) {
-        return;
-    }
-    const u32 new_n = static_cast<u32>(unit_idx) + 1u;
-    WthWorkTgt* p = new WthWorkTgt[new_n]();
-    if (m_wtgt != nullptr) {
-        std::memcpy(p, m_wtgt, static_cast<size_t>(m_wtgt_n) * sizeof(WthWorkTgt));
-        delete[] m_wtgt;
-    }
-    m_wtgt = p;
-    m_wtgt_n = new_n;
+static bool wdest_none (const UnitAddStruct* unit) {
+    return unit->m_delta_x_dest == static_cast<i8>(UNIT_DELTA_DEST_NONE)
+        && unit->m_delta_y_dest == static_cast<i8>(UNIT_DELTA_DEST_NONE);
 }
 
-static void wtgt_clr (u16 unit_idx) {
-    if (unit_idx >= m_wtgt_n || m_wtgt == nullptr) {
-        return;
-    }
-    m_wtgt[unit_idx].m_x = U16_KEY_NULL;
-    m_wtgt[unit_idx].m_y = U16_KEY_NULL;
-    m_wtgt[unit_idx].m_on = 0u;
+static bool wdest_arrived (const UnitAddStruct* unit) {
+    return unit->m_delta_x_dest == static_cast<i8>(UNIT_DELTA_DEST_ARRIVED)
+        && unit->m_delta_y_dest == static_cast<i8>(UNIT_DELTA_DEST_ARRIVED);
 }
 
-static void wtgt_set (u16 unit_idx, u16 x, u16 y) {
-    wtgt_ensure(unit_idx);
-    m_wtgt[unit_idx].m_x = x;
-    m_wtgt[unit_idx].m_y = y;
-    m_wtgt[unit_idx].m_on = 1u;
+static void wdest_clr (UnitAddStruct* unit) {
+    unit_add_clr_work_dest(unit);
 }
 
-static bool wtgt_get (u16 unit_idx, u16* x, u16* y) {
-    if (unit_idx >= m_wtgt_n || m_wtgt == nullptr || m_wtgt[unit_idx].m_on == 0u) {
+static bool wdest_tile (const UnitAddStruct* unit, u16* x, u16* y) {
+    if (wdest_none(unit)) {
         return false;
     }
-    *x = m_wtgt[unit_idx].m_x;
-    *y = m_wtgt[unit_idx].m_y;
+    const i16 tx = static_cast<i16>(unit->m_x) + static_cast<i16>(unit->m_delta_x_dest);
+    const i16 ty = static_cast<i16>(unit->m_y) + static_cast<i16>(unit->m_delta_y_dest);
+    if (tx < 0 || ty < 0) {
+        return false;
+    }
+    *x = static_cast<u16>(tx);
+    *y = static_cast<u16>(ty);
     return true;
 }
 
-static bool tile_cand (
-    GameState& state,
-    u16 city_idx,
-    u16 ux,
-    u16 uy,
-    TileAssignIntent* ointent,
-    u16* ojob,
-    u16* oimp);
-
-static bool pick_active (
-    GameState& state,
-    u16 unit_idx,
-    u16 city_idx,
-    u16* ox,
-    u16* oy,
-    TileAssignIntent* ointent,
-    u16* ojob,
-    u16* oimp)
-{
-    u16 x = 0;
-    u16 y = 0;
-    if (!wtgt_get(unit_idx, &x, &y)) {
+static bool wdest_set (UnitAddStruct* unit, u16 x, u16 y) {
+    const i16 dx = static_cast<i16>(x) - static_cast<i16>(unit->m_x);
+    const i16 dy = static_cast<i16>(y) - static_cast<i16>(unit->m_y);
+    if (dx < -127 || dx > 127 || dy < -127 || dy > 127) {
+        wdest_clr(unit);
         return false;
     }
-    if (state.m_map.get_planned_city(x, y) != 0u) {
-        wtgt_clr(unit_idx);
-        return false;
-    }
-    if (tile_cand(state, city_idx, x, y, ointent, ojob, oimp)) {
-        *ox = x;
-        *oy = y;
-        return true;
-    }
-    const TileAssignIntent intent = static_cast<TileAssignIntent>(state.m_map.get_tile_usage(x, y));
-    u16 job = U16_KEY_NULL;
-    u16 imp = U16_KEY_NULL;
-    if (!WorkerGuidance::next_work(x, y, intent, &job, &imp)) {
-        wtgt_clr(unit_idx);
-        return false;
-    }
-    *ox = x;
-    *oy = y;
-    *ointent = intent;
-    *ojob = job;
-    *oimp = imp;
+    unit->m_delta_x_dest = static_cast<i8>(dx);
+    unit->m_delta_y_dest = static_cast<i8>(dy);
     return true;
+}
+
+static void wdest_apply_step (UnitAddStruct* unit, i16 sx, i16 sy) {
+    if (wdest_none(unit) || (sx == 0 && sy == 0)) {
+        return;
+    }
+    unit->m_delta_x_dest = static_cast<i8>(static_cast<i16>(unit->m_delta_x_dest) - sx);
+    unit->m_delta_y_dest = static_cast<i8>(static_cast<i16>(unit->m_delta_y_dest) - sy);
 }
 
 //================================================================================================================================
@@ -204,6 +154,49 @@ static bool tile_cand (
         return false;
     }
     *ointent = intent;
+    return true;
+}
+
+static bool pick_active (
+    GameState& state,
+    u16 unit_idx,
+    u16 city_idx,
+    u16* ox,
+    u16* oy,
+    TileAssignIntent* ointent,
+    u16* ojob,
+    u16* oimp)
+{
+    UnitAddStruct* unit = state.m_units.get_unit_add(UnitAddKey::from_raw(unit_idx));
+    if (unit == nullptr) {
+        return false;
+    }
+    u16 x = 0;
+    u16 y = 0;
+    if (!wdest_tile(unit, &x, &y)) {
+        return false;
+    }
+    if (state.m_map.get_planned_city(x, y) != 0u) {
+        wdest_clr(unit);
+        return false;
+    }
+    if (tile_cand(state, city_idx, x, y, ointent, ojob, oimp)) {
+        *ox = x;
+        *oy = y;
+        return true;
+    }
+    const TileAssignIntent intent = static_cast<TileAssignIntent>(state.m_map.get_tile_usage(x, y));
+    u16 job = U16_KEY_NULL;
+    u16 imp = U16_KEY_NULL;
+    if (!WorkerGuidance::next_work(x, y, intent, &job, &imp)) {
+        wdest_clr(unit);
+        return false;
+    }
+    *ox = x;
+    *oy = y;
+    *ointent = intent;
+    *ojob = job;
+    *oimp = imp;
     return true;
 }
 
@@ -564,8 +557,11 @@ void WorkerTurnHandler::set_job_note (JobNoteFn fn) {
     m_job_note = fn;
 }
 
-void WorkerTurnHandler::clear_work_tgt (u16 unit_idx) {
-    wtgt_clr(unit_idx);
+void WorkerTurnHandler::clear_work_tgt (GameState& state, u16 unit_idx) {
+    UnitAddStruct* unit = state.m_units.get_unit_add(UnitAddKey::from_raw(unit_idx));
+    if (unit != nullptr) {
+        wdest_clr(unit);
+    }
 }
 
 void WorkerTurnHandler::handle (GameState& state, u16 unit_idx) {
@@ -600,7 +596,7 @@ void WorkerTurnHandler::handle (GameState& state, u16 unit_idx) {
     u16 imp = U16_KEY_NULL;
     bool found = pick_active(state, unit_idx, city_idx, &x, &y, &intent, &job, &imp);
     if (!found && !city->city_has_worker()) {
-        wtgt_clr(unit_idx);
+        wdest_clr(unit);
         return;
     }
     bool fully = false;
@@ -638,24 +634,37 @@ void WorkerTurnHandler::handle (GameState& state, u16 unit_idx) {
             fully = local_is_fully_built(state, city_idx, cx, cy);
         }
         CityConnector::clear_idle_flag(state, city_idx, city, cx, cy, fully);
-        wtgt_clr(unit_idx);
+        wdest_clr(unit);
         if (city->city_has_worker()) {
             CityConnector::handle(state, unit_idx);
         }
         return;
     }
     if (CityConnector::has_virtual_at(state, x, y)) {
-        wtgt_clr(unit_idx);
+        wdest_clr(unit);
         CityConnector::handle(state, unit_idx);
         return;
     }
-    wtgt_set(unit_idx, x, y);
+    wdest_set(unit, x, y);
+    if (state.m_path_worker != 0) {
+        if (!wdest_arrived(unit)) {
+            const u16 ox = unit->m_x;
+            const u16 oy = unit->m_y;
+            CityConnector::step_toward(state, unit_idx, x, y);
+            const i16 sx = static_cast<i16>(unit->m_x) - static_cast<i16>(ox);
+            const i16 sy = static_cast<i16>(unit->m_y) - static_cast<i16>(oy);
+            wdest_apply_step(unit, sx, sy);
+            if (!wdest_arrived(unit)) {
+                return;
+            }
+        }
+    }
     if (apply_one(state, unit, ps, city_idx, x, y, job, imp)) {
         if (m_job_note != nullptr) {
             m_job_note(x, y, job, imp, static_cast<u8>(intent));
         }
         if (!tile_has_work(state, city_idx, x, y)) {
-            wtgt_clr(unit_idx);
+            wdest_clr(unit);
         }
     }
 }

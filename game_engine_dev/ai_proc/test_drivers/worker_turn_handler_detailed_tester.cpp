@@ -63,24 +63,13 @@ static void note_assert (bool ok, cstr msg) {
 }
 
 static const char* G_MAP_ROOT = "/home/w/Projects/simple-map-gen";
-static const char* G_OUT_DIR_REMOTE = "/home/w/Projects/simple-map-gen/worker-turn-mng";
-static const char* G_OUT_DIR_PATH = "/home/w/Projects/simple-map-gen/worker-turn-mng-path";
-static const char* G_OUT_DIR = G_OUT_DIR_REMOTE;
-static char g_trace[384];
-static char g_city_log[384];
-static const char* G_TRACE = g_trace;
-static const char* G_CITY_LOG = g_city_log;
-static bool g_path_worker = false;
+static const char* G_OUT_DIR = "/home/w/Projects/simple-map-gen/worker-turn-mng-detailed";
+static const char* G_TRACE = "/home/w/Projects/simple-map-gen/worker-turn-mng-detailed/game_loop.trace";
+static const char* G_CITY_LOG = "/home/w/Projects/simple-map-gen/worker-turn-mng-detailed/cities.trace";
 static const u32 G_SEED = 43u;
 static const u16 G_PLAYERS = 100;
-static const u32 G_TURN_CAP = 300u;
-static const u32 G_TURN_CAP_EXT = 1000u;
+static const u32 G_TURN_CAP = 200u;
 static const u16 G_CLAIM_CULT = 25u;
-static u32 g_ppm_every = 10u;
-static bool g_time_only = false;
-static bool g_gradual_tech = false;
-static u32 g_tech_iv = 0;
-static u32 g_tech_cur = 0;
 static char g_terr[320];
 static char g_clim[320];
 static char g_riv[320];
@@ -330,16 +319,6 @@ static bool ensure_out_dir () {
     return ::mkdir(G_OUT_DIR, 0755) == 0 || errno == EEXIST;
 }
 
-static bool set_out_paths () {
-    if (std::snprintf(g_trace, sizeof(g_trace), "%s/game_loop.trace", G_OUT_DIR) <= 0) {
-        return false;
-    }
-    if (std::snprintf(g_city_log, sizeof(g_city_log), "%s/cities.trace", G_OUT_DIR) <= 0) {
-        return false;
-    }
-    return true;
-}
-
 static bool is_worker_typ (const RuntimeStatics& st, u16 typ_idx) {
     const UnitStaticDataKey uk = UnitStaticDataKey::from_raw(typ_idx);
     const u16 ut = st.unit().get_item(uk).type;
@@ -478,17 +457,9 @@ static void unlock_tech_ix (GameState& state, BitArrayCL& tech, u32 ix) {
 }
 
 static void gradual_tech_turn (GameState& state, BitArrayCL& tech, u32 turn) {
-    if (!g_gradual_tech || g_tech_iv == 0u) {
-        return;
-    }
-    if (turn == 0u || (turn % g_tech_iv) != 0u) {
-        return;
-    }
-    if (g_tech_cur >= tech.get_count()) {
-        return;
-    }
-    unlock_tech_ix(state, tech, g_tech_cur);
-    g_tech_cur = g_tech_cur + 1u;
+    (void)state;
+    (void)tech;
+    (void)turn;
 }
 
 static void claim_city_borders (GameState& state) {
@@ -518,14 +489,12 @@ static void refill_mp (GameState& state, u16 unit_idx) {
 
 static void after_city_turns (GameState& state) {
     for (u16 p = 0; p < state.m_player_n; ++p) {
-        if (!g_gradual_tech) {
-            const auto t0 = std::chrono::steady_clock::now();
-            ResearchTurnHandler::handle(state, p);
-            const auto t1 = std::chrono::steady_clock::now();
-            tm_add(&g_tm_research, static_cast<u64>(
-                std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()));
-            City::refresh_city_worker_flags(state, p);
-        }
+        const auto t0 = std::chrono::steady_clock::now();
+        ResearchTurnHandler::handle(state, p);
+        const auto t1 = std::chrono::steady_clock::now();
+        tm_add(&g_tm_research, static_cast<u64>(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()));
+        City::refresh_city_worker_flags(state, p);
         PlayerState& ps = state.m_player_states[p];
         ps.m_last_turn_population_count = ps.m_this_turn_population_count;
         ps.m_last_turn_city_count = ps.m_this_turn_city_count;
@@ -884,7 +853,7 @@ static bool save_turn_ppm (const GameState& state, u32 turn) {
         if (!is_worker_typ(*state.m_statics, u->m_unit_typ_idx)) {
             continue;
         }
-        set_px(rgb, w, h, u->m_x, u->m_y, 128, 0, 0);
+        set_px(rgb, w, h, u->m_x, u->m_y, 0, 0, 0);
     }
     char path[384];
     if (std::snprintf(path, sizeof(path), "%s/turn_%04u.ppm", G_OUT_DIR, turn) <= 0) {
@@ -909,31 +878,12 @@ static bool save_turn_ppm (const GameState& state, u32 turn) {
 //================================================================================================================================
 
 int main (int argc, char** argv) {
-    bool extend = false;
-    for (int i = 1; i < argc; ++i) {
-        if (std::strcmp(argv[i], "extend") == 0) {
-            extend = true;
-        }
-        if (std::strcmp(argv[i], "time_only") == 0) {
-            g_time_only = true;
-        }
-        if (std::strcmp(argv[i], "tech") == 0) {
-            g_gradual_tech = true;
-        }
-        if (std::strcmp(argv[i], "path") == 0) {
-            g_path_worker = true;
-        }
-    }
-    G_OUT_DIR = g_path_worker ? G_OUT_DIR_PATH : G_OUT_DIR_REMOTE;
-    const u32 turn_cap = extend ? G_TURN_CAP_EXT : G_TURN_CAP;
+    (void)argc;
+    (void)argv;
 #ifndef CITY_TRACER_ENABLE
     std::printf("CITY_TRACER_ENABLE not set; rebuild with -DCITY_TRACER_ENABLE\n");
     return 1;
 #endif
-    if (!set_out_paths()) {
-        std::printf("out path build failed\n");
-        return 1;
-    }
     if (!build_paths()) {
         std::printf("path build failed\n");
         return 1;
@@ -954,7 +904,7 @@ int main (int argc, char** argv) {
         std::printf("setup_new_game failed\n");
         return 1;
     }
-    state.m_path_worker = g_path_worker ? 1u : 0u;
+    state.m_path_worker = 1u;
     if (state.m_statics == nullptr) {
         std::printf("missing statics\n");
         state.clear();
@@ -962,20 +912,9 @@ int main (int argc, char** argv) {
     }
     const RuntimeStatics& st = *state.m_statics;
     BitArrayCL tech(st.tech().get_item_count());
-    if (g_gradual_tech) {
-        ensure_tech_arrays(state);
-        const u32 tech_n = tech.get_count();
-        g_tech_cur = 0;
-        g_tech_iv = (tech_n == 0u) ? turn_cap : (turn_cap / tech_n);
-        if (g_tech_iv == 0u) {
-            g_tech_iv = 1u;
-        }
-    } else {
-        unlock_all_tech(state);
-        for (u32 i = 0; i < tech.get_count(); ++i) {
-            tech.set_bit(i);
-        }
-        g_tech_cur = tech.get_count();
+    unlock_all_tech(state);
+    for (u32 i = 0; i < tech.get_count(); ++i) {
+        tech.set_bit(i);
     }
     TileYieldCtx yctx = {};
     yctx.m_tech = &tech;
@@ -984,7 +923,6 @@ int main (int argc, char** argv) {
     wctx.m_tech = &tech;
     wctx.m_resource = nullptr;
     TileWorkAssessor::bind_ctx(&wctx);
-
     const u16 worker_typ = find_worker_typ(st);
     if (worker_typ == U16_KEY_NULL) {
         std::printf("fail find worker typ\n");
@@ -992,7 +930,6 @@ int main (int argc, char** argv) {
         setup.release_map_gen();
         return 1;
     }
-
     WhiteboardMng::init(state.m_map.width(), state.m_map.height());
     claim_city_borders(state);
     for (u16 p = 0; p < state.m_player_n; ++p) {
@@ -1001,7 +938,6 @@ int main (int argc, char** argv) {
         ps.m_worker_tile_opt_scan = 1;
         ps.m_worker_tile_opt_reassign = 0;
     }
-
     g_st = &st;
     g_state = &state;
     g_job_apps = 0;
@@ -1009,38 +945,22 @@ int main (int argc, char** argv) {
     g_unit_tile.clear();
     g_job_tot.clear();
     WorkerTurnHandler::set_job_note(on_job);
-
-    state.m_turn_limit = turn_cap;
+    state.m_turn_limit = G_TURN_CAP;
     state.m_current_turn = 0;
     const u16 cities0 = count_cities(state);
     g_city_spawned_n = 0;
     spawn_workers_for_new_cities(state, worker_typ);
     const u16 workers0 = count_workers(state);
-    std::printf("*** start players=%u cities=%u workers=%u turn_cap=%u scan=%u reassign=%u workers_per_city=%u extend=%d ppm_every=%u time_only=%d tech=%d tech_iv=%u path_worker=%u out=%s\n",
-        state.m_player_n, cities0, workers0, turn_cap,
-        (unsigned)state.m_player_states[0].m_worker_tile_opt_scan,
-        (unsigned)state.m_player_states[0].m_worker_tile_opt_reassign,
-        (unsigned)G_WORKERS_PER_CITY,
-        extend ? 1 : 0, g_ppm_every, g_time_only ? 1 : 0,
-        g_gradual_tech ? 1 : 0, g_tech_iv,
+    std::printf("*** detailed start players=%u cities=%u workers=%u turn_cap=%u path_worker=%u out=%s\n",
+        state.m_player_n, cities0, workers0, G_TURN_CAP,
         (unsigned)state.m_path_worker, G_OUT_DIR);
-    if (!g_time_only) {
-        if (!save_turn_ppm(state, 0)) {
-            std::printf("save turn 0 failed\n");
-            WorkerTurnHandler::set_job_note(nullptr);
-            WhiteboardMng::terminate();
-            state.clear();
-            return 1;
-        }
-        if (!save_terrain_roads_ppm(state, 0)) {
-            std::printf("save terrain roads turn 0 failed\n");
-            WorkerTurnHandler::set_job_note(nullptr);
-            WhiteboardMng::terminate();
-            state.clear();
-            return 1;
-        }
+    if (!save_turn_ppm(state, 0)) {
+        std::printf("save turn 0 failed\n");
+        WorkerTurnHandler::set_job_note(nullptr);
+        WhiteboardMng::terminate();
+        state.clear();
+        return 1;
     }
-
     GameLoop loop;
     LOG_CITY_SETUP((G_CITY_LOG));
     if (!loop.begin(&state, G_TRACE)) {
@@ -1057,11 +977,9 @@ int main (int argc, char** argv) {
         ps.m_worker_tile_opt_reassign = 0;
     }
     spawn_workers_for_new_cities(state, worker_typ);
-
     const auto t_loop0 = std::chrono::steady_clock::now();
-    while (state.m_current_turn < turn_cap) {
+    while (state.m_current_turn < G_TURN_CAP) {
         state.m_current_turn = state.m_current_turn + 1u;
-        gradual_tech_turn(state, tech, state.m_current_turn);
         {
             const auto t0 = std::chrono::steady_clock::now();
             run_city_turns(state);
@@ -1077,77 +995,38 @@ int main (int argc, char** argv) {
             tm_add(&g_tm_spawn, static_cast<u64>(
                 std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()));
         }
-        if (g_time_only) {
-            std::printf("\rturn %u / %u", state.m_current_turn, turn_cap);
-            std::fflush(stdout);
-        } else if (g_ppm_every != 0 && (state.m_current_turn % g_ppm_every) == 0) {
-            if (!save_turn_ppm(state, state.m_current_turn)) {
-                std::printf("save turn %u failed\n", state.m_current_turn);
-                loop.end();
-                LOG_CITY_CLEAR(());
-                WorkerTurnHandler::set_job_note(nullptr);
-                SettlerTurnHandler::clear();
-                state.clear();
-                return 1;
-            }
-            if (!save_terrain_roads_ppm(state, state.m_current_turn)) {
-                std::printf("save terrain roads turn %u failed\n", state.m_current_turn);
-                loop.end();
-                LOG_CITY_CLEAR(());
-                WorkerTurnHandler::set_job_note(nullptr);
-                SettlerTurnHandler::clear();
-                state.clear();
-                return 1;
-            }
-            u32 irrs = count_imp_on_map(state, static_cast<u16>(WorkerJobImp::Irrigation));
-            std::printf("t=%u cities=%u workers=%u farm_ov=%u irr=%u jobs=%u\n",
+        if (!save_turn_ppm(state, state.m_current_turn)) {
+            std::printf("save turn %u failed\n", state.m_current_turn);
+            loop.end();
+            LOG_CITY_CLEAR(());
+            WorkerTurnHandler::set_job_note(nullptr);
+            SettlerTurnHandler::clear();
+            state.clear();
+            return 1;
+        }
+        if ((state.m_current_turn % 10u) == 0u) {
+            std::printf("t=%u cities=%u workers=%u jobs=%u\n",
                 (unsigned)state.m_current_turn,
                 (unsigned)count_cities(state),
                 (unsigned)count_workers(state),
-                (unsigned)count_overlay_on_map(state, static_cast<u16>(MapOverlay::Farm)),
-                (unsigned)irrs,
                 (unsigned)g_job_apps);
         }
     }
     const auto t_loop1 = std::chrono::steady_clock::now();
-    if (g_time_only) {
-        std::printf("\n");
-    }
-    if (!save_turn_ppm(state, state.m_current_turn)) {
-        std::printf("save final turn failed\n");
-        loop.end();
-        LOG_CITY_CLEAR(());
-        WorkerTurnHandler::set_job_note(nullptr);
-        SettlerTurnHandler::clear();
-        state.clear();
-        return 1;
-    }
-    if (!save_terrain_roads_ppm(state, state.m_current_turn)) {
-        std::printf("save final terrain roads failed\n");
-        loop.end();
-        LOG_CITY_CLEAR(());
-        WorkerTurnHandler::set_job_note(nullptr);
-        SettlerTurnHandler::clear();
-        state.clear();
-        return 1;
-    }
     loop.end();
     LOG_CITY_CLEAR(());
     WorkerTurnHandler::set_job_note(nullptr);
-
     const u16 cities1 = count_cities(state);
     const u16 workers1 = count_workers(state);
     const u32 irrs = count_imp_on_map(state, static_cast<u16>(WorkerJobImp::Irrigation));
-    const bool a_turns = state.m_current_turn == turn_cap;
+    const bool a_turns = state.m_current_turn == G_TURN_CAP;
     const bool a_jobs = g_job_apps > 0;
     const bool a_irr = irrs > 0;
     const bool a_skip = g_tile_skip_viol == 0u;
-    const bool a_tech = !g_gradual_tech || g_tech_cur >= tech.get_count();
-    const bool ok = a_turns && a_jobs && a_irr && a_skip && a_tech;
+    const bool ok = a_turns && a_jobs && a_irr && a_skip;
     const double loop_ms = static_cast<double>(
         std::chrono::duration_cast<std::chrono::nanoseconds>(t_loop1 - t_loop0).count()) / 1.0e6;
-    const double avg_ms = (turn_cap == 0) ? 0.0 : loop_ms / static_cast<double>(turn_cap);
-
+    const double avg_ms = loop_ms / static_cast<double>(G_TURN_CAP);
     std::printf("=======================================================\n");
     note_assert(a_turns, "reached turn_cap");
     note_assert(a_jobs, "jobs_applied > 0");
@@ -1158,13 +1037,11 @@ int main (int argc, char** argv) {
             (unsigned)g_tile_skip_viol);
         note_assert(a_skip, skip_msg);
     }
-    note_assert(a_tech, "tech unlock complete (or gradual off)");
-    note_assert(ok, "WORKER TURN MNG overall");
-    std::printf(" WORKER TURN MNG: %s after %u turns (players=%u cities %u -> %u workers %u -> %u)\n",
+    note_assert(ok, "WORKER TURN DETAILED overall");
+    std::printf(" WORKER TURN DETAILED: %s after %u turns (players=%u cities %u -> %u workers %u -> %u)\n",
         ok ? "PASS" : "FAIL", state.m_current_turn, state.m_player_n, cities0, cities1, workers0, workers1);
-    std::printf(" imps: jobs_applied=%u  tile_skip_violations=%u  tech_unlocked=%u/%u\n",
-        (unsigned)g_job_apps, (unsigned)g_tile_skip_viol,
-        (unsigned)g_tech_cur, (unsigned)tech.get_count());
+    std::printf(" imps: jobs_applied=%u  tile_skip_violations=%u\n",
+        (unsigned)g_job_apps, (unsigned)g_tile_skip_viol);
     print_imps_on_map(state);
     std::printf(" loop wall: %.3f ms total  %.3f ms/turn (includes tester spawn + ppm)\n", loop_ms, avg_ms);
     std::printf(" turn e2e:  %.3f ms total  %.3f ms/turn (city+unit only)\n",
@@ -1176,7 +1053,6 @@ int main (int argc, char** argv) {
     tm_report_all();
     print_job_tots();
     std::printf("=======================================================\n");
-
     g_st = nullptr;
     g_state = nullptr;
     TileWorkAssessor::bind_ctx(nullptr);
