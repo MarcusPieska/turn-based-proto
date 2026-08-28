@@ -1,6 +1,6 @@
 #!/bin/bash
 
-INC="-I. -I.. -I../map_loader -I../static_state -I../misc -I../res_dist -I../data_io -I../simple_map_gen -I../ai_pathing/walk_general"
+INC="-I. -I.. -I../map_loader -I../static_state -I../misc -I../res_dist -I../data_io -I../simple_map_gen -I../ai_pathing/walk_general -I../city -I../city/effector -I../gen_bit_banks -I../game"
 PIC="-fPIC"
 
 g++ -std=c++11 $INC $PIC -c ../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o

@@ -16,6 +16,7 @@ class GameArraySimple;
 //
 //  Culture-facing border helper over CircularTileAreas. Culture maps to radius via ordered m_lims thresholds.
 //  bind_map wires the active GameArraySimple for civ ownership claims when borders expand.
+//  claim_disc stamps a fixed-radius ownership disc (free tiles or already owned by the same seat).
 //
 //================================================================================================================================
 
@@ -26,6 +27,7 @@ public:
     static bool will_expand (u16 old_culture, u16 new_culture);
     static u16 radius_for (u16 culture);
     static void claim_expand (u16 cx, u16 cy, u16 old_culture, u16 new_culture, u8 owner);
+    static void claim_disc (u16 cx, u16 cy, u16 radius, u8 owner);
 
 private:
     static const u16 m_lims[]; // Ordered culture ceilings that unlock the next radius

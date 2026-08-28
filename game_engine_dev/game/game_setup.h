@@ -35,7 +35,9 @@ struct MapPpmPaths {
 //
 //  Setup-phase orchestrator. Builds or restores a GameState before play:
 //  new game — generate map via map_gen.so or load PPMs (Factory_GameArraySimple),
-//  pick starts, init players and overlays; saved game — load GameState from file.
+//  WhiteboardMng::init first in finish_with_starts, pick starts, spawn, GenAiHelpers
+//  (cities, settle order, passes, forts). Saved game — load GameState from file; must restore
+//  tile intents and settle order (save_game/load_game stubs until that lands).
 //  map_gen.so stays loaded across sequential setups; call release_map_gen at
 //  GameLoop handoff. Does not run turns.
 //

@@ -30,6 +30,7 @@
 #include "city_network.h"
 
 #include "game_primitives.h"
+#include "gen_ai_helpers.h"
 
 class RuntimeStatics;
 
@@ -130,6 +131,7 @@ public:
     SectorNetwork m_sector_net; // Land/water sector lattice for general pathing
     SectorNetworkRouter m_sector_rt; // Hop router over m_sector_net land links
     CityNetwork m_city_net; // Virtual hop links between cities for road routing
+    GenAiHelpers m_ai_help; // Pre-computed city / pass / fort intents and settle order
 
     // Adds on map, owned by tile owner via GameTileSimple::m_civ_owner
     FortAddVector m_adds_fort; 

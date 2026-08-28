@@ -506,6 +506,109 @@ bool UnitMovementMng::apply_step (GameState& s, UnitAddKey key, u16 dest_x, u16 
     return true;
 }
 
+static bool worker_dest_allows_domain (
+    const GameState& s,
+    UnitAddKey key,
+    u16 from_x,
+    u16 from_y,
+    u16 dest_x,
+    u16 dest_y)
+{
+    const u8 from_terr = s.m_map.get_terrain(from_x, from_y);
+    const u8 dest_terr = s.m_map.get_terrain(dest_x, dest_y);
+    if (is_mountain_terr(from_terr) && is_mountain_terr(dest_terr)) {
+        const u8 from_rd = s.m_map.get_road_typ(from_x, from_y);
+        const u8 dest_rd = s.m_map.get_road_typ(dest_x, dest_y);
+        if (!road_is_built(from_rd) && !road_is_built(dest_rd)) {
+            return false;
+        }
+    }
+    const u16 ut = unit_type_of(s, key);
+    if (ut == U16_KEY_NULL) {
+        return false;
+    }
+    if (unit_is_land(s, ut) && is_water_terr(dest_terr)) {
+        return false;
+    }
+    if (unit_is_land(s, ut) && is_inland_wtr_terr(dest_terr) && !unit_is_land_scout(s, ut)) {
+        return false;
+    }
+    if (unit_is_sea(s, ut) && !is_water_terr(dest_terr)) {
+        return false;
+    }
+    return true;
+}
+
+bool UnitMovementMng::can_step_worker (const GameState& s, UnitAddKey key, u16 dest_x, u16 dest_y, i16* out_cost) {
+    const UnitAddStruct* u = u_get(s, key);
+    if (u == nullptr || is_grp_tail(*u)) {
+        return false;
+    }
+    if (!in_bounds(s, dest_x, dest_y)) {
+        return false;
+    }
+    if (u->m_x == dest_x && u->m_y == dest_y) {
+        return false;
+    }
+    if (!worker_dest_allows_domain(s, key, u->m_x, u->m_y, dest_x, dest_y)) {
+        return false;
+    }
+    const i16 cost = tile_cost(s, u->m_x, u->m_y, dest_x, dest_y);
+    if (cost <= 0) {
+        return false;
+    }
+    if (grp_min_mvt_walk(s, key) <= 0) {
+        return false;
+    }
+    const bool grp_move = has_grp_followers(*u);
+    if (!dest_allows_entry(s, u->m_player_idx, dest_x, dest_y, grp_move)) {
+        return false;
+    }
+    if (out_cost != nullptr) {
+        *out_cost = cost;
+    }
+    return true;
+}
+
+bool UnitMovementMng::apply_step_worker (GameState& s, UnitAddKey key, u16 dest_x, u16 dest_y) {
+    i16 cost = 0;
+    if (!can_step_worker(s, key, dest_x, dest_y, &cost)) {
+        return false;
+    }
+    UnitAddStruct* u = u_get(s, key);
+    if (u == nullptr) {
+        return false;
+    }
+    const u16 ox = u->m_x;
+    const u16 oy = u->m_y;
+    const bool grp_move = has_grp_followers(*u);
+    if (grp_move) {
+        if (in_bounds(s, ox, oy)) {
+            if (s.m_map.get_unit_hd(ox, oy) == key.value()) {
+                s.m_map.set_unit_hd(ox, oy, u->m_next_unit_on_tile);
+            } else {
+                tile_stack_unlink(s, key);
+            }
+            u->m_next_unit_on_tile = U16_KEY_NULL;
+        }
+        if (!tile_stack_append(s, key, dest_x, dest_y)) {
+            if (in_bounds(s, ox, oy)) {
+                tile_stack_append(s, key, ox, oy);
+            }
+            return false;
+        }
+        grp_decr_mvt(s, key, cost);
+        return true;
+    }
+    tile_stack_unlink(s, key);
+    if (!tile_stack_append(s, key, dest_x, dest_y)) {
+        tile_stack_append(s, key, ox, oy);
+        return false;
+    }
+    grp_decr_mvt(s, key, cost);
+    return true;
+}
+
 void UnitMovementMng::bind_state (GameState* state) {
     s_state = state;
 }

@@ -15,8 +15,9 @@ class GameState;
 //
 //  Per-worker unit step. Tallies into m_last_turn_worker_count, applies one WorkerGuidance job on a
 //  home-city worked tile via WorkerBuildProgress (mp deficit freeze). Each worker keeps a work tile until
-//  it is fully upgraded; only then scan (resource overlay, pick_first, or pick_best when disk is done).
-//  When GameState::m_path_worker != 0, steps toward the job tile before apply; else applies remotely.
+//  it is fully upgraded; only then scan (resource, fort marker on own tile in work disk, pick_first/best).
+//  CityConnector roads next; idle pick_fort_wide then MTN_PASS dirt paths (own tiles only). Finished forts claim r=3.
+//  When GameState::m_path_worker != 0, WorkerPathing steps toward the job tile before apply; else applies remotely.
 //
 //================================================================================================================================
 

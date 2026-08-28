@@ -140,8 +140,13 @@ bool GameLoop::begin (GameState* state, cstr trace_path) {
         return false;
     }
     TRACE_SETUP((trace_path));
-    WhiteboardMng::terminate();
-    WhiteboardMng::init(w, h);
+    if (WhiteboardMng::width() != w || WhiteboardMng::height() != h) {
+        if (WhiteboardMng::chkout() != 0u) {
+            return false;
+        }
+        WhiteboardMng::terminate();
+        WhiteboardMng::init(w, h);
+    }
     if (!SettlerTurnHandler::begin(*state)) {
         WhiteboardMng::terminate();
         return false;
@@ -158,7 +163,9 @@ void GameLoop::end () {
         return;
     }
     SettlerTurnHandler::clear();
-    WhiteboardMng::terminate();
+    if (WhiteboardMng::chkout() == 0u) {
+        WhiteboardMng::terminate();
+    }
     m_state = nullptr;
 }
 

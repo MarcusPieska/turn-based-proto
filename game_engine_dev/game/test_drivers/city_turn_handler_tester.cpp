@@ -103,8 +103,6 @@ int main () {
     for (u16 p = 0; p < state.m_player_n; ++p) {
         state.m_player_states[p].m_target_settlements = 0;
     }
-    WhiteboardMng::terminate();
-    WhiteboardMng::init(state.m_map.width(), state.m_map.height());
     if (!SettlerTurnHandler::begin(state)) {
         std::printf("SettlerTurnHandler::begin failed\n");
         state.clear();

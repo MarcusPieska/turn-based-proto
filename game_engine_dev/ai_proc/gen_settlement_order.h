@@ -21,7 +21,7 @@ class GameArraySimple;
 //=> - GenSettlementOrder -
 //================================================================================================================================
 //
-//  Suggested settle order from m_planned_city. Land floods from starts; a site is appended when first covered.
+//  Suggested settle order from AI_TILE_OV_INTENT_CITY stamps. Land floods from starts; a site is appended when first covered.
 //  gen_excl: floods block, each site in at most one list. gen_all: one start, every reachable planned site.
 //  Packed x/y sit on two Whiteboard_2B slabs held until destruction. Sloppy pack: st = p * spot_n; if that
 //  overruns tile_n, the board is split as st = p * tile_n / pn. Writes stop at the next list's st.

@@ -3,7 +3,7 @@ set -e
 
 cd "$(dirname "$0")"
 
-INC="-I../.. -I.. -I../../map_loader -I../../simple_map_gen -I../../adv_map_gen -I../../city -I../../game -I../../misc -I../../data_io -I../../static_state -I../../dyn_state -I../../gen_bit_banks"
+INC="-I../.. -I.. -I../../map_loader -I../../simple_map_gen -I../../adv_map_gen -I../../city -I../../city/effector -I../../game -I../../misc -I../../data_io -I../../static_state -I../../dyn_state -I../../gen_bit_banks"
 CXXFLAGS="-std=c++17 -Wall -Wextra"
 
 g++ $CXXFLAGS $INC -c ../../misc/whiteboard_mng.cpp -o whiteboard_mng.o
@@ -14,6 +14,8 @@ g++ $CXXFLAGS $INC -c ../../map_loader/starting_point_generator.cpp -o starting_
 g++ $CXXFLAGS $INC -c ../../simple_map_gen/perlin_noise.cpp -o perlin_noise.o
 g++ $CXXFLAGS $INC -c ../../simple_map_gen/generator_constants.cpp -o generator_constants.o
 g++ $CXXFLAGS $INC -c ../../game/runtime_trace_dbg.cpp -o runtime_trace_dbg.o
+g++ $CXXFLAGS $INC -c ../../misc/assert_log.cpp -o assert_log.o
+g++ $CXXFLAGS $INC -c game_array_simple_link_stubs.cpp -o game_array_simple_link_stubs.o
 g++ $CXXFLAGS $INC -c ../../game/game_array_simple.cpp -o game_array_simple.o
 g++ $CXXFLAGS $INC -c ../../game/factory_game_array_simple.cpp -o factory_game_array_simple.o
 g++ $CXXFLAGS $INC -c ../../game/settle_rules.cpp -o settle_rules.o
@@ -34,6 +36,8 @@ g++ $CXXFLAGS -o gen_settlement_order_tester \
     perlin_noise.o \
     generator_constants.o \
     runtime_trace_dbg.o \
+    assert_log.o \
+    game_array_simple_link_stubs.o \
     game_array_simple.o \
     factory_game_array_simple.o \
     settle_rules.o \
@@ -50,8 +54,9 @@ g++ $CXXFLAGS -o gen_settlement_order_tester \
 RC=$?
 
 rm -f whiteboard_mng.o map_terrain_validate.o map_terrain_data.o map_loader.o starting_point_generator.o \
-    perlin_noise.o generator_constants.o runtime_trace_dbg.o game_array_simple.o \
-    factory_game_array_simple.o settle_rules.o city_border.o circular_tile_areas.o city_blocking_mask.o \
+    perlin_noise.o generator_constants.o runtime_trace_dbg.o assert_log.o \
+    game_array_simple_link_stubs.o game_array_simple.o factory_game_array_simple.o \
+    settle_rules.o city_border.o circular_tile_areas.o city_blocking_mask.o \
     sense_settling_pts_opt_stubs.o gen_settlement_targets.o gen_settlement_order.o \
     gen_settlement_order_tester.o gen_settlement_order_tester
 

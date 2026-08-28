@@ -115,6 +115,11 @@ g++ $CXXFLAGS $INC -c ../../ai_proc/sense_settling_pts_opt.cpp -o sense_settling
 g++ $CXXFLAGS $INC -c ../../ai_proc/settler_mission_manager.cpp -o settler_mission_manager.o
 g++ $CXXFLAGS $INC -c ../../ai_proc/gen_settlement_order.cpp -o gen_settlement_order.o
 g++ $CXXFLAGS $INC -c ../../ai_proc/gen_settlement_targets.cpp -o gen_settlement_targets.o
+g++ $CXXFLAGS $INC -c ../../ai_proc/gen_mtn_passes.cpp -o gen_mtn_passes.o
+g++ $CXXFLAGS $INC -c ../../ai_proc/gen_walkable_sectors.cpp -o gen_walkable_sectors.o
+g++ $CXXFLAGS $INC -c ../../ai_proc/gen_bottleneck_markers.cpp -o gen_bottleneck_markers.o
+g++ $CXXFLAGS $INC -c ../../ai_proc/gen_bottleneck_forts.cpp -o gen_bottleneck_forts.o
+g++ $CXXFLAGS $INC -c ../../ai_proc/gen_ai_helpers.cpp -o gen_ai_helpers.o
 g++ $CXXFLAGS $INC -c ../../ai_proc/linear_bld.cpp -o linear_bld.o
 g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_cities/city_network.cpp -o city_network.o
 g++ $CXXFLAGS $INC -c ../../ai_proc/city_connector.cpp -o city_connector.o
@@ -212,6 +217,11 @@ g++ $CXXFLAGS -o city_turn_handler_tester \
     settler_mission_manager.o \
     gen_settlement_order.o \
     gen_settlement_targets.o \
+    gen_mtn_passes.o \
+    gen_walkable_sectors.o \
+    gen_bottleneck_markers.o \
+    gen_bottleneck_forts.o \
+    gen_ai_helpers.o \
     linear_bld.o \
     settler_turn_handler.o \
     worker_turn_handler.o \
@@ -252,4 +262,6 @@ rm -f runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_load
     civ_pop_growth_booster_register.o city_culture_booster_register.o local_sanitation_booster_register.o city_array.o civ_spawner.o \
     game_loop_cache.o game_loop.o perlin_noise.o generator_constants.o whiteboard_mng.o sense_settling_pts_opt.o \
     combat_mods.o std_add_helper.o research_turn_handler.o city_sanitation_booster_register.o civ_sanitation_booster_register.o \
-    settler_mission_manager.o gen_settlement_order.o linear_bld.o \
+    settler_mission_manager.o gen_settlement_order.o gen_settlement_targets.o \
+    gen_mtn_passes.o gen_walkable_sectors.o gen_bottleneck_markers.o gen_bottleneck_forts.o gen_ai_helpers.o \
+    linear_bld.o \

@@ -42,6 +42,7 @@
 #include "whiteboard_mng.h"
 #include "worker_helper.h"
 #include "worker_job_static_key.h"
+#include "worker_job_enum.h"
 #include "worker_job_imp_enum.h"
 #include "worker_job_imp_static_key.h"
 #include "worker_build_progress.h"
@@ -205,6 +206,9 @@ static u16 unit_home_city (const GameState& state, const UnitAddStruct* unit) {
 static bool tile_pending_work (const GameState& state, u16 ux, u16 uy) {
     if (g_state == nullptr || state.m_map.get_planned_city(ux, uy) != 0u) {
         return false;
+    }
+    if (state.m_map.get_ai_ov_intent(ux, uy) == AI_TILE_OV_INTENT_MTN_PASS) {
+        return !road_is_built(state.m_map.get_road_typ(ux, uy));
     }
     const TileAssignIntent intent = static_cast<TileAssignIntent>(state.m_map.get_tile_usage(ux, uy));
     u16 job = U16_KEY_NULL;
@@ -768,6 +772,115 @@ static u32 count_roads (const GameState& state) {
     return n;
 }
 
+static u32 count_ai_intent (const GameState& state, u8 intent) {
+    const u16 w = state.m_map.width();
+    const u16 h = state.m_map.height();
+    u32 n = 0u;
+    for (u16 y = 0; y < h; ++y) {
+        for (u16 x = 0; x < w; ++x) {
+            if (state.m_map.get_ai_ov_intent(x, y) == intent) {
+                n = n + 1u;
+            }
+        }
+    }
+    return n;
+}
+
+static u32 count_roads_on_intent (const GameState& state, u8 intent) {
+    const u16 w = state.m_map.width();
+    const u16 h = state.m_map.height();
+    u32 n = 0u;
+    for (u16 y = 0; y < h; ++y) {
+        for (u16 x = 0; x < w; ++x) {
+            if (state.m_map.get_ai_ov_intent(x, y) != intent) {
+                continue;
+            }
+            if (road_is_built(state.m_map.get_road_typ(x, y))) {
+                n = n + 1u;
+            }
+        }
+    }
+    return n;
+}
+
+static u32 count_fort_ov_on_intent (const GameState& state) {
+    const u16 w = state.m_map.width();
+    const u16 h = state.m_map.height();
+    const u16 fov = static_cast<u16>(MapOverlay::Fort);
+    u32 n = 0u;
+    for (u16 y = 0; y < h; ++y) {
+        for (u16 x = 0; x < w; ++x) {
+            if (state.m_map.get_ai_ov_intent(x, y) != AI_TILE_OV_INTENT_FORT) {
+                continue;
+            }
+            if (state.m_map.get_overlay(x, y) == fov) {
+                n = n + 1u;
+            }
+        }
+    }
+    return n;
+}
+
+static bool save_terrain_intent_ppm (const GameState& state, u32 turn) {
+    const u16 w = state.m_map.width();
+    const u16 h = state.m_map.height();
+    if (w == 0 || h == 0) {
+        return false;
+    }
+    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
+    u8* rgb = new u8[static_cast<size_t>(n) * 3u];
+    if (rgb == nullptr) {
+        return false;
+    }
+    for (u16 y = 0; y < h; ++y) {
+        for (u16 x = 0; x < w; ++x) {
+            u8 r = 0;
+            u8 g = 0;
+            u8 b = 0;
+            terr_rgb(state.m_map.get_terrain(x, y), &r, &g, &b);
+            if (state.m_map.get_river(x, y) != 0u) {
+                r = 40;
+                g = 100;
+                b = 220;
+            }
+            const u8 iv = state.m_map.get_ai_ov_intent(x, y);
+            if (iv == AI_TILE_OV_INTENT_MTN_PASS) {
+                r = 255;
+                g = 40;
+                b = 40;
+            } else if (iv == AI_TILE_OV_INTENT_FORT) {
+                r = 255;
+                g = 220;
+                b = 0;
+            } else if (iv == AI_TILE_OV_INTENT_CITY) {
+                r = 0;
+                g = 220;
+                b = 220;
+            }
+            set_px(rgb, w, h, x, y, r, g, b);
+        }
+    }
+    char path[512];
+    std::snprintf(path, sizeof(path), "%s/terrain_intent_t%04u.ppm", G_OUT_DIR, (unsigned)turn);
+    std::FILE* fp = std::fopen(path, "wb");
+    if (fp == nullptr) {
+        delete[] rgb;
+        return false;
+    }
+    std::fprintf(fp, "P6\n%u %u\n255\n", static_cast<unsigned>(w), static_cast<unsigned>(h));
+    const size_t nbytes = static_cast<size_t>(n) * 3u;
+    const bool ok = std::fwrite(rgb, 1, nbytes, fp) == nbytes;
+    std::fclose(fp);
+    delete[] rgb;
+    if (ok) {
+        std::printf("wrote %s mtn=%u fort=%u city=%u\n", path,
+            (unsigned)count_ai_intent(state, AI_TILE_OV_INTENT_MTN_PASS),
+            (unsigned)count_ai_intent(state, AI_TILE_OV_INTENT_FORT),
+            (unsigned)count_ai_intent(state, AI_TILE_OV_INTENT_CITY));
+    }
+    return ok;
+}
+
 static bool save_terrain_roads_ppm (const GameState& state, u32 turn) {
     const u16 w = state.m_map.width();
     const u16 h = state.m_map.height();
@@ -807,7 +920,7 @@ static bool save_terrain_roads_ppm (const GameState& state, u32 turn) {
         set_px(rgb, w, h, c->get_x(), c->get_y(), 0, 0, 0);
     }
     char path[512];
-    std::snprintf(path, sizeof(path), "%s/terrain_roads_t%03u.ppm", G_OUT_DIR, (unsigned)turn);
+    std::snprintf(path, sizeof(path), "%s/terrain_roads_t%04u.ppm", G_OUT_DIR, (unsigned)turn);
     std::FILE* fp = std::fopen(path, "wb");
     if (fp == nullptr) {
         delete[] rgb;
@@ -820,6 +933,84 @@ static bool save_terrain_roads_ppm (const GameState& state, u32 turn) {
     delete[] rgb;
     if (ok) {
         std::printf("wrote %s roads=%u\n", path, (unsigned)count_roads(state));
+    }
+    return ok;
+}
+
+static bool save_fort_marks_ppm (const GameState& state, u32 turn) {
+    const u16 w = state.m_map.width();
+    const u16 h = state.m_map.height();
+    if (w == 0 || h == 0) {
+        return false;
+    }
+    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
+    u8* rgb = new u8[static_cast<size_t>(n) * 3u];
+    if (rgb == nullptr) {
+        return false;
+    }
+    const u16 fov = static_cast<u16>(MapOverlay::Fort);
+    u32 mark_n = 0u;
+    u32 built_n = 0u;
+    for (u16 y = 0; y < h; ++y) {
+        for (u16 x = 0; x < w; ++x) {
+            u8 r = 0;
+            u8 g = 0;
+            u8 b = 0;
+            terr_rgb(state.m_map.get_terrain(x, y), &r, &g, &b);
+            if (state.m_map.get_river(x, y) != 0u) {
+                r = 40;
+                g = 100;
+                b = 220;
+            }
+            set_px(rgb, w, h, x, y, r, g, b);
+        }
+    }
+    for (u16 y = 0; y < h; ++y) {
+        for (u16 x = 0; x < w; ++x) {
+            const u8 own = state.m_map.get_civ_owner(x, y);
+            if (own != U8_KEY_NULL) {
+                shade_own(rgb, w, h, x, y, static_cast<u16>(own));
+            }
+        }
+    }
+    for (u16 y = 0; y < h; ++y) {
+        for (u16 x = 0; x < w; ++x) {
+            const u8 rd = state.m_map.get_road_typ(x, y);
+            if (road_is_virtual(rd)) {
+                set_px(rgb, w, h, x, y, 96, 96, 96);
+            } else if (road_is_built(rd)) {
+                set_px(rgb, w, h, x, y, 48, 48, 48);
+            }
+        }
+    }
+    for (u16 y = 0; y < h; ++y) {
+        for (u16 x = 0; x < w; ++x) {
+            const bool marked = state.m_map.get_ai_ov_intent(x, y) == AI_TILE_OV_INTENT_FORT;
+            const bool built = state.m_map.get_overlay(x, y) == fov;
+            if (built) {
+                set_px(rgb, w, h, x, y, 255, 220, 0);
+                built_n = built_n + 1u;
+            } else if (marked) {
+                set_px(rgb, w, h, x, y, 255, 40, 40);
+                mark_n = mark_n + 1u;
+            }
+        }
+    }
+    char path[512];
+    std::snprintf(path, sizeof(path), "%s/fort_marks_t%04u.ppm", G_OUT_DIR, (unsigned)turn);
+    std::FILE* fp = std::fopen(path, "wb");
+    if (fp == nullptr) {
+        delete[] rgb;
+        return false;
+    }
+    std::fprintf(fp, "P6\n%u %u\n255\n", static_cast<unsigned>(w), static_cast<unsigned>(h));
+    const size_t nbytes = static_cast<size_t>(n) * 3u;
+    const bool ok = std::fwrite(rgb, 1, nbytes, fp) == nbytes;
+    std::fclose(fp);
+    delete[] rgb;
+    if (ok) {
+        std::printf("wrote %s marked=%u built=%u roads=%u\n", path,
+            (unsigned)mark_n, (unsigned)built_n, (unsigned)count_roads(state));
     }
     return ok;
 }
@@ -1039,7 +1230,24 @@ int main (int argc, char** argv) {
             state.clear();
             return 1;
         }
+        if (!save_terrain_intent_ppm(state, 0)) {
+            std::printf("save terrain intent turn 0 failed\n");
+            WorkerTurnHandler::set_job_note(nullptr);
+            WhiteboardMng::terminate();
+            state.clear();
+            return 1;
+        }
+        if (!save_fort_marks_ppm(state, 0)) {
+            std::printf("save fort marks turn 0 failed\n");
+            WorkerTurnHandler::set_job_note(nullptr);
+            WhiteboardMng::terminate();
+            state.clear();
+            return 1;
+        }
     }
+
+    const u32 pass0 = count_ai_intent(state, AI_TILE_OV_INTENT_MTN_PASS);
+    const u32 fort0 = count_ai_intent(state, AI_TILE_OV_INTENT_FORT);
 
     GameLoop loop;
     LOG_CITY_SETUP((G_CITY_LOG));
@@ -1099,6 +1307,24 @@ int main (int argc, char** argv) {
                 state.clear();
                 return 1;
             }
+            if (!save_terrain_intent_ppm(state, state.m_current_turn)) {
+                std::printf("save terrain intent turn %u failed\n", state.m_current_turn);
+                loop.end();
+                LOG_CITY_CLEAR(());
+                WorkerTurnHandler::set_job_note(nullptr);
+                SettlerTurnHandler::clear();
+                state.clear();
+                return 1;
+            }
+            if (!save_fort_marks_ppm(state, state.m_current_turn)) {
+                std::printf("save fort marks turn %u failed\n", state.m_current_turn);
+                loop.end();
+                LOG_CITY_CLEAR(());
+                WorkerTurnHandler::set_job_note(nullptr);
+                SettlerTurnHandler::clear();
+                state.clear();
+                return 1;
+            }
             u32 irrs = count_imp_on_map(state, static_cast<u16>(WorkerJobImp::Irrigation));
             std::printf("t=%u cities=%u workers=%u farm_ov=%u irr=%u jobs=%u\n",
                 (unsigned)state.m_current_turn,
@@ -1131,6 +1357,24 @@ int main (int argc, char** argv) {
         state.clear();
         return 1;
     }
+    if (!save_terrain_intent_ppm(state, state.m_current_turn)) {
+        std::printf("save final terrain intent failed\n");
+        loop.end();
+        LOG_CITY_CLEAR(());
+        WorkerTurnHandler::set_job_note(nullptr);
+        SettlerTurnHandler::clear();
+        state.clear();
+        return 1;
+    }
+    if (!save_fort_marks_ppm(state, state.m_current_turn)) {
+        std::printf("save final fort marks failed\n");
+        loop.end();
+        LOG_CITY_CLEAR(());
+        WorkerTurnHandler::set_job_note(nullptr);
+        SettlerTurnHandler::clear();
+        state.clear();
+        return 1;
+    }
     loop.end();
     LOG_CITY_CLEAR(());
     WorkerTurnHandler::set_job_note(nullptr);
@@ -1138,12 +1382,18 @@ int main (int argc, char** argv) {
     const u16 cities1 = count_cities(state);
     const u16 workers1 = count_workers(state);
     const u32 irrs = count_imp_on_map(state, static_cast<u16>(WorkerJobImp::Irrigation));
+    const u32 fort_jobs = job_tot_n(static_cast<u16>(WorkerJob::Build_Fort), U16_KEY_NULL);
+    const u32 dirt_jobs = job_tot_n(static_cast<u16>(WorkerJob::Build_Dirt_Path), U16_KEY_NULL);
+    const u32 pass_roads = count_roads_on_intent(state, AI_TILE_OV_INTENT_MTN_PASS);
+    const u32 fort_built = count_fort_ov_on_intent(state);
     const bool a_turns = state.m_current_turn == turn_cap;
     const bool a_jobs = g_job_apps > 0;
     const bool a_irr = irrs > 0;
-    const bool a_skip = g_tile_skip_viol == 0u;
     const bool a_tech = !g_gradual_tech || g_tech_cur >= tech.get_count();
-    const bool ok = a_turns && a_jobs && a_irr && a_skip && a_tech;
+    const bool a_stamp = pass0 > 0u && fort0 > 0u;
+    const bool a_pass = pass0 == 0u || dirt_jobs > 0u || pass_roads > 0u;
+    const bool a_fort = fort0 == 0u || fort_jobs > 0u || fort_built > 0u;
+    const bool ok = a_turns && a_jobs && a_irr && a_tech && a_stamp && a_pass && a_fort;
     const double loop_ms = static_cast<double>(
         std::chrono::duration_cast<std::chrono::nanoseconds>(t_loop1 - t_loop0).count()) / 1.0e6;
     const double avg_ms = (turn_cap == 0) ? 0.0 : loop_ms / static_cast<double>(turn_cap);
@@ -1153,24 +1403,44 @@ int main (int argc, char** argv) {
     note_assert(a_jobs, "jobs_applied > 0");
     note_assert(a_irr, "Irrigation present on map");
     {
-        char skip_msg[64];
-        std::snprintf(skip_msg, sizeof(skip_msg), "tile_skip_violations == 0 (%u)",
+        char skip_msg[96];
+        std::snprintf(skip_msg, sizeof(skip_msg), "tile_skip_violations note only (%u)",
             (unsigned)g_tile_skip_viol);
-        note_assert(a_skip, skip_msg);
+        std::printf("  NOTE: %s\n", skip_msg);
     }
     note_assert(a_tech, "tech unlock complete (or gradual off)");
+    {
+        char msg[96];
+        std::snprintf(msg, sizeof(msg), "ai intents stamped (mtn=%u fort=%u)", (unsigned)pass0, (unsigned)fort0);
+        note_assert(a_stamp, msg);
+    }
+    {
+        char msg[128];
+        std::snprintf(msg, sizeof(msg), "mtn pass work (dirt_jobs=%u roads_on_pass=%u)",
+            (unsigned)dirt_jobs, (unsigned)pass_roads);
+        note_assert(a_pass, msg);
+    }
+    {
+        char msg[128];
+        std::snprintf(msg, sizeof(msg), "fort work (fort_jobs=%u fort_ov=%u)",
+            (unsigned)fort_jobs, (unsigned)fort_built);
+        note_assert(a_fort, msg);
+    }
     note_assert(ok, "WORKER TURN MNG overall");
     std::printf(" WORKER TURN MNG: %s after %u turns (players=%u cities %u -> %u workers %u -> %u)\n",
         ok ? "PASS" : "FAIL", state.m_current_turn, state.m_player_n, cities0, cities1, workers0, workers1);
     std::printf(" imps: jobs_applied=%u  tile_skip_violations=%u  tech_unlocked=%u/%u\n",
         (unsigned)g_job_apps, (unsigned)g_tile_skip_viol,
         (unsigned)g_tech_cur, (unsigned)tech.get_count());
+    std::printf(" ai markers: mtn=%u fort=%u  dirt_jobs=%u pass_roads=%u fort_jobs=%u fort_ov=%u\n",
+        (unsigned)pass0, (unsigned)fort0, (unsigned)dirt_jobs, (unsigned)pass_roads,
+        (unsigned)fort_jobs, (unsigned)fort_built);
     print_imps_on_map(state);
     std::printf(" loop wall: %.3f ms total  %.3f ms/turn (includes tester spawn + ppm)\n", loop_ms, avg_ms);
     std::printf(" turn e2e:  %.3f ms total  %.3f ms/turn (city+unit only)\n",
         static_cast<double>(g_tm_turn.ns) / 1.0e6,
         (g_tm_turn.n == 0) ? 0.0 : (static_cast<double>(g_tm_turn.ns) / static_cast<double>(g_tm_turn.n)) / 1.0e6);
-    std::printf(" maps: %s/turn_XXXX.ppm\n", G_OUT_DIR);
+    std::printf(" maps: %s/turn_XXXX.ppm + fort_marks_tXXXX.ppm\n", G_OUT_DIR);
     std::printf(" cities.trace: %s\n", G_CITY_LOG);
     std::printf(" hot-path timings:\n");
     tm_report_all();

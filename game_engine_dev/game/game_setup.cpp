@@ -31,6 +31,8 @@
 #include "sector_network_router.h"
 #include "unit_type_static_key.h"
 #include "profile_time_opt.h"
+#include "gen_ai_helpers.h"
+#include "whiteboard_mng.h"
 
 //================================================================================================================================
 //=> - Static runtime data -
@@ -159,6 +161,35 @@ static bool begin_sector_pathing (GameState* state) {
     const bool ok_rt = ok_net && state->m_sector_rt.begin(state->m_sector_net);
     delete[] terr;
     return ok_rt;
+}
+
+static bool ensure_wb (u16 w, u16 h) {
+    if (w == 0 || h == 0) {
+        return false;
+    }
+    if (WhiteboardMng::width() == 0 && WhiteboardMng::height() == 0) {
+        WhiteboardMng::init(w, h);
+        return WhiteboardMng::width() == w && WhiteboardMng::height() == h;
+    }
+    if (WhiteboardMng::width() == w && WhiteboardMng::height() == h) {
+        return true;
+    }
+    if (WhiteboardMng::chkout() != 0u) {
+        return false;
+    }
+    WhiteboardMng::terminate();
+    WhiteboardMng::init(w, h);
+    return WhiteboardMng::width() == w && WhiteboardMng::height() == h;
+}
+
+static bool run_ai_helpers (GameState* state, const SpgPickCoords& starts) {
+    if (state == nullptr) {
+        return false;
+    }
+    if (!state->m_ai_help.begin(state->m_map)) {
+        return false;
+    }
+    return state->m_ai_help.build(starts.pts, starts.n, nullptr);
 }
 
 //================================================================================================================================
@@ -325,6 +356,11 @@ bool GameSetup::finish_with_starts (GameState* state, const SpgPickCoords& start
     if (starts.n != static_cast<u32>(player_n)) {
         return false;
     }
+    const u16 w = state->m_map.width();
+    const u16 h = state->m_map.height();
+    if (!ensure_wb(w, h)) {
+        return false;
+    }
     if (!state->m_cities.bind_statics(*g_rt_statics)) {
         return false;
     }
@@ -377,6 +413,10 @@ bool GameSetup::finish_with_starts (GameState* state, const SpgPickCoords& start
         }
     }
     if (!begin_sector_pathing(state)) {
+        state->clear();
+        return false;
+    }
+    if (!run_ai_helpers(state, starts)) {
         state->clear();
         return false;
     }

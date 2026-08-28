@@ -13,9 +13,11 @@ class GameState;
 //=> - SettlerTurnHandler -
 //================================================================================================================================
 //
-//  AI settler lifecycle for one match. m_target_settlements is the desired settler count (0 = off). refresh_targets
-//  runs once: GenSettlementTargets, GenSettlementOrder::gen_excl, punch; then target SETTLER_MISSION_SLOTS if sites else 2.
-//  GameLoop zeros unit counts after cities then calls handle per settler; handle tallies into m_last_turn_settler_count.
+//  AI settler lifecycle for one match; consumes GenAiHelpers settle order (does not regenerate city plan).
+//  m_target_settlements is desired settler count (0 = off); refresh_targets runs once: punch, then target
+//  SETTLER_MISSION_SLOTS if sites else 2 (skips seats still at 0 — leave that alone for now). Punch / city-block
+//  restamp stays here for now; revisit moving it with GenAiHelpers. GameLoop zeros unit counts after cities then
+//  calls handle per settler; handle tallies into m_last_turn_settler_count.
 //
 //================================================================================================================================
 

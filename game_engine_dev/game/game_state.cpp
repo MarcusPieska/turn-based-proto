@@ -58,6 +58,7 @@ void GameState::clear () {
     new (&m_sector_net) SectorNetwork();
     m_city_net.~CityNetwork();
     new (&m_city_net) CityNetwork();
+    m_ai_help.clr();
 
     // Some static helper classes need access to the game state to be able to do anything useful.
     UnitMovementMng::bind_state(nullptr);

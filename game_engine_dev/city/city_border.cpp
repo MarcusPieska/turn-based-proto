@@ -70,6 +70,28 @@ void CityBorder::claim_expand (u16 cx, u16 cy, u16 old_culture, u16 new_culture,
     }
 }
 
+void CityBorder::claim_disc (u16 cx, u16 cy, u16 radius, u8 owner) {
+    GAME_EXPECT(m_map != nullptr, "CityBorder map");
+    const CircArea area = get(radius);
+    for (u16 i = 0; i < area.m_lim; ++i) {
+        const i32 x = static_cast<i32>(cx) + static_cast<i32>(area.m_brd[i][0]);
+        const i32 y = static_cast<i32>(cy) + static_cast<i32>(area.m_brd[i][1]);
+        if (x < 0 || y < 0) {
+            continue;
+        }
+        const u16 ux = static_cast<u16>(x);
+        const u16 uy = static_cast<u16>(y);
+        if (ux >= m_map->width() || uy >= m_map->height()) {
+            continue;
+        }
+        const u8 cur = m_map->get_civ_owner(ux, uy);
+        if (cur != U8_KEY_NULL && cur != owner) {
+            continue;
+        }
+        m_map->set_civ_owner(ux, uy, owner);
+    }
+}
+
 //================================================================================================================================
 //=> - End of file -
 //================================================================================================================================

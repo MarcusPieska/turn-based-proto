@@ -47,8 +47,8 @@ void note_result (bool cond, cstr msg) {
             std::printf("*** TEST PASSED: %s\n", msg);
         }
     } else {
+        total_test_fails++;
         if (print_level > 0) {
-            total_test_fails++;
             std::printf("*** TEST FAILED: %s\n", msg);
         }
     }
@@ -252,15 +252,20 @@ void test_setup_and_game_loop () {
     const u16 players = 4;
     note_result(setup.setup_new_game(&state, req, players), "setup before loop");
     setup.release_map_gen();
+    state.m_turn_limit = 3;
     GameLoop loop;
-    note_result(loop.begin(&state, G_TRACE_PATH), "game loop begin");
-    while (state.m_current_turn < state.m_turn_limit) {
-        if (!loop.step()) {
-            break;
+    const bool began = loop.begin(&state, G_TRACE_PATH);
+    note_result(began, "game loop begin");
+    note_result(state.m_ai_help.ok(), "ai helpers after setup");
+    if (began) {
+        while (state.m_current_turn < state.m_turn_limit) {
+            if (!loop.step()) {
+                break;
+            }
         }
+        note_result(state.m_current_turn == state.m_turn_limit, "loop reached turn limit");
+        note_result(count_trace_prefix(G_TRACE_PATH, "NEW_TURN:") == state.m_turn_limit, "trace new turn count");
     }
-    note_result(state.m_current_turn == state.m_turn_limit, "loop reached turn limit");
-    note_result(count_trace_prefix(G_TRACE_PATH, "NEW_TURN:") == state.m_turn_limit, "trace new turn count");
     state.clear();
     summarize_test_results();
 }

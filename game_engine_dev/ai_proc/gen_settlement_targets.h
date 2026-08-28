@@ -26,7 +26,7 @@ struct GenSettlementTargetsRslt {
 //================================================================================================================================
 //
 //  One-shot settle-site planner: seed starts, walk rivers from those seeds, then pack remaining land.
-//  Spacing uses CityBlockingMask stamps into m_settler_blocked; sites are marked on m_planned_city.
+//  Spacing uses CityBlockingMask stamps into m_settler_blocked; sites use AI_TILE_OV_INTENT_CITY.
 //
 //================================================================================================================================
 

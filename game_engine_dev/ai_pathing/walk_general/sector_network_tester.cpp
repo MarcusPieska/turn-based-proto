@@ -15,10 +15,10 @@
 //=> - Constants -
 //================================================================================================================================
 
-static const char* G_IN_TERR = "/home/w/Projects/simple-map-gen/p1-seed-42/terrain.ppm";
-static const char* G_IN_CLIM = "/home/w/Projects/simple-map-gen/p1-seed-42/climate.ppm";
-static const char* G_IN_RIV = "/home/w/Projects/simple-map-gen/p1-seed-42/rivers.ppm";
-static const char* G_IN_OV = "/home/w/Projects/simple-map-gen/p1-seed-42/overlay.ppm";
+static const char* G_IN_TERR = "/home/w/Projects/simple-map-gen/p1-seed-43/terrain.ppm";
+static const char* G_IN_CLIM = "/home/w/Projects/simple-map-gen/p1-seed-43/climate.ppm";
+static const char* G_IN_RIV = "/home/w/Projects/simple-map-gen/p1-seed-43/rivers.ppm";
+static const char* G_IN_OV = "/home/w/Projects/simple-map-gen/p1-seed-43/overlay.ppm";
 static const char* G_OUT_DIR = "/home/w/Projects/simple-map-gen/sector-network-test";
 static const char* G_OUT_PPM = "/home/w/Projects/simple-map-gen/sector-network-test/02_connectivity.ppm";
 

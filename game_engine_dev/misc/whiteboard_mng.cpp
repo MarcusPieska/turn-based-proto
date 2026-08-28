@@ -61,6 +61,9 @@ void WhiteboardMng::init (u16 w, u16 h, u16 slab_lim) {
         wb_fatal("init slab_lim out of range");
     }
     if (m_inited) {
+        if (m_w == w && m_h == h) {
+            return;
+        }
         wb_fatal("init called twice");
     }
     m_w = w;

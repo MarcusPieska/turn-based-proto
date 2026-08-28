@@ -50,6 +50,9 @@ public:
     static bool can_step (const GameState& s, UnitAddKey key, u16 dest_x, u16 dest_y, i16* out_cost);
     static bool apply_step (GameState& s, UnitAddKey key, u16 dest_x, u16 dest_y);
 
+    static bool can_step_worker (const GameState& s, UnitAddKey key, u16 dest_x, u16 dest_y, i16* out_cost);
+    static bool apply_step_worker (GameState& s, UnitAddKey key, u16 dest_x, u16 dest_y);
+
     static void bind_state (GameState* state);
     static bool finish_unit_spawn (UnitAddKey key, u16 x, u16 y, u16 player_idx);
 

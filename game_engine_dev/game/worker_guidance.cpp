@@ -114,6 +114,29 @@ static bool clear_work_food (const RuntimeStatics* st, GameArraySimple& map, u16
     return true;
 }
 
+static bool fort_next_work (const RuntimeStatics* st, GameArraySimple& map, u16 x, u16 y, u16* job, u16* imp) {
+    (void)st;
+    if (map.get_ai_ov_intent(x, y) != AI_TILE_OV_INTENT_FORT) {
+        return false;
+    }
+    if (map.get_overlay(x, y) == static_cast<u16>(MapOverlay::Fort)) {
+        return false;
+    }
+    const u16 fj = static_cast<u16>(WorkerJob::Build_Fort);
+    if (!job_ok(fj, x, y)) {
+        return false;
+    }
+    *job = fj;
+    *imp = U16_KEY_NULL;
+    return true;
+}
+
+static bool fort_has_work (const RuntimeStatics* st, GameArraySimple& map, u16 x, u16 y) {
+    u16 job = U16_KEY_NULL;
+    u16 imp = U16_KEY_NULL;
+    return fort_next_work(st, map, x, y, &job, &imp);
+}
+
 static bool res_has_work (const RuntimeStatics* st, GameArraySimple& map, u16 x, u16 y) {
     const u16 rj = res_job_idx(st, map.get_res(x, y));
     if (rj == U16_KEY_NULL) {
@@ -256,6 +279,11 @@ static bool apply_overlay_job (GameArraySimple& map, u16 x, u16 y, u16 job_idx) 
                 return false;
             }
             return map.set_add_idx(x, y, 0u);
+        case WorkerJob::Build_Dirt_Path:
+            if (road_is_built(map.get_road_typ(x, y))) {
+                return false;
+            }
+            return map.set_road_typ(x, y, ROAD_PATH);
         default:
             return false;
     }
@@ -302,6 +330,9 @@ bool WorkerGuidance::has_pending_work (u16 x, u16 y, TileAssignIntent intent) {
     if (res_has_work(m_st, *m_map, x, y)) {
         return true;
     }
+    if (fort_has_work(m_st, *m_map, x, y)) {
+        return true;
+    }
     u16 job = U16_KEY_NULL;
     if (intent == TILE_ASSIGN_FOOD && clear_work_food(m_st, *m_map, x, y, &job)) {
         return true;
@@ -315,6 +346,9 @@ bool WorkerGuidance::next_work (u16 x, u16 y, TileAssignIntent intent, u16* job,
     *job = U16_KEY_NULL;
     *imp = U16_KEY_NULL;
     if (res_next_work(m_st, *m_map, x, y, job, imp)) {
+        return true;
+    }
+    if (fort_next_work(m_st, *m_map, x, y, job, imp)) {
         return true;
     }
     if (intent == TILE_ASSIGN_FOOD && clear_work_food(m_st, *m_map, x, y, job)) {

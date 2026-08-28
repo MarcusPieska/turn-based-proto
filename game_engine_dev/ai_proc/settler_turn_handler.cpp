@@ -9,8 +9,8 @@
 #include "city_blocking_mask.h"
 #include "city_border.h"
 #include "game_state.h"
+#include "gen_ai_helpers.h"
 #include "gen_settlement_order.h"
-#include "gen_settlement_targets.h"
 #include "settler_mission_manager.h"
 #include "runtime_statics.h"
 #include "unit_add_vector_key.h"
@@ -46,7 +46,6 @@ static StmSlot* g_slot = nullptr;
 static SettlerMissionManager* g_mgrs = nullptr;
 static GenSettlementOrder* g_ord = nullptr;
 static bool g_ord_ok = false;
-static SpgCoordPair g_starts[200];
 
 //================================================================================================================================
 //=> - Helpers -
@@ -105,32 +104,6 @@ static void stamp_all_cities (GameState& state) {
     }
 }
 
-static void clr_block (GameArraySimple& map) {
-    const u16 w = map.width();
-    const u16 h = map.height();
-    for (u16 y = 0; y < h; ++y) {
-        for (u16 x = 0; x < w; ++x) {
-            map.set_settler_blocked(x, y, 0u);
-        }
-    }
-}
-
-static bool player_city (GameState& state, u16 player, u16* x, u16* y) {
-    GAME_EXPECT(x != nullptr, "player_city got nullptr x");
-    GAME_EXPECT(y != nullptr, "player_city got nullptr y");
-    const u16 cn = state.m_cities.get_city_count();
-    for (u16 i = 0; i < cn; ++i) {
-        City* c = state.m_cities.get_city(i);
-        if (c == nullptr || c->get_owner() != player) {
-            continue;
-        }
-        *x = c->get_x();
-        *y = c->get_y();
-        return true;
-    }
-    return false;
-}
-
 static bool found_city (GameState& state, u16 x, u16 y, u16 player) {
     GAME_EXPECT(state.m_map.get_add_typ(x, y) != BUILD_ADD_CITY, "found_city tile already city");
     const u16 city_idx = state.m_cities.get_next_new_city_idx();
@@ -142,22 +115,6 @@ static bool found_city (GameState& state, u16 x, u16 y, u16 player) {
     CityBorder::claim_expand(x, y, 0, k_claim_cult, static_cast<u8>(player));
     stamp_block(state, x, y);
     return true;
-}
-
-static void fill_starts (GameState& state) {
-    for (u16 p = 0; p < g_player_n; ++p) {
-        PlayerState& ps = state.m_player_states[p];
-        g_starts[p].x = 0;
-        g_starts[p].y = 0;
-        if (ps.m_target_settlements == 0) {
-            continue;
-        }
-        u16 sx = 0;
-        u16 sy = 0;
-        GAME_EXPECT(player_city(state, p, &sx, &sy), "SettlerTurnHandler fill_starts settling player missing city");
-        g_starts[p].x = sx;
-        g_starts[p].y = sy;
-    }
 }
 
 //================================================================================================================================
@@ -193,8 +150,9 @@ bool SettlerTurnHandler::begin (GameState& state) {
     g_w = w;
     g_h = h;
     g_player_n = state.m_player_n;
-    g_ord = new GenSettlementOrder();
-    GAME_EXPECT(g_ord != nullptr, "SettlerTurnHandler begin order alloc failed");
+    GAME_EXPECT(state.m_ai_help.ok(), "SettlerTurnHandler begin missing GenAiHelpers");
+    g_ord = &state.m_ai_help.order();
+    GAME_EXPECT(g_ord != nullptr && g_ord->ok(), "SettlerTurnHandler begin order checkout failed");
     for (u16 p = 0; p < g_player_n; ++p) {
         if (!g_mgrs[p].begin(state.m_sector_net, state.m_sector_rt, g_terr, w, h)) {
             clear();
@@ -216,7 +174,6 @@ void SettlerTurnHandler::clear () {
     delete[] g_terr;
     delete[] g_slot;
     delete[] g_mgrs;
-    delete g_ord;
     g_terr = nullptr;
     g_slot = nullptr;
     g_mgrs = nullptr;
@@ -237,32 +194,7 @@ void SettlerTurnHandler::refresh_targets (GameState& state) {
     if (g_ord_ok) {
         return;
     }
-    u16 settle_pn = 0;
-    for (u16 p = 0; p < g_player_n; ++p) {
-        PlayerState& ps = state.m_player_states[p];
-        if (ps.m_target_settlements == 0) {
-            continue;
-        }
-        settle_pn = static_cast<u16>(settle_pn + 1u);
-    }
-    if (settle_pn == 0) {
-        return;
-    }
-    fill_starts(state);
-    GenSettlementTargetsRslt rslt = {};
-    GAME_EXPECT(GenSettlementTargets::generate(state.m_map, g_starts, g_player_n, &rslt), "SettlerTurnHandler refresh_targets generate failed");
-    clr_block(state.m_map);
-    stamp_all_cities(state);
-    const u16 cn = state.m_cities.get_city_count();
-    for (u16 i = 0; i < cn; ++i) {
-        City* c = state.m_cities.get_city(i);
-        if (c == nullptr || c->get_owner() == U16_KEY_NULL) {
-            continue;
-        }
-        state.m_map.set_planned_city(c->get_x(), c->get_y(), 0u);
-    }
-    g_ord_ok = g_ord->gen_excl(state.m_map, g_starts, g_player_n);
-    GAME_EXPECT(g_ord_ok, "SettlerTurnHandler refresh_targets gen_excl failed");
+    GAME_EXPECT(g_ord != nullptr && g_ord->ok(), "SettlerTurnHandler refresh_targets missing order");
     SettlerMissionManager::punch(state.m_map);
     for (u16 p = 0; p < g_player_n; ++p) {
         PlayerState& ps = state.m_player_states[p];
@@ -271,6 +203,7 @@ void SettlerTurnHandler::refresh_targets (GameState& state) {
         }
         ps.m_target_settlements = (g_ord->n(p) > 0u) ? k_tgt_sites : 2u;
     }
+    g_ord_ok = true;
 }
 
 bool SettlerTurnHandler::need_settler (GameState& state, u16 player) {

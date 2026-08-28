@@ -141,7 +141,12 @@ u8 GameArraySimple::get_settler_blocked (u16 x, u16 y) const {
 
 u8 GameArraySimple::get_planned_city (u16 x, u16 y) const {
     CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
-    return static_cast<u8>(m_tiles[tidx(x, y)].m_planned_city);
+    return m_tiles[tidx(x, y)].m_ai_ov_intent == AI_TILE_OV_INTENT_CITY ? 1u : 0u;
+}
+
+u8 GameArraySimple::get_ai_ov_intent (u16 x, u16 y) const {
+    CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
+    return static_cast<u8>(m_tiles[tidx(x, y)].m_ai_ov_intent);
 }
 
 u8 GameArraySimple::get_tile_usage (u16 x, u16 y) const {
@@ -246,7 +251,20 @@ bool GameArraySimple::set_settler_blocked (u16 x, u16 y, u8 blocked) {
 
 bool GameArraySimple::set_planned_city (u16 x, u16 y, u8 planned) {
     CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
-    m_tiles[tidx(x, y)].m_planned_city = planned != 0 ? 1u : 0u;
+    GameTileSimple* t = &m_tiles[tidx(x, y)];
+    if (planned != 0) {
+        t->m_ai_ov_intent = AI_TILE_OV_INTENT_CITY;
+        return true;
+    }
+    if (t->m_ai_ov_intent == AI_TILE_OV_INTENT_CITY) {
+        t->m_ai_ov_intent = AI_TILE_OV_INTENT_NONE;
+    }
+    return true;
+}
+
+bool GameArraySimple::set_ai_ov_intent (u16 x, u16 y, u8 intent) {
+    CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
+    m_tiles[tidx(x, y)].m_ai_ov_intent = static_cast<u64>(intent & 0x1Fu);
     return true;
 }
 
