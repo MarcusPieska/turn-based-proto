@@ -48,6 +48,8 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     
     [RUNTIME_STATICS_CPP_LOAD_MAPS_TAG]
 
+    [RUNTIME_STATICS_CPP_LOAD_TABLES_TAG]
+
     [RUNTIME_STATICS_CPP_LOAD_DYN_REGS_TAG]
     GameConfigSettingsParser psr(p.get_name_to_idx_cbs());
     if (!psr.load_file(p.get_path_to_settings(), &m_config)) {

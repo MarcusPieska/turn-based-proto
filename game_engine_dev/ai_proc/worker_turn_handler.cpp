@@ -374,68 +374,6 @@ static bool pick_fort (
     return false;
 }
 
-static bool pick_fort_wide (
-    GameState& state,
-    u16 city_idx,
-    u16 cx,
-    u16 cy,
-    u16* ox,
-    u16* oy,
-    TileAssignIntent* ointent,
-    u16* ojob,
-    u16* oimp)
-{
-    static const i32 k_r = 40;
-    const u16 w = state.m_map.width();
-    const u16 h = state.m_map.height();
-    u16 best_x = U16_KEY_NULL;
-    u16 best_y = U16_KEY_NULL;
-    u32 best_d = 0xffffffffu;
-    TileAssignIntent best_intent = TILE_ASSIGN_FOOD;
-    u16 best_job = U16_KEY_NULL;
-    u16 best_imp = U16_KEY_NULL;
-    for (i32 dy = -k_r; dy <= k_r; ++dy) {
-        for (i32 dx = -k_r; dx <= k_r; ++dx) {
-            const i32 x = static_cast<i32>(cx) + dx;
-            const i32 y = static_cast<i32>(cy) + dy;
-            if (x < 0 || y < 0 || x >= static_cast<i32>(w) || y >= static_cast<i32>(h)) {
-                continue;
-            }
-            const u16 ux = static_cast<u16>(x);
-            const u16 uy = static_cast<u16>(y);
-            if (state.m_map.get_ai_ov_intent(ux, uy) != AI_TILE_OV_INTENT_FORT) {
-                continue;
-            }
-            TileAssignIntent intent = TILE_ASSIGN_FOOD;
-            u16 job = U16_KEY_NULL;
-            u16 imp = U16_KEY_NULL;
-            if (!fort_tile_cand(state, city_idx, ux, uy, &intent, &job, &imp)) {
-                continue;
-            }
-            const u32 adx = static_cast<u32>(dx < 0 ? -dx : dx);
-            const u32 ady = static_cast<u32>(dy < 0 ? -dy : dy);
-            const u32 d = adx > ady ? adx : ady;
-            if (d < best_d) {
-                best_d = d;
-                best_x = ux;
-                best_y = uy;
-                best_intent = intent;
-                best_job = job;
-                best_imp = imp;
-            }
-        }
-    }
-    if (best_x == U16_KEY_NULL) {
-        return false;
-    }
-    *ox = best_x;
-    *oy = best_y;
-    *ointent = best_intent;
-    *ojob = best_job;
-    *oimp = best_imp;
-    return true;
-}
-
 static bool mtn_pass_needs_road (const GameState& state, u16 city_idx, u16 x, u16 y) {
     if (!fort_territory_ok(state, city_idx, x, y)) {
         return false;
@@ -468,67 +406,56 @@ static bool try_fort_after_dirt (GameState& state, u16 city_idx, u16 x, u16 y) {
     return true;
 }
 
-static bool pick_mtn_pass (
+static bool pick_city_jobs (
     GameState& state,
     u16 city_idx,
     u16 cx,
     u16 cy,
     u16* ox,
-    u16* oy)
+    u16* oy,
+    TileAssignIntent* ointent,
+    u16* ojob,
+    u16* oimp)
 {
-    const CircArea area = CityTileManager::work_area();
-    for (u16 i = 0; i < area.m_lim; ++i) {
-        const i32 x = static_cast<i32>(cx) + static_cast<i32>(area.m_brd[i][0]);
-        const i32 y = static_cast<i32>(cy) + static_cast<i32>(area.m_brd[i][1]);
-        if (x < 0 || y < 0) {
-            continue;
-        }
-        const u16 ux = static_cast<u16>(x);
-        const u16 uy = static_cast<u16>(y);
-        if (ux >= state.m_map.width() || uy >= state.m_map.height()) {
-            continue;
-        }
-        if (!mtn_pass_needs_road(state, city_idx, ux, uy)) {
-            continue;
-        }
-        *ox = ux;
-        *oy = uy;
-        return true;
-    }
-    static const i32 k_r = 40;
-    const u16 w = state.m_map.width();
-    const u16 h = state.m_map.height();
-    u16 best_x = U16_KEY_NULL;
-    u16 best_y = U16_KEY_NULL;
-    u32 best_d = 0xffffffffu;
-    for (i32 dy = -k_r; dy <= k_r; ++dy) {
-        for (i32 dx = -k_r; dx <= k_r; ++dx) {
-            const i32 x = static_cast<i32>(cx) + dx;
-            const i32 y = static_cast<i32>(cy) + dy;
-            if (x < 0 || y < 0 || x >= static_cast<i32>(w) || y >= static_cast<i32>(h)) {
-                continue;
-            }
-            const u16 ux = static_cast<u16>(x);
-            const u16 uy = static_cast<u16>(y);
-            if (!mtn_pass_needs_road(state, city_idx, ux, uy)) {
-                continue;
-            }
-            const u32 adx = static_cast<u32>(dx < 0 ? -dx : dx);
-            const u32 ady = static_cast<u32>(dy < 0 ? -dy : dy);
-            const u32 d = adx > ady ? adx : ady;
-            if (d < best_d) {
-                best_d = d;
-                best_x = ux;
-                best_y = uy;
-            }
-        }
-    }
-    if (best_x == U16_KEY_NULL) {
+    if (!state.m_ai_help.ok()) {
         return false;
     }
-    *ox = best_x;
-    *oy = best_y;
-    return true;
+    const WorkerCityJobs& jobs = state.m_ai_help.jobs();
+    if (!jobs.ok()) {
+        return false;
+    }
+    u32 six = 0;
+    if (!jobs.find_site(cx, cy, &six)) {
+        return false;
+    }
+    const u16 n = jobs.job_n(six);
+    for (u16 i = 0; i < n; ++i) {
+        u16 ux = 0;
+        u16 uy = 0;
+        if (!jobs.job_at(six, i, &ux, &uy)) {
+            continue;
+        }
+        if (mtn_pass_needs_road(state, city_idx, ux, uy)) {
+            *ox = ux;
+            *oy = uy;
+            *ojob = static_cast<u16>(WorkerJob::Build_Dirt_Path);
+            *oimp = U16_KEY_NULL;
+            *ointent = TILE_ASSIGN_FOOD;
+            return true;
+        }
+        TileAssignIntent intent = TILE_ASSIGN_FOOD;
+        u16 job = U16_KEY_NULL;
+        u16 imp = U16_KEY_NULL;
+        if (fort_tile_cand(state, city_idx, ux, uy, &intent, &job, &imp)) {
+            *ox = ux;
+            *oy = uy;
+            *ointent = intent;
+            *ojob = job;
+            *oimp = imp;
+            return true;
+        }
+    }
+    return false;
 }
 
 static bool pick_resource (
@@ -883,17 +810,12 @@ void WorkerTurnHandler::handle (GameState& state, u16 unit_idx) {
         }
         CityConnector::clear_idle_flag(state, city_idx, city, cx, cy, fully);
         wdest_clr(unit);
-        if (city->city_has_worker()) {
+        if (CityConnector::on_road_tile(state, unit->m_x, unit->m_y)) {
             if (CityConnector::handle(state, unit_idx)) {
                 return;
             }
         }
-        if (pick_fort_wide(state, city_idx, cx, cy, &x, &y, &intent, &job, &imp)) {
-            found = true;
-        } else if (pick_mtn_pass(state, city_idx, cx, cy, &x, &y)) {
-            job = static_cast<u16>(WorkerJob::Build_Dirt_Path);
-            imp = U16_KEY_NULL;
-            intent = TILE_ASSIGN_FOOD;
+        if (pick_city_jobs(state, city_idx, cx, cy, &x, &y, &intent, &job, &imp)) {
             found = true;
         } else {
             return;
@@ -901,7 +823,12 @@ void WorkerTurnHandler::handle (GameState& state, u16 unit_idx) {
     }
     if (CityConnector::has_virtual_at(state, x, y)) {
         wdest_clr(unit);
-        CityConnector::handle(state, unit_idx);
+        if (!CityConnector::handle(state, unit_idx)) {
+            CityConnector::step_toward(state, unit_idx, x, y);
+            if (CityConnector::has_virtual_at(state, unit->m_x, unit->m_y)) {
+                CityConnector::handle(state, unit_idx);
+            }
+        }
         return;
     }
     wdest_set(unit, x, y);

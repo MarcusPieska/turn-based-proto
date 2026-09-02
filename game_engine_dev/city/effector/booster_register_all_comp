@@ -59,6 +59,14 @@ cd "$(dirname "$0")"
 
 ./global_espionage_booster_register_comp
 
+./local_food_booster_register_comp
+
+./city_food_booster_register_comp
+
+./civ_food_booster_register_comp
+
+./global_food_booster_register_comp
+
 ./local_happiness_booster_register_comp
 
 ./city_happiness_booster_register_comp
@@ -106,6 +114,14 @@ cd "$(dirname "$0")"
 ./civ_production_booster_register_comp
 
 ./global_production_booster_register_comp
+
+./local_resource_booster_register_comp
+
+./city_resource_booster_register_comp
+
+./civ_resource_booster_register_comp
+
+./global_resource_booster_register_comp
 
 ./local_sanitation_booster_register_comp
 
@@ -178,4 +194,12 @@ cd "$(dirname "$0")"
 ./civ_war_wear_booster_register_comp
 
 ./global_war_wear_booster_register_comp
+
+./local_worker_draft_booster_register_comp
+
+./city_worker_draft_booster_register_comp
+
+./civ_worker_draft_booster_register_comp
+
+./global_worker_draft_booster_register_comp
 

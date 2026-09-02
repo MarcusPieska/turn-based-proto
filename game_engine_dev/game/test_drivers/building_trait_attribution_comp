@@ -13,6 +13,9 @@ INC="-I../.. \
      -I../../misc \
      -I../../data_io \
      -I../../static_state \
+     -I../../city \
+     -I../../city/effector \
+     -I../../gen_bit_banks \
      -I.."
 CXXFLAGS="-std=c++17 -Wall -Wextra"
 

@@ -115,7 +115,7 @@ static void test_attribution () {
     if (g_rt_statics == nullptr) {
         return;
     }
-    note_result(BuildingTraitAttribution::begin(g_rt_statics->building()), "begin attribution");
+    note_result(BuildingTraitAttribution::begin(g_rt_statics->building(), g_rt_statics->trait_affinity_map()), "begin attribution");
     note_result(BuildingTraitAttribution::ready(), "attribution ready");
     note_result(BuildingTraitAttribution::building_n() == g_rt_statics->building().get_item_count(), "building_n matches catalog");
 

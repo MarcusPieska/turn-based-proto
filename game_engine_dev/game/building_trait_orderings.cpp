@@ -11,6 +11,7 @@
 #include "building_static_data.h"
 #include "building_trait_attribution.h"
 #include "civ_trait_affinity.h"
+#include "trait_affinity_map.h"
 
 //================================================================================================================================
 //=> - Statics -
@@ -20,13 +21,52 @@ u16* BuildingTraitOrderings::m_orders = nullptr;
 u16 BuildingTraitOrderings::m_n = 0;
 
 //================================================================================================================================
+//=> - Score helpers -
+//================================================================================================================================
+
+struct OrdRow {
+    u16 m_idx;
+    i32 m_score;
+};
+
+static i32 bld_score (CivTrait owner, u16 b) {
+    i32 s = static_cast<i32>(BuildingTraitAttribution::base(b));
+    for (u16 ti = 0; ti < CivTraitAffinity::k_n; ++ti) {
+        const CivTrait tag = static_cast<CivTrait>(ti);
+        if (!BuildingTraitAttribution::has(b, tag)) {
+            continue;
+        }
+        s = s + static_cast<i32>(CivTraitAffinity::affinity(owner, tag));
+    }
+    return s;
+}
+
+static int ord_cmp (const void* a, const void* b) {
+    const OrdRow* ra = static_cast<const OrdRow*>(a);
+    const OrdRow* rb = static_cast<const OrdRow*>(b);
+    if (ra->m_score > rb->m_score) {
+        return -1;
+    }
+    if (ra->m_score < rb->m_score) {
+        return 1;
+    }
+    if (ra->m_idx < rb->m_idx) {
+        return -1;
+    }
+    if (ra->m_idx > rb->m_idx) {
+        return 1;
+    }
+    return 0;
+}
+
+//================================================================================================================================
 //=> - BuildingTraitOrderings -
 //================================================================================================================================
 
-bool BuildingTraitOrderings::begin (const BuildingStaticData& blds) {
+bool BuildingTraitOrderings::begin (const BuildingStaticData& blds, const TraitAffinityMap& aff) {
     clear();
     if (!BuildingTraitAttribution::ready()) {
-        if (!BuildingTraitAttribution::begin(blds)) {
+        if (!BuildingTraitAttribution::begin(blds, aff)) {
             return false;
         }
     }
@@ -36,12 +76,10 @@ bool BuildingTraitOrderings::begin (const BuildingStaticData& blds) {
     }
     const u32 bytes = static_cast<u32>(CivTraitAffinity::k_n) * static_cast<u32>(n) * sizeof(u16);
     u16* orders = static_cast<u16*>(std::malloc(bytes));
-    if (orders == nullptr) {
-        return false;
-    }
-    u8* claimed = static_cast<u8*>(std::malloc(static_cast<size_t>(n)));
-    if (claimed == nullptr) {
+    OrdRow* rows = static_cast<OrdRow*>(std::malloc(static_cast<size_t>(n) * sizeof(OrdRow)));
+    if (orders == nullptr || rows == nullptr) {
         std::free(orders);
+        std::free(rows);
         return false;
     }
 
@@ -50,34 +88,18 @@ bool BuildingTraitOrderings::begin (const BuildingStaticData& blds) {
 
     for (u16 ti = 0; ti < CivTraitAffinity::k_n; ++ti) {
         const CivTrait owner = static_cast<CivTrait>(ti);
-        std::memset(claimed, 0, static_cast<size_t>(n));
-        u16* row = orders + static_cast<u32>(ti) * static_cast<u32>(n);
-        u16 w = 0;
-        for (u16 rank = 0; rank < CivTraitAffinity::k_n; ++rank) {
-            const CivTrait tag = CivTraitAffinity::pref(owner, rank);
-            for (u16 b = 0; b < n; ++b) {
-                if (claimed[b] != 0) {
-                    continue;
-                }
-                if (!BuildingTraitAttribution::has(b, tag)) {
-                    continue;
-                }
-                row[w] = b;
-                w = static_cast<u16>(w + 1u);
-                claimed[b] = 1;
-            }
-        }
         for (u16 b = 0; b < n; ++b) {
-            if (claimed[b] != 0) {
-                continue;
-            }
-            row[w] = b;
-            w = static_cast<u16>(w + 1u);
-            claimed[b] = 1;
+            rows[b].m_idx = b;
+            rows[b].m_score = bld_score(owner, b);
+        }
+        std::qsort(rows, static_cast<size_t>(n), sizeof(OrdRow), ord_cmp);
+        u16* row = orders + static_cast<u32>(ti) * static_cast<u32>(n);
+        for (u16 i = 0; i < n; ++i) {
+            row[i] = rows[i].m_idx;
         }
     }
 
-    std::free(claimed);
+    std::free(rows);
     return true;
 }
 

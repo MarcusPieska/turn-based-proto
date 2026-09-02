@@ -90,6 +90,9 @@ u16 get_req_limit_for_type (const RuntimeStatics& s, u8 req_type) {
     if (req_type == ITEM_REQ_TYPE_BUILDING) {
         return s.building().get_item_count();
     }
+    if (req_type == ITEM_REQ_TYPE_CIV_TRAIT) {
+        return s.civ_trait().get_item_count();
+    }
     return 0;
 }
 
@@ -145,6 +148,7 @@ void run_req_bounds_tests (const RuntimeStatics& s) {
 
 void run_map_smoke_tests (const RuntimeStatics& s) {
     [RUNTIME_LOADER_TESTER_MAP_SMOKE_TESTS_TAG]
+    [RUNTIME_LOADER_TESTER_TABLE_SMOKE_TESTS_TAG]
 }
 
 void run_effector_smoke_tests (const RuntimeStatics& s) {

@@ -26,7 +26,12 @@ const DataParserBase* g_tech_parser = NULL;
 const DataParserBase* g_resource_parser = NULL;
 const DataParserBase* g_toggle_city_parser = NULL;
 const DataParserBase* g_building_parser = NULL;
-const DataParserBase* g_civ_parser = NULL;
+const DataParserBase* g_civ_parser = NULL; 
+const DataParserBase* g_civ_trait_parser = NULL;
+const DataParserBase* g_map_overlay_parser = NULL;
+const DataParserBase* g_map_attribute_parser = NULL;
+const DataParserBase* g_map_terrain_parser = NULL;
+const DataParserBase* g_map_climate_parser = NULL;
 
 //================================================================================================================================
 //=> - Helper functions -
@@ -124,6 +129,26 @@ u16 cb_civ_name_to_idx (cstr name) {
     return g_civ_parser->name_to_idx(name);
 }
 
+u16 cb_civ_trait_name_to_idx (cstr name) {
+    return g_civ_trait_parser->name_to_idx(name);
+}
+
+u16 cb_map_overlay_name_to_idx (cstr name) {
+    return g_map_overlay_parser->name_to_idx(name);
+}
+
+u16 cb_map_attribute_name_to_idx (cstr name) {
+    return g_map_attribute_parser->name_to_idx(name);
+}
+
+u16 cb_map_terrain_name_to_idx (cstr name) {
+    return g_map_terrain_parser->name_to_idx(name);
+}
+
+u16 cb_map_climate_name_to_idx (cstr name) {
+    return g_map_climate_parser->name_to_idx(name);
+}
+
 void run_item_reqs_parse_file_tests (const DataParserBaseHarness& parser, cstr filepath, cstr tag, bool expect_valid) {
     StringManager lines;
     if (!lines.load_file_content(filepath)) {
@@ -186,6 +211,11 @@ void run_item_reqs_parse_tests () {
     cbs.toggle_city_name_to_idx = cb_toggle_city_name_to_idx;
     cbs.building_name_to_idx = cb_building_name_to_idx;
     cbs.civ_name_to_idx = cb_civ_name_to_idx;
+    cbs.civ_trait_name_to_idx = cb_civ_trait_name_to_idx;
+    cbs.map_overlay_name_to_idx = cb_map_overlay_name_to_idx;
+    cbs.map_attribute_name_to_idx = cb_map_attribute_name_to_idx;
+    cbs.map_terrain_name_to_idx = cb_map_terrain_name_to_idx;
+    cbs.map_climate_name_to_idx = cb_map_climate_name_to_idx;
 
     PathMng paths("../");
     StringManager tech_items;
@@ -193,7 +223,12 @@ void run_item_reqs_parse_tests () {
     StringManager toggle_city_items;
     StringManager building_items;
     StringManager civ_items;
+    StringManager civ_trait_items;
     StringManager unit_items;
+    StringManager map_overlay_items;
+    StringManager map_attribute_items;
+    StringManager map_terrain_items;
+    StringManager map_climate_items;
 
     tech_items.load_file_content(paths.get_path_to_techs());
     tech_items.split_string_by_char(0, '\n');
@@ -215,22 +250,52 @@ void run_item_reqs_parse_tests () {
     civ_items.split_string_by_char(0, '\n');
     civ_items.cull_empty_strings();
 
+    civ_trait_items.load_file_content(paths.get_path_to_civ_traits());
+    civ_trait_items.split_string_by_char(0, '\n');
+    civ_trait_items.cull_empty_strings();
+
     unit_items.load_file_content(paths.get_path_to_units());
     unit_items.split_string_by_char(0, '\n');
     unit_items.cull_empty_strings();
+
+    map_overlay_items.load_file_content(paths.get_path_to_map_overlays());
+    map_overlay_items.split_string_by_char(0, '\n');
+    map_overlay_items.cull_empty_strings();
+
+    map_attribute_items.load_file_content(paths.get_path_to_map_attributes());
+    map_attribute_items.split_string_by_char(0, '\n');
+    map_attribute_items.cull_empty_strings();
+
+    map_terrain_items.load_file_content(paths.get_path_to_map_terrains());
+    map_terrain_items.split_string_by_char(0, '\n');
+    map_terrain_items.cull_empty_strings();
+
+    map_climate_items.load_file_content(paths.get_path_to_map_climates());
+    map_climate_items.split_string_by_char(0, '\n');
+    map_climate_items.cull_empty_strings();
 
     DataParserBaseHarness tech_parser(tech_items, cbs);
     DataParserBaseHarness resource_parser(resource_items, cbs);
     DataParserBaseHarness toggle_city_parser(toggle_city_items, cbs);
     DataParserBaseHarness building_parser(building_items, cbs);
     DataParserBaseHarness civ_parser(civ_items, cbs);
+    DataParserBaseHarness civ_trait_parser(civ_trait_items, cbs);
     DataParserBaseHarness unit_parser(unit_items, cbs);
+    DataParserBaseHarness map_overlay_parser(map_overlay_items, cbs);
+    DataParserBaseHarness map_attribute_parser(map_attribute_items, cbs);
+    DataParserBaseHarness map_terrain_parser(map_terrain_items, cbs);
+    DataParserBaseHarness map_climate_parser(map_climate_items, cbs);
 
     g_tech_parser = &tech_parser;
     g_resource_parser = &resource_parser;
     g_toggle_city_parser = &toggle_city_parser;
     g_building_parser = &building_parser;
     g_civ_parser = &civ_parser;
+    g_civ_trait_parser = &civ_trait_parser;
+    g_map_overlay_parser = &map_overlay_parser;
+    g_map_attribute_parser = &map_attribute_parser;
+    g_map_terrain_parser = &map_terrain_parser;
+    g_map_climate_parser = &map_climate_parser;
 
     DataParserBaseHarness::reset_error_count_for_harness();
     run_item_reqs_parse_file_tests(unit_parser, "item_reqs_valid", "valid", true);

@@ -117,6 +117,9 @@ u16 get_req_limit_for_type (const RuntimeStatics& s, u8 req_type) {
     if (req_type == ITEM_REQ_TYPE_BUILDING) {
         return s.building().get_item_count();
     }
+    if (req_type == ITEM_REQ_TYPE_CIV_TRAIT) {
+        return s.civ_trait().get_item_count();
+    }
     return 0;
 }
 
@@ -285,6 +288,8 @@ void run_map_smoke_tests (const RuntimeStatics& s) {
     note_result(s.civ_bld_discount_map().get_building_count() > 0, "civ_bld_discount_map col count");
     note_result(s.civ_bld_discount_map().get_civ_trait_count() == s.civ_trait().get_item_count(), "civ_bld_discount_map row match");
     note_result(s.civ_bld_discount_map().get_building_count() == s.building().get_item_count(), "civ_bld_discount_map col match");
+    note_result(s.trait_affinity_map().get_row_count() > 0, "trait_affinity_map row count");
+    note_result(s.trait_affinity_map().name_to_idx("SCIENCE") != U16_KEY_NULL, "trait_affinity_map token lookup");
 }
 
 void run_effector_smoke_tests (const RuntimeStatics& s) {

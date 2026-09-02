@@ -10,6 +10,7 @@
 //================================================================================================================================
 
 #include <cstdio>
+#include <cstdlib>
 
 #include "static_parsing_manager.h"
 
@@ -20,6 +21,8 @@
 #include "civ_trait_parser.h"
 #include "building_parser.h"
 #include "civ_bld_discount_map_parsing.h"
+#include "civ_trait_parser.h"
+#include "trait_affinity_map_parsing.h"
 
 //================================================================================================================================
 //=> - Private callback glue -
@@ -358,6 +361,9 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_improvement_yield_items.load_file_content(m_paths.get_path_to_improvement_yields());
     m_improvement_yield_items.split_string_by_char(0, '\n');
     DataParserBase::normalize_lines(m_improvement_yield_items);
+    m_trait_affinity_items.load_file_content(m_paths.get_path_to_trait_affinity());
+    m_trait_affinity_items.split_string_by_char(0, '\n');
+    DataParserBase::normalize_lines(m_trait_affinity_items);
     m_building_name_parser = new DataParserBase(m_building_items, NameToIdxCbs());
     m_toggle_city_name_parser = new DataParserBase(m_toggle_city_items, NameToIdxCbs());
     m_toggle_civ_name_parser = new DataParserBase(m_toggle_civ_items, NameToIdxCbs());
@@ -765,6 +771,13 @@ StaticBitBank* StaticParsingManager::get_unit_type_action_map_bank () const {
 StaticBitBank* StaticParsingManager::get_civ_bld_discount_map_bank () const {
     return m_civ_bld_discount_map_bank;
 }
+TraitAffinityMap& StaticParsingManager::get_trait_affinity_map () {
+    return m_trait_affinity_map;
+}
+
+const TraitAffinityMap& StaticParsingManager::get_trait_affinity_map () const {
+    return m_trait_affinity_map;
+}
 
 void StaticParsingManager::release_map_banks () {
     m_unit_type_action_map_bank = nullptr;
@@ -914,6 +927,11 @@ void StaticParsingManager::parse_supported_data () {
     const u16 building_n = safe_size_to_u16(m_building_items.get_string_count());
     m_civ_bld_discount_map_bank = new StaticBitBank(civ_trait_n, building_n);
     CivBldDiscountMapParsing::load_cfg_map(*m_civ_bld_discount_map_bank, m_civ_trait_items, civ_trait_parser, building_parser);
+    
+    if (!TraitAffinityMapParsing::load_cfg(m_trait_affinity_map, m_trait_affinity_items, civ_trait_parser)) {
+        printf("ERROR: Failed to load trait_affinity_map\n");
+        std::exit(1);
+    }
 }
 
 u16 StaticParsingManager::safe_size_to_u16 (size_t value) {

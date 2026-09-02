@@ -20,7 +20,7 @@ struct EffectCtx;
 
 class CityCorruptionBoosterRegister : public BoosterEffectRegister {
 public:
-    static constexpr u16 ENTRY_N = 2;
+    static constexpr u16 ENTRY_N = 3;
 
     static BoosterRegisterResult determine_effect (const EffectCtx& ctx) {
         if (ENTRY_N == 0) {
@@ -43,7 +43,7 @@ private:
         return ItemEffectsScope::CITY;
     }
 
-    static const BoosterRegisterEntry s_entry[2];
+    static const BoosterRegisterEntry s_entry[3];
 };
 
 #endif // CITY_CORRUPTION_BOOSTER_REGISTER_H

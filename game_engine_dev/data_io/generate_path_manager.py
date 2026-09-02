@@ -42,6 +42,7 @@ path_config_endings.append("worker_jobs")
 path_config_endings.append("worker_job_imps")
 path_config_endings.append("tile_yield_types")
 path_config_endings.append("improvement_yields")
+path_config_endings.append("trait_affinity")
 path_config_endings.append("settings")
 
 #================================================================================================================================#

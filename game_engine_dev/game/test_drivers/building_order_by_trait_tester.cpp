@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 
 #include "bit_array.h"
+#include "building_static_data.h"
 #include "building_static_key.h"
 #include "city.h"
 #include "city_array.h"
@@ -27,6 +28,7 @@
 #include "game_state.h"
 #include "general_assessor.h"
 #include "general_bit_bank.h"
+#include "item_reqs.h"
 #include "linear_tech.h"
 #include "runtime_statics.h"
 #include "starting_point_generator.h"
@@ -63,6 +65,8 @@ static char g_res[320];
 
 static char g_ord[G_TRAIT_N][G_ORD_MAX][G_NAME_MAX];
 static u16 g_ord_n[G_TRAIT_N];
+static BitArrayCL* g_built[G_TRAIT_N] = {};
+static int g_val_fails = 0;
 
 //================================================================================================================================
 //=> - Site -
@@ -235,6 +239,92 @@ static u32 collect_sites (const GameArraySimple& map, Site* out, u32 out_max) {
     return n;
 }
 
+static void fill_single_trait (BitArrayCL& civ_trait, u16 trait_ix) {
+    civ_trait.clear_all();
+    if (trait_ix < civ_trait.get_count()) {
+        civ_trait.set_bit(trait_ix);
+    }
+}
+
+static bool bld_trait_req_blocks (const BuildingStaticDataStruct& item, u16 trait_ix) {
+    for (u8 j = 0; j < MAX_PREREQ_COUNT; ++j) {
+        if (item.reqs.types[j] == ITEM_REQ_TYPE_CIV_TRAIT && item.reqs.indices[j] != trait_ix) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static bool bld_built_with_wrong_trait (const BuildingStaticDataStruct& item, u16 trait_ix) {
+    for (u8 j = 0; j < MAX_PREREQ_COUNT; ++j) {
+        if (item.reqs.types[j] == ITEM_REQ_TYPE_CIV_TRAIT && item.reqs.indices[j] != trait_ix) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static void note_val_fail (cstr msg) {
+    g_val_fails = g_val_fails + 1;
+    std::printf("*** VALIDATION FAILED: %s\n", msg);
+}
+
+static void validate_trait_builds (const RuntimeStatics& st, u16 trait_i) {
+    if (g_built[trait_i] == nullptr) {
+        return;
+    }
+    const u16 bld_n = st.building().get_item_count();
+    char buf[160];
+    for (u16 b = 0; b < bld_n; ++b) {
+        if (g_built[trait_i]->get_bit(b) == 0) {
+            continue;
+        }
+        const BuildingStaticDataStruct& item = st.building().get_item(BuildingStaticDataKey::from_raw(b));
+        if (bld_built_with_wrong_trait(item, trait_i)) {
+            std::snprintf(buf, sizeof(buf), "%s built %s with trait-only civ",
+                trait_name(static_cast<CivTrait>(trait_i)),
+                st.building().get_name(BuildingStaticDataKey::from_raw(b)));
+            note_val_fail(buf);
+        }
+    }
+}
+
+static void validate_trait_omissions (const RuntimeStatics& st, u16 trait_i) {
+    if (g_built[trait_i] == nullptr) {
+        return;
+    }
+    const u16 bld_n = st.building().get_item_count();
+    u16 unexplained = 0;
+    for (u16 b = 0; b < bld_n; ++b) {
+        if (g_built[trait_i]->get_bit(b) != 0) {
+            continue;
+        }
+        const BuildingStaticDataStruct& item = st.building().get_item(BuildingStaticDataKey::from_raw(b));
+        if (!bld_trait_req_blocks(item, trait_i)) {
+            continue;
+        }
+        for (u8 j = 0; j < MAX_PREREQ_COUNT; ++j) {
+            if (item.reqs.types[j] == ITEM_REQ_TYPE_CIV_TRAIT) {
+                unexplained = static_cast<u16>(unexplained + 1u);
+                break;
+            }
+        }
+    }
+    std::printf("%s trait-gated omissions explained: %u\n", trait_name(static_cast<CivTrait>(trait_i)), static_cast<u32>(unexplained));
+}
+
+static void validate_all_traits (const RuntimeStatics& st) {
+    for (u16 t = 0; t < G_TRAIT_N; ++t) {
+        validate_trait_builds(st, t);
+        validate_trait_omissions(st, t);
+    }
+    if (g_val_fails == 0) {
+        std::printf("trait prereq validation: pass\n");
+    } else {
+        std::printf("trait prereq validation: %d fail(s)\n", g_val_fails);
+    }
+}
+
 static void grant_all_resources (GameState& state, u16 city_idx) {
     GeneralBitBank* bank = state.m_cities.get_res_bank();
     if (bank == nullptr || state.m_statics == nullptr) {
@@ -255,7 +345,7 @@ static void clr_owned (BitArrayCL& available, const BitArrayCL& owned) {
     }
 }
 
-static bool unlock_one_tech (GameState& state, u16 player) {
+static bool unlock_one_tech (GameState& state, u16 player, u16 trait_ix) {
     if (state.m_statics == nullptr || state.m_player_states == nullptr || player >= state.m_player_n) {
         return false;
     }
@@ -281,6 +371,8 @@ static bool unlock_one_tech (GameState& state, u16 player) {
     if (ps.m_civ_index < civ.get_count()) {
         civ.set_bit(ps.m_civ_index);
     }
+    BitArrayCL civ_trait(st.civ_trait().get_item_count());
+    fill_single_trait(civ_trait, trait_ix);
     AssessorCtx ctx = {};
     ctx.m_tech = ps.m_techs_researched;
     ctx.m_civ = &civ;
@@ -288,6 +380,7 @@ static bool unlock_one_tech (GameState& state, u16 player) {
     ctx.m_resource = &resource;
     ctx.m_building = &building;
     ctx.m_toggle_city = &toggle_city;
+    ctx.m_civ_trait = &civ_trait;
     BitArrayCL available(tech_n);
     const TechStaticDataStruct* items = &st.tech().get_item(TechStaticDataKey::from_raw(0));
     GeneralAssessor::assess_tech(&available, tech_n, items, ctx);
@@ -446,6 +539,11 @@ static void run_trait (
     CityTileManager::maximize_food(player, city_idx);
 
     const u16 bld_n = st->building().get_item_count();
+    if (g_built[trait_i] == nullptr) {
+        g_built[trait_i] = new BitArrayCL(bld_n);
+    } else {
+        g_built[trait_i]->clear_all();
+    }
     BitArrayCL seen(bld_n);
     for (u16 i = 0; i < bld_n; ++i) {
         if (city->has_building(city_idx, i)) {
@@ -455,8 +553,8 @@ static void run_trait (
     u16 idle = 0;
     for (u32 turn = 0; turn < G_TURNS; ++turn) {
         if (g_ord_n[trait_i] == 0) {
-            unlock_one_tech(state, player);
-            unlock_one_tech(state, player);
+            unlock_one_tech(state, player, trait_i);
+            unlock_one_tech(state, player, trait_i);
         }
         city->add_production(city_idx, G_INJECT_PROD);
         CityTurnHandler::handle(state, city_idx);
@@ -471,8 +569,8 @@ static void run_trait (
             finished = true;
         }
         if (finished) {
-            unlock_one_tech(state, player);
-            unlock_one_tech(state, player);
+            unlock_one_tech(state, player, trait_i);
+            unlock_one_tech(state, player, trait_i);
             idle = 0;
         } else {
             idle = static_cast<u16>(idle + 1u);
@@ -485,7 +583,12 @@ static void run_trait (
         }
         state.m_current_turn = turn + 1;
     }
-    std::printf("%s civ=%u buildings=%u\n", trait_name(trait), static_cast<u32>(civ_idx), static_cast<u32>(g_ord_n[trait_i]));
+    for (u16 i = 0; i < bld_n; ++i) {
+        if (seen.get_bit(i) != 0) {
+            g_built[trait_i]->set_bit(i);
+        }
+    }
+    std::printf("%s civ=%u trait-only buildings=%u\n", trait_name(trait), static_cast<u32>(civ_idx), static_cast<u32>(g_ord_n[trait_i]));
     state.clear();
 }
 
@@ -553,7 +656,15 @@ int main () {
     write_table(f);
     std::fclose(f);
     std::printf("wrote %s\n", path);
+    validate_all_traits(*st);
+    for (u16 t = 0; t < G_TRAIT_N; ++t) {
+        delete g_built[t];
+        g_built[t] = nullptr;
+    }
     setup.release_map_gen();
+    if (g_val_fails > 0) {
+        return 1;
+    }
     return 0;
 }
 

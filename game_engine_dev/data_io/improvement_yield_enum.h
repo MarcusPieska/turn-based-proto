@@ -23,19 +23,25 @@
 //================================================================================================================================
 
 enum class ImprovementYield : u16 {
-    Farm = 0,
-    Farm_1 = 1,
-    Farm_2 = 2,
-    Farm_3 = 3,
-    Farm_4 = 4,
-    Farm_5 = 5,
-    Mine = 6,
-    Mine_7 = 7,
-    Mine_8 = 8,
-    Mine_9 = 9,
-    Forest = 10,
-    Forest_11 = 11,
-    Forest_12 = 12
+    City = 0,
+    City_1 = 1,
+    City_2 = 2,
+    City_3 = 3,
+    City_4 = 4,
+    City_5 = 5,
+    Farm = 6,
+    Farm_7 = 7,
+    Farm_8 = 8,
+    Farm_9 = 9,
+    Farm_10 = 10,
+    Farm_11 = 11,
+    Mine = 12,
+    Mine_13 = 13,
+    Mine_14 = 14,
+    Mine_15 = 15,
+    Forest = 16,
+    Forest_17 = 17,
+    Forest_18 = 18
 };
 
 #endif // IMPROVEMENT_YIELD_ENUM_H

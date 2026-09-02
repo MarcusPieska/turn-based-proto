@@ -600,6 +600,9 @@ ItemReqsStruct DataParserBase::parse_item_reqs (const StringManager& line_items,
         } else if (std::strcmp(type_name, "civ") == 0) {
             reqs.types[write_idx] = ITEM_REQ_TYPE_CIV;
             reqs.indices[write_idx] = m_name_to_idx_cbs.civ_name_to_idx(req_name);
+        } else if (std::strcmp(type_name, "trait") == 0) {
+            reqs.types[write_idx] = ITEM_REQ_TYPE_CIV_TRAIT;
+            reqs.indices[write_idx] = m_name_to_idx_cbs.civ_trait_name_to_idx(req_name);
         } else if (std::strcmp(type_name, "building") == 0) {
             reqs.types[write_idx] = ITEM_REQ_TYPE_BUILDING;
             reqs.indices[write_idx] = m_name_to_idx_cbs.building_name_to_idx(req_name);

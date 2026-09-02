@@ -20,7 +20,8 @@ typedef enum ItemReqType {
     ITEM_REQ_TYPE_FLAG = 3,
     ITEM_REQ_TYPE_CIV = 4,
     ITEM_REQ_TYPE_BUILDING = 5,
-    ITEM_REQ_TYPE_TILE = 6
+    ITEM_REQ_TYPE_TILE = 6,
+    ITEM_REQ_TYPE_CIV_TRAIT = 7
 } ItemReqType;
 
 typedef enum TileReqKind {

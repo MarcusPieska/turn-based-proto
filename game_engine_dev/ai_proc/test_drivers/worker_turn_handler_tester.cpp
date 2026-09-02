@@ -7,6 +7,7 @@
 #include <chrono>
 #include <cstdio>
 #include <cstring>
+#include <ctime>
 #include <string>
 #include <sys/stat.h>
 #include <vector>
@@ -64,6 +65,7 @@ static void note_assert (bool ok, cstr msg) {
 }
 
 static const char* G_MAP_ROOT = "/home/w/Projects/simple-map-gen";
+static const char* G_RES_DIR = "/home/w/Projects/simple-map-gen";
 static const char* G_OUT_DIR_REMOTE = "/home/w/Projects/simple-map-gen/worker-turn-mng";
 static const char* G_OUT_DIR_PATH = "/home/w/Projects/simple-map-gen/worker-turn-mng-path";
 static const char* G_OUT_DIR = G_OUT_DIR_REMOTE;
@@ -154,6 +156,36 @@ static void tm_report_all () {
         avg_us);
     tm_report(g_tm_spawn);
     tm_report(g_tm_turn);
+}
+
+static void res_key_san (char* dst, size_t dst_n, cstr src) {
+    if (dst == nullptr || dst_n == 0u) {
+        return;
+    }
+    size_t o = 0;
+    if (src == nullptr) {
+        dst[0] = '\0';
+        return;
+    }
+    for (size_t i = 0; src[i] != '\0' && o + 1u < dst_n; ++i) {
+        const char c = src[i];
+        if (c == ' ' || c == ':' || c == '/') {
+            dst[o++] = '_';
+        } else {
+            dst[o++] = c;
+        }
+    }
+    dst[o] = '\0';
+}
+
+static void res_write_tm (std::FILE* fp, cstr key, const HotTimer& t) {
+    char k[96];
+    res_key_san(k, sizeof(k), key);
+    const double total_ms = static_cast<double>(t.ns) / 1.0e6;
+    const double avg_us = (t.n == 0) ? 0.0 : (static_cast<double>(t.ns) / static_cast<double>(t.n)) / 1.0e3;
+    std::fprintf(fp, "time.%s.calls=%llu\n", k, static_cast<unsigned long long>(t.n));
+    std::fprintf(fp, "time.%s.total_ms=%.3f\n", k, total_ms);
+    std::fprintf(fp, "time.%s.avg_us=%.3f\n", k, avg_us);
 }
 
 struct JobTot {
@@ -301,6 +333,84 @@ static void print_job_tots () {
             std::printf("    %s: %u\n", inm, (unsigned)job_tot_n(job, imps[ii]));
         }
     }
+}
+
+static bool write_result_file (
+    u32 turns,
+    double loop_ms,
+    double loop_ms_turn,
+    u32 fort_ov,
+    u32 pass_roads)
+{
+    const auto now = std::chrono::system_clock::now();
+    const std::time_t tt = std::chrono::system_clock::to_time_t(now);
+    std::tm tm_buf;
+    localtime_r(&tt, &tm_buf);
+    char stamp[32];
+    if (std::strftime(stamp, sizeof(stamp), "%Y%m%d_%H%M%S", &tm_buf) == 0u) {
+        return false;
+    }
+    char path[384];
+    if (std::snprintf(path, sizeof(path), "%s/worker_turn_handler_%s.txt", G_RES_DIR, stamp) <= 0) {
+        return false;
+    }
+    std::FILE* fp = std::fopen(path, "w");
+    if (fp == nullptr) {
+        return false;
+    }
+    std::fprintf(fp, "turns=%u\n", (unsigned)turns);
+    std::fprintf(fp, "time.loop_wall_total_ms=%.3f\n", loop_ms);
+    std::fprintf(fp, "time.loop_wall_ms_per_turn=%.3f\n", loop_ms_turn);
+    std::fprintf(fp, "time.turn_e2e_total_ms=%.3f\n", static_cast<double>(g_tm_turn.ns) / 1.0e6);
+    const double e2e_avg = (g_tm_turn.n == 0) ? 0.0
+        : (static_cast<double>(g_tm_turn.ns) / static_cast<double>(g_tm_turn.n)) / 1.0e6;
+    std::fprintf(fp, "time.turn_e2e_ms_per_turn=%.3f\n", e2e_avg);
+    const HotTimer* rows[] = {
+        &g_tm_refresh, &g_tm_city, &g_tm_research, &g_tm_settler, &g_tm_worker, &g_tm_defense
+    };
+    u64 sum_ns = 0;
+    u64 sum_n = 0;
+    for (u32 i = 0; i < sizeof(rows) / sizeof(rows[0]); ++i) {
+        res_write_tm(fp, rows[i]->name, *rows[i]);
+        sum_ns = sum_ns + rows[i]->ns;
+        sum_n = sum_n + rows[i]->n;
+    }
+    HotTimer sum_tm = {"handlers_sum", sum_n, sum_ns};
+    res_write_tm(fp, sum_tm.name, sum_tm);
+    res_write_tm(fp, g_tm_spawn.name, g_tm_spawn);
+    res_write_tm(fp, g_tm_turn.name, g_tm_turn);
+    if (g_st != nullptr) {
+        std::vector<u16> jobs;
+        for (size_t i = 0; i < g_job_tot.size(); ++i) {
+            const u16 j = g_job_tot[i].m_job;
+            bool seen = false;
+            for (size_t k = 0; k < jobs.size(); ++k) {
+                if (jobs[k] == j) {
+                    seen = true;
+                    break;
+                }
+            }
+            if (!seen) {
+                jobs.push_back(j);
+            }
+        }
+        std::sort(jobs.begin(), jobs.end());
+        for (size_t ji = 0; ji < jobs.size(); ++ji) {
+            const u16 job = jobs[ji];
+            cstr jnm = g_st->worker_job().get_name(WorkerJobStaticDataKey::from_raw(job));
+            if (jnm == nullptr) {
+                jnm = "unknown_job";
+            }
+            char k[96];
+            res_key_san(k, sizeof(k), jnm);
+            std::fprintf(fp, "build.%s=%u\n", k, (unsigned)job_tot_n(job, U16_KEY_NULL));
+        }
+    }
+    std::fprintf(fp, "build.fort_ov=%u\n", (unsigned)fort_ov);
+    std::fprintf(fp, "build.pass_roads=%u\n", (unsigned)pass_roads);
+    std::fclose(fp);
+    std::printf(" result file: %s\n", path);
+    return true;
 }
 
 //================================================================================================================================
@@ -1445,6 +1555,9 @@ int main (int argc, char** argv) {
     std::printf(" hot-path timings:\n");
     tm_report_all();
     print_job_tots();
+    if (!write_result_file(state.m_current_turn, loop_ms, avg_ms, fort_built, pass_roads)) {
+        std::printf(" result file write failed\n");
+    }
     std::printf("=======================================================\n");
 
     g_st = nullptr;

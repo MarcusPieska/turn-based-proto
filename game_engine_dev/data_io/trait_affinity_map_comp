@@ -1,0 +1,38 @@
+#!/bin/bash
+
+INC="-I. -I.. -I../misc -I../static_state"
+
+g++ $INC -c ../misc/static_string_pool.cpp -o static_string_pool.o
+g++ $INC -c ../static_state/trait_affinity_map.cpp -o trait_affinity_map.o
+g++ $INC -c ../misc/opt_str_mng.cpp -o opt_str_mng.o
+g++ $INC -c path_mng.cpp -o path_mng.o
+g++ $INC -c item_effect_handler.cpp -o item_effect_handler.o
+g++ $INC -c item_effect_helpers.cpp -o item_effect_helpers.o
+g++ $INC -c data_parser_base.cpp -o data_parser_base.o
+g++ $INC -c civ_trait_parser.cpp -o civ_trait_parser.o
+g++ $INC -c trait_affinity_map_parsing.cpp -o trait_affinity_map_parsing.o
+g++ $INC -c trait_affinity_map_tester.cpp -o trait_affinity_map_tester.o
+
+g++ -o trait_affinity_map_tester \
+    static_string_pool.o \
+    trait_affinity_map.o \
+    opt_str_mng.o \
+    path_mng.o \
+    item_effect_handler.o \
+    item_effect_helpers.o \
+    data_parser_base.o \
+    civ_trait_parser.o \
+    trait_affinity_map_parsing.o \
+    trait_affinity_map_tester.o
+
+rm \
+    static_string_pool.o \
+    trait_affinity_map.o \
+    opt_str_mng.o \
+    path_mng.o \
+    item_effect_handler.o \
+    item_effect_helpers.o \
+    data_parser_base.o \
+    civ_trait_parser.o \
+    trait_affinity_map_parsing.o \
+    trait_affinity_map_tester.o

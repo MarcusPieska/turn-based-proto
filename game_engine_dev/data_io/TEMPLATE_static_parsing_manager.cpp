@@ -10,10 +10,12 @@
 //================================================================================================================================
 
 #include <cstdio>
+#include <cstdlib>
 
 #include "static_parsing_manager.h"
 
 [STATIC_PARSE_CPP_MAP_INCLUDES_TAG]
+[STATIC_PARSE_CPP_TABLE_INCLUDES_TAG]
 
 //================================================================================================================================
 //=> - Private callback glue -
@@ -48,6 +50,7 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
 {
     m_effect_items.load_file_content(m_paths.get_path_to_effects());
     [STATIC_PARSE_CPP_LOAD_ITEMS_TAG]
+    [STATIC_PARSE_CPP_LOAD_TABLE_ITEMS_TAG]
     [STATIC_PARSE_CPP_INIT_NAME_PARSERS_TAG]
     build_name_to_idx_callbacks();
     parse_supported_data();
@@ -62,6 +65,7 @@ StaticParsingManager::~StaticParsingManager () {
 [STATIC_PARSE_CPP_NAME_PARSER_GETTERS_TAG]
 [STATIC_PARSE_CPP_RAW_GETTERS_TAG]
 [STATIC_PARSE_CPP_MAP_GETTERS_TAG]
+[STATIC_PARSE_CPP_TABLE_GETTERS_TAG]
 
 [STATIC_PARSE_CPP_RELEASE_MAP_BANKS_TAG]
 
@@ -91,6 +95,7 @@ void StaticParsingManager::parse_supported_data () {
 
     [STATIC_PARSE_CPP_PARSE_ASSIGNMENTS_TAG]
     [STATIC_PARSE_CPP_BUILD_MAPS_TAG]
+    [STATIC_PARSE_CPP_BUILD_TABLES_TAG]
 }
 
 u16 StaticParsingManager::safe_size_to_u16 (size_t value) {

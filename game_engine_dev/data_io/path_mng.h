@@ -57,6 +57,7 @@ public:
     cstr get_path_to_worker_job_imps () const;
     cstr get_path_to_tile_yield_types () const;
     cstr get_path_to_improvement_yields () const;
+    cstr get_path_to_trait_affinity () const;
     cstr get_path_to_settings () const;
 
 private:
@@ -99,6 +100,7 @@ private:
     char m_path_worker_job_imps[PATH_MNG_PATH_N];
     char m_path_tile_yield_types[PATH_MNG_PATH_N];
     char m_path_improvement_yields[PATH_MNG_PATH_N];
+    char m_path_trait_affinity[PATH_MNG_PATH_N];
     char m_path_settings[PATH_MNG_PATH_N];
 };
 

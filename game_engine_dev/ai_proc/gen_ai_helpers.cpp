@@ -146,10 +146,16 @@ static u32 order_site_n (const GenSettlementOrder& ord) {
 GenAiHelpers::GenAiHelpers () :
     m_map(nullptr),
     m_ord(nullptr),
+    m_jobs(nullptr),
+    m_roads(nullptr),
     m_ok(false) {
 }
 
 GenAiHelpers::~GenAiHelpers () {
+    delete m_roads;
+    m_roads = nullptr;
+    delete m_jobs;
+    m_jobs = nullptr;
     delete m_ord;
     m_ord = nullptr;
 }
@@ -159,7 +165,14 @@ bool GenAiHelpers::begin (GameArraySimple& map) {
     if (m_ord == nullptr) {
         m_ord = new GenSettlementOrder();
     }
-    m_ok = map.width() > 0u && map.height() > 0u && m_ord != nullptr && m_ord->ok();
+    if (m_jobs == nullptr) {
+        m_jobs = new WorkerCityJobs();
+    }
+    if (m_roads == nullptr) {
+        m_roads = new GenRoadNetwork();
+    }
+    m_ok = map.width() > 0u && map.height() > 0u && m_ord != nullptr && m_ord->ok()
+        && m_jobs != nullptr && m_roads != nullptr && m_roads->begin(map);
     GAME_EXPECT(m_ok, "GenAiHelpers begin whiteboard checkout failed");
     return m_ok;
 }
@@ -171,6 +184,16 @@ void GenAiHelpers::clr () {
     if (m_ord != nullptr) {
         m_ord->clr();
     }
+    if (m_jobs != nullptr) {
+        m_jobs->clr();
+    }
+    if (m_roads != nullptr) {
+        m_roads->clr();
+    }
+    delete m_roads;
+    m_roads = nullptr;
+    delete m_jobs;
+    m_jobs = nullptr;
     delete m_ord;
     m_ord = nullptr;
     m_map = nullptr;
@@ -191,8 +214,29 @@ GenSettlementOrder& GenAiHelpers::order () {
     return *m_ord;
 }
 
+const WorkerCityJobs& GenAiHelpers::jobs () const {
+    GAME_EXPECT(m_jobs != nullptr, "GenAiHelpers jobs not begun");
+    return *m_jobs;
+}
+
+WorkerCityJobs& GenAiHelpers::jobs () {
+    GAME_EXPECT(m_jobs != nullptr, "GenAiHelpers jobs not begun");
+    return *m_jobs;
+}
+
+const GenRoadNetwork& GenAiHelpers::roads () const {
+    GAME_EXPECT(m_roads != nullptr, "GenAiHelpers roads not begun");
+    return *m_roads;
+}
+
+GenRoadNetwork& GenAiHelpers::roads () {
+    GAME_EXPECT(m_roads != nullptr, "GenAiHelpers roads not begun");
+    return *m_roads;
+}
+
 bool GenAiHelpers::build (const SpgCoordPair* starts, u32 start_n, GenAiHelpersRslt* out) {
-    GAME_EXPECT_RET(m_ok && m_map != nullptr && m_ord != nullptr, false, "GenAiHelpers build not begun");
+    GAME_EXPECT_RET(m_ok && m_map != nullptr && m_ord != nullptr && m_jobs != nullptr && m_roads != nullptr,
+        false, "GenAiHelpers build not begun");
     GenAiHelpersRslt local = {};
     GenAiHelpersRslt* r = out != nullptr ? out : &local;
     *r = {};
@@ -233,6 +277,23 @@ bool GenAiHelpers::build (const SpgCoordPair* starts, u32 start_n, GenAiHelpersR
     }
     r->m_bn_fort_n = stamp_bn_forts(*m_map, bf);
     r->m_mtn_pass_n = count_intent(*m_map, AI_TILE_OV_INTENT_MTN_PASS);
+    if (!m_jobs->build(*m_map)) {
+        return false;
+    }
+    r->m_wcj_site_n = m_jobs->site_n();
+    u32 jn = 0;
+    for (u32 i = 0; i < m_jobs->site_n(); ++i) {
+        jn += m_jobs->job_n(i);
+    }
+    r->m_wcj_job_n = jn;
+    if (!m_roads->begin(*m_map)) {
+        return false;
+    }
+    if (!m_roads->build(starts, start_n)) {
+        return false;
+    }
+    r->m_road_term_n = m_roads->term_n();
+    r->m_road_n = m_roads->road_n();
     return true;
 }
 

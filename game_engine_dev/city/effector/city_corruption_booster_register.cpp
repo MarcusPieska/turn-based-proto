@@ -15,9 +15,10 @@
 //=> - CityCorruptionBoosterRegister data -
 //================================================================================================================================
 
-const BoosterRegisterEntry CityCorruptionBoosterRegister::s_entry[2] = {
-    { { EffectEnablerKind::BUILDING, 15 }, 0, -50 }, // Courthouse (building)
-    { { EffectEnablerKind::BUILDING, 22 }, 0, -50 }, // Police Station (building)
+const BoosterRegisterEntry CityCorruptionBoosterRegister::s_entry[3] = {
+    { { EffectEnablerKind::BUILDING, 7 }, 0, -10 }, // Prefecture (building)
+    { { EffectEnablerKind::BUILDING, 17 }, 0, -50 }, // Courthouse (building)
+    { { EffectEnablerKind::BUILDING, 24 }, 0, -50 }, // Police Station (building)
 };
 
 //================================================================================================================================

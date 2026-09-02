@@ -1,0 +1,34 @@
+SCIENCE                 : 1 : Scientific
+CULTURE                 : 2 : Religious : Scientific
+HAPPINESS               : 2 : Religious
+
+COMMERCE                : 1 : Commercial
+SEA_TRADE               : 0 : Expansionist : Commercial
+RESOURCE                : 2 : Commercial : Industrious
+CIV_NAVAL_UNIT_SUPPORT  : 2 : Commercial
+CITY_NAVAL_UNIT_SUPPORT : 6 : Commercial
+
+PRODUCTION              : 0 : Industrious
+POLLUTION               : 0 : Industrious
+WORKER_DRAFT            : 0 : Industrious
+
+FOOD                    : 1 : Agricultural
+POP_GROWTH              : 0 : Agricultural
+SANITATION              : 1 : Agricultural
+
+DEFENSE                 : 4 : Militaristic
+AIR_DEFENSE             : 0 : Militaristic
+NUKE_DEFENSE            : 0 : Militaristic
+SHIP_DEFENSE            : 0 : Militaristic
+SHIP_TRAINING           : 0 : Militaristic
+UNIT_EXP                : 0 : Militaristic
+UPGRADE_COST            : 0 : Militaristic
+WAR_WEAR                : 0 : Militaristic
+CIV_LAND_UNIT_SUPPORT   : 2 : Militaristic
+CITY_LAND_UNIT_SUPPORT  : 6 : Militaristic
+
+CORRUPTION              : 0 : Expansionist
+ESPIONAGE               : 0 : Expansionist
+MOVEMENT                : 0 : Expansionist
+SHIP_MOVEMENT           : 0 : Expansionist
+AIR_RANGE               : 0 : Expansionist

@@ -48,7 +48,7 @@ def derive_req_type(prefix):
     if prefix == "toggle_city":
         return "ITEM_REQ_TYPE_FLAG"
     req_type = "ITEM_REQ_TYPE_" + prefix.upper()
-    if req_type in ("ITEM_REQ_TYPE_BUILDING", "ITEM_REQ_TYPE_CIV", "ITEM_REQ_TYPE_RESOURCE", "ITEM_REQ_TYPE_TECH"):
+    if req_type in ("ITEM_REQ_TYPE_BUILDING", "ITEM_REQ_TYPE_CIV", "ITEM_REQ_TYPE_CIV_TRAIT", "ITEM_REQ_TYPE_RESOURCE", "ITEM_REQ_TYPE_TECH"):
         return req_type
     return None
 

@@ -526,6 +526,12 @@ void TileAttributeParserTester::pr_reqs (cstr label, const ItemReqsStruct& reqs)
             } else if (m_civ_psr != NULL) {
                 fprintf(out(), "    [%u] type=%u %s (%u)", j, type, m_civ_psr->idx_to_name(idx), idx);
             }
+        } else if (type == ITEM_REQ_TYPE_CIV_TRAIT) {
+            if (m_civ_trait_sd != NULL && idx < m_civ_trait_sd->get_item_count()) {
+                fprintf(out(), "    [%u] type=%u %s (%u)", j, type, m_civ_trait_sd->get_name(CivTraitStaticDataKey::from_raw(idx)), idx);
+            } else if (m_civ_trait_psr != NULL) {
+                fprintf(out(), "    [%u] type=%u %s (%u)", j, type, m_civ_trait_psr->idx_to_name(idx), idx);
+            }
         } else if (type == ITEM_REQ_TYPE_RESOURCE) {
             if (m_resource_sd != NULL && idx < m_resource_sd->get_item_count()) {
                 fprintf(out(), "    [%u] type=%u %s (%u)", j, type, m_resource_sd->get_name(ResourceStaticDataKey::from_raw(idx)), idx);
@@ -598,6 +604,10 @@ void TileAttributeParserTester::pr_fx (cstr label, const ItemEffectsStruct& e) {
                 case ItemEffectBoosterType::WORKER_DRAFT: tname = "WORKER_DRAFT"; break;
                 case ItemEffectBoosterType::FOOD: tname = "FOOD"; break;
                 case ItemEffectBoosterType::RESOURCE: tname = "RESOURCE"; break;
+                case ItemEffectBoosterType::CIV_LAND_UNIT_SUPPORT: tname = "CIV_LAND_UNIT_SUPPORT"; break;
+                case ItemEffectBoosterType::CITY_LAND_UNIT_SUPPORT: tname = "CITY_LAND_UNIT_SUPPORT"; break;
+                case ItemEffectBoosterType::CIV_NAVAL_UNIT_SUPPORT: tname = "CIV_NAVAL_UNIT_SUPPORT"; break;
+                case ItemEffectBoosterType::CITY_NAVAL_UNIT_SUPPORT: tname = "CITY_NAVAL_UNIT_SUPPORT"; break;
                 default: break;
             }
             const char* sc = "?";

@@ -15,14 +15,14 @@
 //=> - CityCultureBoosterRegister data -
 //================================================================================================================================
 
-const BoosterRegisterEntry CityCultureBoosterRegister::s_entry[50] = {
+const BoosterRegisterEntry CityCultureBoosterRegister::s_entry[49] = {
     { { EffectEnablerKind::BUILDING, 3 }, 3, 0 }, // Library (building)
     { { EffectEnablerKind::BUILDING, 4 }, 2, 0 }, // Amphitheater (building)
     { { EffectEnablerKind::BUILDING, 5 }, 2, 0 }, // Temple (building)
-    { { EffectEnablerKind::BUILDING, 18 }, 3, 0 }, // Cathedral (building)
-    { { EffectEnablerKind::BUILDING, 19 }, 4, 0 }, // University (building)
-    { { EffectEnablerKind::BUILDING, 20 }, 2, 0 }, // Colosseum (building)
-    { { EffectEnablerKind::BUILDING, 39 }, 2, 0 }, // Research Lab (building)
+    { { EffectEnablerKind::BUILDING, 20 }, 3, 0 }, // Cathedral (building)
+    { { EffectEnablerKind::BUILDING, 21 }, 4, 0 }, // University (building)
+    { { EffectEnablerKind::BUILDING, 22 }, 2, 0 }, // Colosseum (building)
+    { { EffectEnablerKind::BUILDING, 42 }, 2, 0 }, // Research Lab (building)
     { { EffectEnablerKind::SMALL_WONDER, 0 }, 2, 0 }, // Palace (small_wonder)
     { { EffectEnablerKind::SMALL_WONDER, 1 }, 1, 0 }, // Forbidden Palace (small_wonder)
     { { EffectEnablerKind::SMALL_WONDER, 2 }, 3, 0 }, // Military Academy (small_wonder)
@@ -30,7 +30,6 @@ const BoosterRegisterEntry CityCultureBoosterRegister::s_entry[50] = {
     { { EffectEnablerKind::SMALL_WONDER, 4 }, 3, 0 }, // Battlefield Medicine (small_wonder)
     { { EffectEnablerKind::SMALL_WONDER, 5 }, 3, 0 }, // Wall Street (small_wonder)
     { { EffectEnablerKind::SMALL_WONDER, 7 }, 3, 0 }, // Apollo Program (small_wonder)
-    { { EffectEnablerKind::SMALL_WONDER, 8 }, 3, 0 }, // Ironworks (small_wonder)
     { { EffectEnablerKind::SMALL_WONDER, 9 }, 3, 0 }, // National College (small_wonder)
     { { EffectEnablerKind::SMALL_WONDER, 10 }, 3, 0 }, // National Epic (small_wonder)
     { { EffectEnablerKind::SMALL_WONDER, 11 }, 3, 0 }, // Heroic Epic (small_wonder)

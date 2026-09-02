@@ -222,7 +222,7 @@ def generate_one (booster_tp, scope):
 def cleanup_stale_generated (stems_written):
     stems_written = set(stems_written)
     for fn in os.listdir(THIS_DIR):
-        if fn.startswith("TEMPLATE_"):
+        if fn.startswith("TEMPLATE_") or fn.startswith("dyn_booster_register"):
             continue
         for suf in GENERATED_SUFFIXES:
             if not fn.endswith(suf):

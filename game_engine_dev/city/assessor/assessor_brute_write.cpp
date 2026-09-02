@@ -76,6 +76,13 @@ static cstr civ_nm (const StaticParsingManager& mgr, u16 idx) {
     return mgr.get_civ_name_parser().idx_to_name(idx);
 }
 
+static cstr civ_trait_nm (const StaticParsingManager& mgr, u16 idx) {
+    if (idx >= mgr.get_civ_trait_count()) {
+        return "";
+    }
+    return mgr.get_civ_trait_name_parser().idx_to_name(idx);
+}
+
 static void pr_en_section (FILE* out, cstr title, const EnSlot* slots, u32 slot_count, const StaticParsingManager& mgr, cstr (*get_prereq_nm) (const StaticParsingManager&, u16), const BruteRunCfg& cfg) {
     u32 mx = max_nm_len_slots(slots, slot_count, mgr, get_prereq_nm);
     u32 pad = mx + 1;
@@ -171,6 +178,12 @@ void AssessorBruteWrite::emit_reqs (FILE* out, const InferredReqs& ir, const Sta
             emit_req_tok(out, "civ", mgr.get_civ_name_parser().idx_to_name(ix), 0);
         }
     }
+    for (u8 i = 0; i < ir.m_civ_trait_n; ++i) {
+        u16 ix = ir.m_civ_trait[i];
+        if (ix < mgr.get_civ_trait_count()) {
+            emit_req_tok(out, "trait", mgr.get_civ_trait_name_parser().idx_to_name(ix), 0);
+        }
+    }
 }
 
 void AssessorBruteWrite::write_readable (FILE* out, const EnablesMap& en, const StaticParsingManager& mgr, const BruteRunCfg& cfg) {
@@ -182,6 +195,7 @@ void AssessorBruteWrite::write_readable (FILE* out, const EnablesMap& en, const 
     pr_en_section(out, "BUILDINGS", en.m_building, en.m_building_count, mgr, building_nm, cfg);
     pr_en_section(out, "FLAGS", en.m_toggle_city, en.m_toggle_city_count, mgr, toggle_city_nm, cfg);
     pr_en_section(out, "CIVS", en.m_civ, en.m_civ_count, mgr, civ_nm, cfg);
+    pr_en_section(out, "TRAITS", en.m_civ_trait, en.m_civ_trait_count, mgr, civ_trait_nm, cfg);
 }
 
 //================================================================================================================================

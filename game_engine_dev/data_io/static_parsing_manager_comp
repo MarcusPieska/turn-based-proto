@@ -24,6 +24,8 @@ g++ $INC -c ../static_state/unit_type_action_map.cpp -o unit_type_action_map.o
 g++ $INC -c unit_type_action_map_parsing.cpp -o unit_type_action_map_parsing.o
 g++ $INC -c ../static_state/civ_bld_discount_map.cpp -o civ_bld_discount_map.o
 g++ $INC -c civ_bld_discount_map_parsing.cpp -o civ_bld_discount_map_parsing.o
+g++ $INC $CXXFLAGS -c ../static_state/trait_affinity_map.cpp -o trait_affinity_map.o
+g++ $INC $CXXFLAGS -c trait_affinity_map_parsing.cpp -o trait_affinity_map_parsing.o
 g++ $INC -c building_parser.cpp -o building_parser.o
 g++ $INC -c toggle_city_parser.cpp -o toggle_city_parser.o
 g++ $INC -c toggle_civ_parser.cpp -o toggle_civ_parser.o
@@ -145,6 +147,8 @@ g++ $CXXFLAGS -o static_parsing_manager_tester \
     unit_type_action_map_parsing.o \
     civ_bld_discount_map.o \
     civ_bld_discount_map_parsing.o \
+    trait_affinity_map.o \
+    trait_affinity_map_parsing.o \
     building_parser.o \
     toggle_city_parser.o \
     toggle_civ_parser.o \
@@ -265,6 +269,8 @@ g++ $INC -c ../static_state/unit_type_action_map.cpp -o unit_type_action_map.o
 g++ $INC -c unit_type_action_map_parsing.cpp -o unit_type_action_map_parsing.o
 g++ $INC -c ../static_state/civ_bld_discount_map.cpp -o civ_bld_discount_map.o
 g++ $INC -c civ_bld_discount_map_parsing.cpp -o civ_bld_discount_map_parsing.o
+g++ $INC $CXXFLAGS -c ../static_state/trait_affinity_map.cpp -o trait_affinity_map.o
+g++ $INC $CXXFLAGS -c trait_affinity_map_parsing.cpp -o trait_affinity_map_parsing.o
 g++ $INC -c building_parser.cpp -o building_parser.o
 g++ $INC -c toggle_city_parser.cpp -o toggle_city_parser.o
 g++ $INC -c toggle_civ_parser.cpp -o toggle_civ_parser.o
@@ -386,6 +392,8 @@ g++ $CXXFLAGS $OPT -o static_parsing_manager_opt_tester \
     unit_type_action_map_parsing.o \
     civ_bld_discount_map.o \
     civ_bld_discount_map_parsing.o \
+    trait_affinity_map.o \
+    trait_affinity_map_parsing.o \
     building_parser.o \
     toggle_city_parser.o \
     toggle_civ_parser.o \
@@ -507,6 +515,8 @@ rm \
     unit_type_action_map_parsing.o \
     civ_bld_discount_map.o \
     civ_bld_discount_map_parsing.o \
+    trait_affinity_map.o \
+    trait_affinity_map_parsing.o \
     building_parser.o \
     toggle_city_parser.o \
     toggle_civ_parser.o \

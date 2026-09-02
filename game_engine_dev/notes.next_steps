@@ -23,3 +23,4 @@ Map generation:
 AI procedures:
  - We have AI worker manager options; we need to prove they help the AI, or else remove them.
  - The AI will have to produce workers in cities every now and then. 
+ - We need a faster worker turn handler regarding roads.

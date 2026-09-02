@@ -13,6 +13,7 @@
 #include "civ_trait_affinity.h"
 #include "tech_static_data.h"
 #include "tech_trait_attribution.h"
+#include "trait_affinity_map.h"
 
 //================================================================================================================================
 //=> - Statics -
@@ -52,10 +53,10 @@ static int ord_cmp (const void* a, const void* b) {
 //=> - TechTraitOrderings -
 //================================================================================================================================
 
-bool TechTraitOrderings::begin (const TechStaticData& techs, const BuildingStaticData& blds) {
+bool TechTraitOrderings::begin (const TechStaticData& techs, const BuildingStaticData& blds, const TraitAffinityMap& aff) {
     clear();
     if (!TechTraitAttribution::ready()) {
-        if (!TechTraitAttribution::begin(techs, blds)) {
+        if (!TechTraitAttribution::begin(techs, blds, aff)) {
             return false;
         }
     }

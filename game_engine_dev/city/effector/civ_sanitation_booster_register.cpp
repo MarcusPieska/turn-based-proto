@@ -17,10 +17,10 @@
 
 const BoosterRegisterEntry CivSanitationBoosterRegister::s_entry[8] = {
     { { EffectEnablerKind::SMALL_WONDER, 17 }, 2, 0 }, // National Serum Institute (small_wonder)
-    { { EffectEnablerKind::TECH, 52 }, 1, 0 }, // Germ Theory (tech)
-    { { EffectEnablerKind::TECH, 54 }, 1, 0 }, // Mass Immunization (tech)
-    { { EffectEnablerKind::TECH, 56 }, 1, 0 }, // Antibiotics (tech)
-    { { EffectEnablerKind::TECH, 57 }, 1, 0 }, // Thermal Sterilization (tech)
+    { { EffectEnablerKind::TECH, 57 }, 1, 0 }, // Germ Theory (tech)
+    { { EffectEnablerKind::TECH, 59 }, 1, 0 }, // Mass Immunization (tech)
+    { { EffectEnablerKind::TECH, 61 }, 1, 0 }, // Antibiotics (tech)
+    { { EffectEnablerKind::TECH, 62 }, 1, 0 }, // Thermal Sterilization (tech)
     { { EffectEnablerKind::WONDER, 20 }, 4, 0 }, // Jennerian Society (wonder)
     { { EffectEnablerKind::WONDER, 21 }, 4, 0 }, // The Pasteur Institute (wonder)
     { { EffectEnablerKind::WONDER, 22 }, 4, 0 }, // Salk Laboratories (wonder)

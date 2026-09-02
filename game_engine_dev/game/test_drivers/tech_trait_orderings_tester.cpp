@@ -96,7 +96,7 @@ static void test_orderings () {
     if (g_rt_statics == nullptr) {
         return;
     }
-    note_result(TechTraitOrderings::begin(g_rt_statics->tech(), g_rt_statics->building()), "begin orderings");
+    note_result(TechTraitOrderings::begin(g_rt_statics->tech(), g_rt_statics->building(), g_rt_statics->trait_affinity_map()), "begin orderings");
     note_result(TechTraitOrderings::ready(), "orderings ready");
     const u16 n = TechTraitOrderings::tech_n();
     note_result(n == g_rt_statics->tech().get_item_count(), "tech_n matches");

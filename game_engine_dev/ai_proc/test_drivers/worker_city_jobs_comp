@@ -1,0 +1,81 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")"
+
+INC="-I../.. -I.. -I../../map_loader -I../../simple_map_gen -I../../adv_map_gen -I../../city -I../../city/effector -I../../game -I../../misc -I../../data_io -I../../static_state -I../../dyn_state -I../../gen_bit_banks -I../../ai_pathing/walk_general"
+CXXFLAGS="-std=c++17 -Wall -Wextra"
+
+g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
+g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_data.cpp -o map_terrain_data.o
+g++ $CXXFLAGS $INC -c ../../map_loader/map_loader.cpp -o map_loader.o
+g++ $CXXFLAGS $INC -c ../../map_loader/starting_point_generator.cpp -o starting_point_generator.o
+g++ $CXXFLAGS $INC -c ../../simple_map_gen/perlin_noise.cpp -o perlin_noise.o
+g++ $CXXFLAGS $INC -c ../../simple_map_gen/generator_constants.cpp -o generator_constants.o
+g++ $CXXFLAGS $INC -c ../../game/runtime_trace_dbg.cpp -o runtime_trace_dbg.o
+g++ $CXXFLAGS $INC -c ../../misc/assert_log.cpp -o assert_log.o
+g++ $CXXFLAGS $INC -c ../../misc/whiteboard_mng.cpp -o whiteboard_mng.o
+g++ $CXXFLAGS $INC -c game_array_simple_link_stubs.cpp -o game_array_simple_link_stubs.o
+g++ $CXXFLAGS $INC -c ../../game/game_array_simple.cpp -o game_array_simple.o
+g++ $CXXFLAGS $INC -c ../../game/factory_game_array_simple.cpp -o factory_game_array_simple.o
+g++ $CXXFLAGS $INC -c ../../game/settle_rules.cpp -o settle_rules.o
+g++ $CXXFLAGS $INC -c ../../city/city_border.cpp -o city_border.o
+g++ $CXXFLAGS $INC -c ../../city/circular_tile_areas.cpp -o circular_tile_areas.o
+g++ $CXXFLAGS $INC -c ../../city/city_blocking_mask.cpp -o city_blocking_mask.o
+g++ $CXXFLAGS $INC -c ../sense_settling_pts_opt_stubs.cpp -o sense_settling_pts_opt_stubs.o
+g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_general/sector_network.cpp -o sector_network.o
+g++ $CXXFLAGS $INC -c ../gen_settlement_targets.cpp -o gen_settlement_targets.o
+g++ $CXXFLAGS $INC -c ../gen_mtn_passes.cpp -o gen_mtn_passes.o
+g++ $CXXFLAGS $INC -c ../gen_walkable_sectors.cpp -o gen_walkable_sectors.o
+g++ $CXXFLAGS $INC -c ../gen_bottleneck_markers.cpp -o gen_bottleneck_markers.o
+g++ $CXXFLAGS $INC -c ../gen_bottleneck_forts.cpp -o gen_bottleneck_forts.o
+g++ $CXXFLAGS $INC -c ../gen_settlement_order.cpp -o gen_settlement_order.o
+g++ $CXXFLAGS $INC -c ../worker_city_jobs.cpp -o worker_city_jobs.o
+g++ $CXXFLAGS $INC -c ../gen_road_network.cpp -o gen_road_network.o
+g++ $CXXFLAGS $INC -c ../gen_ai_helpers.cpp -o gen_ai_helpers.o
+g++ $CXXFLAGS $INC -c worker_city_jobs_tester.cpp -o worker_city_jobs_tester.o
+
+g++ $CXXFLAGS -o worker_city_jobs_tester \
+    map_terrain_validate.o \
+    map_terrain_data.o \
+    map_loader.o \
+    starting_point_generator.o \
+    perlin_noise.o \
+    generator_constants.o \
+    runtime_trace_dbg.o \
+    assert_log.o \
+    whiteboard_mng.o \
+    game_array_simple_link_stubs.o \
+    game_array_simple.o \
+    factory_game_array_simple.o \
+    settle_rules.o \
+    city_border.o \
+    circular_tile_areas.o \
+    city_blocking_mask.o \
+    sense_settling_pts_opt_stubs.o \
+    sector_network.o \
+    gen_settlement_targets.o \
+    gen_settlement_order.o \
+    gen_mtn_passes.o \
+    gen_walkable_sectors.o \
+    gen_bottleneck_markers.o \
+    gen_bottleneck_forts.o \
+    worker_city_jobs.o \
+    gen_road_network.o \
+    gen_ai_helpers.o \
+    worker_city_jobs_tester.o \
+    -lm
+
+./worker_city_jobs_tester "$@"
+RC=$?
+
+rm -f map_terrain_validate.o map_terrain_data.o map_loader.o starting_point_generator.o \
+    perlin_noise.o generator_constants.o runtime_trace_dbg.o assert_log.o whiteboard_mng.o \
+    game_array_simple_link_stubs.o game_array_simple.o factory_game_array_simple.o \
+    settle_rules.o city_border.o circular_tile_areas.o city_blocking_mask.o \
+    sense_settling_pts_opt_stubs.o sector_network.o gen_settlement_targets.o gen_settlement_order.o \
+    gen_mtn_passes.o gen_walkable_sectors.o gen_bottleneck_markers.o gen_bottleneck_forts.o \
+    worker_city_jobs.o gen_road_network.o gen_ai_helpers.o \
+    worker_city_jobs_tester.o worker_city_jobs_tester
+
+exit $RC

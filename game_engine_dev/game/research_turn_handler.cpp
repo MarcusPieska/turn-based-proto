@@ -40,12 +40,21 @@ static void pick_target (PlayerState& ps, const RuntimeStatics& st) {
     BitArrayCL resource(st.resource().get_item_count());
     BitArrayCL building(st.building().get_item_count());
     BitArrayCL toggle_city(st.toggle_city().get_item_count());
-    BitArrayCL civ(st.civ().get_item_count());
-    for (u32 i = 0; i < resource.get_count(); ++i) {
+    BitArrayCL civ(st.civ().get_item_count()); 
+    for (u32 i = 0; i < resource.get_count(); ++i) { 
         resource.set_bit(i);
     }
     GAME_EXPECT(ps.m_civ_index < civ.get_count(), "ResearchTurnHandler pick_target civ index");
     civ.set_bit(ps.m_civ_index);
+    BitArrayCL civ_trait(st.civ_trait().get_item_count());
+    GAME_EXPECT(ps.m_civ_index < st.civ().get_item_count(), "ResearchTurnHandler pick_target civ row");
+    const CivStaticDataStruct& civ_row = st.civ().get_item(CivStaticDataKey::from_raw(ps.m_civ_index));
+    for (u32 t = 0; t < MAX_CIV_TRAIT_COUNT; ++t) {
+        const u16 tix = civ_row.traits.indices[t];
+        if (tix != U16_KEY_NULL && tix < civ_trait.get_count()) {
+            civ_trait.set_bit(tix);
+        }
+    }
     AssessorCtx ctx = {};
     ctx.m_tech = ps.m_techs_researched;
     ctx.m_civ = &civ;
@@ -56,13 +65,12 @@ static void pick_target (PlayerState& ps, const RuntimeStatics& st) {
     ctx.m_resource = &resource;
     ctx.m_building = &building;
     ctx.m_toggle_city = &toggle_city;
+    ctx.m_civ_trait = &civ_trait;
     BitArrayCL available(tech_n);
     const TechStaticDataStruct* items = &st.tech().get_item(TechStaticDataKey::from_raw(0));
     GeneralAssessor::assess_tech(&available, tech_n, items, ctx);
     clr_owned(available, *ps.m_techs_researched);
 
-    GAME_EXPECT(ps.m_civ_index < st.civ().get_item_count(), "ResearchTurnHandler pick_target civ row");
-    const CivStaticDataStruct& civ_row = st.civ().get_item(CivStaticDataKey::from_raw(ps.m_civ_index));
     const CivTrait trait = static_cast<CivTrait>(civ_row.traits.indices[0]);
     GAME_EXPECT(TechTraitOrderings::ready(), "ResearchTurnHandler pick_target orderings");
     const u16 pick = TechTraitOrderings::pick(available, static_cast<u16>(trait));

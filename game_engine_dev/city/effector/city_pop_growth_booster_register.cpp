@@ -17,9 +17,9 @@
 
 const BoosterRegisterEntry CityPopGrowthBoosterRegister::s_entry[5] = {
     { { EffectEnablerKind::BUILDING, 2 }, 0, 50 }, // Granary (building)
-    { { EffectEnablerKind::BUILDING, 10 }, 0, 100 }, // Aqueduct (building)
-    { { EffectEnablerKind::BUILDING, 28 }, 0, 150 }, // Hospital (building)
-    { { EffectEnablerKind::BUILDING, 34 }, 0, 100 }, // Pasteurization Plant (building)
+    { { EffectEnablerKind::BUILDING, 12 }, 0, 100 }, // Aqueduct (building)
+    { { EffectEnablerKind::BUILDING, 30 }, 0, 150 }, // Hospital (building)
+    { { EffectEnablerKind::BUILDING, 36 }, 0, 100 }, // Pasteurization Plant (building)
     { { EffectEnablerKind::WONDER, 27 }, 0, 50 }, // Cure for Cancer (wonder)
 };
 

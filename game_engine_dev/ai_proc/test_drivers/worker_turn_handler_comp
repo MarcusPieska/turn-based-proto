@@ -119,6 +119,8 @@ g++ $CXXFLAGS $INC -c ../gen_walkable_sectors.cpp -o gen_walkable_sectors.o
 g++ $CXXFLAGS $INC -c ../gen_bottleneck_markers.cpp -o gen_bottleneck_markers.o
 g++ $CXXFLAGS $INC -c ../gen_bottleneck_forts.cpp -o gen_bottleneck_forts.o
 g++ $CXXFLAGS $INC -c ../gen_ai_helpers.cpp -o gen_ai_helpers.o
+g++ $CXXFLAGS $INC -c ../worker_city_jobs.cpp -o worker_city_jobs.o
+g++ $CXXFLAGS $INC -c ../gen_road_network.cpp -o gen_road_network.o
 g++ $CXXFLAGS $INC -c ../linear_bld.cpp -o linear_bld.o
 g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_cities/city_network.cpp -o city_network.o
 g++ $CXXFLAGS $INC -c ../city_connector.cpp -o city_connector.o
@@ -221,6 +223,8 @@ g++ $CXXFLAGS -o worker_turn_handler_tester \
     gen_bottleneck_markers.o \
     gen_bottleneck_forts.o \
     gen_ai_helpers.o \
+    worker_city_jobs.o \
+    gen_road_network.o \
     linear_bld.o \
     settler_turn_handler.o \
     worker_turn_handler.o \
@@ -265,4 +269,4 @@ rm -f runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_load
     combat_mods.o std_add_helper.o research_turn_handler.o city_sanitation_booster_register.o civ_sanitation_booster_register.o \
     settler_mission_manager.o gen_settlement_order.o gen_settlement_targets.o \
     gen_mtn_passes.o gen_walkable_sectors.o gen_bottleneck_markers.o gen_bottleneck_forts.o gen_ai_helpers.o \
-    linear_bld.o city_tracer.o \
+    worker_city_jobs.o gen_road_network.o linear_bld.o city_tracer.o \

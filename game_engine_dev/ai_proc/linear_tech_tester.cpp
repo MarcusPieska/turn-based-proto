@@ -66,6 +66,10 @@ int main () {
     for (u32 i = 0; i < civ.get_count(); ++i) {
         civ.set_bit(i);
     }
+    BitArrayCL civ_trait(mgr.get_civ_trait_count());
+    for (u32 i = 0; i < civ_trait.get_count(); ++i) {
+        civ_trait.set_bit(i);
+    }
 
     AssessorCtx ctx = {};
     ctx.m_tech = &owned;
@@ -77,6 +81,7 @@ int main () {
     ctx.m_resource = &resource;
     ctx.m_building = &building;
     ctx.m_toggle_city = &toggle_city;
+    ctx.m_civ_trait = &civ_trait;
 
     u32 step = 0;
     u64 pick_ns = 0;

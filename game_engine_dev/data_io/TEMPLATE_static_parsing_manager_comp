@@ -21,6 +21,7 @@ g++ $INC $CXXFLAGS -c item_effect_handler.cpp -o item_effect_handler.o
 g++ $INC $CXXFLAGS -c item_effect_helpers.cpp -o item_effect_helpers.o
 g++ $INC $CXXFLAGS -c ../static_state/static_bit_bank.cpp -o static_bit_bank.o
 [STATIC_PARSE_COMP_COMPILE_MAPS_TAG]
+[STATIC_PARSE_COMP_COMPILE_TABLES_TAG]
 [STATIC_PARSE_COMP_COMPILE_PARSERS_TAG]
 [STATIC_PARSE_COMP_COMPILE_HOLDERS_TAG]
 [STATIC_PARSE_COMP_COMPILE_EFFECTORS_TAG]
@@ -38,6 +39,7 @@ g++ $CXXFLAGS -o static_parsing_manager_tester \
     data_parser_base.o \
     static_bit_bank.o \
     [STATIC_PARSE_COMP_LINK_MAPS_TAG]
+    [STATIC_PARSE_COMP_LINK_TABLES_TAG]
     [STATIC_PARSE_COMP_LINK_PARSERS_TAG]
     [STATIC_PARSE_COMP_LINK_HOLDERS_TAG]
     [STATIC_PARSE_COMP_LINK_EFFECTORS_TAG]
@@ -54,6 +56,7 @@ g++ $INC $CXXFLAGS $OPT -c item_effect_handler.cpp -o item_effect_handler.o
 g++ $INC $CXXFLAGS $OPT -c item_effect_helpers.cpp -o item_effect_helpers.o
 g++ $INC $CXXFLAGS $OPT -c ../static_state/static_bit_bank.cpp -o static_bit_bank.o
 [STATIC_PARSE_COMP_COMPILE_MAPS_TAG]
+[STATIC_PARSE_COMP_COMPILE_TABLES_TAG]
 [STATIC_PARSE_COMP_COMPILE_PARSERS_TAG]
 [STATIC_PARSE_COMP_COMPILE_HOLDERS_TAG]
 [STATIC_PARSE_COMP_COMPILE_EFFECTORS_TAG]
@@ -71,6 +74,7 @@ g++ $CXXFLAGS $OPT -o static_parsing_manager_opt_tester \
     data_parser_base.o \
     static_bit_bank.o \
     [STATIC_PARSE_COMP_LINK_MAPS_TAG]
+    [STATIC_PARSE_COMP_LINK_TABLES_TAG]
     [STATIC_PARSE_COMP_LINK_PARSERS_TAG]
     [STATIC_PARSE_COMP_LINK_HOLDERS_TAG]
     [STATIC_PARSE_COMP_LINK_EFFECTORS_TAG]
@@ -88,6 +92,7 @@ rm \
     data_parser_base.o \
     static_bit_bank.o \
     [STATIC_PARSE_COMP_CLEAN_MAPS_TAG]
+    [STATIC_PARSE_COMP_CLEAN_TABLES_TAG]
     [STATIC_PARSE_COMP_CLEAN_PARSERS_TAG]
     [STATIC_PARSE_COMP_CLEAN_HOLDERS_TAG]
     [STATIC_PARSE_COMP_CLEAN_EFFECTORS_TAG]

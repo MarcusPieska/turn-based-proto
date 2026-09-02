@@ -1,0 +1,57 @@
+Statics validation — design notes for a unified game-data integrity driver.
+
+Purpose:
+  One command that parses all game_config.* files and cross-validates every catalog reference (names resolved, indices in range, maps consistent). Intended for day-to-day development and modding: edit config, run validator, see failures immediately — without compiling the game or running the full test matrix.
+
+User requirements (fixed):
+  1) Specs must come from gen_data_io (PARSER_SPECS in generate.py) and the Python helpers in that tree (generater_commons, generate_parse_manager, generate_runtime_statics, etc.). Do not duplicate catalog lists in a second registry; derive validation targets from the same single source used for parser/holder codegen.
+  2) The driver lives in its own folder: data_io_valid/ (sibling to data_io/, gen_data_io/, static_state/). Keep it separate from per-parser testers and from runtime_statics/loaders so it can be built and run quickly with minimal deps.
+  3) Instant feedback while developing or modding game data. Target workflow: from game_engine_dev/, run one comp or script after editing any game_config.* file; exit non-zero on first batch of errors with file/line/name context where possible.
+
+Current state (what exists today, scattered):
+  - static_parsing_manager_tester / runtime_statics_tester: parse-all + ItemReqsStruct index bounds for nine datasets (hardcoded in generater_commons.get_req_test_stems), plus unit_type_action_map and civ_bld_discount_map dimension checks.
+  - 28× *_parser_tester: full callback wiring per catalog; golden output via results_validate.py (RESULTS_NEW_* vs RESULTS_VALID_*) — regression, not a single cross-ref audit.
+  - Nine root-level validate_*.py scripts: pairwise text checks (civ×trait, units×type/role/res, wonder×tech/res, resources×dist×type, worker_job_imps×…, etc.); no orchestrator.
+  - item_effect_handler_tester: parses every game_config.effects line; does not systematically bounds-check effect target ids.
+  - Assessor brute + assessor_results_validate.py: infers ItemReqsStruct semantics; separate concern.
+  Gap: no one driver validates all reference kinds; get_req_test_stems() drifts from PARSER_SPECS.
+
+Proposed data_io_valid/ layout:
+  - gen_validate.py          — reads PARSER_SPECS + map specs + effect-ref metadata; emits C++ (and optionally a thin run wrapper).
+  - TEMPLATE_cross_validate_tester.cpp / .h (or similar) — template filled by gen_validate.py.
+  - cross_validate_comp        — fast compile: StaticParsingManager (or slim loader), generated tester, minimal link set.
+  - run_validate.py (optional) — one-liner from repo root; forwards to built binary with path to game_engine_dev.
+
+What to generate from PARSER_SPECS (phase 1 — mostly mechanical):
+  Walk parsing_instructions for each stem. For each field type:
+    - ItemReqsStruct     → every slot: type-specific catalog bound (tech, resource, flag, civ, trait, building, tile kinds).
+    - *ColIdx, *Idx, enum parser types (UnitType, UnitRole, ResType, WorkerJobTarget, …) → idx < get_<stem>_count() and idx != U16_KEY_NULL.
+    - CivTraitStruct     → each trait index < civ_trait_count.
+  Emit one test block per dataset that has any ref-typed fields (not the current hardcoded nine). Derive the list from PARSER_SPECS, not get_req_test_stems().
+
+Phase 2 — effects and nested refs:
+  ItemEffectsStruct fields are not in the colon-field grammar; add EFFECT_REF_SPECS (or extend generate_item_effects.py) mapping effect subtype → target catalog (build→building, train→unit, set_flag→toggle_city, enable→…, produce→resource, etc.). Generate bounds loops over parsed effect slots on building, tech, wonder, small_wonder, city_job, worker_job_imp rows.
+
+Phase 3 — optional / manual (specs insufficient):
+  - Map bank semantics (civ_trait discount matrix vs civ_traits file content).
+  - ResPlacement quad rules, CombatModList, game_config.settings start units.
+  - Parse-time vs post-parse: StaticParsingManager may leave U16_KEY_NULL for bad names without aborting; validator should report null indices explicitly as "unresolved reference".
+
+Implementation notes:
+  - Prefer generated C++ using real parsers and NameToIdxCbs (same as StaticParsingManager) over re-parsing tokens in Python.
+  - Reuse PathMng for file existence; fail fast if game_config.* missing.
+  - Output: concise stderr lines (dataset, row index, field, bad id/name). Optional -v for full context.
+  - Wire into data_io/run_all_tests.py only after data_io_valid is stable; primary entry remains instant standalone run for modders.
+  - Replacing validate_*.py: phase 1+2 cover most; delete or thin-wrap scripts once cross_validate passes the same checks.
+
+Rough effort (for when we pick this up):
+  Phase 1 codegen + data_io_valid shell: ~1–2 days.
+  Phase 2 effects: ~2–3 days.
+  Phase 3 semantic checks: as needed, partly hand-written.
+
+Related files:
+  gen_data_io/generate.py          — PARSER_SPECS, REF_PARSER_DEPS, parsing_instructions grammar
+  data_io/generater_commons.py     — get_entries(), get_req_test_stems() (to be derived from specs, not duplicated)
+  data_io/generate_parse_manager.py — existing req-bounds codegen pattern to extend or move
+  data_io/static_parsing_manager_tester.cpp — reference implementation for parse-all + bounds
+  notes.statics_pipeline             — how new catalogs enter the pipeline (validation should auto-follow)

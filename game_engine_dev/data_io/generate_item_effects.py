@@ -52,6 +52,10 @@ ie_booster_type_enum.append("SANITATION")
 ie_booster_type_enum.append("WORKER_DRAFT")
 ie_booster_type_enum.append("FOOD")
 ie_booster_type_enum.append("RESOURCE")
+ie_booster_type_enum.append("CIV_LAND_UNIT_SUPPORT")
+ie_booster_type_enum.append("CITY_LAND_UNIT_SUPPORT")
+ie_booster_type_enum.append("CIV_NAVAL_UNIT_SUPPORT")
+ie_booster_type_enum.append("CITY_NAVAL_UNIT_SUPPORT")
 
 ie_terrain_yield_enum = []
 ie_terrain_yield_enum.append("NONE")

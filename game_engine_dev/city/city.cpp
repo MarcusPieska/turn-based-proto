@@ -8,6 +8,8 @@
 #include "general_bit_bank.h"
 #include "runtime_statics.h"
 #include "building_static_key.h"
+#include "civ_static_data.h"
+#include "civ_static_key.h"
 #include "toggle_city_static_key.h"
 #include "small_wonder_static_key.h"
 #include "unit_static_key.h"
@@ -62,13 +64,14 @@ static BitArrayCL* s_scratch_bld = nullptr;
 static BitArrayCL* s_scratch_wonder = nullptr;
 static BitArrayCL* s_scratch_sw = nullptr;
 static BitArrayCL* s_scratch_unit = nullptr;
+static BitArrayCL* s_civ_trait_scratch = nullptr;
 static u16 s_flag_has_wonder = U16_KEY_NULL;
 static u16 s_flag_has_wonder_small = U16_KEY_NULL;
 static u16 s_wonder_n = 0;
 static u16 s_small_wonder_n = 0;
 
 static const u16 k_act_is_land = 0u;
-static const u16 k_act_is_sea = 2u;
+static const u16 k_act_is_sea = 2u; 
 
 //================================================================================================================================
 //=> - BuildType -
@@ -87,7 +90,31 @@ typedef enum BuildType : u8 {
 //=> - Helpers -
 //================================================================================================================================
 
+static void fill_civ_trait_scratch (BitArrayCL* civ) {
+    if (s_civ_trait_scratch == nullptr) {
+        return;
+    }
+    s_civ_trait_scratch->clear_all();
+    if (s_statics == nullptr || civ == nullptr) {
+        return;
+    }
+    for (u32 i = 0; i < civ->get_count(); ++i) {
+        if (civ->get_bit(i) == 0) {
+            continue;
+        }
+        const CivTraitStruct& tr = s_statics->civ().get_item(CivStaticDataKey::from_raw(i)).traits;
+        for (u32 t = 0; t < MAX_CIV_TRAIT_COUNT; ++t) {
+            const u16 tix = tr.indices[t];
+            if (tix != U16_KEY_NULL && tix < s_civ_trait_scratch->get_count()) {
+                s_civ_trait_scratch->set_bit(tix);
+            }
+        }
+        return;
+    }
+}
+
 static AssessorCtx make_city_ctx (u16 city_idx, BitArrayCL* techs, BitArrayCL* civ) {
+    fill_civ_trait_scratch(civ);
     AssessorCtx ctx = {};
     ctx.m_tech = techs;
     ctx.m_civ = civ;
@@ -95,6 +122,7 @@ static AssessorCtx make_city_ctx (u16 city_idx, BitArrayCL* techs, BitArrayCL* c
     ctx.m_resource_bank = s_res_bank;
     ctx.m_building_bank = s_bld_bank;
     ctx.m_toggle_city_bank = s_flag_bank;
+    ctx.m_civ_trait = s_civ_trait_scratch;
     return ctx;
 }
 
@@ -233,6 +261,10 @@ void City::bind_statics (const RuntimeStatics& st) {
     if (unit_n > 0) {
         s_scratch_unit = new BitArrayCL(unit_n);
     }
+    const u16 trait_n = st.civ_trait().get_item_count();
+    if (trait_n > 0) {
+        s_civ_trait_scratch = new BitArrayCL(trait_n);
+    }
     s_flag_has_wonder = find_toggle_city_idx("HAS_WONDER");
     s_flag_has_wonder_small = find_toggle_city_idx("HAS_WONDER_SMALL");
     s_wonder_n = wonder_n;
@@ -244,10 +276,12 @@ void City::clear_assess_scratch () {
     delete s_scratch_wonder;
     delete s_scratch_sw;
     delete s_scratch_unit;
+    delete s_civ_trait_scratch;
     s_scratch_bld = nullptr;
     s_scratch_wonder = nullptr;
     s_scratch_sw = nullptr;
     s_scratch_unit = nullptr;
+    s_civ_trait_scratch = nullptr;
 }
 
 void City::bind_banks (GeneralBitBank* flags, GeneralBitBank* resources, GeneralBitBank* buildings) {

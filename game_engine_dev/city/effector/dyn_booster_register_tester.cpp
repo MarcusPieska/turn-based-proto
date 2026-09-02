@@ -160,17 +160,21 @@ static void scan_bucket (const DynBoosterRegister& reg, BoosterRegisterToggleEnv
 int main (int argc, char** argv) {
     ItemEffectBoosterType filter_tp = ItemEffectBoosterType::NONE;
     ItemEffectsScope filter_sc = ItemEffectsScope::NONE;
-    if (argc >= 2) {
-        filter_tp = ItemEffectHelper::booster_type_str_to_enum(argv[1]);
+    int arg_i = 1;
+    if (argc >= 2 && std::strcmp(argv[1], "0") == 0) {
+        arg_i = 2;
+    }
+    if (argc >= arg_i + 1) {
+        filter_tp = ItemEffectHelper::booster_type_str_to_enum(argv[arg_i]);
         if (filter_tp == ItemEffectBoosterType::NONE) {
-            std::printf("unknown booster type '%s'\n", argv[1]);
+            std::printf("unknown booster type '%s'\n", argv[arg_i]);
             return 1;
         }
     }
-    if (argc >= 3) {
-        filter_sc = ItemEffectHelper::effects_scope_str_to_enum(argv[2]);
+    if (argc >= arg_i + 2) {
+        filter_sc = ItemEffectHelper::effects_scope_str_to_enum(argv[arg_i + 1]);
         if (filter_sc == ItemEffectsScope::NONE) {
-            std::printf("unknown scope '%s'\n", argv[2]);
+            std::printf("unknown scope '%s'\n", argv[arg_i + 1]);
             return 1;
         }
     }

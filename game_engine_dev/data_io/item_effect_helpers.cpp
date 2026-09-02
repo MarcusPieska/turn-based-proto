@@ -74,6 +74,10 @@ ItemEffectBoosterType ItemEffectHelper::booster_type_str_to_enum (cstr s) {
     if (s && std::strcmp(s, "WORKER_DRAFT") == 0) { return ItemEffectBoosterType::WORKER_DRAFT; }
     if (s && std::strcmp(s, "FOOD") == 0) { return ItemEffectBoosterType::FOOD; }
     if (s && std::strcmp(s, "RESOURCE") == 0) { return ItemEffectBoosterType::RESOURCE; }
+    if (s && std::strcmp(s, "CIV_LAND_UNIT_SUPPORT") == 0) { return ItemEffectBoosterType::CIV_LAND_UNIT_SUPPORT; }
+    if (s && std::strcmp(s, "CITY_LAND_UNIT_SUPPORT") == 0) { return ItemEffectBoosterType::CITY_LAND_UNIT_SUPPORT; }
+    if (s && std::strcmp(s, "CIV_NAVAL_UNIT_SUPPORT") == 0) { return ItemEffectBoosterType::CIV_NAVAL_UNIT_SUPPORT; }
+    if (s && std::strcmp(s, "CITY_NAVAL_UNIT_SUPPORT") == 0) { return ItemEffectBoosterType::CITY_NAVAL_UNIT_SUPPORT; }
     return ItemEffectBoosterType::NONE;
 }
 
@@ -105,6 +109,10 @@ cstr ItemEffectHelper::booster_type_enum_to_str (ItemEffectBoosterType v) {
         case ItemEffectBoosterType::WORKER_DRAFT : return "WORKER_DRAFT";
         case ItemEffectBoosterType::FOOD : return "FOOD";
         case ItemEffectBoosterType::RESOURCE : return "RESOURCE";
+        case ItemEffectBoosterType::CIV_LAND_UNIT_SUPPORT : return "CIV_LAND_UNIT_SUPPORT";
+        case ItemEffectBoosterType::CITY_LAND_UNIT_SUPPORT : return "CITY_LAND_UNIT_SUPPORT";
+        case ItemEffectBoosterType::CIV_NAVAL_UNIT_SUPPORT : return "CIV_NAVAL_UNIT_SUPPORT";
+        case ItemEffectBoosterType::CITY_NAVAL_UNIT_SUPPORT : return "CITY_NAVAL_UNIT_SUPPORT";
         default: return "NONE";
     }
 }

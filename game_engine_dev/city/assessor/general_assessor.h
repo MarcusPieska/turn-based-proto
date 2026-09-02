@@ -43,6 +43,7 @@ struct AssessorCtx {
     const BitArrayCL* m_resource;
     const BitArrayCL* m_building;
     const BitArrayCL* m_toggle_city;
+    const BitArrayCL* m_civ_trait;
     const GameArraySimple* m_map;
     u16 m_x;
     u16 m_y;

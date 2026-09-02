@@ -102,6 +102,11 @@ bool GeneralAssessor::chk (const ItemReqsStruct& reqs, const AssessorCtx& ctx) {
                     return false;
                 }
                 break;
+            case ITEM_REQ_TYPE_CIV_TRAIT:
+                if (!chk_bit(ctx.m_civ_trait, ix)) {
+                    return false;
+                }
+                break;
             case ITEM_REQ_TYPE_TILE:
                 if (!TileReqChk::chk_req(reqs.added_args[j], ix, ctx)) {
                     return false;

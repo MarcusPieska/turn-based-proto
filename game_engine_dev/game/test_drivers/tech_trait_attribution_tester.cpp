@@ -161,7 +161,7 @@ int main () {
         return 1;
     }
 
-    note_result(TechTraitAttribution::begin(g_rt_statics->tech(), g_rt_statics->building()), "begin");
+    note_result(TechTraitAttribution::begin(g_rt_statics->tech(), g_rt_statics->building(), g_rt_statics->trait_affinity_map()), "begin");
     note_result(TechTraitAttribution::ready(), "ready");
     const u16 n = TechTraitAttribution::tech_n();
     note_result(n == g_rt_statics->tech().get_item_count(), "tech_n matches");

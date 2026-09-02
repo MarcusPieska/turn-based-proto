@@ -62,6 +62,11 @@ def get_map_specs ():
         ("civ_bld_discount_map", "civ_trait", "building"),
     ]
 
+def get_table_specs ():
+    return [
+        ("trait_affinity_map", "trait_affinity", "civ_trait"),
+    ]
+
 #================================================================================================================================#
 #=> - Name helpers -
 #================================================================================================================================#
@@ -126,6 +131,40 @@ def lines_comp_clean_maps ():
     for map_base, row_stem, col_stem in get_map_specs():
         lines.append("%s.o \\" % map_base)
         lines.append("%s_parsing.o \\" % map_base)
+    return lines
+
+def lines_comp_compile_tables ():
+    lines = []
+    for table_base, path_stem, dep_stem in get_table_specs():
+        lines.append("g++ $INC $CXXFLAGS -c ../static_state/%s.cpp -o %s.o" % (table_base, table_base))
+        lines.append("g++ $INC $CXXFLAGS -c %s_parsing.cpp -o %s_parsing.o" % (table_base, table_base))
+    return lines
+
+def lines_comp_link_tables ():
+    lines = []
+    for table_base, path_stem, dep_stem in get_table_specs():
+        lines.append("%s.o \\" % table_base)
+        lines.append("%s_parsing.o \\" % table_base)
+    return lines
+
+def lines_comp_clean_tables ():
+    return lines_comp_link_tables()
+
+def lines_tester_table_includes ():
+    lines = []
+    for table_base, path_stem, dep_stem in get_table_specs():
+        lines.append("#include \"%s.h\"" % table_base)
+    return lines
+
+def lines_tester_table_tests ():
+    lines = []
+    for table_base, path_stem, dep_stem in get_table_specs():
+        lines.append("note_result(statics.%s().get_row_count() > 0, \"%s row count\");" % (table_base, table_base))
+        lines.append("note_result(statics.%s().name_to_idx(\"SCIENCE\") != U16_KEY_NULL, \"%s token lookup\");" % (table_base, table_base))
+    lines.append("if (print_level >= 1) {")
+    for table_base, path_stem, dep_stem in get_table_specs():
+        lines.append("    printf(\" %s: row_count=%%u\\n\", statics.%s().get_row_count());" % (table_base, table_base))
+    lines.append("}")
     return lines
 
 def lines_comp_compile_parsers ():

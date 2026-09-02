@@ -10,14 +10,15 @@
 
 class BitArrayCL;
 class BuildingStaticData;
+class TraitAffinityMap;
 
 //================================================================================================================================
 //=> - BuildingTraitOrderings -
 //================================================================================================================================
 //
 //  Per-CivTrait preferred building index sequences. begin builds one full permutation of the building
-//  catalog per trait using BuildingTraitAttribution tags and CivTraitAffinity preference rank.
-//  pick returns the first available building in that trait's order (U16_KEY_NULL if none).
+//  catalog per trait from ring affinity plus TraitAffinityMap m_base (higher first). pick returns the
+//  first available building in that trait's order (U16_KEY_NULL if none).
 //
 //================================================================================================================================
 
@@ -25,7 +26,7 @@ class BuildingTraitOrderings {
 public:
     BuildingTraitOrderings () = delete;
 
-    static bool begin (const BuildingStaticData& blds);
+    static bool begin (const BuildingStaticData& blds, const TraitAffinityMap& aff);
     static void clear ();
     static bool ready ();
     static u16 building_n ();
@@ -33,8 +34,8 @@ public:
     static u16 pick (const BitArrayCL& available, u16 trait_idx, u16 start_slot = 0u);
 
 private:
-    static u16* m_orders; // k_n rows of building_n indices
-    static u16 m_n; // Building catalog size
+    static u16* m_orders;
+    static u16 m_n;
 };
 
 #endif // BUILDING_TRAIT_ORDERINGS_H

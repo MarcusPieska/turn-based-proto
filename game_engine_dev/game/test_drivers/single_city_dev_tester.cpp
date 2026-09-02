@@ -18,6 +18,8 @@
 #include "city_turn_handler.h"
 #include "circular_tile_areas.h"
 #include "combat_mods.h"
+#include "civ_static_data.h"
+#include "civ_static_key.h"
 #include "factory_game_array_simple.h"
 #include "game_array_simple.h"
 #include "game_map_defs.h"
@@ -273,6 +275,16 @@ static bool unlock_one_tech (GameState& state, u16 player, u16* out_idx) {
     if (ps.m_civ_index < civ.get_count()) {
         civ.set_bit(ps.m_civ_index);
     }
+    BitArrayCL civ_trait(st.civ_trait().get_item_count());
+    if (ps.m_civ_index < st.civ().get_item_count()) {
+        const CivTraitStruct& tr = st.civ().get_item(CivStaticDataKey::from_raw(ps.m_civ_index)).traits;
+        for (u32 t = 0; t < MAX_CIV_TRAIT_COUNT; ++t) {
+            const u16 tix = tr.indices[t];
+            if (tix != U16_KEY_NULL && tix < civ_trait.get_count()) {
+                civ_trait.set_bit(tix);
+            }
+        }
+    }
     AssessorCtx ctx = {};
     ctx.m_tech = ps.m_techs_researched;
     ctx.m_civ = &civ;
@@ -280,6 +292,7 @@ static bool unlock_one_tech (GameState& state, u16 player, u16* out_idx) {
     ctx.m_resource = &resource;
     ctx.m_building = &building;
     ctx.m_toggle_city = &toggle_city;
+    ctx.m_civ_trait = &civ_trait;
     BitArrayCL available(tech_n);
     const TechStaticDataStruct* items = &st.tech().get_item(TechStaticDataKey::from_raw(0));
     GeneralAssessor::assess_tech(&available, tech_n, items, ctx);

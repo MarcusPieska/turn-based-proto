@@ -23,7 +23,7 @@ struct EffectCtx;
 
 class DynBoosterRegister {
 public:
-    static constexpr u16 TYPE_N = static_cast<u16>(ItemEffectBoosterType::SANITATION) + 1u;
+    static constexpr u16 TYPE_N = static_cast<u16>(ItemEffectBoosterType::CITY_NAVAL_UNIT_SUPPORT) + 1u;
     static constexpr u16 SCOPE_N = static_cast<u16>(ItemEffectsScope::GLOBAL) + 1u;
     static constexpr u16 KEY_N = TYPE_N * SCOPE_N;
 

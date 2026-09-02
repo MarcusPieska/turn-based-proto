@@ -76,6 +76,8 @@ class StaticBitBank;
 #include "tile_yield_type_static_data.h"
 #include "improvement_yield_static_data.h"
 
+#include "trait_affinity_map.h"
+
 //================================================================================================================================
 //=> - StaticParsingManager class -
 //================================================================================================================================
@@ -257,6 +259,9 @@ public:
     StaticBitBank* get_civ_bld_discount_map_bank () const;
 
     void release_map_banks ();
+    TraitAffinityMap& get_trait_affinity_map ();
+
+    const TraitAffinityMap& get_trait_affinity_map () const;
     
     const NameToIdxCbs& get_name_to_idx_cbs () const;
     cstr get_path_to_settings () const;
@@ -303,6 +308,7 @@ private:
     StringManager m_worker_job_imp_items;
     StringManager m_tile_yield_type_items;
     StringManager m_improvement_yield_items;
+    StringManager m_trait_affinity_items;
 
     DataParserBase* m_building_name_parser;
     DataParserBase* m_toggle_city_name_parser;
@@ -338,6 +344,7 @@ private:
 
     StaticBitBank* m_unit_type_action_map_bank;
     StaticBitBank* m_civ_bld_discount_map_bank;
+    TraitAffinityMap m_trait_affinity_map;
 
     BuildingStaticDataStruct* m_building_data;
     ToggleCityStaticDataStruct* m_toggle_city_data;

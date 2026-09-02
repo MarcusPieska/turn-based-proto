@@ -43,6 +43,8 @@ void ParserTestManager::set_plvl (int lvl) {
     m_wonder.set_plvl(lvl);
     m_map_overlay.set_plvl(lvl);
     m_map_attribute.set_plvl(lvl);
+    m_map_terrain.set_plvl(lvl);
+    m_map_climate.set_plvl(lvl);
     m_worker_job_target.set_plvl(lvl);
     m_worker_job_type.set_plvl(lvl);
     m_worker_job.set_plvl(lvl);
@@ -72,6 +74,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_building.set_wonder_sd(&statics.wonder());
     m_building.set_map_overlay_sd(&statics.map_overlay());
     m_building.set_map_attribute_sd(&statics.map_attribute());
+    m_building.set_map_terrain_sd(&statics.map_terrain());
+    m_building.set_map_climate_sd(&statics.map_climate());
     m_building.set_worker_job_target_sd(&statics.worker_job_target());
     m_building.set_worker_job_type_sd(&statics.worker_job_type());
     m_building.set_worker_job_sd(&statics.worker_job());
@@ -98,6 +102,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_toggle_city.set_wonder_sd(&statics.wonder());
     m_toggle_city.set_map_overlay_sd(&statics.map_overlay());
     m_toggle_city.set_map_attribute_sd(&statics.map_attribute());
+    m_toggle_city.set_map_terrain_sd(&statics.map_terrain());
+    m_toggle_city.set_map_climate_sd(&statics.map_climate());
     m_toggle_city.set_worker_job_target_sd(&statics.worker_job_target());
     m_toggle_city.set_worker_job_type_sd(&statics.worker_job_type());
     m_toggle_city.set_worker_job_sd(&statics.worker_job());
@@ -124,6 +130,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_toggle_civ.set_wonder_sd(&statics.wonder());
     m_toggle_civ.set_map_overlay_sd(&statics.map_overlay());
     m_toggle_civ.set_map_attribute_sd(&statics.map_attribute());
+    m_toggle_civ.set_map_terrain_sd(&statics.map_terrain());
+    m_toggle_civ.set_map_climate_sd(&statics.map_climate());
     m_toggle_civ.set_worker_job_target_sd(&statics.worker_job_target());
     m_toggle_civ.set_worker_job_type_sd(&statics.worker_job_type());
     m_toggle_civ.set_worker_job_sd(&statics.worker_job());
@@ -150,6 +158,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_toggle_global.set_wonder_sd(&statics.wonder());
     m_toggle_global.set_map_overlay_sd(&statics.map_overlay());
     m_toggle_global.set_map_attribute_sd(&statics.map_attribute());
+    m_toggle_global.set_map_terrain_sd(&statics.map_terrain());
+    m_toggle_global.set_map_climate_sd(&statics.map_climate());
     m_toggle_global.set_worker_job_target_sd(&statics.worker_job_target());
     m_toggle_global.set_worker_job_type_sd(&statics.worker_job_type());
     m_toggle_global.set_worker_job_sd(&statics.worker_job());
@@ -176,6 +186,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_city_job.set_wonder_sd(&statics.wonder());
     m_city_job.set_map_overlay_sd(&statics.map_overlay());
     m_city_job.set_map_attribute_sd(&statics.map_attribute());
+    m_city_job.set_map_terrain_sd(&statics.map_terrain());
+    m_city_job.set_map_climate_sd(&statics.map_climate());
     m_city_job.set_worker_job_target_sd(&statics.worker_job_target());
     m_city_job.set_worker_job_type_sd(&statics.worker_job_type());
     m_city_job.set_worker_job_sd(&statics.worker_job());
@@ -202,6 +214,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_civ.set_wonder_sd(&statics.wonder());
     m_civ.set_map_overlay_sd(&statics.map_overlay());
     m_civ.set_map_attribute_sd(&statics.map_attribute());
+    m_civ.set_map_terrain_sd(&statics.map_terrain());
+    m_civ.set_map_climate_sd(&statics.map_climate());
     m_civ.set_worker_job_target_sd(&statics.worker_job_target());
     m_civ.set_worker_job_type_sd(&statics.worker_job_type());
     m_civ.set_worker_job_sd(&statics.worker_job());
@@ -228,6 +242,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_civ_trait.set_wonder_sd(&statics.wonder());
     m_civ_trait.set_map_overlay_sd(&statics.map_overlay());
     m_civ_trait.set_map_attribute_sd(&statics.map_attribute());
+    m_civ_trait.set_map_terrain_sd(&statics.map_terrain());
+    m_civ_trait.set_map_climate_sd(&statics.map_climate());
     m_civ_trait.set_worker_job_target_sd(&statics.worker_job_target());
     m_civ_trait.set_worker_job_type_sd(&statics.worker_job_type());
     m_civ_trait.set_worker_job_sd(&statics.worker_job());
@@ -254,6 +270,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_tile_attribute.set_wonder_sd(&statics.wonder());
     m_tile_attribute.set_map_overlay_sd(&statics.map_overlay());
     m_tile_attribute.set_map_attribute_sd(&statics.map_attribute());
+    m_tile_attribute.set_map_terrain_sd(&statics.map_terrain());
+    m_tile_attribute.set_map_climate_sd(&statics.map_climate());
     m_tile_attribute.set_worker_job_target_sd(&statics.worker_job_target());
     m_tile_attribute.set_worker_job_type_sd(&statics.worker_job_type());
     m_tile_attribute.set_worker_job_sd(&statics.worker_job());
@@ -280,6 +298,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_resource.set_wonder_sd(&statics.wonder());
     m_resource.set_map_overlay_sd(&statics.map_overlay());
     m_resource.set_map_attribute_sd(&statics.map_attribute());
+    m_resource.set_map_terrain_sd(&statics.map_terrain());
+    m_resource.set_map_climate_sd(&statics.map_climate());
     m_resource.set_worker_job_target_sd(&statics.worker_job_target());
     m_resource.set_worker_job_type_sd(&statics.worker_job_type());
     m_resource.set_worker_job_sd(&statics.worker_job());
@@ -306,6 +326,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_res_dist.set_wonder_sd(&statics.wonder());
     m_res_dist.set_map_overlay_sd(&statics.map_overlay());
     m_res_dist.set_map_attribute_sd(&statics.map_attribute());
+    m_res_dist.set_map_terrain_sd(&statics.map_terrain());
+    m_res_dist.set_map_climate_sd(&statics.map_climate());
     m_res_dist.set_worker_job_target_sd(&statics.worker_job_target());
     m_res_dist.set_worker_job_type_sd(&statics.worker_job_type());
     m_res_dist.set_worker_job_sd(&statics.worker_job());
@@ -332,6 +354,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_res_type.set_wonder_sd(&statics.wonder());
     m_res_type.set_map_overlay_sd(&statics.map_overlay());
     m_res_type.set_map_attribute_sd(&statics.map_attribute());
+    m_res_type.set_map_terrain_sd(&statics.map_terrain());
+    m_res_type.set_map_climate_sd(&statics.map_climate());
     m_res_type.set_worker_job_target_sd(&statics.worker_job_target());
     m_res_type.set_worker_job_type_sd(&statics.worker_job_type());
     m_res_type.set_worker_job_sd(&statics.worker_job());
@@ -358,6 +382,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_small_wonder.set_wonder_sd(&statics.wonder());
     m_small_wonder.set_map_overlay_sd(&statics.map_overlay());
     m_small_wonder.set_map_attribute_sd(&statics.map_attribute());
+    m_small_wonder.set_map_terrain_sd(&statics.map_terrain());
+    m_small_wonder.set_map_climate_sd(&statics.map_climate());
     m_small_wonder.set_worker_job_target_sd(&statics.worker_job_target());
     m_small_wonder.set_worker_job_type_sd(&statics.worker_job_type());
     m_small_wonder.set_worker_job_sd(&statics.worker_job());
@@ -384,6 +410,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_tech.set_wonder_sd(&statics.wonder());
     m_tech.set_map_overlay_sd(&statics.map_overlay());
     m_tech.set_map_attribute_sd(&statics.map_attribute());
+    m_tech.set_map_terrain_sd(&statics.map_terrain());
+    m_tech.set_map_climate_sd(&statics.map_climate());
     m_tech.set_worker_job_target_sd(&statics.worker_job_target());
     m_tech.set_worker_job_type_sd(&statics.worker_job_type());
     m_tech.set_worker_job_sd(&statics.worker_job());
@@ -410,6 +438,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_unit.set_wonder_sd(&statics.wonder());
     m_unit.set_map_overlay_sd(&statics.map_overlay());
     m_unit.set_map_attribute_sd(&statics.map_attribute());
+    m_unit.set_map_terrain_sd(&statics.map_terrain());
+    m_unit.set_map_climate_sd(&statics.map_climate());
     m_unit.set_worker_job_target_sd(&statics.worker_job_target());
     m_unit.set_worker_job_type_sd(&statics.worker_job_type());
     m_unit.set_worker_job_sd(&statics.worker_job());
@@ -436,6 +466,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_unit_action.set_wonder_sd(&statics.wonder());
     m_unit_action.set_map_overlay_sd(&statics.map_overlay());
     m_unit_action.set_map_attribute_sd(&statics.map_attribute());
+    m_unit_action.set_map_terrain_sd(&statics.map_terrain());
+    m_unit_action.set_map_climate_sd(&statics.map_climate());
     m_unit_action.set_worker_job_target_sd(&statics.worker_job_target());
     m_unit_action.set_worker_job_type_sd(&statics.worker_job_type());
     m_unit_action.set_worker_job_sd(&statics.worker_job());
@@ -462,6 +494,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_unit_role.set_wonder_sd(&statics.wonder());
     m_unit_role.set_map_overlay_sd(&statics.map_overlay());
     m_unit_role.set_map_attribute_sd(&statics.map_attribute());
+    m_unit_role.set_map_terrain_sd(&statics.map_terrain());
+    m_unit_role.set_map_climate_sd(&statics.map_climate());
     m_unit_role.set_worker_job_target_sd(&statics.worker_job_target());
     m_unit_role.set_worker_job_type_sd(&statics.worker_job_type());
     m_unit_role.set_worker_job_sd(&statics.worker_job());
@@ -488,6 +522,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_unit_type.set_wonder_sd(&statics.wonder());
     m_unit_type.set_map_overlay_sd(&statics.map_overlay());
     m_unit_type.set_map_attribute_sd(&statics.map_attribute());
+    m_unit_type.set_map_terrain_sd(&statics.map_terrain());
+    m_unit_type.set_map_climate_sd(&statics.map_climate());
     m_unit_type.set_worker_job_target_sd(&statics.worker_job_target());
     m_unit_type.set_worker_job_type_sd(&statics.worker_job_type());
     m_unit_type.set_worker_job_sd(&statics.worker_job());
@@ -514,6 +550,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_wonder.set_wonder_sd(&statics.wonder());
     m_wonder.set_map_overlay_sd(&statics.map_overlay());
     m_wonder.set_map_attribute_sd(&statics.map_attribute());
+    m_wonder.set_map_terrain_sd(&statics.map_terrain());
+    m_wonder.set_map_climate_sd(&statics.map_climate());
     m_wonder.set_worker_job_target_sd(&statics.worker_job_target());
     m_wonder.set_worker_job_type_sd(&statics.worker_job_type());
     m_wonder.set_worker_job_sd(&statics.worker_job());
@@ -540,6 +578,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_map_overlay.set_wonder_sd(&statics.wonder());
     m_map_overlay.set_map_overlay_sd(&statics.map_overlay());
     m_map_overlay.set_map_attribute_sd(&statics.map_attribute());
+    m_map_overlay.set_map_terrain_sd(&statics.map_terrain());
+    m_map_overlay.set_map_climate_sd(&statics.map_climate());
     m_map_overlay.set_worker_job_target_sd(&statics.worker_job_target());
     m_map_overlay.set_worker_job_type_sd(&statics.worker_job_type());
     m_map_overlay.set_worker_job_sd(&statics.worker_job());
@@ -566,12 +606,70 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_map_attribute.set_wonder_sd(&statics.wonder());
     m_map_attribute.set_map_overlay_sd(&statics.map_overlay());
     m_map_attribute.set_map_attribute_sd(&statics.map_attribute());
+    m_map_attribute.set_map_terrain_sd(&statics.map_terrain());
+    m_map_attribute.set_map_climate_sd(&statics.map_climate());
     m_map_attribute.set_worker_job_target_sd(&statics.worker_job_target());
     m_map_attribute.set_worker_job_type_sd(&statics.worker_job_type());
     m_map_attribute.set_worker_job_sd(&statics.worker_job());
     m_map_attribute.set_worker_job_imp_sd(&statics.worker_job_imp());
     m_map_attribute.set_tile_yield_type_sd(&statics.tile_yield_type());
     m_map_attribute.set_improvement_yield_sd(&statics.improvement_yield());
+    m_map_terrain.set_building_sd(&statics.building());
+    m_map_terrain.set_toggle_city_sd(&statics.toggle_city());
+    m_map_terrain.set_toggle_civ_sd(&statics.toggle_civ());
+    m_map_terrain.set_toggle_global_sd(&statics.toggle_global());
+    m_map_terrain.set_city_job_sd(&statics.city_job());
+    m_map_terrain.set_civ_sd(&statics.civ());
+    m_map_terrain.set_civ_trait_sd(&statics.civ_trait());
+    m_map_terrain.set_tile_attribute_sd(&statics.tile_attribute());
+    m_map_terrain.set_resource_sd(&statics.resource());
+    m_map_terrain.set_res_dist_sd(&statics.res_dist());
+    m_map_terrain.set_res_type_sd(&statics.res_type());
+    m_map_terrain.set_small_wonder_sd(&statics.small_wonder());
+    m_map_terrain.set_tech_sd(&statics.tech());
+    m_map_terrain.set_unit_sd(&statics.unit());
+    m_map_terrain.set_unit_action_sd(&statics.unit_action());
+    m_map_terrain.set_unit_role_sd(&statics.unit_role());
+    m_map_terrain.set_unit_type_sd(&statics.unit_type());
+    m_map_terrain.set_wonder_sd(&statics.wonder());
+    m_map_terrain.set_map_overlay_sd(&statics.map_overlay());
+    m_map_terrain.set_map_attribute_sd(&statics.map_attribute());
+    m_map_terrain.set_map_terrain_sd(&statics.map_terrain());
+    m_map_terrain.set_map_climate_sd(&statics.map_climate());
+    m_map_terrain.set_worker_job_target_sd(&statics.worker_job_target());
+    m_map_terrain.set_worker_job_type_sd(&statics.worker_job_type());
+    m_map_terrain.set_worker_job_sd(&statics.worker_job());
+    m_map_terrain.set_worker_job_imp_sd(&statics.worker_job_imp());
+    m_map_terrain.set_tile_yield_type_sd(&statics.tile_yield_type());
+    m_map_terrain.set_improvement_yield_sd(&statics.improvement_yield());
+    m_map_climate.set_building_sd(&statics.building());
+    m_map_climate.set_toggle_city_sd(&statics.toggle_city());
+    m_map_climate.set_toggle_civ_sd(&statics.toggle_civ());
+    m_map_climate.set_toggle_global_sd(&statics.toggle_global());
+    m_map_climate.set_city_job_sd(&statics.city_job());
+    m_map_climate.set_civ_sd(&statics.civ());
+    m_map_climate.set_civ_trait_sd(&statics.civ_trait());
+    m_map_climate.set_tile_attribute_sd(&statics.tile_attribute());
+    m_map_climate.set_resource_sd(&statics.resource());
+    m_map_climate.set_res_dist_sd(&statics.res_dist());
+    m_map_climate.set_res_type_sd(&statics.res_type());
+    m_map_climate.set_small_wonder_sd(&statics.small_wonder());
+    m_map_climate.set_tech_sd(&statics.tech());
+    m_map_climate.set_unit_sd(&statics.unit());
+    m_map_climate.set_unit_action_sd(&statics.unit_action());
+    m_map_climate.set_unit_role_sd(&statics.unit_role());
+    m_map_climate.set_unit_type_sd(&statics.unit_type());
+    m_map_climate.set_wonder_sd(&statics.wonder());
+    m_map_climate.set_map_overlay_sd(&statics.map_overlay());
+    m_map_climate.set_map_attribute_sd(&statics.map_attribute());
+    m_map_climate.set_map_terrain_sd(&statics.map_terrain());
+    m_map_climate.set_map_climate_sd(&statics.map_climate());
+    m_map_climate.set_worker_job_target_sd(&statics.worker_job_target());
+    m_map_climate.set_worker_job_type_sd(&statics.worker_job_type());
+    m_map_climate.set_worker_job_sd(&statics.worker_job());
+    m_map_climate.set_worker_job_imp_sd(&statics.worker_job_imp());
+    m_map_climate.set_tile_yield_type_sd(&statics.tile_yield_type());
+    m_map_climate.set_improvement_yield_sd(&statics.improvement_yield());
     m_worker_job_target.set_building_sd(&statics.building());
     m_worker_job_target.set_toggle_city_sd(&statics.toggle_city());
     m_worker_job_target.set_toggle_civ_sd(&statics.toggle_civ());
@@ -592,6 +690,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_worker_job_target.set_wonder_sd(&statics.wonder());
     m_worker_job_target.set_map_overlay_sd(&statics.map_overlay());
     m_worker_job_target.set_map_attribute_sd(&statics.map_attribute());
+    m_worker_job_target.set_map_terrain_sd(&statics.map_terrain());
+    m_worker_job_target.set_map_climate_sd(&statics.map_climate());
     m_worker_job_target.set_worker_job_target_sd(&statics.worker_job_target());
     m_worker_job_target.set_worker_job_type_sd(&statics.worker_job_type());
     m_worker_job_target.set_worker_job_sd(&statics.worker_job());
@@ -618,6 +718,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_worker_job_type.set_wonder_sd(&statics.wonder());
     m_worker_job_type.set_map_overlay_sd(&statics.map_overlay());
     m_worker_job_type.set_map_attribute_sd(&statics.map_attribute());
+    m_worker_job_type.set_map_terrain_sd(&statics.map_terrain());
+    m_worker_job_type.set_map_climate_sd(&statics.map_climate());
     m_worker_job_type.set_worker_job_target_sd(&statics.worker_job_target());
     m_worker_job_type.set_worker_job_type_sd(&statics.worker_job_type());
     m_worker_job_type.set_worker_job_sd(&statics.worker_job());
@@ -644,6 +746,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_worker_job.set_wonder_sd(&statics.wonder());
     m_worker_job.set_map_overlay_sd(&statics.map_overlay());
     m_worker_job.set_map_attribute_sd(&statics.map_attribute());
+    m_worker_job.set_map_terrain_sd(&statics.map_terrain());
+    m_worker_job.set_map_climate_sd(&statics.map_climate());
     m_worker_job.set_worker_job_target_sd(&statics.worker_job_target());
     m_worker_job.set_worker_job_type_sd(&statics.worker_job_type());
     m_worker_job.set_worker_job_sd(&statics.worker_job());
@@ -670,6 +774,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_worker_job_imp.set_wonder_sd(&statics.wonder());
     m_worker_job_imp.set_map_overlay_sd(&statics.map_overlay());
     m_worker_job_imp.set_map_attribute_sd(&statics.map_attribute());
+    m_worker_job_imp.set_map_terrain_sd(&statics.map_terrain());
+    m_worker_job_imp.set_map_climate_sd(&statics.map_climate());
     m_worker_job_imp.set_worker_job_target_sd(&statics.worker_job_target());
     m_worker_job_imp.set_worker_job_type_sd(&statics.worker_job_type());
     m_worker_job_imp.set_worker_job_sd(&statics.worker_job());
@@ -696,6 +802,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_tile_yield_type.set_wonder_sd(&statics.wonder());
     m_tile_yield_type.set_map_overlay_sd(&statics.map_overlay());
     m_tile_yield_type.set_map_attribute_sd(&statics.map_attribute());
+    m_tile_yield_type.set_map_terrain_sd(&statics.map_terrain());
+    m_tile_yield_type.set_map_climate_sd(&statics.map_climate());
     m_tile_yield_type.set_worker_job_target_sd(&statics.worker_job_target());
     m_tile_yield_type.set_worker_job_type_sd(&statics.worker_job_type());
     m_tile_yield_type.set_worker_job_sd(&statics.worker_job());
@@ -722,6 +830,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_improvement_yield.set_wonder_sd(&statics.wonder());
     m_improvement_yield.set_map_overlay_sd(&statics.map_overlay());
     m_improvement_yield.set_map_attribute_sd(&statics.map_attribute());
+    m_improvement_yield.set_map_terrain_sd(&statics.map_terrain());
+    m_improvement_yield.set_map_climate_sd(&statics.map_climate());
     m_improvement_yield.set_worker_job_target_sd(&statics.worker_job_target());
     m_improvement_yield.set_worker_job_type_sd(&statics.worker_job_type());
     m_improvement_yield.set_worker_job_sd(&statics.worker_job());
@@ -849,6 +959,18 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     }
     m_map_attribute.close_writer();
     
+    m_map_terrain.open_writer();
+    for (u16 i = 0; i < statics.map_terrain().get_item_count(); ++i) {
+        m_map_terrain.pr_item(statics.map_terrain().get_name(MapTerrainStaticDataKey::from_raw(i)), statics.map_terrain().get_item(MapTerrainStaticDataKey::from_raw(i)));
+    }
+    m_map_terrain.close_writer();
+    
+    m_map_climate.open_writer();
+    for (u16 i = 0; i < statics.map_climate().get_item_count(); ++i) {
+        m_map_climate.pr_item(statics.map_climate().get_name(MapClimateStaticDataKey::from_raw(i)), statics.map_climate().get_item(MapClimateStaticDataKey::from_raw(i)));
+    }
+    m_map_climate.close_writer();
+    
     m_worker_job_target.open_writer();
     for (u16 i = 0; i < statics.worker_job_target().get_item_count(); ++i) {
         m_worker_job_target.pr_item(statics.worker_job_target().get_name(WorkerJobTargetStaticDataKey::from_raw(i)), statics.worker_job_target().get_item(WorkerJobTargetStaticDataKey::from_raw(i)));
@@ -905,6 +1027,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_building.set_wonder_sd(NULL);
     m_building.set_map_overlay_sd(NULL);
     m_building.set_map_attribute_sd(NULL);
+    m_building.set_map_terrain_sd(NULL);
+    m_building.set_map_climate_sd(NULL);
     m_building.set_worker_job_target_sd(NULL);
     m_building.set_worker_job_type_sd(NULL);
     m_building.set_worker_job_sd(NULL);
@@ -931,6 +1055,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_toggle_city.set_wonder_sd(NULL);
     m_toggle_city.set_map_overlay_sd(NULL);
     m_toggle_city.set_map_attribute_sd(NULL);
+    m_toggle_city.set_map_terrain_sd(NULL);
+    m_toggle_city.set_map_climate_sd(NULL);
     m_toggle_city.set_worker_job_target_sd(NULL);
     m_toggle_city.set_worker_job_type_sd(NULL);
     m_toggle_city.set_worker_job_sd(NULL);
@@ -957,6 +1083,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_toggle_civ.set_wonder_sd(NULL);
     m_toggle_civ.set_map_overlay_sd(NULL);
     m_toggle_civ.set_map_attribute_sd(NULL);
+    m_toggle_civ.set_map_terrain_sd(NULL);
+    m_toggle_civ.set_map_climate_sd(NULL);
     m_toggle_civ.set_worker_job_target_sd(NULL);
     m_toggle_civ.set_worker_job_type_sd(NULL);
     m_toggle_civ.set_worker_job_sd(NULL);
@@ -983,6 +1111,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_toggle_global.set_wonder_sd(NULL);
     m_toggle_global.set_map_overlay_sd(NULL);
     m_toggle_global.set_map_attribute_sd(NULL);
+    m_toggle_global.set_map_terrain_sd(NULL);
+    m_toggle_global.set_map_climate_sd(NULL);
     m_toggle_global.set_worker_job_target_sd(NULL);
     m_toggle_global.set_worker_job_type_sd(NULL);
     m_toggle_global.set_worker_job_sd(NULL);
@@ -1009,6 +1139,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_city_job.set_wonder_sd(NULL);
     m_city_job.set_map_overlay_sd(NULL);
     m_city_job.set_map_attribute_sd(NULL);
+    m_city_job.set_map_terrain_sd(NULL);
+    m_city_job.set_map_climate_sd(NULL);
     m_city_job.set_worker_job_target_sd(NULL);
     m_city_job.set_worker_job_type_sd(NULL);
     m_city_job.set_worker_job_sd(NULL);
@@ -1035,6 +1167,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_civ.set_wonder_sd(NULL);
     m_civ.set_map_overlay_sd(NULL);
     m_civ.set_map_attribute_sd(NULL);
+    m_civ.set_map_terrain_sd(NULL);
+    m_civ.set_map_climate_sd(NULL);
     m_civ.set_worker_job_target_sd(NULL);
     m_civ.set_worker_job_type_sd(NULL);
     m_civ.set_worker_job_sd(NULL);
@@ -1061,6 +1195,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_civ_trait.set_wonder_sd(NULL);
     m_civ_trait.set_map_overlay_sd(NULL);
     m_civ_trait.set_map_attribute_sd(NULL);
+    m_civ_trait.set_map_terrain_sd(NULL);
+    m_civ_trait.set_map_climate_sd(NULL);
     m_civ_trait.set_worker_job_target_sd(NULL);
     m_civ_trait.set_worker_job_type_sd(NULL);
     m_civ_trait.set_worker_job_sd(NULL);
@@ -1087,6 +1223,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_tile_attribute.set_wonder_sd(NULL);
     m_tile_attribute.set_map_overlay_sd(NULL);
     m_tile_attribute.set_map_attribute_sd(NULL);
+    m_tile_attribute.set_map_terrain_sd(NULL);
+    m_tile_attribute.set_map_climate_sd(NULL);
     m_tile_attribute.set_worker_job_target_sd(NULL);
     m_tile_attribute.set_worker_job_type_sd(NULL);
     m_tile_attribute.set_worker_job_sd(NULL);
@@ -1113,6 +1251,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_resource.set_wonder_sd(NULL);
     m_resource.set_map_overlay_sd(NULL);
     m_resource.set_map_attribute_sd(NULL);
+    m_resource.set_map_terrain_sd(NULL);
+    m_resource.set_map_climate_sd(NULL);
     m_resource.set_worker_job_target_sd(NULL);
     m_resource.set_worker_job_type_sd(NULL);
     m_resource.set_worker_job_sd(NULL);
@@ -1139,6 +1279,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_res_dist.set_wonder_sd(NULL);
     m_res_dist.set_map_overlay_sd(NULL);
     m_res_dist.set_map_attribute_sd(NULL);
+    m_res_dist.set_map_terrain_sd(NULL);
+    m_res_dist.set_map_climate_sd(NULL);
     m_res_dist.set_worker_job_target_sd(NULL);
     m_res_dist.set_worker_job_type_sd(NULL);
     m_res_dist.set_worker_job_sd(NULL);
@@ -1165,6 +1307,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_res_type.set_wonder_sd(NULL);
     m_res_type.set_map_overlay_sd(NULL);
     m_res_type.set_map_attribute_sd(NULL);
+    m_res_type.set_map_terrain_sd(NULL);
+    m_res_type.set_map_climate_sd(NULL);
     m_res_type.set_worker_job_target_sd(NULL);
     m_res_type.set_worker_job_type_sd(NULL);
     m_res_type.set_worker_job_sd(NULL);
@@ -1191,6 +1335,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_small_wonder.set_wonder_sd(NULL);
     m_small_wonder.set_map_overlay_sd(NULL);
     m_small_wonder.set_map_attribute_sd(NULL);
+    m_small_wonder.set_map_terrain_sd(NULL);
+    m_small_wonder.set_map_climate_sd(NULL);
     m_small_wonder.set_worker_job_target_sd(NULL);
     m_small_wonder.set_worker_job_type_sd(NULL);
     m_small_wonder.set_worker_job_sd(NULL);
@@ -1217,6 +1363,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_tech.set_wonder_sd(NULL);
     m_tech.set_map_overlay_sd(NULL);
     m_tech.set_map_attribute_sd(NULL);
+    m_tech.set_map_terrain_sd(NULL);
+    m_tech.set_map_climate_sd(NULL);
     m_tech.set_worker_job_target_sd(NULL);
     m_tech.set_worker_job_type_sd(NULL);
     m_tech.set_worker_job_sd(NULL);
@@ -1243,6 +1391,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_unit.set_wonder_sd(NULL);
     m_unit.set_map_overlay_sd(NULL);
     m_unit.set_map_attribute_sd(NULL);
+    m_unit.set_map_terrain_sd(NULL);
+    m_unit.set_map_climate_sd(NULL);
     m_unit.set_worker_job_target_sd(NULL);
     m_unit.set_worker_job_type_sd(NULL);
     m_unit.set_worker_job_sd(NULL);
@@ -1269,6 +1419,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_unit_action.set_wonder_sd(NULL);
     m_unit_action.set_map_overlay_sd(NULL);
     m_unit_action.set_map_attribute_sd(NULL);
+    m_unit_action.set_map_terrain_sd(NULL);
+    m_unit_action.set_map_climate_sd(NULL);
     m_unit_action.set_worker_job_target_sd(NULL);
     m_unit_action.set_worker_job_type_sd(NULL);
     m_unit_action.set_worker_job_sd(NULL);
@@ -1295,6 +1447,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_unit_role.set_wonder_sd(NULL);
     m_unit_role.set_map_overlay_sd(NULL);
     m_unit_role.set_map_attribute_sd(NULL);
+    m_unit_role.set_map_terrain_sd(NULL);
+    m_unit_role.set_map_climate_sd(NULL);
     m_unit_role.set_worker_job_target_sd(NULL);
     m_unit_role.set_worker_job_type_sd(NULL);
     m_unit_role.set_worker_job_sd(NULL);
@@ -1321,6 +1475,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_unit_type.set_wonder_sd(NULL);
     m_unit_type.set_map_overlay_sd(NULL);
     m_unit_type.set_map_attribute_sd(NULL);
+    m_unit_type.set_map_terrain_sd(NULL);
+    m_unit_type.set_map_climate_sd(NULL);
     m_unit_type.set_worker_job_target_sd(NULL);
     m_unit_type.set_worker_job_type_sd(NULL);
     m_unit_type.set_worker_job_sd(NULL);
@@ -1347,6 +1503,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_wonder.set_wonder_sd(NULL);
     m_wonder.set_map_overlay_sd(NULL);
     m_wonder.set_map_attribute_sd(NULL);
+    m_wonder.set_map_terrain_sd(NULL);
+    m_wonder.set_map_climate_sd(NULL);
     m_wonder.set_worker_job_target_sd(NULL);
     m_wonder.set_worker_job_type_sd(NULL);
     m_wonder.set_worker_job_sd(NULL);
@@ -1373,6 +1531,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_map_overlay.set_wonder_sd(NULL);
     m_map_overlay.set_map_overlay_sd(NULL);
     m_map_overlay.set_map_attribute_sd(NULL);
+    m_map_overlay.set_map_terrain_sd(NULL);
+    m_map_overlay.set_map_climate_sd(NULL);
     m_map_overlay.set_worker_job_target_sd(NULL);
     m_map_overlay.set_worker_job_type_sd(NULL);
     m_map_overlay.set_worker_job_sd(NULL);
@@ -1399,12 +1559,70 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_map_attribute.set_wonder_sd(NULL);
     m_map_attribute.set_map_overlay_sd(NULL);
     m_map_attribute.set_map_attribute_sd(NULL);
+    m_map_attribute.set_map_terrain_sd(NULL);
+    m_map_attribute.set_map_climate_sd(NULL);
     m_map_attribute.set_worker_job_target_sd(NULL);
     m_map_attribute.set_worker_job_type_sd(NULL);
     m_map_attribute.set_worker_job_sd(NULL);
     m_map_attribute.set_worker_job_imp_sd(NULL);
     m_map_attribute.set_tile_yield_type_sd(NULL);
     m_map_attribute.set_improvement_yield_sd(NULL);
+    m_map_terrain.set_building_sd(NULL);
+    m_map_terrain.set_toggle_city_sd(NULL);
+    m_map_terrain.set_toggle_civ_sd(NULL);
+    m_map_terrain.set_toggle_global_sd(NULL);
+    m_map_terrain.set_city_job_sd(NULL);
+    m_map_terrain.set_civ_sd(NULL);
+    m_map_terrain.set_civ_trait_sd(NULL);
+    m_map_terrain.set_tile_attribute_sd(NULL);
+    m_map_terrain.set_resource_sd(NULL);
+    m_map_terrain.set_res_dist_sd(NULL);
+    m_map_terrain.set_res_type_sd(NULL);
+    m_map_terrain.set_small_wonder_sd(NULL);
+    m_map_terrain.set_tech_sd(NULL);
+    m_map_terrain.set_unit_sd(NULL);
+    m_map_terrain.set_unit_action_sd(NULL);
+    m_map_terrain.set_unit_role_sd(NULL);
+    m_map_terrain.set_unit_type_sd(NULL);
+    m_map_terrain.set_wonder_sd(NULL);
+    m_map_terrain.set_map_overlay_sd(NULL);
+    m_map_terrain.set_map_attribute_sd(NULL);
+    m_map_terrain.set_map_terrain_sd(NULL);
+    m_map_terrain.set_map_climate_sd(NULL);
+    m_map_terrain.set_worker_job_target_sd(NULL);
+    m_map_terrain.set_worker_job_type_sd(NULL);
+    m_map_terrain.set_worker_job_sd(NULL);
+    m_map_terrain.set_worker_job_imp_sd(NULL);
+    m_map_terrain.set_tile_yield_type_sd(NULL);
+    m_map_terrain.set_improvement_yield_sd(NULL);
+    m_map_climate.set_building_sd(NULL);
+    m_map_climate.set_toggle_city_sd(NULL);
+    m_map_climate.set_toggle_civ_sd(NULL);
+    m_map_climate.set_toggle_global_sd(NULL);
+    m_map_climate.set_city_job_sd(NULL);
+    m_map_climate.set_civ_sd(NULL);
+    m_map_climate.set_civ_trait_sd(NULL);
+    m_map_climate.set_tile_attribute_sd(NULL);
+    m_map_climate.set_resource_sd(NULL);
+    m_map_climate.set_res_dist_sd(NULL);
+    m_map_climate.set_res_type_sd(NULL);
+    m_map_climate.set_small_wonder_sd(NULL);
+    m_map_climate.set_tech_sd(NULL);
+    m_map_climate.set_unit_sd(NULL);
+    m_map_climate.set_unit_action_sd(NULL);
+    m_map_climate.set_unit_role_sd(NULL);
+    m_map_climate.set_unit_type_sd(NULL);
+    m_map_climate.set_wonder_sd(NULL);
+    m_map_climate.set_map_overlay_sd(NULL);
+    m_map_climate.set_map_attribute_sd(NULL);
+    m_map_climate.set_map_terrain_sd(NULL);
+    m_map_climate.set_map_climate_sd(NULL);
+    m_map_climate.set_worker_job_target_sd(NULL);
+    m_map_climate.set_worker_job_type_sd(NULL);
+    m_map_climate.set_worker_job_sd(NULL);
+    m_map_climate.set_worker_job_imp_sd(NULL);
+    m_map_climate.set_tile_yield_type_sd(NULL);
+    m_map_climate.set_improvement_yield_sd(NULL);
     m_worker_job_target.set_building_sd(NULL);
     m_worker_job_target.set_toggle_city_sd(NULL);
     m_worker_job_target.set_toggle_civ_sd(NULL);
@@ -1425,6 +1643,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_worker_job_target.set_wonder_sd(NULL);
     m_worker_job_target.set_map_overlay_sd(NULL);
     m_worker_job_target.set_map_attribute_sd(NULL);
+    m_worker_job_target.set_map_terrain_sd(NULL);
+    m_worker_job_target.set_map_climate_sd(NULL);
     m_worker_job_target.set_worker_job_target_sd(NULL);
     m_worker_job_target.set_worker_job_type_sd(NULL);
     m_worker_job_target.set_worker_job_sd(NULL);
@@ -1451,6 +1671,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_worker_job_type.set_wonder_sd(NULL);
     m_worker_job_type.set_map_overlay_sd(NULL);
     m_worker_job_type.set_map_attribute_sd(NULL);
+    m_worker_job_type.set_map_terrain_sd(NULL);
+    m_worker_job_type.set_map_climate_sd(NULL);
     m_worker_job_type.set_worker_job_target_sd(NULL);
     m_worker_job_type.set_worker_job_type_sd(NULL);
     m_worker_job_type.set_worker_job_sd(NULL);
@@ -1477,6 +1699,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_worker_job.set_wonder_sd(NULL);
     m_worker_job.set_map_overlay_sd(NULL);
     m_worker_job.set_map_attribute_sd(NULL);
+    m_worker_job.set_map_terrain_sd(NULL);
+    m_worker_job.set_map_climate_sd(NULL);
     m_worker_job.set_worker_job_target_sd(NULL);
     m_worker_job.set_worker_job_type_sd(NULL);
     m_worker_job.set_worker_job_sd(NULL);
@@ -1503,6 +1727,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_worker_job_imp.set_wonder_sd(NULL);
     m_worker_job_imp.set_map_overlay_sd(NULL);
     m_worker_job_imp.set_map_attribute_sd(NULL);
+    m_worker_job_imp.set_map_terrain_sd(NULL);
+    m_worker_job_imp.set_map_climate_sd(NULL);
     m_worker_job_imp.set_worker_job_target_sd(NULL);
     m_worker_job_imp.set_worker_job_type_sd(NULL);
     m_worker_job_imp.set_worker_job_sd(NULL);
@@ -1529,6 +1755,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_tile_yield_type.set_wonder_sd(NULL);
     m_tile_yield_type.set_map_overlay_sd(NULL);
     m_tile_yield_type.set_map_attribute_sd(NULL);
+    m_tile_yield_type.set_map_terrain_sd(NULL);
+    m_tile_yield_type.set_map_climate_sd(NULL);
     m_tile_yield_type.set_worker_job_target_sd(NULL);
     m_tile_yield_type.set_worker_job_type_sd(NULL);
     m_tile_yield_type.set_worker_job_sd(NULL);
@@ -1555,6 +1783,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_improvement_yield.set_wonder_sd(NULL);
     m_improvement_yield.set_map_overlay_sd(NULL);
     m_improvement_yield.set_map_attribute_sd(NULL);
+    m_improvement_yield.set_map_terrain_sd(NULL);
+    m_improvement_yield.set_map_climate_sd(NULL);
     m_improvement_yield.set_worker_job_target_sd(NULL);
     m_improvement_yield.set_worker_job_type_sd(NULL);
     m_improvement_yield.set_worker_job_sd(NULL);

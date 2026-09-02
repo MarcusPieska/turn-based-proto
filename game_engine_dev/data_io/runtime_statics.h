@@ -46,6 +46,7 @@ class StaticParsingManager;
 #include "improvement_yield_static_data.h"
 #include "unit_type_action_map.h"
 #include "civ_bld_discount_map.h"
+#include "trait_affinity_map.h"
 #include "gen_effector/local_effector.h"
 #include "gen_effector/city_effector.h"
 #include "gen_effector/civ_effector.h"
@@ -186,6 +187,10 @@ public:
 
     const CivBldDiscountMap& civ_bld_discount_map () const;
 
+    TraitAffinityMap& trait_affinity_map ();
+
+    const TraitAffinityMap& trait_affinity_map () const;
+
     LocalEffector& local_fx ();
 
     const LocalEffector& local_fx () const;
@@ -251,6 +256,7 @@ private:
     
     UnitTypeActionMap m_unit_type_action_map;
     CivBldDiscountMap m_civ_bld_discount_map;
+    TraitAffinityMap m_trait_affinity_map;
     
     LocalEffector m_local_fx;
     CityEffector m_city_fx;

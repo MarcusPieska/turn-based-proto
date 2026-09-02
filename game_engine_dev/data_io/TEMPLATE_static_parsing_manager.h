@@ -22,6 +22,8 @@ class StaticBitBank;
 
 [STATIC_PARSE_HEADER_DATA_INCLUDES_TAG]
 
+[STATIC_PARSE_HEADER_TABLE_INCLUDES_TAG]
+
 //================================================================================================================================
 //=> - StaticParsingManager class -
 //================================================================================================================================
@@ -35,6 +37,7 @@ public:
     [STATIC_PARSE_HEADER_NAME_PARSER_GETTERS_TAG]
     [STATIC_PARSE_HEADER_RAW_GETTERS_TAG]
     [STATIC_PARSE_HEADER_MAP_GETTERS_TAG]
+    [STATIC_PARSE_HEADER_TABLE_GETTERS_TAG]
     
     const NameToIdxCbs& get_name_to_idx_cbs () const;
     cstr get_path_to_settings () const;
@@ -54,6 +57,7 @@ private:
 
     StringManager m_effect_items;
     [STATIC_PARSE_HEADER_READERS_TAG]
+    [STATIC_PARSE_HEADER_TABLE_ITEMS_TAG]
 
     [STATIC_PARSE_HEADER_NAME_PARSERS_TAG]
 
@@ -61,6 +65,7 @@ private:
     u16 m_callback_count;
 
     [STATIC_PARSE_HEADER_MAP_BANK_PTRS_TAG]
+    [STATIC_PARSE_HEADER_TABLE_MAPS_TAG]
 
     [STATIC_PARSE_HEADER_DATA_PTRS_TAG]
 };

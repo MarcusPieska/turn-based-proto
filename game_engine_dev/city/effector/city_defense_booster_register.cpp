@@ -17,8 +17,8 @@
 
 const BoosterRegisterEntry CityDefenseBoosterRegister::s_entry[4] = {
     { { EffectEnablerKind::BUILDING, 0 }, 0, 50 }, // Walls (building)
-    { { EffectEnablerKind::BUILDING, 23 }, 0, 50 }, // Coastal Fortress (building)
-    { { EffectEnablerKind::BUILDING, 47 }, 0, 100 }, // Civil Defense (building)
+    { { EffectEnablerKind::BUILDING, 25 }, 0, 50 }, // Coastal Fortress (building)
+    { { EffectEnablerKind::BUILDING, 50 }, 0, 100 }, // Civil Defense (building)
     { { EffectEnablerKind::WONDER, 6 }, 0, 100 }, // Great Wall (wonder)
 };
 

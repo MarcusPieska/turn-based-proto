@@ -14,14 +14,18 @@ from generater_commons import (
     get_entries,
     get_map_specs,
     get_req_test_stems,
+    get_table_specs,
     join_tag_lines,
     lines_comp_clean_maps,
     lines_comp_clean_parser_test_suite,
     lines_comp_clean_parsers,
+    lines_comp_clean_tables,
     lines_comp_compile_parser_test_suite,
+    lines_comp_compile_tables,
     lines_comp_link_maps,
     lines_comp_link_parser_test_suite,
     lines_comp_link_parsers,
+    lines_comp_link_tables,
     map_class_name,
     static_data_class,
     static_data_key,
@@ -30,6 +34,7 @@ from generater_commons import (
 entries = get_entries()
 req_test_stems = get_req_test_stems()
 map_specs = get_map_specs()
+table_specs = get_table_specs()
 
 from generate_item_effects import ie_scope_enum
 
@@ -61,7 +66,10 @@ def lines_runtime_header_includes ():
     return ['#include "%s"' % data_header(stem) for stem in entries]
 
 def lines_runtime_header_map_includes ():
-    return ['#include "%s.h"' % map_base for map_base, row_stem, col_stem in map_specs]
+    lines = ['#include "%s.h"' % map_base for map_base, row_stem, col_stem in map_specs]
+    for table_base, path_stem, dep_stem in table_specs:
+        lines.append('#include "%s.h"' % table_base)
+    return lines
 
 def lines_runtime_header_effector_includes ():
     return ['#include "gen_effector/%s_effector.h"' % scope_stem(s) for s in SCOPE_ENUMS]
@@ -77,6 +85,8 @@ def lines_runtime_header_members ():
     lines.append("")
     for map_base, row_stem, col_stem in map_specs:
         lines.append("%s m_%s;" % (map_class_name(map_base), map_base))
+    for table_base, path_stem, dep_stem in table_specs:
+        lines.append("%s m_%s;" % (map_class_name(table_base), table_base))
     lines.append("")
     for s in SCOPE_ENUMS:
         lines.append("%s m_%s_fx;" % (scope_class(s), scope_stem(s)))
@@ -97,6 +107,10 @@ def lines_runtime_header_accessors ():
         cls = map_class_name(map_base)
         lines.append("%s& %s ();" % (cls, map_base))
         lines.append("const %s& %s () const;" % (cls, map_base))
+    for table_base, path_stem, dep_stem in table_specs:
+        cls = map_class_name(table_base)
+        lines.append("%s& %s ();" % (cls, table_base))
+        lines.append("const %s& %s () const;" % (cls, table_base))
     for s in SCOPE_ENUMS:
         stem = scope_stem(s)
         cls = scope_class(s)
@@ -115,6 +129,11 @@ def lines_runtime_cpp_map_includes ():
     seen = set()
     for map_base, row_stem, col_stem in map_specs:
         hdr = "%s.h" % map_base
+        if hdr not in seen:
+            seen.add(hdr)
+            lines.append("#include \"%s\"" % hdr)
+    for table_base, path_stem, dep_stem in table_specs:
+        hdr = "%s.h" % table_base
         if hdr not in seen:
             seen.add(hdr)
             lines.append("#include \"%s\"" % hdr)
@@ -168,6 +187,12 @@ def lines_runtime_cpp_load_maps ():
     lines.append("p.release_map_banks();")
     return lines
 
+def lines_runtime_cpp_load_tables ():
+    lines = []
+    for table_base, path_stem, dep_stem in table_specs:
+        lines.append("m_%s.adopt(p.get_%s());" % (table_base, table_base))
+    return lines
+
 def lines_runtime_cpp_load_effectors ():
     lines = []
     lines.append("u16 flat_fx_n = 0;")
@@ -188,6 +213,10 @@ def lines_runtime_cpp_accessors ():
         cls = map_class_name(map_base)
         blocks.append("%s& RuntimeStatics::%s () {\n    return m_%s;\n}" % (cls, map_base, map_base))
         blocks.append("const %s& RuntimeStatics::%s () const {\n    return m_%s;\n}" % (cls, map_base, map_base))
+    for table_base, path_stem, dep_stem in table_specs:
+        cls = map_class_name(table_base)
+        blocks.append("%s& RuntimeStatics::%s () {\n    return m_%s;\n}" % (cls, table_base, table_base))
+        blocks.append("const %s& RuntimeStatics::%s () const {\n    return m_%s;\n}" % (cls, table_base, table_base))
     for s in SCOPE_ENUMS:
         stem = scope_stem(s)
         cls = scope_class(s)
@@ -332,6 +361,13 @@ def lines_loader_tester_map_smoke_tests ():
             map_base, col_fn, col_stem, map_base))
     return lines
 
+def lines_loader_tester_table_smoke_tests ():
+    lines = []
+    for table_base, path_stem, dep_stem in table_specs:
+        lines.append('note_result(s.%s().get_row_count() > 0, "%s row count");' % (table_base, table_base))
+        lines.append('note_result(s.%s().name_to_idx("SCIENCE") != U16_KEY_NULL, "%s token lookup");' % (table_base, table_base))
+    return lines
+
 FX_SOURCE_STEMS = ["building", "small_wonder", "tech", "wonder"]
 
 def lines_loader_tester_effector_smoke_tests ():
@@ -383,6 +419,7 @@ def build_loader_sub_pairs ():
     sub_pairs.append(("[RUNTIME_LOADER_TESTER_PRINT_COUNTS_TAG]", join_tag_lines(lines_loader_tester_print_counts())))
     sub_pairs.append(("[RUNTIME_LOADER_TESTER_LOAD_COUNT_TESTS_TAG]", join_tag_lines(lines_loader_tester_load_count_tests(), "\n    ")))
     sub_pairs.append(("[RUNTIME_LOADER_TESTER_MAP_SMOKE_TESTS_TAG]", join_tag_lines(lines_loader_tester_map_smoke_tests(), "\n    ")))
+    sub_pairs.append(("[RUNTIME_LOADER_TESTER_TABLE_SMOKE_TESTS_TAG]", join_tag_lines(lines_loader_tester_table_smoke_tests(), "\n    ")))
     sub_pairs.append(("[RUNTIME_LOADER_TESTER_EFFECTOR_SMOKE_TESTS_TAG]", join_tag_lines(lines_loader_tester_effector_smoke_tests(), "\n    ")))
     sub_pairs.append(("[RUNTIME_LOADER_TESTER_REQ_TESTS_TAG]", join_tag_lines(lines_loader_tester_req_test_blocks(), "\n    ")))
     return sub_pairs
@@ -401,6 +438,7 @@ def build_runtime_sub_pairs ():
     sub_pairs.append(("[RUNTIME_STATICS_CPP_LOAD_EFFECTORS_TAG]", join_tag_lines(lines_runtime_cpp_load_effectors(), "\n    ")))
     sub_pairs.append(("[RUNTIME_STATICS_CPP_LOAD_ITEMS_TAKE_TAG]", join_tag_lines(lines_runtime_cpp_load_items_take(), "\n    ")))
     sub_pairs.append(("[RUNTIME_STATICS_CPP_LOAD_MAPS_TAG]", join_tag_lines(lines_runtime_cpp_load_maps(), "\n    ")))
+    sub_pairs.append(("[RUNTIME_STATICS_CPP_LOAD_TABLES_TAG]", join_tag_lines(lines_runtime_cpp_load_tables(), "\n    ")))
     sub_pairs.append(("[RUNTIME_STATICS_CPP_LOAD_DYN_REGS_TAG]", join_tag_lines(lines_runtime_cpp_load_dyn_regs(), "\n    ")))
     sub_pairs.append(("[RUNTIME_STATICS_CPP_ACCESSORS_TAG]", join_tag_lines(lines_runtime_cpp_accessors(), "\n\n")))
     return sub_pairs
@@ -425,6 +463,7 @@ def build_loader_comp_sub_pairs ():
 def build_lib_sub_pairs ():
     sub_pairs = []
     sub_pairs.append(("[RUNTIME_STATICS_COMP_LINK_MAPS_TAG]", join_tag_lines(lines_comp_link_maps(), "\n    ")))
+    sub_pairs.append(("[RUNTIME_STATICS_COMP_LINK_TABLES_TAG]", join_tag_lines(lines_comp_link_tables(), "\n    ")))
     sub_pairs.append(("[RUNTIME_STATICS_COMP_LINK_PARSERS_TAG]", join_tag_lines(lines_comp_link_parsers(), "\n    ")))
     holder_objs = []
     for stem in entries:
@@ -432,9 +471,11 @@ def build_lib_sub_pairs ():
         holder_objs.append("%s_static_data_load.o \\" % stem)
     sub_pairs.append(("[RUNTIME_STATICS_COMP_LINK_HOLDERS_TAG]", join_tag_lines(holder_objs + ["static_string_pool.o \\"], "\n    ")))
     sub_pairs.append(("[RUNTIME_STATICS_COMP_CLEAN_MAPS_TAG]", join_tag_lines(lines_comp_clean_maps(), "\n    ")))
+    sub_pairs.append(("[RUNTIME_STATICS_COMP_CLEAN_TABLES_TAG]", join_tag_lines(lines_comp_clean_tables(), "\n    ")))
     sub_pairs.append(("[RUNTIME_STATICS_COMP_CLEAN_PARSERS_TAG]", join_tag_lines(lines_comp_clean_parsers(), "\n    ")))
     sub_pairs.append(("[RUNTIME_STATICS_COMP_CLEAN_HOLDERS_TAG]", join_tag_lines(holder_objs + ["static_string_pool.o \\"], "\n    ")))
     sub_pairs.append(("[RUNTIME_STATIC_LOADER_LIB_COMP_COMPILE_MAPS_TAG]", join_tag_lines(lines_lib_comp_compile_maps(), "\n")))
+    sub_pairs.append(("[RUNTIME_STATIC_LOADER_LIB_COMP_COMPILE_TABLES_TAG]", join_tag_lines(lines_comp_compile_tables(), "\n")))
     sub_pairs.append(("[RUNTIME_STATIC_LOADER_LIB_COMP_COMPILE_PARSERS_TAG]", join_tag_lines(lines_lib_comp_compile_parsers(), "\n")))
     sub_pairs.append(("[RUNTIME_STATIC_LOADER_LIB_COMP_COMPILE_HOLDERS_TAG]", join_tag_lines(lines_lib_comp_compile_holders(), "\n")))
     sub_pairs.append(("[RUNTIME_STATIC_LOADER_LIB_COMP_COMPILE_EFFECTORS_TAG]", join_tag_lines(lines_lib_comp_compile_effectors(), "\n")))

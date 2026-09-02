@@ -278,7 +278,7 @@ static bool init_state (GameState* state, RuntimeStatics& st) {
     if (!TileYields::setup(st)) {
         return false;
     }
-    if (!BuildingTraitOrderings::begin(st.building())) {
+    if (!BuildingTraitOrderings::begin(st.building(), st.trait_affinity_map())) {
         return false;
     }
     state->m_civ_relations.reset(st.civ().get_item_count());

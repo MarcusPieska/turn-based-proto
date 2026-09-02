@@ -9,127 +9,42 @@
 
 #include "building_static_data.h"
 #include "building_static_key.h"
+#include "item_effect_helpers.h"
 #include "item_effects.h"
+#include "trait_affinity_map.h"
 
 //================================================================================================================================
 //=> - Statics -
 //================================================================================================================================
 
 u8* BuildingTraitAttribution::m_masks = nullptr;
+u16* BuildingTraitAttribution::m_bases = nullptr;
 u16 BuildingTraitAttribution::m_n = 0;
 
 //================================================================================================================================
-//=> - Mapping tables -
+//=> - Helpers -
 //================================================================================================================================
-
-static const u16 k_map_tag_max = 4;
-
-struct TraitTagList {
-    CivTrait m_tags[k_map_tag_max]; // Trait tags contributed by one source
-    u8 m_n; // How many tags are set
-};
 
 static u8 trait_bit (CivTrait trait) {
     return static_cast<u8>(1u << static_cast<u16>(trait));
 }
 
-static u8 mask_from_tags (const TraitTagList& tags) {
-    u8 mask = 0;
-    for (u8 i = 0; i < tags.m_n && i < k_map_tag_max; ++i) {
-        mask = static_cast<u8>(mask | trait_bit(tags.m_tags[i]));
+static void apply_token (const TraitAffinityMap& aff, cstr token, u8* mask, u16* base_sum) {
+    if (!token || !mask || !base_sum) {
+        return;
     }
-    return mask;
+    const u16 idx = aff.name_to_idx(token);
+    if (idx == U16_KEY_NULL) {
+        return;
+    }
+    const TraitAffinityRowStruct& row = aff.get_row(idx);
+    *base_sum = static_cast<u16>(*base_sum + row.m_base);
+    for (u8 i = 0; i < row.m_trait_n; ++i) {
+        *mask = static_cast<u8>(*mask | trait_bit(static_cast<CivTrait>(row.m_traits[i])));
+    }
 }
 
-static TraitTagList tags_from_booster (ItemEffectBoosterType tp) {
-    TraitTagList out = {};
-    switch (tp) {
-    case ItemEffectBoosterType::SCIENCE:
-        out.m_tags[0] = CivTrait::Scientific;
-        out.m_n = 1;
-        break;
-    case ItemEffectBoosterType::HAPPINESS:
-        out.m_tags[0] = CivTrait::Religious;
-        out.m_n = 1;
-        break;
-    case ItemEffectBoosterType::CULTURE:
-        out.m_tags[0] = CivTrait::Religious;
-        out.m_tags[1] = CivTrait::Scientific;
-        out.m_n = 2;
-        break;
-    case ItemEffectBoosterType::PRODUCTION:
-    case ItemEffectBoosterType::POLLUTION:
-        out.m_tags[0] = CivTrait::Industrious;
-        out.m_n = 1;
-        break;
-    case ItemEffectBoosterType::AIR_DEFENSE:
-    case ItemEffectBoosterType::DEFENSE:
-    case ItemEffectBoosterType::NUKE_DEFENSE:
-    case ItemEffectBoosterType::SHIP_DEFENSE:
-    case ItemEffectBoosterType::SHIP_TRAINING:
-    case ItemEffectBoosterType::UNIT_EXP:
-    case ItemEffectBoosterType::UPGRADE_COST:
-    case ItemEffectBoosterType::WAR_WEAR:
-        out.m_tags[0] = CivTrait::Militaristic;
-        out.m_n = 1;
-        break;
-    case ItemEffectBoosterType::COMMERCE:
-        out.m_tags[0] = CivTrait::Commercial;
-        out.m_n = 1;
-        break;
-    case ItemEffectBoosterType::SEA_TRADE:
-        out.m_tags[0] = CivTrait::Expansionist;
-        out.m_tags[1] = CivTrait::Commercial;
-        out.m_n = 2;
-        break;
-    case ItemEffectBoosterType::CORRUPTION:
-    case ItemEffectBoosterType::ESPIONAGE:
-    case ItemEffectBoosterType::MOVEMENT:
-    case ItemEffectBoosterType::SHIP_MOVEMENT:
-    case ItemEffectBoosterType::AIR_RANGE:
-        out.m_tags[0] = CivTrait::Expansionist;
-        out.m_n = 1;
-        break;
-    case ItemEffectBoosterType::POP_GROWTH:
-    case ItemEffectBoosterType::SANITATION:
-        out.m_tags[0] = CivTrait::Agricultural;
-        out.m_n = 1;
-        break;
-    case ItemEffectBoosterType::NONE:
-    default:
-        break;
-    }
-    return out;
-}
-
-static TraitTagList tags_from_produce (ItemProduceYield yld) {
-    TraitTagList out = {};
-    switch (yld) {
-    case ItemProduceYield::FOOD:
-        out.m_tags[0] = CivTrait::Agricultural;
-        out.m_n = 1;
-        break;
-    case ItemProduceYield::COMMERCE:
-        out.m_tags[0] = CivTrait::Commercial;
-        out.m_n = 1;
-        break;
-    case ItemProduceYield::PRODUCTION:
-        out.m_tags[0] = CivTrait::Industrious;
-        out.m_n = 1;
-        break;
-    case ItemProduceYield::SCIENCE:
-        out.m_tags[0] = CivTrait::Scientific;
-        out.m_n = 1;
-        break;
-    case ItemProduceYield::NONE:
-    default:
-        break;
-    }
-    return out;
-}
-
-static u8 tags_from_effects (const ItemEffectsStruct& fx) {
-    u8 mask = 0;
+static void apply_effects (const TraitAffinityMap& aff, const ItemEffectsStruct& fx, u8* mask, u16* base_sum) {
     for (u16 i = 0; i < MAX_EFFECT_COUNT; ++i) {
         const ItemEffectStruct& slot = fx.items[i];
         const ItemEffectType tp = static_cast<ItemEffectType>(slot.type);
@@ -137,39 +52,47 @@ static u8 tags_from_effects (const ItemEffectsStruct& fx) {
             continue;
         }
         if (tp == ItemEffectType::BOOSTER) {
-            mask = static_cast<u8>(mask | mask_from_tags(tags_from_booster(slot.effect.booster.target_id)));
+            apply_token(aff, ItemEffectHelper::booster_type_enum_to_str(slot.effect.booster.target_id), mask, base_sum);
             continue;
         }
         if (tp == ItemEffectType::PRODUCE) {
             const ItemEffectProduce& pr = slot.effect.produce;
             if (pr.kind == ItemProduceKind::YIELD) {
-                mask = static_cast<u8>(mask | mask_from_tags(tags_from_produce(static_cast<ItemProduceYield>(pr.target_id))));
+                apply_token(
+                    aff,
+                    ItemEffectHelper::produce_yield_enum_to_str(static_cast<ItemProduceYield>(pr.target_id)),
+                    mask,
+                    base_sum);
             }
         }
     }
-    return mask;
 }
 
 //================================================================================================================================
 //=> - BuildingTraitAttribution -
 //================================================================================================================================
 
-bool BuildingTraitAttribution::begin (const BuildingStaticData& blds) {
+bool BuildingTraitAttribution::begin (const BuildingStaticData& blds, const TraitAffinityMap& aff) {
     clear();
     const u16 n = blds.get_item_count();
-    if (n == 0) {
+    if (n == 0 || aff.get_row_count() == 0) {
         return false;
     }
     u8* masks = static_cast<u8*>(std::malloc(static_cast<size_t>(n)));
-    if (masks == nullptr) {
+    u16* bases = static_cast<u16*>(std::malloc(static_cast<size_t>(n) * sizeof(u16)));
+    if (masks == nullptr || bases == nullptr) {
+        std::free(masks);
+        std::free(bases);
         return false;
     }
     std::memset(masks, 0, static_cast<size_t>(n));
+    std::memset(bases, 0, static_cast<size_t>(n) * sizeof(u16));
     for (u16 i = 0; i < n; ++i) {
         const BuildingStaticDataStruct& item = blds.get_item(BuildingStaticDataKey::from_raw(i));
-        masks[i] = tags_from_effects(item.effects);
+        apply_effects(aff, item.effects, &masks[i], &bases[i]);
     }
     m_masks = masks;
+    m_bases = bases;
     m_n = n;
     return true;
 }
@@ -179,11 +102,15 @@ void BuildingTraitAttribution::clear () {
         std::free(m_masks);
         m_masks = nullptr;
     }
+    if (m_bases != nullptr) {
+        std::free(m_bases);
+        m_bases = nullptr;
+    }
     m_n = 0;
 }
 
 bool BuildingTraitAttribution::ready () {
-    return m_masks != nullptr && m_n > 0;
+    return m_masks != nullptr && m_bases != nullptr && m_n > 0;
 }
 
 u16 BuildingTraitAttribution::building_n () {
@@ -195,6 +122,13 @@ u8 BuildingTraitAttribution::mask (u16 bld_idx) {
         return 0;
     }
     return m_masks[bld_idx];
+}
+
+u16 BuildingTraitAttribution::base (u16 bld_idx) {
+    if (m_bases == nullptr || bld_idx >= m_n) {
+        return 0;
+    }
+    return m_bases[bld_idx];
 }
 
 bool BuildingTraitAttribution::has (u16 bld_idx, CivTrait trait) {

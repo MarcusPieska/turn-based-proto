@@ -11,6 +11,7 @@
 #include "building_static_data.h"
 #include "building_static_key.h"
 #include "building_trait_attribution.h"
+#include "trait_affinity_map.h"
 #include "civ_trait_affinity.h"
 #include "item_reqs.h"
 #include "tech_static_key.h"
@@ -71,10 +72,10 @@ static bool bld_needs_tech (const BuildingStaticDataStruct& bld, u16 tech_idx) {
 //=> - TechTraitAttribution -
 //================================================================================================================================
 
-bool TechTraitAttribution::begin (const TechStaticData& techs, const BuildingStaticData& blds) {
+bool TechTraitAttribution::begin (const TechStaticData& techs, const BuildingStaticData& blds, const TraitAffinityMap& aff) {
     clear();
     if (!BuildingTraitAttribution::ready()) {
-        if (!BuildingTraitAttribution::begin(blds)) {
+        if (!BuildingTraitAttribution::begin(blds, aff)) {
             return false;
         }
     }

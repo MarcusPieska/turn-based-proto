@@ -111,6 +111,7 @@ void note_all_paths_exist (const PathMng& paths, cstr tag) {
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s worker_job_imps exists", tag); note_result(does_file_exist(paths.get_path_to_worker_job_imps()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s tile_yield_types exists", tag); note_result(does_file_exist(paths.get_path_to_tile_yield_types()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s improvement_yields exists", tag); note_result(does_file_exist(paths.get_path_to_improvement_yields()), _buf); }
+        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s trait_affinity exists", tag); note_result(does_file_exist(paths.get_path_to_trait_affinity()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s settings exists", tag); note_result(does_file_exist(paths.get_path_to_settings()), _buf); }
 }
 

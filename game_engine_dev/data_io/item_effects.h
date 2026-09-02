@@ -65,7 +65,11 @@ enum class ItemEffectBoosterType : u16 {
     SANITATION = 22,
     WORKER_DRAFT = 23,
     FOOD = 24,
-    RESOURCE = 25
+    RESOURCE = 25,
+    CIV_LAND_UNIT_SUPPORT = 26,
+    CITY_LAND_UNIT_SUPPORT = 27,
+    CIV_NAVAL_UNIT_SUPPORT = 28,
+    CITY_NAVAL_UNIT_SUPPORT = 29
 };
 
 enum class ItemTerrainYield : u8 {

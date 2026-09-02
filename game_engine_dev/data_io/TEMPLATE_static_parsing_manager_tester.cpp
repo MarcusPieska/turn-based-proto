@@ -16,6 +16,7 @@
 #include "runtime_statics.h"
 
 [STATIC_PARSE_TESTER_MAP_INCLUDES_TAG]
+[STATIC_PARSE_TESTER_TABLE_INCLUDES_TAG]
 
 //================================================================================================================================
 //=> - Globals -
@@ -88,6 +89,9 @@ u16 get_req_limit_for_type (const StaticParsingManager& parser, u8 req_type) {
     if (req_type == ITEM_REQ_TYPE_BUILDING) {
         return parser.get_building_count();
     }
+    if (req_type == ITEM_REQ_TYPE_CIV_TRAIT) {
+        return parser.get_civ_trait_count();
+    }
     return 0;
 }
 
@@ -147,6 +151,7 @@ void run_req_bounds_tests (const StaticParsingManager& parser) {
 
 void run_map_tests (const StaticParsingManager& parser, const RuntimeStatics& statics) {
     [STATIC_PARSE_TESTER_MAP_TESTS_TAG]
+    [STATIC_PARSE_TESTER_TABLE_TESTS_TAG]
 }
 
 int run_parse_driver () {

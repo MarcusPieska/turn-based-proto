@@ -17,6 +17,7 @@
 
 #include "unit_type_action_map.h"
 #include "civ_bld_discount_map.h"
+#include "trait_affinity_map.h"
 
 //================================================================================================================================
 //=> - Globals -
@@ -116,6 +117,9 @@ u16 get_req_limit_for_type (const StaticParsingManager& parser, u8 req_type) {
     if (req_type == ITEM_REQ_TYPE_BUILDING) {
         return parser.get_building_count();
     }
+    if (req_type == ITEM_REQ_TYPE_CIV_TRAIT) {
+        return parser.get_civ_trait_count();
+    }
     return 0;
 }
 
@@ -210,6 +214,11 @@ void run_map_tests (const StaticParsingManager& parser, const RuntimeStatics& st
     if (print_level >= 1) {
         printf(" unit_type_action_map: row_count=%u col_count=%u\n", statics.unit_type_action_map().get_unit_type_count(), statics.unit_type_action_map().get_action_count());
         printf(" civ_bld_discount_map: row_count=%u col_count=%u\n", statics.civ_bld_discount_map().get_civ_trait_count(), statics.civ_bld_discount_map().get_building_count());
+    }
+    note_result(statics.trait_affinity_map().get_row_count() > 0, "trait_affinity_map row count");
+    note_result(statics.trait_affinity_map().name_to_idx("SCIENCE") != U16_KEY_NULL, "trait_affinity_map token lookup");
+    if (print_level >= 1) {
+        printf(" trait_affinity_map: row_count=%u\n", statics.trait_affinity_map().get_row_count());
     }
 }
 

@@ -33,6 +33,7 @@
 #include "profile_time_opt.h"
 #include "gen_ai_helpers.h"
 #include "whiteboard_mng.h"
+#include "city_connector.h"
 
 //================================================================================================================================
 //=> - Static runtime data -
@@ -386,11 +387,11 @@ bool GameSetup::finish_with_starts (GameState* state, const SpgPickCoords& start
         state->clear();
         return false;
     }
-    if (!BuildingTraitOrderings::begin(g_rt_statics->building())) {
+    if (!BuildingTraitOrderings::begin(g_rt_statics->building(), g_rt_statics->trait_affinity_map())) {
         state->clear();
         return false;
     }
-    if (!TechTraitOrderings::begin(g_rt_statics->tech(), g_rt_statics->building())) {
+    if (!TechTraitOrderings::begin(g_rt_statics->tech(), g_rt_statics->building(), g_rt_statics->trait_affinity_map())) {
         state->clear();
         return false;
     }
@@ -406,6 +407,7 @@ bool GameSetup::finish_with_starts (GameState* state, const SpgPickCoords& start
         return false;
     }
     City::bind_player_states(state->m_player_states, state->m_player_n);
+    CityConnector::set_plan_spines(false);
     for (u16 i = 0; i < player_n; ++i) {
         if (!CivSpawner::spawn(state, starts.pts[i].x, starts.pts[i].y, i)) {
             state->clear();
@@ -420,6 +422,7 @@ bool GameSetup::finish_with_starts (GameState* state, const SpgPickCoords& start
         state->clear();
         return false;
     }
+    CityConnector::sync_road_arms(*state);
     state->m_current_turn = 0;
     state->m_age_of_exploration = true;
     PTO_INIT();

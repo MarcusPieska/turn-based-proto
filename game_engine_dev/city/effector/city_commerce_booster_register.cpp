@@ -17,11 +17,11 @@
 
 const BoosterRegisterEntry CityCommerceBoosterRegister::s_entry[7] = {
     { { EffectEnablerKind::BUILDING, 6 }, 0, 50 }, // Marketplace (building)
-    { { EffectEnablerKind::BUILDING, 17 }, 0, 100 }, // Bank (building)
-    { { EffectEnablerKind::BUILDING, 33 }, 2, 0 }, // Incineration Plant (building)
-    { { EffectEnablerKind::BUILDING, 41 }, 0, 200 }, // Stock Exchange (building)
-    { { EffectEnablerKind::BUILDING, 42 }, 0, 50 }, // Superhighways (building)
-    { { EffectEnablerKind::BUILDING, 50 }, 0, 50 }, // Capitalization (building)
+    { { EffectEnablerKind::BUILDING, 19 }, 0, 100 }, // Bank (building)
+    { { EffectEnablerKind::BUILDING, 35 }, 2, 0 }, // Incineration Plant (building)
+    { { EffectEnablerKind::BUILDING, 44 }, 0, 200 }, // Stock Exchange (building)
+    { { EffectEnablerKind::BUILDING, 45 }, 0, 50 }, // Superhighways (building)
+    { { EffectEnablerKind::BUILDING, 53 }, 0, 50 }, // Capitalization (building)
     { { EffectEnablerKind::WONDER, 3 }, 1, 0 }, // Colossus (wonder)
 };
 

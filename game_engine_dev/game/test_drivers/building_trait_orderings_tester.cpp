@@ -95,7 +95,7 @@ static void test_orderings () {
     if (g_rt_statics == nullptr) {
         return;
     }
-    note_result(BuildingTraitOrderings::begin(g_rt_statics->building()), "begin orderings");
+    note_result(BuildingTraitOrderings::begin(g_rt_statics->building(), g_rt_statics->trait_affinity_map()), "begin orderings");
     note_result(BuildingTraitOrderings::ready(), "orderings ready");
     const u16 n = BuildingTraitOrderings::building_n();
     note_result(n == g_rt_statics->building().get_item_count(), "building_n matches");

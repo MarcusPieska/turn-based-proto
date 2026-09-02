@@ -30,11 +30,13 @@
 //
 //================================================================================================================================
 
+class TraitAffinityMap;
+
 class TechTraitAttribution {
 public:
     TechTraitAttribution () = delete;
 
-    static bool begin (const TechStaticData& techs, const BuildingStaticData& blds);
+    static bool begin (const TechStaticData& techs, const BuildingStaticData& blds, const TraitAffinityMap& aff);
     static void clear ();
     static bool ready ();
     static u16 tech_n ();

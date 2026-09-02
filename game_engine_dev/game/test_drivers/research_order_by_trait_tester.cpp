@@ -230,7 +230,7 @@ int main () {
         g_ord_n[t] = 0;
     }
 
-    if (!TechTraitOrderings::begin(g_rt_statics->tech(), g_rt_statics->building())) {
+    if (!TechTraitOrderings::begin(g_rt_statics->tech(), g_rt_statics->building(), g_rt_statics->trait_affinity_map())) {
         std::printf("TechTraitOrderings::begin failed\n");
         return 1;
     }

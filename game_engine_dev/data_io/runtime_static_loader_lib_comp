@@ -23,6 +23,8 @@ g++ $INC $CXXFLAGS -c ../static_state/unit_type_action_map.cpp -o unit_type_acti
 g++ $INC $CXXFLAGS -c unit_type_action_map_parsing.cpp -o unit_type_action_map_parsing.o
 g++ $INC $CXXFLAGS -c ../static_state/civ_bld_discount_map.cpp -o civ_bld_discount_map.o
 g++ $INC $CXXFLAGS -c civ_bld_discount_map_parsing.cpp -o civ_bld_discount_map_parsing.o
+g++ $INC $CXXFLAGS -c ../static_state/trait_affinity_map.cpp -o trait_affinity_map.o
+g++ $INC $CXXFLAGS -c trait_affinity_map_parsing.cpp -o trait_affinity_map_parsing.o
 g++ $INC $CXXFLAGS -c building_parser.cpp -o building_parser.o
 g++ $INC $CXXFLAGS -c toggle_city_parser.cpp -o toggle_city_parser.o
 g++ $INC $CXXFLAGS -c toggle_civ_parser.cpp -o toggle_civ_parser.o
@@ -143,6 +145,8 @@ g++ -shared -o $OUT_SO \
     unit_type_action_map_parsing.o \
     civ_bld_discount_map.o \
     civ_bld_discount_map_parsing.o \
+    trait_affinity_map.o \
+    trait_affinity_map_parsing.o \
     building_parser.o \
     toggle_city_parser.o \
     toggle_civ_parser.o \
@@ -263,6 +267,8 @@ rm \
     unit_type_action_map_parsing.o \
     civ_bld_discount_map.o \
     civ_bld_discount_map_parsing.o \
+    trait_affinity_map.o \
+    trait_affinity_map_parsing.o \
     building_parser.o \
     toggle_city_parser.o \
     toggle_civ_parser.o \

@@ -14,15 +14,21 @@ from generater_commons import (
     get_entries,
     get_map_specs,
     get_req_test_stems,
+    get_table_specs,
     join_tag_lines,
     lines_comp_clean_maps,
     lines_comp_clean_parsers,
+    lines_comp_clean_tables,
     lines_comp_compile_maps,
     lines_comp_compile_parsers,
+    lines_comp_compile_tables,
     lines_comp_link_maps,
     lines_comp_link_parsers,
+    lines_comp_link_tables,
     lines_tester_map_includes,
     lines_tester_map_tests,
+    lines_tester_table_includes,
+    lines_tester_table_tests,
     map_class_name,
     parser_class,
     parser_header,
@@ -45,6 +51,7 @@ from generate_runtime_statics import (
 entries = get_entries()
 req_test_stems = get_req_test_stems()
 map_specs = get_map_specs()
+table_specs = get_table_specs()
 
 #================================================================================================================================#
 #=> - StaticParsingManager codegen -
@@ -249,19 +256,88 @@ def lines_cpp_map_getter_blocks ():
         blocks.append("\n".join(sub))
     return blocks
 
+def lines_header_table_includes ():
+    return ['#include "%s.h"' % table_base for table_base, path_stem, dep_stem in table_specs]
+
+def lines_header_table_items ():
+    return ["StringManager m_%s_items;" % path_stem for table_base, path_stem, dep_stem in table_specs]
+
+def lines_header_table_maps ():
+    return ["%s m_%s;" % (map_class_name(table_base), table_base) for table_base, path_stem, dep_stem in table_specs]
+
+def lines_header_table_getter_blocks ():
+    lines = []
+    for table_base, path_stem, dep_stem in table_specs:
+        lines.append("%s& get_%s ();" % (map_class_name(table_base), table_base))
+        lines.append("const %s& get_%s () const;" % (map_class_name(table_base), table_base))
+    return lines
+
+def lines_cpp_table_includes ():
+    lines = []
+    seen = set()
+    for table_base, path_stem, dep_stem in table_specs:
+        for hdr in (
+            parser_header(dep_stem),
+            "%s_parsing.h" % table_base,
+        ):
+            if hdr not in seen:
+                seen.add(hdr)
+                lines.append("#include \"%s\"" % hdr)
+    return lines
+
+def lines_cpp_load_table_items ():
+    lines = []
+    for table_base, path_stem, dep_stem in table_specs:
+        lines.append("m_%s_items.load_file_content(m_paths.get_path_to_%s());" % (path_stem, path_stem))
+        lines.append("m_%s_items.split_string_by_char(0, '\\n');" % path_stem)
+        lines.append("DataParserBase::normalize_lines(m_%s_items);" % path_stem)
+    return lines
+
+def lines_cpp_build_tables ():
+    lines = []
+    for table_base, path_stem, dep_stem in table_specs:
+        cls = map_class_name(table_base)
+        lines.append("")
+        lines.append("if (!%sParsing::load_cfg(m_%s, m_%s_items, %s_parser)) {" % (
+            cls, table_base, path_stem, dep_stem))
+        lines.append("    printf(\"ERROR: Failed to load %s\\n\");" % table_base)
+        lines.append("    std::exit(1);")
+        lines.append("}")
+    return lines
+
+def lines_cpp_table_getter_blocks ():
+    blocks = []
+    for table_base, path_stem, dep_stem in table_specs:
+        cls = map_class_name(table_base)
+        sub = []
+        sub.append("%s& StaticParsingManager::get_%s () {" % (cls, table_base))
+        sub.append("    return m_%s;" % table_base)
+        sub.append("}")
+        sub.append("")
+        sub.append("const %s& StaticParsingManager::get_%s () const {" % (cls, table_base))
+        sub.append("    return m_%s;" % table_base)
+        sub.append("}")
+        blocks.append("\n".join(sub))
+    return blocks
+
 def build_static_parse_sub_pairs ():
     sub_pairs = []
     sub_pairs.append(("[STATIC_PARSE_HEADER_PARSER_INCLUDES_TAG]", join_tag_lines(lines_header_parser_includes(), "\n")))
     sub_pairs.append(("[STATIC_PARSE_HEADER_DATA_INCLUDES_TAG]", join_tag_lines(lines_header_data_includes(), "\n")))
+    sub_pairs.append(("[STATIC_PARSE_HEADER_TABLE_INCLUDES_TAG]", join_tag_lines(lines_header_table_includes(), "\n")))
     sub_pairs.append(("[STATIC_PARSE_HEADER_TYPED_GETTERS_TAG]", join_tag_lines(lines_header_typed_getter_blocks(), "\n\n    ")))
     sub_pairs.append(("[STATIC_PARSE_HEADER_NAME_PARSER_GETTERS_TAG]", join_tag_lines(lines_header_name_parser_getter_blocks(), "\n\n    ")))
     sub_pairs.append(("[STATIC_PARSE_HEADER_RAW_GETTERS_TAG]", join_tag_lines(lines_header_raw_getter_blocks(), "\n\n    ")))
     sub_pairs.append(("[STATIC_PARSE_HEADER_MAP_GETTERS_TAG]", join_tag_lines(lines_header_map_getter_blocks(), "\n\n    ")))
+    sub_pairs.append(("[STATIC_PARSE_HEADER_TABLE_GETTERS_TAG]", join_tag_lines(lines_header_table_getter_blocks(), "\n\n    ")))
     sub_pairs.append(("[STATIC_PARSE_HEADER_READERS_TAG]", join_tag_lines(lines_header_readers())))
+    sub_pairs.append(("[STATIC_PARSE_HEADER_TABLE_ITEMS_TAG]", join_tag_lines(lines_header_table_items())))
     sub_pairs.append(("[STATIC_PARSE_HEADER_NAME_PARSERS_TAG]", join_tag_lines(lines_header_name_parsers())))
     sub_pairs.append(("[STATIC_PARSE_HEADER_MAP_BANK_PTRS_TAG]", join_tag_lines(lines_header_map_bank_ptrs())))
+    sub_pairs.append(("[STATIC_PARSE_HEADER_TABLE_MAPS_TAG]", join_tag_lines(lines_header_table_maps())))
     sub_pairs.append(("[STATIC_PARSE_HEADER_DATA_PTRS_TAG]", join_tag_lines(lines_header_data_ptrs())))
     sub_pairs.append(("[STATIC_PARSE_CPP_MAP_INCLUDES_TAG]", join_tag_lines(lines_cpp_map_includes(), "\n")))
+    sub_pairs.append(("[STATIC_PARSE_CPP_TABLE_INCLUDES_TAG]", join_tag_lines(lines_cpp_table_includes(), "\n")))
     sub_pairs.append(("[STATIC_PARSE_CPP_CALLBACK_PARSERS_TAG]", join_tag_lines(lines_cpp_callback_parsers(), "\n")))
     sub_pairs.append(("[STATIC_PARSE_CPP_CALLBACK_FUNCS_TAG]", join_tag_lines(lines_cpp_callback_func_blocks(), "\n\n")))
     sub_pairs.append(("[STATIC_PARSE_CPP_READER_INITS_TAG]", join_tag_lines(lines_cpp_reader_inits(), "\n    ")))
@@ -272,6 +348,7 @@ def build_static_parse_sub_pairs ():
     sub_pairs.append(("[STATIC_PARSE_CPP_NAME_PARSER_GETTERS_TAG]", join_tag_lines(lines_cpp_name_parser_getter_blocks(), "\n\n")))
     sub_pairs.append(("[STATIC_PARSE_CPP_RAW_GETTERS_TAG]", join_tag_lines(lines_cpp_raw_getter_blocks(), "\n\n")))
     sub_pairs.append(("[STATIC_PARSE_CPP_MAP_GETTERS_TAG]", join_tag_lines(lines_cpp_map_getter_blocks(), "\n\n")))
+    sub_pairs.append(("[STATIC_PARSE_CPP_TABLE_GETTERS_TAG]", join_tag_lines(lines_cpp_table_getter_blocks(), "\n\n")))
     sub_pairs.append(("[STATIC_PARSE_CPP_RELEASE_MAP_BANKS_TAG]", join_tag_lines(lines_cpp_release_map_banks(), "\n")))
     sub_pairs.append(("[STATIC_PARSE_CPP_CALLBACK_ASSIGN_PARSERS_TAG]", join_tag_lines(lines_cpp_callback_assign_parsers())))
     sub_pairs.append(("[STATIC_PARSE_CPP_CALLBACK_ASSIGN_CBS_TAG]", join_tag_lines(lines_cpp_callback_assign_cbs())))
@@ -279,27 +356,34 @@ def build_static_parse_sub_pairs ():
     sub_pairs.append(("[STATIC_PARSE_CPP_LOCAL_PARSERS_TAG]", join_tag_lines(lines_cpp_local_parsers())))
     sub_pairs.append(("[STATIC_PARSE_CPP_PARSE_ASSIGNMENTS_TAG]", join_tag_lines(lines_cpp_parse_assignments())))
     sub_pairs.append(("[STATIC_PARSE_CPP_LOAD_ITEMS_TAG]", join_tag_lines(lines_cpp_load_items())))
+    sub_pairs.append(("[STATIC_PARSE_CPP_LOAD_TABLE_ITEMS_TAG]", join_tag_lines(lines_cpp_load_table_items(), "\n    ")))
     sub_pairs.append(("[STATIC_PARSE_CPP_INIT_NAME_PARSERS_TAG]", join_tag_lines(lines_cpp_init_name_parsers())))
     sub_pairs.append(("[STATIC_PARSE_CPP_BUILD_MAPS_TAG]", join_tag_lines(lines_cpp_build_maps())))
+    sub_pairs.append(("[STATIC_PARSE_CPP_BUILD_TABLES_TAG]", join_tag_lines(lines_cpp_build_tables(), "\n    ")))
     sub_pairs.append(("[STATIC_PARSE_CPP_DELETE_MAP_BANKS_TAG]", join_tag_lines(lines_cpp_delete_map_banks())))
     sub_pairs.append(("[STATIC_PARSE_CPP_DELETE_NAME_PARSERS_TAG]", join_tag_lines(lines_cpp_delete_name_parsers())))
     sub_pairs.append(("[STATIC_PARSE_TESTER_PRINT_COUNTS_TAG]", join_tag_lines(lines_tester_print_counts())))
     sub_pairs.append(("[STATIC_PARSE_TESTER_REQ_TESTS_TAG]", join_tag_lines(lines_tester_req_test_blocks(), "\n    ")))
     sub_pairs.append(("[STATIC_PARSE_TESTER_MAP_INCLUDES_TAG]", join_tag_lines(lines_tester_map_includes(), "\n")))
+    sub_pairs.append(("[STATIC_PARSE_TESTER_TABLE_INCLUDES_TAG]", join_tag_lines(lines_tester_table_includes(), "\n")))
     sub_pairs.append(("[STATIC_PARSE_TESTER_MAP_TESTS_TAG]", join_tag_lines(lines_tester_map_tests(), "\n    ")))
+    sub_pairs.append(("[STATIC_PARSE_TESTER_TABLE_TESTS_TAG]", join_tag_lines(lines_tester_table_tests(), "\n    ")))
     sub_pairs.append(("[STATIC_PARSE_COMP_COMPILE_MAPS_TAG]", join_tag_lines(lines_comp_compile_maps(), "\n")))
+    sub_pairs.append(("[STATIC_PARSE_COMP_COMPILE_TABLES_TAG]", join_tag_lines(lines_comp_compile_tables(), "\n")))
     sub_pairs.append(("[STATIC_PARSE_COMP_COMPILE_PARSERS_TAG]", join_tag_lines(lines_comp_compile_parsers(), "\n")))
     sub_pairs.append(("[STATIC_PARSE_COMP_COMPILE_HOLDERS_TAG]", join_tag_lines(lines_lib_comp_compile_holders(), "\n")))
     sub_pairs.append(("[STATIC_PARSE_COMP_COMPILE_EFFECTORS_TAG]", join_tag_lines(lines_lib_comp_compile_effectors(), "\n")))
     sub_pairs.append(("[STATIC_PARSE_COMP_COMPILE_DYN_REGS_TAG]", join_tag_lines(lines_lib_comp_compile_dyn_regs(), "\n")))
     sub_pairs.append(("[STATIC_PARSE_COMP_COMPILE_RUNTIME_TAG]", join_tag_lines(lines_comp_compile_runtime_statics_bundle(), "\n")))
     sub_pairs.append(("[STATIC_PARSE_COMP_LINK_MAPS_TAG]", join_tag_lines(lines_comp_link_maps(), "\n    ")))
+    sub_pairs.append(("[STATIC_PARSE_COMP_LINK_TABLES_TAG]", join_tag_lines(lines_comp_link_tables(), "\n    ")))
     sub_pairs.append(("[STATIC_PARSE_COMP_LINK_PARSERS_TAG]", join_tag_lines(lines_comp_link_parsers(), "\n    ")))
     sub_pairs.append(("[STATIC_PARSE_COMP_LINK_HOLDERS_TAG]", join_tag_lines(lines_comp_link_static_holders(), "\n    ")))
     sub_pairs.append(("[STATIC_PARSE_COMP_LINK_EFFECTORS_TAG]", join_tag_lines(lines_comp_link_effectors(), "\n    ")))
     sub_pairs.append(("[STATIC_PARSE_COMP_LINK_DYN_REGS_TAG]", join_tag_lines(lines_comp_link_dyn_regs(), "\n    ")))
     sub_pairs.append(("[STATIC_PARSE_COMP_LINK_RUNTIME_TAG]", join_tag_lines(lines_comp_link_runtime_statics_bundle(), "\n    ")))
     sub_pairs.append(("[STATIC_PARSE_COMP_CLEAN_MAPS_TAG]", join_tag_lines(lines_comp_clean_maps(), "\n    ")))
+    sub_pairs.append(("[STATIC_PARSE_COMP_CLEAN_TABLES_TAG]", join_tag_lines(lines_comp_clean_tables(), "\n    ")))
     sub_pairs.append(("[STATIC_PARSE_COMP_CLEAN_PARSERS_TAG]", join_tag_lines(lines_comp_clean_parsers(), "\n    ")))
     sub_pairs.append(("[STATIC_PARSE_COMP_CLEAN_HOLDERS_TAG]", join_tag_lines(lines_comp_link_static_holders(), "\n    ")))
     sub_pairs.append(("[STATIC_PARSE_COMP_CLEAN_EFFECTORS_TAG]", join_tag_lines(lines_comp_clean_effectors(), "\n    ")))

@@ -32,6 +32,8 @@
 #include "wonder_parser_tester.h"
 #include "map_overlay_parser_tester.h"
 #include "map_attribute_parser_tester.h"
+#include "map_terrain_parser_tester.h"
+#include "map_climate_parser_tester.h"
 #include "worker_job_target_parser_tester.h"
 #include "worker_job_type_parser_tester.h"
 #include "worker_job_parser_tester.h"
@@ -70,6 +72,8 @@ public:
     WonderParserTester& wonder () { return m_wonder; }
     MapOverlayParserTester& map_overlay () { return m_map_overlay; }
     MapAttributeParserTester& map_attribute () { return m_map_attribute; }
+    MapTerrainParserTester& map_terrain () { return m_map_terrain; }
+    MapClimateParserTester& map_climate () { return m_map_climate; }
     WorkerJobTargetParserTester& worker_job_target () { return m_worker_job_target; }
     WorkerJobTypeParserTester& worker_job_type () { return m_worker_job_type; }
     WorkerJobParserTester& worker_job () { return m_worker_job; }
@@ -100,6 +104,8 @@ private:
     WonderParserTester m_wonder;
     MapOverlayParserTester m_map_overlay;
     MapAttributeParserTester m_map_attribute;
+    MapTerrainParserTester m_map_terrain;
+    MapClimateParserTester m_map_climate;
     WorkerJobTargetParserTester m_worker_job_target;
     WorkerJobTypeParserTester m_worker_job_type;
     WorkerJobParserTester m_worker_job;

@@ -31,6 +31,8 @@ g++ $CXXFLAGS $INC -c ../gen_bottleneck_markers.cpp -o gen_bottleneck_markers.o
 g++ $CXXFLAGS $INC -c ../gen_bottleneck_forts.cpp -o gen_bottleneck_forts.o
 g++ $CXXFLAGS $INC -c ../gen_settlement_order.cpp -o gen_settlement_order.o
 g++ $CXXFLAGS $INC -c ../gen_ai_helpers.cpp -o gen_ai_helpers.o
+g++ $CXXFLAGS $INC -c ../worker_city_jobs.cpp -o worker_city_jobs.o
+g++ $CXXFLAGS $INC -c ../gen_road_network.cpp -o gen_road_network.o
 g++ $CXXFLAGS $INC -c gen_ai_helpers_tester.cpp -o gen_ai_helpers_tester.o
 
 g++ $CXXFLAGS -o gen_ai_helpers_tester \
@@ -59,6 +61,8 @@ g++ $CXXFLAGS -o gen_ai_helpers_tester \
     gen_bottleneck_markers.o \
     gen_bottleneck_forts.o \
     gen_ai_helpers.o \
+    worker_city_jobs.o \
+    gen_road_network.o \
     gen_ai_helpers_tester.o \
     -lm
 
@@ -71,6 +75,6 @@ rm -f map_terrain_validate.o map_terrain_data.o map_loader.o starting_point_gene
     settle_rules.o city_border.o circular_tile_areas.o city_blocking_mask.o \
     sense_settling_pts_opt_stubs.o sector_network.o gen_settlement_targets.o gen_settlement_order.o \
     gen_mtn_passes.o gen_walkable_sectors.o gen_bottleneck_markers.o gen_bottleneck_forts.o \
-    gen_ai_helpers.o gen_ai_helpers_tester.o gen_ai_helpers_tester
+    gen_ai_helpers.o worker_city_jobs.o gen_road_network.o gen_ai_helpers_tester.o gen_ai_helpers_tester
 
 exit $RC

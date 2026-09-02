@@ -17,6 +17,7 @@
 
 #include "unit_type_action_map.h"
 #include "civ_bld_discount_map.h"
+#include "trait_affinity_map.h"
 
 #include "gen_effector/effect_rev_mapper.h"
 #include "gen_effector/local_effector.h"
@@ -151,6 +152,8 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_civ_bld_discount_map.set_map(p.get_civ_bld_discount_map_bank(), p.get_civ_trait_count(), p.get_building_count());
     m_civ_bld_discount_map.take_ownership();
     p.release_map_banks();
+
+    m_trait_affinity_map.adopt(p.get_trait_affinity_map());
 
     if (!DynProduceRegisterSetup::build(*this, m_dyn_produce)) {
         std::exit(1);
@@ -420,6 +423,14 @@ CivBldDiscountMap& RuntimeStatics::civ_bld_discount_map () {
 
 const CivBldDiscountMap& RuntimeStatics::civ_bld_discount_map () const {
     return m_civ_bld_discount_map;
+}
+
+TraitAffinityMap& RuntimeStatics::trait_affinity_map () {
+    return m_trait_affinity_map;
+}
+
+const TraitAffinityMap& RuntimeStatics::trait_affinity_map () const {
+    return m_trait_affinity_map;
 }
 
 LocalEffector& RuntimeStatics::local_fx () {

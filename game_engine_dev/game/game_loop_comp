@@ -123,6 +123,8 @@ g++ $CXXFLAGS $INC -c ../ai_proc/gen_walkable_sectors.cpp -o gen_walkable_sector
 g++ $CXXFLAGS $INC -c ../ai_proc/gen_bottleneck_markers.cpp -o gen_bottleneck_markers.o
 g++ $CXXFLAGS $INC -c ../ai_proc/gen_bottleneck_forts.cpp -o gen_bottleneck_forts.o
 g++ $CXXFLAGS $INC -c ../ai_proc/gen_ai_helpers.cpp -o gen_ai_helpers.o
+g++ $CXXFLAGS $INC -c ../ai_proc/worker_city_jobs.cpp -o worker_city_jobs.o
+g++ $CXXFLAGS $INC -c ../ai_proc/gen_road_network.cpp -o gen_road_network.o
 g++ $CXXFLAGS $INC -c ../ai_pathing/walk_cities/city_network.cpp -o city_network.o
 g++ $CXXFLAGS $INC -c ../ai_proc/city_connector.cpp -o city_connector.o
 g++ $CXXFLAGS $INC -c overlay_yields.cpp -o overlay_yields.o
@@ -232,6 +234,8 @@ g++ $CXXFLAGS -o game_loop_tester \
     gen_bottleneck_markers.o \
     gen_bottleneck_forts.o \
     gen_ai_helpers.o \
+    worker_city_jobs.o \
+    gen_road_network.o \
     city_network.o \
     city_connector.o \
     overlay_yields.o \
@@ -271,6 +275,7 @@ rm runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.
     perlin_noise.o generator_constants.o whiteboard_mng.o profile_time_opt.o \
     settle_rules.o settler_mission_manager.o gen_settlement_order.o gen_settlement_targets.o \
     gen_mtn_passes.o gen_walkable_sectors.o gen_bottleneck_markers.o gen_bottleneck_forts.o gen_ai_helpers.o \
+    worker_city_jobs.o gen_road_network.o \
     city_turn_handler.o city_turn_handler_core.o city_turn_handler_default.o \
     city_turn_handler_industrious.o city_turn_handler_commercial.o city_turn_handler_agricultural.o \
     city_turn_handler_expansionist.o city_turn_handler_religious.o city_turn_handler_militaristic.o \

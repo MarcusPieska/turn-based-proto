@@ -95,6 +95,9 @@ static void print_building_item (
         if (rt == ITEM_REQ_TYPE_CIV) {
             StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::CIV, ridx, print_lvl + 1, max_lvl);
         }
+        if (rt == ITEM_REQ_TYPE_CIV_TRAIT) {
+            StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::CIV_TRAIT, ridx, print_lvl + 1, max_lvl);
+        }
         if (rt == ITEM_REQ_TYPE_BUILDING) {
             StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::BUILDING, ridx, print_lvl + 1, max_lvl);
         }
@@ -179,6 +182,9 @@ static void print_toggle_city_item (
         }
         if (rt == ITEM_REQ_TYPE_CIV) {
             StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::CIV, ridx, print_lvl + 1, max_lvl);
+        }
+        if (rt == ITEM_REQ_TYPE_CIV_TRAIT) {
+            StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::CIV_TRAIT, ridx, print_lvl + 1, max_lvl);
         }
         if (rt == ITEM_REQ_TYPE_BUILDING) {
             StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::BUILDING, ridx, print_lvl + 1, max_lvl);
@@ -309,6 +315,9 @@ static void print_resource_item (
         if (rt == ITEM_REQ_TYPE_CIV) {
             StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::CIV, ridx, print_lvl + 1, max_lvl);
         }
+        if (rt == ITEM_REQ_TYPE_CIV_TRAIT) {
+            StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::CIV_TRAIT, ridx, print_lvl + 1, max_lvl);
+        }
         if (rt == ITEM_REQ_TYPE_BUILDING) {
             StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::BUILDING, ridx, print_lvl + 1, max_lvl);
         }
@@ -359,6 +368,9 @@ static void print_small_wonder_item (
         }
         if (rt == ITEM_REQ_TYPE_CIV) {
             StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::CIV, ridx, print_lvl + 1, max_lvl);
+        }
+        if (rt == ITEM_REQ_TYPE_CIV_TRAIT) {
+            StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::CIV_TRAIT, ridx, print_lvl + 1, max_lvl);
         }
         if (rt == ITEM_REQ_TYPE_BUILDING) {
             StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::BUILDING, ridx, print_lvl + 1, max_lvl);
@@ -444,6 +456,9 @@ static void print_tech_item (
         }
         if (rt == ITEM_REQ_TYPE_CIV) {
             StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::CIV, ridx, print_lvl + 1, max_lvl);
+        }
+        if (rt == ITEM_REQ_TYPE_CIV_TRAIT) {
+            StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::CIV_TRAIT, ridx, print_lvl + 1, max_lvl);
         }
         if (rt == ITEM_REQ_TYPE_BUILDING) {
             StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::BUILDING, ridx, print_lvl + 1, max_lvl);
@@ -531,6 +546,9 @@ static void print_unit_item (
         if (rt == ITEM_REQ_TYPE_CIV) {
             StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::CIV, ridx, print_lvl + 1, max_lvl);
         }
+        if (rt == ITEM_REQ_TYPE_CIV_TRAIT) {
+            StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::CIV_TRAIT, ridx, print_lvl + 1, max_lvl);
+        }
         if (rt == ITEM_REQ_TYPE_BUILDING) {
             StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::BUILDING, ridx, print_lvl + 1, max_lvl);
         }
@@ -612,6 +630,9 @@ static void print_wonder_item (
         }
         if (rt == ITEM_REQ_TYPE_CIV) {
             StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::CIV, ridx, print_lvl + 1, max_lvl);
+        }
+        if (rt == ITEM_REQ_TYPE_CIV_TRAIT) {
+            StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::CIV_TRAIT, ridx, print_lvl + 1, max_lvl);
         }
         if (rt == ITEM_REQ_TYPE_BUILDING) {
             StaticDataPrinter::print_selected_items(statics, StaticDataPrintKind::BUILDING, ridx, print_lvl + 1, max_lvl);

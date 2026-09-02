@@ -29,16 +29,20 @@ PARSER_SPECS = _load_gen_data_io_generate().PARSER_SPECS
 #================================================================================================================================#
 
 # Order is codegen order (switch cases, AssessorCtx members); put common types first.
-PREREQ_NAMES = ["tech", "resource", "building", "toggle_city", "civ"]
+PREREQ_NAMES = ["tech", "resource", "building", "toggle_city", "civ", "civ_trait"]
 
 def prereq_section (name):
     if name == "toggle_city":
         return "FLAGS"
+    if name == "civ_trait":
+        return "TRAITS"
     return name.upper() + "S"
 
 def prereq_tok (name):
     if name == "toggle_city":
         return "flag"
+    if name == "civ_trait":
+        return "trait"
     return name
 
 def prereq_class (name):
@@ -46,9 +50,11 @@ def prereq_class (name):
     return "".join(p.capitalize() for p in parts)
 
 def item_req_type_enum (name):
-    suffix = name.upper()
     if name == "toggle_city":
-        suffix = "FLAG"
+        return "ITEM_REQ_TYPE_FLAG"
+    if name == "civ_trait":
+        return "ITEM_REQ_TYPE_CIV_TRAIT"
+    suffix = name.upper()
     return "ITEM_REQ_TYPE_" + suffix
 
 def derive_prereq_types ():
@@ -217,6 +223,7 @@ def derive_run_ctx_snap ():
     lines.append("ctx.m_resource = &resource;")
     lines.append("ctx.m_building = &building;")
     lines.append("ctx.m_toggle_city = &toggle_city;")
+    lines.append("ctx.m_civ_trait = &civ_trait;")
     return join_tag(lines, "        ")
 
 def derive_ablation_loop_lines (name):
@@ -317,6 +324,7 @@ def derive_assessor_ctx_members ():
     lines.append("const BitArrayCL* m_resource;")
     lines.append("const BitArrayCL* m_building;")
     lines.append("const BitArrayCL* m_toggle_city;")
+    lines.append("const BitArrayCL* m_civ_trait;")
     return join_tag(lines)
 
 def derive_assess_struct_fwd ():
