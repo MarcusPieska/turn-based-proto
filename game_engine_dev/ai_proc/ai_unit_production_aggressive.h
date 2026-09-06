@@ -2,40 +2,30 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef ATTACK_CITY_H
-#define ATTACK_CITY_H
+#ifndef AI_UNIT_PRODUCTION_AGGRESSIVE_H
+#define AI_UNIT_PRODUCTION_AGGRESSIVE_H
 
 #include "game_primitives.h"
-#include "unit_add_vector_key.h"
 
+class City;
 class GameState;
 
 //================================================================================================================================
-//=> - AttackCity -
+//=> - AiUnitProductionAggressive -
 //================================================================================================================================
 //
-//  Assaults a city tile from an adjacent army group: offensive units with >= mov_pt_per_turn MP strike
-//  (highest attack vs highest-defense defender), each strike costs mov_pt_per_turn on that unit only.
-//  Stops when no eligible offensive units remain. On cleared garrison, splits the army half-by-type
-//  (forcing the last attacker into the occupy half) and moves the occupy group onto the city.
+//  Aggressive AI unit production policy. Boilerplate only for now.
 //
 //================================================================================================================================
 
-class AttackCity {
+class AiUnitProductionAggressive {
 public:
-    static bool assault (
-        GameState& s,
-        UnitAddKey army_hd,
-        u16 city_x,
-        u16 city_y,
-        UnitAddKey* out_stay,
-        UnitAddKey* out_occupy);
+    AiUnitProductionAggressive () = delete;
 
-private:
-    AttackCity () = delete;
+    static bool try_pick_land_unit (GameState& state, u16 city_idx, City* city);
 };
 
-#endif // ATTACK_CITY_H
+#endif // AI_UNIT_PRODUCTION_AGGRESSIVE_H
 
 //================================================================================================================================
 //=> - End of file -

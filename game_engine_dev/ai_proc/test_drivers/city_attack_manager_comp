@@ -1,0 +1,320 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")"
+
+LIB_SO="../../data_io/runtime_static_loader_lib.so"
+MAP_SO="../../adv_map_gen/map_gen.so"
+if [ ! -f "$LIB_SO" ]; then
+    echo "missing $LIB_SO - run ../../data_io/runtime_static_loader_lib_comp first"
+    exit 1
+fi
+if [ ! -f "$MAP_SO" ]; then
+    echo "missing $MAP_SO - run ../../adv_map_gen/map_gen_lib_comp first"
+    exit 1
+fi
+
+INC="-I../.. \
+     -I.. \
+     -I. \
+     -I../../game \
+     -I../../misc \
+     -I../../map_loader \
+     -I../../simple_map_gen \
+     -I../../dyn_state \
+     -I../../data_io \
+     -I../../static_state \
+     -I../../city \
+     -I../../city/assessor \
+     -I../../city/effector \
+     -I../../gen_bit_banks \
+     -I../../gen_effector \
+     -I../../adv_map_gen \
+     -I../../ai_pathing/walk_general \
+     -I../../ai_pathing/walk_cities \
+     -I../../ai_pathing/walk_target"
+CXXFLAGS="-std=c++17 -Wall -Wextra -g -DGAME_ASSERT_ENABLE -DCITY_TRACER_ENABLE"
+
+g++ $CXXFLAGS $INC -c ../../data_io/runtime_static_loader.cpp -o runtime_static_loader.o
+g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
+g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_data.cpp -o map_terrain_data.o
+g++ $CXXFLAGS $INC -c ../../map_loader/map_loader.cpp -o map_loader.o
+g++ $CXXFLAGS $INC -c ../../map_loader/starting_point_generator.cpp -o starting_point_generator.o
+g++ $CXXFLAGS $INC -c ../../game/runtime_trace_dbg.cpp -o runtime_trace_dbg.o
+g++ $CXXFLAGS $INC -c ../../misc/map_bit_overlay.cpp -o map_bit_overlay.o
+g++ $CXXFLAGS $INC -c ../../misc/map_bit_array_overlay.cpp -o map_bit_array_overlay.o
+g++ $CXXFLAGS $INC -c ../../misc/bit_array.cpp -o bit_array.o
+g++ $CXXFLAGS $INC -c ../../misc/assert_log.cpp -o assert_log.o
+g++ $CXXFLAGS $INC -c ../../dyn_state/fort_add_vector.cpp -o fort_add_vector.o
+g++ $CXXFLAGS $INC -c ../../dyn_state/mine_add_vector.cpp -o mine_add_vector.o
+g++ $CXXFLAGS $INC -c ../../dyn_state/monastery_add_vector.cpp -o monastery_add_vector.o
+g++ $CXXFLAGS $INC -c ../../dyn_state/outpost_add_vector.cpp -o outpost_add_vector.o
+g++ $CXXFLAGS $INC -c ../../dyn_state/plantation_add_vector.cpp -o plantation_add_vector.o
+g++ $CXXFLAGS $INC -c ../../dyn_state/shipyard_add_vector.cpp -o shipyard_add_vector.o
+g++ $CXXFLAGS $INC -c ../../dyn_state/trade_post_add_vector.cpp -o trade_post_add_vector.o
+g++ $CXXFLAGS $INC -c ../../dyn_state/unit_add_vector.cpp -o unit_add_vector.o
+g++ $CXXFLAGS $INC -c ../../dyn_state/unit_movement_mng.cpp -o unit_movement_mng.o
+g++ $CXXFLAGS $INC -c ../../game/tile_attr_tables.cpp -o tile_attr_tables.o
+g++ $CXXFLAGS $INC -c ../../game/overlay_yields.cpp -o overlay_yields.o
+g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_general/sector_network.cpp -o sector_network.o
+g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_general/sector_network_router.cpp -o sector_network_router.o
+g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_general/point_seq_flood_walker.cpp -o point_seq_flood_walker.o
+g++ $CXXFLAGS $INC -c ../../game/settle_rules.cpp -o settle_rules.o
+g++ $CXXFLAGS $INC -c ../../game/game_array_simple.cpp -o game_array_simple.o
+g++ $CXXFLAGS $INC -c ../../game/factory_game_array_simple.cpp -o factory_game_array_simple.o
+g++ $CXXFLAGS $INC -c ../../game/game_state.cpp -o game_state.o
+g++ $CXXFLAGS $INC -c ../../game/player_ledger.cpp -o player_ledger.o
+g++ $CXXFLAGS $INC -c ../../game/resource_ledger.cpp -o resource_ledger.o
+g++ $CXXFLAGS $INC -c ../../game/resource_turn_handler.cpp -o resource_turn_handler.o
+g++ $CXXFLAGS $INC -c ../../game/tile_transfer.cpp -o tile_transfer.o
+g++ $CXXFLAGS $INC -c ../target_ordering_manhattan.cpp -o target_ordering_manhattan.o
+g++ $CXXFLAGS $INC -c ../target_ordering_flood.cpp -o target_ordering_flood.o
+g++ $CXXFLAGS $INC -c ../../game/tile_yields.cpp -o tile_yields.o
+g++ $CXXFLAGS $INC -c ../../game/tile_working.cpp -o tile_working.o
+g++ $CXXFLAGS $INC -c ../../game/tile_work_assessor.cpp -o tile_work_assessor.o
+g++ $CXXFLAGS $INC -c ../../game/worker_imp_select.cpp -o worker_imp_select.o
+g++ $CXXFLAGS $INC -c ../../game/tile_imp_helper.cpp -o tile_imp_helper.o
+g++ $CXXFLAGS $INC -c ../../game/worker_build_progress.cpp -o worker_build_progress.o
+g++ $CXXFLAGS $INC -c ../../game/worker_guidance.cpp -o worker_guidance.o
+g++ $CXXFLAGS $INC -c ../../game/worker_helper.cpp -o worker_helper.o
+g++ $CXXFLAGS $INC -c ../../game/civ_relations.cpp -o civ_relations.o
+g++ $CXXFLAGS $INC -c ../../adv_map_gen/map_gen_loader.cpp -o map_gen_loader.o
+g++ $CXXFLAGS $INC -c ../../gen_bit_banks/general_bit_bank.cpp -o general_bit_bank.o
+g++ $CXXFLAGS $INC -c ../../city/assessor/general_assessor.cpp -o general_assessor.o
+g++ $CXXFLAGS $INC -c ../../city/assessor/resource_assessor.cpp -o resource_assessor.o
+g++ $CXXFLAGS $INC -c ../../city/effector/resource_effector.cpp -o resource_effector.o
+g++ $CXXFLAGS $INC -c ../../city/effect_ctx.cpp -o effect_ctx.o
+g++ $CXXFLAGS $INC -c ../../city/effector/effect_enabler.cpp -o effect_enabler.o
+g++ $CXXFLAGS $INC -c ../../city/effector/booster_effect_register.cpp -o booster_effect_register.o
+g++ $CXXFLAGS $INC -c ../../city/effector/local_unit_exp_booster_register.cpp -o local_unit_exp_booster_register.o
+g++ $CXXFLAGS $INC -c ../../city/effector/civ_ship_training_booster_register.cpp -o civ_ship_training_booster_register.o
+g++ $CXXFLAGS $INC -c ../../city/effector/city_commerce_booster_register.cpp -o city_commerce_booster_register.o
+g++ $CXXFLAGS $INC -c ../../city/effector/city_production_booster_register.cpp -o city_production_booster_register.o
+g++ $CXXFLAGS $INC -c ../../city/effector/local_production_booster_register.cpp -o local_production_booster_register.o
+g++ $CXXFLAGS $INC -c ../../city/effector/local_pop_growth_booster_register.cpp -o local_pop_growth_booster_register.o
+g++ $CXXFLAGS $INC -c ../../city/effector/local_commerce_booster_register.cpp -o local_commerce_booster_register.o
+g++ $CXXFLAGS $INC -c ../../city/effector/city_pop_growth_booster_register.cpp -o city_pop_growth_booster_register.o
+g++ $CXXFLAGS $INC -c ../../city/effector/civ_pop_growth_booster_register.cpp -o civ_pop_growth_booster_register.o
+g++ $CXXFLAGS $INC -c ../../city/effector/city_culture_booster_register.cpp -o city_culture_booster_register.o
+g++ $CXXFLAGS $INC -c ../../city/effector/local_sanitation_booster_register.cpp -o local_sanitation_booster_register.o
+g++ $CXXFLAGS $INC -c ../../city/effector/city_sanitation_booster_register.cpp -o city_sanitation_booster_register.o
+g++ $CXXFLAGS $INC -c ../../city/effector/civ_sanitation_booster_register.cpp -o civ_sanitation_booster_register.o
+g++ $CXXFLAGS $INC -c ../../city/city.cpp -o city.o
+g++ $CXXFLAGS $INC -c ../../game/city_array.cpp -o city_array.o
+g++ $CXXFLAGS $INC -c ../../game/game_helpers/civ_spawner.cpp -o civ_spawner.o
+g++ $CXXFLAGS $INC -c ../../game/game_loop_cache.cpp -o game_loop_cache.o
+g++ $CXXFLAGS $INC -c ../../game/game_loop.cpp -o game_loop.o
+g++ $CXXFLAGS $INC -c ../../game/unit_turn_handler.cpp -o unit_turn_handler.o
+g++ $CXXFLAGS $INC -c ../../game/game_setup.cpp -o game_setup.o
+g++ $CXXFLAGS $INC -c ../../game/combat_mods.cpp -o combat_mods.o
+g++ $CXXFLAGS $INC -c ../../game/std_add_helper.cpp -o std_add_helper.o
+g++ $CXXFLAGS $INC -c ../../game/research_turn_handler.cpp -o research_turn_handler.o
+g++ $CXXFLAGS $INC -c ../../game/building_trait_attribution.cpp -o building_trait_attribution.o
+g++ $CXXFLAGS $INC -c ../../game/civ_trait_affinity.cpp -o civ_trait_affinity.o
+g++ $CXXFLAGS $INC -c ../../game/building_trait_orderings.cpp -o building_trait_orderings.o
+g++ $CXXFLAGS $INC -c ../../game/tech_trait_attribution.cpp -o tech_trait_attribution.o
+g++ $CXXFLAGS $INC -c ../../game/tech_trait_orderings.cpp -o tech_trait_orderings.o
+g++ $CXXFLAGS $INC -c ../../city/city_tile_manager.cpp -o city_tile_manager.o
+g++ $CXXFLAGS $INC -c ../../city/circular_tile_areas.cpp -o circular_tile_areas.o
+g++ $CXXFLAGS $INC -c ../../city/city_blocking_mask.cpp -o city_blocking_mask.o
+g++ $CXXFLAGS $INC -c ../../city/city_border.cpp -o city_border.o
+g++ $CXXFLAGS $INC -c ../../simple_map_gen/perlin_noise.cpp -o perlin_noise.o
+g++ $CXXFLAGS $INC -c ../../simple_map_gen/generator_constants.cpp -o generator_constants.o
+g++ $CXXFLAGS $INC -c ../../misc/whiteboard_mng.cpp -o whiteboard_mng.o
+g++ $CXXFLAGS $INC -c ../sense_settling_pts_opt.cpp -o sense_settling_pts_opt.o
+g++ $CXXFLAGS $INC -c ../settler_mission_manager.cpp -o settler_mission_manager.o
+g++ $CXXFLAGS $INC -c ../gen_settlement_order.cpp -o gen_settlement_order.o
+g++ $CXXFLAGS $INC -c ../gen_settlement_targets.cpp -o gen_settlement_targets.o
+g++ $CXXFLAGS $INC -c ../gen_mtn_passes.cpp -o gen_mtn_passes.o
+g++ $CXXFLAGS $INC -c ../gen_walkable_sectors.cpp -o gen_walkable_sectors.o
+g++ $CXXFLAGS $INC -c ../gen_bottleneck_markers.cpp -o gen_bottleneck_markers.o
+g++ $CXXFLAGS $INC -c ../gen_bottleneck_forts.cpp -o gen_bottleneck_forts.o
+g++ $CXXFLAGS $INC -c ../gen_ai_helpers.cpp -o gen_ai_helpers.o
+g++ $CXXFLAGS $INC -c ../worker_city_jobs.cpp -o worker_city_jobs.o
+g++ $CXXFLAGS $INC -c ../gen_road_network.cpp -o gen_road_network.o
+g++ $CXXFLAGS $INC -c ../linear_bld.cpp -o linear_bld.o
+g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_cities/city_network.cpp -o city_network.o
+g++ $CXXFLAGS $INC -c ../city_connector.cpp -o city_connector.o
+g++ $CXXFLAGS $INC -c ../settler_turn_handler.cpp -o settler_turn_handler.o
+g++ $CXXFLAGS $INC -c ../worker_turn_handler.cpp -o worker_turn_handler.o
+g++ $CXXFLAGS $INC -c ../worker_pathing.cpp -o worker_pathing.o
+g++ $CXXFLAGS $INC -c ../defensive_unit_turn_handler.cpp -o defensive_unit_turn_handler.o
+g++ $CXXFLAGS $INC -c ../../game/city_turn_handler.cpp -o city_turn_handler.o
+g++ $CXXFLAGS $INC -c ../../game/city_tracer.cpp -o city_tracer.o
+g++ $CXXFLAGS $INC -c ../city_turn_handler_core.cpp -o city_turn_handler_core.o
+g++ $CXXFLAGS $INC -c ../ai_unit_production_default.cpp -o ai_unit_production_default.o
+g++ $CXXFLAGS $INC -c ../ai_unit_production_aggressive.cpp -o ai_unit_production_aggressive.o
+g++ $CXXFLAGS $INC -c ../unit_typ_pick.cpp -o unit_typ_pick.o
+g++ $CXXFLAGS $INC -c ../city_turn_handler_default.cpp -o city_turn_handler_default.o
+g++ $CXXFLAGS $INC -c ../city_turn_handler_industrious.cpp -o city_turn_handler_industrious.o
+g++ $CXXFLAGS $INC -c ../city_turn_handler_commercial.cpp -o city_turn_handler_commercial.o
+g++ $CXXFLAGS $INC -c ../city_turn_handler_agricultural.cpp -o city_turn_handler_agricultural.o
+g++ $CXXFLAGS $INC -c ../city_turn_handler_expansionist.cpp -o city_turn_handler_expansionist.o
+g++ $CXXFLAGS $INC -c ../city_turn_handler_religious.cpp -o city_turn_handler_religious.o
+g++ $CXXFLAGS $INC -c ../city_turn_handler_militaristic.cpp -o city_turn_handler_militaristic.o
+g++ $CXXFLAGS $INC -c ../city_turn_handler_scientific.cpp -o city_turn_handler_scientific.o
+g++ $CXXFLAGS $INC -c ../../adv_map_gen/wb_que_xy.cpp -o wb_que_xy.o
+g++ $CXXFLAGS $INC -c ../../city/effector/city_defense_booster_register.cpp -o city_defense_booster_register.o
+g++ $CXXFLAGS $INC -c ../../city/effector/local_culture_booster_register.cpp -o local_culture_booster_register.o
+g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_target/generate_access_mask.cpp -o generate_access_mask.o
+g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_target/generate_distance_p2p.cpp -o generate_distance_p2p.o
+g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_target/walk_p2p.cpp -o walk_p2p.o
+g++ $CXXFLAGS $INC -c ../generate_exposure.cpp -o generate_exposure.o
+g++ $CXXFLAGS $INC -c ../city_attack_manager.cpp -o city_attack_manager.o
+g++ $CXXFLAGS $INC -c ../../game/combat_mng.cpp -o combat_mng.o
+g++ $CXXFLAGS $INC -c ../../dyn_state/unit_chain_validation.cpp -o unit_chain_validation.o
+g++ $CXXFLAGS $INC -c siege_snapshot.cpp -o siege_snapshot.o
+g++ $CXXFLAGS $INC -c city_attack_manager_tester.cpp -o city_attack_manager_tester.o
+
+g++ $CXXFLAGS -o city_attack_manager_tester \
+    runtime_static_loader.o \
+    map_terrain_validate.o \
+    map_terrain_data.o \
+    map_loader.o \
+    starting_point_generator.o \
+    runtime_trace_dbg.o \
+    map_bit_overlay.o \
+    map_bit_array_overlay.o \
+    bit_array.o \
+    assert_log.o \
+    fort_add_vector.o \
+    mine_add_vector.o \
+    monastery_add_vector.o \
+    outpost_add_vector.o \
+    plantation_add_vector.o \
+    shipyard_add_vector.o \
+    trade_post_add_vector.o \
+    unit_add_vector.o \
+    unit_movement_mng.o \
+    tile_attr_tables.o \
+    overlay_yields.o \
+    sector_network.o \
+    sector_network_router.o \
+    city_network.o \
+    city_connector.o \
+    point_seq_flood_walker.o \
+    settle_rules.o \
+    game_array_simple.o \
+    factory_game_array_simple.o \
+    game_state.o \
+    player_ledger.o \
+    resource_ledger.o \
+    resource_turn_handler.o \
+    tile_transfer.o \
+    target_ordering_manhattan.o \
+    target_ordering_flood.o \
+    tile_yields.o \
+    tile_working.o \
+    tile_work_assessor.o \
+    worker_imp_select.o \
+    tile_imp_helper.o \
+    worker_build_progress.o \
+    worker_guidance.o \
+    worker_helper.o \
+    civ_relations.o \
+    map_gen_loader.o \
+    city.o \
+    general_bit_bank.o \
+    general_assessor.o \
+    resource_assessor.o \
+    resource_effector.o \
+    effect_ctx.o \
+    effect_enabler.o \
+    booster_effect_register.o \
+    local_unit_exp_booster_register.o \
+    civ_ship_training_booster_register.o \
+    city_commerce_booster_register.o \
+    city_production_booster_register.o \
+    local_production_booster_register.o \
+    local_pop_growth_booster_register.o \
+    local_commerce_booster_register.o \
+    city_pop_growth_booster_register.o \
+    civ_pop_growth_booster_register.o \
+    city_culture_booster_register.o \
+    local_sanitation_booster_register.o \
+    city_sanitation_booster_register.o \
+    civ_sanitation_booster_register.o \
+    city_array.o \
+    civ_spawner.o \
+    game_loop_cache.o \
+    game_loop.o \
+    unit_turn_handler.o \
+    game_setup.o combat_mods.o std_add_helper.o research_turn_handler.o building_trait_attribution.o civ_trait_affinity.o building_trait_orderings.o tech_trait_attribution.o tech_trait_orderings.o \
+    city_tile_manager.o \
+    circular_tile_areas.o \
+    city_blocking_mask.o \
+    city_border.o \
+    perlin_noise.o \
+    generator_constants.o \
+    whiteboard_mng.o \
+    sense_settling_pts_opt.o \
+    settler_mission_manager.o \
+    gen_settlement_order.o \
+    gen_settlement_targets.o \
+    gen_mtn_passes.o \
+    gen_walkable_sectors.o \
+    gen_bottleneck_markers.o \
+    gen_bottleneck_forts.o \
+    gen_ai_helpers.o \
+    worker_city_jobs.o \
+    gen_road_network.o \
+    linear_bld.o \
+    settler_turn_handler.o \
+    worker_turn_handler.o \
+    worker_pathing.o \
+    defensive_unit_turn_handler.o \
+    city_turn_handler.o \
+    city_tracer.o \
+    city_turn_handler_core.o \
+    ai_unit_production_default.o \
+    ai_unit_production_aggressive.o \
+    unit_typ_pick.o \
+    city_turn_handler_default.o \
+    city_turn_handler_industrious.o \
+    city_turn_handler_commercial.o \
+    city_turn_handler_agricultural.o \
+    city_turn_handler_expansionist.o \
+    city_turn_handler_religious.o \
+    city_turn_handler_militaristic.o \
+    city_turn_handler_scientific.o \
+    wb_que_xy.o \
+    city_defense_booster_register.o \
+    local_culture_booster_register.o \
+    generate_access_mask.o \
+    generate_distance_p2p.o \
+    walk_p2p.o \
+    generate_exposure.o \
+    city_attack_manager.o \
+    combat_mng.o \
+    unit_chain_validation.o \
+    siege_snapshot.o \
+    city_attack_manager_tester.o \
+    -ldl \
+    $LIB_SO \
+    -Wl,-rpath,'$ORIGIN/../../data_io' \
+    -lm
+
+mkdir -p /home/w/Projects/simple-map-gen/war-turn-handler/sieges
+echo "--- running city_attack_manager_tester ---"
+./city_attack_manager_tester "$@"
+
+rm -f runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.o \
+    starting_point_generator.o runtime_trace_dbg.o map_bit_overlay.o \
+    map_bit_array_overlay.o bit_array.o assert_log.o \
+    fort_add_vector.o mine_add_vector.o monastery_add_vector.o \
+    outpost_add_vector.o plantation_add_vector.o shipyard_add_vector.o \
+    trade_post_add_vector.o unit_add_vector.o unit_movement_mng.o \
+    tile_attr_tables.o overlay_yields.o sector_network.o sector_network_router.o city_network.o city_connector.o point_seq_flood_walker.o settle_rules.o \
+    game_array_simple.o factory_game_array_simple.o game_state.o player_ledger.o resource_ledger.o resource_turn_handler.o tile_transfer.o target_ordering_manhattan.o target_ordering_flood.o tile_yields.o tile_working.o tile_work_assessor.o worker_imp_select.o tile_imp_helper.o worker_build_progress.o worker_guidance.o worker_helper.o \
+    civ_relations.o game_setup.o city_tile_manager.o circular_tile_areas.o city_blocking_mask.o city_border.o \
+    map_gen_loader.o city.o general_bit_bank.o general_assessor.o resource_assessor.o resource_effector.o effect_ctx.o effect_enabler.o \
+    booster_effect_register.o local_unit_exp_booster_register.o civ_ship_training_booster_register.o \
+    city_commerce_booster_register.o city_production_booster_register.o local_production_booster_register.o \
+    local_pop_growth_booster_register.o local_commerce_booster_register.o city_pop_growth_booster_register.o \
+    civ_pop_growth_booster_register.o city_culture_booster_register.o local_sanitation_booster_register.o city_array.o civ_spawner.o \
+    game_loop_cache.o game_loop.o perlin_noise.o generator_constants.o whiteboard_mng.o sense_settling_pts_opt.o \
+    combat_mods.o std_add_helper.o research_turn_handler.o city_sanitation_booster_register.o civ_sanitation_booster_register.o \
+    settler_mission_manager.o gen_settlement_order.o gen_settlement_targets.o \
+    gen_mtn_passes.o gen_walkable_sectors.o gen_bottleneck_markers.o gen_bottleneck_forts.o gen_ai_helpers.o \
+    worker_city_jobs.o gen_road_network.o linear_bld.o city_tracer.o \
+    ai_unit_production_default.o ai_unit_production_aggressive.o \

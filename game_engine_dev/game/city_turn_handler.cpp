@@ -9,6 +9,7 @@
 #include "city_tile_manager.h"
 #include "city_turn_handler_agricultural.h"
 #include "city_turn_handler_commercial.h"
+#include "city_turn_handler_core.h"
 #include "city_turn_handler_ctx.h"
 #include "city_turn_handler_default.h"
 #include "city_turn_handler_expansionist.h"
@@ -29,6 +30,7 @@
 void CityTurnHandler::handle (GameState& state, u16 city_idx) {
     City* city = state.m_cities.get_city(city_idx); 
     GAME_EXPECT(city != nullptr, "CityTurnHandler got nullptr city");
+    city->restore_defense();
 
     const u16 player = city->get_owner();
     const TotalTileYield yld = CityTileManager::gather_yields(player, city_idx);
@@ -59,6 +61,8 @@ void CityTurnHandler::handle (GameState& state, u16 city_idx) {
     GAME_EXPECT(player < state.m_player_n, "CityTurnHandler player out of bounds");
     GAME_EXPECT(state.m_statics != nullptr, "CityTurnHandler got nullptr statics");
     PlayerState& ps = state.m_player_states[player];
+    city->refresh_unit_support(city_idx);
+    CityTurnHandler_Core::try_pick_land_unit(state, city_idx, city);
     CivTrait trait = CivTrait::Agricultural;
     if (ps.m_civ_index < state.m_statics->civ().get_item_count()) {
         const CivStaticDataStruct& civ = state.m_statics->civ().get_item(CivStaticDataKey::from_raw(ps.m_civ_index));
@@ -93,6 +97,7 @@ void CityTurnHandler::handle (GameState& state, u16 city_idx) {
 
     LOG_CITY_COMMIT(());
 
+    city->count_unit_build_support(&ps);
     ps.m_this_turn_city_count = static_cast<u16>(ps.m_this_turn_city_count + 1u);
     ps.m_this_turn_population_count = ps.m_this_turn_population_count + static_cast<u32>(city->get_current_population());
 }

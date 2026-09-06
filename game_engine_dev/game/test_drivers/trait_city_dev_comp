@@ -85,6 +85,7 @@ g++ $CXXFLAGS $INC -c ../city_array.cpp -o city_array.o
 g++ $CXXFLAGS $INC -c ../game_helpers/civ_spawner.cpp -o civ_spawner.o
 g++ $CXXFLAGS $INC -c ../game_loop_cache.cpp -o game_loop_cache.o
 g++ $CXXFLAGS $INC -c ../game_loop.cpp -o game_loop.o
+g++ $CXXFLAGS $INC -c ../unit_turn_handler.cpp -o unit_turn_handler.o
 g++ $CXXFLAGS $INC -c ../game_setup.cpp -o game_setup.o
 g++ $CXXFLAGS $INC -c ../building_trait_attribution.cpp -o building_trait_attribution.o
 g++ $CXXFLAGS $INC -c ../civ_trait_affinity.cpp -o civ_trait_affinity.o
@@ -99,6 +100,7 @@ g++ $CXXFLAGS $INC -c ../../misc/whiteboard_mng.cpp -o whiteboard_mng.o
 g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_general/point_seq_flood_walker.cpp -o point_seq_flood_walker.o
 g++ $CXXFLAGS $INC -c ../city_turn_handler.cpp -o city_turn_handler.o
 g++ $CXXFLAGS $INC -c ../../ai_proc/city_turn_handler_core.cpp -o city_turn_handler_core.o
+g++ $CXXFLAGS $INC -c ../../ai_proc/unit_typ_pick.cpp -o unit_typ_pick.o
 g++ $CXXFLAGS $INC -c ../../ai_proc/city_turn_handler_default.cpp -o city_turn_handler_default.o
 g++ $CXXFLAGS $INC -c ../../ai_proc/city_turn_handler_industrious.cpp -o city_turn_handler_industrious.o
 g++ $CXXFLAGS $INC -c ../../ai_proc/city_turn_handler_commercial.cpp -o city_turn_handler_commercial.o
@@ -172,6 +174,7 @@ g++ $CXXFLAGS -o trait_city_dev_tester \
     civ_spawner.o \
     game_loop_cache.o \
     game_loop.o \
+    unit_turn_handler.o \
     game_setup.o building_trait_attribution.o civ_trait_affinity.o building_trait_orderings.o tech_trait_attribution.o tech_trait_orderings.o \
     city_tile_manager.o \
     circular_tile_areas.o \
@@ -179,7 +182,7 @@ g++ $CXXFLAGS -o trait_city_dev_tester \
     city_border.o \
     whiteboard_mng.o \
     city_turn_handler.o \
-    city_turn_handler_core.o \
+    city_turn_handler_core.o unit_typ_pick.o \
     city_turn_handler_default.o \
     city_turn_handler_industrious.o \
     city_turn_handler_commercial.o \

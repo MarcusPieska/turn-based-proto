@@ -11,6 +11,10 @@ Tile improvement and working:
  - Tile attributes, climates, and terrains need to be requirement types. 
 
 
+Combat:
+ - We need to tweak combat math; terrain defence bonuses are overpowered
+
+
 Static data:
  - Need to implement dynamic enums for those cases when the hot-path need to lookup static data without a string compare. 
  - The unit struct needs some additional space; e.g., for storing a map destination 

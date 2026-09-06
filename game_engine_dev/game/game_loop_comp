@@ -88,6 +88,7 @@ g++ $CXXFLAGS $INC -c game_helpers/civ_spawner.cpp -o civ_spawner.o
 g++ $CXXFLAGS $INC -c game_loop_cache.cpp -o game_loop_cache.o
 g++ $CXXFLAGS $INC -c game_io.cpp -o game_io.o
 g++ $CXXFLAGS $INC -c game_loop.cpp -o game_loop.o
+g++ $CXXFLAGS $INC -c unit_turn_handler.cpp -o unit_turn_handler.o
 g++ $CXXFLAGS $INC -c game_setup.cpp -o game_setup.o
 g++ $CXXFLAGS $INC -c building_trait_attribution.cpp -o building_trait_attribution.o
 g++ $CXXFLAGS $INC -c civ_trait_affinity.cpp -o civ_trait_affinity.o
@@ -104,6 +105,7 @@ g++ $CXXFLAGS $INC -c ../misc/whiteboard_mng.cpp -o whiteboard_mng.o
 g++ $CXXFLAGS $INC -c ../misc/profile_time_opt.cpp -o profile_time_opt.o
 g++ $CXXFLAGS $INC -c city_turn_handler.cpp -o city_turn_handler.o
 g++ $CXXFLAGS $INC -c ../ai_proc/city_turn_handler_core.cpp -o city_turn_handler_core.o
+g++ $CXXFLAGS $INC -c ../ai_proc/unit_typ_pick.cpp -o unit_typ_pick.o
 g++ $CXXFLAGS $INC -c ../ai_proc/city_turn_handler_default.cpp -o city_turn_handler_default.o
 g++ $CXXFLAGS $INC -c ../ai_proc/city_turn_handler_industrious.cpp -o city_turn_handler_industrious.o
 g++ $CXXFLAGS $INC -c ../ai_proc/city_turn_handler_commercial.cpp -o city_turn_handler_commercial.o
@@ -204,6 +206,7 @@ g++ $CXXFLAGS -o game_loop_tester \
     game_loop_cache.o \
     game_io.o \
     game_loop.o \
+    unit_turn_handler.o \
     game_setup.o building_trait_attribution.o civ_trait_affinity.o building_trait_orderings.o tech_trait_attribution.o tech_trait_orderings.o \
     city_tile_manager.o \
     circular_tile_areas.o \
@@ -214,7 +217,7 @@ g++ $CXXFLAGS -o game_loop_tester \
     whiteboard_mng.o \
     profile_time_opt.o \
     city_turn_handler.o \
-    city_turn_handler_core.o \
+    city_turn_handler_core.o unit_typ_pick.o \
     city_turn_handler_default.o \
     city_turn_handler_industrious.o \
     city_turn_handler_commercial.o \
@@ -276,7 +279,7 @@ rm runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.
     settle_rules.o settler_mission_manager.o gen_settlement_order.o gen_settlement_targets.o \
     gen_mtn_passes.o gen_walkable_sectors.o gen_bottleneck_markers.o gen_bottleneck_forts.o gen_ai_helpers.o \
     worker_city_jobs.o gen_road_network.o \
-    city_turn_handler.o city_turn_handler_core.o city_turn_handler_default.o \
+    city_turn_handler.o city_turn_handler_core.o unit_typ_pick.o city_turn_handler_default.o \
     city_turn_handler_industrious.o city_turn_handler_commercial.o city_turn_handler_agricultural.o \
     city_turn_handler_expansionist.o city_turn_handler_religious.o city_turn_handler_militaristic.o \
     city_turn_handler_scientific.o research_turn_handler.o sense_settling_pts_opt.o settler_turn_handler.o \

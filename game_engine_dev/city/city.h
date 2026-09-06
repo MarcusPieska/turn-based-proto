@@ -12,7 +12,7 @@ class GeneralBitBank;
 class GameState;
 class RuntimeStatics;
 class UnitAddVector;
-
+struct UnitAddStruct;
 struct PlayerState;
 
 //================================================================================================================================
@@ -25,8 +25,11 @@ struct PlayerState;
 //================================================================================================================================
 
 typedef struct MiscCityData {
+    u64 m_free_land_unit_support : 7;
+    u64 m_free_naval_unit_support : 7;
     u64 m_city_has_worker : 1; // 1 = disk may need jobs; 0 = no work left on disk
-
+    u64 m_city_defense_deduction : 16; // Barrage softens city defense boost; subtracted in combat
+    u64 m_unused : 33;
 } MiscCityData;
 
 class alignas(8) City {
@@ -64,6 +67,7 @@ public:
     u16 get_current_food_store () const;
     u16 get_current_production_store () const;
     u16 get_current_culture () const;
+    void set_culture (u16 culture);
 
     u16 get_current_population () const;
     void set_population (u16 pop);
@@ -77,6 +81,17 @@ public:
     bool city_has_worker () const;
     void set_city_has_worker (u8 on);
     static void refresh_city_worker_flags (GameState& state, u16 player);
+
+    void refresh_unit_support (u16 city_idx);
+    u16 calc_city_land_unit_support (u16 city_idx) const;
+    void count_unit_build_support (PlayerState* ps);
+    void refund_land_unit_upkeep (const UnitAddStruct& unit, PlayerState* ps);
+    void refund_naval_unit_upkeep (const UnitAddStruct& unit, PlayerState* ps);
+    u16 get_free_land_unit_support () const;
+    u16 get_free_naval_unit_support () const;
+    u16 get_defense_deduction () const;
+    void set_defense_deduction (u16 v);
+    void restore_defense ();
 
     bool finish_if_ready (u16 city_idx);
     bool has_building (u16 city_idx, u16 building_idx) const;

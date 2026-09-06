@@ -140,6 +140,8 @@ static void print_config (const GameConfigSettings& cfg) {
         }
         std::printf("\n");
     }
+    std::printf("  UNIT_HEAL_IN_CITY: %u\n", cfg.get_unit_heal_in_city());
+    std::printf("  UNIT_HEAL_DEFAULT: %u\n", cfg.get_unit_heal_default());
 }
 
 //================================================================================================================================

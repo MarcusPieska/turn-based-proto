@@ -23,7 +23,7 @@
 //================================================================================================================================
 
 static const u16 k_slot_n = static_cast<u16>(SETTLER_MISSION_SLOTS);
-static const u16 k_tgt_sites = static_cast<u16>(SETTLER_MISSION_SLOTS);
+static const u16 k_min_settlers = 3u;
 static const u16 k_claim_cult = 25u;
 
 //================================================================================================================================
@@ -87,6 +87,30 @@ static void clear_slot (u16 player, u16 i) {
     sl->m_has = 0;
     sl->m_tx = U16_KEY_NULL;
     sl->m_ty = U16_KEY_NULL;
+}
+
+static u16 count_elig_sites (GameState& state, u16 player) {
+    GAME_EXPECT(g_ord != nullptr, "count_elig_sites missing order");
+    u16 n = 0;
+    const u32 sn = g_ord->n(player);
+    for (u32 i = 0; i < sn; ++i) {
+        const SpgCoordPair pt = g_ord->at(player, i);
+        if (state.m_map.get_planned_city(pt.x, pt.y) == 0u) {
+            continue;
+        }
+        if (state.m_map.get_settler_blocked(pt.x, pt.y) != 0u) {
+            continue;
+        }
+        if (state.m_map.get_add_typ(pt.x, pt.y) == BUILD_ADD_CITY) {
+            continue;
+        }
+        const u8 ow = state.m_map.get_civ_owner(pt.x, pt.y);
+        if (ow != U8_KEY_NULL && ow != static_cast<u8>(player)) {
+            continue;
+        }
+        n = static_cast<u16>(n + 1u);
+    }
+    return n;
 }
 
 static void stamp_block (GameState& state, u16 cx, u16 cy) {
@@ -191,19 +215,32 @@ void SettlerTurnHandler::refresh_targets (GameState& state) {
     GAME_EXPECT(g_st == &state, "SettlerTurnHandler refresh_targets got wrong state");
     GAME_EXPECT(state.m_player_states != nullptr, "SettlerTurnHandler refresh_targets missing player states");
     GAME_EXPECT(g_ord != nullptr, "SettlerTurnHandler refresh_targets missing order object");
-    if (g_ord_ok) {
-        return;
+    if (!g_ord_ok) {
+        GAME_EXPECT(g_ord != nullptr && g_ord->ok(), "SettlerTurnHandler refresh_targets missing order");
+        SettlerMissionManager::punch(state.m_map);
+        g_ord_ok = true;
     }
-    GAME_EXPECT(g_ord != nullptr && g_ord->ok(), "SettlerTurnHandler refresh_targets missing order");
-    SettlerMissionManager::punch(state.m_map);
     for (u16 p = 0; p < g_player_n; ++p) {
         PlayerState& ps = state.m_player_states[p];
         if (ps.m_target_settlements == 0) {
             continue;
         }
-        ps.m_target_settlements = (g_ord->n(p) > 0u) ? k_tgt_sites : 2u;
+        u16 t = count_elig_sites(state, p);
+        if (t < k_min_settlers) {
+            t = k_min_settlers;
+        }
+        if (t > k_slot_n) {
+            t = k_slot_n;
+        }
+        ps.m_target_settlements = t;
     }
-    g_ord_ok = true;
+}
+
+u16 SettlerTurnHandler::elig_sites (GameState& state, u16 player) {
+    GAME_EXPECT(g_ok, "SettlerTurnHandler elig_sites got invalid state");
+    GAME_EXPECT(g_st == &state, "SettlerTurnHandler elig_sites got wrong state");
+    GAME_EXPECT(player < g_player_n, "SettlerTurnHandler elig_sites player out of range");
+    return count_elig_sites(state, player);
 }
 
 bool SettlerTurnHandler::need_settler (GameState& state, u16 player) {
@@ -214,7 +251,10 @@ bool SettlerTurnHandler::need_settler (GameState& state, u16 player) {
     if (ps.m_target_settlements == 0) {
         return false;
     }
-    return ps.m_last_turn_settler_count < ps.m_target_settlements;
+    const u32 have = static_cast<u32>(ps.m_last_turn_settler_count)
+        + static_cast<u32>(ps.m_last_turn_settler_build_n)
+        + static_cast<u32>(ps.m_this_turn_settler_build_n);
+    return have < ps.m_target_settlements;
 }
 
 void SettlerTurnHandler::handle (GameState& state, u16 unit_idx) {
@@ -277,8 +317,14 @@ void SettlerTurnHandler::handle (GameState& state, u16 unit_idx) {
                 return;
             }
         }
+        const u8 ow = state.m_map.get_civ_owner(nx, ny);
+        if (ow != U8_KEY_NULL && ow != static_cast<u8>(player)) {
+            clear_slot(player, i);
+            return;
+        }
         found_city(state, nx, ny, player);
         clear_slot(player, i);
+        GAME_EXPECT(UnitMovementMng::destroy_unit(state, key), "SettlerTurnHandler handle destroy after found failed");
         return;
     }
 

@@ -1,0 +1,3 @@
+#!/bin/bash
+set -e
+exec "$(dirname "$0")/../../game/test_drivers/tile_transfer_comp" "$@"

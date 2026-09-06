@@ -7,14 +7,14 @@
 
 #include "game_primitives.h"
 
-class ConductCampaign;
+class WarTurnHandler;
 class GameState;
 
 //================================================================================================================================
 //=> - TestHlpWalkMuster -
 //================================================================================================================================
 //
-//  Runs ConductCampaign muster walk until arrival/stall: times each turn, optionally prints
+//  Runs WarTurnHandler muster walk until arrival/stall: times each turn, optionally prints
 //  per-turn staging counts, writes turns/turn_XXXX.ppm via turn_io (increments each frame).
 //
 //================================================================================================================================
@@ -23,7 +23,7 @@ class TestHlpWalkMuster {
 public:
     static bool run (
         GameState& s,
-        ConductCampaign& camp,
+        WarTurnHandler& camp,
         const u16* ov,
         u16 pa,
         u16 pb,

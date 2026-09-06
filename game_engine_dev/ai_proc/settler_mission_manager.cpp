@@ -21,6 +21,11 @@ static u16 cheb (u16 ax, u16 ay, u16 bx, u16 by) {
     return dx > dy ? dx : dy;
 }
 
+static bool site_own_ok (const GameArraySimple& map, u16 x, u16 y, u16 pl) {
+    const u8 ow = map.get_civ_owner(x, y);
+    return ow == U8_KEY_NULL || ow == static_cast<u8>(pl);
+}
+
 //================================================================================================================================
 //=> - SettlerMissionManager -
 //================================================================================================================================
@@ -157,7 +162,7 @@ bool SettlerMissionManager::taken (u16 x, u16 y, u16 skip) const {
     return false;
 }
 
-bool SettlerMissionManager::ok_site (const GameArraySimple& map, u16 x, u16 y, u16 skip) const {
+bool SettlerMissionManager::ok_site (const GameArraySimple& map, u16 x, u16 y, u16 skip, u16 pl) const {
     if (x >= m_w || y >= m_h) {
         return false;
     }
@@ -165,6 +170,9 @@ bool SettlerMissionManager::ok_site (const GameArraySimple& map, u16 x, u16 y, u
         return false;
     }
     if (map.get_settler_blocked(x, y) != 0u) {
+        return false;
+    }
+    if (!site_own_ok(map, x, y, pl)) {
         return false;
     }
     return !taken(x, y, skip);
@@ -184,7 +192,7 @@ bool SettlerMissionManager::pick_loc (GameArraySimple& map, u16 s, u16 x0, u16 y
                 if (cheb(x0, y0, ux, uy) != r) {
                     continue;
                 }
-                if (!ok_site(map, ux, uy, s)) {
+                if (!ok_site(map, ux, uy, s, m_slot[s].m_pl)) {
                     continue;
                 }
                 if (aim(s, x0, y0, ux, uy)) {
@@ -214,7 +222,7 @@ bool SettlerMissionManager::pick_ord (
     }
     for (u32 i = m_oi; i < n; ++i) {
         const SpgCoordPair pt = ord.at(pl, i);
-        if (!ok_site(map, pt.x, pt.y, s)) {
+        if (!ok_site(map, pt.x, pt.y, s, pl)) {
             continue;
         }
         if (aim(s, x0, y0, pt.x, pt.y)) {
@@ -287,6 +295,10 @@ u8 SettlerMissionManager::step (GameArraySimple& map, u16 s) {
     }
     Slot& sl = m_slot[s];
     if (map.get_planned_city(sl.m_x, sl.m_y) != 0u) {
+        if (!site_own_ok(map, sl.m_x, sl.m_y, sl.m_pl)) {
+            rel(s);
+            return SMM_DROP;
+        }
         found(map, s);
         return SMM_FOUND;
     }
@@ -295,6 +307,10 @@ u8 SettlerMissionManager::step (GameArraySimple& map, u16 s) {
     }
     if (wdn(s) || (sl.m_x == sl.m_tx && sl.m_y == sl.m_ty)) {
         if (map.get_planned_city(sl.m_x, sl.m_y) != 0u) {
+            if (!site_own_ok(map, sl.m_x, sl.m_y, sl.m_pl)) {
+                rel(s);
+                return SMM_DROP;
+            }
             found(map, s);
             return SMM_FOUND;
         }
@@ -304,6 +320,10 @@ u8 SettlerMissionManager::step (GameArraySimple& map, u16 s) {
     if (!wgo(s)) {
         if (wdn(s)) {
             if (map.get_planned_city(sl.m_x, sl.m_y) != 0u) {
+                if (!site_own_ok(map, sl.m_x, sl.m_y, sl.m_pl)) {
+                    rel(s);
+                    return SMM_DROP;
+                }
                 found(map, s);
                 return SMM_FOUND;
             }
@@ -313,6 +333,10 @@ u8 SettlerMissionManager::step (GameArraySimple& map, u16 s) {
     }
     sl.m_steps = static_cast<u16>(sl.m_steps + 1u);
     if (map.get_planned_city(sl.m_x, sl.m_y) != 0u) {
+        if (!site_own_ok(map, sl.m_x, sl.m_y, sl.m_pl)) {
+            rel(s);
+            return SMM_DROP;
+        }
         found(map, s);
         return SMM_FOUND;
     }

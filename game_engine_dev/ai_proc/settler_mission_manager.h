@@ -32,8 +32,9 @@ class SectorNetworkRouter;
 //
 //  One instance per player. Couples a settler to a planned site. If opp, local SMM_WIN window first,
 //  else first remaining site on that player's order list. Pathing body is cpp-included from
-//  impl/settler_mission_manager_impl_mkNN.cpp via SETTLER_MISSION_MANAGER_IMPL. Founds if on a free
-//  planned tile; every SMM_SCAN steps, rescans the local window. Stack slots, cap SMM_SLOT_N.
+//  impl/settler_mission_manager_impl_mkNN.cpp via SETTLER_MISSION_MANAGER_IMPL. Founds only on a
+//  planned tile that is free or owned by this player (never foreign); every SMM_SCAN steps, rescans
+//  the local window. Stack slots, cap SMM_SLOT_N.
 //
 //================================================================================================================================
 
@@ -78,7 +79,7 @@ private:
     };
 
     bool taken (u16 x, u16 y, u16 skip) const;
-    bool ok_site (const GameArraySimple& map, u16 x, u16 y, u16 skip) const;
+    bool ok_site (const GameArraySimple& map, u16 x, u16 y, u16 skip, u16 pl) const;
     bool wbeg (const SectorNetwork& net, const SectorNetworkRouter& rt, const u8* terr, u16 w, u16 h);
     bool aim (u16 s, u16 x0, u16 y0, u16 tx, u16 ty);
     bool wgo (u16 s);

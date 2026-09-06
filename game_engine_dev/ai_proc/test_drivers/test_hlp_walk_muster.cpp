@@ -6,7 +6,7 @@
 #include <cstdio>
 
 #include "test_hlp_walk_muster.h"
-#include "conduct_campaign.h"
+#include "war_turn_handler.h"
 #include "game_state.h"
 #include "unit_chain_validation.h"
 #include "test_hlp_unit_validate.h"
@@ -17,7 +17,7 @@
 
 bool TestHlpWalkMuster::run (
     GameState& s,
-    ConductCampaign& camp,
+    WarTurnHandler& camp,
     const u16* ov,
     u16 pa,
     u16 pb,

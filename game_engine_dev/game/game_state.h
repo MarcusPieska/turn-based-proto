@@ -31,8 +31,22 @@
 
 #include "game_primitives.h"
 #include "gen_ai_helpers.h"
+#include "resource_ledger.h"
 
 class RuntimeStatics;
+
+//================================================================================================================================
+//=> - AiUnits -
+//================================================================================================================================
+//
+//  AI land/naval unit production policy for a seat.
+//
+//================================================================================================================================
+
+enum class AiUnits : u8 {
+    AI_UNITS_DEFAULT = 0,
+    AI_UNITS_AGGRESSIVE = 1
+};
 
 //================================================================================================================================
 //=> - PlayerState -
@@ -63,7 +77,19 @@ public:
     u16 m_civ_index = UINT16_MAX; // Civ roster index for this seat
     u16 m_current_research_target_idx = U16_KEY_NULL; // Current research index
     u16 m_research_spending_perc = 100; // Percentage of commerce to spend on research; 0-100
-    u16 m_free_unit_support = 0; // Max number of units before upkeep is required
+    
+    u16 m_free_land_unit_support = 0; // Free land-unit support from CIV_* buildings this turn
+    u16 m_free_naval_unit_support = 0; // Free naval-unit support from CIV_* buildings this turn
+    u16 m_land_unit_upkeep_needed = 0; // Land support demand this turn before civ free
+    u16 m_naval_unit_upkeep_needed = 0; // Naval support demand this turn before civ free
+    
+    u16 m_target_new_land_unit_support = 0; // Wasted civ free land support; build target in upkeep-cost units
+    u16 m_target_new_naval_unit_support = 0; // Wasted civ free naval support; build target in upkeep-cost units
+    u16 m_this_turn_new_land_unit_build_support = 0; // Upkeep-cost of land units in production this turn
+    u16 m_this_turn_new_naval_unit_build_support = 0; // Upkeep-cost of naval units in production this turn
+    u16 m_last_turn_new_land_unit_build_support = 0; // Prior this-turn land build support; carried before reset
+    u16 m_last_turn_new_naval_unit_build_support = 0; // Prior this-turn naval build support; carried before reset
+    
     u16 m_worker_mvt_to_build_perc = 1000; // Build-cost multiplier in percent; 1000 means 10x for mp deficit
 
     u16 m_target_settlements = 0; // Desired settler count; 0 off; STM sets SETTLER_MISSION_SLOTS with sites / 2 with none
@@ -78,6 +104,8 @@ public:
     
     // The counters below are zeroed after the city turn loop; i.e., the city loop will know last turns unit counts
     u16 m_last_turn_settler_count = 0; // Settlers counted during last unit pass (SettlerTurnHandler::handle)
+    u16 m_this_turn_settler_build_n = 0; // Settlers in city queues counted this city pass
+    u16 m_last_turn_settler_build_n = 0; // Prior this-turn settler builds; carried before reset
     u16 m_last_turn_worker_count = 0; // Workers counted during last unit pass (WorkerTurnHandler::handle)
     u16 m_defensive_unit_count = 0; // Defensive units counted during last unit pass (DefensiveUnitTurnHandler::handle)
     
@@ -93,6 +121,9 @@ public:
     u8 m_worker_tile_opt_scan = 0; // Worker tile optimization toggle; 0 off, 1 scan best
     u8 m_worker_tile_opt_reassign = 0; // Worker tile optimization toggle; 0 off, 1 reassign
     u8 m_tech_just_researched = 0; // 1 when a tech completed this turn; arms city worker-disk flags
+    AiUnits m_ai_units = AiUnits::AI_UNITS_DEFAULT; // Unit production policy; Default for all seats for now
+    u8 m_ai_units_tog = 0; // Aggressive civ-free pick toggle; 0 attack, 1 artillery
+    ResourceLedger m_res_ledger; // Per-seat resource stockpile; length matches resource catalog
 };
 
 //================================================================================================================================

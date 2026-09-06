@@ -23,6 +23,7 @@ class GameArraySimple;
 class CityBorder {
 public:
     static void bind_map (GameArraySimple* map);
+    static GameArraySimple* map () { return m_map; }
     static CircArea get (u16 radius);
     static bool will_expand (u16 old_culture, u16 new_culture);
     static u16 radius_for (u16 culture);

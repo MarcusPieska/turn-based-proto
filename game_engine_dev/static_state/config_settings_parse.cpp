@@ -182,6 +182,22 @@ bool GameConfigSettingsParser::parse_line (cstr line, GameConfigSettings* out) c
         }
         out->set_start_exp_units(tmp);
         return true;
+    } else if (std::strcmp(k, "UNIT_HEAL_IN_CITY") == 0) {
+        u16 tmp = 0;
+        if (!parse_u16(v, &tmp)) {
+            std::printf("ERROR: config could not parse u16 for '%s': '%s'\n", k, v);
+            return false;
+        }
+        out->set_unit_heal_in_city(tmp);
+        return true;
+    } else if (std::strcmp(k, "UNIT_HEAL_DEFAULT") == 0) {
+        u16 tmp = 0;
+        if (!parse_u16(v, &tmp)) {
+            std::printf("ERROR: config could not parse u16 for '%s': '%s'\n", k, v);
+            return false;
+        }
+        out->set_unit_heal_default(tmp);
+        return true;
     }
 
     std::printf("ERROR: unknown config settings key '%s'\n", k);

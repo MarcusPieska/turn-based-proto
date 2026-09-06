@@ -49,10 +49,12 @@
 //================================================================================================================================
 
 struct UnitAddStruct {
-    u16 m_x; // Tile column; U16_KEY_NULL for group tails
-    u16 m_y; // Tile row; U16_KEY_NULL for group tails
-    u16 m_unit_typ_idx; // Index into unit static registry
-    u16 m_next_unit_on_tile; // Stack link: next UnitAddKey raw value, or U16_KEY_NULL
+    u64 m_x : 16; // Tile column; U16_KEY_NULL for group tails
+    u64 m_y : 16; // Tile row; U16_KEY_NULL for group tails
+    u64 m_unit_typ_idx : 16; // Index into unit static registry
+    u64 m_next_unit_on_tile : 16; // Stack link: next UnitAddKey raw value, or U16_KEY_NULL
+    //u64 m_in_campaign : 1; // True if unit is in an AI-managed campaign
+    //u64 m_unused : 7; // Extra padding to align to 16 bytes, keep these
 
     u16 m_next_unit_in_group; // Group link: next UnitAddKey raw value, or U16_KEY_NULL
     i16 m_mvt_points; // Remaining movement budget (static mvt_pts x 1000 scale)
@@ -63,7 +65,7 @@ struct UnitAddStruct {
 
     i8 m_delta_x_dest; // Work tile dx from m_x; UNIT_DELTA_DEST_NONE or UNIT_DELTA_DEST_ARRIVED
     i8 m_delta_y_dest; // Work tile dy from m_y; UNIT_DELTA_DEST_NONE or UNIT_DELTA_DEST_ARRIVED
-    u8 un_used1;
+    u8 m_in_campaign; // Will be moved up to bit array once we refactor to use a U12_KEY_NULL sentinel
     u8 un_used2;
     u8 un_used3;
     u8 un_used4;

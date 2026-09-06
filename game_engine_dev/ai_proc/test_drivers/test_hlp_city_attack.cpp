@@ -7,7 +7,7 @@
 #include <cstring>
 
 #include "test_hlp_city_attack.h"
-#include "conduct_campaign.h"
+#include "war_turn_handler.h"
 #include "game_state.h"
 #include "runtime_statics.h"
 #include "unit_add_struct.h"
@@ -102,16 +102,16 @@ static const SnapUnit* find_snap (const SnapUnit* snap, u16 n, u16 key) {
 //=> - TestHlpCityAttack -
 //================================================================================================================================
 
-bool TestHlpCityAttack::run (GameState& s, ConductCampaign& camp, u16 city_x, u16 city_y, bool print_log) {
+WarAssault TestHlpCityAttack::run (GameState& s, WarTurnHandler& camp, u16 city_x, u16 city_y, bool print_log) {
     if (s.m_statics == nullptr) {
-        return false;
+        return WarAssault::Fail;
     }
     const UnitAddKey army = UnitAddKey::from_raw(camp.atk_hd(0));
     if (!army.is_valid()) {
         if (print_log) {
             std::printf("city_attack: no army head\n");
         }
-        return false;
+        return WarAssault::Fail;
     }
     const u16 typ_n = s.m_statics->unit().get_item_count();
     SnapUnit before[k_snap_cap];
@@ -125,19 +125,20 @@ bool TestHlpCityAttack::run (GameState& s, ConductCampaign& camp, u16 city_x, u1
     }
 
     const auto t0 = std::chrono::steady_clock::now();
-    const bool ok = camp.assault_city(city_x, city_y, 0u);
+    const WarAssault r = camp.assault_city(city_x, city_y, 0u);
     const auto t1 = std::chrono::steady_clock::now();
     const double us = std::chrono::duration<double, std::micro>(t1 - t0).count();
-    if (!ok) {
+    if (r != WarAssault::Ok) {
         if (print_log) {
-            std::printf("*** FAILED ConductCampaign::assault_city (%.2f us)\n", us);
+            std::printf("WarTurnHandler::assault_city %s (%.2f us)\n",
+                r == WarAssault::Stall ? "stall" : "fail", us);
         }
-        return false;
+        return r;
     }
     const UnitAddKey stay = UnitAddKey::from_raw(camp.split_hd(0));
     const UnitAddKey occupy = UnitAddKey::from_raw(camp.atk_hd(0));
     if (!print_log) {
-        return true;
+        return WarAssault::Ok;
     }
     std::printf("assault_us=%.2f stay=%u occupy=%u\n", us, (u32)stay.value(), (u32)occupy.value());
 
@@ -190,7 +191,7 @@ bool TestHlpCityAttack::run (GameState& s, ConductCampaign& camp, u16 city_x, u1
     if (dmg_n == 0u) {
         std::printf("  (none)\n");
     }
-    return true;
+    return WarAssault::Ok;
 }
 
 //================================================================================================================================

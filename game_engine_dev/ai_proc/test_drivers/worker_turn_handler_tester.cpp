@@ -645,6 +645,12 @@ static void after_city_turns (GameState& state) {
         ps.m_last_turn_city_count = ps.m_this_turn_city_count;
         ps.m_this_turn_population_count = 0;
         ps.m_this_turn_city_count = 0;
+        ps.m_last_turn_new_land_unit_build_support = ps.m_this_turn_new_land_unit_build_support;
+        ps.m_last_turn_new_naval_unit_build_support = ps.m_this_turn_new_naval_unit_build_support;
+        ps.m_this_turn_new_land_unit_build_support = 0;
+        ps.m_this_turn_new_naval_unit_build_support = 0;
+        ps.m_last_turn_settler_build_n = ps.m_this_turn_settler_build_n;
+        ps.m_this_turn_settler_build_n = 0;
         ps.m_last_turn_settler_count = 0;
         ps.m_last_turn_worker_count = 0;
         ps.m_defensive_unit_count = 0;
@@ -658,6 +664,13 @@ static void run_city_turns (GameState& state) {
         const auto t1 = std::chrono::steady_clock::now();
         tm_add(&g_tm_refresh, static_cast<u64>(
             std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()));
+    }
+    for (u16 p = 0; p < state.m_player_n; ++p) {
+        PlayerState& ps = state.m_player_states[p];
+        ps.m_free_land_unit_support = 0;
+        ps.m_free_naval_unit_support = 0;
+        ps.m_land_unit_upkeep_needed = 0;
+        ps.m_naval_unit_upkeep_needed = 0;
     }
     const u16 cn = state.m_cities.get_city_count();
     for (u16 i = 0; i < cn; ++i) {

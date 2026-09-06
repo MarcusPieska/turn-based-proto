@@ -38,6 +38,8 @@ struct ConfigSettingsData {
     u16 m_mov_pt_per_turn;
     ConfigListUnit m_start_units;
     ConfigListUnit m_start_exp_units;
+    u16 m_unit_heal_in_city;
+    u16 m_unit_heal_default;
 };
 
 //================================================================================================================================
@@ -60,6 +62,12 @@ public:
 
     ConfigListUnit get_start_exp_units () const;
     void set_start_exp_units (ConfigListUnit v);
+
+    u16 get_unit_heal_in_city () const;
+    void set_unit_heal_in_city (u16 v);
+
+    u16 get_unit_heal_default () const;
+    void set_unit_heal_default (u16 v);
 
 private:
     GameConfigSettings (const GameConfigSettings& o) = delete;

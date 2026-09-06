@@ -6,7 +6,7 @@
 #include <cstring>
 #include <chrono>
 
-#include "conduct_campaign.h"
+#include "war_turn_handler.h"
 #include "game_primitives.h"
 #include "game_state.h"
 #include "generate_access_mask.h"
@@ -121,7 +121,7 @@ int main (int argc, char** argv) {
     u16 stx = 0;
     u16 sty = 0;
     const auto t0 = std::chrono::steady_clock::now();
-    const bool pick_ok = ConductCampaign::pick_staging_city(state, pa, pb, &stx, &sty);
+    const bool pick_ok = WarTurnHandler::pick_staging_city(state, pa, pb, &stx, &sty);
     const auto t1 = std::chrono::steady_clock::now();
     const double pick_us = std::chrono::duration<double, std::micro>(t1 - t0).count();
     if (!pick_ok) {
@@ -146,7 +146,7 @@ int main (int argc, char** argv) {
         WhiteboardMng::terminate();
         return 1;
     }
-    ConductCampaign camp(state, pa);
+    WarTurnHandler camp(state, pa);
     if (!camp.ok() || !camp.make_muster_gradient(stx, sty)) {
         std::printf("*** FAILED make_muster_gradient\n");
         WhiteboardMng::terminate();
@@ -165,7 +165,7 @@ int main (int argc, char** argv) {
             exp_n++;
         }
     }
-    std::printf("exposed_cities=%u (lim=%u)\n", (u32)exp_n, (u32)ConductCampaign::k_exp_lim);
+    std::printf("exposed_cities=%u (lim=%u)\n", (u32)exp_n, (u32)WarTurnHandler::k_exp_lim);
     u32 turn = 0;
     if (!TestHlpWalkMuster::run(
             state, camp, ov_wb.get_iter_ptr(), pa, pb, stx, sty, G_IN, G_OUT, false, c_check, c_print_all, &turn)) {

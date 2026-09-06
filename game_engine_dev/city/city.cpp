@@ -13,6 +13,7 @@
 #include "toggle_city_static_key.h"
 #include "small_wonder_static_key.h"
 #include "unit_static_key.h"
+#include "unit_type_static_key.h"
 #include "wonder_static_key.h"
 
 #include "unit_add_vector.h"
@@ -40,6 +41,7 @@
 #include "local_sanitation_booster_register.h"
 #include "city_sanitation_booster_register.h"
 #include "civ_sanitation_booster_register.h"
+#include "dyn_booster_register.h"
 #include "city_border.h"
 #include "city_tracer.h"
 #include "tile_yields.h"
@@ -113,7 +115,7 @@ static void fill_civ_trait_scratch (BitArrayCL* civ) {
     }
 }
 
-static AssessorCtx make_city_ctx (u16 city_idx, BitArrayCL* techs, BitArrayCL* civ) {
+static AssessorCtx make_city_ctx (const City& city, u16 city_idx, BitArrayCL* techs, BitArrayCL* civ) {
     fill_civ_trait_scratch(civ);
     AssessorCtx ctx = {};
     ctx.m_tech = techs;
@@ -123,6 +125,9 @@ static AssessorCtx make_city_ctx (u16 city_idx, BitArrayCL* techs, BitArrayCL* c
     ctx.m_building_bank = s_bld_bank;
     ctx.m_toggle_city_bank = s_flag_bank;
     ctx.m_civ_trait = s_civ_trait_scratch;
+    ctx.m_map = CityBorder::map();
+    ctx.m_x = city.get_x();
+    ctx.m_y = city.get_y();
     return ctx;
 }
 
@@ -185,6 +190,15 @@ static bool unit_is_sea (u16 unit_idx) {
     return s_statics->unit_type_action_map().unit_type_can_do(u.type, k_act_is_sea);
 }
 
+static bool unit_is_settler (u16 unit_idx) {
+    if (s_statics == nullptr || unit_idx == U16_KEY_NULL) {
+        return false;
+    }
+    const UnitStaticDataStruct& u = s_statics->unit().get_item(UnitStaticDataKey::from_raw(unit_idx));
+    cstr nm = s_statics->unit_type().get_name(UnitTypeStaticDataKey::from_raw(u.type));
+    return nm != nullptr && std::strcmp(nm, "LAND_SETTLER") == 0;
+}
+
 static u8 spawn_unit_level (const City& city, u16 city_idx, u16 unit_idx) {
     const EffectCtx ctx = make_city_effect_ctx(city, city_idx);
     if (unit_is_sea(unit_idx)) {
@@ -240,6 +254,7 @@ void City::init (u16 owner, u16 x, u16 y) {
     m_conn_city_se = U16_KEY_NULL;
     m_road_conn = 0;
     m_misc.m_city_has_worker = 1;
+    m_misc.m_city_defense_deduction = 0;
 }
 
 void City::bind_statics (const RuntimeStatics& st) {
@@ -309,7 +324,7 @@ BitArrayCL* City::get_buildable_buildings (u16 city_idx, BitArrayCL* techs, BitA
     GAME_EXPECT_RET(s_statics != nullptr, nullptr, "City statics");
     r->clear_all();
     const u16 n = static_cast<u16>(r->get_count());
-    AssessorCtx ctx = make_city_ctx(city_idx, techs, civ);
+    AssessorCtx ctx = make_city_ctx(*this, city_idx, techs, civ);
     for (u16 i = 0; i < n; ++i) {
         const BuildingStaticDataStruct& item = s_statics->building().get_item(BuildingStaticDataKey::from_raw(i));
         if (GeneralAssessor::chk(item.reqs, ctx)) {
@@ -325,7 +340,7 @@ BitArrayCL* City::get_buildable_wonders (u16 city_idx, BitArrayCL* techs, BitArr
     GAME_EXPECT_RET(s_statics != nullptr, nullptr, "City statics");
     r->clear_all();
     const u16 n = static_cast<u16>(r->get_count());
-    AssessorCtx ctx = make_city_ctx(city_idx, techs, civ);
+    AssessorCtx ctx = make_city_ctx(*this, city_idx, techs, civ);
     for (u16 i = 0; i < n; ++i) {
         if (s_wonder_city != nullptr && s_wonder_city[i] != U16_KEY_NULL) {
             continue;
@@ -345,7 +360,7 @@ BitArrayCL* City::get_buildable_small_wonders (u16 city_idx, BitArrayCL* techs, 
     const u16* built = small_wonder_row(m_owner);
     r->clear_all();
     const u16 n = static_cast<u16>(r->get_count());
-    AssessorCtx ctx = make_city_ctx(city_idx, techs, civ);
+    AssessorCtx ctx = make_city_ctx(*this, city_idx, techs, civ);
     for (u16 i = 0; i < n; ++i) {
         if (built != nullptr && built[i] != U16_KEY_NULL) {
             continue;
@@ -364,7 +379,7 @@ BitArrayCL* City::get_trainable_units (u16 city_idx, BitArrayCL* techs, BitArray
     GAME_EXPECT_RET(s_statics != nullptr, nullptr, "City statics");
     r->clear_all();
     const u16 n = static_cast<u16>(r->get_count());
-    AssessorCtx ctx = make_city_ctx(city_idx, techs, civ);
+    AssessorCtx ctx = make_city_ctx(*this, city_idx, techs, civ);
     for (u16 i = 0; i < n; ++i) {
         const UnitStaticDataStruct& item = s_statics->unit().get_item(UnitStaticDataKey::from_raw(i));
         if (GeneralAssessor::chk(item.reqs, ctx)) {
@@ -448,6 +463,10 @@ i16 City::add_food (u16 city_idx, u16 amount, i16 net_sanitation) {
     // Pull local tile food yield (no POP_GROWTH on gross food)
     const TileYield cy = TileYields::get(m_x, m_y);
     amount = static_cast<u16>(cy.m_food + amount);
+    const DynBoosterRegister& food_reg = s_statics->dyn_booster();
+    amount = apply_booster_u16(amount, food_reg.determine(ItemEffectBoosterType::FOOD, ItemEffectsScope::LOCAL, ctx));
+    amount = apply_booster_u16(amount, food_reg.determine(ItemEffectBoosterType::FOOD, ItemEffectsScope::CITY, ctx));
+    amount = apply_booster_u16(amount, food_reg.determine(ItemEffectBoosterType::FOOD, ItemEffectsScope::CIV, ctx));
     LOG_CITY_FOOD((amount));
 
     // Feed the population; 2 food per pop per turn; bank toward growth at 20; starve at most 1 per turn
@@ -489,15 +508,15 @@ i16 City::add_food (u16 city_idx, u16 amount, i16 net_sanitation) {
 bool City::add_production (u16 city_idx, u16 amount) {
     const EffectCtx ctx = make_city_effect_ctx(*this, city_idx);
 
-    // Pull local tile production yield, and apply local boosters
+    // Pull local tile production yield, then PRODUCTION boosters
     const TileYield cy = TileYields::get(m_x, m_y);
-    const u16 local = apply_booster_u16(cy.m_production, LocalProductionBoosterRegister::determine_effect(ctx));
-    amount = static_cast<u16>(amount + local);
-
-    // Handle the remaining production, and the non-local boosters
-    const u16 boosted = apply_booster_u16(amount, CityProductionBoosterRegister::determine_effect(ctx));
-    m_accumulated_production = static_cast<u16>(m_accumulated_production + boosted);
-    LOG_CITY_PROD((boosted));
+    amount = static_cast<u16>(cy.m_production + amount);
+    const DynBoosterRegister& prod_reg = s_statics->dyn_booster();
+    amount = apply_booster_u16(amount, prod_reg.determine(ItemEffectBoosterType::PRODUCTION, ItemEffectsScope::LOCAL, ctx));
+    amount = apply_booster_u16(amount, prod_reg.determine(ItemEffectBoosterType::PRODUCTION, ItemEffectsScope::CITY, ctx));
+    amount = apply_booster_u16(amount, prod_reg.determine(ItemEffectBoosterType::PRODUCTION, ItemEffectsScope::CIV, ctx));
+    m_accumulated_production = static_cast<u16>(m_accumulated_production + amount);
+    LOG_CITY_PROD((amount));
     
     // Do not trigger build-is-done if we are not building a building, or if we are converting production to commerce
     if (m_build_type == BUILD_TYPE_NONE || m_build_type == ACCUMULATE_COMMERCE) {
@@ -582,6 +601,10 @@ u16 City::get_current_culture () const {
     return m_culture;
 }
 
+void City::set_culture (u16 culture) {
+    m_culture = culture;
+}
+
 u16 City::get_current_population () const {
     return m_pop_count;
 }
@@ -620,6 +643,130 @@ bool City::city_has_worker () const {
 
 void City::set_city_has_worker (u8 on) {
     m_misc.m_city_has_worker = on != 0 ? 1u : 0u;
+}
+
+void City::refresh_unit_support (u16 city_idx) {
+    GAME_EXPECT(s_statics != nullptr, "City::refresh_unit_support null statics");
+    GAME_EXPECT(s_player_states != nullptr, "City::refresh_unit_support null player states");
+    GAME_EXPECT(m_owner < s_player_n, "City::refresh_unit_support owner out of bounds");
+    const EffectCtx ctx = make_city_effect_ctx(*this, city_idx);
+    const DynBoosterRegister& reg = s_statics->dyn_booster();
+    u16 city_land = apply_booster_u16(0, reg.determine(ItemEffectBoosterType::CITY_LAND_UNIT_SUPPORT, ItemEffectsScope::CITY, ctx));
+    u16 city_naval = apply_booster_u16(0, reg.determine(ItemEffectBoosterType::CITY_NAVAL_UNIT_SUPPORT, ItemEffectsScope::CITY, ctx));
+    if (city_land > 127u) {
+        city_land = 127u;
+    }
+    if (city_naval > 127u) {
+        city_naval = 127u;
+    }
+    m_misc.m_free_land_unit_support = city_land;
+    m_misc.m_free_naval_unit_support = city_naval;
+    const u16 civ_land = apply_booster_u16(0, reg.determine(ItemEffectBoosterType::CIV_LAND_UNIT_SUPPORT, ItemEffectsScope::CIV, ctx));
+    const u16 civ_naval = apply_booster_u16(0, reg.determine(ItemEffectBoosterType::CIV_NAVAL_UNIT_SUPPORT, ItemEffectsScope::CIV, ctx));
+    PlayerState& ps = s_player_states[m_owner];
+    const u32 land_sum = static_cast<u32>(ps.m_free_land_unit_support) + static_cast<u32>(civ_land);
+    const u32 naval_sum = static_cast<u32>(ps.m_free_naval_unit_support) + static_cast<u32>(civ_naval);
+    ps.m_free_land_unit_support = land_sum > 65535u ? 65535u : static_cast<u16>(land_sum);
+    ps.m_free_naval_unit_support = naval_sum > 65535u ? 65535u : static_cast<u16>(naval_sum);
+}
+
+u16 City::calc_city_land_unit_support (u16 city_idx) const {
+    GAME_EXPECT(s_statics != nullptr, "City::calc_city_land_unit_support null statics");
+    const EffectCtx ctx = make_city_effect_ctx(*this, city_idx);
+    const DynBoosterRegister& reg = s_statics->dyn_booster();
+    u16 city_land = apply_booster_u16(0, reg.determine(ItemEffectBoosterType::CITY_LAND_UNIT_SUPPORT, ItemEffectsScope::CITY, ctx));
+    if (city_land > 127u) {
+        city_land = 127u;
+    }
+    return city_land;
+}
+
+void City::count_unit_build_support (PlayerState* ps) {
+    GAME_EXPECT(ps != nullptr, "City::count_unit_build_support null player state");
+    if (m_build_type != BUILD_TYPE_UNIT || m_bld_idx == U16_KEY_NULL) {
+        return;
+    }
+    const u16 cost = 1u;
+    if (unit_is_settler(m_bld_idx)) {
+        const u32 sn = static_cast<u32>(ps->m_this_turn_settler_build_n) + 1u;
+        ps->m_this_turn_settler_build_n = sn > 65535u ? 65535u : static_cast<u16>(sn);
+    }
+    if (unit_is_land(m_bld_idx)) {
+        const u32 sum = static_cast<u32>(ps->m_this_turn_new_land_unit_build_support) + static_cast<u32>(cost);
+        ps->m_this_turn_new_land_unit_build_support = sum > 65535u ? 65535u : static_cast<u16>(sum);
+        return;
+    }
+    if (unit_is_sea(m_bld_idx)) {
+        const u32 sum = static_cast<u32>(ps->m_this_turn_new_naval_unit_build_support) + static_cast<u32>(cost);
+        ps->m_this_turn_new_naval_unit_build_support = sum > 65535u ? 65535u : static_cast<u16>(sum);
+    }
+}
+
+void City::refund_land_unit_upkeep (const UnitAddStruct& unit, PlayerState* ps) {
+    (void)unit;
+    GAME_EXPECT(ps != nullptr, "City::refund_land_unit_upkeep null player state");
+    const u16 cost = 1u;
+    u16 free_n = static_cast<u16>(m_misc.m_free_land_unit_support);
+    u16 covered = cost;
+    if (covered > free_n) {
+        covered = free_n;
+    }
+    m_misc.m_free_land_unit_support = static_cast<u16>(free_n - covered);
+    const u16 left = static_cast<u16>(cost - covered);
+    if (left == 0) {
+        return;
+    }
+    const u32 sum = static_cast<u32>(ps->m_land_unit_upkeep_needed) + static_cast<u32>(left);
+    ps->m_land_unit_upkeep_needed = sum > 65535u ? 65535u : static_cast<u16>(sum);
+}
+
+void City::refund_naval_unit_upkeep (const UnitAddStruct& unit, PlayerState* ps) {
+    (void)unit;
+    GAME_EXPECT(ps != nullptr, "City::refund_naval_unit_upkeep null player state");
+    const u16 cost = 1u;
+    u16 free_n = static_cast<u16>(m_misc.m_free_naval_unit_support);
+    u16 covered = cost;
+    if (covered > free_n) {
+        covered = free_n;
+    }
+    m_misc.m_free_naval_unit_support = static_cast<u16>(free_n - covered);
+    const u16 left = static_cast<u16>(cost - covered);
+    if (left == 0) {
+        return;
+    }
+    const u32 sum = static_cast<u32>(ps->m_naval_unit_upkeep_needed) + static_cast<u32>(left);
+    ps->m_naval_unit_upkeep_needed = sum > 65535u ? 65535u : static_cast<u16>(sum);
+}
+
+u16 City::get_free_land_unit_support () const {
+    return static_cast<u16>(m_misc.m_free_land_unit_support);
+}
+
+u16 City::get_free_naval_unit_support () const {
+    return static_cast<u16>(m_misc.m_free_naval_unit_support);
+}
+
+u16 City::get_defense_deduction () const {
+    return static_cast<u16>(m_misc.m_city_defense_deduction);
+}
+
+void City::set_defense_deduction (u16 v) {
+    m_misc.m_city_defense_deduction = v;
+}
+
+void City::restore_defense () {
+    u16 d = static_cast<u16>(m_misc.m_city_defense_deduction);
+    if (d == 0u) {
+        return;
+    }
+    u16 cut = static_cast<u16>((static_cast<u32>(d) * 20u) / 100u);
+    if (cut < 10u) {
+        cut = 10u;
+    }
+    if (cut > d) {
+        cut = d;
+    }
+    m_misc.m_city_defense_deduction = static_cast<u16>(d - cut);
 }
 
 void City::refresh_city_worker_flags (GameState& state, u16 player) {

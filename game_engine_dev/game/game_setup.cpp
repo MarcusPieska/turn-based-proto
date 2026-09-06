@@ -19,6 +19,7 @@
 #include "city.h"
 #include "unit_movement_mng.h"
 #include "player_ledger.h"
+#include "resource_turn_handler.h"
 #include "tile_yields.h"
 #include "tile_working.h"
 #include "tile_imp_helper.h"
@@ -263,6 +264,7 @@ bool GameSetup::init_players (GameState* state, u16 player_n, u16 small_wonder_n
     if (w == 0 || h == 0) {
         return false;
     }
+    const u16 res_n = (g_rt_statics != nullptr) ? g_rt_statics->resource().get_item_count() : 0u;
     PlayerState* seats = new PlayerState[player_n];
     if (seats == nullptr) {
         return false;
@@ -270,10 +272,24 @@ bool GameSetup::init_players (GameState* state, u16 player_n, u16 small_wonder_n
     for (u16 i = 0; i < player_n; ++i) {
         seats[i].m_ai_controlled = 0;
         seats[i].m_is_active = 1;
-        seats[i].m_civ_index = i;
+        {
+            const u16 civ_n = (g_rt_statics != nullptr) ? g_rt_statics->civ().get_item_count() : 0u;
+            seats[i].m_civ_index = (civ_n > 0u) ? static_cast<u16>(i % civ_n) : i;
+        }
         seats[i].m_explored_overlay = new MapBitOverlay(w, h);
         seats[i].m_techs_researched = nullptr;
         seats[i].m_small_wonder_city = nullptr;
+        if (!seats[i].m_res_ledger.setup(res_n)) {
+            for (u16 j = 0; j <= i; ++j) {
+                delete[] seats[j].m_small_wonder_city;
+                seats[j].m_small_wonder_city = nullptr;
+                delete seats[j].m_explored_overlay;
+                seats[j].m_explored_overlay = nullptr;
+                seats[j].m_res_ledger.clear();
+            }
+            delete[] seats;
+            return false;
+        }
         if (small_wonder_n > 0) {
             seats[i].m_small_wonder_city = new u16[small_wonder_n];
             if (seats[i].m_small_wonder_city == nullptr) {
@@ -282,6 +298,7 @@ bool GameSetup::init_players (GameState* state, u16 player_n, u16 small_wonder_n
                     seats[j].m_small_wonder_city = nullptr;
                     delete seats[j].m_explored_overlay;
                     seats[j].m_explored_overlay = nullptr;
+                    seats[j].m_res_ledger.clear();
                 }
                 delete[] seats;
                 return false;
@@ -296,6 +313,7 @@ bool GameSetup::init_players (GameState* state, u16 player_n, u16 small_wonder_n
                 seats[j].m_small_wonder_city = nullptr;
                 delete seats[j].m_explored_overlay;
                 seats[j].m_explored_overlay = nullptr;
+                seats[j].m_res_ledger.clear();
             }
             delete[] seats;
             return false;
@@ -423,6 +441,10 @@ bool GameSetup::finish_with_starts (GameState* state, const SpgPickCoords& start
         return false;
     }
     CityConnector::sync_road_arms(*state);
+    if (!ResourceTurnHandler::setup(*state)) {
+        state->clear();
+        return false;
+    }
     state->m_current_turn = 0;
     state->m_age_of_exploration = true;
     PTO_INIT();

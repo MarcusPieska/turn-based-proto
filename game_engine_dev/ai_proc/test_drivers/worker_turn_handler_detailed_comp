@@ -94,6 +94,7 @@ g++ $CXXFLAGS $INC -c ../../game/city_array.cpp -o city_array.o
 g++ $CXXFLAGS $INC -c ../../game/game_helpers/civ_spawner.cpp -o civ_spawner.o
 g++ $CXXFLAGS $INC -c ../../game/game_loop_cache.cpp -o game_loop_cache.o
 g++ $CXXFLAGS $INC -c ../../game/game_loop.cpp -o game_loop.o
+g++ $CXXFLAGS $INC -c ../../game/unit_turn_handler.cpp -o unit_turn_handler.o
 g++ $CXXFLAGS $INC -c ../../game/game_setup.cpp -o game_setup.o
 g++ $CXXFLAGS $INC -c ../../game/combat_mods.cpp -o combat_mods.o
 g++ $CXXFLAGS $INC -c ../../game/std_add_helper.cpp -o std_add_helper.o
@@ -123,6 +124,7 @@ g++ $CXXFLAGS $INC -c ../defensive_unit_turn_handler.cpp -o defensive_unit_turn_
 g++ $CXXFLAGS $INC -c ../../game/city_turn_handler.cpp -o city_turn_handler.o
 g++ $CXXFLAGS $INC -c ../../game/city_tracer.cpp -o city_tracer.o
 g++ $CXXFLAGS $INC -c ../city_turn_handler_core.cpp -o city_turn_handler_core.o
+g++ $CXXFLAGS $INC -c ../unit_typ_pick.cpp -o unit_typ_pick.o
 g++ $CXXFLAGS $INC -c ../city_turn_handler_default.cpp -o city_turn_handler_default.o
 g++ $CXXFLAGS $INC -c ../city_turn_handler_industrious.cpp -o city_turn_handler_industrious.o
 g++ $CXXFLAGS $INC -c ../city_turn_handler_commercial.cpp -o city_turn_handler_commercial.o
@@ -198,6 +200,7 @@ g++ $CXXFLAGS -o worker_turn_handler_detailed_tester \
     civ_spawner.o \
     game_loop_cache.o \
     game_loop.o \
+    unit_turn_handler.o \
     game_setup.o combat_mods.o std_add_helper.o research_turn_handler.o building_trait_attribution.o civ_trait_affinity.o building_trait_orderings.o tech_trait_attribution.o tech_trait_orderings.o \
     city_tile_manager.o \
     circular_tile_areas.o \
@@ -216,7 +219,7 @@ g++ $CXXFLAGS -o worker_turn_handler_detailed_tester \
     defensive_unit_turn_handler.o \
     city_turn_handler.o \
     city_tracer.o \
-    city_turn_handler_core.o \
+    city_turn_handler_core.o unit_typ_pick.o \
     city_turn_handler_default.o \
     city_turn_handler_industrious.o \
     city_turn_handler_commercial.o \

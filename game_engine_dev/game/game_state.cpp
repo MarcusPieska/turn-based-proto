@@ -7,6 +7,7 @@
 #include "game_state.h"
 #include "unit_movement_mng.h"
 #include "player_ledger.h"
+#include "resource_turn_handler.h"
 #include "city.h"
 #include "tile_yields.h"
 #include "tile_working.h"
@@ -31,6 +32,7 @@ void GameState::clear () {
            
             delete m_player_states[i].m_techs_researched;
             m_player_states[i].m_techs_researched = nullptr;
+            m_player_states[i].m_res_ledger.clear();
         }
         delete[] m_player_states;
         m_player_states = nullptr;
@@ -63,6 +65,7 @@ void GameState::clear () {
     // Some static helper classes need access to the game state to be able to do anything useful.
     UnitMovementMng::bind_state(nullptr);
     PlayerLedger::bind_state(nullptr);
+    ResourceTurnHandler::clear();
     TileYields::bind_map(nullptr);
     TileWorking::bind_map(nullptr);
     WorkerGuidance::bind_map(nullptr);

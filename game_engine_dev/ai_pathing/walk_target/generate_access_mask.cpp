@@ -67,6 +67,29 @@ bool GenerateAccessMask::generate (const GameState& s, u16 self_seat, Whiteboard
     return true;
 }
 
+bool GenerateAccessMask::generate_own_free (const GameState& s, u16 self_seat, Whiteboard_1B& out) {
+    if (!out.ok()) {
+        return false;
+    }
+    const u16 w = s.m_map.width();
+    const u16 h = s.m_map.height();
+    if (w == 0 || h == 0 || out.w() != w || out.h() != h) {
+        return false;
+    }
+    if (s.m_player_states == nullptr || s.m_player_n == 0 || self_seat >= s.m_player_n) {
+        return false;
+    }
+    const u32 n = s.m_map.tile_n();
+    u8* m = out.get_iter_ptr();
+    for (u32 i = 0; i < n; ++i) {
+        const u16 x = static_cast<u16>(i % static_cast<u32>(w));
+        const u16 y = static_cast<u16>(i / static_cast<u32>(w));
+        const u8 own = s.m_map.get_civ_owner(x, y);
+        m[i] = (own == U8_KEY_NULL || own == static_cast<u8>(self_seat)) ? k_open : k_block;
+    }
+    return true;
+}
+
 //================================================================================================================================
 //=> - End of file -
 //================================================================================================================================

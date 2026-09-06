@@ -84,7 +84,7 @@ OBJS_COMMON="
     generate_access_mask.o
     generate_distance_p2p.o
     walk_p2p.o
-    conduct_campaign.o
+    war_turn_handler.o
     generate_exposure.o
     combat_mng.o
     test_hlp_map_load.o
@@ -152,7 +152,7 @@ g++ $CXXFLAGS $INC -c ../../city/city_border.cpp -o city_border.o
 g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_target/generate_access_mask.cpp -o generate_access_mask.o
 g++ $UM_FLAGS $INC -c ../../ai_pathing/walk_target/generate_distance_p2p.cpp -o generate_distance_p2p.o
 g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_target/walk_p2p.cpp -o walk_p2p.o
-g++ $UM_FLAGS $INC -c ../conduct_campaign.cpp -o conduct_campaign.o
+g++ $UM_FLAGS $INC -c ../war_turn_handler.cpp -o war_turn_handler.o
 g++ $CXXFLAGS $INC -c ../generate_exposure.cpp -o generate_exposure.o
 g++ $CXXFLAGS $INC -c ../../game/combat_mng.cpp -o combat_mng.o
 g++ $CXXFLAGS $INC -c test_hlp_map_load.cpp -o test_hlp_map_load.o

@@ -53,6 +53,8 @@ static void clr_data (ConfigSettingsData* d) {
     d->m_mov_pt_per_turn = 0;
     clr_list_unit(&d->m_start_units);
     clr_list_unit(&d->m_start_exp_units);
+    d->m_unit_heal_in_city = 0;
+    d->m_unit_heal_default = 0;
 }
 
 //================================================================================================================================
@@ -142,6 +144,36 @@ void GameConfigSettings::set_start_exp_units (ConfigListUnit v) {
     }
     ensure_ovr();
     assign_list_unit(&m_cfg->m_start_exp_units, v);
+}
+
+u16 GameConfigSettings::get_unit_heal_in_city () const {
+    return cur().m_unit_heal_in_city;
+}
+
+void GameConfigSettings::set_unit_heal_in_city (u16 v) {
+    if (eq_u16(v, m_defaults.m_unit_heal_in_city)) {
+        if (!m_is_default) {
+            assign_u16(&m_cfg->m_unit_heal_in_city, v);
+        }
+        return;
+    }
+    ensure_ovr();
+    assign_u16(&m_cfg->m_unit_heal_in_city, v);
+}
+
+u16 GameConfigSettings::get_unit_heal_default () const {
+    return cur().m_unit_heal_default;
+}
+
+void GameConfigSettings::set_unit_heal_default (u16 v) {
+    if (eq_u16(v, m_defaults.m_unit_heal_default)) {
+        if (!m_is_default) {
+            assign_u16(&m_cfg->m_unit_heal_default, v);
+        }
+        return;
+    }
+    ensure_ovr();
+    assign_u16(&m_cfg->m_unit_heal_default, v);
 }
 
 //================================================================================================================================

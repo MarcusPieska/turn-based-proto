@@ -13,8 +13,10 @@
 #include "factory_game_array_simple.h"
 #include "game_state.h"
 #include "runtime_static_loader.h"
+#include "tile_imp_helper.h"
 #include "unit_movement_mng.h"
 #include "unit_type_static_key.h"
+#include "worker_guidance.h"
 
 //================================================================================================================================
 //=> - Statics -
@@ -129,6 +131,8 @@ bool TestHlpMapLoad::load (GameState& s, cstr in_base, cstr lib, cstr data) {
     if (!s.m_cities.bind_statics(*g_st)) {
         return false;
     }
+    WorkerGuidance::bind_statics(g_st);
+    TileImpHelper::bind_statics(g_st);
     CityBorder::bind_map(&s.m_map);
     CityTileManager::bind_cities(&s.m_cities);
     UnitMovementMng::bind_state(&s);

@@ -524,7 +524,7 @@ int main (int argc, char** argv) {
     for (u32 i = 0; i < k_n; ++i) {
         UnitAddStruct a = atk;
         UnitAddStruct d = def;
-        CombatMng::resolve(a, d, g_gs, 1u, 0u);
+        CombatMng::resolve_attack(a, d, g_gs, 1u, 0u);
         if (d.m_health == 0u && a.m_health > 0u) {
             wins++;
         }

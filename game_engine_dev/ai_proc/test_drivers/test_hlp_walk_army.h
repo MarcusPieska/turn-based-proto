@@ -7,7 +7,7 @@
 
 #include "game_primitives.h"
 
-class ConductCampaign;
+class WarTurnHandler;
 class GameState;
 
 //================================================================================================================================
@@ -23,7 +23,7 @@ class TestHlpWalkArmy {
 public:
     static bool run (
         GameState& s,
-        ConductCampaign& camp,
+        WarTurnHandler& camp,
         const u16* ov,
         u16 pa,
         u16 pb,

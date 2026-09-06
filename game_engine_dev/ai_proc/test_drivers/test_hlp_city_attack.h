@@ -6,22 +6,22 @@
 #define TEST_HLP_CITY_ATTACK_H
 
 #include "game_primitives.h"
+#include "war_turn_handler.h"
 
-class ConductCampaign;
 class GameState;
 
 //================================================================================================================================
 //=> - TestHlpCityAttack -
 //================================================================================================================================
 //
-//  Runs ConductCampaign::assault_city and optionally logs army composition before/after,
+//  Runs WarTurnHandler::assault_city and optionally logs army composition before/after,
 //  losses by type, and survivors with reduced health.
 //
 //================================================================================================================================
 
 class TestHlpCityAttack {
 public:
-    static bool run (GameState& s, ConductCampaign& camp, u16 city_x, u16 city_y, bool print_log);
+    static WarAssault run (GameState& s, WarTurnHandler& camp, u16 city_x, u16 city_y, bool print_log);
 
 private:
     TestHlpCityAttack () = delete;
