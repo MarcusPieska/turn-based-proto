@@ -5,12 +5,17 @@ cd "$(dirname "$0")"
 
 LIB_SO="../data_io/runtime_static_loader_lib.so"
 MAP_SO="../adv_map_gen/map_gen.so"
+LUCKY_SO="lucky_seats/lucky_seats.so"
 if [ ! -f "$LIB_SO" ]; then
     echo "missing $LIB_SO - run ../data_io/runtime_static_loader_lib_comp first"
     exit 1
 fi
 if [ ! -f "$MAP_SO" ]; then
     echo "missing $MAP_SO - run ../adv_map_gen/map_gen_lib_comp first"
+    exit 1
+fi
+if [ ! -f "$LUCKY_SO" ]; then
+    echo "missing $LUCKY_SO - run lucky_seats/lucky_seat_lib_comp first"
     exit 1
 fi
 
@@ -29,7 +34,8 @@ INC="-I.. \
      -I../ai_pathing/walk_general \
      -I../ai_pathing/walk_cities \
      -I../ai_proc \
-     -I../game"
+     -I../game \
+     -Ilucky_seats"
 CXXFLAGS="-std=c++17 -Wall -Wextra"
 
 g++ $CXXFLAGS $INC -c ../data_io/runtime_static_loader.cpp -o runtime_static_loader.o
@@ -58,6 +64,8 @@ g++ $CXXFLAGS $INC -c game_array_simple.cpp -o game_array_simple.o
 g++ $CXXFLAGS $INC -c factory_game_array_simple.cpp -o factory_game_array_simple.o
 g++ $CXXFLAGS $INC -c game_state.cpp -o game_state.o
 g++ $CXXFLAGS $INC -c player_ledger.cpp -o player_ledger.o
+g++ $CXXFLAGS $INC -c resource_ledger.cpp -o resource_ledger.o
+g++ $CXXFLAGS $INC -c resource_turn_handler.cpp -o resource_turn_handler.o
 g++ $CXXFLAGS $INC -c tile_yields.cpp -o tile_yields.o
 g++ $CXXFLAGS $INC -c tile_working.cpp -o tile_working.o
 g++ $CXXFLAGS $INC -c tile_work_assessor.cpp -o tile_work_assessor.o
@@ -67,8 +75,11 @@ g++ $CXXFLAGS $INC -c std_add_helper.cpp -o std_add_helper.o
 g++ $CXXFLAGS $INC -c civ_relations.cpp -o civ_relations.o
 g++ $CXXFLAGS $INC -c combat_mods.cpp -o combat_mods.o
 g++ $CXXFLAGS $INC -c ../adv_map_gen/map_gen_loader.cpp -o map_gen_loader.o
+g++ $CXXFLAGS $INC -c lucky_seats/lucky_seat_loader.cpp -o lucky_seat_loader.o
 g++ $CXXFLAGS $INC -c ../gen_bit_banks/general_bit_bank.cpp -o general_bit_bank.o
 g++ $CXXFLAGS $INC -c ../city/assessor/general_assessor.cpp -o general_assessor.o
+g++ $CXXFLAGS $INC -c ../city/assessor/resource_assessor.cpp -o resource_assessor.o
+g++ $CXXFLAGS $INC -c ../city/effector/resource_effector.cpp -o resource_effector.o
 g++ $CXXFLAGS $INC -c ../city/effect_ctx.cpp -o effect_ctx.o
 g++ $CXXFLAGS $INC -c ../city/effector/effect_enabler.cpp -o effect_enabler.o
 g++ $CXXFLAGS $INC -c ../city/effector/booster_effect_register.cpp -o booster_effect_register.o
@@ -143,6 +154,8 @@ g++ $CXXFLAGS $INC -c ../ai_proc/worker_pathing.cpp -o worker_pathing.o
 g++ $CXXFLAGS $INC -c ../ai_proc/defensive_unit_turn_handler.cpp -o defensive_unit_turn_handler.o
 g++ $CXXFLAGS $INC -c ../ai_proc/linear_tech.cpp -o linear_tech.o
 g++ $CXXFLAGS $INC -c ../ai_proc/linear_bld.cpp -o linear_bld.o
+g++ $CXXFLAGS $INC -c ../ai_proc/ai_unit_production_default.cpp -o ai_unit_production_default.o
+g++ $CXXFLAGS $INC -c ../ai_proc/ai_unit_production_aggressive.cpp -o ai_unit_production_aggressive.o
 g++ $CXXFLAGS $INC -c game_loop_tester.cpp -o game_loop_tester.o
 
 g++ $CXXFLAGS -o game_loop_tester \
@@ -172,6 +185,8 @@ g++ $CXXFLAGS -o game_loop_tester \
     factory_game_array_simple.o \
     game_state.o \
     player_ledger.o \
+    resource_ledger.o \
+    resource_turn_handler.o \
     tile_yields.o \
     tile_working.o \
     tile_work_assessor.o \
@@ -181,9 +196,12 @@ g++ $CXXFLAGS -o game_loop_tester \
     civ_relations.o \
     combat_mods.o \
     map_gen_loader.o \
+    lucky_seat_loader.o \
     city.o \
     general_bit_bank.o \
     general_assessor.o \
+    resource_assessor.o \
+    resource_effector.o \
     effect_ctx.o \
     effect_enabler.o \
     booster_effect_register.o \
@@ -251,12 +269,18 @@ g++ $CXXFLAGS -o game_loop_tester \
     defensive_unit_turn_handler.o \
     linear_tech.o \
     linear_bld.o \
+    ai_unit_production_default.o \
+    ai_unit_production_aggressive.o \
     game_loop_tester.o \
     -ldl \
     $LIB_SO \
     -Wl,-rpath,'$ORIGIN/../data_io'
 
-rm runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.o \
+echo "--- running game_loop_tester $* ---"
+./game_loop_tester "$@"
+echo "--- done ---"
+
+rm -f runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.o \
     starting_point_generator.o runtime_trace_dbg.o map_bit_overlay.o \
     map_bit_array_overlay.o bit_array.o \
     fort_add_vector.o mine_add_vector.o monastery_add_vector.o \
@@ -264,24 +288,27 @@ rm runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.
     trade_post_add_vector.o unit_add_vector.o unit_movement_mng.o tile_attr_tables.o overlay_yields.o \
     sector_network.o sector_network_router.o city_network.o city_connector.o point_seq_flood_walker.o \
     game_array_simple.o factory_game_array_simple.o game_state.o player_ledger.o \
+    resource_ledger.o resource_turn_handler.o \
     tile_yields.o tile_working.o tile_work_assessor.o worker_imp_select.o tile_imp_helper.o worker_build_progress.o \
     worker_guidance.o worker_helper.o std_add_helper.o \
-    civ_relations.o combat_mods.o map_gen_loader.o city.o general_bit_bank.o general_assessor.o \
+    civ_relations.o combat_mods.o map_gen_loader.o lucky_seat_loader.o city.o general_bit_bank.o general_assessor.o \
+    resource_assessor.o resource_effector.o \
     effect_ctx.o effect_enabler.o booster_effect_register.o \
     local_unit_exp_booster_register.o civ_ship_training_booster_register.o city_commerce_booster_register.o \
     city_production_booster_register.o local_production_booster_register.o local_pop_growth_booster_register.o \
     local_commerce_booster_register.o city_pop_growth_booster_register.o civ_pop_growth_booster_register.o \
     city_culture_booster_register.o local_culture_booster_register.o \
     local_sanitation_booster_register.o city_sanitation_booster_register.o civ_sanitation_booster_register.o \
-    city_array.o civ_spawner.o game_loop_cache.o game_io.o game_loop.o \
+    city_array.o civ_spawner.o game_loop_cache.o game_io.o game_loop.o unit_turn_handler.o \
     game_setup.o building_trait_attribution.o civ_trait_affinity.o building_trait_orderings.o tech_trait_attribution.o tech_trait_orderings.o city_tile_manager.o circular_tile_areas.o city_blocking_mask.o city_border.o \
     perlin_noise.o generator_constants.o whiteboard_mng.o profile_time_opt.o \
     settle_rules.o settler_mission_manager.o gen_settlement_order.o gen_settlement_targets.o \
     gen_mtn_passes.o gen_walkable_sectors.o gen_bottleneck_markers.o gen_bottleneck_forts.o gen_ai_helpers.o \
-    worker_city_jobs.o gen_road_network.o \
+    worker_city_jobs.o gen_road_network.o worker_pathing.o \
     city_turn_handler.o city_turn_handler_core.o unit_typ_pick.o city_turn_handler_default.o \
     city_turn_handler_industrious.o city_turn_handler_commercial.o city_turn_handler_agricultural.o \
     city_turn_handler_expansionist.o city_turn_handler_religious.o city_turn_handler_militaristic.o \
     city_turn_handler_scientific.o research_turn_handler.o sense_settling_pts_opt.o settler_turn_handler.o \
-    worker_turn_handler.o defensive_unit_turn_handler.o linear_tech.o linear_bld.o game_loop_tester.o
+    worker_turn_handler.o defensive_unit_turn_handler.o linear_tech.o linear_bld.o \
+    ai_unit_production_default.o ai_unit_production_aggressive.o game_loop_tester.o
 

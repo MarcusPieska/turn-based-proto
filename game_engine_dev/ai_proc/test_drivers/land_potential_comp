@@ -1,0 +1,94 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")"
+
+LIB_SO="../../data_io/runtime_static_loader_lib.so"
+if [ ! -f "$LIB_SO" ]; then
+    echo "missing $LIB_SO - run ../../data_io/runtime_static_loader_lib_comp first"
+    exit 1
+fi
+
+IMPL_MK="${TILE_YIELDS_MK:-mk01}"
+IMPL_REL="impl/tile_yields_impl_${IMPL_MK}.cpp"
+IMPL_ABS="../../game/${IMPL_REL}"
+if [ ! -f "$IMPL_ABS" ]; then
+    echo "missing impl $IMPL_ABS"
+    exit 1
+fi
+IMPL_TAG="${IMPL_MK}"
+
+INC="-I../.. \
+     -I../../game \
+     -I../../game/lucky_seats \
+     -I. \
+     -I../../map_loader \
+     -I../../simple_map_gen \
+     -I../../adv_map_gen \
+     -I../../misc \
+     -I../../data_io \
+     -I../../static_state \
+     -I../../dyn_state \
+     -I../../city \
+     -I../../city/assessor \
+     -I../../city/effector \
+     -I../../gen_bit_banks"
+CXXFLAGS="-std=c++17 -Wall -Wextra -g"
+CXXFLAGS="$CXXFLAGS -DTILE_YIELDS_IMPL=\"${IMPL_REL}\""
+CXXFLAGS="$CXXFLAGS -DTILE_YIELDS_IMPL_TAG=\"${IMPL_TAG}\""
+CXXFLAGS="$CXXFLAGS -DTILE_YIELDS_MK=\"${IMPL_MK}\""
+
+g++ $CXXFLAGS $INC -c ../../data_io/runtime_static_loader.cpp -o runtime_static_loader.o
+g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
+g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_data.cpp -o map_terrain_data.o
+g++ $CXXFLAGS $INC -c ../../map_loader/map_loader.cpp -o map_loader.o
+g++ $CXXFLAGS $INC -c ../../map_loader/starting_point_generator.cpp -o starting_point_generator.o
+g++ $CXXFLAGS $INC -c ../../simple_map_gen/perlin_noise.cpp -o perlin_noise.o
+g++ $CXXFLAGS $INC -c ../../simple_map_gen/generator_constants.cpp -o generator_constants.o
+g++ $CXXFLAGS $INC -c ../../game/runtime_trace_dbg.cpp -o runtime_trace_dbg.o
+g++ $CXXFLAGS $INC -c ../../misc/assert_log.cpp -o assert_log.o
+g++ $CXXFLAGS $INC -c ../../misc/bit_array.cpp -o bit_array.o
+g++ $CXXFLAGS $INC -c game_array_simple_link_stubs.cpp -o game_array_simple_link_stubs.o
+g++ $CXXFLAGS $INC -c ../../game/game_array_simple.cpp -o game_array_simple.o
+g++ $CXXFLAGS $INC -c ../../game/factory_game_array_simple.cpp -o factory_game_array_simple.o
+g++ $CXXFLAGS $INC -c ../../game/std_add_helper.cpp -o std_add_helper.o
+g++ $CXXFLAGS $INC -c ../../game/tile_attr_tables.cpp -o tile_attr_tables.o
+g++ $CXXFLAGS $INC -c ../../city/assessor/general_assessor.cpp -o general_assessor.o
+g++ $CXXFLAGS $INC -c ../../game/tile_yields.cpp -o tile_yields.o
+g++ $CXXFLAGS $INC -c ../../game/lucky_seats/land_potential.cpp -o land_potential.o
+g++ $CXXFLAGS $INC -c land_potential_tester.cpp -o land_potential_tester.o
+
+g++ $CXXFLAGS -o land_potential_tester \
+    runtime_static_loader.o \
+    map_terrain_validate.o \
+    map_terrain_data.o \
+    map_loader.o \
+    starting_point_generator.o \
+    perlin_noise.o \
+    generator_constants.o \
+    runtime_trace_dbg.o \
+    assert_log.o \
+    bit_array.o \
+    game_array_simple_link_stubs.o \
+    game_array_simple.o \
+    factory_game_array_simple.o \
+    std_add_helper.o \
+    tile_attr_tables.o \
+    general_assessor.o \
+    tile_yields.o \
+    land_potential.o \
+    land_potential_tester.o \
+    -ldl \
+    $LIB_SO \
+    -Wl,-rpath,'$ORIGIN/../../data_io' \
+    -lm
+
+mkdir -p /home/w/Projects/simple-map-gen/lucky-seat
+echo "--- running land_potential_tester ---"
+./land_potential_tester "$@"
+
+rm -f runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.o \
+    starting_point_generator.o perlin_noise.o generator_constants.o runtime_trace_dbg.o \
+    assert_log.o bit_array.o game_array_simple_link_stubs.o game_array_simple.o \
+    factory_game_array_simple.o std_add_helper.o tile_attr_tables.o general_assessor.o \
+    tile_yields.o land_potential.o land_potential_tester.o

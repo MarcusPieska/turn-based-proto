@@ -225,6 +225,12 @@ bool GameArraySimple::set_add_idx (u16 x, u16 y, u16 add_idx) {
     return true;
 }
 
+bool GameArraySimple::set_res (u16 x, u16 y, u16 res) {
+    CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
+    m_tiles[tidx(x, y)].m_res = res;
+    return true;
+}
+
 bool GameArraySimple::set_road_typ (u16 x, u16 y, u8 road) {
     CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
     m_tiles[tidx(x, y)].m_road_typ = road;

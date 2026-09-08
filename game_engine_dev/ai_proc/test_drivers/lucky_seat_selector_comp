@@ -1,0 +1,79 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")"
+
+LIB_SO="../../data_io/runtime_static_loader_lib.so"
+LUCKY_SO="../../game/lucky_seats/lucky_seats.so"
+if [ ! -f "$LIB_SO" ]; then
+    echo "missing $LIB_SO - run ../../data_io/runtime_static_loader_lib_comp first"
+    exit 1
+fi
+if [ ! -f "$LUCKY_SO" ]; then
+    echo "missing $LUCKY_SO - run ../../game/lucky_seats/lucky_seat_lib_comp first"
+    ../../game/lucky_seats/lucky_seat_lib_comp
+fi
+
+INC="-I../.. \
+     -I../../game \
+     -I../../game/lucky_seats \
+     -I. \
+     -I../../map_loader \
+     -I../../simple_map_gen \
+     -I../../adv_map_gen \
+     -I../../misc \
+     -I../../data_io \
+     -I../../static_state \
+     -I../../dyn_state \
+     -I../../city \
+     -I../../city/assessor \
+     -I../../city/effector \
+     -I../../gen_bit_banks"
+CXXFLAGS="-std=c++17 -Wall -Wextra -g"
+
+g++ $CXXFLAGS $INC -c ../../data_io/runtime_static_loader.cpp -o runtime_static_loader.o
+g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
+g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_data.cpp -o map_terrain_data.o
+g++ $CXXFLAGS $INC -c ../../map_loader/map_loader.cpp -o map_loader.o
+g++ $CXXFLAGS $INC -c ../../map_loader/starting_point_generator.cpp -o starting_point_generator.o
+g++ $CXXFLAGS $INC -c ../../simple_map_gen/perlin_noise.cpp -o perlin_noise.o
+g++ $CXXFLAGS $INC -c ../../simple_map_gen/generator_constants.cpp -o generator_constants.o
+g++ $CXXFLAGS $INC -c ../../game/runtime_trace_dbg.cpp -o runtime_trace_dbg.o
+g++ $CXXFLAGS $INC -c ../../misc/assert_log.cpp -o assert_log.o
+g++ $CXXFLAGS $INC -c ../../misc/bit_array.cpp -o bit_array.o
+g++ $CXXFLAGS $INC -c game_array_simple_link_stubs.cpp -o game_array_simple_link_stubs.o
+g++ $CXXFLAGS $INC -c ../../game/game_array_simple.cpp -o game_array_simple.o
+g++ $CXXFLAGS $INC -c ../../game/factory_game_array_simple.cpp -o factory_game_array_simple.o
+g++ $CXXFLAGS $INC -c ../../game/lucky_seats/lucky_seat_loader.cpp -o lucky_seat_loader.o
+g++ $CXXFLAGS $INC -c lucky_seat_selector_tester.cpp -o lucky_seat_selector_tester.o
+
+g++ $CXXFLAGS -o lucky_seat_selector_tester \
+    runtime_static_loader.o \
+    map_terrain_validate.o \
+    map_terrain_data.o \
+    map_loader.o \
+    starting_point_generator.o \
+    perlin_noise.o \
+    generator_constants.o \
+    runtime_trace_dbg.o \
+    assert_log.o \
+    bit_array.o \
+    game_array_simple_link_stubs.o \
+    game_array_simple.o \
+    factory_game_array_simple.o \
+    lucky_seat_loader.o \
+    lucky_seat_selector_tester.o \
+    -ldl \
+    $LIB_SO \
+    -Wl,-rpath,'$ORIGIN/../../data_io' \
+    -lm
+
+mkdir -p /home/w/Projects/simple-map-gen/lucky-seat
+echo "--- running lucky_seat_selector_tester ---"
+./lucky_seat_selector_tester "$@"
+
+rm -f runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.o \
+    starting_point_generator.o perlin_noise.o generator_constants.o runtime_trace_dbg.o \
+    assert_log.o bit_array.o game_array_simple_link_stubs.o \
+    game_array_simple.o factory_game_array_simple.o \
+    lucky_seat_loader.o lucky_seat_selector_tester.o

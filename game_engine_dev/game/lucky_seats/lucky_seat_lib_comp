@@ -1,0 +1,74 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")"
+
+LIB_SO="../../data_io/runtime_static_loader_lib.so"
+if [ ! -f "$LIB_SO" ]; then
+    echo "missing $LIB_SO - run ../../data_io/runtime_static_loader_lib_comp first"
+    exit 1
+fi
+
+IMPL_MK="${TILE_YIELDS_MK:-mk01}"
+IMPL_REL="impl/tile_yields_impl_${IMPL_MK}.cpp"
+IMPL_ABS="../${IMPL_REL}"
+if [ ! -f "$IMPL_ABS" ]; then
+    echo "missing impl $IMPL_ABS"
+    exit 1
+fi
+IMPL_TAG="${IMPL_MK}"
+
+INC="-I../.. \
+     -I.. \
+     -I. \
+     -I../../map_loader \
+     -I../../simple_map_gen \
+     -I../../adv_map_gen \
+     -I../../misc \
+     -I../../data_io \
+     -I../../static_state \
+     -I../../dyn_state \
+     -I../../city \
+     -I../../city/assessor \
+     -I../../city/effector \
+     -I../../gen_bit_banks"
+CXXFLAGS="-std=c++17 -Wall -Wextra -fPIC -g"
+CXXFLAGS="$CXXFLAGS -DTILE_YIELDS_IMPL=\"${IMPL_REL}\""
+CXXFLAGS="$CXXFLAGS -DTILE_YIELDS_IMPL_TAG=\"${IMPL_TAG}\""
+CXXFLAGS="$CXXFLAGS -DTILE_YIELDS_MK=\"${IMPL_MK}\""
+
+g++ $CXXFLAGS $INC -c ../../misc/assert_log.cpp -o assert_log.o
+g++ $CXXFLAGS $INC -c ../../misc/bit_array.cpp -o bit_array.o
+g++ $CXXFLAGS $INC -c ../../misc/whiteboard_mng.cpp -o whiteboard_mng.o
+g++ $CXXFLAGS $INC -c ../runtime_trace_dbg.cpp -o runtime_trace_dbg.o
+g++ $CXXFLAGS $INC -c ../../ai_proc/test_drivers/game_array_simple_link_stubs.cpp -o game_array_simple_link_stubs.o
+g++ $CXXFLAGS $INC -c ../game_array_simple.cpp -o game_array_simple.o
+g++ $CXXFLAGS $INC -c ../std_add_helper.cpp -o std_add_helper.o
+g++ $CXXFLAGS $INC -c ../tile_attr_tables.cpp -o tile_attr_tables.o
+g++ $CXXFLAGS $INC -c ../../city/assessor/general_assessor.cpp -o general_assessor.o
+g++ $CXXFLAGS $INC -c ../tile_yields.cpp -o tile_yields.o
+g++ $CXXFLAGS $INC -c land_potential.cpp -o land_potential.o
+g++ $CXXFLAGS $INC -c continent_size_indexer.cpp -o continent_size_indexer.o
+g++ $CXXFLAGS $INC -c location_grouper.cpp -o location_grouper.o
+g++ $CXXFLAGS $INC -c distribute_proportional.cpp -o distribute_proportional.o
+g++ $CXXFLAGS $INC -c select_on_continent.cpp -o select_on_continent.o
+g++ $CXXFLAGS $INC -c lucky_resource_booster.cpp -o lucky_resource_booster.o
+g++ $CXXFLAGS $INC -c lucky_seat_selector.cpp -o lucky_seat_selector.o
+g++ $CXXFLAGS $INC -c lucky_seat_lib_api.cpp -o lucky_seat_lib_api.o
+
+OBJS="assert_log.o bit_array.o whiteboard_mng.o runtime_trace_dbg.o \
+    game_array_simple_link_stubs.o game_array_simple.o std_add_helper.o \
+    tile_attr_tables.o general_assessor.o tile_yields.o \
+    land_potential.o continent_size_indexer.o location_grouper.o \
+    distribute_proportional.o select_on_continent.o lucky_resource_booster.o \
+    lucky_seat_selector.o lucky_seat_lib_api.o"
+
+g++ $CXXFLAGS -shared -o lucky_seats.so.new \
+    $OBJS \
+    -ldl \
+    -L../../data_io -l:runtime_static_loader_lib.so \
+    -Wl,-rpath,'$ORIGIN/../../data_io' -Wl,--no-undefined -lm
+
+mv -f lucky_seats.so.new lucky_seats.so
+rm -f $OBJS
+echo "built $(pwd)/lucky_seats.so"

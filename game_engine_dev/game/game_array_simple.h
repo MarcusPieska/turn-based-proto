@@ -94,6 +94,7 @@ public:
     bool set_tile_add (u16 x, u16 y, u16 add_idx, u8 add_typ); // Legacy: maps BUILD_ADD_* into m_ov + m_add_idx
     bool set_overlay (u16 x, u16 y, u16 ov); // Occupancy overlay; U16_KEY_NULL clears
     bool set_add_idx (u16 x, u16 y, u16 add_idx); // Overlay payload only
+    bool set_res (u16 x, u16 y, u16 res); // Resource index at tile; U16_KEY_NULL clears
     bool set_road_typ (u16 x, u16 y, u8 road); // Road type at tile; ROAD_NONE clears
     bool set_city_worker (u16 x, u16 y, u16 city_idx); // City worker key at tile; U16_KEY_NULL clears
     bool set_civ_owner (u16 x, u16 y, u8 owner); // Civ/seat owner at tile; U8_KEY_NULL clears

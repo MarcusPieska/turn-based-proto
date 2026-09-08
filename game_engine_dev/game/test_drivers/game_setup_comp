@@ -5,6 +5,7 @@ cd "$(dirname "$0")"
 
 LIB_SO="../../data_io/runtime_static_loader_lib.so"
 MAP_SO="../../adv_map_gen/map_gen.so"
+LUCKY_SO="../../game/lucky_seats/lucky_seats.so"
 if [ ! -f "$LIB_SO" ]; then
     echo "missing $LIB_SO - run ../../data_io/runtime_static_loader_lib_comp first"
     exit 1
@@ -13,9 +14,14 @@ if [ ! -f "$MAP_SO" ]; then
     echo "missing $MAP_SO - run ../../adv_map_gen/map_gen_lib_comp first"
     exit 1
 fi
+if [ ! -f "$LUCKY_SO" ]; then
+    echo "missing $LUCKY_SO - run ../../game/lucky_seats/lucky_seat_lib_comp first"
+    exit 1
+fi
 
 INC="-I../.. \
      -I.. \
+     -I../lucky_seats \
      -I../../misc \
      -I../../map_loader \
      -I../../simple_map_gen \
@@ -74,6 +80,7 @@ g++ $CXXFLAGS $INC -c ../std_add_helper.cpp -o std_add_helper.o
 g++ $CXXFLAGS $INC -c ../civ_relations.cpp -o civ_relations.o
 g++ $CXXFLAGS $INC -c ../combat_mods.cpp -o combat_mods.o
 g++ $CXXFLAGS $INC -c ../../adv_map_gen/map_gen_loader.cpp -o map_gen_loader.o
+g++ $CXXFLAGS $INC -c ../lucky_seats/lucky_seat_loader.cpp -o lucky_seat_loader.o
 g++ $CXXFLAGS $INC -c ../../gen_bit_banks/general_bit_bank.cpp -o general_bit_bank.o
 g++ $CXXFLAGS $INC -c ../../city/assessor/general_assessor.cpp -o general_assessor.o
 g++ $CXXFLAGS $INC -c ../../city/effect_ctx.cpp -o effect_ctx.o
@@ -184,6 +191,7 @@ g++ $CXXFLAGS -o game_setup_tester \
     civ_relations.o \
     combat_mods.o \
     map_gen_loader.o \
+    lucky_seat_loader.o \
     city.o \
     general_bit_bank.o \
     general_assessor.o \
@@ -275,7 +283,7 @@ rm runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.
     city_turn_handler_militaristic.o \
     city_turn_handler_scientific.o \
     building_trait_attribution.o civ_trait_affinity.o building_trait_orderings.o tech_trait_attribution.o tech_trait_orderings.o \
-    game_setup_tester.o map_gen_loader.o \
+    game_setup_tester.o map_gen_loader.o lucky_seat_loader.o \
     city.o general_bit_bank.o general_assessor.o effect_ctx.o effect_enabler.o booster_effect_register.o \
     local_unit_exp_booster_register.o civ_ship_training_booster_register.o city_commerce_booster_register.o \
     city_production_booster_register.o local_production_booster_register.o local_pop_growth_booster_register.o \

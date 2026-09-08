@@ -12,11 +12,14 @@
 #include "game_loop.h"
 #include "game_loop_cache.h"
 #include "game_io.h"
+#include "game_map_defs.h"
 #include "game_setup.h"
 #include "game_state.h"
+#include "build_adds_array.h"
 #include "city.h"
 #include "map_config.h"
 #include "runtime_statics.h"
+#include "std_add_helper.h"
 #include "unit_add_struct.h"
 #include "unit_add_vector.h"
 #include "unit_add_vector_key.h"
@@ -32,11 +35,13 @@ typedef const char* cstr;
 
 static const char* G_CACHE_ROOT = "/home/w/Projects/simple-map-gen";
 static const char* G_SAVES_ROOT = "/home/w/Projects/game-saves";
+static const char* G_PPM_ROOT = "/home/w/Projects/simple-map-gen/game-loop-frames";
 static const char* G_TRACE_PATH = "/home/w/Projects/simple-map-gen/game_loop.trace";
 static u32 g_seed = 101u;
 static u16 g_players = 0;
 static u32 g_turn_limit = 0;
 static u32 g_save_every = 0;
+static u32 g_ppm_every = 0;
 
 static char g_map_path[384];
 static char g_starts_path[384];
@@ -45,6 +50,19 @@ static char g_end_units_path[384];
 static char g_end_cities_path[384];
 static char g_end_players_path[384];
 static char g_turn_ms_path[384];
+static char g_ppm_dir[384];
+
+static const u8 k_own_pal[][3] = {
+    {220, 40, 40},
+    {40, 90, 220},
+    {40, 170, 70},
+    {220, 110, 30},
+    {190, 40, 170},
+    {30, 170, 170},
+    {150, 70, 30},
+    {100, 40, 180},
+};
+static const u16 k_own_pal_n = static_cast<u16>(sizeof(k_own_pal) / sizeof(k_own_pal[0]));
 
 int test_count = 0;
 int test_pass = 0;
@@ -99,7 +117,8 @@ static bool parse_u32 (cstr s, u32* out) {
 }
 
 static void print_usage (cstr prog) {
-    std::printf("usage: %s <players> <turns> <save_interval>\n", prog != nullptr ? prog : "game_loop_tester");
+    std::printf("usage: %s <players> <turns> <save_interval> [ppm_every]\n",
+        prog != nullptr ? prog : "game_loop_tester");
 }
 
 static bool build_cache_paths () {
@@ -140,6 +159,152 @@ static bool build_state_paths (u32 turn) {
 
 static bool ensure_saves_dir () {
     return ::mkdir(G_SAVES_ROOT, 0755) == 0 || errno == EEXIST;
+}
+
+static bool ensure_ppm_dir () {
+    if (std::snprintf(g_ppm_dir, sizeof(g_ppm_dir),
+            "%s/seed-%u-p%u", G_PPM_ROOT, g_seed, g_players) <= 0) {
+        return false;
+    }
+    if (::mkdir(G_PPM_ROOT, 0755) != 0 && errno != EEXIST) {
+        return false;
+    }
+    return ::mkdir(g_ppm_dir, 0755) == 0 || errno == EEXIST;
+}
+
+static void set_px (u8* rgb, u16 w, u16 h, u16 x, u16 y, u8 r, u8 g, u8 b) {
+    if (x >= w || y >= h) {
+        return;
+    }
+    const u32 i = (static_cast<u32>(y) * static_cast<u32>(w) + static_cast<u32>(x)) * 3u;
+    rgb[i + 0] = r;
+    rgb[i + 1] = g;
+    rgb[i + 2] = b;
+}
+
+static void shade_own (u8* rgb, u16 w, u16 h, u16 x, u16 y, u16 seat) {
+    if (x >= w || y >= h) {
+        return;
+    }
+    const u8* c = k_own_pal[seat % k_own_pal_n];
+    const u32 i = (static_cast<u32>(y) * static_cast<u32>(w) + static_cast<u32>(x)) * 3u;
+    const u16 cr = (static_cast<u16>(c[0]) * 5u) / 8u;
+    const u16 cg = (static_cast<u16>(c[1]) * 5u) / 8u;
+    const u16 cb = (static_cast<u16>(c[2]) * 5u) / 8u;
+    rgb[i + 0] = static_cast<u8>((static_cast<u16>(rgb[i + 0]) + cr * 3u) / 4u);
+    rgb[i + 1] = static_cast<u8>((static_cast<u16>(rgb[i + 1]) + cg * 3u) / 4u);
+    rgb[i + 2] = static_cast<u8>((static_cast<u16>(rgb[i + 2]) + cb * 3u) / 4u);
+}
+
+static void paint_black_mark (u8* rgb, u16 w, u16 h, u16 x, u16 y) {
+    set_px(rgb, w, h, x, y, 0, 0, 0);
+    if (x > 0) {
+        set_px(rgb, w, h, static_cast<u16>(x - 1u), y, 0, 0, 0);
+    }
+    if (static_cast<u32>(x) + 1u < static_cast<u32>(w)) {
+        set_px(rgb, w, h, static_cast<u16>(x + 1u), y, 0, 0, 0);
+    }
+    if (y > 0) {
+        set_px(rgb, w, h, x, static_cast<u16>(y - 1u), 0, 0, 0);
+    }
+    if (static_cast<u32>(y) + 1u < static_cast<u32>(h)) {
+        set_px(rgb, w, h, x, static_cast<u16>(y + 1u), 0, 0, 0);
+    }
+}
+
+static void paint_imp (u8* rgb, u16 w, u16 h, u16 x, u16 y, const GameState& state) {
+    const u8 typ = state.m_map.get_add_typ(x, y);
+    if (typ == BUILD_ADD_MINE) {
+        set_px(rgb, w, h, x, y, 220, 180, 40);
+        return;
+    }
+    if (typ == BUILD_ADD_PLANTATION) {
+        set_px(rgb, w, h, x, y, 160, 60, 200);
+        return;
+    }
+    if (typ != BUILD_ADD_STD) {
+        return;
+    }
+    const GameTileSimple* t = state.m_map.tile(x, y);
+    if (StdAddHelper::has_farm(t)) {
+        set_px(rgb, w, h, x, y, 220, 30, 30);
+    } else if (StdAddHelper::has_mill(t)) {
+        set_px(rgb, w, h, x, y, 40, 160, 40);
+    } else if (StdAddHelper::has_irr(t)) {
+        set_px(rgb, w, h, x, y, 40, 140, 220);
+    }
+}
+
+static bool save_turn_ppm (const GameState& state, u32 turn) {
+    if (g_ppm_every == 0u) {
+        return true;
+    }
+    const u16 w = state.m_map.width();
+    const u16 h = state.m_map.height();
+    if (w == 0u || h == 0u || g_ppm_dir[0] == '\0') {
+        return false;
+    }
+    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
+    u8* rgb = new u8[static_cast<size_t>(n) * 3u];
+    if (rgb == nullptr) {
+        return false;
+    }
+    for (u16 y = 0; y < h; ++y) {
+        for (u16 x = 0; x < w; ++x) {
+            u8 r = 0;
+            u8 g = 0;
+            u8 b = 0;
+            climate_to_rgb(state.m_map.get_climate(x, y), &r, &g, &b);
+            if (state.m_map.get_river(x, y) != 0) {
+                r = 40;
+                g = 100;
+                b = 220;
+            }
+            if (state.m_map.get_terrain(x, y) == TERR_MOUNTAINS[0]) {
+                r = 120;
+                g = 72;
+                b = 40;
+            }
+            set_px(rgb, w, h, x, y, r, g, b);
+        }
+    }
+    for (u16 y = 0; y < h; ++y) {
+        for (u16 x = 0; x < w; ++x) {
+            const u8 own = state.m_map.get_civ_owner(x, y);
+            if (own != U8_KEY_NULL) {
+                shade_own(rgb, w, h, x, y, static_cast<u16>(own));
+            }
+        }
+    }
+    for (u16 y = 0; y < h; ++y) {
+        for (u16 x = 0; x < w; ++x) {
+            paint_imp(rgb, w, h, x, y, state);
+        }
+    }
+    const u16 cn = state.m_cities.get_city_count();
+    for (u16 i = 0; i < cn; ++i) {
+        const City* c = state.m_cities.get_city(i);
+        if (c == nullptr || c->get_owner() == U16_KEY_NULL) {
+            continue;
+        }
+        paint_black_mark(rgb, w, h, c->get_x(), c->get_y());
+    }
+    char path[448];
+    if (std::snprintf(path, sizeof(path), "%s/turn_%04u.ppm", g_ppm_dir, turn) <= 0) {
+        delete[] rgb;
+        return false;
+    }
+    std::FILE* fp = std::fopen(path, "wb");
+    if (fp == nullptr) {
+        delete[] rgb;
+        return false;
+    }
+    std::fprintf(fp, "P6\n%u %u\n255\n", static_cast<unsigned>(w), static_cast<unsigned>(h));
+    const size_t nbytes = static_cast<size_t>(n) * 3u;
+    const bool ok = std::fwrite(rgb, 1, nbytes, fp) == nbytes;
+    std::fclose(fp);
+    delete[] rgb;
+    return ok;
 }
 
 static bool save_turn_state (GameState& state, u32 turn) {
@@ -315,6 +480,10 @@ void test_game_loop_fast_path () {
     }
     note_result(true, "game loop begin");
     note_result(build_state_paths(state.m_turn_limit), "build state save paths");
+    if (g_ppm_every != 0u) {
+        note_result(ensure_ppm_dir(), "ensure ppm dir");
+        note_result(save_turn_ppm(state, 0u), "save turn 0 ppm");
+    }
     std::FILE* ms_fp = std::fopen(g_turn_ms_path, "w");
     note_result(ms_fp != nullptr, "open turn ms file");
     while (state.m_current_turn < state.m_turn_limit) {
@@ -332,6 +501,9 @@ void test_game_loop_fast_path () {
         if (g_save_every != 0 && (state.m_current_turn % g_save_every) == 0) {
             note_result(save_turn_state(state, state.m_current_turn), "save interval state");
         }
+        if (g_ppm_every != 0u && (state.m_current_turn % g_ppm_every) == 0u) {
+            note_result(save_turn_ppm(state, state.m_current_turn), "save interval ppm");
+        }
     }
     std::printf("\n");
     if (ms_fp != nullptr) {
@@ -340,6 +512,9 @@ void test_game_loop_fast_path () {
     note_result(state.m_current_turn == state.m_turn_limit, "turn limit reached");
     note_result(count_trace_prefix(G_TRACE_PATH, "NEW_TURN:") == state.m_turn_limit, "trace new turn count");
     note_result(save_turn_state(state, state.m_current_turn), "save end state");
+    if (g_ppm_every != 0u && (state.m_current_turn % g_ppm_every) != 0u) {
+        note_result(save_turn_ppm(state, state.m_current_turn), "save end ppm");
+    }
     if (print_level > 0) {
         std::printf(" trace: %s\n", G_TRACE_PATH);
         std::printf(" map cache: %s\n", g_map_path);
@@ -349,6 +524,9 @@ void test_game_loop_fast_path () {
         std::printf(" end cities: %s\n", g_end_cities_path);
         std::printf(" end players: %s\n", g_end_players_path);
         std::printf(" turn ms: %s\n", g_turn_ms_path);
+        if (g_ppm_every != 0u) {
+            std::printf(" ppm dir: %s (every %u)\n", g_ppm_dir, g_ppm_every);
+        }
     }
     loop.end();
     PTO_PRINT();
@@ -380,7 +558,8 @@ void test_settler_count_in_unit_array () {
 
 int main (int argc, char* argv[]) {
     u32 players = 0;
-    if (argc != 4
+    g_ppm_every = 0u;
+    if (argc < 4 || argc > 5
         || !parse_u32(argv[1], &players)
         || !parse_u32(argv[2], &g_turn_limit)
         || !parse_u32(argv[3], &g_save_every)
@@ -390,8 +569,14 @@ int main (int argc, char* argv[]) {
         print_usage(argc > 0 ? argv[0] : nullptr);
         return 1;
     }
+    if (argc == 5 && !parse_u32(argv[4], &g_ppm_every)) {
+        print_usage(argc > 0 ? argv[0] : nullptr);
+        return 1;
+    }
     g_players = static_cast<u16>(players);
-    std::printf("players=%u turns=%u save_interval=%u\n", g_players, g_turn_limit, g_save_every);
+    print_level = 1;
+    std::printf("players=%u turns=%u save_interval=%u ppm_every=%u\n",
+        g_players, g_turn_limit, g_save_every, g_ppm_every);
     test_game_loop_fast_path();
     test_settler_count_in_unit_array();
     std::printf("=======================================================\n");

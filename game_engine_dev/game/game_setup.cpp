@@ -15,6 +15,7 @@
 #include "map_ov_bridge.h"
 #include "map_terrain_data.h"
 #include "map_gen_loader.h"
+#include "lucky_seat_loader.h"
 #include "runtime_static_loader.h"
 #include "city.h"
 #include "unit_movement_mng.h"
@@ -43,13 +44,16 @@
 static RuntimeStaticLoader g_rt_loader;
 static RuntimeStatics* g_rt_statics = nullptr;
 static MapGenLoader g_map_loader;
+static LuckySeatLoader g_lucky_loader;
 
 static const char* G_RT_LIB_A = "../data_io/runtime_static_loader_lib.so";
 static const char* G_RT_DATA_A = "../";
 static const char* G_MAP_LIB_A = "../adv_map_gen/map_gen.so";
+static const char* G_LUCKY_LIB_A = "lucky_seats/lucky_seats.so";
 static const char* G_RT_LIB_B = "../../data_io/runtime_static_loader_lib.so";
 static const char* G_RT_DATA_B = "../../";
 static const char* G_MAP_LIB_B = "../../adv_map_gen/map_gen.so";
+static const char* G_LUCKY_LIB_B = "../../game/lucky_seats/lucky_seats.so";
 
 static bool ensure_runtime_statics () {
     if (g_rt_statics != nullptr) {
@@ -86,6 +90,39 @@ static bool ensure_map_gen_loader () {
     std::printf("ensure_map_gen_loader failed:\n  %s: %s\n  %s: %s\n",
         G_MAP_LIB_A, err_a, G_MAP_LIB_B, err_b != nullptr ? err_b : "?");
     return false;
+}
+
+static bool ensure_lucky_loader () {
+    if (g_lucky_loader.is_loaded()) {
+        return true;
+    }
+    if (g_lucky_loader.load(G_LUCKY_LIB_A) || g_lucky_loader.load(G_LUCKY_LIB_B)) {
+        return true;
+    }
+    std::printf("ensure_lucky_loader failed:\n  %s\n  %s\n", G_LUCKY_LIB_A, G_LUCKY_LIB_B);
+    return false;
+}
+
+static bool apply_lucky_seats (GameArraySimple& map, const RuntimeStatics& st, const SpgPickCoords& starts) {
+    if (!ensure_lucky_loader()) {
+        return false;
+    }
+    if (starts.n == 0u || starts.n > SPG_MAX_PICK_PTS) {
+        return false;
+    }
+    u16 seats[SPG_MAX_PICK_PTS];
+    LuckySeatReq req = {};
+    req.m_map = &map;
+    req.m_statics = &st;
+    req.m_starts = starts.pts;
+    req.m_start_n = static_cast<u16>(starts.n);
+    req.m_lucky_seats = seats;
+    req.m_lucky_cap = SPG_MAX_PICK_PTS;
+    req.m_lucky_n = 0u;
+    req.m_do_select = 1u;
+    req.m_do_boost = 1u;
+    const LuckySeatRslt r = g_lucky_loader.run(&req);
+    return r.m_ok;
 }
 
 //================================================================================================================================
@@ -420,6 +457,11 @@ bool GameSetup::finish_with_starts (GameState* state, const SpgPickCoords& start
     WorkerGuidance::bind_statics(g_rt_statics);
     WorkerGuidance::bind_map(&state->m_map);
     TileImpHelper::bind_statics(g_rt_statics);
+    if (!apply_lucky_seats(state->m_map, *g_rt_statics, starts)) {
+        std::printf("finish_with_starts: apply_lucky_seats failed\n");
+        state->clear();
+        return false;
+    }
     if (!init_players(state, player_n, sw_n)) {
         state->clear();
         return false;

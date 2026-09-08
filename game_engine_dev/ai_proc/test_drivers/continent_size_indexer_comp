@@ -1,0 +1,40 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")"
+
+INC="-I../.. \
+     -I../../game \
+     -I../../game/lucky_seats \
+     -I. \
+     -I../../map_loader \
+     -I../../simple_map_gen \
+     -I../../misc \
+     -I../../data_io \
+     -I../../static_state"
+CXXFLAGS="-std=c++17 -Wall -Wextra -g"
+
+g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
+g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_data.cpp -o map_terrain_data.o
+g++ $CXXFLAGS $INC -c ../../map_loader/map_loader.cpp -o map_loader.o
+g++ $CXXFLAGS $INC -c ../../misc/assert_log.cpp -o assert_log.o
+g++ $CXXFLAGS $INC -c ../../misc/whiteboard_mng.cpp -o whiteboard_mng.o
+g++ $CXXFLAGS $INC -c ../../game/lucky_seats/continent_size_indexer.cpp -o continent_size_indexer.o
+g++ $CXXFLAGS $INC -c continent_size_indexer_tester.cpp -o continent_size_indexer_tester.o
+
+g++ $CXXFLAGS -o continent_size_indexer_tester \
+    map_terrain_validate.o \
+    map_terrain_data.o \
+    map_loader.o \
+    assert_log.o \
+    whiteboard_mng.o \
+    continent_size_indexer.o \
+    continent_size_indexer_tester.o \
+    -lm
+
+mkdir -p /home/w/Projects/simple-map-gen/lucky-seat
+echo "--- running continent_size_indexer_tester ---"
+./continent_size_indexer_tester "$@"
+
+rm -f map_terrain_validate.o map_terrain_data.o map_loader.o assert_log.o \
+    whiteboard_mng.o continent_size_indexer.o continent_size_indexer_tester.o

@@ -1,0 +1,23 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")"
+
+INC="-I../.. \
+     -I../../game \
+     -I../../game/lucky_seats \
+     -I. \
+     -I../../misc"
+CXXFLAGS="-std=c++17 -Wall -Wextra -g"
+
+g++ $CXXFLAGS $INC -c ../../game/lucky_seats/distribute_proportional.cpp -o distribute_proportional.o
+g++ $CXXFLAGS $INC -c distribute_proportional_tester.cpp -o distribute_proportional_tester.o
+
+g++ $CXXFLAGS -o distribute_proportional_tester \
+    distribute_proportional.o \
+    distribute_proportional_tester.o
+
+echo "--- running distribute_proportional_tester ---"
+./distribute_proportional_tester "$@"
+
+rm -f distribute_proportional.o distribute_proportional_tester.o
