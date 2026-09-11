@@ -45,6 +45,7 @@ struct MusterCity {
 //  TileTransfer, two-step rejoin, then retarget via TargetOrderingFlood until no fight left or no
 //  targets. Target list is a flood-ordered city-index queue from an enemy seed near staging.
 //  Assault may Stall when offensive units remain but spent this assault's MP; owner retries.
+//  Hot path: begin/clear with GameLoop; handle advances one turn per engaged AI seat; engage starts war.
 //
 //================================================================================================================================
 
@@ -54,9 +55,16 @@ public:
     static const u16 k_atk_cap = 20u;
     static const u8 k_exp_lim = 10u;
     static const u16 k_tgt_cap = 256u;
+    static const u16 k_seat_cap = 256u;
 
     WarTurnHandler (GameState& s, u16 seat);
     ~WarTurnHandler ();
+
+    static bool begin (GameState& state);
+    static void clear ();
+    static bool engage (GameState& state, u16 seat, u16 enemy);
+    static bool is_engaged (u16 seat);
+    static void handle (GameState& state);
 
     bool ok () const;
     bool make_muster_gradient (u16 x, u16 y);

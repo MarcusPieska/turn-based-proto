@@ -79,10 +79,14 @@ bool GenerateExposure::generate (const GameState& s, u16 seat, u16 enemy, Whiteb
     for (u32 i = 0; i < n; ++i) {
         dist[i] = k_none;
     }
-    u32* q = new u32[n];
-    if (q == nullptr) {
+    if (WhiteboardMng::width() != w || WhiteboardMng::height() != h) {
         return false;
     }
+    Whiteboard_4B que("GenerateExposure", "q", 0u);
+    if (!que.ok()) {
+        return false;
+    }
+    u32* q = que.get_iter_ptr();
     u32 qn = 0;
     for (u16 y = 0; y < h; ++y) {
         for (u16 x = 0; x < w; ++x) {
@@ -126,7 +130,6 @@ bool GenerateExposure::generate (const GameState& s, u16 seat, u16 enemy, Whiteb
             q[qn++] = ni;
         }
     }
-    delete[] q;
     return true;
 }
 

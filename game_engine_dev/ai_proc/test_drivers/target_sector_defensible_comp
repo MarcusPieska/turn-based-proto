@@ -60,6 +60,7 @@ g++ $CXXFLAGS $INC -c ../../dyn_state/shipyard_add_vector.cpp -o shipyard_add_ve
 g++ $CXXFLAGS $INC -c ../../dyn_state/trade_post_add_vector.cpp -o trade_post_add_vector.o
 g++ $CXXFLAGS $INC -c ../../dyn_state/unit_add_vector.cpp -o unit_add_vector.o
 g++ $CXXFLAGS $INC -c ../../dyn_state/unit_movement_mng.cpp -o unit_movement_mng.o
+g++ $CXXFLAGS $INC -c ../../dyn_state/unit_group_management.cpp -o unit_group_management.o
 g++ $CXXFLAGS $INC -c ../../game/tile_attr_tables.cpp -o tile_attr_tables.o
 g++ $CXXFLAGS $INC -c ../../game/overlay_yields.cpp -o overlay_yields.o
 g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_general/sector_network.cpp -o sector_network.o
@@ -75,6 +76,11 @@ g++ $CXXFLAGS $INC -c ../../game/resource_turn_handler.cpp -o resource_turn_hand
 g++ $CXXFLAGS $INC -c ../../game/tile_transfer.cpp -o tile_transfer.o
 g++ $CXXFLAGS $INC -c ../target_ordering_manhattan.cpp -o target_ordering_manhattan.o
 g++ $CXXFLAGS $INC -c ../target_ordering_flood.cpp -o target_ordering_flood.o
+g++ $CXXFLAGS $INC -c ../gen_land_sectors.cpp -o gen_land_sectors.o
+g++ $CXXFLAGS $INC -c ../land_sector_network.cpp -o land_sector_network.o
+g++ $CXXFLAGS $INC -c ../gen_land_sector_network.cpp -o gen_land_sector_network.o
+g++ $CXXFLAGS $INC -c ../sector_support.cpp -o sector_support.o
+g++ $CXXFLAGS $INC -c ../target_sector_defensible.cpp -o target_sector_defensible.o
 g++ $CXXFLAGS $INC -c ../../game/tile_yields.cpp -o tile_yields.o
 g++ $CXXFLAGS $INC -c ../../game/tile_working.cpp -o tile_working.o
 g++ $CXXFLAGS $INC -c ../../game/tile_work_assessor.cpp -o tile_work_assessor.o
@@ -171,13 +177,9 @@ g++ $CXXFLAGS $INC -c ../war_turn_handler.cpp -o war_turn_handler.o
 g++ $CXXFLAGS $INC -c ../city_attack_manager.cpp -o city_attack_manager.o
 g++ $CXXFLAGS $INC -c ../../game/combat_mng.cpp -o combat_mng.o
 g++ $CXXFLAGS $INC -c ../../dyn_state/unit_chain_validation.cpp -o unit_chain_validation.o
-g++ $CXXFLAGS $INC -c siege_snapshot.cpp -o siege_snapshot.o
-g++ $CXXFLAGS $INC -c test_hlp_unit_spawning.cpp -o test_hlp_unit_spawning.o
-g++ $CXXFLAGS $INC -c test_hlp_unit_validate.cpp -o test_hlp_unit_validate.o
-g++ $CXXFLAGS $INC -c test_hlp_city_attack.cpp -o test_hlp_city_attack.o
-g++ $CXXFLAGS $INC -c war_turn_handler_tester.cpp -o war_turn_handler_tester.o
+g++ $CXXFLAGS $INC -c target_sector_defensible_tester.cpp -o target_sector_defensible_tester.o
 
-g++ $CXXFLAGS -o war_turn_handler_tester \
+g++ $CXXFLAGS -o target_sector_defensible_tester \
     runtime_static_loader.o \
     map_terrain_validate.o \
     map_terrain_data.o \
@@ -197,6 +199,7 @@ g++ $CXXFLAGS -o war_turn_handler_tester \
     trade_post_add_vector.o \
     unit_add_vector.o \
     unit_movement_mng.o \
+    unit_group_management.o \
     tile_attr_tables.o \
     overlay_yields.o \
     sector_network.o \
@@ -300,30 +303,32 @@ g++ $CXXFLAGS -o war_turn_handler_tester \
     city_attack_manager.o \
     combat_mng.o \
     unit_chain_validation.o \
-    siege_snapshot.o \
-    test_hlp_unit_spawning.o \
-    test_hlp_unit_validate.o \
-    test_hlp_city_attack.o \
-    war_turn_handler_tester.o \
+    gen_land_sectors.o \
+    land_sector_network.o \
+    gen_land_sector_network.o \
+    sector_support.o \
+    target_sector_defensible.o \
+    target_sector_defensible_tester.o \
     -ldl \
     $LIB_SO \
     -Wl,-rpath,'$ORIGIN/../../data_io' \
     -lm
 
-mkdir -p /home/w/Projects/simple-map-gen/war-turn-handler
-echo "--- running war_turn_handler_tester ---"
-./war_turn_handler_tester "$@"
-rm -f war_turn_handler_tester
+mkdir -p /home/w/Projects/simple-map-gen/target-sector-defensible
+echo "--- running target_sector_defensible_tester ---"
+./target_sector_defensible_tester "$@"
+RC=$?
+rm -f target_sector_defensible_tester
 
-rm -f war_turn_handler_tester siege_snapshot.o city_attack_manager.o
+rm -f city_attack_manager.o
 rm -f runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.o \
     starting_point_generator.o runtime_trace_dbg.o map_bit_overlay.o \
     map_bit_array_overlay.o bit_array.o assert_log.o \
     fort_add_vector.o mine_add_vector.o monastery_add_vector.o \
     outpost_add_vector.o plantation_add_vector.o shipyard_add_vector.o \
-    trade_post_add_vector.o unit_add_vector.o unit_movement_mng.o \
+    trade_post_add_vector.o unit_add_vector.o unit_movement_mng.o unit_group_management.o \
     tile_attr_tables.o overlay_yields.o sector_network.o sector_network_router.o city_network.o city_connector.o point_seq_flood_walker.o settle_rules.o \
-    game_array_simple.o factory_game_array_simple.o game_state.o player_ledger.o resource_ledger.o resource_turn_handler.o tile_transfer.o target_ordering_manhattan.o target_ordering_flood.o tile_yields.o tile_working.o tile_work_assessor.o worker_imp_select.o tile_imp_helper.o worker_build_progress.o worker_guidance.o worker_helper.o \
+    game_array_simple.o factory_game_array_simple.o game_state.o player_ledger.o resource_ledger.o resource_turn_handler.o tile_transfer.o target_ordering_manhattan.o target_ordering_flood.o gen_land_sectors.o land_sector_network.o gen_land_sector_network.o sector_support.o target_sector_defensible.o tile_yields.o tile_working.o tile_work_assessor.o worker_imp_select.o tile_imp_helper.o worker_build_progress.o worker_guidance.o worker_helper.o \
     civ_relations.o game_setup.o city_tile_manager.o circular_tile_areas.o city_blocking_mask.o city_border.o \
     map_gen_loader.o lucky_seat_loader.o city.o general_bit_bank.o general_assessor.o resource_assessor.o resource_effector.o effect_ctx.o effect_enabler.o \
     booster_effect_register.o local_unit_exp_booster_register.o civ_ship_training_booster_register.o \
@@ -336,3 +341,4 @@ rm -f runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_load
     gen_mtn_passes.o gen_walkable_sectors.o gen_bottleneck_markers.o gen_bottleneck_forts.o gen_ai_helpers.o \
     worker_city_jobs.o gen_road_network.o linear_bld.o city_tracer.o \
     ai_unit_production_default.o ai_unit_production_aggressive.o \
+exit $RC

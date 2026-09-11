@@ -4,9 +4,10 @@
 
 #include "war_turn_handler.h"
 
+#include <cstdio>
+
 #include "city_attack_manager.h"
 #include "city.h"
-#include "city_array.h"
 #include "civ_relations.h"
 #include "civ_static_key.h"
 #include "game_array_simple.h"
@@ -54,25 +55,30 @@ static bool own_free_open (const GameState& s, u16 seat, u16 x, u16 y) {
     return own == U8_KEY_NULL || own == static_cast<u8>(seat);
 }
 
-static bool label_own_free_comp (const GameState& s, u16 seat, u32* tile_comp, u32* out_n) {
+static bool label_own_free_comp (const GameState& s, u16 seat, Whiteboard_4B& tile_comp, u32* out_n) {
     const u16 w = s.m_map.width();
     const u16 h = s.m_map.height();
     const u32 n = s.m_map.tile_n();
-    if (w == 0 || h == 0 || tile_comp == nullptr || out_n == nullptr) {
+    if (w == 0 || h == 0 || !tile_comp.ok() || out_n == nullptr) {
         return false;
     }
+    if (tile_comp.w() != w || tile_comp.h() != h) {
+        return false;
+    }
+    u32* tc = tile_comp.get_iter_ptr();
     for (u32 i = 0; i < n; ++i) {
-        tile_comp[i] = 0xFFFFFFFFu;
+        tc[i] = 0xFFFFFFFFu;
     }
-    u32* q = new u32[n];
-    if (q == nullptr) {
+    Whiteboard_4B que("WarTurnHandler", "comp_q", 0u);
+    if (!que.ok()) {
         return false;
     }
+    u32* q = que.get_iter_ptr();
     u32 next_id = 0;
     static const i32 k_dx[4] = {-1, 1, 0, 0};
     static const i32 k_dy[4] = {0, 0, -1, 1};
     for (u32 i = 0; i < n; ++i) {
-        if (tile_comp[i] != 0xFFFFFFFFu) {
+        if (tc[i] != 0xFFFFFFFFu) {
             continue;
         }
         const u16 x0 = static_cast<u16>(i % static_cast<u32>(w));
@@ -82,7 +88,7 @@ static bool label_own_free_comp (const GameState& s, u16 seat, u32* tile_comp, u
         }
         const u32 cid = next_id++;
         u32 qn = 0;
-        tile_comp[i] = cid;
+        tc[i] = cid;
         q[qn++] = i;
         while (qn > 0) {
             const u32 cur = q[--qn];
@@ -97,18 +103,17 @@ static bool label_own_free_comp (const GameState& s, u16 seat, u32* tile_comp, u
                 const u16 ux = static_cast<u16>(nx);
                 const u16 uy = static_cast<u16>(ny);
                 const u32 ni = static_cast<u32>(uy) * static_cast<u32>(w) + static_cast<u32>(ux);
-                if (tile_comp[ni] != 0xFFFFFFFFu) {
+                if (tc[ni] != 0xFFFFFFFFu) {
                     continue;
                 }
                 if (!land_ok(s, ux, uy) || !own_free_open(s, seat, ux, uy)) {
                     continue;
                 }
-                tile_comp[ni] = cid;
+                tc[ni] = cid;
                 q[qn++] = ni;
             }
         }
     }
-    delete[] q;
     if (next_id == 0u) {
         return false;
     }
@@ -326,6 +331,38 @@ bool WarTurnHandler::form_army () {
     for (u16 i = 0; i < k_atk_cap; ++i) {
         m_split[i] = U16_KEY_NULL;
     }
+    u32 army_n = 0u;
+    UnitAddKey cur = head;
+    while (cur.is_valid()) {
+        const UnitAddStruct* u = m_st.m_units.get_unit_add(cur);
+        if (u == nullptr) {
+            break;
+        }
+        ++army_n;
+        if (u->m_next_unit_in_group == U16_KEY_NULL) {
+            break;
+        }
+        cur = UnitAddKey::from_raw(u->m_next_unit_in_group);
+    }
+    u32 tile_n = 0u;
+    u16 ton = m_st.m_map.get_unit_hd(m_sx, m_sy);
+    while (ton != U16_KEY_NULL) {
+        const UnitAddStruct* u = m_st.m_units.get_unit_add(UnitAddKey::from_raw(ton));
+        if (u == nullptr) {
+            break;
+        }
+        if (u->m_player_idx == m_seat && u->m_x != U16_KEY_NULL) {
+            ++tile_n;
+        }
+        ton = u->m_next_unit_on_tile;
+    }
+    std::printf("war army size seat=%u army_units=%u tile_units=%u staging=(%u,%u) turn=%u\n",
+        static_cast<unsigned>(m_seat),
+        static_cast<unsigned>(army_n),
+        static_cast<unsigned>(tile_n),
+        static_cast<unsigned>(m_sx),
+        static_cast<unsigned>(m_sy),
+        static_cast<unsigned>(m_st.m_current_turn));
     return true;
 }
 
@@ -539,6 +576,12 @@ void WarTurnHandler::claim_city (u16 x, u16 y) {
         c->set_owner(m_seat);
         m_st.m_map.set_civ_owner(x, y, static_cast<u8>(m_seat));
         TileTransfer::apply(m_st, i, from, static_cast<u8>(m_seat), nullptr);
+        std::printf("war city capture seat=%u from=%u city=(%u,%u) turn=%u\n",
+            static_cast<unsigned>(m_seat),
+            static_cast<unsigned>(from),
+            static_cast<unsigned>(x),
+            static_cast<unsigned>(y),
+            static_cast<unsigned>(m_st.m_current_turn));
         return;
     }
 }
@@ -727,25 +770,28 @@ bool WarTurnHandler::pick_staging_city (const GameState& s, u16 seat, u16 enemy,
     if (cn == 0u) {
         return false;
     }
+    const u16 w = s.m_map.width();
+    const u16 h = s.m_map.height();
     const u32 tn = s.m_map.tile_n();
-    u32* tile_comp = new u32[tn];
-    if (tile_comp == nullptr) {
+    if (WhiteboardMng::width() != w || WhiteboardMng::height() != h) {
+        return false;
+    }
+    Whiteboard_4B tile_comp("WarTurnHandler", "tile_comp", 0u);
+    if (!tile_comp.ok()) {
         return false;
     }
     u32 comp_n = 0;
     if (!label_own_free_comp(s, seat, tile_comp, &comp_n)) {
-        delete[] tile_comp;
         return false;
     }
+    const u32* tc = tile_comp.get_iter_ptr();
     u32* city_n = new u32[comp_n];
     if (city_n == nullptr) {
-        delete[] tile_comp;
         return false;
     }
     for (u32 i = 0; i < comp_n; ++i) {
         city_n[i] = 0;
     }
-    const u16 w = s.m_map.width();
     for (u16 i = 0; i < cn; ++i) {
         const City* c = s.m_cities.get_city(i);
         if (c == nullptr || c->get_owner() != seat) {
@@ -755,7 +801,7 @@ bool WarTurnHandler::pick_staging_city (const GameState& s, u16 seat, u16 enemy,
         if (ti >= tn) {
             continue;
         }
-        const u32 cid = tile_comp[ti];
+        const u32 cid = tc[ti];
         if (cid < comp_n) {
             city_n[cid]++;
         }
@@ -770,7 +816,6 @@ bool WarTurnHandler::pick_staging_city (const GameState& s, u16 seat, u16 enemy,
     }
     delete[] city_n;
     if (best_comp == 0xFFFFFFFFu || best_cn == 0u) {
-        delete[] tile_comp;
         return false;
     }
     u32 best_sc = 0xFFFFFFFFu;
@@ -785,7 +830,7 @@ bool WarTurnHandler::pick_staging_city (const GameState& s, u16 seat, u16 enemy,
         const u16 sx = c->get_x();
         const u16 sy = c->get_y();
         const u32 ti = static_cast<u32>(sy) * static_cast<u32>(w) + static_cast<u32>(sx);
-        if (ti >= tn || tile_comp[ti] != best_comp) {
+        if (ti >= tn || tc[ti] != best_comp) {
             continue;
         }
         u32 min_d = 0xFFFFFFFFu;
@@ -824,7 +869,6 @@ bool WarTurnHandler::pick_staging_city (const GameState& s, u16 seat, u16 enemy,
             found = true;
         }
     }
-    delete[] tile_comp;
     if (!found) {
         return false;
     }
@@ -863,6 +907,233 @@ u16 WarTurnHandler::target_x () const {
 
 u16 WarTurnHandler::target_y () const {
     return m_ty;
+}
+
+//================================================================================================================================
+//=> - Hot-path orchestration -
+//================================================================================================================================
+
+enum class WarPhase : u8 {
+    Idle = 0,
+    Muster = 1,
+    Form = 2,
+    March = 3,
+    Assault = 4,
+    Rejoin = 5,
+    Retarget = 6
+};
+
+struct WarSlot {
+    WarTurnHandler* m_camp;
+    u16 m_enemy;
+    WarPhase m_phase;
+};
+
+static WarSlot g_war[WarTurnHandler::k_seat_cap];
+static GameState* g_war_st = nullptr;
+static u16 g_war_n = 0u;
+
+static void war_slot_reset (WarSlot* s) {
+    if (s == nullptr) {
+        return;
+    }
+    delete s->m_camp;
+    s->m_camp = nullptr;
+    s->m_enemy = U16_KEY_NULL;
+    s->m_phase = WarPhase::Idle;
+}
+
+static bool war_start_camp (GameState& st, u16 seat, u16 enemy, WarSlot* s) {
+    if (s == nullptr || seat >= st.m_player_n || enemy >= st.m_player_n || seat == enemy) {
+        return false;
+    }
+    u16 sx = 0u;
+    u16 sy = 0u;
+    if (!WarTurnHandler::pick_staging_city(st, seat, enemy, &sx, &sy)) {
+        return false;
+    }
+    WarTurnHandler* camp = new WarTurnHandler(st, seat);
+    if (camp == nullptr || !camp->ok()) {
+        delete camp;
+        return false;
+    }
+    if (!camp->make_muster_gradient(sx, sy)) {
+        delete camp;
+        return false;
+    }
+    (void)camp->do_total_muster();
+    if (!camp->determine_exposure(enemy)) {
+        delete camp;
+        return false;
+    }
+    delete s->m_camp;
+    s->m_camp = camp;
+    s->m_enemy = enemy;
+    s->m_phase = WarPhase::Muster;
+    std::printf("war muster start seat=%u enemy=%u staging=(%u,%u) muster_n=%u turn=%u\n",
+        static_cast<unsigned>(seat),
+        static_cast<unsigned>(enemy),
+        static_cast<unsigned>(sx),
+        static_cast<unsigned>(sy),
+        static_cast<unsigned>(camp->muster_n()),
+        static_cast<unsigned>(st.m_current_turn));
+    return true;
+}
+
+static void war_stop (WarSlot* s) {
+    war_slot_reset(s);
+}
+
+static void war_advance (GameState& st, u16 seat, WarSlot* s) {
+    (void)seat;
+    if (s == nullptr || s->m_camp == nullptr || s->m_enemy == U16_KEY_NULL) {
+        return;
+    }
+    WarTurnHandler& camp = *s->m_camp;
+    switch (s->m_phase) {
+    case WarPhase::Muster:
+        if (!camp.walk_muster()) {
+            s->m_phase = WarPhase::Form;
+        }
+        break;
+    case WarPhase::Form:
+        if (!camp.form_army()) {
+            war_stop(s);
+            break;
+        }
+        {
+            u16 tx = 0u;
+            u16 ty = 0u;
+            if (!camp.set_target_city(s->m_enemy, &tx, &ty)) {
+                war_stop(s);
+                break;
+            }
+        }
+        s->m_phase = WarPhase::March;
+        break;
+    case WarPhase::March:
+        if (!camp.walk_army()) {
+            s->m_phase = WarPhase::Assault;
+        }
+        break;
+    case WarPhase::Assault: {
+        const WarAssault ar = camp.assault_city(camp.target_x(), camp.target_y(), 0u);
+        if (ar == WarAssault::Stall) {
+            if (!camp.can_cont(0u)) {
+                war_stop(s);
+            }
+            break;
+        }
+        if (ar != WarAssault::Ok) {
+            war_stop(s);
+            break;
+        }
+        s->m_phase = WarPhase::Rejoin;
+        break;
+    }
+    case WarPhase::Rejoin: {
+        const u16 sh = camp.split_hd(0u);
+        if (sh != U16_KEY_NULL) {
+            const UnitAddStruct* occ = st.m_units.get_unit_add(UnitAddKey::from_raw(camp.atk_hd(0u)));
+            const UnitAddStruct* spl = st.m_units.get_unit_add(UnitAddKey::from_raw(sh));
+            if (occ != nullptr && spl != nullptr && occ->m_x != U16_KEY_NULL && spl->m_x != U16_KEY_NULL
+                && (occ->m_x != spl->m_x || occ->m_y != spl->m_y)) {
+                if (!camp.rejoin_move(0u)) {
+                    war_stop(s);
+                }
+                break;
+            }
+        }
+        if (!camp.rejoin_link(0u)) {
+            war_stop(s);
+            break;
+        }
+        (void)camp.rest_heal(0u);
+        if (!camp.army_can_fight(0u)) {
+            war_stop(s);
+            break;
+        }
+        s->m_phase = WarPhase::Retarget;
+        break;
+    }
+    case WarPhase::Retarget: {
+        u16 tx = 0u;
+        u16 ty = 0u;
+        if (!camp.set_target_city(s->m_enemy, &tx, &ty)) {
+            war_stop(s);
+            break;
+        }
+        s->m_phase = WarPhase::March;
+        break;
+    }
+    case WarPhase::Idle:
+    default:
+        break;
+    }
+}
+
+bool WarTurnHandler::begin (GameState& state) {
+    clear();
+    if (state.m_player_n == 0u || state.m_player_n > k_seat_cap) {
+        return false;
+    }
+    g_war_st = &state;
+    g_war_n = state.m_player_n;
+    for (u16 i = 0u; i < g_war_n; ++i) {
+        g_war[i].m_camp = nullptr;
+        g_war[i].m_enemy = U16_KEY_NULL;
+        g_war[i].m_phase = WarPhase::Idle;
+    }
+    return true;
+}
+
+void WarTurnHandler::clear () {
+    for (u16 i = 0u; i < g_war_n && i < k_seat_cap; ++i) {
+        war_slot_reset(&g_war[i]);
+    }
+    g_war_st = nullptr;
+    g_war_n = 0u;
+}
+
+bool WarTurnHandler::engage (GameState& state, u16 seat, u16 enemy) {
+    if (g_war_st != &state || seat >= g_war_n || enemy >= g_war_n || seat == enemy) {
+        return false;
+    }
+    if (state.m_player_states == nullptr) {
+        return false;
+    }
+    war_slot_reset(&g_war[seat]);
+    if (!war_start_camp(state, seat, enemy, &g_war[seat])) {
+        return false;
+    }
+    return true;
+}
+
+bool WarTurnHandler::is_engaged (u16 seat) {
+    return seat < g_war_n && g_war[seat].m_enemy != U16_KEY_NULL;
+}
+
+void WarTurnHandler::handle (GameState& state) {
+    if (g_war_st != &state || state.m_player_states == nullptr) {
+        return;
+    }
+    for (u16 seat = 0u; seat < g_war_n; ++seat) {
+        PlayerState& ps = state.m_player_states[seat];
+        if (ps.m_is_active == 0u || ps.m_ai_controlled == 0u) {
+            continue;
+        }
+        WarSlot& s = g_war[seat];
+        if (s.m_enemy == U16_KEY_NULL) {
+            continue;
+        }
+        if (s.m_camp == nullptr) {
+            if (!war_start_camp(state, seat, s.m_enemy, &s)) {
+                war_stop(&s);
+                continue;
+            }
+        }
+        war_advance(state, seat, &s);
+    }
 }
 
 //================================================================================================================================

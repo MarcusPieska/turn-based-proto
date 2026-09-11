@@ -60,6 +60,7 @@ g++ $CXXFLAGS $INC -c ../../dyn_state/shipyard_add_vector.cpp -o shipyard_add_ve
 g++ $CXXFLAGS $INC -c ../../dyn_state/trade_post_add_vector.cpp -o trade_post_add_vector.o
 g++ $CXXFLAGS $INC -c ../../dyn_state/unit_add_vector.cpp -o unit_add_vector.o
 g++ $CXXFLAGS $INC -c ../../dyn_state/unit_movement_mng.cpp -o unit_movement_mng.o
+g++ $CXXFLAGS $INC -c ../../dyn_state/unit_group_management.cpp -o unit_group_management.o
 g++ $CXXFLAGS $INC -c ../../game/tile_attr_tables.cpp -o tile_attr_tables.o
 g++ $CXXFLAGS $INC -c ../../game/overlay_yields.cpp -o overlay_yields.o
 g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_general/sector_network.cpp -o sector_network.o
@@ -168,16 +169,13 @@ g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_target/generate_distance_p2p.cpp -o 
 g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_target/walk_p2p.cpp -o walk_p2p.o
 g++ $CXXFLAGS $INC -c ../generate_exposure.cpp -o generate_exposure.o
 g++ $CXXFLAGS $INC -c ../war_turn_handler.cpp -o war_turn_handler.o
+g++ $CXXFLAGS $INC -c ../mock_muster_siege.cpp -o mock_muster_siege.o
 g++ $CXXFLAGS $INC -c ../city_attack_manager.cpp -o city_attack_manager.o
 g++ $CXXFLAGS $INC -c ../../game/combat_mng.cpp -o combat_mng.o
 g++ $CXXFLAGS $INC -c ../../dyn_state/unit_chain_validation.cpp -o unit_chain_validation.o
-g++ $CXXFLAGS $INC -c siege_snapshot.cpp -o siege_snapshot.o
-g++ $CXXFLAGS $INC -c test_hlp_unit_spawning.cpp -o test_hlp_unit_spawning.o
-g++ $CXXFLAGS $INC -c test_hlp_unit_validate.cpp -o test_hlp_unit_validate.o
-g++ $CXXFLAGS $INC -c test_hlp_city_attack.cpp -o test_hlp_city_attack.o
-g++ $CXXFLAGS $INC -c war_turn_handler_tester.cpp -o war_turn_handler_tester.o
+g++ $CXXFLAGS $INC -c mock_muster_siege_tester.cpp -o mock_muster_siege_tester.o
 
-g++ $CXXFLAGS -o war_turn_handler_tester \
+g++ $CXXFLAGS -o mock_muster_siege_tester \
     runtime_static_loader.o \
     map_terrain_validate.o \
     map_terrain_data.o \
@@ -196,7 +194,7 @@ g++ $CXXFLAGS -o war_turn_handler_tester \
     shipyard_add_vector.o \
     trade_post_add_vector.o \
     unit_add_vector.o \
-    unit_movement_mng.o \
+    unit_movement_mng.o unit_group_management.o \
     tile_attr_tables.o \
     overlay_yields.o \
     sector_network.o \
@@ -297,25 +295,23 @@ g++ $CXXFLAGS -o war_turn_handler_tester \
     walk_p2p.o \
     generate_exposure.o \
     war_turn_handler.o \
+    mock_muster_siege.o \
     city_attack_manager.o \
     combat_mng.o \
     unit_chain_validation.o \
-    siege_snapshot.o \
-    test_hlp_unit_spawning.o \
-    test_hlp_unit_validate.o \
-    test_hlp_city_attack.o \
-    war_turn_handler_tester.o \
+    mock_muster_siege_tester.o \
     -ldl \
     $LIB_SO \
     -Wl,-rpath,'$ORIGIN/../../data_io' \
     -lm
 
 mkdir -p /home/w/Projects/simple-map-gen/war-turn-handler
-echo "--- running war_turn_handler_tester ---"
-./war_turn_handler_tester "$@"
-rm -f war_turn_handler_tester
+mkdir -p /home/w/Projects/simple-map-gen/mock-muster-siege
+echo "--- running mock_muster_siege_tester ---"
+./mock_muster_siege_tester "$@"
+rm -f mock_muster_siege_tester
 
-rm -f war_turn_handler_tester siege_snapshot.o city_attack_manager.o
+rm -f mock_muster_siege_tester mock_muster_siege.o unit_group_management.o city_attack_manager.o
 rm -f runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.o \
     starting_point_generator.o runtime_trace_dbg.o map_bit_overlay.o \
     map_bit_array_overlay.o bit_array.o assert_log.o \

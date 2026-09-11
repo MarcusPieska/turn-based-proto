@@ -13,6 +13,7 @@
 #include "game_state.h"
 #include "runtime_statics.h"
 #include "tile_attr_tables.h"
+#include "unit_group_management.h"
 #include "unit_static_data.h"
 #include "unit_static_key.h"
 #include "unit_type_static_key.h"
@@ -732,18 +733,29 @@ bool UnitMovementMng::unlink_group (GameState& s, UnitAddKey tail) {
     return true;
 }
 
-static bool is_defense_typ (const GameState& s, u16 typ_idx) {
-    if (s.m_statics == nullptr) {
-        return false;
-    }
-    const u16 un = s.m_statics->unit().get_item_count();
-    if (typ_idx >= un) {
-        return false;
-    }
-    const u16 ut = s.m_statics->unit().get_item(UnitStaticDataKey::from_raw(typ_idx)).type;
-    const UnitTypeStaticDataKey tk = UnitTypeStaticDataKey::from_raw(ut);
-    cstr nm = s.m_statics->unit_type().get_name(tk);
-    return nm != nullptr && std::strcmp(nm, "LAND_DEFENSE") == 0;
+bool UnitMovementMng::stack_append (GameState& s, UnitAddKey key, u16 x, u16 y) {
+    return tile_stack_append(s, key, x, y);
+}
+
+bool UnitMovementMng::muster_collect_depart (
+    GameState& s,
+    u16 x,
+    u16 y,
+    u16 player_idx,
+    UnitAddKey* out_keys,
+    u16 cap,
+    u16* out_n) {
+    return UnitGroupManagement::muster_collect_depart(s, x, y, player_idx, out_keys, cap, out_n);
+}
+
+bool UnitMovementMng::campaign_collect_depart (
+    GameState& s,
+    const UnitAddKey* in_keys,
+    u16 in_n,
+    UnitAddKey* out_keys,
+    u16 cap,
+    u16* out_n) {
+    return UnitGroupManagement::campaign_collect_depart(s, in_keys, in_n, out_keys, cap, out_n);
 }
 
 bool UnitMovementMng::muster_leave_one_defense (
@@ -752,56 +764,7 @@ bool UnitMovementMng::muster_leave_one_defense (
     u16 y,
     u16 player_idx,
     UnitAddKey* out_head) {
-    if (out_head == nullptr || !in_bounds(s, x, y) || player_idx >= s.m_player_n) {
-        return false;
-    }
-    static const u16 k_cap = 64u;
-    UnitAddKey keys[k_cap];
-    u16 n = 0;
-    u16 cur = s.m_map.get_unit_hd(x, y);
-    while (cur != U16_KEY_NULL && n < k_cap) {
-        const UnitAddKey k = UnitAddKey::from_raw(cur);
-        const UnitAddStruct* u = u_get(s, k);
-        if (u == nullptr) {
-            break;
-        }
-        if (u->m_player_idx == player_idx && !is_grp_tail(*u)) {
-            keys[n++] = k;
-        }
-        cur = u->m_next_unit_on_tile;
-    }
-    if (n < 2u) {
-        return false;
-    }
-    i32 leave_i = -1;
-    for (u16 i = 0; i < n; ++i) {
-        const UnitAddStruct* u = u_get(s, keys[i]);
-        if (u != nullptr && is_defense_typ(s, u->m_unit_typ_idx)) {
-            leave_i = static_cast<i32>(i);
-            break;
-        }
-    }
-    UnitAddKey head = UnitAddKey::None();
-    for (u16 i = 0; i < n; ++i) {
-        if (static_cast<i32>(i) == leave_i) {
-            continue;
-        }
-        head = keys[i];
-        break;
-    }
-    if (!head.is_valid()) {
-        return false;
-    }
-    for (u16 i = 0; i < n; ++i) {
-        if (static_cast<i32>(i) == leave_i || keys[i] == head) {
-            continue;
-        }
-        if (!link_group(s, head, keys[i])) {
-            return false;
-        }
-    }
-    *out_head = head;
-    return true;
+    return UnitGroupManagement::muster_leave_one_defense(s, x, y, player_idx, out_head);
 }
 
 bool UnitMovementMng::campaign_leave_five_defense (
@@ -810,85 +773,7 @@ bool UnitMovementMng::campaign_leave_five_defense (
     u16 y,
     u16 player_idx,
     UnitAddKey* out_head) {
-    if (out_head == nullptr || !in_bounds(s, x, y) || player_idx >= s.m_player_n) {
-        return false;
-    }
-    static const u16 k_cap = 2048u;
-    static const u16 k_leave = 5u;
-    bool peeling = true;
-    while (peeling) {
-        peeling = false;
-        u16 cur = s.m_map.get_unit_hd(x, y);
-        while (cur != U16_KEY_NULL) {
-            const UnitAddKey k = UnitAddKey::from_raw(cur);
-            UnitAddStruct* u = u_get(s, k);
-            if (u == nullptr) {
-                break;
-            }
-            if (u->m_player_idx == player_idx && u->m_next_unit_in_group != U16_KEY_NULL) {
-                const UnitAddKey nxt = UnitAddKey::from_raw(u->m_next_unit_in_group);
-                if (!unlink_group(s, nxt)) {
-                    return false;
-                }
-                if (!tile_stack_append(s, nxt, x, y)) {
-                    return false;
-                }
-                peeling = true;
-                break;
-            }
-            cur = u->m_next_unit_on_tile;
-        }
-    }
-    UnitAddKey keys[k_cap];
-    u16 n = 0;
-    u16 cur = s.m_map.get_unit_hd(x, y);
-    while (cur != U16_KEY_NULL && n < k_cap) {
-        const UnitAddKey k = UnitAddKey::from_raw(cur);
-        const UnitAddStruct* u = u_get(s, k);
-        if (u == nullptr) {
-            break;
-        }
-        if (u->m_player_idx == player_idx && !is_grp_tail(*u)) {
-            keys[n++] = k;
-        }
-        cur = u->m_next_unit_on_tile;
-    }
-    if (n < 2u) {
-        return false;
-    }
-    bool leave[k_cap];
-    for (u16 i = 0; i < n; ++i) {
-        leave[i] = false;
-    }
-    u16 left = 0;
-    for (u16 i = 0; i < n && left < k_leave; ++i) {
-        const UnitAddStruct* u = u_get(s, keys[i]);
-        if (u != nullptr && is_defense_typ(s, u->m_unit_typ_idx)) {
-            leave[i] = true;
-            left++;
-        }
-    }
-    UnitAddKey head = UnitAddKey::None();
-    for (u16 i = 0; i < n; ++i) {
-        if (leave[i]) {
-            continue;
-        }
-        head = keys[i];
-        break;
-    }
-    if (!head.is_valid()) {
-        return false;
-    }
-    for (u16 i = 0; i < n; ++i) {
-        if (leave[i] || keys[i] == head) {
-            continue;
-        }
-        if (!link_group(s, head, keys[i])) {
-            return false;
-        }
-    }
-    *out_head = head;
-    return true;
+    return UnitGroupManagement::campaign_leave_five_defense(s, x, y, player_idx, out_head);
 }
 
 bool UnitMovementMng::destroy_unit (GameState& s, UnitAddKey key) {

@@ -121,6 +121,8 @@ public:
     u8 m_worker_tile_opt_scan = 0; // Worker tile optimization toggle; 0 off, 1 scan best
     u8 m_worker_tile_opt_reassign = 0; // Worker tile optimization toggle; 0 off, 1 reassign
     u8 m_tech_just_researched = 0; // 1 when a tech completed this turn; arms city worker-disk flags
+    u8 m_lucky = 0; // Nonzero if seat was marked lucky at setup
+    u8 m_at_war = 0; // Sticky: set when this seat starts a war; blocks another declare
     AiUnits m_ai_units = AiUnits::AI_UNITS_DEFAULT; // Unit production policy; Default for all seats for now
     u8 m_ai_units_tog = 0; // Aggressive civ-free pick toggle; 0 attack, 1 artillery
     ResourceLedger m_res_ledger; // Per-seat resource stockpile; length matches resource catalog

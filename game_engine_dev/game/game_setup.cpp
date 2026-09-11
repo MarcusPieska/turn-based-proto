@@ -103,26 +103,57 @@ static bool ensure_lucky_loader () {
     return false;
 }
 
-static bool apply_lucky_seats (GameArraySimple& map, const RuntimeStatics& st, const SpgPickCoords& starts) {
+static bool apply_lucky_seats (
+    GameArraySimple& map,
+    const RuntimeStatics& st,
+    const SpgPickCoords& starts,
+    u16* out_seats,
+    u16 out_cap,
+    u16* out_n)
+{
     if (!ensure_lucky_loader()) {
         return false;
     }
     if (starts.n == 0u || starts.n > SPG_MAX_PICK_PTS) {
         return false;
     }
-    u16 seats[SPG_MAX_PICK_PTS];
+    if (out_seats == nullptr || out_n == nullptr || out_cap == 0u) {
+        return false;
+    }
     LuckySeatReq req = {};
     req.m_map = &map;
     req.m_statics = &st;
     req.m_starts = starts.pts;
     req.m_start_n = static_cast<u16>(starts.n);
-    req.m_lucky_seats = seats;
-    req.m_lucky_cap = SPG_MAX_PICK_PTS;
+    req.m_lucky_seats = out_seats;
+    req.m_lucky_cap = out_cap;
     req.m_lucky_n = 0u;
     req.m_do_select = 1u;
     req.m_do_boost = 1u;
     const LuckySeatRslt r = g_lucky_loader.run(&req);
-    return r.m_ok;
+    if (!r.m_ok) {
+        return false;
+    }
+    *out_n = req.m_lucky_n;
+    return true;
+}
+
+static void mark_lucky_seats (GameState* state, const u16* seats, u16 n) {
+    if (state == nullptr || state->m_player_states == nullptr || seats == nullptr) {
+        return;
+    }
+    for (u16 i = 0; i < state->m_player_n; ++i) {
+        state->m_player_states[i].m_lucky = 0u;
+    }
+    for (u16 i = 0; i < n; ++i) {
+        const u16 s = seats[i];
+        if (s >= state->m_player_n) {
+            continue;
+        }
+        state->m_player_states[s].m_lucky = 1u;
+        state->m_player_states[s].m_ai_controlled = 1u;
+        state->m_player_states[s].m_ai_units = AiUnits::AI_UNITS_AGGRESSIVE;
+    }
 }
 
 //================================================================================================================================
@@ -457,7 +488,9 @@ bool GameSetup::finish_with_starts (GameState* state, const SpgPickCoords& start
     WorkerGuidance::bind_statics(g_rt_statics);
     WorkerGuidance::bind_map(&state->m_map);
     TileImpHelper::bind_statics(g_rt_statics);
-    if (!apply_lucky_seats(state->m_map, *g_rt_statics, starts)) {
+    u16 lucky_seats[SPG_MAX_PICK_PTS];
+    u16 lucky_n = 0u;
+    if (!apply_lucky_seats(state->m_map, *g_rt_statics, starts, lucky_seats, SPG_MAX_PICK_PTS, &lucky_n)) {
         std::printf("finish_with_starts: apply_lucky_seats failed\n");
         state->clear();
         return false;
@@ -466,6 +499,7 @@ bool GameSetup::finish_with_starts (GameState* state, const SpgPickCoords& start
         state->clear();
         return false;
     }
+    mark_lucky_seats(state, lucky_seats, lucky_n);
     City::bind_player_states(state->m_player_states, state->m_player_n);
     CityConnector::set_plan_spines(false);
     for (u16 i = 0; i < player_n; ++i) {

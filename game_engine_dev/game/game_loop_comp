@@ -31,10 +31,11 @@ INC="-I.. \
      -I../city/effector \
      -I../gen_bit_banks \
      -I../adv_map_gen \
+     -I../game \
      -I../ai_pathing/walk_general \
      -I../ai_pathing/walk_cities \
+     -I../ai_pathing/walk_target \
      -I../ai_proc \
-     -I../game \
      -Ilucky_seats"
 CXXFLAGS="-std=c++17 -Wall -Wextra"
 
@@ -156,6 +157,18 @@ g++ $CXXFLAGS $INC -c ../ai_proc/linear_tech.cpp -o linear_tech.o
 g++ $CXXFLAGS $INC -c ../ai_proc/linear_bld.cpp -o linear_bld.o
 g++ $CXXFLAGS $INC -c ../ai_proc/ai_unit_production_default.cpp -o ai_unit_production_default.o
 g++ $CXXFLAGS $INC -c ../ai_proc/ai_unit_production_aggressive.cpp -o ai_unit_production_aggressive.o
+g++ $CXXFLAGS $INC -c tile_transfer.cpp -o tile_transfer.o
+g++ $CXXFLAGS $INC -c ../ai_proc/target_ordering_manhattan.cpp -o target_ordering_manhattan.o
+g++ $CXXFLAGS $INC -c ../ai_proc/target_ordering_flood.cpp -o target_ordering_flood.o
+g++ $CXXFLAGS $INC -c ../adv_map_gen/wb_que_xy.cpp -o wb_que_xy.o
+g++ $CXXFLAGS $INC -c ../ai_pathing/walk_target/generate_access_mask.cpp -o generate_access_mask.o
+g++ $CXXFLAGS $INC -c ../ai_pathing/walk_target/generate_distance_p2p.cpp -o generate_distance_p2p.o
+g++ $CXXFLAGS $INC -c ../ai_pathing/walk_target/walk_p2p.cpp -o walk_p2p.o
+g++ $CXXFLAGS $INC -c ../ai_proc/generate_exposure.cpp -o generate_exposure.o
+g++ $CXXFLAGS $INC -c ../ai_proc/city_attack_manager.cpp -o city_attack_manager.o
+g++ $CXXFLAGS $INC -c combat_mng.cpp -o combat_mng.o
+g++ $CXXFLAGS $INC -c ../city/effector/city_defense_booster_register.cpp -o city_defense_booster_register.o
+g++ $CXXFLAGS $INC -c ../ai_proc/war_turn_handler.cpp -o war_turn_handler.o
 g++ $CXXFLAGS $INC -c game_loop_tester.cpp -o game_loop_tester.o
 
 g++ $CXXFLAGS -o game_loop_tester \
@@ -271,6 +284,18 @@ g++ $CXXFLAGS -o game_loop_tester \
     linear_bld.o \
     ai_unit_production_default.o \
     ai_unit_production_aggressive.o \
+    tile_transfer.o \
+    target_ordering_manhattan.o \
+    target_ordering_flood.o \
+    wb_que_xy.o \
+    generate_access_mask.o \
+    generate_distance_p2p.o \
+    walk_p2p.o \
+    generate_exposure.o \
+    city_attack_manager.o \
+    combat_mng.o \
+    city_defense_booster_register.o \
+    war_turn_handler.o \
     game_loop_tester.o \
     -ldl \
     $LIB_SO \
@@ -310,5 +335,9 @@ rm -f runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_load
     city_turn_handler_expansionist.o city_turn_handler_religious.o city_turn_handler_militaristic.o \
     city_turn_handler_scientific.o research_turn_handler.o sense_settling_pts_opt.o settler_turn_handler.o \
     worker_turn_handler.o defensive_unit_turn_handler.o linear_tech.o linear_bld.o \
-    ai_unit_production_default.o ai_unit_production_aggressive.o game_loop_tester.o
+    ai_unit_production_default.o ai_unit_production_aggressive.o \
+    tile_transfer.o target_ordering_manhattan.o target_ordering_flood.o \
+    wb_que_xy.o generate_access_mask.o generate_distance_p2p.o walk_p2p.o \
+    generate_exposure.o city_attack_manager.o combat_mng.o city_defense_booster_register.o war_turn_handler.o \
+    game_loop_tester.o
 

@@ -2,44 +2,36 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef CITY_ARRAY_WALK_CITIES_H
-#define CITY_ARRAY_WALK_CITIES_H
+#ifndef TARGET_SECTOR_INTEGRAL_H
+#define TARGET_SECTOR_INTEGRAL_H
 
 #include "game_primitives.h"
 
-class City;
-
 //================================================================================================================================
-//=> - CityArray class -
+//=> - TargetSector_Integral -
 //================================================================================================================================
 //
-//  Exp stub matching game/city_array.h page layout. No bit banks.
+//  Picks a land sector and enemy seat for war declaration. Prefers any shared sector; otherwise the
+//  best integral neighbor. Fills the caller's city-index queue with that enemy's cities in the
+//  sector (same buffer shape as WarTurnHandler::m_tgts). Requires SectorSupport::bind.
 //
 //================================================================================================================================
 
-class CityArray {
+class TargetSector_Integral {
 public:
-    CityArray ();
-    ~CityArray ();
-
-    City* get_city (u16 city_idx);
-    const City* get_city (u16 city_idx) const;
-    u16 get_next_new_city_idx ();
-    u16 get_page_count () const;
-    u16 get_city_count () const;
-    City* get_page (u16 page_idx);
-    const City* get_page (u16 page_idx) const;
-
-    static const u16 MAX_PAGES = 256;
-    static const u16 CITIES_PER_PAGE = 256;
+    static bool pick (
+        u16 player,
+        u16* tgts,
+        u16 cap,
+        u16* out_n,
+        u16* out_sector,
+        u16* out_enemy);
 
 private:
-    City* m_pages[MAX_PAGES];
-    u16 m_city_count;
-    u16 m_page_count;
+    TargetSector_Integral () = delete;
 };
 
-#endif // CITY_ARRAY_WALK_CITIES_H
+#endif // TARGET_SECTOR_INTEGRAL_H
 
 //================================================================================================================================
 //=> - End of file -

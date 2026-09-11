@@ -7,7 +7,7 @@
 #include "game_array_simple.h"
 #include "game_map_defs.h"
 #include "game_state.h"
-#include "wb_que_xy.h"
+#include "../../adv_map_gen/wb_que_xy.h"
 
 //================================================================================================================================
 //=> - Constants -

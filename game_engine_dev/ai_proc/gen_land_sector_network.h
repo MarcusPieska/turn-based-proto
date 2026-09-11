@@ -2,44 +2,33 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef CITY_ARRAY_WALK_CITIES_H
-#define CITY_ARRAY_WALK_CITIES_H
+#ifndef GEN_LAND_SECTOR_NETWORK_H
+#define GEN_LAND_SECTOR_NETWORK_H
 
 #include "game_primitives.h"
+#include "land_sector_network.h"
 
-class City;
+class Whiteboard_2B;
 
 //================================================================================================================================
-//=> - CityArray class -
+//=> - GenLandSectorNetwork -
 //================================================================================================================================
 //
-//  Exp stub matching game/city_array.h page layout. No bit banks.
+//  Builds undirected adjacency for GenLandSectors paint (tag = sector id + 1). Two sectors link when
+//  they share a 4-neighbor walkable border. Output is a LandSectorNetwork link array.
 //
 //================================================================================================================================
 
-class CityArray {
+class GenLandSectorNetwork {
 public:
-    CityArray ();
-    ~CityArray ();
+    GenLandSectorNetwork () = delete;
 
-    City* get_city (u16 city_idx);
-    const City* get_city (u16 city_idx) const;
-    u16 get_next_new_city_idx ();
-    u16 get_page_count () const;
-    u16 get_city_count () const;
-    City* get_page (u16 page_idx);
-    const City* get_page (u16 page_idx) const;
-
-    static const u16 MAX_PAGES = 256;
-    static const u16 CITIES_PER_PAGE = 256;
+    static bool build (const Whiteboard_2B& sec, u16 sec_n, LandSectorNetwork* out);
 
 private:
-    City* m_pages[MAX_PAGES];
-    u16 m_city_count;
-    u16 m_page_count;
 };
 
-#endif // CITY_ARRAY_WALK_CITIES_H
+#endif // GEN_LAND_SECTOR_NETWORK_H
 
 //================================================================================================================================
 //=> - End of file -
