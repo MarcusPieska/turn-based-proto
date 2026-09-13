@@ -159,6 +159,11 @@ u8 GameArraySimple::get_road_typ (u16 x, u16 y) const {
     return static_cast<u8>(m_tiles[tidx(x, y)].m_road_typ);
 }
 
+u8 GameArraySimple::get_mtn_line (u16 x, u16 y) const {
+    CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
+    return static_cast<u8>(m_tiles[tidx(x, y)].m_mtn_line);
+}
+
 GameTileSimple* GameArraySimple::tile (u16 x, u16 y) {
     CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
     return &m_tiles[tidx(x, y)];
@@ -277,6 +282,12 @@ bool GameArraySimple::set_ai_ov_intent (u16 x, u16 y, u8 intent) {
 bool GameArraySimple::set_tile_usage (u16 x, u16 y, u8 usage) {
     CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
     m_tiles[tidx(x, y)].m_tile_usage = static_cast<u64>(usage & 3u);
+    return true;
+}
+
+bool GameArraySimple::set_mtn_line (u16 x, u16 y, u8 on) {
+    CHECK_MAP_ARRAY_ACCESS((m_w, m_h, x, y));
+    m_tiles[tidx(x, y)].m_mtn_line = on != 0 ? 1u : 0u;
     return true;
 }
 

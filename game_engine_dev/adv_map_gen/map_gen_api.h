@@ -7,6 +7,7 @@
 
 #include "game_primitives.h"
 #include "map_config.h"
+#include "p1_tile_flags.h"
 
 struct RuntimeStatics;
 
@@ -32,6 +33,7 @@ struct MakeMapRslt {
     u8* m_rivers;
     u8* m_overlay;
     u16* m_resources;
+    P1_TileFlags* m_flags;
 };
 
 #ifdef __cplusplus

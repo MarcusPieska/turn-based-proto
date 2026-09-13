@@ -27,6 +27,7 @@ struct MapPpmPaths {
     cstr m_riv; // River PPM from adv_map_gen
     cstr m_ov; // Overlay PPM from adv_map_gen; may be null
     cstr m_res; // Resource PPM from res_dist; may be null
+    cstr m_flags; // Packed flags PPM from adv_map_gen; may be null
 };
 
 //================================================================================================================================

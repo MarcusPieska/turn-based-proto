@@ -90,6 +90,7 @@ static const P1_TesterCfg g_p1_tester_tbl[] = {
     {"p1_gen_loess_boost_tester", P1_STEP_LOESS, P1_TIN_MK, P1_STEP_CLIMATE, "32_loess_boost.ppm", ""},
     {"p1_adj_grassland_loess_tiles_tester", P1_STEP_GRASS_LOESS, P1_TIN_MK, P1_STEP_LOESS, "33_grassland_loess_tiles.ppm", ""},
     {"p1_make_map_tester", P1_STEP_MAKE_MAP, P1_TIN_MK, P1_STEP_MAKE_MAP, "35_make_map_terrain.ppm", "35_make_map_climate.ppm"},
+    {"tile_flags_tester", P1_STEP_MAKE_MAP, P1_TIN_MK, P1_STEP_MAKE_MAP, "flags_defensible_mtn.ppm", ""},
     {"p1_gen_rich_coast_fertility_tester", P1_STEP_RICH_COAST_FERT, P1_TIN_MK, P1_STEP_CLIMATE, "36_rich_coast_fertility.ppm", ""},
     {"p1_adj_coast_fertility_tester", P1_STEP_COAST_FERT_ADJ, P1_TIN_MK, P1_STEP_CLIMATE, "37_coast_fertility_adj.ppm", ""},
     {"p1_adj_ensure_adj_rules_tester", P1_STEP_ENSURE_ADJ, P1_TIN_MK, P1_STEP_DELTA_SWAMPS, "41_ensure_adj_rules.ppm", "41_ensure_adj_rules_terrain.ppm"},

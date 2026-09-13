@@ -17,6 +17,8 @@
 #include "gen_land_sector_network.h"
 #include "gen_land_sectors.h"
 #include "map_loader.h"
+#include "runtime_static_loader.h"
+#include "tile_attr_tables.h"
 #include "whiteboard_mng.h"
 
 //================================================================================================================================
@@ -27,6 +29,8 @@ typedef const char* cstr;
 
 static const char* G_MAP_ROOT = "/home/w/Projects/simple-map-gen";
 static const char* G_OUT_DIR = "/home/w/Projects/simple-map-gen/gen-land-sectors";
+static const char* G_RT_LIB = "../../data_io/runtime_static_loader_lib.so";
+static const char* G_RT_DATA = "../../";
 static const u32 G_SEED = 43u;
 static const u32 G_RNG = 43u;
 static const u16 k_pal_n = 24u;
@@ -35,6 +39,7 @@ static char g_terr[320];
 static char g_clim[320];
 static char g_riv[320];
 static char g_ov[320];
+static char g_flags[320];
 static char g_dir[256];
 
 int test_count = 0;
@@ -77,6 +82,9 @@ static bool build_paths () {
         return false;
     }
     if (std::snprintf(g_ov, sizeof(g_ov), "%s/overlay.ppm", g_dir) <= 0) {
+        return false;
+    }
+    if (std::snprintf(g_flags, sizeof(g_flags), "%s/flags.ppm", g_dir) <= 0) {
         return false;
     }
     return true;
@@ -351,8 +359,13 @@ int main (int argc, char* argv[]) {
     note_result(build_paths(), "build map paths");
     note_result(::mkdir(G_OUT_DIR, 0755) == 0 || errno == EEXIST, "ensure out dir");
 
+    RuntimeStaticLoader loader;
+    note_result(loader.load(G_RT_LIB, G_RT_DATA), "RuntimeStaticLoader::load");
+    note_result(TileAttrTables::setup(loader.statics()), "TileAttrTables::setup");
+
     GameArraySimple map;
     note_result(Factory_GameArraySimple::load_map_gen_data(&map, g_terr, g_clim, g_riv, g_ov), "load map");
+    note_result(Factory_GameArraySimple::load_flags_data(&map, g_flags), "load flags");
     note_result(map.width() > 0 && map.height() > 0, "map size");
 
     WhiteboardMng::init(map.width(), map.height());
@@ -369,7 +382,7 @@ int main (int argc, char* argv[]) {
 
     LandSectorNetwork net;
     auto t0 = std::chrono::steady_clock::now();
-    const bool net_ok = GenLandSectorNetwork::build(gls.sectors(), gls.sector_n(), &net);
+    const bool net_ok = GenLandSectorNetwork::build(gls.sectors(), gls.sector_n(), map, &net);
     const double net_ms = ms_since(t0);
     note_result(net_ok && net.ok(), "GenLandSectorNetwork::build");
     note_result(net.link_n() > 0u, "link_n > 0");

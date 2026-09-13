@@ -19,6 +19,7 @@
 #include "p1_map_size.h"
 #include "p1_pipeline_steps.h"
 #include "p1_tester_util.h"
+#include "p1_tile_flags.h"
 
 //================================================================================================================================
 //=> - P1_MakeMapPrm -
@@ -99,6 +100,7 @@ struct P1_MakeMapRslt {
     u8* m_rain;
     u8* m_overlay;
     u16* m_resources;
+    P1_TileFlags* m_flags;
 };
 
 //================================================================================================================================
@@ -119,6 +121,8 @@ public:
     bool save_rivers_ppm (cstr path) const;
     bool save_overlay_ppm (cstr path) const;
     bool save_resources_ppm (cstr path) const;
+    bool save_flags_data_ppm (cstr path) const;
+    bool save_flags_ppm (cstr path_pfx) const;
     bool save_seed_export () const;
     static void free_rslt (P1_MakeMapRslt* rslt);
     static bool copy_rslt (P1_MakeMapRslt* dst, const P1_MakeMapRslt& src);

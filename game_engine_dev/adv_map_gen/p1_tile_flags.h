@@ -2,39 +2,28 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef GEN_LAND_SECTOR_NETWORK_H
-#define GEN_LAND_SECTOR_NETWORK_H
+#ifndef P1_TILE_FLAGS_H
+#define P1_TILE_FLAGS_H
 
 #include "game_primitives.h"
-#include "land_sector_network.h"
-
-class GameArraySimple;
-class Whiteboard_2B;
 
 //================================================================================================================================
-//=> - GenLandSectorNetwork -
+//=> - P1_TileFlags -
 //================================================================================================================================
 //
-//  Builds undirected adjacency for GenLandSectors paint (tag = sector id + 1). Two sectors link when
-//  they share a 4-neighbor open-land border. Tiles with m_mtn_line set are blocking for connectivity.
-//  Output is a LandSectorNetwork link array.
+//  Per-tile bit-packed map flags allocated for the full P1 pipeline. Remaining bits reserved.
 //
 //================================================================================================================================
 
-class GenLandSectorNetwork {
-public:
-    GenLandSectorNetwork () = delete;
-
-    static bool build (
-        const Whiteboard_2B& sec,
-        u16 sec_n,
-        const GameArraySimple& map,
-        LandSectorNetwork* out);
-
-private:
+struct P1_TileFlags {
+    u8 defensible_mtn : 1; // Coastal mountain selections and watershed mountain line-set tiles
+    u8 watershed_lim : 1; // Full inter-basin watershed border tiles
+    u8 reserved : 6; // Reserved for future flag bits
 };
 
-#endif // GEN_LAND_SECTOR_NETWORK_H
+static_assert(sizeof(P1_TileFlags) == 1u, "P1_TileFlags must be one byte");
+
+#endif // P1_TILE_FLAGS_H
 
 //================================================================================================================================
 //=> - End of file -

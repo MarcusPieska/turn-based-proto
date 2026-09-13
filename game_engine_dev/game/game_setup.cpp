@@ -624,6 +624,10 @@ bool GameSetup::setup_new_game (GameState* state, const MapPpmPaths& paths, u16 
         state->clear();
         return false;
     }
+    if (paths.m_flags != nullptr && !Factory_GameArraySimple::load_flags_data(&state->m_map, paths.m_flags)) {
+        state->clear();
+        return false;
+    }
     return complete_new_game(state, player_n);
 }
 

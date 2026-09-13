@@ -38,7 +38,7 @@ struct GameTileSimple {
     u64 m_road_typ : 3; // Road type (ROAD_* in game_map_defs.h)
     u64 m_settler_blocked : 1; // Settler blocked flag (0 none, nonzero is blocked by existing settlements)
 
-    // Almost static fields: Second 8 bytes: 16×2 + 4×2 + 1 + 5 + 2 = 48b  <= 64b
+    // Almost static fields: Second 8 bytes: 16×2 + 4×2 + 1 + 5 + 2 + 1 = 49b  <= 64b
 
     u64 m_res : 16; // Map resource index on this tile; UINT16_MAX if none
     u64 m_ov : 16; // Base-map overlay id in game_data.map_overlays
@@ -47,6 +47,7 @@ struct GameTileSimple {
     u64 m_riv : 1; // River flag (0 none, nonzero has river)
     u64 m_ai_ov_intent : 5; // Exclusive AI overlay intent (AiTileOvIntent)
     u64 m_tile_usage : 2; // TileAssignIntent stamped by CityTileManager; 0 food, 1 prod
+    u64 m_mtn_line: 1; // Derived from mountain range generation; will also natively cover mountain range passages
 };
 
 //================================================================================================================================
@@ -87,6 +88,7 @@ public:
     u8 get_ai_ov_intent (u16 x, u16 y) const; // AiTileOvIntent at tile
     u8 get_tile_usage (u16 x, u16 y) const; // Assign intent (TileAssignIntent)
     u8 get_road_typ (u16 x, u16 y) const; // Road type at tile (ROAD_*; 0 none)
+    u8 get_mtn_line (u16 x, u16 y) const; // Defensible mountain-line flag at tile
     GameTileSimple* tile (u16 x, u16 y); // Mutable tile at (x, y); for STD bit helpers
     const GameTileSimple* tile (u16 x, u16 y) const; // Const tile at (x, y)
     
@@ -102,6 +104,7 @@ public:
     bool set_planned_city (u16 x, u16 y, u8 planned); // Sets CITY intent; 0 clears only if CITY
     bool set_ai_ov_intent (u16 x, u16 y, u8 intent); // Exclusive AiTileOvIntent; NONE clears
     bool set_tile_usage (u16 x, u16 y, u8 usage); // Assign intent; TileAssignIntent 0..1
+    bool set_mtn_line (u16 x, u16 y, u8 on); // Defensible mountain-line flag; 0 clears
 
 private:
     friend class Factory_GameArraySimple;

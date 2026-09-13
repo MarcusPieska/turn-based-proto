@@ -38,6 +38,7 @@ static char g_clim[320];
 static char g_riv[320];
 static char g_ov[320];
 static char g_res[320];
+static char g_flags[320];
 static char g_dir[256];
 
 int test_count = 0;
@@ -83,6 +84,9 @@ static bool build_paths () {
         return false;
     }
     if (std::snprintf(g_res, sizeof(g_res), "%s/resources.ppm", g_dir) <= 0) {
+        return false;
+    }
+    if (std::snprintf(g_flags, sizeof(g_flags), "%s/flags.ppm", g_dir) <= 0) {
         return false;
     }
     return true;
@@ -288,6 +292,7 @@ int main (int argc, char* argv[]) {
     GameArraySimple map;
     note_result(Factory_GameArraySimple::load_map_gen_data(&map, g_terr, g_clim, g_riv, g_ov), "load map");
     note_result(Factory_GameArraySimple::load_res_dist_data(&map, g_res), "load resources");
+    note_result(Factory_GameArraySimple::load_flags_data(&map, g_flags), "load flags");
     note_result(map.width() > 0 && map.height() > 0, "map size");
 
     WhiteboardMng::init(map.width(), map.height());

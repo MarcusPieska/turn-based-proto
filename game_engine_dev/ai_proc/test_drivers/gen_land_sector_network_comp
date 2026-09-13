@@ -3,9 +3,16 @@ set -e
 
 cd "$(dirname "$0")"
 
+LIB_SO="../../data_io/runtime_static_loader_lib.so"
+if [ ! -f "$LIB_SO" ]; then
+    echo "missing $LIB_SO - run ../../data_io/runtime_static_loader_lib_comp first"
+    exit 1
+fi
+
 INC="-I../.. -I.. -I../../map_loader -I../../simple_map_gen -I../../adv_map_gen -I../../city -I../../city/effector -I../../game -I../../misc -I../../data_io -I../../static_state -I../../dyn_state -I../../gen_bit_banks -I../../ai_pathing/walk_general"
 CXXFLAGS="-std=c++17 -Wall -Wextra"
 
+g++ $CXXFLAGS $INC -c ../../data_io/runtime_static_loader.cpp -o runtime_static_loader.o
 g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
 g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_data.cpp -o map_terrain_data.o
 g++ $CXXFLAGS $INC -c ../../map_loader/map_loader.cpp -o map_loader.o
@@ -24,6 +31,7 @@ g++ $CXXFLAGS $INC -c ../gen_land_sector_network.cpp -o gen_land_sector_network.
 g++ $CXXFLAGS $INC -c gen_land_sector_network_tester.cpp -o gen_land_sector_network_tester.o
 
 g++ $CXXFLAGS -o gen_land_sector_network_tester \
+    runtime_static_loader.o \
     map_terrain_validate.o \
     map_terrain_data.o \
     map_loader.o \
@@ -40,12 +48,15 @@ g++ $CXXFLAGS -o gen_land_sector_network_tester \
     land_sector_network.o \
     gen_land_sector_network.o \
     gen_land_sector_network_tester.o \
+    -ldl \
+    $LIB_SO \
+    -Wl,-rpath,'$ORIGIN/../../data_io' \
     -lm
 
 ./gen_land_sector_network_tester "$@"
 RC=$?
 
-rm -f map_terrain_validate.o map_terrain_data.o map_loader.o \
+rm -f runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.o \
     perlin_noise.o generator_constants.o runtime_trace_dbg.o assert_log.o \
     whiteboard_mng.o game_array_simple_link_stubs.o game_array_simple.o \
     factory_game_array_simple.o tile_attr_tables.o gen_land_sectors.o land_sector_network.o \

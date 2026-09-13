@@ -46,7 +46,8 @@ static bool copy_u16 (u16** dst, const u16* src, u32 n) {
 
 static bool fill_canonical (MakeMapRslt* out, const P1_MakeMapRslt& src) {
     if (out == nullptr || src.m_terrain == nullptr || src.m_climate == nullptr || src.m_rivers == nullptr
-        || src.m_overlay == nullptr || src.m_resources == nullptr || src.m_w == 0u || src.m_h == 0u) {
+        || src.m_overlay == nullptr || src.m_resources == nullptr || src.m_flags == nullptr
+        || src.m_w == 0u || src.m_h == 0u) {
         return false;
     }
     const u32 npx = static_cast<u32>(src.m_w) * static_cast<u32>(src.m_h);
@@ -58,6 +59,12 @@ static bool fill_canonical (MakeMapRslt* out, const P1_MakeMapRslt& src) {
         map_gen_free_rslt(out);
         return false;
     }
+    out->m_flags = new P1_TileFlags[npx];
+    if (out->m_flags == nullptr) {
+        map_gen_free_rslt(out);
+        return false;
+    }
+    std::memcpy(out->m_flags, src.m_flags, static_cast<size_t>(npx) * sizeof(P1_TileFlags));
     out->m_ok = true;
     out->m_w = src.m_w;
     out->m_h = src.m_h;
@@ -103,11 +110,13 @@ void map_gen_free_rslt (MakeMapRslt* rslt) {
     delete[] rslt->m_rivers;
     delete[] rslt->m_overlay;
     delete[] rslt->m_resources;
+    delete[] rslt->m_flags;
     rslt->m_terrain = nullptr;
     rslt->m_climate = nullptr;
     rslt->m_rivers = nullptr;
     rslt->m_overlay = nullptr;
     rslt->m_resources = nullptr;
+    rslt->m_flags = nullptr;
     rslt->m_w = 0;
     rslt->m_h = 0;
     rslt->m_ok = false;

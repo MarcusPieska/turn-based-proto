@@ -50,6 +50,7 @@ static char g_clim[320];
 static char g_riv[320];
 static char g_ov[320];
 static char g_res[320];
+static char g_flags[320];
 
 static const u8 k_own_pal[][3] = {
     {220, 40, 40}, {40, 90, 220}, {40, 170, 70}, {220, 110, 30},
@@ -89,6 +90,9 @@ static bool build_paths () {
         return false;
     }
     if (std::snprintf(g_res, sizeof(g_res), "%s/resources.ppm", dir) <= 0) {
+        return false;
+    }
+    if (std::snprintf(g_flags, sizeof(g_flags), "%s/flags.ppm", dir) <= 0) {
         return false;
     }
     return true;
@@ -391,6 +395,7 @@ int main () {
     paths.m_riv = g_riv;
     paths.m_ov = g_ov;
     paths.m_res = g_res;
+    paths.m_flags = g_flags;
     if (!setup.setup_new_game(&state, paths, G_PLAYERS)) {
         std::printf("setup_new_game failed\n");
         return 1;
@@ -438,7 +443,7 @@ int main () {
         return 1;
     }
     LandSectorNetwork net;
-    if (!GenLandSectorNetwork::build(gls.sectors(), gls.sector_n(), &net) || !net.ok()) {
+    if (!GenLandSectorNetwork::build(gls.sectors(), gls.sector_n(), state.m_map, &net) || !net.ok()) {
         std::printf("FAIL: GenLandSectorNetwork::build\n");
         GenLandSectors::free_seeds(&seeds);
         state.clear();

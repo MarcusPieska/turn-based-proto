@@ -31,6 +31,10 @@ public:
         GameArraySimple* out, // Grid from load_map_gen_data; must match res PPM size
         cstr res_path); // Resource overlay PPM from res_dist
 
+    static bool load_flags_data (
+        GameArraySimple* out, // Grid from load_map_gen_data; must match flags PPM size
+        cstr flags_path); // Packed flags PPM from adv_map_gen (R = byte)
+
     static bool load_from_rslt (
         GameArraySimple* out, // Destination grid; cleared then filled
         const MakeMapRslt& rslt); // In-memory map from map_gen_generate

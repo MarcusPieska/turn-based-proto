@@ -6,6 +6,7 @@
 
 #include <cstring>
 
+#include "game_array_simple.h"
 #include "gen_land_sectors.h"
 #include "whiteboard_mng.h"
 
@@ -20,7 +21,12 @@ static const i32 k_dy4[4] = {0, 0, -1, 1};
 //=> - GenLandSectorNetwork -
 //================================================================================================================================
 
-bool GenLandSectorNetwork::build (const Whiteboard_2B& sec, u16 sec_n, LandSectorNetwork* out) {
+bool GenLandSectorNetwork::build (
+    const Whiteboard_2B& sec,
+    u16 sec_n,
+    const GameArraySimple& map,
+    LandSectorNetwork* out)
+{
     if (out == nullptr || !sec.ok() || sec_n == 0u) {
         return false;
     }
@@ -28,6 +34,9 @@ bool GenLandSectorNetwork::build (const Whiteboard_2B& sec, u16 sec_n, LandSecto
     const u16 w = sec.w();
     const u16 h = sec.h();
     if (w == 0u || h == 0u || WhiteboardMng::width() != w || WhiteboardMng::height() != h) {
+        return false;
+    }
+    if (map.width() != w || map.height() != h) {
         return false;
     }
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
@@ -49,10 +58,20 @@ bool GenLandSectorNetwork::build (const Whiteboard_2B& sec, u16 sec_n, LandSecto
         }
         const u32 py = ti / wi;
         const u32 px = ti - py * wi;
+        const u16 ux0 = static_cast<u16>(px);
+        const u16 uy0 = static_cast<u16>(py);
+        if (map.get_mtn_line(ux0, uy0) != 0u) {
+            continue;
+        }
         for (i32 d = 0; d < 4; ++d) {
             const i32 nx = static_cast<i32>(px) + k_dx4[d];
             const i32 ny = static_cast<i32>(py) + k_dy4[d];
             if (nx < 0 || ny < 0 || nx >= static_cast<i32>(w) || ny >= static_cast<i32>(h)) {
+                continue;
+            }
+            const u16 ux = static_cast<u16>(nx);
+            const u16 uy = static_cast<u16>(ny);
+            if (map.get_mtn_line(ux, uy) != 0u) {
                 continue;
             }
             const u32 ni = static_cast<u32>(ny) * wi + static_cast<u32>(nx);

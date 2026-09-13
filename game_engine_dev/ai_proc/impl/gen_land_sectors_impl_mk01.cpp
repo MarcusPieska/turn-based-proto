@@ -377,6 +377,10 @@ bool GenLandSectors::build (const LandSectorSeeds& seeds) {
             if (!gls_is_walk_land(m_map->get_terrain(ux, uy))) {
                 continue;
             }
+            if (m_map->get_mtn_line(static_cast<u16>(px), static_cast<u16>(py)) != 0u
+                && m_map->get_mtn_line(ux, uy) == 0u) {
+                continue;
+            }
             m_sec.wr_i(ni, sid);
             q[qn++] = ni;
             ++m_paint_n;

@@ -57,6 +57,7 @@ g++ $CXXFLAGS $INC -c ../dyn_state/shipyard_add_vector.cpp -o shipyard_add_vecto
 g++ $CXXFLAGS $INC -c ../dyn_state/trade_post_add_vector.cpp -o trade_post_add_vector.o
 g++ $CXXFLAGS $INC -c ../dyn_state/unit_add_vector.cpp -o unit_add_vector.o
 g++ $CXXFLAGS $INC -c ../dyn_state/unit_movement_mng.cpp -o unit_movement_mng.o
+g++ $CXXFLAGS $INC -c ../dyn_state/unit_group_management.cpp -o unit_group_management.o
 g++ $CXXFLAGS $INC -c tile_attr_tables.cpp -o tile_attr_tables.o
 g++ $CXXFLAGS $INC -c ../ai_pathing/walk_general/sector_network.cpp -o sector_network.o
 g++ $CXXFLAGS $INC -c ../ai_pathing/walk_general/sector_network_router.cpp -o sector_network_router.o
@@ -190,6 +191,7 @@ g++ $CXXFLAGS -o game_loop_tester \
     trade_post_add_vector.o \
     unit_add_vector.o \
     unit_movement_mng.o \
+    unit_group_management.o \
     tile_attr_tables.o \
     sector_network.o \
     sector_network_router.o \
@@ -310,7 +312,7 @@ rm -f runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_load
     map_bit_array_overlay.o bit_array.o \
     fort_add_vector.o mine_add_vector.o monastery_add_vector.o \
     outpost_add_vector.o plantation_add_vector.o shipyard_add_vector.o \
-    trade_post_add_vector.o unit_add_vector.o unit_movement_mng.o tile_attr_tables.o overlay_yields.o \
+    trade_post_add_vector.o unit_add_vector.o unit_movement_mng.o unit_group_management.o tile_attr_tables.o overlay_yields.o \
     sector_network.o sector_network_router.o city_network.o city_connector.o point_seq_flood_walker.o \
     game_array_simple.o factory_game_array_simple.o game_state.o player_ledger.o \
     resource_ledger.o resource_turn_handler.o \

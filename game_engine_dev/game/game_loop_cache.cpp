@@ -16,7 +16,7 @@
 
 static const u32 k_map_magic = 0x504d4c47u;
 static const u32 k_starts_magic = 0x54534c47u;
-static const u32 k_cache_ver = 1u; 
+static const u32 k_cache_ver = 2u; 
 
 //================================================================================================================================
 //=> - GameLoopCache -
@@ -69,11 +69,13 @@ bool GameLoopCache::save_map (cstr path, const GameArraySimple& map) {
         const u8 ov = catalog_ov_to_map_gen(static_cast<u16>(t.m_ov));
         const u8 riv = static_cast<u8>(t.m_riv);
         const u16 res = static_cast<u16>(t.m_res);
+        const u8 mtn = static_cast<u8>(t.m_mtn_line);
         if (std::fwrite(&terr, sizeof(terr), 1, fp) != 1
             || std::fwrite(&clim, sizeof(clim), 1, fp) != 1
             || std::fwrite(&ov, sizeof(ov), 1, fp) != 1
             || std::fwrite(&riv, sizeof(riv), 1, fp) != 1
-            || std::fwrite(&res, sizeof(res), 1, fp) != 1) {
+            || std::fwrite(&res, sizeof(res), 1, fp) != 1
+            || std::fwrite(&mtn, sizeof(mtn), 1, fp) != 1) {
             std::fclose(fp);
             return false;
         }
@@ -118,16 +120,19 @@ bool GameLoopCache::load_map (cstr path, GameArraySimple* out) {
         t->m_settler_blocked = 0;
         t->m_ai_ov_intent = AI_TILE_OV_INTENT_NONE;
         t->m_tile_usage = 0;
+        t->m_mtn_line = 0;
         u8 terr = 0;
         u8 clim = 0;
         u8 ov = 0;
         u8 riv = 0;
         u16 res = 0;
+        u8 mtn = 0;
         if (std::fread(&terr, sizeof(terr), 1, fp) != 1
             || std::fread(&clim, sizeof(clim), 1, fp) != 1
             || std::fread(&ov, sizeof(ov), 1, fp) != 1
             || std::fread(&riv, sizeof(riv), 1, fp) != 1
-            || std::fread(&res, sizeof(res), 1, fp) != 1) {
+            || std::fread(&res, sizeof(res), 1, fp) != 1
+            || std::fread(&mtn, sizeof(mtn), 1, fp) != 1) {
             delete[] tiles;
             std::fclose(fp);
             return false;
@@ -137,6 +142,7 @@ bool GameLoopCache::load_map (cstr path, GameArraySimple* out) {
         t->m_ov = map_gen_ov_to_catalog(ov);
         t->m_riv = riv;
         t->m_res = res;
+        t->m_mtn_line = mtn != 0u ? 1u : 0u;
     }
     std::fclose(fp);
     out->clear();

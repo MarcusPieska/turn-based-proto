@@ -42,7 +42,8 @@ struct LandSectorSeeds {
 //  Land sectorization (impl via GEN_LAND_SECTORS_IMPL; default mk01). After begin, gen_seeds places
 //  staggered lattice / small-mass seeds, transparently runs build (multi-source flood into m_sec),
 //  then completes the sector array with m_tiles / m_yields / m_res. sectors() returns the flood whiteboard.
-//  Needs WhiteboardMng sized to the map.
+//  Flood may enter m_mtn_line tiles but cannot leave them onto m_mtn_line == 0. Needs WhiteboardMng
+//  sized to the map.
 //
 //================================================================================================================================
 

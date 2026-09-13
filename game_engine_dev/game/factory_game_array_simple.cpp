@@ -252,6 +252,7 @@ bool Factory_GameArraySimple::load_map_gen_data (
         t->m_settler_blocked = 0;
         t->m_ai_ov_intent = AI_TILE_OV_INTENT_NONE;
         t->m_tile_usage = 0;
+        t->m_mtn_line = 0;
     }
     delete[] ov;
     delete[] riv;
@@ -283,9 +284,38 @@ bool Factory_GameArraySimple::load_res_dist_data (GameArraySimple* out, cstr res
     return true;
 }
 
+bool Factory_GameArraySimple::load_flags_data (GameArraySimple* out, cstr flags_path) {
+    if (out == nullptr || flags_path == nullptr) {
+        return false;
+    }
+    const u16 w = out->m_w;
+    const u16 h = out->m_h;
+    if (out->m_tiles == nullptr || w == 0 || h == 0) {
+        return false;
+    }
+    u16 pw = 0;
+    u16 ph = 0;
+    u8* rgb = nullptr;
+    if (!rd_ppm_rgb(flags_path, &pw, &ph, &rgb)) {
+        return false;
+    }
+    if (pw != w || ph != h) {
+        delete[] rgb;
+        return false;
+    }
+    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
+    for (u32 i = 0; i < n; ++i) {
+        const u8 v = rgb[i * 3u];
+        out->m_tiles[i].m_mtn_line = (v & 1u) != 0u ? 1u : 0u;
+    }
+    delete[] rgb;
+    return true;
+}
+
 bool Factory_GameArraySimple::load_from_rslt (GameArraySimple* out, const MakeMapRslt& rslt) {
     if (out == nullptr || !rslt.m_ok || rslt.m_terrain == nullptr || rslt.m_climate == nullptr
-        || rslt.m_rivers == nullptr || rslt.m_overlay == nullptr || rslt.m_resources == nullptr) {
+        || rslt.m_rivers == nullptr || rslt.m_overlay == nullptr || rslt.m_resources == nullptr
+        || rslt.m_flags == nullptr) {
         return false;
     }
     const u16 w = rslt.m_w;
@@ -312,6 +342,7 @@ bool Factory_GameArraySimple::load_from_rslt (GameArraySimple* out, const MakeMa
         t->m_settler_blocked = 0;
         t->m_ai_ov_intent = AI_TILE_OV_INTENT_NONE;
         t->m_tile_usage = 0;
+        t->m_mtn_line = rslt.m_flags[i].defensible_mtn != 0u ? 1u : 0u;
     }
     out->m_w = w;
     out->m_h = h;
