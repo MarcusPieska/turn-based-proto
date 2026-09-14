@@ -9,19 +9,23 @@
 #include "city_border.h"
 #include "city_tracer.h"
 #include "city_turn_handler.h"
+#include "combat_mng.h"
 #include "defensive_unit_turn_handler.h"
 #include "game_array_simple.h"
 #include "game_map_defs.h"
 #include "game_state.h"
+#include "mock_muster_siege.h"
 #include "profile_time_opt.h"
 #include "research_turn_handler.h"
 #include "runtime_statics.h"
 #include "runtime_trace_dbg.h"
 #include "settler_turn_handler.h"
+#include "tile_attr_tables.h"
 #include "unit_action_enum.h"
 #include "unit_add_struct.h"
 #include "unit_add_vector.h"
 #include "unit_add_vector_key.h"
+#include "unit_movement_mng.h"
 #include "unit_static_key.h"
 #include "unit_turn_handler.h"
 #include "unit_type_action_map.h"
@@ -236,56 +240,55 @@ static bool pick_near_non_lucky (const GameState& state, u16 seat, u16* out_enem
 }
 
 static void check_start_wars (GameState& state) {
-    if (state.m_player_states == nullptr) {
+    if (state.m_player_states == nullptr || state.m_player_n == 0u) {
         return;
     }
-    static const u16 k_free_min = 20u;
-    static const u16 k_war_cap = 3u;
-    u16 war_n = 0u;
+    static const u16 k_lucky_cap = 256u;
+    u16 lucky[k_lucky_cap];
+    u16 n_lucky = 0u;
     for (u16 p = 0; p < state.m_player_n; ++p) {
-        if (WarTurnHandler::is_engaged(p)) {
-            ++war_n;
+        const PlayerState& ps = state.m_player_states[p];
+        if (ps.m_lucky == 0u || ps.m_is_active == 0u) {
+            continue;
         }
+        if (n_lucky >= k_lucky_cap) {
+            break;
+        }
+        lucky[n_lucky++] = p;
     }
-    if (war_n >= k_war_cap) {
+    if (n_lucky == 0u) {
         return;
     }
-    for (u16 p = 0; p < state.m_player_n; ++p) {
-        PlayerState& ps = state.m_player_states[p];
-        if (ps.m_lucky == 0u || ps.m_is_active == 0u || ps.m_at_war != 0u) {
-            continue;
-        }
-        if (WarTurnHandler::is_engaged(p)) {
-            continue;
-        }
-        const u16 free_n = ps.m_free_land_unit_support;
-        if (free_n < k_free_min) {
-            continue;
-        }
-        u32 used_n = 0u;
-        if (ps.m_target_new_land_unit_support > 0u) {
-            used_n = static_cast<u32>(free_n) - static_cast<u32>(ps.m_target_new_land_unit_support);
-        } else if (ps.m_land_unit_upkeep_needed > 0u) {
-            used_n = static_cast<u32>(free_n) + static_cast<u32>(ps.m_land_unit_upkeep_needed);
-        } else {
-            used_n = static_cast<u32>(free_n);
-        }
-        if (used_n * 100u <= static_cast<u32>(free_n) * 95u) {
-            continue;
-        }
-        u16 enemy = U16_KEY_NULL;
-        if (!pick_near_non_lucky(state, p, &enemy)) {
-            continue;
-        }
-        if (!WarTurnHandler::engage(state, p, enemy)) {
-            continue;
-        }
-        ps.m_at_war = 1u;
-        ++war_n;
-        if (war_n >= k_war_cap) {
+    const u32 turn = state.m_current_turn;
+    if (turn == 0u) {
+        return;
+    }
+    const u16 li = static_cast<u16>(turn % static_cast<u32>(n_lucky));
+    const u16 seat = lucky[li];
+    PlayerState& ps = state.m_player_states[seat];
+    if (ps.m_at_war != 0u || WarTurnHandler::is_engaged(seat)) {
+        return;
+    }
+    u16 enemy = U16_KEY_NULL;
+    if (!WarTurnHandler::pick_enemy(state, seat, &enemy)) {
+        if (!pick_near_non_lucky(state, seat, &enemy)) {
             return;
         }
     }
+    MockMusterSiege mock;
+    if (!mock.collect(state, seat)) {
+        return;
+    }
+    u16 taken = 0u;
+    u16 foe_n = 0u;
+    u16 war_turns = 0u;
+    if (!mock.campaign(state, enemy, &taken, &foe_n, &war_turns) || taken == 0u) {
+        return;
+    }
+    if (!WarTurnHandler::engage(state, seat, enemy)) {
+        return;
+    }
+    ps.m_at_war = 1u;
 }
 
 static void run_unit_turns (GameState& state) {
@@ -355,12 +358,26 @@ bool GameLoop::begin (GameState* state, cstr trace_path) {
         WhiteboardMng::terminate();
         WhiteboardMng::init(w, h);
     }
+    if (state->m_statics == nullptr) {
+        return false;
+    }
+    if (!TileAttrTables::ready() && !TileAttrTables::setup(*state->m_statics)) {
+        return false;
+    }
+    if (!UnitMovementMng::setup_mvt_costs(*state->m_statics)) {
+        return false;
+    }
+    if (!CombatMng::setup(*state->m_statics)) {
+        return false;
+    }
     if (!SettlerTurnHandler::begin(*state)) {
+        CombatMng::clear();
         WhiteboardMng::terminate();
         return false;
     }
     if (!WarTurnHandler::begin(*state)) {
         SettlerTurnHandler::clear();
+        CombatMng::clear();
         WhiteboardMng::terminate();
         return false;
     }
@@ -377,6 +394,7 @@ void GameLoop::end () {
     }
     WarTurnHandler::clear();
     SettlerTurnHandler::clear();
+    CombatMng::clear();
     if (WhiteboardMng::chkout() == 0u) {
         WhiteboardMng::terminate();
     }

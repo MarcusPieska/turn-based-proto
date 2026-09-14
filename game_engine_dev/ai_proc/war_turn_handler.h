@@ -42,10 +42,10 @@ struct MusterCity {
 //================================================================================================================================
 //
 //  Per-seat war turn handler: muster, form army, march, assault (CityAttackManager), claim city with
-//  TileTransfer, two-step rejoin, then retarget via TargetOrderingFlood until no fight left or no
-//  targets. Target list is a flood-ordered city-index queue from an enemy seed near staging.
-//  Assault may Stall when offensive units remain but spent this assault's MP; owner retries.
-//  Hot path: begin/clear with GameLoop; handle advances one turn per engaged AI seat; engage starts war.
+//  TileTransfer, two-step rejoin, then retarget until no fight left or no targets. begin builds
+//  GenLandSectors + LandSectorNetwork and binds SectorSupport; pick_enemy / refill_targets prefer
+//  TargetSector_Defensible (flood fallback). Assault may Stall when offensive units remain but spent
+//  this assault's MP; owner retries. Hot path: begin/clear with GameLoop; handle per engaged AI seat.
 //
 //================================================================================================================================
 
@@ -62,6 +62,7 @@ public:
 
     static bool begin (GameState& state);
     static void clear ();
+    static bool pick_enemy (GameState& state, u16 seat, u16* out_enemy);
     static bool engage (GameState& state, u16 seat, u16 enemy);
     static bool is_engaged (u16 seat);
     static void handle (GameState& state);

@@ -1,0 +1,13 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")"
+
+CXXFLAGS="-std=c++17 -Wall -Wextra -g"
+
+g++ $CXXFLAGS -c game_loop_tile_trans_tester.cpp -o game_loop_tile_trans_tester.o
+g++ $CXXFLAGS -o game_loop_tile_trans_tester game_loop_tile_trans_tester.o
+
+echo "--- running game_loop_tile_trans_tester ---"
+./game_loop_tile_trans_tester "$@"
+rm -f game_loop_tile_trans_tester game_loop_tile_trans_tester.o

@@ -161,6 +161,12 @@ g++ $CXXFLAGS $INC -c ../ai_proc/ai_unit_production_aggressive.cpp -o ai_unit_pr
 g++ $CXXFLAGS $INC -c tile_transfer.cpp -o tile_transfer.o
 g++ $CXXFLAGS $INC -c ../ai_proc/target_ordering_manhattan.cpp -o target_ordering_manhattan.o
 g++ $CXXFLAGS $INC -c ../ai_proc/target_ordering_flood.cpp -o target_ordering_flood.o
+g++ $CXXFLAGS $INC -c ../ai_proc/gen_land_sectors.cpp -o gen_land_sectors.o
+g++ $CXXFLAGS $INC -c ../ai_proc/land_sector_network.cpp -o land_sector_network.o
+g++ $CXXFLAGS $INC -c ../ai_proc/gen_land_sector_network.cpp -o gen_land_sector_network.o
+g++ $CXXFLAGS $INC -c ../ai_proc/sector_support.cpp -o sector_support.o
+g++ $CXXFLAGS $INC -c ../ai_proc/target_sector_defensible.cpp -o target_sector_defensible.o
+g++ $CXXFLAGS $INC -c ../ai_proc/mock_muster_siege.cpp -o mock_muster_siege.o
 g++ $CXXFLAGS $INC -c ../adv_map_gen/wb_que_xy.cpp -o wb_que_xy.o
 g++ $CXXFLAGS $INC -c ../ai_pathing/walk_target/generate_access_mask.cpp -o generate_access_mask.o
 g++ $CXXFLAGS $INC -c ../ai_pathing/walk_target/generate_distance_p2p.cpp -o generate_distance_p2p.o
@@ -289,6 +295,12 @@ g++ $CXXFLAGS -o game_loop_tester \
     tile_transfer.o \
     target_ordering_manhattan.o \
     target_ordering_flood.o \
+    gen_land_sectors.o \
+    land_sector_network.o \
+    gen_land_sector_network.o \
+    sector_support.o \
+    target_sector_defensible.o \
+    mock_muster_siege.o \
     wb_que_xy.o \
     generate_access_mask.o \
     generate_distance_p2p.o \
@@ -339,6 +351,7 @@ rm -f runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_load
     worker_turn_handler.o defensive_unit_turn_handler.o linear_tech.o linear_bld.o \
     ai_unit_production_default.o ai_unit_production_aggressive.o \
     tile_transfer.o target_ordering_manhattan.o target_ordering_flood.o \
+    gen_land_sectors.o land_sector_network.o gen_land_sector_network.o sector_support.o target_sector_defensible.o mock_muster_siege.o \
     wb_que_xy.o generate_access_mask.o generate_distance_p2p.o walk_p2p.o \
     generate_exposure.o city_attack_manager.o combat_mng.o city_defense_booster_register.o war_turn_handler.o \
     game_loop_tester.o

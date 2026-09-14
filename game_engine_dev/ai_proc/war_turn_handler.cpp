@@ -14,10 +14,16 @@
 #include "generate_access_mask.h"
 #include "generate_distance_p2p.h"
 #include "generate_exposure.h"
+#include "gen_land_sector_network.h"
+#include "gen_land_sectors.h"
 #include "game_state.h"
 #include "game_map_defs.h"
+#include "land_sector_network.h"
+#include "mock_muster_siege.h"
 #include "runtime_statics.h"
+#include "sector_support.h"
 #include "target_ordering_flood.h"
+#include "target_sector_defensible.h"
 #include "tile_transfer.h"
 #include "unit_action_enum.h"
 #include "unit_add_struct.h"
@@ -414,6 +420,15 @@ bool WarTurnHandler::refill_targets (u16 enemy) {
     m_tgt_n = 0;
     m_tgt_i = 0;
     m_enemy = U8_KEY_NULL;
+    u16 sector = U16_KEY_NULL;
+    u16 out_e = U16_KEY_NULL;
+    u16 tn = 0u;
+    if (TargetSector_Defensible::pick(m_seat, m_tgts, k_tgt_cap, &tn, &sector, &out_e)
+        && out_e == enemy && tn > 0u) {
+        m_tgt_n = tn;
+        m_enemy = static_cast<u8>(enemy);
+        return true;
+    }
     u16 sx = 0;
     u16 sy = 0;
     if (!find_enemy_seed(enemy, &sx, &sy)) {
@@ -925,6 +940,7 @@ enum class WarPhase : u8 {
 
 struct WarSlot {
     WarTurnHandler* m_camp;
+    MockMusterSiege* m_mock;
     u16 m_enemy;
     WarPhase m_phase;
 };
@@ -932,6 +948,44 @@ struct WarSlot {
 static WarSlot g_war[WarTurnHandler::k_seat_cap];
 static GameState* g_war_st = nullptr;
 static u16 g_war_n = 0u;
+static GenLandSectors* g_gls = nullptr;
+static LandSectorSeeds g_seeds = {};
+static LandSectorNetwork* g_net = nullptr;
+static const u32 k_sec_rng = 43u;
+
+static void war_sec_clr () {
+    SectorSupport::clr();
+    GenLandSectors::free_seeds(&g_seeds);
+    delete g_gls;
+    g_gls = nullptr;
+    delete g_net;
+    g_net = nullptr;
+}
+
+static bool war_sec_begin (GameState& st) { 
+    war_sec_clr();
+    g_gls = new GenLandSectors();
+    if (g_gls == nullptr || !g_gls->begin(st.m_map)) {
+        war_sec_clr();
+        return false;
+    }
+    if (!g_gls->gen_seeds(k_sec_rng, &g_seeds) || g_seeds.m_n == 0u) {
+        war_sec_clr();
+        return false;
+    }
+    g_net = new LandSectorNetwork();
+    if (g_net == nullptr
+        || !GenLandSectorNetwork::build(g_gls->sectors(), g_gls->sector_n(), st.m_map, g_net)
+        || !g_net->ok()) {
+        war_sec_clr();
+        return false;
+    }
+    if (!SectorSupport::bind(&st, &g_gls->sectors(), &g_seeds, g_net)) {
+        war_sec_clr();
+        return false;
+    }
+    return true;
+}
 
 static void war_slot_reset (WarSlot* s) {
     if (s == nullptr) {
@@ -939,8 +993,35 @@ static void war_slot_reset (WarSlot* s) {
     }
     delete s->m_camp;
     s->m_camp = nullptr;
+    delete s->m_mock;
+    s->m_mock = nullptr;
     s->m_enemy = U16_KEY_NULL;
     s->m_phase = WarPhase::Idle;
+}
+
+static void war_peace_mock (GameState& st, u16 seat, WarSlot* s, u16 tx, u16 ty) {
+    std::printf("war peace mock-fail seat=%u city=(%u,%u) turn=%u\n",
+        static_cast<unsigned>(seat),
+        static_cast<unsigned>(tx),
+        static_cast<unsigned>(ty),
+        static_cast<unsigned>(st.m_current_turn));
+    if (seat < st.m_player_n && st.m_player_states != nullptr) {
+        st.m_player_states[seat].m_at_war = 0u;
+    }
+    war_slot_reset(s);
+}
+
+static bool war_mock_next (GameState& st, u16 seat, WarSlot* s, u16 tx, u16 ty) {
+    if (s == nullptr || s->m_mock == nullptr || !s->m_mock->ok()) {
+        war_peace_mock(st, seat, s, tx, ty);
+        return false;
+    }
+    MockSiegeRslt r = {};
+    if (!s->m_mock->siege(st, tx, ty, &r) || !r.m_taken) {
+        war_peace_mock(st, seat, s, tx, ty);
+        return false;
+    }
+    return true;
 }
 
 static bool war_start_camp (GameState& st, u16 seat, u16 enemy, WarSlot* s) {
@@ -966,8 +1047,16 @@ static bool war_start_camp (GameState& st, u16 seat, u16 enemy, WarSlot* s) {
         delete camp;
         return false;
     }
+    MockMusterSiege* mock = new MockMusterSiege();
+    if (mock == nullptr || !mock->collect(st, seat)) {
+        delete mock;
+        delete camp;
+        return false;
+    }
     delete s->m_camp;
+    delete s->m_mock;
     s->m_camp = camp;
+    s->m_mock = mock;
     s->m_enemy = enemy;
     s->m_phase = WarPhase::Muster;
     std::printf("war muster start seat=%u enemy=%u staging=(%u,%u) muster_n=%u turn=%u\n",
@@ -985,7 +1074,6 @@ static void war_stop (WarSlot* s) {
 }
 
 static void war_advance (GameState& st, u16 seat, WarSlot* s) {
-    (void)seat;
     if (s == nullptr || s->m_camp == nullptr || s->m_enemy == U16_KEY_NULL) {
         return;
     }
@@ -1006,6 +1094,9 @@ static void war_advance (GameState& st, u16 seat, WarSlot* s) {
             u16 ty = 0u;
             if (!camp.set_target_city(s->m_enemy, &tx, &ty)) {
                 war_stop(s);
+                break;
+            }
+            if (!war_mock_next(st, seat, s, tx, ty)) {
                 break;
             }
         }
@@ -1063,6 +1154,9 @@ static void war_advance (GameState& st, u16 seat, WarSlot* s) {
             war_stop(s);
             break;
         }
+        if (!war_mock_next(st, seat, s, tx, ty)) {
+            break;
+        }
         s->m_phase = WarPhase::March;
         break;
     }
@@ -1081,9 +1175,11 @@ bool WarTurnHandler::begin (GameState& state) {
     g_war_n = state.m_player_n;
     for (u16 i = 0u; i < g_war_n; ++i) {
         g_war[i].m_camp = nullptr;
+        g_war[i].m_mock = nullptr;
         g_war[i].m_enemy = U16_KEY_NULL;
         g_war[i].m_phase = WarPhase::Idle;
     }
+    (void)war_sec_begin(state);
     return true;
 }
 
@@ -1093,6 +1189,29 @@ void WarTurnHandler::clear () {
     }
     g_war_st = nullptr;
     g_war_n = 0u;
+    war_sec_clr();
+}
+
+bool WarTurnHandler::pick_enemy (GameState& state, u16 seat, u16* out_enemy) {
+    if (out_enemy == nullptr || g_war_st != &state || seat >= g_war_n || state.m_player_states == nullptr) {
+        return false;
+    }
+    u16 tgts[k_tgt_cap];
+    u16 tn = 0u;
+    u16 sector = U16_KEY_NULL;
+    u16 enemy = U16_KEY_NULL;
+    if (!TargetSector_Defensible::pick(seat, tgts, k_tgt_cap, &tn, &sector, &enemy)) {
+        return false;
+    }
+    if (enemy >= state.m_player_n || enemy == seat) {
+        return false;
+    }
+    if (state.m_player_states[enemy].m_lucky != 0u
+        || state.m_player_states[enemy].m_is_active == 0u) {
+        return false;
+    }
+    *out_enemy = enemy;
+    return true;
 }
 
 bool WarTurnHandler::engage (GameState& state, u16 seat, u16 enemy) {
