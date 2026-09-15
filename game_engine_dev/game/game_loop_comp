@@ -6,6 +6,7 @@ cd "$(dirname "$0")"
 LIB_SO="../data_io/runtime_static_loader_lib.so"
 MAP_SO="../adv_map_gen/map_gen.so"
 LUCKY_SO="lucky_seats/lucky_seats.so"
+LOG_SO="../log_dbg/log_dbg.so"
 if [ ! -f "$LIB_SO" ]; then
     echo "missing $LIB_SO - run ../data_io/runtime_static_loader_lib_comp first"
     exit 1
@@ -16,6 +17,10 @@ if [ ! -f "$MAP_SO" ]; then
 fi
 if [ ! -f "$LUCKY_SO" ]; then
     echo "missing $LUCKY_SO - run lucky_seats/lucky_seat_lib_comp first"
+    exit 1
+fi
+if [ ! -f "$LOG_SO" ]; then
+    echo "missing $LOG_SO - run ../log_dbg/log_dbg_comp first"
     exit 1
 fi
 
@@ -106,6 +111,8 @@ g++ $CXXFLAGS $INC -c game_setup.cpp -o game_setup.o
 g++ $CXXFLAGS $INC -c building_trait_attribution.cpp -o building_trait_attribution.o
 g++ $CXXFLAGS $INC -c civ_trait_affinity.cpp -o civ_trait_affinity.o
 g++ $CXXFLAGS $INC -c building_trait_orderings.cpp -o building_trait_orderings.o
+g++ $CXXFLAGS $INC -c city_job_trait_attribution.cpp -o city_job_trait_attribution.o
+g++ $CXXFLAGS $INC -c city_job_trait_orderings.cpp -o city_job_trait_orderings.o
 g++ $CXXFLAGS $INC -c tech_trait_attribution.cpp -o tech_trait_attribution.o
 g++ $CXXFLAGS $INC -c tech_trait_orderings.cpp -o tech_trait_orderings.o
 g++ $CXXFLAGS $INC -c ../city/city_tile_manager.cpp -o city_tile_manager.o
@@ -246,7 +253,7 @@ g++ $CXXFLAGS -o game_loop_tester \
     game_io.o \
     game_loop.o \
     unit_turn_handler.o \
-    game_setup.o building_trait_attribution.o civ_trait_affinity.o building_trait_orderings.o tech_trait_attribution.o tech_trait_orderings.o \
+    game_setup.o building_trait_attribution.o civ_trait_affinity.o building_trait_orderings.o city_job_trait_attribution.o city_job_trait_orderings.o tech_trait_attribution.o tech_trait_orderings.o \
     city_tile_manager.o \
     circular_tile_areas.o \
     city_blocking_mask.o \
@@ -313,7 +320,10 @@ g++ $CXXFLAGS -o game_loop_tester \
     game_loop_tester.o \
     -ldl \
     $LIB_SO \
-    -Wl,-rpath,'$ORIGIN/../data_io'
+    $LOG_SO \
+    -Wl,-rpath,'$ORIGIN/../data_io' \
+    -Wl,-rpath,'$ORIGIN/../log_dbg' \
+    -Wl,--allow-shlib-undefined
 
 echo "--- running game_loop_tester $* ---"
 ./game_loop_tester "$@"
@@ -339,7 +349,7 @@ rm -f runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_load
     city_culture_booster_register.o local_culture_booster_register.o \
     local_sanitation_booster_register.o city_sanitation_booster_register.o civ_sanitation_booster_register.o \
     city_array.o civ_spawner.o game_loop_cache.o game_io.o game_loop.o unit_turn_handler.o \
-    game_setup.o building_trait_attribution.o civ_trait_affinity.o building_trait_orderings.o tech_trait_attribution.o tech_trait_orderings.o city_tile_manager.o circular_tile_areas.o city_blocking_mask.o city_border.o \
+    game_setup.o building_trait_attribution.o civ_trait_affinity.o building_trait_orderings.o city_job_trait_attribution.o city_job_trait_orderings.o tech_trait_attribution.o tech_trait_orderings.o city_tile_manager.o circular_tile_areas.o city_blocking_mask.o city_border.o \
     perlin_noise.o generator_constants.o whiteboard_mng.o profile_time_opt.o \
     settle_rules.o settler_mission_manager.o gen_settlement_order.o gen_settlement_targets.o \
     gen_mtn_passes.o gen_walkable_sectors.o gen_bottleneck_markers.o gen_bottleneck_forts.o gen_ai_helpers.o \

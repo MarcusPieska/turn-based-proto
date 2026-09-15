@@ -28,6 +28,7 @@
 #include "city_tile_manager.h"
 #include "city_border.h"
 #include "building_trait_orderings.h"
+#include "city_job_trait_orderings.h"
 #include "tech_trait_orderings.h"
 #include "sector_network.h"
 #include "sector_network_router.h"
@@ -478,6 +479,10 @@ bool GameSetup::finish_with_starts (GameState* state, const SpgPickCoords& start
         return false;
     }
     if (!TechTraitOrderings::begin(g_rt_statics->tech(), g_rt_statics->building(), g_rt_statics->trait_affinity_map())) {
+        state->clear();
+        return false;
+    }
+    if (!CityJobTraitOrderings::begin(g_rt_statics->city_job(), g_rt_statics->trait_affinity_map())) {
         state->clear();
         return false;
     }

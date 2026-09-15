@@ -6,6 +6,7 @@
 #include <cstring>
 #include <cstdlib>
 
+#include "log_dbg.h"
 #include "runtime_trace_dbg.h"
 
 //================================================================================================================================
@@ -79,7 +80,7 @@ void test_trace_setup_and_city_foundation () {
     std::remove(k_trace_path);
 
     TRACE_SETUP((k_trace_path));
-    TRACE_CITY_FOUNDATION((static_cast<u16>(12), static_cast<u16>(34), static_cast<u16>(2)));
+    LOG_CITY_FOUNDATION::LOG(static_cast<u16>(12), static_cast<u16>(34), static_cast<u16>(2));
 
     std::FILE* probe = std::fopen(k_trace_path, "r");
     note_result(probe != nullptr, "trace_setup creates trace file");
@@ -87,9 +88,9 @@ void test_trace_setup_and_city_foundation () {
         std::fclose(probe);
     }
 
-    note_result(file_has_line(k_trace_path, "CITY_FOUNDATION:12:34:2"), "trace_city_foundation writes expected line");
-    TRACE_NEW_TURN((static_cast<u16>(7)));
-    note_result(file_has_line(k_trace_path, "NEW_TURN:7"), "trace_new_turn writes expected line");
+    note_result(file_has_line(k_trace_path, "city founded at=(12,34) civ=2"), "log_city_foundation writes expected line");
+    LOG_NEW_TURN::LOG(static_cast<u16>(7));
+    note_result(file_has_line(k_trace_path, "NEW_TURN:7"), "log_new_turn writes expected line");
     summarize_test_results();
 }
 
@@ -114,4 +115,3 @@ int main (int argc, char* argv[]) {
 //================================================================================================================================
 //=> - End -
 //================================================================================================================================
-

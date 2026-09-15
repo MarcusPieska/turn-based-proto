@@ -28,6 +28,7 @@
 #include "dyn_produce_register_setup.h"
 #include "dyn_booster_register_setup.h"
 #include "dyn_job_slot_register_setup.h"
+#include "dyn_job_yield_register_setup.h"
 #include "worker_job_imp_index_setup.h"
 
 //================================================================================================================================
@@ -167,6 +168,10 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
         std::exit(1);
     }
     m_dyn_job_slot.take_ownership();
+    if (!DynJobYieldRegisterSetup::build(*this, m_dyn_job_yield)) {
+        std::exit(1);
+    }
+    m_dyn_job_yield.take_ownership();
     if (!WorkerJobImpIndexSetup::build(*this, m_worker_job_imp_index)) {
         std::exit(1);
     }
@@ -487,6 +492,14 @@ DynJobSlotRegister& RuntimeStatics::dyn_job_slot () {
 
 const DynJobSlotRegister& RuntimeStatics::dyn_job_slot () const {
     return m_dyn_job_slot;
+}
+
+DynJobYieldRegister& RuntimeStatics::dyn_job_yield () {
+    return m_dyn_job_yield;
+}
+
+const DynJobYieldRegister& RuntimeStatics::dyn_job_yield () const {
+    return m_dyn_job_yield;
 }
 
 WorkerJobImpIndex& RuntimeStatics::worker_job_imp_index () {

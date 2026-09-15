@@ -54,6 +54,7 @@ class StaticParsingManager;
 #include "dyn_produce_register.h"
 #include "dyn_booster_register.h"
 #include "dyn_job_slot_register.h"
+#include "dyn_job_yield_register.h"
 #include "worker_job_imp_index.h"
 
 //================================================================================================================================
@@ -219,6 +220,10 @@ public:
 
     const DynJobSlotRegister& dyn_job_slot () const;
 
+    DynJobYieldRegister& dyn_job_yield ();
+
+    const DynJobYieldRegister& dyn_job_yield () const;
+
     WorkerJobImpIndex& worker_job_imp_index ();
 
     const WorkerJobImpIndex& worker_job_imp_index () const;
@@ -266,6 +271,7 @@ private:
     DynProduceRegister m_dyn_produce;
     DynBoosterRegister m_dyn_booster;
     DynJobSlotRegister m_dyn_job_slot;
+    DynJobYieldRegister m_dyn_job_yield;
     WorkerJobImpIndex m_worker_job_imp_index;
 };
 

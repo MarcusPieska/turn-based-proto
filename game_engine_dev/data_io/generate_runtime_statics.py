@@ -46,6 +46,7 @@ DYN_REG_STEMS = [
     ("dyn_produce", "DynProduceRegister", "DynProduceRegisterSetup"),
     ("dyn_booster", "DynBoosterRegister", "DynBoosterRegisterSetup"),
     ("dyn_job_slot", "DynJobSlotRegister", "DynJobSlotRegisterSetup"),
+    ("dyn_job_yield", "DynJobYieldRegister", "DynJobYieldRegisterSetup"),
 ]
 
 DERIVED_INDEX_STEMS = [

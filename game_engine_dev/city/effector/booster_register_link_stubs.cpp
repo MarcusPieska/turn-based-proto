@@ -4,7 +4,8 @@
 
 #include "add_access_helper.h"
 #include "game_array_simple.h"
-#include "tile_imp_helper.h" 
+#include "tile_imp_helper.h"
+#include "unit_group_management.h"
 
 const RuntimeStatics* TileImpHelper::m_st = nullptr;
 
@@ -48,6 +49,30 @@ bool AddAccessHelper::has_imp (const GameTileSimple*, u16) {
 }
 
 bool AddAccessHelper::set_imp (GameTileSimple*, u16) {
+    return false;
+}
+
+//================================================================================================================================
+//=> - UnitGroupManagement -
+//================================================================================================================================
+
+bool UnitGroupManagement::muster_collect_depart (
+    GameState&, u16, u16, u16, UnitAddKey*, u16, u16*) {
+    return false;
+}
+
+bool UnitGroupManagement::campaign_collect_depart (
+    GameState&, const UnitAddKey*, u16, UnitAddKey*, u16, u16*) {
+    return false;
+}
+
+bool UnitGroupManagement::muster_leave_one_defense (
+    GameState&, u16, u16, u16, UnitAddKey*) {
+    return false;
+}
+
+bool UnitGroupManagement::campaign_leave_five_defense (
+    GameState&, u16, u16, u16, UnitAddKey*) {
     return false;
 }
 

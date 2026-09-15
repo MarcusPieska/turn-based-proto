@@ -4,6 +4,7 @@
 
 #include "game_loop.h"
 #include "assert_log.h"
+#include "log_dbg.h"
 #include "build_adds_array.h"
 #include "city.h"
 #include "city_border.h"
@@ -406,7 +407,7 @@ bool GameLoop::step () {
     GAME_EXPECT(m_state->m_current_turn < m_state->m_turn_limit, "GameLoop step turn limit");
     m_state->m_current_turn = m_state->m_current_turn + 1u;
     
-    TRACE_NEW_TURN((static_cast<u16>(m_state->m_current_turn)));
+    LOG_NEW_TURN::LOG(static_cast<u16>(m_state->m_current_turn));
     check_start_wars(*m_state);
     run_city_turns(*m_state);
     run_unit_turns(*m_state);

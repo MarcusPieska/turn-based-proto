@@ -3,7 +3,13 @@ set -e
 
 cd "$(dirname "$0")"
 
-INC="-I.. -I../.."
+LOG_SO="../../log_dbg/log_dbg.so"
+if [ ! -f "$LOG_SO" ]; then
+    echo "missing $LOG_SO - run ../../log_dbg/log_dbg_comp first"
+    exit 1
+fi
+
+INC="-I.. -I../.. -I../../misc"
 CXXFLAGS="-std=c++17 -Wall -Wextra"
 
 g++ $CXXFLAGS $INC -c ../runtime_trace_dbg.cpp -o runtime_trace_dbg.o
@@ -11,7 +17,10 @@ g++ $CXXFLAGS $INC -c runtime_trace_dbg_tester.cpp -o runtime_trace_dbg_tester.o
 
 g++ $CXXFLAGS -o runtime_trace_dbg_tester \
     runtime_trace_dbg.o \
-    runtime_trace_dbg_tester.o
+    runtime_trace_dbg_tester.o \
+    $LOG_SO \
+    -Wl,-rpath,'$ORIGIN/../../log_dbg' \
+    -Wl,--allow-shlib-undefined
 
 ./runtime_trace_dbg_tester
 

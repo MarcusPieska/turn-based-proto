@@ -1,9 +1,11 @@
 SCIENCE                 : 1 : Scientific
+
 CULTURE                 : 2 : Religious : Scientific
 HAPPINESS               : 2 : Religious
+RELIGION                : 1 : Religious
 
 COMMERCE                : 1 : Commercial
-SEA_TRADE               : 0 : Expansionist : Commercial
+SEA_TRADE               : 0 : Commercial : Expansionist
 RESOURCE                : 2 : Commercial : Industrious
 CIV_NAVAL_UNIT_SUPPORT  : 2 : Commercial
 CITY_NAVAL_UNIT_SUPPORT : 6 : Commercial

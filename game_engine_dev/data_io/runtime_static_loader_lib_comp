@@ -126,6 +126,8 @@ g++ $INC $CXXFLAGS -c ../city/effector/dyn_booster_register.cpp -o dyn_booster_r
 g++ $INC $CXXFLAGS -c ../city/effector/dyn_booster_register_setup.cpp -o dyn_booster_register_setup.o
 g++ $INC $CXXFLAGS -c ../city/effector/dyn_job_slot_register.cpp -o dyn_job_slot_register.o
 g++ $INC $CXXFLAGS -c ../city/effector/dyn_job_slot_register_setup.cpp -o dyn_job_slot_register_setup.o
+g++ $INC $CXXFLAGS -c ../city/effector/dyn_job_yield_register.cpp -o dyn_job_yield_register.o
+g++ $INC $CXXFLAGS -c ../city/effector/dyn_job_yield_register_setup.cpp -o dyn_job_yield_register_setup.o
 g++ $INC $CXXFLAGS -c worker_job_imp_index.cpp -o worker_job_imp_index.o
 g++ $INC $CXXFLAGS -c worker_job_imp_index_setup.cpp -o worker_job_imp_index_setup.o
 g++ $INC $CXXFLAGS -c ../static_state/config_settings_static.cpp -o config_settings_static.o
@@ -248,6 +250,8 @@ g++ -shared -o $OUT_SO \
     dyn_booster_register_setup.o \
     dyn_job_slot_register.o \
     dyn_job_slot_register_setup.o \
+    dyn_job_yield_register.o \
+    dyn_job_yield_register_setup.o \
     worker_job_imp_index.o \
     worker_job_imp_index_setup.o \
     config_settings_static.o \
@@ -370,6 +374,8 @@ rm \
     dyn_booster_register_setup.o \
     dyn_job_slot_register.o \
     dyn_job_slot_register_setup.o \
+    dyn_job_yield_register.o \
+    dyn_job_yield_register_setup.o \
     worker_job_imp_index.o \
     worker_job_imp_index_setup.o \
     config_settings_static.o \

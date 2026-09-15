@@ -15,9 +15,6 @@
 #define ENABLE_FLUSH_AFTER_PRINT
 
 #define ENABLED_TRACE_SETUP
-#define ENABLED_TRACE_CITY_FOUNDATION
-#define ENABLED_TRACE_CIV_SPAWN_PT
-#define ENABLED_TRACE_UNIT_SPAWN
 #define ENABLED_TRACE_NEW_TURN
 #define ENABLED_TRACE_EXPLORE_DISCOVER
 #define ENABLED_TRACE_PATH_FAILURE
@@ -35,27 +32,6 @@
 #define TRACE_SETUP(args) trace_setup args
 #else
     #define TRACE_SETUP(args) ((void)0)
-#endif
-
-#if defined(RUNTIME_TRACE_DBG) && defined(ENABLED_TRACE_CITY_FOUNDATION)
-    void trace_city_foundation(u16 x, u16 y, u16 player);
-#define TRACE_CITY_FOUNDATION(args) trace_city_foundation args
-#else
-    #define TRACE_CITY_FOUNDATION(args) ((void)0)
-#endif
-
-#if defined(RUNTIME_TRACE_DBG) && defined(ENABLED_TRACE_CIV_SPAWN_PT)
-    void trace_civ_spawn_pt (u16 x, u16 y, u16 civ_idx);
-#define TRACE_CIV_SPAWN_PT(args) trace_civ_spawn_pt args
-#else
-    #define TRACE_CIV_SPAWN_PT(args) ((void)0)
-#endif
-
-#if defined(RUNTIME_TRACE_DBG) && defined(ENABLED_TRACE_UNIT_SPAWN)
-    void trace_unit_spawn (u16 typ_idx, u16 civ_idx, u16 x, u16 y);
-#define TRACE_UNIT_SPAWN(args) trace_unit_spawn args
-#else
-    #define TRACE_UNIT_SPAWN(args) ((void)0)
 #endif
 
 #if defined(RUNTIME_TRACE_DBG) && defined(ENABLED_TRACE_NEW_TURN)
