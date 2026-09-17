@@ -11,16 +11,16 @@
 //================================================================================================================================
 
 #define LOG_DBG_SO_BUILD
-#include "log_war_peace_mock.h"
+#include "log_war_city_capture.h"
 
 #include "trace_sink.h"
 
 //================================================================================================================================
-//=> - LOG_WAR_PEACE_MOCK -
+//=> - LOG_WAR_CITY_CAPTURE -
 //================================================================================================================================
 
-void LOG_WAR_PEACE_MOCK::LOG (unsigned seat, unsigned x, unsigned y, unsigned turn) {
-    TraceSink::printf("war peace mock-fail seat=%u city=(%u,%u) turn=%u\n", seat, x, y, turn);
+void LOG_WAR_CITY_CAPTURE::LOG (unsigned seat, unsigned from, unsigned x, unsigned y, unsigned turn) {
+    TraceSink::printf("war city capture seat=%u from=%u city=(%u,%u) turn=%u\n", seat, from, x, y, turn);
 }
 
 //================================================================================================================================

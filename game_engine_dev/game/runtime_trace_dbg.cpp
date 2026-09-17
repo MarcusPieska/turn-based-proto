@@ -8,6 +8,7 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 
 //================================================================================================================================
 //=> - TraceSink -
@@ -15,22 +16,41 @@
 
 static FILE* g_fp = nullptr;
 static bool g_auto_flush = false;
+static char g_path[512] = {};
+static const char* G_DEF_TRACE = "/home/w/Projects/simple-map-gen/game_loop.trace";
 
 bool TraceSink::open (cstr path) {
-    close();
     if (path == nullptr) {
         return false;
     }
+    if (g_fp != nullptr && std::strcmp(g_path, path) == 0) {
+        return true;
+    }
+    close();
     g_fp = std::fopen(path, "w");
-    return g_fp != nullptr;
+    if (g_fp == nullptr) {
+        g_path[0] = '\0';
+        return false;
+    }
+    std::snprintf(g_path, sizeof(g_path), "%s", path);
+    return true;
+}
+
+bool TraceSink::ensure_open (cstr path) {
+    if (g_fp != nullptr) {
+        return true;
+    }
+    return open(path != nullptr ? path : G_DEF_TRACE);
 }
 
 void TraceSink::close () {
     if (g_fp == nullptr) {
+        g_path[0] = '\0';
         return;
     }
     std::fclose(g_fp);
     g_fp = nullptr;
+    g_path[0] = '\0';
 }
 
 bool TraceSink::ok () {
@@ -45,13 +65,18 @@ void TraceSink::printf (cstr fmt, ...) {
     if (fmt == nullptr) {
         return;
     }
-    FILE* out = (g_fp != nullptr) ? g_fp : stdout;
+    if (g_fp == nullptr) {
+        ensure_open(nullptr);
+    }
+    if (g_fp == nullptr) {
+        return;
+    }
     va_list ap;
     va_start(ap, fmt);
-    std::vfprintf(out, fmt, ap);
+    std::vfprintf(g_fp, fmt, ap);
     va_end(ap);
-    if (g_auto_flush || g_fp == nullptr) {
-        std::fflush(out);
+    if (g_auto_flush) {
+        std::fflush(g_fp);
     }
 }
 
@@ -59,7 +84,6 @@ void TraceSink::flush () {
     if (g_fp != nullptr) {
         std::fflush(g_fp);
     }
-    std::fflush(stdout);
 }
 
 //================================================================================================================================
@@ -69,10 +93,11 @@ void TraceSink::flush () {
 #if defined(RUNTIME_TRACE_DBG)
 
 void trace_setup(cstr label) {
-    TraceSink::close();
-    if (label != nullptr) {
-        TraceSink::open(label);
+    if (label == nullptr) {
+        TraceSink::close();
+        return;
     }
+    TraceSink::open(label);
     #if defined(ENABLE_FLUSH_AFTER_PRINT)
         TraceSink::set_auto_flush(true);
     #endif

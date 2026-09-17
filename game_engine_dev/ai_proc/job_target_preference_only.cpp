@@ -21,9 +21,11 @@ static void take_job (
         return;
     }
     u16* rem = yld.remain();
+    u16* taken = yld.taken();
     DynJobYieldPack& pack = yld.pack();
     const DynJobYieldRow& r = yld.rows()[job_id];
     rem[job_id] = static_cast<u16>(rem[job_id] - take);
+    taken[job_id] = static_cast<u16>(taken[job_id] + take);
     pack.m_n = static_cast<u16>(pack.m_n + take);
     const i32 n = static_cast<i32>(take);
     pack.m_food += n * static_cast<i32>(r.m_food);
@@ -55,7 +57,7 @@ u16 JobTarget_PreferenceOnly::fill_from_remain (
     DynJobYieldRegister& yld,
     const DynJobSlotRegister& slots,
     const EffectCtx& ctx) {
-    if (!CityJobTraitOrderings::ready() || yld.remain() == nullptr || yld.rows() == nullptr) {
+    if (!CityJobTraitOrderings::ready() || yld.remain() == nullptr || yld.taken() == nullptr || yld.rows() == nullptr) {
         return 0;
     }
     if (pop_limit == 0 || yld.pack().m_n >= pop_limit) {
@@ -91,7 +93,7 @@ u16 JobTarget_PreferenceOnly::fill_from_remain (
     return static_cast<u16>(yld.pack().m_n - begin_n);
 }
 
-u16 JobTarget_PreferenceOnly::fill (
+DynJobYieldPack JobTarget_PreferenceOnly::fill (
     u16 pop_limit,
     u16 trait_idx,
     DynJobYieldRegister& yld,
@@ -102,8 +104,7 @@ u16 JobTarget_PreferenceOnly::fill (
     const DynJobYieldPack& p = yld.pack();
     log_pack(p);
     ASSERT_CITY_JOB_ARE_COVERED::ASSERT(p.m_n <= pop_limit);
-    
-    return p.m_n;
+    return p;
 }
 
 //================================================================================================================================

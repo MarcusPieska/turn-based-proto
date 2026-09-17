@@ -4,8 +4,6 @@
 
 #include "war_turn_handler.h"
 
-#include <cstdio>
-
 #include "city_attack_manager.h"
 #include "city.h"
 #include "civ_relations.h"
@@ -19,6 +17,7 @@
 #include "game_state.h"
 #include "game_map_defs.h"
 #include "land_sector_network.h"
+#include "log_dbg.h"
 #include "mock_muster_siege.h"
 #include "runtime_statics.h"
 #include "sector_support.h"
@@ -362,7 +361,7 @@ bool WarTurnHandler::form_army () {
         }
         ton = u->m_next_unit_on_tile;
     }
-    std::printf("war army size seat=%u army_units=%u tile_units=%u staging=(%u,%u) turn=%u\n",
+    LOG_WAR_ARMY_SIZE::LOG(
         static_cast<unsigned>(m_seat),
         static_cast<unsigned>(army_n),
         static_cast<unsigned>(tile_n),
@@ -591,7 +590,7 @@ void WarTurnHandler::claim_city (u16 x, u16 y) {
         c->set_owner(m_seat);
         m_st.m_map.set_civ_owner(x, y, static_cast<u8>(m_seat));
         TileTransfer::apply(m_st, i, from, static_cast<u8>(m_seat), nullptr);
-        std::printf("war city capture seat=%u from=%u city=(%u,%u) turn=%u\n",
+        LOG_WAR_CITY_CAPTURE::LOG(
             static_cast<unsigned>(m_seat),
             static_cast<unsigned>(from),
             static_cast<unsigned>(x),
@@ -1000,7 +999,7 @@ static void war_slot_reset (WarSlot* s) {
 }
 
 static void war_peace_mock (GameState& st, u16 seat, WarSlot* s, u16 tx, u16 ty) {
-    std::printf("war peace mock-fail seat=%u city=(%u,%u) turn=%u\n",
+    LOG_WAR_PEACE_MOCK::LOG(
         static_cast<unsigned>(seat),
         static_cast<unsigned>(tx),
         static_cast<unsigned>(ty),
@@ -1059,7 +1058,7 @@ static bool war_start_camp (GameState& st, u16 seat, u16 enemy, WarSlot* s) {
     s->m_mock = mock;
     s->m_enemy = enemy;
     s->m_phase = WarPhase::Muster;
-    std::printf("war muster start seat=%u enemy=%u staging=(%u,%u) muster_n=%u turn=%u\n",
+    LOG_WAR_MUSTER::LOG(
         static_cast<unsigned>(seat),
         static_cast<unsigned>(enemy),
         static_cast<unsigned>(sx),

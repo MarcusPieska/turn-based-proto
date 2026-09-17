@@ -165,6 +165,9 @@ g++ $CXXFLAGS $INC -c ../ai_proc/linear_tech.cpp -o linear_tech.o
 g++ $CXXFLAGS $INC -c ../ai_proc/linear_bld.cpp -o linear_bld.o
 g++ $CXXFLAGS $INC -c ../ai_proc/ai_unit_production_default.cpp -o ai_unit_production_default.o
 g++ $CXXFLAGS $INC -c ../ai_proc/ai_unit_production_aggressive.cpp -o ai_unit_production_aggressive.o
+g++ $CXXFLAGS $INC -c ../ai_proc/job_target_preference_only.cpp -o job_target_preference_only.o
+g++ $CXXFLAGS $INC -c ../ai_proc/job_target_commerce_then_preference.cpp -o job_target_commerce_then_preference.o
+g++ $CXXFLAGS $INC -c ../ai_proc/job_target_manager.cpp -o job_target_manager.o
 g++ $CXXFLAGS $INC -c tile_transfer.cpp -o tile_transfer.o
 g++ $CXXFLAGS $INC -c ../ai_proc/target_ordering_manhattan.cpp -o target_ordering_manhattan.o
 g++ $CXXFLAGS $INC -c ../ai_proc/target_ordering_flood.cpp -o target_ordering_flood.o
@@ -299,6 +302,9 @@ g++ $CXXFLAGS -o game_loop_tester \
     linear_bld.o \
     ai_unit_production_default.o \
     ai_unit_production_aggressive.o \
+    job_target_preference_only.o \
+    job_target_commerce_then_preference.o \
+    job_target_manager.o \
     tile_transfer.o \
     target_ordering_manhattan.o \
     target_ordering_flood.o \
@@ -360,6 +366,7 @@ rm -f runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_load
     city_turn_handler_scientific.o research_turn_handler.o sense_settling_pts_opt.o settler_turn_handler.o \
     worker_turn_handler.o defensive_unit_turn_handler.o linear_tech.o linear_bld.o \
     ai_unit_production_default.o ai_unit_production_aggressive.o \
+    job_target_preference_only.o job_target_commerce_then_preference.o job_target_manager.o \
     tile_transfer.o target_ordering_manhattan.o target_ordering_flood.o \
     gen_land_sectors.o land_sector_network.o gen_land_sector_network.o sector_support.o target_sector_defensible.o mock_muster_siege.o \
     wb_que_xy.o generate_access_mask.o generate_distance_p2p.o walk_p2p.o \

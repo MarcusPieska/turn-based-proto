@@ -24,10 +24,12 @@ void DynJobYieldRegister::clear () {
     delete[] m_off;
     delete[] m_row;
     delete[] m_remain;
+    delete[] m_taken;
     m_entry = nullptr;
     m_off = nullptr;
     m_row = nullptr;
     m_remain = nullptr;
+    m_taken = nullptr;
     clear_pack();
     m_entry_n = 0;
     m_job_n = 0;
@@ -66,6 +68,14 @@ void DynJobYieldRegister::take_ownership () {
         }
         delete[] tmp;
     }
+    if (m_taken != nullptr && m_job_n > 0) {
+        u16* tmp = m_taken;
+        m_taken = new u16[m_job_n];
+        for (u16 i = 0; i < m_job_n; ++i) {
+            m_taken[i] = tmp[i];
+        }
+        delete[] tmp;
+    }
 }
 
 void DynJobYieldRegister::clear_pack () {
@@ -83,6 +93,9 @@ DynJobYieldPack& DynJobYieldRegister::reset_remain () {
     if (m_remain != nullptr && m_job_n > 0) {
         std::memset(m_remain, 0xFF, static_cast<size_t>(m_job_n) * sizeof(u16));
     }
+    if (m_taken != nullptr && m_job_n > 0) {
+        std::memset(m_taken, 0, static_cast<size_t>(m_job_n) * sizeof(u16));
+    }
     return m_pack;
 }
 
@@ -92,6 +105,14 @@ u16* DynJobYieldRegister::remain () {
 
 const u16* DynJobYieldRegister::remain () const {
     return m_remain;
+}
+
+u16* DynJobYieldRegister::taken () {
+    return m_taken;
+}
+
+const u16* DynJobYieldRegister::taken () const {
+    return m_taken;
 }
 
 DynJobYieldPack& DynJobYieldRegister::pack () {
@@ -107,7 +128,7 @@ u16 DynJobYieldRegister::fill (
     u16 pop_limit,
     const DynJobSlotRegister& slots,
     const EffectCtx& ctx) {
-    if (m_entry == nullptr || m_row == nullptr || m_remain == nullptr) {
+    if (m_entry == nullptr || m_row == nullptr || m_remain == nullptr || m_taken == nullptr) {
         return 0;
     }
     const u16 yi = static_cast<u16>(prefer);
@@ -134,6 +155,7 @@ u16 DynJobYieldRegister::fill (
             continue;
         }
         m_remain[e.m_job_id] = static_cast<u16>(m_remain[e.m_job_id] - take);
+        m_taken[e.m_job_id] = static_cast<u16>(m_taken[e.m_job_id] + take);
         left = static_cast<u16>(left - take);
         m_pack.m_n = static_cast<u16>(m_pack.m_n + take);
         const DynJobYieldRow& r = m_row[e.m_job_id];

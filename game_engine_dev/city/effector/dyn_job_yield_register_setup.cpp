@@ -72,6 +72,7 @@ bool DynJobYieldRegisterSetup::build (const RuntimeStatics& st, DynJobYieldRegis
     out.m_entry = (total > 0) ? new DynJobYieldEntry[total] : nullptr;
     out.m_row = new DynJobYieldRow[job_n];
     out.m_remain = new u16[job_n];
+    out.m_taken = new u16[job_n];
     for (u16 jid = 0; jid < job_n; ++jid) {
         const CityJobStaticDataStruct& job = st.city_job().get_item(CityJobStaticDataKey::from_raw(jid));
         DynJobYieldRow& r = out.m_row[jid];

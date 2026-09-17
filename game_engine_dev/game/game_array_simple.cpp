@@ -291,6 +291,48 @@ bool GameArraySimple::set_mtn_line (u16 x, u16 y, u8 on) {
     return true;
 }
 
+u32 GameArraySimple::count_worked (u16 cx, u16 cy, u16 city_idx, const i8 (*brd)[2], u16 lim, u16 r) const {
+    GAME_EXPECT(m_tiles != nullptr && brd != nullptr, "count_worked");
+    const GameTileSimple* tiles = m_tiles;
+    const i32 w = static_cast<i32>(m_w);
+    const u32 wu = static_cast<u32>(m_w);
+    const u32 hu = static_cast<u32>(m_h);
+    u32 n = 0;
+    u16 i0 = 0;
+    if (lim > 0 && brd[0][0] == 0 && brd[0][1] == 0) {
+        i0 = 1;
+    }
+    if (__builtin_expect(cx >= r && cy >= r && cx + r < m_w && cy + r < m_h, 1)) {
+        const i32 base = static_cast<i32>(cy) * w + static_cast<i32>(cx);
+        u32 n0 = 0;
+        u32 n1 = 0;
+        u16 i = i0;
+        for (; i + 1u < lim; i = static_cast<u16>(i + 2u)) {
+            const u32 a = static_cast<u32>(base + static_cast<i32>(brd[i][1]) * w + static_cast<i32>(brd[i][0]));
+            const u32 b = static_cast<u32>(base + static_cast<i32>(brd[i + 1u][1]) * w + static_cast<i32>(brd[i + 1u][0]));
+            n0 += static_cast<u32>(static_cast<u16>(tiles[a].m_city_worker) == city_idx);
+            n1 += static_cast<u32>(static_cast<u16>(tiles[b].m_city_worker) == city_idx);
+        }
+        if (i < lim) {
+            const u32 a = static_cast<u32>(base + static_cast<i32>(brd[i][1]) * w + static_cast<i32>(brd[i][0]));
+            n0 += static_cast<u32>(static_cast<u16>(tiles[a].m_city_worker) == city_idx);
+        }
+        return n0 + n1;
+    }
+    const i32 icx = static_cast<i32>(cx);
+    const i32 icy = static_cast<i32>(cy);
+    for (u16 i = i0; i < lim; ++i) {
+        const u32 x = static_cast<u32>(icx + static_cast<i32>(brd[i][0]));
+        const u32 y = static_cast<u32>(icy + static_cast<i32>(brd[i][1]));
+        if (x >= wu || y >= hu) {
+            continue;
+        }
+        const u32 idx = y * wu + x;
+        n += static_cast<u32>(static_cast<u16>(tiles[idx].m_city_worker) == city_idx);
+    }
+    return n;
+}
+
 //================================================================================================================================
 //=> - End of file -
 //================================================================================================================================

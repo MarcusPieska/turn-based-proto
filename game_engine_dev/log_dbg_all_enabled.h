@@ -20,6 +20,8 @@
 #include "log_dbg/log_unit_spawn.h"
 #include "log_dbg/log_war_muster.h"
 #include "log_dbg/log_war_peace_mock.h"
+#include "log_dbg/log_war_army_size.h"
+#include "log_dbg/log_war_city_capture.h"
 #include "log_dbg/log_city_job_food.h"
 #include "log_dbg/log_city_job_production.h"
 #include "log_dbg/log_city_job_commerce.h"

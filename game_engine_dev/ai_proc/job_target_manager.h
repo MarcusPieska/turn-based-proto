@@ -2,39 +2,32 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef JOB_TARGET_COMMERCE_THEN_PREFERENCE_H
-#define JOB_TARGET_COMMERCE_THEN_PREFERENCE_H
+#ifndef JOB_TARGET_MANAGER_H
+#define JOB_TARGET_MANAGER_H
 
 #include "dyn_job_yield_register.h"
 #include "game_primitives.h"
 
-struct EffectCtx;
-class DynJobSlotRegister;
+class GameState;
 
 //================================================================================================================================
-//=> - JobTarget_CommerceThenPreference -
+//=> - JobTargetManager -
 //================================================================================================================================
 //
-//  Fills commerce jobs first via DynJobYieldRegister::fill(COMMERCE), then remaining citizens by
-//  CityJobTraitOrderings for trait_idx. Logs commerce phase and final pack; asserts pack.m_n cover.
-//  Returns the cumulative DynJobYieldPack (m_n = citizens assigned).
+//  After tile work (or a skipped assign), counts worked tiles, takes leftover pops = pop - worked, and
+//  fills city jobs: PreferenceOnly normally, CommerceThenPreference when the seat is lucky.
+//  Returns DynJobYieldPack (empty when no leftover pops).
 //
 //================================================================================================================================
 
-class JobTarget_CommerceThenPreference {
+class JobTargetManager {
 public:
-    static DynJobYieldPack fill (
-        u16 pop_limit,
-        u16 trait_idx,
-        DynJobYieldRegister& yld,
-        const DynJobSlotRegister& slots,
-        const EffectCtx& ctx);
+    JobTargetManager () = delete;
 
-private:
-    JobTarget_CommerceThenPreference () = delete;
+    static DynJobYieldPack fill (GameState& state, u16 city_idx, u16 trait_idx);
 };
 
-#endif // JOB_TARGET_COMMERCE_THEN_PREFERENCE_H
+#endif // JOB_TARGET_MANAGER_H
 
 //================================================================================================================================
 //=> - End of file -

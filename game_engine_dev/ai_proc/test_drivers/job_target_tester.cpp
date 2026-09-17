@@ -54,21 +54,17 @@ static void print_taken (
     const DynJobYieldRegister& yld,
     const DynJobSlotRegister& slots,
     const EffectCtx& ctx) {
-    const u16* rem = yld.remain();
+    const u16* taken = yld.taken();
     const DynJobYieldRow* rows = yld.rows();
     const u16 job_n = yld.job_count();
     std::printf("  taken:\n");
     for (u16 j = 0; j < job_n; ++j) {
-        if (rem[j] == U16_KEY_NULL) {
+        if (taken == nullptr || taken[j] == 0) {
             continue;
         }
         const u16 cap = slots.capacity(j, rows[j].m_slots, ctx);
-        const u16 taken = static_cast<u16>(cap - rem[j]);
-        if (taken == 0) {
-            continue;
-        }
         std::printf("    %s taken=%u cap=%u\n",
-            job_name(st, j), static_cast<u32>(taken), static_cast<u32>(cap));
+            job_name(st, j), static_cast<u32>(taken[j]), static_cast<u32>(cap));
     }
     const DynJobYieldPack& p = yld.pack();
     std::printf("  pack n=%u food=%d prod=%d com=%d cult=%d sci=%d rel=%d\n",
@@ -106,23 +102,23 @@ int main () {
     const u16 pop = 5;
 
     std::printf("\n--- JobTarget_CommerceThenPreference pop=%u trait=Commercial ---\n", static_cast<u32>(pop));
-    const u16 n_com = JobTarget_CommerceThenPreference::fill(pop, trait, yld, slots, ctx);
-    std::printf("assigned=%u\n", static_cast<u32>(n_com));
+    const DynJobYieldPack com = JobTarget_CommerceThenPreference::fill(pop, trait, yld, slots, ctx);
+    std::printf("assigned=%u\n", static_cast<u32>(com.m_n));
     print_taken(st, yld, slots, ctx);
-    note_ok(n_com > 0 && n_com <= pop, "commerce-then assigned in (0,pop]");
-    note_ok(yld.pack().m_commerce > 0, "commerce-then pack has commerce");
-    note_ok(yld.pack().m_n == n_com, "commerce-then return matches pack.m_n");
+    note_ok(com.m_n > 0 && com.m_n <= pop, "commerce-then assigned in (0,pop]");
+    note_ok(com.m_commerce > 0, "commerce-then pack has commerce");
+    note_ok(yld.pack().m_n == com.m_n, "commerce-then return matches pack.m_n");
 
     std::printf("\n--- JobTarget_PreferenceOnly pop=%u trait=Commercial ---\n", static_cast<u32>(pop));
-    const u16 n_pref = JobTarget_PreferenceOnly::fill(pop, trait, yld, slots, ctx);
-    std::printf("assigned=%u\n", static_cast<u32>(n_pref));
+    const DynJobYieldPack pref = JobTarget_PreferenceOnly::fill(pop, trait, yld, slots, ctx);
+    std::printf("assigned=%u\n", static_cast<u32>(pref.m_n));
     print_taken(st, yld, slots, ctx);
-    note_ok(n_pref > 0 && n_pref <= pop, "preference-only assigned in (0,pop]");
-    note_ok(yld.pack().m_n == n_pref, "preference-only return matches pack.m_n");
+    note_ok(pref.m_n > 0 && pref.m_n <= pop, "preference-only assigned in (0,pop]");
+    note_ok(yld.pack().m_n == pref.m_n, "preference-only return matches pack.m_n");
 
     const u16 merchant = static_cast<u16>(CityJob::Merchant);
-    const u16* rem = yld.remain();
-    note_ok(rem[merchant] != U16_KEY_NULL, "preference-only touched Merchant for Commercial");
+    const u16* taken = yld.taken();
+    note_ok(taken != nullptr && taken[merchant] > 0, "preference-only took Merchant for Commercial");
 
     CityJobTraitOrderings::clear();
     std::printf("\n=======================================================\n");

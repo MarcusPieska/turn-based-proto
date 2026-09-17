@@ -62,9 +62,9 @@ struct DynJobYieldRow {
 //================================================================================================================================
 //
 //  Jobs grouped by base yield (multi-yield jobs in every positive group), sorted by that yield
-//  descending. Prefix offsets give O(1) group start. Owns m_remain[] and m_pack; reset_remain
-//  clears both (U16_KEY_NULL = capacity not yet queried) and returns the pack. fill JITs
-//  DynJobSlotRegister::capacity on first touch and increments the pack until m_n >= pop_limit.
+//  descending. Prefix offsets give O(1) group start. Owns m_remain[], m_taken[], and m_pack; reset_remain
+//  clears both scratch arrays (remain U16_KEY_NULL = capacity not yet queried; taken zeroed) and the pack.
+//  fill JITs DynJobSlotRegister::capacity on first touch and increments pack/taken until m_n >= pop_limit.
 //  Built by DynJobYieldRegisterSetup in statics SO.
 //
 //================================================================================================================================
@@ -82,6 +82,8 @@ public:
     DynJobYieldPack& reset_remain ();
     u16* remain ();
     const u16* remain () const;
+    u16* taken ();
+    const u16* taken () const;
     DynJobYieldPack& pack ();
     const DynJobYieldPack& pack () const;
 
@@ -107,6 +109,7 @@ private:
     u16* m_off = nullptr; // Prefix offsets; length YIELD_N + 1
     DynJobYieldRow* m_row = nullptr; // Per-job yields + base slots; length m_job_n
     u16* m_remain = nullptr; // Per-job remaining slots; U16_KEY_NULL = not looked up
+    u16* m_taken = nullptr; // Per-job citizens assigned this pass
     DynJobYieldPack m_pack = {}; // Cumulative allocation result for current pass
     u16 m_entry_n = 0; // Total group memberships
     u16 m_job_n = 0; // city_job catalog size

@@ -82,6 +82,7 @@ public:
     u8 get_add_typ (u16 x, u16 y) const; // Legacy BUILD_ADD_* bridge from m_ov
     u16 get_res (u16 x, u16 y) const;  // Resource index at tile
     u16 get_city_worker (u16 x, u16 y) const; // City pool key working this tile; U16_KEY_NULL if none
+    u32 count_worked (u16 cx, u16 cy, u16 city_idx, const i8 (*brd)[2], u16 lim, u16 r) const; // Worked tiles in brd disk; r is max |offset|
     u8 get_civ_owner (u16 x, u16 y) const; // Civ/seat owner at tile; U8_KEY_NULL if none
     u8 get_settler_blocked (u16 x, u16 y) const; // 0 free, nonzero blocked for settling
     u8 get_planned_city (u16 x, u16 y) const; // 0 none, nonzero when m_ai_ov_intent is CITY

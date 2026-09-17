@@ -25,7 +25,7 @@
 
 class LOG_WAR_PEACE_MOCK {
 public:
-    static void LOG (unsigned seat, unsigned x, unsigned y);
+    static void LOG (unsigned seat, unsigned x, unsigned y, unsigned turn);
 
 private:
     LOG_WAR_PEACE_MOCK () = delete;
@@ -35,10 +35,11 @@ private:
 
 class LOG_WAR_PEACE_MOCK {
 public:
-    static void LOG (unsigned seat, unsigned x, unsigned y) {
+    static void LOG (unsigned seat, unsigned x, unsigned y, unsigned turn) {
         (void)seat;
         (void)x;
         (void)y;
+        (void)turn;
     }
 
 private:

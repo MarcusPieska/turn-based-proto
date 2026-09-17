@@ -25,7 +25,7 @@
 
 class LOG_WAR_MUSTER {
 public:
-    static void LOG (unsigned seat, unsigned enemy, unsigned n);
+    static void LOG (unsigned seat, unsigned enemy, unsigned sx, unsigned sy, unsigned n, unsigned turn);
 
 private:
     LOG_WAR_MUSTER () = delete;
@@ -35,10 +35,13 @@ private:
 
 class LOG_WAR_MUSTER {
 public:
-    static void LOG (unsigned seat, unsigned enemy, unsigned n) {
+    static void LOG (unsigned seat, unsigned enemy, unsigned sx, unsigned sy, unsigned n, unsigned turn) {
         (void)seat;
         (void)enemy;
+        (void)sx;
+        (void)sy;
         (void)n;
+        (void)turn;
     }
 
 private:

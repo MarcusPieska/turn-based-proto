@@ -21,6 +21,7 @@
 #include "civ_static_key.h"
 #include "civ_trait_enum.h"
 #include "game_state.h"
+#include "job_target_manager.h"
 #include "runtime_statics.h"
 
 //================================================================================================================================
@@ -94,6 +95,10 @@ void CityTurnHandler::handle (GameState& state, u16 city_idx) {
         CityTurnHandler_Default::handle(ctx);
         break;
     }
+
+    const DynJobYieldPack job_yld = JobTargetManager::fill(state, city_idx, static_cast<u16>(trait));
+    (void)job_yld;
+    // TODO: apply job effects and add job_yld yields into city turn totals
 
     LOG_CITY_COMMIT(());
 
