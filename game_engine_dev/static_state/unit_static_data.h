@@ -29,6 +29,7 @@ class DataParserBase;
 typedef struct UnitStaticDataStruct {
     ItemReqsStruct reqs;
     u32 cost;
+    u16 domain;
     u16 type;
     u16 role;
     u16 attack;

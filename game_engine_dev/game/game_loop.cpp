@@ -17,6 +17,7 @@
 #include "game_state.h"
 #include "mock_muster_siege.h"
 #include "profile_time_opt.h"
+#include "ledger_balance_turn_handler.h"
 #include "research_turn_handler.h"
 #include "runtime_statics.h"
 #include "runtime_trace_dbg.h"
@@ -72,20 +73,19 @@ static void refill_mp (GameState& state, u16 unit_idx) {
 static void after_city_turns (GameState& state) {
     GAME_EXPECT(state.m_player_states != nullptr, "GameLoop after_city_turns got nullptr player states");
     for (u16 p = 0; p < state.m_player_n; ++p) {
-        ResearchTurnHandler::handle(state, p);
         City::refresh_city_worker_flags(state, p);
         PlayerState& ps = state.m_player_states[p];
-        
+
         ps.m_last_turn_population_count = ps.m_this_turn_population_count;
         ps.m_last_turn_city_count = ps.m_this_turn_city_count;
         ps.m_this_turn_population_count = 0;
         ps.m_this_turn_city_count = 0;
-        
+
         ps.m_last_turn_new_land_unit_build_support = ps.m_this_turn_new_land_unit_build_support;
         ps.m_last_turn_new_naval_unit_build_support = ps.m_this_turn_new_naval_unit_build_support;
         ps.m_this_turn_new_land_unit_build_support = 0;
         ps.m_this_turn_new_naval_unit_build_support = 0;
-        
+
         ps.m_last_turn_settler_build_n = ps.m_this_turn_settler_build_n;
         ps.m_this_turn_settler_build_n = 0;
         ps.m_last_turn_settler_count = 0;
@@ -177,11 +177,19 @@ static void settle_unit_upkeep (GameState& state) {
             ps.m_naval_unit_upkeep_needed = 0;
         }
         const u32 cost = static_cast<u32>(ps.m_land_unit_upkeep_needed) + static_cast<u32>(ps.m_naval_unit_upkeep_needed);
-        if (cost >= ps.m_commerce) {
-            ps.m_commerce = 0;
-        } else {
-            ps.m_commerce = ps.m_commerce - cost;
+        LOG_PLAYER_COMMERCE_RAW::LOG(p, ps.m_commerce_from_turn);
+        LedgerBalanceTurnHandler::handle(state, p);
+        LOG_PLAYER_RESEARCH_PERC::LOG(p, ps.m_research_spending_perc);
+        u32 from = ps.m_commerce_from_turn;
+        u32 pay = cost;
+        if (pay > from) {
+            // TODO: signed treasury deficit + next-turn unit disband when cost exceeds turn income
+            pay = from;
         }
+        ps.m_commerce_from_turn = from - pay;
+        ResearchTurnHandler::handle(state, p);
+        LOG_PLAYER_COMMERCE::LOG(p, ps.m_commerce);
+        LOG_PLAYER_SCIENCE::LOG(p, ps.m_research);
     }
 }
 
@@ -322,6 +330,8 @@ static void run_unit_turns (GameState& state) {
         UnitTurnHandler::handle(state, unit_idx);
     }
     settle_unit_upkeep(state);
+    EVAL_ARMY_UNIT_SUPPORT::EVAL(state);
+    EVAL_NAVY_UNIT_SUPPORT::EVAL(state);
     PTO_STOP(PtoId::PTO_UNIT_LOOP);
 }
 

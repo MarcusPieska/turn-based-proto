@@ -348,6 +348,10 @@ u16 DataParserBase::parse_unit_role (const StringManager& line_items, u16 start_
     return m_name_to_idx_cbs.unit_role_name_to_idx(line_items.get_string_content(start_idx));
 }
 
+u16 DataParserBase::parse_unit_domain (const StringManager& line_items, u16 start_idx) const {
+    return m_name_to_idx_cbs.unit_domain_name_to_idx(line_items.get_string_content(start_idx));
+}
+
 u16 DataParserBase::parse_res_type (const StringManager& line_items, u16 start_idx) const {
     return m_name_to_idx_cbs.res_type_name_to_idx(line_items.get_string_content(start_idx));
 }

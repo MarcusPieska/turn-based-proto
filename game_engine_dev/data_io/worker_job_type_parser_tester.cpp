@@ -40,10 +40,11 @@ WorkerJobTypeParserTester::WorkerJobTypeParserTester () :
     m_res_type_sd(NULL),
     m_small_wonder_sd(NULL),
     m_tech_sd(NULL),
-    m_unit_sd(NULL),
     m_unit_action_sd(NULL),
     m_unit_role_sd(NULL),
     m_unit_type_sd(NULL),
+    m_unit_domain_sd(NULL),
+    m_unit_sd(NULL),
     m_wonder_sd(NULL),
     m_map_overlay_sd(NULL),
     m_map_attribute_sd(NULL),
@@ -68,10 +69,11 @@ WorkerJobTypeParserTester::WorkerJobTypeParserTester () :
     m_res_type_psr(NULL),
     m_small_wonder_psr(NULL),
     m_tech_psr(NULL),
-    m_unit_psr(NULL),
     m_unit_action_psr(NULL),
     m_unit_role_psr(NULL),
     m_unit_type_psr(NULL),
+    m_unit_domain_psr(NULL),
+    m_unit_psr(NULL),
     m_wonder_psr(NULL),
     m_map_overlay_psr(NULL),
     m_map_attribute_psr(NULL),
@@ -164,12 +166,6 @@ void WorkerJobTypeParserTester::set_tech_sd (const TechStaticData* sd) {
 
 }
 
-void WorkerJobTypeParserTester::set_unit_sd (const UnitStaticData* sd) {
-
-    m_unit_sd = sd;
-
-}
-
 void WorkerJobTypeParserTester::set_unit_action_sd (const UnitActionStaticData* sd) {
 
     m_unit_action_sd = sd;
@@ -185,6 +181,18 @@ void WorkerJobTypeParserTester::set_unit_role_sd (const UnitRoleStaticData* sd) 
 void WorkerJobTypeParserTester::set_unit_type_sd (const UnitTypeStaticData* sd) {
 
     m_unit_type_sd = sd;
+
+}
+
+void WorkerJobTypeParserTester::set_unit_domain_sd (const UnitDomainStaticData* sd) {
+
+    m_unit_domain_sd = sd;
+
+}
+
+void WorkerJobTypeParserTester::set_unit_sd (const UnitStaticData* sd) {
+
+    m_unit_sd = sd;
 
 }
 
@@ -379,13 +387,6 @@ u16 WorkerJobTypeParserTester::st_tech_n2i (cstr name) {
     return s_inst->m_tech_psr->name_to_idx(name);
 }
 
-u16 WorkerJobTypeParserTester::st_unit_n2i (cstr name) {
-    if (s_inst == NULL || s_inst->m_unit_psr == NULL) {
-        return U16_KEY_NULL;
-    }
-    return s_inst->m_unit_psr->name_to_idx(name);
-}
-
 u16 WorkerJobTypeParserTester::st_unit_action_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_unit_action_psr == NULL) {
         return U16_KEY_NULL;
@@ -405,6 +406,20 @@ u16 WorkerJobTypeParserTester::st_unit_type_n2i (cstr name) {
         return U16_KEY_NULL;
     }
     return s_inst->m_unit_type_psr->name_to_idx(name);
+}
+
+u16 WorkerJobTypeParserTester::st_unit_domain_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_unit_domain_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_unit_domain_psr->name_to_idx(name);
+}
+
+u16 WorkerJobTypeParserTester::st_unit_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_unit_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_unit_psr->name_to_idx(name);
 }
 
 u16 WorkerJobTypeParserTester::st_wonder_n2i (cstr name) {
@@ -841,10 +856,11 @@ int WorkerJobTypeParserTester::run () {
     cbs.res_type_name_to_idx = st_res_type_n2i;
     cbs.small_wonder_name_to_idx = st_small_wonder_n2i;
     cbs.tech_name_to_idx = st_tech_n2i;
-    cbs.unit_name_to_idx = st_unit_n2i;
     cbs.unit_action_name_to_idx = st_unit_action_n2i;
     cbs.unit_role_name_to_idx = st_unit_role_n2i;
     cbs.unit_type_name_to_idx = st_unit_type_n2i;
+    cbs.unit_domain_name_to_idx = st_unit_domain_n2i;
+    cbs.unit_name_to_idx = st_unit_n2i;
     cbs.wonder_name_to_idx = st_wonder_n2i;
     cbs.map_overlay_name_to_idx = st_map_overlay_n2i;
     cbs.map_attribute_name_to_idx = st_map_attribute_n2i;
@@ -872,10 +888,11 @@ int WorkerJobTypeParserTester::run () {
     StringManager res_type_items;
     StringManager small_wonder_items;
     StringManager tech_items;
-    StringManager unit_items;
     StringManager unit_action_items;
     StringManager unit_role_items;
     StringManager unit_type_items;
+    StringManager unit_domain_items;
+    StringManager unit_items;
     StringManager wonder_items;
     StringManager map_overlay_items;
     StringManager map_attribute_items;
@@ -903,10 +920,11 @@ int WorkerJobTypeParserTester::run () {
     ld_sm(res_type_items, paths.get_path_to_res_types());
     ld_sm(small_wonder_items, paths.get_path_to_small_wonders());
     ld_sm(tech_items, paths.get_path_to_techs());
-    ld_sm(unit_items, paths.get_path_to_units());
     ld_sm(unit_action_items, paths.get_path_to_unit_actions());
     ld_sm(unit_role_items, paths.get_path_to_unit_roles());
     ld_sm(unit_type_items, paths.get_path_to_unit_types());
+    ld_sm(unit_domain_items, paths.get_path_to_unit_domains());
+    ld_sm(unit_items, paths.get_path_to_units());
     ld_sm(wonder_items, paths.get_path_to_wonders());
     ld_sm(map_overlay_items, paths.get_path_to_map_overlays());
     ld_sm(map_attribute_items, paths.get_path_to_map_attributes());
@@ -937,10 +955,11 @@ int WorkerJobTypeParserTester::run () {
     DataParserBase res_type_parser(res_type_items, cbs);
     DataParserBase small_wonder_parser(small_wonder_items, cbs);
     DataParserBase tech_parser(tech_items, cbs);
-    DataParserBase unit_parser(unit_items, cbs);
     DataParserBase unit_action_parser(unit_action_items, cbs);
     DataParserBase unit_role_parser(unit_role_items, cbs);
     DataParserBase unit_type_parser(unit_type_items, cbs);
+    DataParserBase unit_domain_parser(unit_domain_items, cbs);
+    DataParserBase unit_parser(unit_items, cbs);
     DataParserBase wonder_parser(wonder_items, cbs);
     DataParserBase map_overlay_parser(map_overlay_items, cbs);
     DataParserBase map_attribute_parser(map_attribute_items, cbs);
@@ -966,10 +985,11 @@ int WorkerJobTypeParserTester::run () {
     m_res_type_psr = &res_type_parser;
     m_small_wonder_psr = &small_wonder_parser;
     m_tech_psr = &tech_parser;
-    m_unit_psr = &unit_parser;
     m_unit_action_psr = &unit_action_parser;
     m_unit_role_psr = &unit_role_parser;
     m_unit_type_psr = &unit_type_parser;
+    m_unit_domain_psr = &unit_domain_parser;
+    m_unit_psr = &unit_parser;
     m_wonder_psr = &wonder_parser;
     m_map_overlay_psr = &map_overlay_parser;
     m_map_attribute_psr = &map_attribute_parser;

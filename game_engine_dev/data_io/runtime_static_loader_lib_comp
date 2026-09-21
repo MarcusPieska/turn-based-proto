@@ -41,6 +41,7 @@ g++ $INC $CXXFLAGS -c tech_parser.cpp -o tech_parser.o
 g++ $INC $CXXFLAGS -c unit_action_parser.cpp -o unit_action_parser.o
 g++ $INC $CXXFLAGS -c unit_role_parser.cpp -o unit_role_parser.o
 g++ $INC $CXXFLAGS -c unit_type_parser.cpp -o unit_type_parser.o
+g++ $INC $CXXFLAGS -c unit_domain_parser.cpp -o unit_domain_parser.o
 g++ $INC $CXXFLAGS -c unit_parser.cpp -o unit_parser.o
 g++ $INC $CXXFLAGS -c wonder_parser.cpp -o wonder_parser.o
 g++ $INC $CXXFLAGS -c map_overlay_parser.cpp -o map_overlay_parser.o
@@ -86,6 +87,8 @@ g++ $INC $CXXFLAGS -c ../static_state/unit_role_static_data.cpp -o unit_role_sta
 g++ $INC $CXXFLAGS -c ../static_state/unit_role_static_data_load.cpp -o unit_role_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/unit_type_static_data.cpp -o unit_type_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/unit_type_static_data_load.cpp -o unit_type_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/unit_domain_static_data.cpp -o unit_domain_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/unit_domain_static_data_load.cpp -o unit_domain_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/unit_static_data.cpp -o unit_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/unit_static_data_load.cpp -o unit_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/wonder_static_data.cpp -o wonder_static_data.o
@@ -165,6 +168,7 @@ g++ -shared -o $OUT_SO \
     unit_action_parser.o \
     unit_role_parser.o \
     unit_type_parser.o \
+    unit_domain_parser.o \
     unit_parser.o \
     wonder_parser.o \
     map_overlay_parser.o \
@@ -209,6 +213,8 @@ g++ -shared -o $OUT_SO \
     unit_role_static_data_load.o \
     unit_type_static_data.o \
     unit_type_static_data_load.o \
+    unit_domain_static_data.o \
+    unit_domain_static_data_load.o \
     unit_static_data.o \
     unit_static_data_load.o \
     wonder_static_data.o \
@@ -289,6 +295,7 @@ rm \
     unit_action_parser.o \
     unit_role_parser.o \
     unit_type_parser.o \
+    unit_domain_parser.o \
     unit_parser.o \
     wonder_parser.o \
     map_overlay_parser.o \
@@ -333,6 +340,8 @@ rm \
     unit_role_static_data_load.o \
     unit_type_static_data.o \
     unit_type_static_data_load.o \
+    unit_domain_static_data.o \
+    unit_domain_static_data_load.o \
     unit_static_data.o \
     unit_static_data_load.o \
     wonder_static_data.o \

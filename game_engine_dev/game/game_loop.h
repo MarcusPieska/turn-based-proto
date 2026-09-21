@@ -15,8 +15,8 @@ class GameState;
 //
 //  Per-turn match stepper. begin binds state, opens the runtime trace, inits whiteboards and SettlerTurnHandler,
 //  arms settling targets, ResearchTurnHandler::begin for first tech targets, and claims starting city borders;
-//  end tears those down. The external driver calls step. Each step: all cities (yields, finish, production pick via
-//  CityTurnHandler), then ResearchTurnHandler::handle per seat, copy/zero counts, then units.
+//  end tears those down. The external driver calls step. Each step: cities (CityTurnHandler), then units; after
+//  unit upkeep settle, LedgerBalanceTurnHandler sets science %, pay from m_commerce_from_turn, then research bank.
 //
 //================================================================================================================================
 

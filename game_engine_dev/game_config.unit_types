@@ -1,22 +1,22 @@
-LAND_WORKER      : isLandUnit : canEmbark : canBeCaptured : canHold : canJoinCity : canBuildImprovements
-LAND_SETTLER     : isLandUnit : canEmbark : canBeCaptured : canHold : canJoinCity : canSettleCity
-LAND_SCOUT       : isLandUnit : canEmbark : canHold : canExplore
-LAND_DEFENSE     : isLandUnit : canEmbark : canFortify : canAttack : canDefend : canPillage : canCaptureCities
-LAND_ATTACK      : isLandUnit : canEmbark : canFortify : canAttack : canDefend : canPillage : canCaptureCities
-LAND_MOBILE      : isLandUnit : canEmbark : canFortify : canAttack : canDefend : canPillage : canCaptureCities : canRetreat
-LAND_ARTILLERY   : isLandUnit : canEmbark : canHold : canBarrage
-LAND_PARADROP    : isLandUnit : canEmbark : canFortify : canAttack : canDefend : canPillage : canCaptureCities : canParadrop
-LAND_ANIT_AIR    : isLandUnit : canEmbark : canDoAntiAir
-LAND_SPY         : isLandUnit : canEmbark : canSpy
-AIR_BOMBER       : isAirUnit : canRebase : canDoAirBombing
-AIR_FIGHTER      : isAirUnit : canRebase : canDoAirSupport : canIntercept
-AIR_CAS          : isAirUnit : canRebase : canDoAirSupport : canIntercept
-AIR_NUKE         : isAirUnit : canRebase : canNuke
-AIR_MISSILE      : isAirUnit : canRebase : canDoMissileStrike
-AIR_TRANSPORT    : isAirUnit : canRebase : canDoAirTransport
-SEA_TRANSPORT    : isSeaUnit : canHold : canDoSeaTransport
-SEA_SCOUT        : isSeaUnit : canHold : canExplore
-SEA_MAIN_LINE    : isSeaUnit : canHold : canAttack : canDefend : canPillage
-SEA_SUBMARINE    : isSeaUnit : canHold : canAttack : canDefend : canPillage
-SEA_DESTROYER    : isSeaUnit : canHold : canAttack : canDefend : canPillage
-SEA_CARRIER      : isSeaUnit : canHold : canLaunchPlanes
+LAND_WORKER      : canEmbark : canBeCaptured : canHold : canJoinCity : canBuildImprovements
+LAND_SETTLER     : canEmbark : canBeCaptured : canHold : canJoinCity : canSettleCity
+LAND_SCOUT       : canEmbark : canHold : canExplore
+LAND_DEFENSE     : canEmbark : canFortify : canAttack : canDefend : canPillage : canCaptureCities
+LAND_ATTACK      : canEmbark : canFortify : canAttack : canDefend : canPillage : canCaptureCities
+LAND_MOBILE      : canEmbark : canFortify : canAttack : canDefend : canPillage : canCaptureCities : canRetreat
+LAND_ARTILLERY   : canEmbark : canHold : canBarrage
+LAND_PARADROP    : canEmbark : canFortify : canAttack : canDefend : canPillage : canCaptureCities : canParadrop
+LAND_ANIT_AIR    : canEmbark : canDoAntiAir
+LAND_SPY         : canEmbark : canSpy
+AIR_BOMBER       : canRebase : canDoAirBombing
+AIR_FIGHTER      : canRebase : canDoAirSupport : canIntercept
+AIR_CAS          : canRebase : canDoAirSupport : canIntercept
+AIR_NUKE         : canRebase : canNuke
+AIR_MISSILE      : canRebase : canDoMissileStrike
+AIR_TRANSPORT    : canRebase : canDoAirTransport
+SEA_TRANSPORT    : canHold : canDoSeaTransport
+SEA_SCOUT        : canHold : canExplore
+SEA_MAIN_LINE    : canHold : canAttack : canDefend : canPillage
+SEA_SUBMARINE    : canHold : canAttack : canDefend : canPillage
+SEA_DESTROYER    : canHold : canAttack : canDefend : canPillage
+SEA_CARRIER      : canHold : canLaunchPlanes

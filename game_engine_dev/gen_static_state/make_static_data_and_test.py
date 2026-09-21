@@ -32,10 +32,11 @@ if __name__ == "__main__":
     
     specs.append(("small_wonder", "SmallWonder", std_members + "u32 cost; ItemEffectsStruct effects;", "cost", "effects.items[0].type"))
     specs.append(("tech", "Tech", std_members + "ItemEffectsStruct effects; u32 cost; u16 tier;", "cost", "tier"))
-    specs.append(("unit", "Unit", std_members + "u32 cost; u16 type; u16 role; u16 attack; u16 defense; u16 mvt_pts; u16 sight;", "cost", "type"))
     specs.append(("unit_action", "UnitAction", "", "None", "None"))
     specs.append(("unit_role", "UnitRole", "CombatModList mods;", "None", "None"))
     specs.append(("unit_type", "UnitType", "", "None", "None"))
+    specs.append(("unit_domain", "UnitDomain", "", "None", "None"))
+    specs.append(("unit", "Unit", std_members + "u32 cost; u16 domain; u16 type; u16 role; u16 attack; u16 defense; u16 mvt_pts; u16 sight;", "cost", "domain"))
     
     specs.append(("wonder", "Wonder", std_members + "u32 cost; ItemEffectsStruct effects;", "cost", "effects.items[0].type"))
     specs.append(("map_overlay", "MapOverlay", "", "None", "None"))

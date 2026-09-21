@@ -198,6 +198,22 @@ bool GameConfigSettingsParser::parse_line (cstr line, GameConfigSettings* out) c
         }
         out->set_unit_heal_default(tmp);
         return true;
+    } else if (std::strcmp(k, "UPGRADE_COST_PER_PROD") == 0) {
+        u16 tmp = 0;
+        if (!parse_u16(v, &tmp)) {
+            std::printf("ERROR: config could not parse u16 for '%s': '%s'\n", k, v);
+            return false;
+        }
+        out->set_upgrade_cost_per_prod(tmp);
+        return true;
+    } else if (std::strcmp(k, "UPGRADE_COST_PER_STAT_PT") == 0) {
+        u16 tmp = 0;
+        if (!parse_u16(v, &tmp)) {
+            std::printf("ERROR: config could not parse u16 for '%s': '%s'\n", k, v);
+            return false;
+        }
+        out->set_upgrade_cost_per_stat_pt(tmp);
+        return true;
     }
 
     std::printf("ERROR: unknown config settings key '%s'\n", k);

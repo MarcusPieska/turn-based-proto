@@ -29,6 +29,7 @@ def get_entries ():
         "unit_action",
         "unit_role",
         "unit_type",
+        "unit_domain",
         "unit",
         "wonder",
         "map_overlay",

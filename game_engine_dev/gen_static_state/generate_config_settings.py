@@ -54,11 +54,15 @@ METHOD_OVERRIDES = {}
 METHOD_OVERRIDES["PATH_MP_TURN"] = "mov_pt_per_turn"
 METHOD_OVERRIDES["UNIT_HEAL_IN_CITY"] = "unit_heal_in_city"
 METHOD_OVERRIDES["UNIT_HEAL_DEFAULT"] = "unit_heal_default"
+METHOD_OVERRIDES["UPGRADE_COST_PER_PROD"] = "upgrade_cost_per_prod"
+METHOD_OVERRIDES["UPGRADE_COST_PER_STAT_PT"] = "upgrade_cost_per_stat_pt"
 
 MEMBER_OVERRIDES = {}
 MEMBER_OVERRIDES["PATH_MP_TURN"] = "m_mov_pt_per_turn"
 MEMBER_OVERRIDES["UNIT_HEAL_IN_CITY"] = "m_unit_heal_in_city"
 MEMBER_OVERRIDES["UNIT_HEAL_DEFAULT"] = "m_unit_heal_default"
+MEMBER_OVERRIDES["UPGRADE_COST_PER_PROD"] = "m_upgrade_cost_per_prod"
+MEMBER_OVERRIDES["UPGRADE_COST_PER_STAT_PT"] = "m_upgrade_cost_per_stat_pt"
 
 #================================================================================================================================#
 #=> - Helpers -

@@ -55,6 +55,8 @@ static void clr_data (ConfigSettingsData* d) {
     clr_list_unit(&d->m_start_exp_units);
     d->m_unit_heal_in_city = 0;
     d->m_unit_heal_default = 0;
+    d->m_upgrade_cost_per_prod = 0;
+    d->m_upgrade_cost_per_stat_pt = 0;
 }
 
 //================================================================================================================================
@@ -174,6 +176,36 @@ void GameConfigSettings::set_unit_heal_default (u16 v) {
     }
     ensure_ovr();
     assign_u16(&m_cfg->m_unit_heal_default, v);
+}
+
+u16 GameConfigSettings::get_upgrade_cost_per_prod () const {
+    return cur().m_upgrade_cost_per_prod;
+}
+
+void GameConfigSettings::set_upgrade_cost_per_prod (u16 v) {
+    if (eq_u16(v, m_defaults.m_upgrade_cost_per_prod)) {
+        if (!m_is_default) {
+            assign_u16(&m_cfg->m_upgrade_cost_per_prod, v);
+        }
+        return;
+    }
+    ensure_ovr();
+    assign_u16(&m_cfg->m_upgrade_cost_per_prod, v);
+}
+
+u16 GameConfigSettings::get_upgrade_cost_per_stat_pt () const {
+    return cur().m_upgrade_cost_per_stat_pt;
+}
+
+void GameConfigSettings::set_upgrade_cost_per_stat_pt (u16 v) {
+    if (eq_u16(v, m_defaults.m_upgrade_cost_per_stat_pt)) {
+        if (!m_is_default) {
+            assign_u16(&m_cfg->m_upgrade_cost_per_stat_pt, v);
+        }
+        return;
+    }
+    ensure_ovr();
+    assign_u16(&m_cfg->m_upgrade_cost_per_stat_pt, v);
 }
 
 //================================================================================================================================

@@ -13,10 +13,9 @@ class GameState;
 //=> - CityTurnHandler -
 //================================================================================================================================
 //
-//  Per-city turn step invoked by the main game loop. Gathers worked-tile yields via CityTileManager, applies growth and
-//  production finish, then dispatches trait city AI (CityTurnHandler_Default scaffolding; Commercial stub reserved).
-//  Banks commerce and culture (add_culture(0) pulls building yields; City::add_culture claims borders on expand).
-//  Tallies m_this_turn_city_count and m_this_turn_population_count for the owning seat.
+//  Per-city turn step invoked by the main game loop. Gathers worked-tile yields, fills leftover pops into city jobs,
+//  then banks tile+job yields (commerce/science to PlayerLedger; food/production/culture to City; religion ignored)
+//  before finish_if_ready / growth / trait AI. Tallies m_this_turn_city_count and m_this_turn_population_count.
 //
 //================================================================================================================================
 

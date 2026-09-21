@@ -142,6 +142,8 @@ static void print_config (const GameConfigSettings& cfg) {
     }
     std::printf("  UNIT_HEAL_IN_CITY: %u\n", cfg.get_unit_heal_in_city());
     std::printf("  UNIT_HEAL_DEFAULT: %u\n", cfg.get_unit_heal_default());
+    std::printf("  UPGRADE_COST_PER_PROD: %u\n", cfg.get_upgrade_cost_per_prod());
+    std::printf("  UPGRADE_COST_PER_STAT_PT: %u\n", cfg.get_upgrade_cost_per_stat_pt());
 }
 
 //================================================================================================================================

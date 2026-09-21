@@ -99,6 +99,7 @@ void note_all_paths_exist (const PathMng& paths, cstr tag) {
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s unit_actions exists", tag); note_result(does_file_exist(paths.get_path_to_unit_actions()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s unit_roles exists", tag); note_result(does_file_exist(paths.get_path_to_unit_roles()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s unit_types exists", tag); note_result(does_file_exist(paths.get_path_to_unit_types()), _buf); }
+        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s unit_domains exists", tag); note_result(does_file_exist(paths.get_path_to_unit_domains()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s units exists", tag); note_result(does_file_exist(paths.get_path_to_units()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s wonders exists", tag); note_result(does_file_exist(paths.get_path_to_wonders()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s map_overlays exists", tag); note_result(does_file_exist(paths.get_path_to_map_overlays()), _buf); }

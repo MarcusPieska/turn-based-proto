@@ -82,6 +82,8 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_unit_role.load_names_from(p.get_unit_role_name_parser(), p.get_unit_role_count());
     m_unit_type.set_items(const_cast<UnitTypeStaticDataStruct*>(p.get_unit_type_data()), p.get_unit_type_count());
     m_unit_type.load_names_from(p.get_unit_type_name_parser(), p.get_unit_type_count());
+    m_unit_domain.set_items(const_cast<UnitDomainStaticDataStruct*>(p.get_unit_domain_data()), p.get_unit_domain_count());
+    m_unit_domain.load_names_from(p.get_unit_domain_name_parser(), p.get_unit_domain_count());
     m_unit.set_items(const_cast<UnitStaticDataStruct*>(p.get_unit_data()), p.get_unit_count());
     m_unit.load_names_from(p.get_unit_name_parser(), p.get_unit_count());
     m_wonder.set_items(const_cast<WonderStaticDataStruct*>(p.get_wonder_data()), p.get_wonder_count());
@@ -135,6 +137,7 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_unit_action.take_ownership();
     m_unit_role.take_ownership();
     m_unit_type.take_ownership();
+    m_unit_domain.take_ownership();
     m_unit.take_ownership();
     m_wonder.take_ownership();
     m_map_overlay.take_ownership();
@@ -316,6 +319,14 @@ UnitTypeStaticData& RuntimeStatics::unit_type () {
 
 const UnitTypeStaticData& RuntimeStatics::unit_type () const {
     return m_unit_type;
+}
+
+UnitDomainStaticData& RuntimeStatics::unit_domain () {
+    return m_unit_domain;
+}
+
+const UnitDomainStaticData& RuntimeStatics::unit_domain () const {
+    return m_unit_domain;
 }
 
 UnitStaticData& RuntimeStatics::unit () {

@@ -28,10 +28,11 @@ PARSER_SPECS.append(("res_dist", "ResDist", "plc,1,ResPlacement"))
 PARSER_SPECS.append(("res_type", "ResType", ""))
 PARSER_SPECS.append(("small_wonder", "SmallWonder", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStruct"))
 PARSER_SPECS.append(("tech", "Tech", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStructOpt"))
-PARSER_SPECS.append(("unit", "Unit", "type,1,UnitType:role,2,UnitRole:cost,3,u32:attack,4,u16:defense,5,u16:mvt_pts,6,u16:sight,7,u16:reqs,8,ItemReqsStruct"))
 PARSER_SPECS.append(("unit_action", "UnitAction", ""))
 PARSER_SPECS.append(("unit_role", "UnitRole", "mods,1,CombatModList"))
 PARSER_SPECS.append(("unit_type", "UnitType", ""))
+PARSER_SPECS.append(("unit_domain", "UnitDomain", ""))
+PARSER_SPECS.append(("unit", "Unit", "domain,1,UnitDomain:type,2,UnitType:role,3,UnitRole:cost,4,u32:attack,5,u16:defense,6,u16:mvt_pts,7,u16:sight,8,u16:reqs,9,ItemReqsStruct"))
 PARSER_SPECS.append(("wonder", "Wonder", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStruct"))
 PARSER_SPECS.append(("map_overlay", "MapOverlay", ""))
 PARSER_SPECS.append(("map_attribute", "MapAttribute", ""))
@@ -76,6 +77,8 @@ def get_function_name_from_output_type(output_type):
         return "parse_unit_type"
     elif output_type == "UnitRole":
         return "parse_unit_role"
+    elif output_type == "UnitDomain":
+        return "parse_unit_domain"
     elif output_type == "ResType":
         return "parse_res_type"
     elif output_type == "WorkerJobType":
@@ -143,7 +146,7 @@ def derive_member_print_lines(parsing_instructions):
         return ["// No parsing instructions provided"]
     for instruction in parsing_instructions.split(":"):
         mem, idx, data_type = [part.strip() for part in instruction.strip().split(",")]
-        if data_type in ["u16", "UnitType", "UnitRole", "ResType", "WorkerJobType", "WorkerJobTarget", "ResDistIdx", "TileYieldType", "TileAttributeIdx", "WorkerJobIdx", "WorkerJobColIdx", "MapOverlayColIdx", "MapAttributeColIdx", "WorkerJobSiteIdx"]:
+        if data_type in ["u16", "UnitType", "UnitRole", "UnitDomain", "ResType", "WorkerJobType", "WorkerJobTarget", "ResDistIdx", "TileYieldType", "TileAttributeIdx", "WorkerJobIdx", "WorkerJobColIdx", "MapOverlayColIdx", "MapAttributeColIdx", "WorkerJobSiteIdx"]:
             lines.append('pr_u16("%s", item.%s);' % (mem, mem))
         elif data_type == "i16":
             lines.append('pr_i16("%s", item.%s);' % (mem, mem))

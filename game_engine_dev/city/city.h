@@ -84,6 +84,7 @@ public:
 
     void refresh_unit_support (u16 city_idx);
     u16 calc_city_land_unit_support (u16 city_idx) const;
+    u16 calc_city_naval_unit_support (u16 city_idx) const;
     void count_unit_build_support (PlayerState* ps);
     void refund_land_unit_upkeep (const UnitAddStruct& unit, PlayerState* ps);
     void refund_naval_unit_upkeep (const UnitAddStruct& unit, PlayerState* ps);

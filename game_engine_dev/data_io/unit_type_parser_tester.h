@@ -35,10 +35,11 @@
 #include "res_type_static_data.h"
 #include "small_wonder_static_data.h"
 #include "tech_static_data.h"
-#include "unit_static_data.h"
 #include "unit_action_static_data.h"
 #include "unit_role_static_data.h"
 #include "unit_type_static_data.h"
+#include "unit_domain_static_data.h"
+#include "unit_static_data.h"
 #include "wonder_static_data.h"
 #include "map_overlay_static_data.h"
 #include "map_attribute_static_data.h"
@@ -77,10 +78,11 @@ public:
     void set_res_type_sd (const ResTypeStaticData* sd);
     void set_small_wonder_sd (const SmallWonderStaticData* sd);
     void set_tech_sd (const TechStaticData* sd);
-    void set_unit_sd (const UnitStaticData* sd);
     void set_unit_action_sd (const UnitActionStaticData* sd);
     void set_unit_role_sd (const UnitRoleStaticData* sd);
     void set_unit_type_sd (const UnitTypeStaticData* sd);
+    void set_unit_domain_sd (const UnitDomainStaticData* sd);
+    void set_unit_sd (const UnitStaticData* sd);
     void set_wonder_sd (const WonderStaticData* sd);
     void set_map_overlay_sd (const MapOverlayStaticData* sd);
     void set_map_attribute_sd (const MapAttributeStaticData* sd);
@@ -112,10 +114,11 @@ private:
     const ResTypeStaticData* m_res_type_sd;
     const SmallWonderStaticData* m_small_wonder_sd;
     const TechStaticData* m_tech_sd;
-    const UnitStaticData* m_unit_sd;
     const UnitActionStaticData* m_unit_action_sd;
     const UnitRoleStaticData* m_unit_role_sd;
     const UnitTypeStaticData* m_unit_type_sd;
+    const UnitDomainStaticData* m_unit_domain_sd;
+    const UnitStaticData* m_unit_sd;
     const WonderStaticData* m_wonder_sd;
     const MapOverlayStaticData* m_map_overlay_sd;
     const MapAttributeStaticData* m_map_attribute_sd;
@@ -141,10 +144,11 @@ private:
     const DataParserBase* m_res_type_psr;
     const DataParserBase* m_small_wonder_psr;
     const DataParserBase* m_tech_psr;
-    const DataParserBase* m_unit_psr;
     const DataParserBase* m_unit_action_psr;
     const DataParserBase* m_unit_role_psr;
     const DataParserBase* m_unit_type_psr;
+    const DataParserBase* m_unit_domain_psr;
+    const DataParserBase* m_unit_psr;
     const DataParserBase* m_wonder_psr;
     const DataParserBase* m_map_overlay_psr;
     const DataParserBase* m_map_attribute_psr;
@@ -172,10 +176,11 @@ private:
     static u16 st_res_type_n2i (cstr name);
     static u16 st_small_wonder_n2i (cstr name);
     static u16 st_tech_n2i (cstr name);
-    static u16 st_unit_n2i (cstr name);
     static u16 st_unit_action_n2i (cstr name);
     static u16 st_unit_role_n2i (cstr name);
     static u16 st_unit_type_n2i (cstr name);
+    static u16 st_unit_domain_n2i (cstr name);
+    static u16 st_unit_n2i (cstr name);
     static u16 st_wonder_n2i (cstr name);
     static u16 st_map_overlay_n2i (cstr name);
     static u16 st_map_attribute_n2i (cstr name);

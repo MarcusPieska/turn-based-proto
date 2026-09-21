@@ -3,7 +3,7 @@ set -e
 
 cd "$(dirname "$0")"
 
-INC="-I.. -I../misc -I../game -I../dyn_state -I."
+INC="-I.. -I../misc -I../map_loader -I../simple_map_gen -I../dyn_state -I../data_io -I../static_state -I../city -I../city/assessor -I../city/effector -I../gen_bit_banks -I../adv_map_gen -I../game -I../ai_pathing/walk_general -I../ai_pathing/walk_cities -I../ai_pathing/walk_target -I../ai_proc -I."
 CXXFLAGS="-std=c++17 -Wall -Wextra -fPIC"
 OUT_SO="log_dbg.so"
 
@@ -22,11 +22,17 @@ g++ $CXXFLAGS $INC -c log_city_job_culture.cpp -o log_city_job_culture.o
 g++ $CXXFLAGS $INC -c log_city_job_science.cpp -o log_city_job_science.o
 g++ $CXXFLAGS $INC -c log_city_job_religion.cpp -o log_city_job_religion.o
 g++ $CXXFLAGS $INC -c log_city_job_yields.cpp -o log_city_job_yields.o
+g++ $CXXFLAGS $INC -c log_player_commerce.cpp -o log_player_commerce.o
+g++ $CXXFLAGS $INC -c log_player_commerce_raw.cpp -o log_player_commerce_raw.o
+g++ $CXXFLAGS $INC -c log_player_science.cpp -o log_player_science.o
+g++ $CXXFLAGS $INC -c log_player_research_perc.cpp -o log_player_research_perc.o
 g++ $CXXFLAGS $INC -c assert_combat_ready.cpp -o assert_combat_ready.o
 g++ $CXXFLAGS $INC -c assert_sector_support_bound.cpp -o assert_sector_support_bound.o
 g++ $CXXFLAGS $INC -c assert_war_army_can_fight.cpp -o assert_war_army_can_fight.o
 g++ $CXXFLAGS $INC -c assert_city_job_are_covered.cpp -o assert_city_job_are_covered.o
 g++ $CXXFLAGS $INC -c eval_city_tile_work_count.cpp -o eval_city_tile_work_count.o
+g++ $CXXFLAGS $INC -c eval_army_unit_support.cpp -o eval_army_unit_support.o
+g++ $CXXFLAGS $INC -c eval_navy_unit_support.cpp -o eval_navy_unit_support.o
 
 g++ -shared -o $OUT_SO \
     log_new_turn.o \
@@ -44,12 +50,18 @@ g++ -shared -o $OUT_SO \
     log_city_job_science.o \
     log_city_job_religion.o \
     log_city_job_yields.o \
+    log_player_commerce.o \
+    log_player_commerce_raw.o \
+    log_player_science.o \
+    log_player_research_perc.o \
     assert_combat_ready.o \
     assert_sector_support_bound.o \
     assert_war_army_can_fight.o \
     assert_city_job_are_covered.o \
     eval_city_tile_work_count.o \
+    eval_army_unit_support.o \
+    eval_navy_unit_support.o \
     -Wl,-soname,$OUT_SO
 
-rm -f log_new_turn.o log_city_foundation.o log_civ_spawn_pt.o log_unit_spawn.o log_war_muster.o log_war_peace_mock.o log_war_army_size.o log_war_city_capture.o log_city_job_food.o log_city_job_production.o log_city_job_commerce.o log_city_job_culture.o log_city_job_science.o log_city_job_religion.o log_city_job_yields.o assert_combat_ready.o assert_sector_support_bound.o assert_war_army_can_fight.o assert_city_job_are_covered.o eval_city_tile_work_count.o
+rm -f log_new_turn.o log_city_foundation.o log_civ_spawn_pt.o log_unit_spawn.o log_war_muster.o log_war_peace_mock.o log_war_army_size.o log_war_city_capture.o log_city_job_food.o log_city_job_production.o log_city_job_commerce.o log_city_job_culture.o log_city_job_science.o log_city_job_religion.o log_city_job_yields.o log_player_commerce.o log_player_commerce_raw.o log_player_science.o log_player_research_perc.o assert_combat_ready.o assert_sector_support_bound.o assert_war_army_can_fight.o assert_city_job_are_covered.o eval_city_tile_work_count.o eval_army_unit_support.o eval_navy_unit_support.o
 echo "built $(pwd)/$OUT_SO"

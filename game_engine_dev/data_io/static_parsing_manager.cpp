@@ -46,6 +46,7 @@ const DataParserBase* g_tech_name_parser = nullptr;
 const DataParserBase* g_unit_action_name_parser = nullptr;
 const DataParserBase* g_unit_role_name_parser = nullptr;
 const DataParserBase* g_unit_type_name_parser = nullptr;
+const DataParserBase* g_unit_domain_name_parser = nullptr;
 const DataParserBase* g_unit_name_parser = nullptr;
 const DataParserBase* g_wonder_name_parser = nullptr;
 const DataParserBase* g_map_overlay_name_parser = nullptr;
@@ -123,6 +124,10 @@ u16 cb_unit_type_name_to_idx (cstr name) {
     return g_unit_type_name_parser->name_to_idx(name);
 }
 
+u16 cb_unit_domain_name_to_idx (cstr name) {
+    return g_unit_domain_name_parser->name_to_idx(name);
+}
+
 u16 cb_unit_name_to_idx (cstr name) {
     return g_unit_name_parser->name_to_idx(name);
 }
@@ -197,6 +202,7 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_unit_action_items(),
     m_unit_role_items(),
     m_unit_type_items(),
+    m_unit_domain_items(),
     m_unit_items(),
     m_wonder_items(),
     m_map_overlay_items(),
@@ -226,6 +232,7 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_unit_action_name_parser(nullptr),
     m_unit_role_name_parser(nullptr),
     m_unit_type_name_parser(nullptr),
+    m_unit_domain_name_parser(nullptr),
     m_unit_name_parser(nullptr),
     m_wonder_name_parser(nullptr),
     m_map_overlay_name_parser(nullptr),
@@ -261,6 +268,7 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_unit_action_data(nullptr),
     m_unit_role_data(nullptr),
     m_unit_type_data(nullptr),
+    m_unit_domain_data(nullptr),
     m_unit_data(nullptr),
     m_wonder_data(nullptr),
     m_map_overlay_data(nullptr),
@@ -325,6 +333,9 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_unit_type_items.load_file_content(m_paths.get_path_to_unit_types());
     m_unit_type_items.split_string_by_char(0, '\n');
     DataParserBase::normalize_lines(m_unit_type_items);
+    m_unit_domain_items.load_file_content(m_paths.get_path_to_unit_domains());
+    m_unit_domain_items.split_string_by_char(0, '\n');
+    DataParserBase::normalize_lines(m_unit_domain_items);
     m_unit_items.load_file_content(m_paths.get_path_to_units());
     m_unit_items.split_string_by_char(0, '\n');
     DataParserBase::normalize_lines(m_unit_items);
@@ -380,6 +391,7 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_unit_action_name_parser = new DataParserBase(m_unit_action_items, NameToIdxCbs());
     m_unit_role_name_parser = new DataParserBase(m_unit_role_items, NameToIdxCbs());
     m_unit_type_name_parser = new DataParserBase(m_unit_type_items, NameToIdxCbs());
+    m_unit_domain_name_parser = new DataParserBase(m_unit_domain_items, NameToIdxCbs());
     m_unit_name_parser = new DataParserBase(m_unit_items, NameToIdxCbs());
     m_wonder_name_parser = new DataParserBase(m_wonder_items, NameToIdxCbs());
     m_map_overlay_name_parser = new DataParserBase(m_map_overlay_items, NameToIdxCbs());
@@ -415,6 +427,7 @@ StaticParsingManager::~StaticParsingManager () {
     delete m_unit_action_name_parser;
     delete m_unit_role_name_parser;
     delete m_unit_type_name_parser;
+    delete m_unit_domain_name_parser;
     delete m_unit_name_parser;
     delete m_wonder_name_parser;
     delete m_map_overlay_name_parser;
@@ -555,6 +568,14 @@ const UnitTypeStaticDataStruct* StaticParsingManager::get_unit_type_data () cons
 
 u16 StaticParsingManager::get_unit_type_count () const {
     return safe_size_to_u16(m_unit_type_items.get_string_count());
+}
+
+const UnitDomainStaticDataStruct* StaticParsingManager::get_unit_domain_data () const {
+    return m_unit_domain_data;
+}
+
+u16 StaticParsingManager::get_unit_domain_count () const {
+    return safe_size_to_u16(m_unit_domain_items.get_string_count());
 }
 
 const UnitStaticDataStruct* StaticParsingManager::get_unit_data () const {
@@ -716,6 +737,10 @@ const DataParserBase& StaticParsingManager::get_unit_type_name_parser () const {
     return *m_unit_type_name_parser;
 }
 
+const DataParserBase& StaticParsingManager::get_unit_domain_name_parser () const {
+    return *m_unit_domain_name_parser;
+}
+
 const DataParserBase& StaticParsingManager::get_unit_name_parser () const {
     return *m_unit_name_parser;
 }
@@ -813,6 +838,7 @@ void StaticParsingManager::build_name_to_idx_callbacks () {
     g_unit_action_name_parser = m_unit_action_name_parser;
     g_unit_role_name_parser = m_unit_role_name_parser;
     g_unit_type_name_parser = m_unit_type_name_parser;
+    g_unit_domain_name_parser = m_unit_domain_name_parser;
     g_unit_name_parser = m_unit_name_parser;
     g_wonder_name_parser = m_wonder_name_parser;
     g_map_overlay_name_parser = m_map_overlay_name_parser;
@@ -842,6 +868,7 @@ void StaticParsingManager::build_name_to_idx_callbacks () {
     m_name_to_idx_cbs.unit_action_name_to_idx = cb_unit_action_name_to_idx;
     m_name_to_idx_cbs.unit_role_name_to_idx = cb_unit_role_name_to_idx;
     m_name_to_idx_cbs.unit_type_name_to_idx = cb_unit_type_name_to_idx;
+    m_name_to_idx_cbs.unit_domain_name_to_idx = cb_unit_domain_name_to_idx;
     m_name_to_idx_cbs.unit_name_to_idx = cb_unit_name_to_idx;
     m_name_to_idx_cbs.wonder_name_to_idx = cb_wonder_name_to_idx;
     m_name_to_idx_cbs.map_overlay_name_to_idx = cb_map_overlay_name_to_idx;
@@ -855,7 +882,7 @@ void StaticParsingManager::build_name_to_idx_callbacks () {
     m_name_to_idx_cbs.tile_yield_type_name_to_idx = cb_tile_yield_type_name_to_idx;
     m_name_to_idx_cbs.improvement_yield_name_to_idx = cb_improvement_yield_name_to_idx;
 
-    m_callback_count = 28;
+    m_callback_count = 29;
     DataParserBase::set_item_effect_handler(&m_name_to_idx_cbs, &m_effect_items);
 }
 
@@ -876,6 +903,7 @@ void StaticParsingManager::parse_supported_data () {
     UnitActionParser unit_action_parser(m_unit_action_items, m_name_to_idx_cbs);
     UnitRoleParser unit_role_parser(m_unit_role_items, m_name_to_idx_cbs);
     UnitTypeParser unit_type_parser(m_unit_type_items, m_name_to_idx_cbs);
+    UnitDomainParser unit_domain_parser(m_unit_domain_items, m_name_to_idx_cbs);
     UnitParser unit_parser(m_unit_items, m_name_to_idx_cbs);
     WonderParser wonder_parser(m_wonder_items, m_name_to_idx_cbs);
     MapOverlayParser map_overlay_parser(m_map_overlay_items, m_name_to_idx_cbs);
@@ -905,6 +933,7 @@ void StaticParsingManager::parse_supported_data () {
     m_unit_action_data = unit_action_parser.parse_data_dependencies();
     m_unit_role_data = unit_role_parser.parse_data_dependencies();
     m_unit_type_data = unit_type_parser.parse_data_dependencies();
+    m_unit_domain_data = unit_domain_parser.parse_data_dependencies();
     m_unit_data = unit_parser.parse_data_dependencies();
     m_wonder_data = wonder_parser.parse_data_dependencies();
     m_map_overlay_data = map_overlay_parser.parse_data_dependencies();

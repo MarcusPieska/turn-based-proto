@@ -40,6 +40,8 @@ struct ConfigSettingsData {
     ConfigListUnit m_start_exp_units;
     u16 m_unit_heal_in_city;
     u16 m_unit_heal_default;
+    u16 m_upgrade_cost_per_prod;
+    u16 m_upgrade_cost_per_stat_pt;
 };
 
 //================================================================================================================================
@@ -68,6 +70,12 @@ public:
 
     u16 get_unit_heal_default () const;
     void set_unit_heal_default (u16 v);
+
+    u16 get_upgrade_cost_per_prod () const;
+    void set_upgrade_cost_per_prod (u16 v);
+
+    u16 get_upgrade_cost_per_stat_pt () const;
+    void set_upgrade_cost_per_stat_pt (u16 v);
 
 private:
     GameConfigSettings (const GameConfigSettings& o) = delete;

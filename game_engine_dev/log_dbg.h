@@ -32,11 +32,17 @@
 #include "log_dbg/log_city_job_science.h"
 #include "log_dbg/log_city_job_religion.h"
 #include "log_dbg/log_city_job_yields.h"
+#include "log_dbg/log_player_commerce.h"
+#include "log_dbg/log_player_commerce_raw.h"
+#include "log_dbg/log_player_science.h"
+#include "log_dbg/log_player_research_perc.h"
 #include "log_dbg/assert_combat_ready.h"
 #include "log_dbg/assert_sector_support_bound.h"
 #include "log_dbg/assert_war_army_can_fight.h"
 #include "log_dbg/assert_city_job_are_covered.h"
 #include "log_dbg/eval_city_tile_work_count.h"
+#include "log_dbg/eval_army_unit_support.h"
+#include "log_dbg/eval_navy_unit_support.h"
 
 #endif // LOG_DBG_H
 

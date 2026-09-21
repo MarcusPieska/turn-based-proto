@@ -29,6 +29,10 @@ LOGS = [
     ("CityJobScience", "u16 jobs, u16 yield", "city job science jobs=%u yield=%u\n"),
     ("CityJobReligion", "u16 jobs, u16 yield", "city job religion jobs=%u yield=%u\n"),
     ("CityJobYields", "u16 n, i32 food, i32 production, i32 commerce, i32 culture, i32 science, i32 religion", "city job yields n=%u food=%d production=%d commerce=%d culture=%d science=%d religion=%d\n"),
+    ("PlayerCommerce", "u16 player, u32 amount", "player=%u commerce=%u\n"),
+    ("PlayerCommerceRaw", "u16 player, u32 amount", "player=%u commerce_raw=%u\n"),
+    ("PlayerScience", "u16 player, u32 amount", "player=%u science=%u\n"),
+    ("PlayerResearchPerc", "u16 player, u16 perc", "player=%u research_perc=%u\n"),
 ]
 
 ASSERTS = [
@@ -40,6 +44,8 @@ ASSERTS = [
 
 VALIDATES = [
     ("CityTileWorkCount", "const GameArraySimple& map, u16 city_idx, u16 pop"),
+    ("ArmyUnitSupport", "GameState& state"),
+    ("NavyUnitSupport", "GameState& state"),
 ]
 
 #================================================================================================================================#
@@ -345,7 +351,7 @@ set -e
 
 cd "$(dirname "$0")"
 
-INC="-I.. -I../misc -I../game -I../dyn_state -I."
+INC="-I.. -I../misc -I../map_loader -I../simple_map_gen -I../dyn_state -I../data_io -I../static_state -I../city -I../city/assessor -I../city/effector -I../gen_bit_banks -I../adv_map_gen -I../game -I../ai_pathing/walk_general -I../ai_pathing/walk_cities -I../ai_pathing/walk_target -I../ai_proc -I."
 CXXFLAGS="-std=c++17 -Wall -Wextra -fPIC"
 OUT_SO="log_dbg.so"
 

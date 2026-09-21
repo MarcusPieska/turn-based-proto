@@ -32,6 +32,7 @@ class StaticParsingManager;
 #include "unit_action_static_data.h"
 #include "unit_role_static_data.h"
 #include "unit_type_static_data.h"
+#include "unit_domain_static_data.h"
 #include "unit_static_data.h"
 #include "wonder_static_data.h"
 #include "map_overlay_static_data.h"
@@ -131,6 +132,10 @@ public:
     UnitTypeStaticData& unit_type ();
 
     const UnitTypeStaticData& unit_type () const;
+
+    UnitDomainStaticData& unit_domain ();
+
+    const UnitDomainStaticData& unit_domain () const;
 
     UnitStaticData& unit ();
 
@@ -246,6 +251,7 @@ private:
     UnitActionStaticData m_unit_action;
     UnitRoleStaticData m_unit_role;
     UnitTypeStaticData m_unit_type;
+    UnitDomainStaticData m_unit_domain;
     UnitStaticData m_unit;
     WonderStaticData m_wonder;
     MapOverlayStaticData m_map_overlay;

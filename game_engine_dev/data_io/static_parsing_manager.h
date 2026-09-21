@@ -34,6 +34,7 @@ class StaticBitBank;
 #include "unit_action_parser.h"
 #include "unit_role_parser.h"
 #include "unit_type_parser.h"
+#include "unit_domain_parser.h"
 #include "unit_parser.h"
 #include "wonder_parser.h"
 #include "map_overlay_parser.h"
@@ -63,6 +64,7 @@ class StaticBitBank;
 #include "unit_action_static_data.h"
 #include "unit_role_static_data.h"
 #include "unit_type_static_data.h"
+#include "unit_domain_static_data.h"
 #include "unit_static_data.h"
 #include "wonder_static_data.h"
 #include "map_overlay_static_data.h"
@@ -151,6 +153,10 @@ public:
 
     u16 get_unit_type_count () const;
 
+    const UnitDomainStaticDataStruct* get_unit_domain_data () const;
+
+    u16 get_unit_domain_count () const;
+
     const UnitStaticDataStruct* get_unit_data () const;
 
     u16 get_unit_count () const;
@@ -230,6 +236,8 @@ public:
 
     const DataParserBase& get_unit_type_name_parser () const;
 
+    const DataParserBase& get_unit_domain_name_parser () const;
+
     const DataParserBase& get_unit_name_parser () const;
 
     const DataParserBase& get_wonder_name_parser () const;
@@ -296,6 +304,7 @@ private:
     StringManager m_unit_action_items;
     StringManager m_unit_role_items;
     StringManager m_unit_type_items;
+    StringManager m_unit_domain_items;
     StringManager m_unit_items;
     StringManager m_wonder_items;
     StringManager m_map_overlay_items;
@@ -326,6 +335,7 @@ private:
     DataParserBase* m_unit_action_name_parser;
     DataParserBase* m_unit_role_name_parser;
     DataParserBase* m_unit_type_name_parser;
+    DataParserBase* m_unit_domain_name_parser;
     DataParserBase* m_unit_name_parser;
     DataParserBase* m_wonder_name_parser;
     DataParserBase* m_map_overlay_name_parser;
@@ -362,6 +372,7 @@ private:
     UnitActionStaticDataStruct* m_unit_action_data;
     UnitRoleStaticDataStruct* m_unit_role_data;
     UnitTypeStaticDataStruct* m_unit_type_data;
+    UnitDomainStaticDataStruct* m_unit_domain_data;
     UnitStaticDataStruct* m_unit_data;
     WonderStaticDataStruct* m_wonder_data;
     MapOverlayStaticDataStruct* m_map_overlay_data;

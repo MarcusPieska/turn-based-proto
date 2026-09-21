@@ -681,6 +681,17 @@ u16 City::calc_city_land_unit_support (u16 city_idx) const {
     return city_land;
 }
 
+u16 City::calc_city_naval_unit_support (u16 city_idx) const {
+    GAME_EXPECT(s_statics != nullptr, "City::calc_city_naval_unit_support null statics");
+    const EffectCtx ctx = make_city_effect_ctx(*this, city_idx);
+    const DynBoosterRegister& reg = s_statics->dyn_booster();
+    u16 city_naval = apply_booster_u16(0, reg.determine(ItemEffectBoosterType::CITY_NAVAL_UNIT_SUPPORT, ItemEffectsScope::CITY, ctx));
+    if (city_naval > 127u) {
+        city_naval = 127u;
+    }
+    return city_naval;
+}
+
 void City::count_unit_build_support (PlayerState* ps) {
     GAME_EXPECT(ps != nullptr, "City::count_unit_build_support null player state");
     if (m_build_type != BUILD_TYPE_UNIT || m_bld_idx == U16_KEY_NULL) {

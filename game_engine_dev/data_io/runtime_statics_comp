@@ -63,6 +63,8 @@ g++ $INC $CXXFLAGS -c unit_role_parser.cpp -o unit_role_parser.o
 g++ $INC $CXXFLAGS -c unit_role_parser_tester.cpp -o unit_role_parser_tester.o
 g++ $INC $CXXFLAGS -c unit_type_parser.cpp -o unit_type_parser.o
 g++ $INC $CXXFLAGS -c unit_type_parser_tester.cpp -o unit_type_parser_tester.o
+g++ $INC $CXXFLAGS -c unit_domain_parser.cpp -o unit_domain_parser.o
+g++ $INC $CXXFLAGS -c unit_domain_parser_tester.cpp -o unit_domain_parser_tester.o
 g++ $INC $CXXFLAGS -c unit_parser.cpp -o unit_parser.o
 g++ $INC $CXXFLAGS -c unit_parser_tester.cpp -o unit_parser_tester.o
 g++ $INC $CXXFLAGS -c wonder_parser.cpp -o wonder_parser.o
@@ -133,6 +135,8 @@ g++ $CXXFLAGS -o $OUT_BIN \
     unit_role_parser_tester.o \
     unit_type_parser.o \
     unit_type_parser_tester.o \
+    unit_domain_parser.o \
+    unit_domain_parser_tester.o \
     unit_parser.o \
     unit_parser_tester.o \
     wonder_parser.o \
@@ -204,6 +208,8 @@ rm runtime_static_loader.o runtime_statics_tester.o \
     unit_role_parser_tester.o \
     unit_type_parser.o \
     unit_type_parser_tester.o \
+    unit_domain_parser.o \
+    unit_domain_parser_tester.o \
     unit_parser.o \
     unit_parser_tester.o \
     wonder_parser.o \

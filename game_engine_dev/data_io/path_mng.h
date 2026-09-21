@@ -45,6 +45,7 @@ public:
     cstr get_path_to_unit_actions () const;
     cstr get_path_to_unit_roles () const;
     cstr get_path_to_unit_types () const;
+    cstr get_path_to_unit_domains () const;
     cstr get_path_to_units () const;
     cstr get_path_to_wonders () const;
     cstr get_path_to_map_overlays () const;
@@ -88,6 +89,7 @@ private:
     char m_path_unit_actions[PATH_MNG_PATH_N];
     char m_path_unit_roles[PATH_MNG_PATH_N];
     char m_path_unit_types[PATH_MNG_PATH_N];
+    char m_path_unit_domains[PATH_MNG_PATH_N];
     char m_path_units[PATH_MNG_PATH_N];
     char m_path_wonders[PATH_MNG_PATH_N];
     char m_path_map_overlays[PATH_MNG_PATH_N];

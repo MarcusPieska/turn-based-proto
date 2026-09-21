@@ -25,10 +25,11 @@
 #include "res_type_parser_tester.h"
 #include "small_wonder_parser_tester.h"
 #include "tech_parser_tester.h"
-#include "unit_parser_tester.h"
 #include "unit_action_parser_tester.h"
 #include "unit_role_parser_tester.h"
 #include "unit_type_parser_tester.h"
+#include "unit_domain_parser_tester.h"
+#include "unit_parser_tester.h"
 #include "wonder_parser_tester.h"
 #include "map_overlay_parser_tester.h"
 #include "map_attribute_parser_tester.h"
@@ -65,10 +66,11 @@ public:
     ResTypeParserTester& res_type () { return m_res_type; }
     SmallWonderParserTester& small_wonder () { return m_small_wonder; }
     TechParserTester& tech () { return m_tech; }
-    UnitParserTester& unit () { return m_unit; }
     UnitActionParserTester& unit_action () { return m_unit_action; }
     UnitRoleParserTester& unit_role () { return m_unit_role; }
     UnitTypeParserTester& unit_type () { return m_unit_type; }
+    UnitDomainParserTester& unit_domain () { return m_unit_domain; }
+    UnitParserTester& unit () { return m_unit; }
     WonderParserTester& wonder () { return m_wonder; }
     MapOverlayParserTester& map_overlay () { return m_map_overlay; }
     MapAttributeParserTester& map_attribute () { return m_map_attribute; }
@@ -97,10 +99,11 @@ private:
     ResTypeParserTester m_res_type;
     SmallWonderParserTester m_small_wonder;
     TechParserTester m_tech;
-    UnitParserTester m_unit;
     UnitActionParserTester m_unit_action;
     UnitRoleParserTester m_unit_role;
     UnitTypeParserTester m_unit_type;
+    UnitDomainParserTester m_unit_domain;
+    UnitParserTester m_unit;
     WonderParserTester m_wonder;
     MapOverlayParserTester m_map_overlay;
     MapAttributeParserTester m_map_attribute;

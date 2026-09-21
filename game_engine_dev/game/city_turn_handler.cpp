@@ -20,34 +20,78 @@
 #include "city_tracer.h"
 #include "civ_static_key.h"
 #include "civ_trait_enum.h"
+#include "dyn_job_yield_register.h"
 #include "game_state.h"
 #include "job_target_manager.h"
+#include "player_ledger.h"
 #include "runtime_statics.h"
+
+//================================================================================================================================
+//=> - Helpers -
+//================================================================================================================================
+
+static u16 clamp_u32 (u32 v) {
+    return v > 65535u ? 65535u : static_cast<u16>(v);
+}
+
+static u16 clamp_i32 (i32 v) {
+    if (v <= 0) {
+        return 0;
+    }
+    if (v > 65535) {
+        return 65535u;
+    }
+    return static_cast<u16>(v);
+}
+
+static u16 sum_yld (u32 tile, i32 job) {
+    const u32 j = static_cast<u32>(clamp_i32(job));
+    const u32 sum = tile + j;
+    return clamp_u32(sum);
+}
 
 //================================================================================================================================
 //=> - CityTurnHandler -
 //================================================================================================================================
 
 void CityTurnHandler::handle (GameState& state, u16 city_idx) {
-    City* city = state.m_cities.get_city(city_idx); 
+    City* city = state.m_cities.get_city(city_idx);
     GAME_EXPECT(city != nullptr, "CityTurnHandler got nullptr city");
     city->restore_defense();
 
+    GAME_EXPECT(state.m_player_states != nullptr, "CityTurnHandler got nullptr player states");
+    GAME_EXPECT(state.m_statics != nullptr, "CityTurnHandler got nullptr statics");
     const u16 player = city->get_owner();
+    GAME_EXPECT(player < state.m_player_n, "CityTurnHandler player out of bounds");
+    PlayerState& ps = state.m_player_states[player];
+
+    CivTrait trait = CivTrait::Agricultural;
+    if (ps.m_civ_index < state.m_statics->civ().get_item_count()) {
+        const CivStaticDataStruct& civ = state.m_statics->civ().get_item(CivStaticDataKey::from_raw(ps.m_civ_index));
+        trait = static_cast<CivTrait>(civ.traits.indices[0]);
+    }
+
     const TotalTileYield yld = CityTileManager::gather_yields(player, city_idx);
-    const u16 food = static_cast<u16>(yld.m_food > 65535u ? 65535u : yld.m_food);
-    const u16 production = static_cast<u16>(yld.m_production > 65535u ? 65535u : yld.m_production);
-    const u16 commerce = static_cast<u16>(yld.m_commerce > 65535u ? 65535u : yld.m_commerce);
+    const DynJobYieldPack job = JobTargetManager::fill(state, city_idx, static_cast<u16>(trait));
+    const u16 food = sum_yld(yld.m_food, job.m_food);
+    const u16 production = sum_yld(yld.m_production, job.m_production);
+    const u16 commerce = sum_yld(yld.m_commerce, job.m_commerce);
+    const u16 culture = clamp_i32(job.m_culture);
+    const u16 science = clamp_i32(job.m_science);
     const u16 sanitation_boost = city->get_city_sanitation_boost(city_idx);
     const i16 net_sanitation = city->get_city_net_sanitation(sanitation_boost);
 
     LOG_CITY_BEGIN((city_idx, player, state.m_current_turn));
 
     city->add_commerce(city_idx, commerce);
-    city->add_culture(city_idx, 0);
+    if (science > 0) {
+        GAME_EXPECT(PlayerLedger::add_research(player, science), "CityTurnHandler job science");
+    }
+    city->add_culture(city_idx, culture);
     city->add_production(city_idx, production);
     city->finish_if_ready(city_idx);
     i16 pop_change = city->add_food(city_idx, food, net_sanitation);
+    // TODO: apply job effects from JobTargetManager taken[] / catalog
 
     CityTurnHandlerCtx ctx;
     ctx.m_state = &state;
@@ -58,17 +102,8 @@ void CityTurnHandler::handle (GameState& state, u16 city_idx) {
     ctx.m_net_sanitation = net_sanitation;
     ctx.m_pop_change = pop_change;
 
-    GAME_EXPECT(state.m_player_states != nullptr, "CityTurnHandler got nullptr player states");
-    GAME_EXPECT(player < state.m_player_n, "CityTurnHandler player out of bounds");
-    GAME_EXPECT(state.m_statics != nullptr, "CityTurnHandler got nullptr statics");
-    PlayerState& ps = state.m_player_states[player];
     city->refresh_unit_support(city_idx);
     CityTurnHandler_Core::try_pick_land_unit(state, city_idx, city);
-    CivTrait trait = CivTrait::Agricultural;
-    if (ps.m_civ_index < state.m_statics->civ().get_item_count()) {
-        const CivStaticDataStruct& civ = state.m_statics->civ().get_item(CivStaticDataKey::from_raw(ps.m_civ_index));
-        trait = static_cast<CivTrait>(civ.traits.indices[0]);
-    }
     switch (trait) {
     case CivTrait::Agricultural:
         CityTurnHandler_Agricultural::handle(ctx);
@@ -95,10 +130,6 @@ void CityTurnHandler::handle (GameState& state, u16 city_idx) {
         CityTurnHandler_Default::handle(ctx);
         break;
     }
-
-    const DynJobYieldPack job_yld = JobTargetManager::fill(state, city_idx, static_cast<u16>(trait));
-    (void)job_yld;
-    // TODO: apply job effects and add job_yld yields into city turn totals
 
     LOG_CITY_COMMIT(());
 
