@@ -31,6 +31,8 @@ if __name__ == "__main__":
     specs.append(("res_type", "ResType", "", "None", "None"))
     
     specs.append(("small_wonder", "SmallWonder", std_members + "u32 cost; ItemEffectsStruct effects;", "cost", "effects.items[0].type"))
+    specs.append(("tech_era", "TechEra", "", "None", "None"))
+    specs.append(("tech_age", "TechAge", "u16 era;", "None", "None"))
     specs.append(("tech", "Tech", std_members + "ItemEffectsStruct effects; u32 cost; u16 tier;", "cost", "tier"))
     specs.append(("unit_action", "UnitAction", "", "None", "None"))
     specs.append(("unit_role", "UnitRole", "CombatModList mods;", "None", "None"))

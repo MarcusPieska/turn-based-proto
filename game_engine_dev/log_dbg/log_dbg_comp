@@ -26,6 +26,7 @@ g++ $CXXFLAGS $INC -c log_player_commerce.cpp -o log_player_commerce.o
 g++ $CXXFLAGS $INC -c log_player_commerce_raw.cpp -o log_player_commerce_raw.o
 g++ $CXXFLAGS $INC -c log_player_science.cpp -o log_player_science.o
 g++ $CXXFLAGS $INC -c log_player_research_perc.cpp -o log_player_research_perc.o
+g++ $CXXFLAGS $INC -c log_player_tech_discover.cpp -o log_player_tech_discover.o
 g++ $CXXFLAGS $INC -c assert_combat_ready.cpp -o assert_combat_ready.o
 g++ $CXXFLAGS $INC -c assert_sector_support_bound.cpp -o assert_sector_support_bound.o
 g++ $CXXFLAGS $INC -c assert_war_army_can_fight.cpp -o assert_war_army_can_fight.o
@@ -54,6 +55,7 @@ g++ -shared -o $OUT_SO \
     log_player_commerce_raw.o \
     log_player_science.o \
     log_player_research_perc.o \
+    log_player_tech_discover.o \
     assert_combat_ready.o \
     assert_sector_support_bound.o \
     assert_war_army_can_fight.o \
@@ -63,5 +65,5 @@ g++ -shared -o $OUT_SO \
     eval_navy_unit_support.o \
     -Wl,-soname,$OUT_SO
 
-rm -f log_new_turn.o log_city_foundation.o log_civ_spawn_pt.o log_unit_spawn.o log_war_muster.o log_war_peace_mock.o log_war_army_size.o log_war_city_capture.o log_city_job_food.o log_city_job_production.o log_city_job_commerce.o log_city_job_culture.o log_city_job_science.o log_city_job_religion.o log_city_job_yields.o log_player_commerce.o log_player_commerce_raw.o log_player_science.o log_player_research_perc.o assert_combat_ready.o assert_sector_support_bound.o assert_war_army_can_fight.o assert_city_job_are_covered.o eval_city_tile_work_count.o eval_army_unit_support.o eval_navy_unit_support.o
+rm -f log_new_turn.o log_city_foundation.o log_civ_spawn_pt.o log_unit_spawn.o log_war_muster.o log_war_peace_mock.o log_war_army_size.o log_war_city_capture.o log_city_job_food.o log_city_job_production.o log_city_job_commerce.o log_city_job_culture.o log_city_job_science.o log_city_job_religion.o log_city_job_yields.o log_player_commerce.o log_player_commerce_raw.o log_player_science.o log_player_research_perc.o log_player_tech_discover.o assert_combat_ready.o assert_sector_support_bound.o assert_war_army_can_fight.o assert_city_job_are_covered.o eval_city_tile_work_count.o eval_army_unit_support.o eval_navy_unit_support.o
 echo "built $(pwd)/$OUT_SO"

@@ -30,6 +30,8 @@
 #include "building_trait_orderings.h"
 #include "city_job_trait_orderings.h"
 #include "tech_trait_orderings.h"
+#include "tech_age_mng.h"
+#include "assert_log.h"
 #include "sector_network.h"
 #include "sector_network_router.h"
 #include "unit_type_static_key.h"
@@ -347,13 +349,31 @@ bool GameSetup::init_players (GameState* state, u16 player_n, u16 small_wonder_n
         }
         seats[i].m_explored_overlay = new MapBitOverlay(w, h);
         seats[i].m_techs_researched = nullptr;
+        seats[i].m_tech_age = nullptr;
         seats[i].m_small_wonder_city = nullptr;
+        GAME_EXPECT(TechAgeMng::ready(), "GameSetup init_players TechAgeMng");
+        seats[i].m_tech_age = new TechAgeMng();
+        if (seats[i].m_tech_age == nullptr) {
+            for (u16 j = 0; j <= i; ++j) {
+                delete[] seats[j].m_small_wonder_city;
+                seats[j].m_small_wonder_city = nullptr;
+                delete seats[j].m_explored_overlay;
+                seats[j].m_explored_overlay = nullptr;
+                delete seats[j].m_tech_age;
+                seats[j].m_tech_age = nullptr;
+                seats[j].m_res_ledger.clear();
+            }
+            delete[] seats;
+            return false;
+        }
         if (!seats[i].m_res_ledger.setup(res_n)) {
             for (u16 j = 0; j <= i; ++j) {
                 delete[] seats[j].m_small_wonder_city;
                 seats[j].m_small_wonder_city = nullptr;
                 delete seats[j].m_explored_overlay;
                 seats[j].m_explored_overlay = nullptr;
+                delete seats[j].m_tech_age;
+                seats[j].m_tech_age = nullptr;
                 seats[j].m_res_ledger.clear();
             }
             delete[] seats;
@@ -367,6 +387,8 @@ bool GameSetup::init_players (GameState* state, u16 player_n, u16 small_wonder_n
                     seats[j].m_small_wonder_city = nullptr;
                     delete seats[j].m_explored_overlay;
                     seats[j].m_explored_overlay = nullptr;
+                    delete seats[j].m_tech_age;
+                    seats[j].m_tech_age = nullptr;
                     seats[j].m_res_ledger.clear();
                 }
                 delete[] seats;
@@ -382,6 +404,8 @@ bool GameSetup::init_players (GameState* state, u16 player_n, u16 small_wonder_n
                 seats[j].m_small_wonder_city = nullptr;
                 delete seats[j].m_explored_overlay;
                 seats[j].m_explored_overlay = nullptr;
+                delete seats[j].m_tech_age;
+                seats[j].m_tech_age = nullptr;
                 seats[j].m_res_ledger.clear();
             }
             delete[] seats;
@@ -471,6 +495,10 @@ bool GameSetup::finish_with_starts (GameState* state, const SpgPickCoords& start
     UnitMovementMng::bind_state(state);
     PlayerLedger::bind_state(state);
     if (!TileYields::setup(*g_rt_statics)) {
+        state->clear();
+        return false;
+    }
+    if (!TechAgeMng::setup(*g_rt_statics)) {
         state->clear();
         return false;
     }

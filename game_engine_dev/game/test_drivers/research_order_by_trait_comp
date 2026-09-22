@@ -26,9 +26,12 @@ INC="-I../.. \
      -I../../city/effector \
      -I../../gen_bit_banks \
      -I../../adv_map_gen \
+     -I.. \
      -I../../ai_pathing/walk_general \
+     -I../../ai_pathing/walk_cities \
+     -I../../ai_pathing/walk_target \
      -I../../ai_proc \
-     -I.."
+     -I../lucky_seats"
 CXXFLAGS="-std=c++17 -Wall -Wextra"
 
 g++ $CXXFLAGS $INC -c ../../data_io/runtime_static_loader.cpp -o runtime_static_loader.o
@@ -110,6 +113,7 @@ g++ $CXXFLAGS $INC -c ../../ai_proc/city_turn_handler_religious.cpp -o city_turn
 g++ $CXXFLAGS $INC -c ../../ai_proc/city_turn_handler_militaristic.cpp -o city_turn_handler_militaristic.o
 g++ $CXXFLAGS $INC -c ../../ai_proc/city_turn_handler_scientific.cpp -o city_turn_handler_scientific.o
 g++ $CXXFLAGS $INC -c ../research_turn_handler.cpp -o research_turn_handler.o
+g++ $CXXFLAGS $INC -c ../tech_age_mng.cpp -o tech_age_mng.o
 g++ $CXXFLAGS $INC -c ../../ai_proc/sense_settling_pts_opt.cpp -o sense_settling_pts_opt.o
 g++ $CXXFLAGS $INC -c ../../ai_proc/settler_turn_handler.cpp -o settler_turn_handler.o
 g++ $CXXFLAGS $INC -c ../../ai_proc/worker_turn_handler.cpp -o worker_turn_handler.o
@@ -192,6 +196,7 @@ g++ $CXXFLAGS -o research_order_by_trait_tester \
     city_turn_handler_militaristic.o \
     city_turn_handler_scientific.o \
     research_turn_handler.o \
+    tech_age_mng.o \
     sense_settling_pts_opt.o \
     settler_turn_handler.o \
     worker_turn_handler.o \
@@ -216,6 +221,7 @@ rm runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.
     game_array_simple.o factory_game_array_simple.o game_state.o player_ledger.o tile_yields.o tile_working.o \
     civ_relations.o combat_mods.o game_setup.o city_tile_manager.o circular_tile_areas.o city_blocking_mask.o city_border.o \
     defensive_unit_turn_handler.o linear_bld.o linear_tech.o research_order_by_trait_tester.o map_gen_loader.o \
+    tech_age_mng.o research_turn_handler.o \
     city.o general_bit_bank.o general_assessor.o effect_ctx.o effect_enabler.o booster_effect_register.o \
     local_unit_exp_booster_register.o civ_ship_training_booster_register.o city_commerce_booster_register.o \
     city_production_booster_register.o local_production_booster_register.o local_pop_growth_booster_register.o \

@@ -18,6 +18,7 @@
 #include "tech_static_key.h"
 #include "tech_trait_attribution.h"
 #include "tech_trait_orderings.h"
+#include "tech_age_mng.h"
 
 //================================================================================================================================
 //=> - Constants -
@@ -170,6 +171,15 @@ static void run_trait (CivTrait trait, u16 trait_i) {
     ps.m_commerce_from_turn = 0;
     ps.m_current_research_target_idx = U16_KEY_NULL;
     ps.m_techs_researched = nullptr;
+    if (!TechAgeMng::ready()) {
+        if (!TechAgeMng::setup(*g_rt_statics)) {
+            std::printf("TechAgeMng setup failed\n");
+            delete[] state.m_player_states;
+            state.m_player_states = nullptr;
+            return;
+        }
+    }
+    ps.m_tech_age = new TechAgeMng();
 
     const u16 tech_n = g_rt_statics->tech().get_item_count();
     BitArrayCL seen(tech_n);

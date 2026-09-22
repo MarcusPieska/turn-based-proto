@@ -74,6 +74,10 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_res_type.load_names_from(p.get_res_type_name_parser(), p.get_res_type_count());
     m_small_wonder.set_items(const_cast<SmallWonderStaticDataStruct*>(p.get_small_wonder_data()), p.get_small_wonder_count());
     m_small_wonder.load_names_from(p.get_small_wonder_name_parser(), p.get_small_wonder_count());
+    m_tech_era.set_items(const_cast<TechEraStaticDataStruct*>(p.get_tech_era_data()), p.get_tech_era_count());
+    m_tech_era.load_names_from(p.get_tech_era_name_parser(), p.get_tech_era_count());
+    m_tech_age.set_items(const_cast<TechAgeStaticDataStruct*>(p.get_tech_age_data()), p.get_tech_age_count());
+    m_tech_age.load_names_from(p.get_tech_age_name_parser(), p.get_tech_age_count());
     m_tech.set_items(const_cast<TechStaticDataStruct*>(p.get_tech_data()), p.get_tech_count());
     m_tech.load_names_from(p.get_tech_name_parser(), p.get_tech_count());
     m_unit_action.set_items(const_cast<UnitActionStaticDataStruct*>(p.get_unit_action_data()), p.get_unit_action_count());
@@ -133,6 +137,8 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_res_dist.take_ownership();
     m_res_type.take_ownership();
     m_small_wonder.take_ownership();
+    m_tech_era.take_ownership();
+    m_tech_age.take_ownership();
     m_tech.take_ownership();
     m_unit_action.take_ownership();
     m_unit_role.take_ownership();
@@ -287,6 +293,22 @@ SmallWonderStaticData& RuntimeStatics::small_wonder () {
 
 const SmallWonderStaticData& RuntimeStatics::small_wonder () const {
     return m_small_wonder;
+}
+
+TechEraStaticData& RuntimeStatics::tech_era () {
+    return m_tech_era;
+}
+
+const TechEraStaticData& RuntimeStatics::tech_era () const {
+    return m_tech_era;
+}
+
+TechAgeStaticData& RuntimeStatics::tech_age () {
+    return m_tech_age;
+}
+
+const TechAgeStaticData& RuntimeStatics::tech_age () const {
+    return m_tech_age;
 }
 
 TechStaticData& RuntimeStatics::tech () {

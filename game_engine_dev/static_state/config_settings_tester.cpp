@@ -144,6 +144,8 @@ static void print_config (const GameConfigSettings& cfg) {
     std::printf("  UNIT_HEAL_DEFAULT: %u\n", cfg.get_unit_heal_default());
     std::printf("  UPGRADE_COST_PER_PROD: %u\n", cfg.get_upgrade_cost_per_prod());
     std::printf("  UPGRADE_COST_PER_STAT_PT: %u\n", cfg.get_upgrade_cost_per_stat_pt());
+    std::printf("  TECH_AGE_UNLOCK_PCT: %u\n", cfg.get_tech_age_unlock_pct());
+    std::printf("  DEFAULT_CULTURE_PER_TURN: %u\n", cfg.get_default_culture_per_turn());
 }
 
 //================================================================================================================================

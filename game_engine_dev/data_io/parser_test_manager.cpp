@@ -35,6 +35,8 @@ void ParserTestManager::set_plvl (int lvl) {
     m_res_dist.set_plvl(lvl);
     m_res_type.set_plvl(lvl);
     m_small_wonder.set_plvl(lvl);
+    m_tech_era.set_plvl(lvl);
+    m_tech_age.set_plvl(lvl);
     m_tech.set_plvl(lvl);
     m_unit_action.set_plvl(lvl);
     m_unit_role.set_plvl(lvl);
@@ -67,6 +69,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_building.set_res_dist_sd(&statics.res_dist());
     m_building.set_res_type_sd(&statics.res_type());
     m_building.set_small_wonder_sd(&statics.small_wonder());
+    m_building.set_tech_era_sd(&statics.tech_era());
+    m_building.set_tech_age_sd(&statics.tech_age());
     m_building.set_tech_sd(&statics.tech());
     m_building.set_unit_action_sd(&statics.unit_action());
     m_building.set_unit_role_sd(&statics.unit_role());
@@ -96,6 +100,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_toggle_city.set_res_dist_sd(&statics.res_dist());
     m_toggle_city.set_res_type_sd(&statics.res_type());
     m_toggle_city.set_small_wonder_sd(&statics.small_wonder());
+    m_toggle_city.set_tech_era_sd(&statics.tech_era());
+    m_toggle_city.set_tech_age_sd(&statics.tech_age());
     m_toggle_city.set_tech_sd(&statics.tech());
     m_toggle_city.set_unit_action_sd(&statics.unit_action());
     m_toggle_city.set_unit_role_sd(&statics.unit_role());
@@ -125,6 +131,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_toggle_civ.set_res_dist_sd(&statics.res_dist());
     m_toggle_civ.set_res_type_sd(&statics.res_type());
     m_toggle_civ.set_small_wonder_sd(&statics.small_wonder());
+    m_toggle_civ.set_tech_era_sd(&statics.tech_era());
+    m_toggle_civ.set_tech_age_sd(&statics.tech_age());
     m_toggle_civ.set_tech_sd(&statics.tech());
     m_toggle_civ.set_unit_action_sd(&statics.unit_action());
     m_toggle_civ.set_unit_role_sd(&statics.unit_role());
@@ -154,6 +162,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_toggle_global.set_res_dist_sd(&statics.res_dist());
     m_toggle_global.set_res_type_sd(&statics.res_type());
     m_toggle_global.set_small_wonder_sd(&statics.small_wonder());
+    m_toggle_global.set_tech_era_sd(&statics.tech_era());
+    m_toggle_global.set_tech_age_sd(&statics.tech_age());
     m_toggle_global.set_tech_sd(&statics.tech());
     m_toggle_global.set_unit_action_sd(&statics.unit_action());
     m_toggle_global.set_unit_role_sd(&statics.unit_role());
@@ -183,6 +193,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_city_job.set_res_dist_sd(&statics.res_dist());
     m_city_job.set_res_type_sd(&statics.res_type());
     m_city_job.set_small_wonder_sd(&statics.small_wonder());
+    m_city_job.set_tech_era_sd(&statics.tech_era());
+    m_city_job.set_tech_age_sd(&statics.tech_age());
     m_city_job.set_tech_sd(&statics.tech());
     m_city_job.set_unit_action_sd(&statics.unit_action());
     m_city_job.set_unit_role_sd(&statics.unit_role());
@@ -212,6 +224,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_civ.set_res_dist_sd(&statics.res_dist());
     m_civ.set_res_type_sd(&statics.res_type());
     m_civ.set_small_wonder_sd(&statics.small_wonder());
+    m_civ.set_tech_era_sd(&statics.tech_era());
+    m_civ.set_tech_age_sd(&statics.tech_age());
     m_civ.set_tech_sd(&statics.tech());
     m_civ.set_unit_action_sd(&statics.unit_action());
     m_civ.set_unit_role_sd(&statics.unit_role());
@@ -241,6 +255,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_civ_trait.set_res_dist_sd(&statics.res_dist());
     m_civ_trait.set_res_type_sd(&statics.res_type());
     m_civ_trait.set_small_wonder_sd(&statics.small_wonder());
+    m_civ_trait.set_tech_era_sd(&statics.tech_era());
+    m_civ_trait.set_tech_age_sd(&statics.tech_age());
     m_civ_trait.set_tech_sd(&statics.tech());
     m_civ_trait.set_unit_action_sd(&statics.unit_action());
     m_civ_trait.set_unit_role_sd(&statics.unit_role());
@@ -270,6 +286,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_tile_attribute.set_res_dist_sd(&statics.res_dist());
     m_tile_attribute.set_res_type_sd(&statics.res_type());
     m_tile_attribute.set_small_wonder_sd(&statics.small_wonder());
+    m_tile_attribute.set_tech_era_sd(&statics.tech_era());
+    m_tile_attribute.set_tech_age_sd(&statics.tech_age());
     m_tile_attribute.set_tech_sd(&statics.tech());
     m_tile_attribute.set_unit_action_sd(&statics.unit_action());
     m_tile_attribute.set_unit_role_sd(&statics.unit_role());
@@ -299,6 +317,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_resource.set_res_dist_sd(&statics.res_dist());
     m_resource.set_res_type_sd(&statics.res_type());
     m_resource.set_small_wonder_sd(&statics.small_wonder());
+    m_resource.set_tech_era_sd(&statics.tech_era());
+    m_resource.set_tech_age_sd(&statics.tech_age());
     m_resource.set_tech_sd(&statics.tech());
     m_resource.set_unit_action_sd(&statics.unit_action());
     m_resource.set_unit_role_sd(&statics.unit_role());
@@ -328,6 +348,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_res_dist.set_res_dist_sd(&statics.res_dist());
     m_res_dist.set_res_type_sd(&statics.res_type());
     m_res_dist.set_small_wonder_sd(&statics.small_wonder());
+    m_res_dist.set_tech_era_sd(&statics.tech_era());
+    m_res_dist.set_tech_age_sd(&statics.tech_age());
     m_res_dist.set_tech_sd(&statics.tech());
     m_res_dist.set_unit_action_sd(&statics.unit_action());
     m_res_dist.set_unit_role_sd(&statics.unit_role());
@@ -357,6 +379,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_res_type.set_res_dist_sd(&statics.res_dist());
     m_res_type.set_res_type_sd(&statics.res_type());
     m_res_type.set_small_wonder_sd(&statics.small_wonder());
+    m_res_type.set_tech_era_sd(&statics.tech_era());
+    m_res_type.set_tech_age_sd(&statics.tech_age());
     m_res_type.set_tech_sd(&statics.tech());
     m_res_type.set_unit_action_sd(&statics.unit_action());
     m_res_type.set_unit_role_sd(&statics.unit_role());
@@ -386,6 +410,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_small_wonder.set_res_dist_sd(&statics.res_dist());
     m_small_wonder.set_res_type_sd(&statics.res_type());
     m_small_wonder.set_small_wonder_sd(&statics.small_wonder());
+    m_small_wonder.set_tech_era_sd(&statics.tech_era());
+    m_small_wonder.set_tech_age_sd(&statics.tech_age());
     m_small_wonder.set_tech_sd(&statics.tech());
     m_small_wonder.set_unit_action_sd(&statics.unit_action());
     m_small_wonder.set_unit_role_sd(&statics.unit_role());
@@ -403,6 +429,68 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_small_wonder.set_worker_job_imp_sd(&statics.worker_job_imp());
     m_small_wonder.set_tile_yield_type_sd(&statics.tile_yield_type());
     m_small_wonder.set_improvement_yield_sd(&statics.improvement_yield());
+    m_tech_era.set_building_sd(&statics.building());
+    m_tech_era.set_toggle_city_sd(&statics.toggle_city());
+    m_tech_era.set_toggle_civ_sd(&statics.toggle_civ());
+    m_tech_era.set_toggle_global_sd(&statics.toggle_global());
+    m_tech_era.set_city_job_sd(&statics.city_job());
+    m_tech_era.set_civ_sd(&statics.civ());
+    m_tech_era.set_civ_trait_sd(&statics.civ_trait());
+    m_tech_era.set_tile_attribute_sd(&statics.tile_attribute());
+    m_tech_era.set_resource_sd(&statics.resource());
+    m_tech_era.set_res_dist_sd(&statics.res_dist());
+    m_tech_era.set_res_type_sd(&statics.res_type());
+    m_tech_era.set_small_wonder_sd(&statics.small_wonder());
+    m_tech_era.set_tech_era_sd(&statics.tech_era());
+    m_tech_era.set_tech_age_sd(&statics.tech_age());
+    m_tech_era.set_tech_sd(&statics.tech());
+    m_tech_era.set_unit_action_sd(&statics.unit_action());
+    m_tech_era.set_unit_role_sd(&statics.unit_role());
+    m_tech_era.set_unit_type_sd(&statics.unit_type());
+    m_tech_era.set_unit_domain_sd(&statics.unit_domain());
+    m_tech_era.set_unit_sd(&statics.unit());
+    m_tech_era.set_wonder_sd(&statics.wonder());
+    m_tech_era.set_map_overlay_sd(&statics.map_overlay());
+    m_tech_era.set_map_attribute_sd(&statics.map_attribute());
+    m_tech_era.set_map_terrain_sd(&statics.map_terrain());
+    m_tech_era.set_map_climate_sd(&statics.map_climate());
+    m_tech_era.set_worker_job_target_sd(&statics.worker_job_target());
+    m_tech_era.set_worker_job_type_sd(&statics.worker_job_type());
+    m_tech_era.set_worker_job_sd(&statics.worker_job());
+    m_tech_era.set_worker_job_imp_sd(&statics.worker_job_imp());
+    m_tech_era.set_tile_yield_type_sd(&statics.tile_yield_type());
+    m_tech_era.set_improvement_yield_sd(&statics.improvement_yield());
+    m_tech_age.set_building_sd(&statics.building());
+    m_tech_age.set_toggle_city_sd(&statics.toggle_city());
+    m_tech_age.set_toggle_civ_sd(&statics.toggle_civ());
+    m_tech_age.set_toggle_global_sd(&statics.toggle_global());
+    m_tech_age.set_city_job_sd(&statics.city_job());
+    m_tech_age.set_civ_sd(&statics.civ());
+    m_tech_age.set_civ_trait_sd(&statics.civ_trait());
+    m_tech_age.set_tile_attribute_sd(&statics.tile_attribute());
+    m_tech_age.set_resource_sd(&statics.resource());
+    m_tech_age.set_res_dist_sd(&statics.res_dist());
+    m_tech_age.set_res_type_sd(&statics.res_type());
+    m_tech_age.set_small_wonder_sd(&statics.small_wonder());
+    m_tech_age.set_tech_era_sd(&statics.tech_era());
+    m_tech_age.set_tech_age_sd(&statics.tech_age());
+    m_tech_age.set_tech_sd(&statics.tech());
+    m_tech_age.set_unit_action_sd(&statics.unit_action());
+    m_tech_age.set_unit_role_sd(&statics.unit_role());
+    m_tech_age.set_unit_type_sd(&statics.unit_type());
+    m_tech_age.set_unit_domain_sd(&statics.unit_domain());
+    m_tech_age.set_unit_sd(&statics.unit());
+    m_tech_age.set_wonder_sd(&statics.wonder());
+    m_tech_age.set_map_overlay_sd(&statics.map_overlay());
+    m_tech_age.set_map_attribute_sd(&statics.map_attribute());
+    m_tech_age.set_map_terrain_sd(&statics.map_terrain());
+    m_tech_age.set_map_climate_sd(&statics.map_climate());
+    m_tech_age.set_worker_job_target_sd(&statics.worker_job_target());
+    m_tech_age.set_worker_job_type_sd(&statics.worker_job_type());
+    m_tech_age.set_worker_job_sd(&statics.worker_job());
+    m_tech_age.set_worker_job_imp_sd(&statics.worker_job_imp());
+    m_tech_age.set_tile_yield_type_sd(&statics.tile_yield_type());
+    m_tech_age.set_improvement_yield_sd(&statics.improvement_yield());
     m_tech.set_building_sd(&statics.building());
     m_tech.set_toggle_city_sd(&statics.toggle_city());
     m_tech.set_toggle_civ_sd(&statics.toggle_civ());
@@ -415,6 +503,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_tech.set_res_dist_sd(&statics.res_dist());
     m_tech.set_res_type_sd(&statics.res_type());
     m_tech.set_small_wonder_sd(&statics.small_wonder());
+    m_tech.set_tech_era_sd(&statics.tech_era());
+    m_tech.set_tech_age_sd(&statics.tech_age());
     m_tech.set_tech_sd(&statics.tech());
     m_tech.set_unit_action_sd(&statics.unit_action());
     m_tech.set_unit_role_sd(&statics.unit_role());
@@ -444,6 +534,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_unit_action.set_res_dist_sd(&statics.res_dist());
     m_unit_action.set_res_type_sd(&statics.res_type());
     m_unit_action.set_small_wonder_sd(&statics.small_wonder());
+    m_unit_action.set_tech_era_sd(&statics.tech_era());
+    m_unit_action.set_tech_age_sd(&statics.tech_age());
     m_unit_action.set_tech_sd(&statics.tech());
     m_unit_action.set_unit_action_sd(&statics.unit_action());
     m_unit_action.set_unit_role_sd(&statics.unit_role());
@@ -473,6 +565,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_unit_role.set_res_dist_sd(&statics.res_dist());
     m_unit_role.set_res_type_sd(&statics.res_type());
     m_unit_role.set_small_wonder_sd(&statics.small_wonder());
+    m_unit_role.set_tech_era_sd(&statics.tech_era());
+    m_unit_role.set_tech_age_sd(&statics.tech_age());
     m_unit_role.set_tech_sd(&statics.tech());
     m_unit_role.set_unit_action_sd(&statics.unit_action());
     m_unit_role.set_unit_role_sd(&statics.unit_role());
@@ -502,6 +596,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_unit_type.set_res_dist_sd(&statics.res_dist());
     m_unit_type.set_res_type_sd(&statics.res_type());
     m_unit_type.set_small_wonder_sd(&statics.small_wonder());
+    m_unit_type.set_tech_era_sd(&statics.tech_era());
+    m_unit_type.set_tech_age_sd(&statics.tech_age());
     m_unit_type.set_tech_sd(&statics.tech());
     m_unit_type.set_unit_action_sd(&statics.unit_action());
     m_unit_type.set_unit_role_sd(&statics.unit_role());
@@ -531,6 +627,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_unit_domain.set_res_dist_sd(&statics.res_dist());
     m_unit_domain.set_res_type_sd(&statics.res_type());
     m_unit_domain.set_small_wonder_sd(&statics.small_wonder());
+    m_unit_domain.set_tech_era_sd(&statics.tech_era());
+    m_unit_domain.set_tech_age_sd(&statics.tech_age());
     m_unit_domain.set_tech_sd(&statics.tech());
     m_unit_domain.set_unit_action_sd(&statics.unit_action());
     m_unit_domain.set_unit_role_sd(&statics.unit_role());
@@ -560,6 +658,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_unit.set_res_dist_sd(&statics.res_dist());
     m_unit.set_res_type_sd(&statics.res_type());
     m_unit.set_small_wonder_sd(&statics.small_wonder());
+    m_unit.set_tech_era_sd(&statics.tech_era());
+    m_unit.set_tech_age_sd(&statics.tech_age());
     m_unit.set_tech_sd(&statics.tech());
     m_unit.set_unit_action_sd(&statics.unit_action());
     m_unit.set_unit_role_sd(&statics.unit_role());
@@ -589,6 +689,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_wonder.set_res_dist_sd(&statics.res_dist());
     m_wonder.set_res_type_sd(&statics.res_type());
     m_wonder.set_small_wonder_sd(&statics.small_wonder());
+    m_wonder.set_tech_era_sd(&statics.tech_era());
+    m_wonder.set_tech_age_sd(&statics.tech_age());
     m_wonder.set_tech_sd(&statics.tech());
     m_wonder.set_unit_action_sd(&statics.unit_action());
     m_wonder.set_unit_role_sd(&statics.unit_role());
@@ -618,6 +720,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_map_overlay.set_res_dist_sd(&statics.res_dist());
     m_map_overlay.set_res_type_sd(&statics.res_type());
     m_map_overlay.set_small_wonder_sd(&statics.small_wonder());
+    m_map_overlay.set_tech_era_sd(&statics.tech_era());
+    m_map_overlay.set_tech_age_sd(&statics.tech_age());
     m_map_overlay.set_tech_sd(&statics.tech());
     m_map_overlay.set_unit_action_sd(&statics.unit_action());
     m_map_overlay.set_unit_role_sd(&statics.unit_role());
@@ -647,6 +751,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_map_attribute.set_res_dist_sd(&statics.res_dist());
     m_map_attribute.set_res_type_sd(&statics.res_type());
     m_map_attribute.set_small_wonder_sd(&statics.small_wonder());
+    m_map_attribute.set_tech_era_sd(&statics.tech_era());
+    m_map_attribute.set_tech_age_sd(&statics.tech_age());
     m_map_attribute.set_tech_sd(&statics.tech());
     m_map_attribute.set_unit_action_sd(&statics.unit_action());
     m_map_attribute.set_unit_role_sd(&statics.unit_role());
@@ -676,6 +782,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_map_terrain.set_res_dist_sd(&statics.res_dist());
     m_map_terrain.set_res_type_sd(&statics.res_type());
     m_map_terrain.set_small_wonder_sd(&statics.small_wonder());
+    m_map_terrain.set_tech_era_sd(&statics.tech_era());
+    m_map_terrain.set_tech_age_sd(&statics.tech_age());
     m_map_terrain.set_tech_sd(&statics.tech());
     m_map_terrain.set_unit_action_sd(&statics.unit_action());
     m_map_terrain.set_unit_role_sd(&statics.unit_role());
@@ -705,6 +813,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_map_climate.set_res_dist_sd(&statics.res_dist());
     m_map_climate.set_res_type_sd(&statics.res_type());
     m_map_climate.set_small_wonder_sd(&statics.small_wonder());
+    m_map_climate.set_tech_era_sd(&statics.tech_era());
+    m_map_climate.set_tech_age_sd(&statics.tech_age());
     m_map_climate.set_tech_sd(&statics.tech());
     m_map_climate.set_unit_action_sd(&statics.unit_action());
     m_map_climate.set_unit_role_sd(&statics.unit_role());
@@ -734,6 +844,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_worker_job_target.set_res_dist_sd(&statics.res_dist());
     m_worker_job_target.set_res_type_sd(&statics.res_type());
     m_worker_job_target.set_small_wonder_sd(&statics.small_wonder());
+    m_worker_job_target.set_tech_era_sd(&statics.tech_era());
+    m_worker_job_target.set_tech_age_sd(&statics.tech_age());
     m_worker_job_target.set_tech_sd(&statics.tech());
     m_worker_job_target.set_unit_action_sd(&statics.unit_action());
     m_worker_job_target.set_unit_role_sd(&statics.unit_role());
@@ -763,6 +875,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_worker_job_type.set_res_dist_sd(&statics.res_dist());
     m_worker_job_type.set_res_type_sd(&statics.res_type());
     m_worker_job_type.set_small_wonder_sd(&statics.small_wonder());
+    m_worker_job_type.set_tech_era_sd(&statics.tech_era());
+    m_worker_job_type.set_tech_age_sd(&statics.tech_age());
     m_worker_job_type.set_tech_sd(&statics.tech());
     m_worker_job_type.set_unit_action_sd(&statics.unit_action());
     m_worker_job_type.set_unit_role_sd(&statics.unit_role());
@@ -792,6 +906,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_worker_job.set_res_dist_sd(&statics.res_dist());
     m_worker_job.set_res_type_sd(&statics.res_type());
     m_worker_job.set_small_wonder_sd(&statics.small_wonder());
+    m_worker_job.set_tech_era_sd(&statics.tech_era());
+    m_worker_job.set_tech_age_sd(&statics.tech_age());
     m_worker_job.set_tech_sd(&statics.tech());
     m_worker_job.set_unit_action_sd(&statics.unit_action());
     m_worker_job.set_unit_role_sd(&statics.unit_role());
@@ -821,6 +937,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_worker_job_imp.set_res_dist_sd(&statics.res_dist());
     m_worker_job_imp.set_res_type_sd(&statics.res_type());
     m_worker_job_imp.set_small_wonder_sd(&statics.small_wonder());
+    m_worker_job_imp.set_tech_era_sd(&statics.tech_era());
+    m_worker_job_imp.set_tech_age_sd(&statics.tech_age());
     m_worker_job_imp.set_tech_sd(&statics.tech());
     m_worker_job_imp.set_unit_action_sd(&statics.unit_action());
     m_worker_job_imp.set_unit_role_sd(&statics.unit_role());
@@ -850,6 +968,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_tile_yield_type.set_res_dist_sd(&statics.res_dist());
     m_tile_yield_type.set_res_type_sd(&statics.res_type());
     m_tile_yield_type.set_small_wonder_sd(&statics.small_wonder());
+    m_tile_yield_type.set_tech_era_sd(&statics.tech_era());
+    m_tile_yield_type.set_tech_age_sd(&statics.tech_age());
     m_tile_yield_type.set_tech_sd(&statics.tech());
     m_tile_yield_type.set_unit_action_sd(&statics.unit_action());
     m_tile_yield_type.set_unit_role_sd(&statics.unit_role());
@@ -879,6 +999,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_improvement_yield.set_res_dist_sd(&statics.res_dist());
     m_improvement_yield.set_res_type_sd(&statics.res_type());
     m_improvement_yield.set_small_wonder_sd(&statics.small_wonder());
+    m_improvement_yield.set_tech_era_sd(&statics.tech_era());
+    m_improvement_yield.set_tech_age_sd(&statics.tech_age());
     m_improvement_yield.set_tech_sd(&statics.tech());
     m_improvement_yield.set_unit_action_sd(&statics.unit_action());
     m_improvement_yield.set_unit_role_sd(&statics.unit_role());
@@ -968,6 +1090,18 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
         m_small_wonder.pr_item(statics.small_wonder().get_name(SmallWonderStaticDataKey::from_raw(i)), statics.small_wonder().get_item(SmallWonderStaticDataKey::from_raw(i)));
     }
     m_small_wonder.close_writer();
+    
+    m_tech_era.open_writer();
+    for (u16 i = 0; i < statics.tech_era().get_item_count(); ++i) {
+        m_tech_era.pr_item(statics.tech_era().get_name(TechEraStaticDataKey::from_raw(i)), statics.tech_era().get_item(TechEraStaticDataKey::from_raw(i)));
+    }
+    m_tech_era.close_writer();
+    
+    m_tech_age.open_writer();
+    for (u16 i = 0; i < statics.tech_age().get_item_count(); ++i) {
+        m_tech_age.pr_item(statics.tech_age().get_name(TechAgeStaticDataKey::from_raw(i)), statics.tech_age().get_item(TechAgeStaticDataKey::from_raw(i)));
+    }
+    m_tech_age.close_writer();
     
     m_tech.open_writer();
     for (u16 i = 0; i < statics.tech().get_item_count(); ++i) {
@@ -1083,6 +1217,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_building.set_res_dist_sd(NULL);
     m_building.set_res_type_sd(NULL);
     m_building.set_small_wonder_sd(NULL);
+    m_building.set_tech_era_sd(NULL);
+    m_building.set_tech_age_sd(NULL);
     m_building.set_tech_sd(NULL);
     m_building.set_unit_action_sd(NULL);
     m_building.set_unit_role_sd(NULL);
@@ -1112,6 +1248,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_toggle_city.set_res_dist_sd(NULL);
     m_toggle_city.set_res_type_sd(NULL);
     m_toggle_city.set_small_wonder_sd(NULL);
+    m_toggle_city.set_tech_era_sd(NULL);
+    m_toggle_city.set_tech_age_sd(NULL);
     m_toggle_city.set_tech_sd(NULL);
     m_toggle_city.set_unit_action_sd(NULL);
     m_toggle_city.set_unit_role_sd(NULL);
@@ -1141,6 +1279,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_toggle_civ.set_res_dist_sd(NULL);
     m_toggle_civ.set_res_type_sd(NULL);
     m_toggle_civ.set_small_wonder_sd(NULL);
+    m_toggle_civ.set_tech_era_sd(NULL);
+    m_toggle_civ.set_tech_age_sd(NULL);
     m_toggle_civ.set_tech_sd(NULL);
     m_toggle_civ.set_unit_action_sd(NULL);
     m_toggle_civ.set_unit_role_sd(NULL);
@@ -1170,6 +1310,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_toggle_global.set_res_dist_sd(NULL);
     m_toggle_global.set_res_type_sd(NULL);
     m_toggle_global.set_small_wonder_sd(NULL);
+    m_toggle_global.set_tech_era_sd(NULL);
+    m_toggle_global.set_tech_age_sd(NULL);
     m_toggle_global.set_tech_sd(NULL);
     m_toggle_global.set_unit_action_sd(NULL);
     m_toggle_global.set_unit_role_sd(NULL);
@@ -1199,6 +1341,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_city_job.set_res_dist_sd(NULL);
     m_city_job.set_res_type_sd(NULL);
     m_city_job.set_small_wonder_sd(NULL);
+    m_city_job.set_tech_era_sd(NULL);
+    m_city_job.set_tech_age_sd(NULL);
     m_city_job.set_tech_sd(NULL);
     m_city_job.set_unit_action_sd(NULL);
     m_city_job.set_unit_role_sd(NULL);
@@ -1228,6 +1372,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_civ.set_res_dist_sd(NULL);
     m_civ.set_res_type_sd(NULL);
     m_civ.set_small_wonder_sd(NULL);
+    m_civ.set_tech_era_sd(NULL);
+    m_civ.set_tech_age_sd(NULL);
     m_civ.set_tech_sd(NULL);
     m_civ.set_unit_action_sd(NULL);
     m_civ.set_unit_role_sd(NULL);
@@ -1257,6 +1403,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_civ_trait.set_res_dist_sd(NULL);
     m_civ_trait.set_res_type_sd(NULL);
     m_civ_trait.set_small_wonder_sd(NULL);
+    m_civ_trait.set_tech_era_sd(NULL);
+    m_civ_trait.set_tech_age_sd(NULL);
     m_civ_trait.set_tech_sd(NULL);
     m_civ_trait.set_unit_action_sd(NULL);
     m_civ_trait.set_unit_role_sd(NULL);
@@ -1286,6 +1434,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_tile_attribute.set_res_dist_sd(NULL);
     m_tile_attribute.set_res_type_sd(NULL);
     m_tile_attribute.set_small_wonder_sd(NULL);
+    m_tile_attribute.set_tech_era_sd(NULL);
+    m_tile_attribute.set_tech_age_sd(NULL);
     m_tile_attribute.set_tech_sd(NULL);
     m_tile_attribute.set_unit_action_sd(NULL);
     m_tile_attribute.set_unit_role_sd(NULL);
@@ -1315,6 +1465,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_resource.set_res_dist_sd(NULL);
     m_resource.set_res_type_sd(NULL);
     m_resource.set_small_wonder_sd(NULL);
+    m_resource.set_tech_era_sd(NULL);
+    m_resource.set_tech_age_sd(NULL);
     m_resource.set_tech_sd(NULL);
     m_resource.set_unit_action_sd(NULL);
     m_resource.set_unit_role_sd(NULL);
@@ -1344,6 +1496,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_res_dist.set_res_dist_sd(NULL);
     m_res_dist.set_res_type_sd(NULL);
     m_res_dist.set_small_wonder_sd(NULL);
+    m_res_dist.set_tech_era_sd(NULL);
+    m_res_dist.set_tech_age_sd(NULL);
     m_res_dist.set_tech_sd(NULL);
     m_res_dist.set_unit_action_sd(NULL);
     m_res_dist.set_unit_role_sd(NULL);
@@ -1373,6 +1527,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_res_type.set_res_dist_sd(NULL);
     m_res_type.set_res_type_sd(NULL);
     m_res_type.set_small_wonder_sd(NULL);
+    m_res_type.set_tech_era_sd(NULL);
+    m_res_type.set_tech_age_sd(NULL);
     m_res_type.set_tech_sd(NULL);
     m_res_type.set_unit_action_sd(NULL);
     m_res_type.set_unit_role_sd(NULL);
@@ -1402,6 +1558,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_small_wonder.set_res_dist_sd(NULL);
     m_small_wonder.set_res_type_sd(NULL);
     m_small_wonder.set_small_wonder_sd(NULL);
+    m_small_wonder.set_tech_era_sd(NULL);
+    m_small_wonder.set_tech_age_sd(NULL);
     m_small_wonder.set_tech_sd(NULL);
     m_small_wonder.set_unit_action_sd(NULL);
     m_small_wonder.set_unit_role_sd(NULL);
@@ -1419,6 +1577,68 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_small_wonder.set_worker_job_imp_sd(NULL);
     m_small_wonder.set_tile_yield_type_sd(NULL);
     m_small_wonder.set_improvement_yield_sd(NULL);
+    m_tech_era.set_building_sd(NULL);
+    m_tech_era.set_toggle_city_sd(NULL);
+    m_tech_era.set_toggle_civ_sd(NULL);
+    m_tech_era.set_toggle_global_sd(NULL);
+    m_tech_era.set_city_job_sd(NULL);
+    m_tech_era.set_civ_sd(NULL);
+    m_tech_era.set_civ_trait_sd(NULL);
+    m_tech_era.set_tile_attribute_sd(NULL);
+    m_tech_era.set_resource_sd(NULL);
+    m_tech_era.set_res_dist_sd(NULL);
+    m_tech_era.set_res_type_sd(NULL);
+    m_tech_era.set_small_wonder_sd(NULL);
+    m_tech_era.set_tech_era_sd(NULL);
+    m_tech_era.set_tech_age_sd(NULL);
+    m_tech_era.set_tech_sd(NULL);
+    m_tech_era.set_unit_action_sd(NULL);
+    m_tech_era.set_unit_role_sd(NULL);
+    m_tech_era.set_unit_type_sd(NULL);
+    m_tech_era.set_unit_domain_sd(NULL);
+    m_tech_era.set_unit_sd(NULL);
+    m_tech_era.set_wonder_sd(NULL);
+    m_tech_era.set_map_overlay_sd(NULL);
+    m_tech_era.set_map_attribute_sd(NULL);
+    m_tech_era.set_map_terrain_sd(NULL);
+    m_tech_era.set_map_climate_sd(NULL);
+    m_tech_era.set_worker_job_target_sd(NULL);
+    m_tech_era.set_worker_job_type_sd(NULL);
+    m_tech_era.set_worker_job_sd(NULL);
+    m_tech_era.set_worker_job_imp_sd(NULL);
+    m_tech_era.set_tile_yield_type_sd(NULL);
+    m_tech_era.set_improvement_yield_sd(NULL);
+    m_tech_age.set_building_sd(NULL);
+    m_tech_age.set_toggle_city_sd(NULL);
+    m_tech_age.set_toggle_civ_sd(NULL);
+    m_tech_age.set_toggle_global_sd(NULL);
+    m_tech_age.set_city_job_sd(NULL);
+    m_tech_age.set_civ_sd(NULL);
+    m_tech_age.set_civ_trait_sd(NULL);
+    m_tech_age.set_tile_attribute_sd(NULL);
+    m_tech_age.set_resource_sd(NULL);
+    m_tech_age.set_res_dist_sd(NULL);
+    m_tech_age.set_res_type_sd(NULL);
+    m_tech_age.set_small_wonder_sd(NULL);
+    m_tech_age.set_tech_era_sd(NULL);
+    m_tech_age.set_tech_age_sd(NULL);
+    m_tech_age.set_tech_sd(NULL);
+    m_tech_age.set_unit_action_sd(NULL);
+    m_tech_age.set_unit_role_sd(NULL);
+    m_tech_age.set_unit_type_sd(NULL);
+    m_tech_age.set_unit_domain_sd(NULL);
+    m_tech_age.set_unit_sd(NULL);
+    m_tech_age.set_wonder_sd(NULL);
+    m_tech_age.set_map_overlay_sd(NULL);
+    m_tech_age.set_map_attribute_sd(NULL);
+    m_tech_age.set_map_terrain_sd(NULL);
+    m_tech_age.set_map_climate_sd(NULL);
+    m_tech_age.set_worker_job_target_sd(NULL);
+    m_tech_age.set_worker_job_type_sd(NULL);
+    m_tech_age.set_worker_job_sd(NULL);
+    m_tech_age.set_worker_job_imp_sd(NULL);
+    m_tech_age.set_tile_yield_type_sd(NULL);
+    m_tech_age.set_improvement_yield_sd(NULL);
     m_tech.set_building_sd(NULL);
     m_tech.set_toggle_city_sd(NULL);
     m_tech.set_toggle_civ_sd(NULL);
@@ -1431,6 +1651,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_tech.set_res_dist_sd(NULL);
     m_tech.set_res_type_sd(NULL);
     m_tech.set_small_wonder_sd(NULL);
+    m_tech.set_tech_era_sd(NULL);
+    m_tech.set_tech_age_sd(NULL);
     m_tech.set_tech_sd(NULL);
     m_tech.set_unit_action_sd(NULL);
     m_tech.set_unit_role_sd(NULL);
@@ -1460,6 +1682,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_unit_action.set_res_dist_sd(NULL);
     m_unit_action.set_res_type_sd(NULL);
     m_unit_action.set_small_wonder_sd(NULL);
+    m_unit_action.set_tech_era_sd(NULL);
+    m_unit_action.set_tech_age_sd(NULL);
     m_unit_action.set_tech_sd(NULL);
     m_unit_action.set_unit_action_sd(NULL);
     m_unit_action.set_unit_role_sd(NULL);
@@ -1489,6 +1713,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_unit_role.set_res_dist_sd(NULL);
     m_unit_role.set_res_type_sd(NULL);
     m_unit_role.set_small_wonder_sd(NULL);
+    m_unit_role.set_tech_era_sd(NULL);
+    m_unit_role.set_tech_age_sd(NULL);
     m_unit_role.set_tech_sd(NULL);
     m_unit_role.set_unit_action_sd(NULL);
     m_unit_role.set_unit_role_sd(NULL);
@@ -1518,6 +1744,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_unit_type.set_res_dist_sd(NULL);
     m_unit_type.set_res_type_sd(NULL);
     m_unit_type.set_small_wonder_sd(NULL);
+    m_unit_type.set_tech_era_sd(NULL);
+    m_unit_type.set_tech_age_sd(NULL);
     m_unit_type.set_tech_sd(NULL);
     m_unit_type.set_unit_action_sd(NULL);
     m_unit_type.set_unit_role_sd(NULL);
@@ -1547,6 +1775,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_unit_domain.set_res_dist_sd(NULL);
     m_unit_domain.set_res_type_sd(NULL);
     m_unit_domain.set_small_wonder_sd(NULL);
+    m_unit_domain.set_tech_era_sd(NULL);
+    m_unit_domain.set_tech_age_sd(NULL);
     m_unit_domain.set_tech_sd(NULL);
     m_unit_domain.set_unit_action_sd(NULL);
     m_unit_domain.set_unit_role_sd(NULL);
@@ -1576,6 +1806,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_unit.set_res_dist_sd(NULL);
     m_unit.set_res_type_sd(NULL);
     m_unit.set_small_wonder_sd(NULL);
+    m_unit.set_tech_era_sd(NULL);
+    m_unit.set_tech_age_sd(NULL);
     m_unit.set_tech_sd(NULL);
     m_unit.set_unit_action_sd(NULL);
     m_unit.set_unit_role_sd(NULL);
@@ -1605,6 +1837,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_wonder.set_res_dist_sd(NULL);
     m_wonder.set_res_type_sd(NULL);
     m_wonder.set_small_wonder_sd(NULL);
+    m_wonder.set_tech_era_sd(NULL);
+    m_wonder.set_tech_age_sd(NULL);
     m_wonder.set_tech_sd(NULL);
     m_wonder.set_unit_action_sd(NULL);
     m_wonder.set_unit_role_sd(NULL);
@@ -1634,6 +1868,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_map_overlay.set_res_dist_sd(NULL);
     m_map_overlay.set_res_type_sd(NULL);
     m_map_overlay.set_small_wonder_sd(NULL);
+    m_map_overlay.set_tech_era_sd(NULL);
+    m_map_overlay.set_tech_age_sd(NULL);
     m_map_overlay.set_tech_sd(NULL);
     m_map_overlay.set_unit_action_sd(NULL);
     m_map_overlay.set_unit_role_sd(NULL);
@@ -1663,6 +1899,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_map_attribute.set_res_dist_sd(NULL);
     m_map_attribute.set_res_type_sd(NULL);
     m_map_attribute.set_small_wonder_sd(NULL);
+    m_map_attribute.set_tech_era_sd(NULL);
+    m_map_attribute.set_tech_age_sd(NULL);
     m_map_attribute.set_tech_sd(NULL);
     m_map_attribute.set_unit_action_sd(NULL);
     m_map_attribute.set_unit_role_sd(NULL);
@@ -1692,6 +1930,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_map_terrain.set_res_dist_sd(NULL);
     m_map_terrain.set_res_type_sd(NULL);
     m_map_terrain.set_small_wonder_sd(NULL);
+    m_map_terrain.set_tech_era_sd(NULL);
+    m_map_terrain.set_tech_age_sd(NULL);
     m_map_terrain.set_tech_sd(NULL);
     m_map_terrain.set_unit_action_sd(NULL);
     m_map_terrain.set_unit_role_sd(NULL);
@@ -1721,6 +1961,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_map_climate.set_res_dist_sd(NULL);
     m_map_climate.set_res_type_sd(NULL);
     m_map_climate.set_small_wonder_sd(NULL);
+    m_map_climate.set_tech_era_sd(NULL);
+    m_map_climate.set_tech_age_sd(NULL);
     m_map_climate.set_tech_sd(NULL);
     m_map_climate.set_unit_action_sd(NULL);
     m_map_climate.set_unit_role_sd(NULL);
@@ -1750,6 +1992,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_worker_job_target.set_res_dist_sd(NULL);
     m_worker_job_target.set_res_type_sd(NULL);
     m_worker_job_target.set_small_wonder_sd(NULL);
+    m_worker_job_target.set_tech_era_sd(NULL);
+    m_worker_job_target.set_tech_age_sd(NULL);
     m_worker_job_target.set_tech_sd(NULL);
     m_worker_job_target.set_unit_action_sd(NULL);
     m_worker_job_target.set_unit_role_sd(NULL);
@@ -1779,6 +2023,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_worker_job_type.set_res_dist_sd(NULL);
     m_worker_job_type.set_res_type_sd(NULL);
     m_worker_job_type.set_small_wonder_sd(NULL);
+    m_worker_job_type.set_tech_era_sd(NULL);
+    m_worker_job_type.set_tech_age_sd(NULL);
     m_worker_job_type.set_tech_sd(NULL);
     m_worker_job_type.set_unit_action_sd(NULL);
     m_worker_job_type.set_unit_role_sd(NULL);
@@ -1808,6 +2054,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_worker_job.set_res_dist_sd(NULL);
     m_worker_job.set_res_type_sd(NULL);
     m_worker_job.set_small_wonder_sd(NULL);
+    m_worker_job.set_tech_era_sd(NULL);
+    m_worker_job.set_tech_age_sd(NULL);
     m_worker_job.set_tech_sd(NULL);
     m_worker_job.set_unit_action_sd(NULL);
     m_worker_job.set_unit_role_sd(NULL);
@@ -1837,6 +2085,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_worker_job_imp.set_res_dist_sd(NULL);
     m_worker_job_imp.set_res_type_sd(NULL);
     m_worker_job_imp.set_small_wonder_sd(NULL);
+    m_worker_job_imp.set_tech_era_sd(NULL);
+    m_worker_job_imp.set_tech_age_sd(NULL);
     m_worker_job_imp.set_tech_sd(NULL);
     m_worker_job_imp.set_unit_action_sd(NULL);
     m_worker_job_imp.set_unit_role_sd(NULL);
@@ -1866,6 +2116,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_tile_yield_type.set_res_dist_sd(NULL);
     m_tile_yield_type.set_res_type_sd(NULL);
     m_tile_yield_type.set_small_wonder_sd(NULL);
+    m_tile_yield_type.set_tech_era_sd(NULL);
+    m_tile_yield_type.set_tech_age_sd(NULL);
     m_tile_yield_type.set_tech_sd(NULL);
     m_tile_yield_type.set_unit_action_sd(NULL);
     m_tile_yield_type.set_unit_role_sd(NULL);
@@ -1895,6 +2147,8 @@ void ParserTestManager::print_all (const RuntimeStatics& statics) {
     m_improvement_yield.set_res_dist_sd(NULL);
     m_improvement_yield.set_res_type_sd(NULL);
     m_improvement_yield.set_small_wonder_sd(NULL);
+    m_improvement_yield.set_tech_era_sd(NULL);
+    m_improvement_yield.set_tech_age_sd(NULL);
     m_improvement_yield.set_tech_sd(NULL);
     m_improvement_yield.set_unit_action_sd(NULL);
     m_improvement_yield.set_unit_role_sd(NULL);

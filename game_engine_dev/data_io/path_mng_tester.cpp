@@ -95,6 +95,8 @@ void note_all_paths_exist (const PathMng& paths, cstr tag) {
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s res_dists exists", tag); note_result(does_file_exist(paths.get_path_to_res_dists()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s res_types exists", tag); note_result(does_file_exist(paths.get_path_to_res_types()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s small_wonders exists", tag); note_result(does_file_exist(paths.get_path_to_small_wonders()), _buf); }
+        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s tech_eras exists", tag); note_result(does_file_exist(paths.get_path_to_tech_eras()), _buf); }
+        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s tech_ages exists", tag); note_result(does_file_exist(paths.get_path_to_tech_ages()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s techs exists", tag); note_result(does_file_exist(paths.get_path_to_techs()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s unit_actions exists", tag); note_result(does_file_exist(paths.get_path_to_unit_actions()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s unit_roles exists", tag); note_result(does_file_exist(paths.get_path_to_unit_roles()), _buf); }

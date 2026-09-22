@@ -81,6 +81,8 @@ void print_holder_counts (const RuntimeStatics& s) {
     print_u16_member("res_dist", s.res_dist().get_item_count());
     print_u16_member("res_type", s.res_type().get_item_count());
     print_u16_member("small_wonder", s.small_wonder().get_item_count());
+    print_u16_member("tech_era", s.tech_era().get_item_count());
+    print_u16_member("tech_age", s.tech_age().get_item_count());
     print_u16_member("tech", s.tech().get_item_count());
     print_u16_member("unit_action", s.unit_action().get_item_count());
     print_u16_member("unit_role", s.unit_role().get_item_count());
@@ -177,6 +179,8 @@ void run_load_tests (const RuntimeStaticLoader& loader) {
     note_result(s.res_dist().get_item_count() > 0, "res_dist holder has items");
     note_result(s.res_type().get_item_count() > 0, "res_type holder has items");
     note_result(s.small_wonder().get_item_count() > 0, "small_wonder holder has items");
+    note_result(s.tech_era().get_item_count() > 0, "tech_era holder has items");
+    note_result(s.tech_age().get_item_count() > 0, "tech_age holder has items");
     note_result(s.tech().get_item_count() > 0, "tech holder has items");
     note_result(s.unit_action().get_item_count() > 0, "unit_action holder has items");
     note_result(s.unit_role().get_item_count() > 0, "unit_role holder has items");

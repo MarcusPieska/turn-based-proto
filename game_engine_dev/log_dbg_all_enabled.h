@@ -33,6 +33,7 @@
 #include "log_dbg/log_player_commerce_raw.h"
 #include "log_dbg/log_player_science.h"
 #include "log_dbg/log_player_research_perc.h"
+#include "log_dbg/log_player_tech_discover.h"
 #include "log_dbg/assert_combat_ready.h"
 #include "log_dbg/assert_sector_support_bound.h"
 #include "log_dbg/assert_war_army_can_fight.h"

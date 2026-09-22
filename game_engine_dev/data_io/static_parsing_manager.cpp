@@ -42,6 +42,8 @@ const DataParserBase* g_resource_name_parser = nullptr;
 const DataParserBase* g_res_dist_name_parser = nullptr;
 const DataParserBase* g_res_type_name_parser = nullptr;
 const DataParserBase* g_small_wonder_name_parser = nullptr;
+const DataParserBase* g_tech_era_name_parser = nullptr;
+const DataParserBase* g_tech_age_name_parser = nullptr;
 const DataParserBase* g_tech_name_parser = nullptr;
 const DataParserBase* g_unit_action_name_parser = nullptr;
 const DataParserBase* g_unit_role_name_parser = nullptr;
@@ -106,6 +108,14 @@ u16 cb_res_type_name_to_idx (cstr name) {
 
 u16 cb_small_wonder_name_to_idx (cstr name) {
     return g_small_wonder_name_parser->name_to_idx(name);
+}
+
+u16 cb_tech_era_name_to_idx (cstr name) {
+    return g_tech_era_name_parser->name_to_idx(name);
+}
+
+u16 cb_tech_age_name_to_idx (cstr name) {
+    return g_tech_age_name_parser->name_to_idx(name);
 }
 
 u16 cb_tech_name_to_idx (cstr name) {
@@ -198,6 +208,8 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_res_dist_items(),
     m_res_type_items(),
     m_small_wonder_items(),
+    m_tech_era_items(),
+    m_tech_age_items(),
     m_tech_items(),
     m_unit_action_items(),
     m_unit_role_items(),
@@ -228,6 +240,8 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_res_dist_name_parser(nullptr),
     m_res_type_name_parser(nullptr),
     m_small_wonder_name_parser(nullptr),
+    m_tech_era_name_parser(nullptr),
+    m_tech_age_name_parser(nullptr),
     m_tech_name_parser(nullptr),
     m_unit_action_name_parser(nullptr),
     m_unit_role_name_parser(nullptr),
@@ -264,6 +278,8 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_res_dist_data(nullptr),
     m_res_type_data(nullptr),
     m_small_wonder_data(nullptr),
+    m_tech_era_data(nullptr),
+    m_tech_age_data(nullptr),
     m_tech_data(nullptr),
     m_unit_action_data(nullptr),
     m_unit_role_data(nullptr),
@@ -321,6 +337,12 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_small_wonder_items.load_file_content(m_paths.get_path_to_small_wonders());
     m_small_wonder_items.split_string_by_char(0, '\n');
     DataParserBase::normalize_lines(m_small_wonder_items);
+    m_tech_era_items.load_file_content(m_paths.get_path_to_tech_eras());
+    m_tech_era_items.split_string_by_char(0, '\n');
+    DataParserBase::normalize_lines(m_tech_era_items);
+    m_tech_age_items.load_file_content(m_paths.get_path_to_tech_ages());
+    m_tech_age_items.split_string_by_char(0, '\n');
+    DataParserBase::normalize_lines(m_tech_age_items);
     m_tech_items.load_file_content(m_paths.get_path_to_techs());
     m_tech_items.split_string_by_char(0, '\n');
     DataParserBase::normalize_lines(m_tech_items);
@@ -387,6 +409,8 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_res_dist_name_parser = new DataParserBase(m_res_dist_items, NameToIdxCbs());
     m_res_type_name_parser = new DataParserBase(m_res_type_items, NameToIdxCbs());
     m_small_wonder_name_parser = new DataParserBase(m_small_wonder_items, NameToIdxCbs());
+    m_tech_era_name_parser = new DataParserBase(m_tech_era_items, NameToIdxCbs());
+    m_tech_age_name_parser = new DataParserBase(m_tech_age_items, NameToIdxCbs());
     m_tech_name_parser = new DataParserBase(m_tech_items, NameToIdxCbs());
     m_unit_action_name_parser = new DataParserBase(m_unit_action_items, NameToIdxCbs());
     m_unit_role_name_parser = new DataParserBase(m_unit_role_items, NameToIdxCbs());
@@ -423,6 +447,8 @@ StaticParsingManager::~StaticParsingManager () {
     delete m_res_dist_name_parser;
     delete m_res_type_name_parser;
     delete m_small_wonder_name_parser;
+    delete m_tech_era_name_parser;
+    delete m_tech_age_name_parser;
     delete m_tech_name_parser;
     delete m_unit_action_name_parser;
     delete m_unit_role_name_parser;
@@ -536,6 +562,22 @@ const SmallWonderStaticDataStruct* StaticParsingManager::get_small_wonder_data (
 
 u16 StaticParsingManager::get_small_wonder_count () const {
     return safe_size_to_u16(m_small_wonder_items.get_string_count());
+}
+
+const TechEraStaticDataStruct* StaticParsingManager::get_tech_era_data () const {
+    return m_tech_era_data;
+}
+
+u16 StaticParsingManager::get_tech_era_count () const {
+    return safe_size_to_u16(m_tech_era_items.get_string_count());
+}
+
+const TechAgeStaticDataStruct* StaticParsingManager::get_tech_age_data () const {
+    return m_tech_age_data;
+}
+
+u16 StaticParsingManager::get_tech_age_count () const {
+    return safe_size_to_u16(m_tech_age_items.get_string_count());
 }
 
 const TechStaticDataStruct* StaticParsingManager::get_tech_data () const {
@@ -721,6 +763,14 @@ const DataParserBase& StaticParsingManager::get_small_wonder_name_parser () cons
     return *m_small_wonder_name_parser;
 }
 
+const DataParserBase& StaticParsingManager::get_tech_era_name_parser () const {
+    return *m_tech_era_name_parser;
+}
+
+const DataParserBase& StaticParsingManager::get_tech_age_name_parser () const {
+    return *m_tech_age_name_parser;
+}
+
 const DataParserBase& StaticParsingManager::get_tech_name_parser () const {
     return *m_tech_name_parser;
 }
@@ -834,6 +884,8 @@ void StaticParsingManager::build_name_to_idx_callbacks () {
     g_res_dist_name_parser = m_res_dist_name_parser;
     g_res_type_name_parser = m_res_type_name_parser;
     g_small_wonder_name_parser = m_small_wonder_name_parser;
+    g_tech_era_name_parser = m_tech_era_name_parser;
+    g_tech_age_name_parser = m_tech_age_name_parser;
     g_tech_name_parser = m_tech_name_parser;
     g_unit_action_name_parser = m_unit_action_name_parser;
     g_unit_role_name_parser = m_unit_role_name_parser;
@@ -864,6 +916,8 @@ void StaticParsingManager::build_name_to_idx_callbacks () {
     m_name_to_idx_cbs.res_dist_name_to_idx = cb_res_dist_name_to_idx;
     m_name_to_idx_cbs.res_type_name_to_idx = cb_res_type_name_to_idx;
     m_name_to_idx_cbs.small_wonder_name_to_idx = cb_small_wonder_name_to_idx;
+    m_name_to_idx_cbs.tech_era_name_to_idx = cb_tech_era_name_to_idx;
+    m_name_to_idx_cbs.tech_age_name_to_idx = cb_tech_age_name_to_idx;
     m_name_to_idx_cbs.tech_name_to_idx = cb_tech_name_to_idx;
     m_name_to_idx_cbs.unit_action_name_to_idx = cb_unit_action_name_to_idx;
     m_name_to_idx_cbs.unit_role_name_to_idx = cb_unit_role_name_to_idx;
@@ -882,7 +936,7 @@ void StaticParsingManager::build_name_to_idx_callbacks () {
     m_name_to_idx_cbs.tile_yield_type_name_to_idx = cb_tile_yield_type_name_to_idx;
     m_name_to_idx_cbs.improvement_yield_name_to_idx = cb_improvement_yield_name_to_idx;
 
-    m_callback_count = 29;
+    m_callback_count = 31;
     DataParserBase::set_item_effect_handler(&m_name_to_idx_cbs, &m_effect_items);
 }
 
@@ -899,6 +953,8 @@ void StaticParsingManager::parse_supported_data () {
     ResDistParser res_dist_parser(m_res_dist_items, m_name_to_idx_cbs);
     ResTypeParser res_type_parser(m_res_type_items, m_name_to_idx_cbs);
     SmallWonderParser small_wonder_parser(m_small_wonder_items, m_name_to_idx_cbs);
+    TechEraParser tech_era_parser(m_tech_era_items, m_name_to_idx_cbs);
+    TechAgeParser tech_age_parser(m_tech_age_items, m_name_to_idx_cbs);
     TechParser tech_parser(m_tech_items, m_name_to_idx_cbs);
     UnitActionParser unit_action_parser(m_unit_action_items, m_name_to_idx_cbs);
     UnitRoleParser unit_role_parser(m_unit_role_items, m_name_to_idx_cbs);
@@ -929,6 +985,8 @@ void StaticParsingManager::parse_supported_data () {
     m_res_dist_data = res_dist_parser.parse_data_dependencies();
     m_res_type_data = res_type_parser.parse_data_dependencies();
     m_small_wonder_data = small_wonder_parser.parse_data_dependencies();
+    m_tech_era_data = tech_era_parser.parse_data_dependencies();
+    m_tech_age_data = tech_age_parser.parse_data_dependencies();
     m_tech_data = tech_parser.parse_data_dependencies();
     m_unit_action_data = unit_action_parser.parse_data_dependencies();
     m_unit_role_data = unit_role_parser.parse_data_dependencies();

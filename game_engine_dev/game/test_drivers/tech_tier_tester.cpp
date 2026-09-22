@@ -10,6 +10,9 @@
 #include "bit_array.h"
 #include "item_reqs.h"
 #include "runtime_static_loader.h"
+#include "tech_age_mng.h"
+#include "tech_age_static_data.h"
+#include "tech_age_static_key.h"
 #include "tech_static_data.h"
 #include "tech_static_key.h"
 
@@ -39,6 +42,11 @@ static bool ensure_statics () {
 
 static cstr tech_name (u16 idx) {
     cstr nm = g_rt_statics->tech().get_name(TechStaticDataKey::from_raw(idx));
+    return nm != nullptr ? nm : "?";
+}
+
+static cstr age_name (u16 age_idx) {
+    cstr nm = g_rt_statics->tech_age().get_name(TechAgeStaticDataKey::from_raw(age_idx));
     return nm != nullptr ? nm : "?";
 }
 
@@ -75,6 +83,37 @@ static int u16_cost_cmp (const void* a, const void* b) {
     return 0;
 }
 
+static void print_age_status (const TechAgeMng& mng) {
+    static const char* k_red = "\033[31m";
+    static const char* k_grn = "\033[32m";
+    static const char* k_rst = "\033[0m";
+    const u16 n = TechAgeMng::age_n();
+    std::printf("--- age progress (unlock at %u%%, ceil)  head=%s ---\n",
+        TechAgeMng::pct(), age_name(mng.head_age()));
+    for (u16 a = 0; a < n; ++a) {
+        const u8 cat = TechAgeMng::cat(a);
+        if (cat == 0) {
+            continue;
+        }
+        const u8 count = mng.done(a);
+        const u32 need = (static_cast<u32>(cat) * TechAgeMng::pct() + 99u) / 100u;
+        const char* nums_c = count < cat ? k_red : k_grn;
+        const bool open = a <= mng.head_age();
+        const char* lock_c = open ? k_grn : k_red;
+        std::printf("  %-18s  %scat=%u  need=%u  count=%u%s  %s%s%s\n",
+            age_name(a),
+            nums_c,
+            static_cast<u32>(cat),
+            need,
+            static_cast<u32>(count),
+            k_rst,
+            lock_c,
+            open ? "UNLOCKED" : "locked",
+            k_rst);
+    }
+    std::printf("\n");
+}
+
 //================================================================================================================================
 //=> - TechTierTester -
 //================================================================================================================================
@@ -91,17 +130,27 @@ int TechTierTester::run () {
         std::printf("statics failed\n");
         return 1;
     }
+    if (!TechAgeMng::setup(*g_rt_statics)) {
+        std::printf("TechAgeMng setup failed\n");
+        return 1;
+    }
     const u16 n = g_rt_statics->tech().get_item_count();
     GAME_EXPECT(n > 0, "tech_tier_tester tech_n");
     const TechStaticDataStruct* items = &g_rt_statics->tech().get_item(TechStaticDataKey::from_raw(0));
 
+    TechAgeMng ages;
+    print_age_status(ages);
+
     BitArrayCL done(n);
     u16* wave = new u16[n];
-    u32 tier = 1;
+    u32 wave_i = 1;
     for (;;) {
         u16 wn = 0;
         for (u16 t = 0; t < n; ++t) {
             if (done.get_bit(t) != 0) {
+                continue;
+            }
+            if (!ages.is_available(t)) {
                 continue;
             }
             if (!tech_prereqs_met(t, items, done)) {
@@ -114,18 +163,31 @@ int TechTierTester::run () {
             break;
         }
         std::qsort(wave, wn, sizeof(u16), u16_cost_cmp);
-        std::printf("=== tier %u (%u techs) ===\n", tier, static_cast<u32>(wn));
+        std::printf("=== wave %u (%u techs) ===\n", wave_i, static_cast<u32>(wn));
         for (u16 i = 0; i < wn; ++i) {
             const u16 t = wave[i];
-            std::printf("  %-28s  cost=%u\n", tech_name(t), items[t].cost);
+            const u16 age = items[t].tier;
+            std::printf("  %-28s  cost=%u  age=%s\n", tech_name(t), items[t].cost, age_name(age));
             done.set_bit(t);
+            ages.log_tech(t);
         }
         std::printf("\n");
-        tier = tier + 1u;
+        print_age_status(ages);
+        wave_i = wave_i + 1u;
     }
 
+    u16 left = 0;
+    for (u16 t = 0; t < n; ++t) {
+        if (done.get_bit(t) == 0) {
+            left = static_cast<u16>(left + 1u);
+        }
+    }
+    std::printf("=== walk done: researched=%u/%u  unreachable=%u  head=%s ===\n",
+        static_cast<u32>(n - left), static_cast<u32>(n), static_cast<u32>(left), age_name(ages.head_age()));
+
     delete[] wave;
-    return 0;
+    TechAgeMng::clear();
+    return left == 0 ? 0 : 1;
 }
 
 //================================================================================================================================

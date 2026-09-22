@@ -124,6 +124,14 @@ cstr PathMng::get_path_to_small_wonders () const {
     return m_path_small_wonders;
 }
 
+cstr PathMng::get_path_to_tech_eras () const {
+    return m_path_tech_eras;
+}
+
+cstr PathMng::get_path_to_tech_ages () const {
+    return m_path_tech_ages;
+}
+
 cstr PathMng::get_path_to_techs () const {
     return m_path_techs;
 }
@@ -215,6 +223,8 @@ void PathMng::build_paths () {
     join_path(m_path_res_dists, PATH_MNG_PATH_N, m_path_offset, "game_config.res_dists");
     join_path(m_path_res_types, PATH_MNG_PATH_N, m_path_offset, "game_config.res_types");
     join_path(m_path_small_wonders, PATH_MNG_PATH_N, m_path_offset, "game_config.small_wonders");
+    join_path(m_path_tech_eras, PATH_MNG_PATH_N, m_path_offset, "game_config.tech_eras");
+    join_path(m_path_tech_ages, PATH_MNG_PATH_N, m_path_offset, "game_config.tech_ages");
     join_path(m_path_techs, PATH_MNG_PATH_N, m_path_offset, "game_config.techs");
     join_path(m_path_unit_actions, PATH_MNG_PATH_N, m_path_offset, "game_config.unit_actions");
     join_path(m_path_unit_roles, PATH_MNG_PATH_N, m_path_offset, "game_config.unit_roles");
@@ -293,6 +303,14 @@ void PathMng::validate_paths_or_exit () const {
     }
     if (!does_file_exist(m_path_small_wonders)) {
         printf("ERROR: Missing file: %s\n", m_path_small_wonders);
+        ++error_count;
+    }
+    if (!does_file_exist(m_path_tech_eras)) {
+        printf("ERROR: Missing file: %s\n", m_path_tech_eras);
+        ++error_count;
+    }
+    if (!does_file_exist(m_path_tech_ages)) {
+        printf("ERROR: Missing file: %s\n", m_path_tech_ages);
         ++error_count;
     }
     if (!does_file_exist(m_path_techs)) {

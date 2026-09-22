@@ -25,6 +25,8 @@ def get_entries ():
         "res_dist",
         "res_type",
         "small_wonder",
+        "tech_era",
+        "tech_age",
         "tech",
         "unit_action",
         "unit_role",

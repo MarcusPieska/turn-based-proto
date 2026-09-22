@@ -47,6 +47,8 @@ protected:
     u16 parse_unit_role (const StringManager& line_items, u16 start_idx) const;
     u16 parse_unit_domain (const StringManager& line_items, u16 start_idx) const;
     u16 parse_res_type (const StringManager& line_items, u16 start_idx) const;
+    u16 parse_tech_era (const StringManager& line_items, u16 start_idx) const;
+    u16 parse_tech_age (const StringManager& line_items, u16 start_idx) const;
     u16 parse_worker_job_type (const StringManager& line_items, u16 start_idx) const;
     u16 parse_worker_job_target (const StringManager& line_items, u16 start_idx) const;
     u16 parse_map_overlay_idx (const StringManager& line_items, u16 start_idx) const;

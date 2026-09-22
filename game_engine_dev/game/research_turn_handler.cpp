@@ -13,6 +13,8 @@
 #include "runtime_statics.h"
 #include "tech_static_data.h"
 #include "tech_trait_orderings.h"
+#include "tech_age_mng.h"
+#include "log_dbg.h"
 
 //================================================================================================================================
 //=> - Helpers -
@@ -27,12 +29,25 @@ static void clr_owned (BitArrayCL& available, const BitArrayCL& owned) {
     }
 }
 
+static void clr_age_locked (BitArrayCL& available, const TechAgeMng& ages) {
+    const u32 n = available.get_count();
+    for (u32 i = 0; i < n; ++i) {
+        if (available.get_bit(i) == 0) {
+            continue;
+        }
+        if (!ages.is_available(static_cast<u16>(i))) {
+            available.clear_bit(i);
+        }
+    }
+}
+
 static void pick_target (PlayerState& ps, const RuntimeStatics& st) {
     if (ps.m_current_research_target_idx != U16_KEY_NULL) {
         return;
     }
     const u16 tech_n = st.tech().get_item_count();
     GAME_EXPECT(tech_n != 0, "ResearchTurnHandler pick_target tech count");
+    GAME_EXPECT(ps.m_tech_age != nullptr, "ResearchTurnHandler pick_target tech age");
     if (ps.m_techs_researched == nullptr) {
         ps.m_techs_researched = new BitArrayCL(tech_n);
     }
@@ -70,6 +85,7 @@ static void pick_target (PlayerState& ps, const RuntimeStatics& st) {
     const TechStaticDataStruct* items = &st.tech().get_item(TechStaticDataKey::from_raw(0));
     GeneralAssessor::assess_tech(&available, tech_n, items, ctx);
     clr_owned(available, *ps.m_techs_researched);
+    clr_age_locked(available, *ps.m_tech_age);
 
     const CivTrait trait = static_cast<CivTrait>(civ_row.traits.indices[0]);
     GAME_EXPECT(TechTraitOrderings::ready(), "ResearchTurnHandler pick_target orderings");
@@ -91,8 +107,9 @@ static void bank_commerce (PlayerState& ps) {
     ps.m_commerce_from_turn = 0;
 }
 
-static void finish_ready (PlayerState& ps, const RuntimeStatics& st) {
+static void finish_ready (PlayerState& ps, const RuntimeStatics& st, u16 player) {
     GAME_EXPECT(ps.m_techs_researched != nullptr, "ResearchTurnHandler finish_ready techs null");
+    GAME_EXPECT(ps.m_tech_age != nullptr, "ResearchTurnHandler finish_ready tech age");
     while (true) {
         if (ps.m_current_research_target_idx == U16_KEY_NULL) {
             pick_target(ps, st);
@@ -108,6 +125,8 @@ static void finish_ready (PlayerState& ps, const RuntimeStatics& st) {
         }
         ps.m_research = ps.m_research - cost;
         ps.m_techs_researched->set_bit(tgt);
+        ps.m_tech_age->log_tech(tgt);
+        LOG_PLAYER_TECH_DISCOVER::LOG(player, tgt);
         ps.m_tech_just_researched = 1;
         ps.m_current_research_target_idx = U16_KEY_NULL;
     }
@@ -131,7 +150,7 @@ void ResearchTurnHandler::handle (GameState& state, u16 player) {
     GAME_EXPECT(player < state.m_player_n, "ResearchTurnHandler handle player out of bounds");
     PlayerState& ps = state.m_player_states[player];
     bank_commerce(ps);
-    finish_ready(ps, *state.m_statics);
+    finish_ready(ps, *state.m_statics, player);
 }
 
 //================================================================================================================================

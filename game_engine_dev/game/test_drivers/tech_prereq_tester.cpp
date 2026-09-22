@@ -10,6 +10,7 @@
 #include "bit_array.h"
 #include "item_reqs.h"
 #include "runtime_static_loader.h"
+#include "tech_age_mng.h"
 #include "tech_static_data.h"
 #include "tech_static_key.h"
 
@@ -29,6 +30,8 @@ static RuntimeStatics* g_rt_statics = nullptr;
 struct PrereqInfo {
     u16 m_idx;
     u16 m_prereq_n;
+    u16 m_ungated_n;
+    u16 m_gated_n;
     u32 m_own_cost;
     u32 m_total_cost;
     u16* m_prereqs;
@@ -71,22 +74,35 @@ static void collect_prereqs (u16 tech_idx, const TechStaticDataStruct* items, u1
     }
 }
 
-static int cost_cmp (const void* a, const void* b) {
-    const PrereqInfo* pa = static_cast<const PrereqInfo*>(a);
-    const PrereqInfo* pb = static_cast<const PrereqInfo*>(b);
-    if (pa->m_total_cost < pb->m_total_cost) {
-        return -1;
+static u32 age_need (u16 age) {
+    const u8 cat = TechAgeMng::cat(age);
+    if (cat == 0) {
+        return 0;
     }
-    if (pa->m_total_cost > pb->m_total_cost) {
-        return 1;
+    return (static_cast<u32>(cat) * TechAgeMng::pct() + 99u) / 100u;
+}
+
+static u16 count_bits (const BitArrayCL& bits, u16 n) {
+    u16 c = 0;
+    for (u16 i = 0; i < n; ++i) {
+        if (bits.get_bit(i) != 0) {
+            c = static_cast<u16>(c + 1u);
+        }
     }
-    if (pa->m_idx < pb->m_idx) {
-        return -1;
+    return c;
+}
+
+static u16 count_age_in_set (const BitArrayCL& bits, const TechStaticDataStruct* items, u16 n, u16 age) {
+    u16 c = 0;
+    for (u16 i = 0; i < n; ++i) {
+        if (bits.get_bit(i) == 0) {
+            continue;
+        }
+        if (items[i].tier == age) {
+            c = static_cast<u16>(c + 1u);
+        }
     }
-    if (pa->m_idx > pb->m_idx) {
-        return 1;
-    }
-    return 0;
+    return c;
 }
 
 static int u16_cost_cmp (const void* a, const void* b) {
@@ -109,6 +125,65 @@ static int u16_cost_cmp (const void* a, const void* b) {
     return 0;
 }
 
+static void fill_age_gates (BitArrayCL& set, u16 target_age, const TechStaticDataStruct* items, u16 n) {
+    u16* cand = new u16[n];
+    for (u16 age = 0; age < target_age; ++age) {
+        const u32 need = age_need(age);
+        if (need == 0) {
+            continue;
+        }
+        u16 have = count_age_in_set(set, items, n, age);
+        if (have >= need) {
+            continue;
+        }
+        u16 cn = 0;
+        for (u16 i = 0; i < n; ++i) {
+            if (set.get_bit(i) != 0) {
+                continue;
+            }
+            if (items[i].tier != age) {
+                continue;
+            }
+            cand[cn] = i;
+            cn = static_cast<u16>(cn + 1u);
+        }
+        std::qsort(cand, cn, sizeof(u16), u16_cost_cmp);
+        u16 take = static_cast<u16>(need - have);
+        if (take > cn) {
+            take = cn;
+        }
+        for (u16 i = 0; i < take; ++i) {
+            set.set_bit(cand[i]);
+        }
+    }
+    delete[] cand;
+}
+
+static double tree_pct (u16 set_n, u16 tech_n) {
+    if (tech_n == 0) {
+        return 0.0;
+    }
+    return (100.0 * static_cast<double>(set_n)) / static_cast<double>(tech_n);
+}
+
+static int cost_cmp (const void* a, const void* b) {
+    const PrereqInfo* pa = static_cast<const PrereqInfo*>(a);
+    const PrereqInfo* pb = static_cast<const PrereqInfo*>(b);
+    if (pa->m_total_cost < pb->m_total_cost) {
+        return -1;
+    }
+    if (pa->m_total_cost > pb->m_total_cost) {
+        return 1;
+    }
+    if (pa->m_idx < pb->m_idx) {
+        return -1;
+    }
+    if (pa->m_idx > pb->m_idx) {
+        return 1;
+    }
+    return 0;
+}
+
 //================================================================================================================================
 //=> - TechPrereqTester -
 //================================================================================================================================
@@ -123,6 +198,10 @@ public:
 int TechPrereqTester::run (bool extensive) {
     if (!ensure_statics()) {
         std::printf("statics failed\n");
+        return 1;
+    }
+    if (!TechAgeMng::setup(*g_rt_statics)) {
+        std::printf("TechAgeMng setup failed\n");
         return 1;
     }
     const u16 n = g_rt_statics->tech().get_item_count();
@@ -156,8 +235,14 @@ int TechPrereqTester::run (bool extensive) {
         for (u16 i = 0; i < pn; ++i) {
             total = total + items[plist[i]].cost;
         }
+        seen.set_bit(t);
+        const u16 ungated_n = count_bits(seen, n);
+        fill_age_gates(seen, items[t].tier, items, n);
+        const u16 gated_n = count_bits(seen, n);
         infos[t].m_idx = t;
         infos[t].m_prereq_n = pn;
+        infos[t].m_ungated_n = ungated_n;
+        infos[t].m_gated_n = gated_n;
         infos[t].m_own_cost = items[t].cost;
         infos[t].m_total_cost = total;
         infos[t].m_prereqs = plist;
@@ -165,14 +250,17 @@ int TechPrereqTester::run (bool extensive) {
 
     std::qsort(infos, n, sizeof(PrereqInfo), cost_cmp);
 
-    std::printf("=== tech prereq detail (cheapest total first) ===\n");
+    std::printf("=== tech prereq detail (cheapest total first)  unlock_pct=%u ===\n",
+        TechAgeMng::pct());
     for (u16 i = 0; i < n; ++i) {
         const PrereqInfo& info = infos[i];
-        std::printf("\n%s  prereqs=%u  own=%u  total=%u\n",
+        std::printf("\n%s  prereqs=%u  own=%u  total=%u  tree=%.1f%%  gated=%.1f%%\n",
             tech_name(info.m_idx),
             static_cast<u32>(info.m_prereq_n),
             info.m_own_cost,
-            info.m_total_cost);
+            info.m_total_cost,
+            tree_pct(info.m_ungated_n, n),
+            tree_pct(info.m_gated_n, n));
         for (u16 p = 0; p < info.m_prereq_n; ++p) {
             const u16 pix = info.m_prereqs[p];
             std::printf("  %s  cost=%u\n", tech_name(pix), items[pix].cost);
@@ -208,12 +296,15 @@ int TechPrereqTester::run (bool extensive) {
     }
 
     std::printf("\n=== tech prereq summary (cheapest total first) ===\n");
+    std::printf("%-28s  prereqs  total   tree%%  gated%%\n", "tech");
     for (u16 i = 0; i < n; ++i) {
         const PrereqInfo& info = infos[i];
-        std::printf("%-28s  prereqs=%3u  total=%6u\n",
+        std::printf("%-28s  %7u  %5u  %5.1f  %6.1f\n",
             tech_name(info.m_idx),
             static_cast<u32>(info.m_prereq_n),
-            info.m_total_cost);
+            info.m_total_cost,
+            tree_pct(info.m_ungated_n, n),
+            tree_pct(info.m_gated_n, n));
     }
 
     BitArrayCL used_as_prereq(n);
@@ -249,6 +340,7 @@ int TechPrereqTester::run (bool extensive) {
         delete[] infos[i].m_prereqs;
     }
     delete[] infos;
+    TechAgeMng::clear();
     return 0;
 }
 

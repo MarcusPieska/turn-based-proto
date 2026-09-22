@@ -42,6 +42,8 @@ struct ConfigSettingsData {
     u16 m_unit_heal_default;
     u16 m_upgrade_cost_per_prod;
     u16 m_upgrade_cost_per_stat_pt;
+    u16 m_tech_age_unlock_pct;
+    u16 m_default_culture_per_turn;
 };
 
 //================================================================================================================================
@@ -76,6 +78,12 @@ public:
 
     u16 get_upgrade_cost_per_stat_pt () const;
     void set_upgrade_cost_per_stat_pt (u16 v);
+
+    u16 get_tech_age_unlock_pct () const;
+    void set_tech_age_unlock_pct (u16 v);
+
+    u16 get_default_culture_per_turn () const;
+    void set_default_culture_per_turn (u16 v);
 
 private:
     GameConfigSettings (const GameConfigSettings& o) = delete;

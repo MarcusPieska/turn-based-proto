@@ -28,6 +28,8 @@ class StaticParsingManager;
 #include "res_dist_static_data.h"
 #include "res_type_static_data.h"
 #include "small_wonder_static_data.h"
+#include "tech_era_static_data.h"
+#include "tech_age_static_data.h"
 #include "tech_static_data.h"
 #include "unit_action_static_data.h"
 #include "unit_role_static_data.h"
@@ -116,6 +118,14 @@ public:
     SmallWonderStaticData& small_wonder ();
 
     const SmallWonderStaticData& small_wonder () const;
+
+    TechEraStaticData& tech_era ();
+
+    const TechEraStaticData& tech_era () const;
+
+    TechAgeStaticData& tech_age ();
+
+    const TechAgeStaticData& tech_age () const;
 
     TechStaticData& tech ();
 
@@ -247,6 +257,8 @@ private:
     ResDistStaticData m_res_dist;
     ResTypeStaticData m_res_type;
     SmallWonderStaticData m_small_wonder;
+    TechEraStaticData m_tech_era;
+    TechAgeStaticData m_tech_age;
     TechStaticData m_tech;
     UnitActionStaticData m_unit_action;
     UnitRoleStaticData m_unit_role;

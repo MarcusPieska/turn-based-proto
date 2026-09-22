@@ -57,6 +57,8 @@ static void clr_data (ConfigSettingsData* d) {
     d->m_unit_heal_default = 0;
     d->m_upgrade_cost_per_prod = 0;
     d->m_upgrade_cost_per_stat_pt = 0;
+    d->m_tech_age_unlock_pct = 0;
+    d->m_default_culture_per_turn = 0;
 }
 
 //================================================================================================================================
@@ -206,6 +208,36 @@ void GameConfigSettings::set_upgrade_cost_per_stat_pt (u16 v) {
     }
     ensure_ovr();
     assign_u16(&m_cfg->m_upgrade_cost_per_stat_pt, v);
+}
+
+u16 GameConfigSettings::get_tech_age_unlock_pct () const {
+    return cur().m_tech_age_unlock_pct;
+}
+
+void GameConfigSettings::set_tech_age_unlock_pct (u16 v) {
+    if (eq_u16(v, m_defaults.m_tech_age_unlock_pct)) {
+        if (!m_is_default) {
+            assign_u16(&m_cfg->m_tech_age_unlock_pct, v);
+        }
+        return;
+    }
+    ensure_ovr();
+    assign_u16(&m_cfg->m_tech_age_unlock_pct, v);
+}
+
+u16 GameConfigSettings::get_default_culture_per_turn () const {
+    return cur().m_default_culture_per_turn;
+}
+
+void GameConfigSettings::set_default_culture_per_turn (u16 v) {
+    if (eq_u16(v, m_defaults.m_default_culture_per_turn)) {
+        if (!m_is_default) {
+            assign_u16(&m_cfg->m_default_culture_per_turn, v);
+        }
+        return;
+    }
+    ensure_ovr();
+    assign_u16(&m_cfg->m_default_culture_per_turn, v);
 }
 
 //================================================================================================================================

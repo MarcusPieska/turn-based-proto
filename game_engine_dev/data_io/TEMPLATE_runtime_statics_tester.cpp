@@ -165,6 +165,8 @@ void run_config_smoke_tests (const RuntimeStatics& s) {
     const GameConfigSettings& cfg = s.config();
     note_result(!cfg.is_default(), "config loaded from settings file");
     note_result(cfg.get_mov_pt_per_turn() == 1000, "PATH_MP_TURN matches game_config.settings");
+    note_result(cfg.get_tech_age_unlock_pct() == 80, "TECH_AGE_UNLOCK_PCT matches game_config.settings");
+    note_result(cfg.get_default_culture_per_turn() == 2, "DEFAULT_CULTURE_PER_TURN matches game_config.settings");
     const ConfigListUnit& su = cfg.get_start_units();
     note_result(su.n == 2, "START_UNITS count");
     note_result(std::strcmp(s.unit().get_name(su.keys[0]), "Settler") == 0, "START_UNITS first is Settler");

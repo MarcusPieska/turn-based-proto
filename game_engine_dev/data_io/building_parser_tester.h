@@ -34,6 +34,8 @@
 #include "res_dist_static_data.h"
 #include "res_type_static_data.h"
 #include "small_wonder_static_data.h"
+#include "tech_era_static_data.h"
+#include "tech_age_static_data.h"
 #include "tech_static_data.h"
 #include "unit_action_static_data.h"
 #include "unit_role_static_data.h"
@@ -77,6 +79,8 @@ public:
     void set_res_dist_sd (const ResDistStaticData* sd);
     void set_res_type_sd (const ResTypeStaticData* sd);
     void set_small_wonder_sd (const SmallWonderStaticData* sd);
+    void set_tech_era_sd (const TechEraStaticData* sd);
+    void set_tech_age_sd (const TechAgeStaticData* sd);
     void set_tech_sd (const TechStaticData* sd);
     void set_unit_action_sd (const UnitActionStaticData* sd);
     void set_unit_role_sd (const UnitRoleStaticData* sd);
@@ -113,6 +117,8 @@ private:
     const ResDistStaticData* m_res_dist_sd;
     const ResTypeStaticData* m_res_type_sd;
     const SmallWonderStaticData* m_small_wonder_sd;
+    const TechEraStaticData* m_tech_era_sd;
+    const TechAgeStaticData* m_tech_age_sd;
     const TechStaticData* m_tech_sd;
     const UnitActionStaticData* m_unit_action_sd;
     const UnitRoleStaticData* m_unit_role_sd;
@@ -143,6 +149,8 @@ private:
     const DataParserBase* m_res_dist_psr;
     const DataParserBase* m_res_type_psr;
     const DataParserBase* m_small_wonder_psr;
+    const DataParserBase* m_tech_era_psr;
+    const DataParserBase* m_tech_age_psr;
     const DataParserBase* m_tech_psr;
     const DataParserBase* m_unit_action_psr;
     const DataParserBase* m_unit_role_psr;
@@ -175,6 +183,8 @@ private:
     static u16 st_res_dist_n2i (cstr name);
     static u16 st_res_type_n2i (cstr name);
     static u16 st_small_wonder_n2i (cstr name);
+    static u16 st_tech_era_n2i (cstr name);
+    static u16 st_tech_age_n2i (cstr name);
     static u16 st_tech_n2i (cstr name);
     static u16 st_unit_action_n2i (cstr name);
     static u16 st_unit_role_n2i (cstr name);

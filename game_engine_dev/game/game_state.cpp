@@ -16,6 +16,7 @@
 #include "city_tile_manager.h"
 #include "city_border.h"
 #include "city_connector.h"
+#include "tech_age_mng.h"
 
 //================================================================================================================================
 //=> - GameState -
@@ -32,6 +33,8 @@ void GameState::clear () {
            
             delete m_player_states[i].m_techs_researched;
             m_player_states[i].m_techs_researched = nullptr;
+            delete m_player_states[i].m_tech_age;
+            m_player_states[i].m_tech_age = nullptr;
             m_player_states[i].m_res_ledger.clear();
         }
         delete[] m_player_states;
@@ -66,6 +69,7 @@ void GameState::clear () {
     UnitMovementMng::bind_state(nullptr);
     PlayerLedger::bind_state(nullptr);
     ResourceTurnHandler::clear();
+    TechAgeMng::clear();
     TileYields::bind_map(nullptr);
     TileWorking::bind_map(nullptr);
     WorkerGuidance::bind_map(nullptr);

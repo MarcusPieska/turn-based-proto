@@ -33,6 +33,7 @@ LOGS = [
     ("PlayerCommerceRaw", "u16 player, u32 amount", "player=%u commerce_raw=%u\n"),
     ("PlayerScience", "u16 player, u32 amount", "player=%u science=%u\n"),
     ("PlayerResearchPerc", "u16 player, u16 perc", "player=%u research_perc=%u\n"),
+    ("PlayerTechDiscover", "u16 player, u16 tech", "player=%u tech=%u\n"),
 ]
 
 ASSERTS = [

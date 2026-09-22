@@ -356,6 +356,14 @@ u16 DataParserBase::parse_res_type (const StringManager& line_items, u16 start_i
     return m_name_to_idx_cbs.res_type_name_to_idx(line_items.get_string_content(start_idx));
 }
 
+u16 DataParserBase::parse_tech_era (const StringManager& line_items, u16 start_idx) const {
+    return m_name_to_idx_cbs.tech_era_name_to_idx(line_items.get_string_content(start_idx));
+}
+
+u16 DataParserBase::parse_tech_age (const StringManager& line_items, u16 start_idx) const {
+    return m_name_to_idx_cbs.tech_age_name_to_idx(line_items.get_string_content(start_idx));
+}
+
 u16 DataParserBase::parse_worker_job_type (const StringManager& line_items, u16 start_idx) const {
     return m_name_to_idx_cbs.worker_job_type_name_to_idx(line_items.get_string_content(start_idx));
 }

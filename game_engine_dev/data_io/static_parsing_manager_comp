@@ -38,6 +38,8 @@ g++ $INC -c resource_parser.cpp -o resource_parser.o
 g++ $INC -c res_dist_parser.cpp -o res_dist_parser.o
 g++ $INC -c res_type_parser.cpp -o res_type_parser.o
 g++ $INC -c small_wonder_parser.cpp -o small_wonder_parser.o
+g++ $INC -c tech_era_parser.cpp -o tech_era_parser.o
+g++ $INC -c tech_age_parser.cpp -o tech_age_parser.o
 g++ $INC -c tech_parser.cpp -o tech_parser.o
 g++ $INC -c unit_action_parser.cpp -o unit_action_parser.o
 g++ $INC -c unit_role_parser.cpp -o unit_role_parser.o
@@ -80,6 +82,10 @@ g++ $INC $CXXFLAGS -c ../static_state/res_type_static_data.cpp -o res_type_stati
 g++ $INC $CXXFLAGS -c ../static_state/res_type_static_data_load.cpp -o res_type_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/small_wonder_static_data.cpp -o small_wonder_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/small_wonder_static_data_load.cpp -o small_wonder_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/tech_era_static_data.cpp -o tech_era_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/tech_era_static_data_load.cpp -o tech_era_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/tech_age_static_data.cpp -o tech_age_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/tech_age_static_data_load.cpp -o tech_age_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/tech_static_data.cpp -o tech_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/tech_static_data_load.cpp -o tech_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/unit_action_static_data.cpp -o unit_action_static_data.o
@@ -166,6 +172,8 @@ g++ $CXXFLAGS -o static_parsing_manager_tester \
     res_dist_parser.o \
     res_type_parser.o \
     small_wonder_parser.o \
+    tech_era_parser.o \
+    tech_age_parser.o \
     tech_parser.o \
     unit_action_parser.o \
     unit_role_parser.o \
@@ -207,6 +215,10 @@ g++ $CXXFLAGS -o static_parsing_manager_tester \
     res_type_static_data_load.o \
     small_wonder_static_data.o \
     small_wonder_static_data_load.o \
+    tech_era_static_data.o \
+    tech_era_static_data_load.o \
+    tech_age_static_data.o \
+    tech_age_static_data_load.o \
     tech_static_data.o \
     tech_static_data_load.o \
     unit_action_static_data.o \
@@ -293,6 +305,8 @@ g++ $INC -c resource_parser.cpp -o resource_parser.o
 g++ $INC -c res_dist_parser.cpp -o res_dist_parser.o
 g++ $INC -c res_type_parser.cpp -o res_type_parser.o
 g++ $INC -c small_wonder_parser.cpp -o small_wonder_parser.o
+g++ $INC -c tech_era_parser.cpp -o tech_era_parser.o
+g++ $INC -c tech_age_parser.cpp -o tech_age_parser.o
 g++ $INC -c tech_parser.cpp -o tech_parser.o
 g++ $INC -c unit_action_parser.cpp -o unit_action_parser.o
 g++ $INC -c unit_role_parser.cpp -o unit_role_parser.o
@@ -335,6 +349,10 @@ g++ $INC $CXXFLAGS -c ../static_state/res_type_static_data.cpp -o res_type_stati
 g++ $INC $CXXFLAGS -c ../static_state/res_type_static_data_load.cpp -o res_type_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/small_wonder_static_data.cpp -o small_wonder_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/small_wonder_static_data_load.cpp -o small_wonder_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/tech_era_static_data.cpp -o tech_era_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/tech_era_static_data_load.cpp -o tech_era_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/tech_age_static_data.cpp -o tech_age_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/tech_age_static_data_load.cpp -o tech_age_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/tech_static_data.cpp -o tech_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/tech_static_data_load.cpp -o tech_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/unit_action_static_data.cpp -o unit_action_static_data.o
@@ -421,6 +439,8 @@ g++ $CXXFLAGS $OPT -o static_parsing_manager_opt_tester \
     res_dist_parser.o \
     res_type_parser.o \
     small_wonder_parser.o \
+    tech_era_parser.o \
+    tech_age_parser.o \
     tech_parser.o \
     unit_action_parser.o \
     unit_role_parser.o \
@@ -462,6 +482,10 @@ g++ $CXXFLAGS $OPT -o static_parsing_manager_opt_tester \
     res_type_static_data_load.o \
     small_wonder_static_data.o \
     small_wonder_static_data_load.o \
+    tech_era_static_data.o \
+    tech_era_static_data_load.o \
+    tech_age_static_data.o \
+    tech_age_static_data_load.o \
     tech_static_data.o \
     tech_static_data_load.o \
     unit_action_static_data.o \
@@ -549,6 +573,8 @@ rm \
     res_dist_parser.o \
     res_type_parser.o \
     small_wonder_parser.o \
+    tech_era_parser.o \
+    tech_age_parser.o \
     tech_parser.o \
     unit_action_parser.o \
     unit_role_parser.o \
@@ -590,6 +616,10 @@ rm \
     res_type_static_data_load.o \
     small_wonder_static_data.o \
     small_wonder_static_data_load.o \
+    tech_era_static_data.o \
+    tech_era_static_data_load.o \
+    tech_age_static_data.o \
+    tech_age_static_data_load.o \
     tech_static_data.o \
     tech_static_data_load.o \
     unit_action_static_data.o \

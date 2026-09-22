@@ -31,6 +31,8 @@ g++ $INC -c ../static_state/resource_static_data.cpp -o resource_static_data.o
 g++ $INC -c ../static_state/res_dist_static_data.cpp -o res_dist_static_data.o
 g++ $INC -c ../static_state/res_type_static_data.cpp -o res_type_static_data.o
 g++ $INC -c ../static_state/small_wonder_static_data.cpp -o small_wonder_static_data.o
+g++ $INC -c ../static_state/tech_era_static_data.cpp -o tech_era_static_data.o
+g++ $INC -c ../static_state/tech_age_static_data.cpp -o tech_age_static_data.o
 g++ $INC -c ../static_state/tech_static_data.cpp -o tech_static_data.o
 g++ $INC -c ../static_state/unit_action_static_data.cpp -o unit_action_static_data.o
 g++ $INC -c ../static_state/unit_role_static_data.cpp -o unit_role_static_data.o
@@ -72,6 +74,8 @@ g++ -o map_attribute_parser_tester \
     res_dist_static_data.o \
     res_type_static_data.o \
     small_wonder_static_data.o \
+    tech_era_static_data.o \
+    tech_age_static_data.o \
     tech_static_data.o \
     unit_action_static_data.o \
     unit_role_static_data.o \
@@ -113,6 +117,8 @@ rm \
     res_dist_static_data.o \
     res_type_static_data.o \
     small_wonder_static_data.o \
+    tech_era_static_data.o \
+    tech_age_static_data.o \
     tech_static_data.o \
     unit_action_static_data.o \
     unit_role_static_data.o \

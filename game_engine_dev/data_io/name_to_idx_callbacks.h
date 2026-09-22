@@ -26,6 +26,8 @@ typedef struct NameToIdxCbs {
     u16 (*res_dist_name_to_idx)(cstr);
     u16 (*res_type_name_to_idx)(cstr);
     u16 (*small_wonder_name_to_idx)(cstr);
+    u16 (*tech_era_name_to_idx)(cstr);
+    u16 (*tech_age_name_to_idx)(cstr);
     u16 (*tech_name_to_idx)(cstr);
     u16 (*unit_name_to_idx)(cstr);
     u16 (*unit_action_name_to_idx)(cstr);

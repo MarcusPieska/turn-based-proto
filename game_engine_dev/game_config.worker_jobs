@@ -5,7 +5,7 @@ Plant Forest           :  200 : Forest       : Overlay   : Forest    : tech(Agri
 Build Fort             :  250 : Fort         : Overlay   : Strategic : tech(Construction)
 Build Mine             :  250 : Mine         : Overlay   : Resource  : tech(Mining)
 Build Plantation       :  400 : Plantation   : Overlay   : Resource  : tech(Calendar)
-Clear Jungle           :  400 : Jungle       : Overlay   : Clearing  : tech(Iron Working)
+Clear Jungle           :  400 : Jungle       : Overlay   : Clearing  : tech(Iron Smelting)
 Clear Swamp            :  500 : Swamp        : Overlay   : Clearing  : tech(Engineering)
 
 Build Dirt Path        :   50 : Dirt Path    : Attribute : Road      : tech(The Wheel)

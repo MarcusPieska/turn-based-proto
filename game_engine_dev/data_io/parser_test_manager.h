@@ -24,6 +24,8 @@
 #include "res_dist_parser_tester.h"
 #include "res_type_parser_tester.h"
 #include "small_wonder_parser_tester.h"
+#include "tech_era_parser_tester.h"
+#include "tech_age_parser_tester.h"
 #include "tech_parser_tester.h"
 #include "unit_action_parser_tester.h"
 #include "unit_role_parser_tester.h"
@@ -65,6 +67,8 @@ public:
     ResDistParserTester& res_dist () { return m_res_dist; }
     ResTypeParserTester& res_type () { return m_res_type; }
     SmallWonderParserTester& small_wonder () { return m_small_wonder; }
+    TechEraParserTester& tech_era () { return m_tech_era; }
+    TechAgeParserTester& tech_age () { return m_tech_age; }
     TechParserTester& tech () { return m_tech; }
     UnitActionParserTester& unit_action () { return m_unit_action; }
     UnitRoleParserTester& unit_role () { return m_unit_role; }
@@ -98,6 +102,8 @@ private:
     ResDistParserTester m_res_dist;
     ResTypeParserTester m_res_type;
     SmallWonderParserTester m_small_wonder;
+    TechEraParserTester m_tech_era;
+    TechAgeParserTester m_tech_age;
     TechParserTester m_tech;
     UnitActionParserTester m_unit_action;
     UnitRoleParserTester m_unit_role;

@@ -39,6 +39,8 @@ BuildingParserTester::BuildingParserTester () :
     m_res_dist_sd(NULL),
     m_res_type_sd(NULL),
     m_small_wonder_sd(NULL),
+    m_tech_era_sd(NULL),
+    m_tech_age_sd(NULL),
     m_tech_sd(NULL),
     m_unit_action_sd(NULL),
     m_unit_role_sd(NULL),
@@ -68,6 +70,8 @@ BuildingParserTester::BuildingParserTester () :
     m_res_dist_psr(NULL),
     m_res_type_psr(NULL),
     m_small_wonder_psr(NULL),
+    m_tech_era_psr(NULL),
+    m_tech_age_psr(NULL),
     m_tech_psr(NULL),
     m_unit_action_psr(NULL),
     m_unit_role_psr(NULL),
@@ -157,6 +161,18 @@ void BuildingParserTester::set_res_type_sd (const ResTypeStaticData* sd) {
 void BuildingParserTester::set_small_wonder_sd (const SmallWonderStaticData* sd) {
 
     m_small_wonder_sd = sd;
+
+}
+
+void BuildingParserTester::set_tech_era_sd (const TechEraStaticData* sd) {
+
+    m_tech_era_sd = sd;
+
+}
+
+void BuildingParserTester::set_tech_age_sd (const TechAgeStaticData* sd) {
+
+    m_tech_age_sd = sd;
 
 }
 
@@ -378,6 +394,20 @@ u16 BuildingParserTester::st_small_wonder_n2i (cstr name) {
         return U16_KEY_NULL;
     }
     return s_inst->m_small_wonder_psr->name_to_idx(name);
+}
+
+u16 BuildingParserTester::st_tech_era_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_tech_era_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_tech_era_psr->name_to_idx(name);
+}
+
+u16 BuildingParserTester::st_tech_age_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_tech_age_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_tech_age_psr->name_to_idx(name);
 }
 
 u16 BuildingParserTester::st_tech_n2i (cstr name) {
@@ -857,6 +887,8 @@ int BuildingParserTester::run () {
     cbs.res_dist_name_to_idx = st_res_dist_n2i;
     cbs.res_type_name_to_idx = st_res_type_n2i;
     cbs.small_wonder_name_to_idx = st_small_wonder_n2i;
+    cbs.tech_era_name_to_idx = st_tech_era_n2i;
+    cbs.tech_age_name_to_idx = st_tech_age_n2i;
     cbs.tech_name_to_idx = st_tech_n2i;
     cbs.unit_action_name_to_idx = st_unit_action_n2i;
     cbs.unit_role_name_to_idx = st_unit_role_n2i;
@@ -889,6 +921,8 @@ int BuildingParserTester::run () {
     StringManager res_dist_items;
     StringManager res_type_items;
     StringManager small_wonder_items;
+    StringManager tech_era_items;
+    StringManager tech_age_items;
     StringManager tech_items;
     StringManager unit_action_items;
     StringManager unit_role_items;
@@ -921,6 +955,8 @@ int BuildingParserTester::run () {
     ld_sm(res_dist_items, paths.get_path_to_res_dists());
     ld_sm(res_type_items, paths.get_path_to_res_types());
     ld_sm(small_wonder_items, paths.get_path_to_small_wonders());
+    ld_sm(tech_era_items, paths.get_path_to_tech_eras());
+    ld_sm(tech_age_items, paths.get_path_to_tech_ages());
     ld_sm(tech_items, paths.get_path_to_techs());
     ld_sm(unit_action_items, paths.get_path_to_unit_actions());
     ld_sm(unit_role_items, paths.get_path_to_unit_roles());
@@ -956,6 +992,8 @@ int BuildingParserTester::run () {
     DataParserBase res_dist_parser(res_dist_items, cbs);
     DataParserBase res_type_parser(res_type_items, cbs);
     DataParserBase small_wonder_parser(small_wonder_items, cbs);
+    DataParserBase tech_era_parser(tech_era_items, cbs);
+    DataParserBase tech_age_parser(tech_age_items, cbs);
     DataParserBase tech_parser(tech_items, cbs);
     DataParserBase unit_action_parser(unit_action_items, cbs);
     DataParserBase unit_role_parser(unit_role_items, cbs);
@@ -986,6 +1024,8 @@ int BuildingParserTester::run () {
     m_res_dist_psr = &res_dist_parser;
     m_res_type_psr = &res_type_parser;
     m_small_wonder_psr = &small_wonder_parser;
+    m_tech_era_psr = &tech_era_parser;
+    m_tech_age_psr = &tech_age_parser;
     m_tech_psr = &tech_parser;
     m_unit_action_psr = &unit_action_parser;
     m_unit_role_psr = &unit_role_parser;

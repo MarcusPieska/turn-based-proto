@@ -41,6 +41,8 @@ public:
     cstr get_path_to_res_dists () const;
     cstr get_path_to_res_types () const;
     cstr get_path_to_small_wonders () const;
+    cstr get_path_to_tech_eras () const;
+    cstr get_path_to_tech_ages () const;
     cstr get_path_to_techs () const;
     cstr get_path_to_unit_actions () const;
     cstr get_path_to_unit_roles () const;
@@ -85,6 +87,8 @@ private:
     char m_path_res_dists[PATH_MNG_PATH_N];
     char m_path_res_types[PATH_MNG_PATH_N];
     char m_path_small_wonders[PATH_MNG_PATH_N];
+    char m_path_tech_eras[PATH_MNG_PATH_N];
+    char m_path_tech_ages[PATH_MNG_PATH_N];
     char m_path_techs[PATH_MNG_PATH_N];
     char m_path_unit_actions[PATH_MNG_PATH_N];
     char m_path_unit_roles[PATH_MNG_PATH_N];

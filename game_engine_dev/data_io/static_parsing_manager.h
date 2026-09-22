@@ -30,6 +30,8 @@ class StaticBitBank;
 #include "res_dist_parser.h"
 #include "res_type_parser.h"
 #include "small_wonder_parser.h"
+#include "tech_era_parser.h"
+#include "tech_age_parser.h"
 #include "tech_parser.h"
 #include "unit_action_parser.h"
 #include "unit_role_parser.h"
@@ -60,6 +62,8 @@ class StaticBitBank;
 #include "res_dist_static_data.h"
 #include "res_type_static_data.h"
 #include "small_wonder_static_data.h"
+#include "tech_era_static_data.h"
+#include "tech_age_static_data.h"
 #include "tech_static_data.h"
 #include "unit_action_static_data.h"
 #include "unit_role_static_data.h"
@@ -136,6 +140,14 @@ public:
     const SmallWonderStaticDataStruct* get_small_wonder_data () const;
 
     u16 get_small_wonder_count () const;
+
+    const TechEraStaticDataStruct* get_tech_era_data () const;
+
+    u16 get_tech_era_count () const;
+
+    const TechAgeStaticDataStruct* get_tech_age_data () const;
+
+    u16 get_tech_age_count () const;
 
     const TechStaticDataStruct* get_tech_data () const;
 
@@ -228,6 +240,10 @@ public:
 
     const DataParserBase& get_small_wonder_name_parser () const;
 
+    const DataParserBase& get_tech_era_name_parser () const;
+
+    const DataParserBase& get_tech_age_name_parser () const;
+
     const DataParserBase& get_tech_name_parser () const;
 
     const DataParserBase& get_unit_action_name_parser () const;
@@ -300,6 +316,8 @@ private:
     StringManager m_res_dist_items;
     StringManager m_res_type_items;
     StringManager m_small_wonder_items;
+    StringManager m_tech_era_items;
+    StringManager m_tech_age_items;
     StringManager m_tech_items;
     StringManager m_unit_action_items;
     StringManager m_unit_role_items;
@@ -331,6 +349,8 @@ private:
     DataParserBase* m_res_dist_name_parser;
     DataParserBase* m_res_type_name_parser;
     DataParserBase* m_small_wonder_name_parser;
+    DataParserBase* m_tech_era_name_parser;
+    DataParserBase* m_tech_age_name_parser;
     DataParserBase* m_tech_name_parser;
     DataParserBase* m_unit_action_name_parser;
     DataParserBase* m_unit_role_name_parser;
@@ -368,6 +388,8 @@ private:
     ResDistStaticDataStruct* m_res_dist_data;
     ResTypeStaticDataStruct* m_res_type_data;
     SmallWonderStaticDataStruct* m_small_wonder_data;
+    TechEraStaticDataStruct* m_tech_era_data;
+    TechAgeStaticDataStruct* m_tech_age_data;
     TechStaticDataStruct* m_tech_data;
     UnitActionStaticDataStruct* m_unit_action_data;
     UnitRoleStaticDataStruct* m_unit_role_data;
