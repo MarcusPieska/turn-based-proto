@@ -229,8 +229,8 @@ bool GameIo::wr_bit_cl (void* fp_raw, const BitArrayCL* ba) {
     return ok;
 }
 
-bool GameIo::save_players (cstr path, const GameState& state) {
-    if (path == nullptr || state.m_player_states == nullptr || state.m_player_n == 0) {
+bool GameIo::save_players (cstr path, const PlayerState* seats, u16 player_n) {
+    if (path == nullptr || seats == nullptr || player_n == 0) {
         return false;
     }
     std::FILE* fp = std::fopen(path, "wb");
@@ -239,7 +239,6 @@ bool GameIo::save_players (cstr path, const GameState& state) {
     }
     const u32 magic = k_players_magic;
     const u32 ver = k_io_ver;
-    const u16 player_n = state.m_player_n;
     if (std::fwrite(&magic, sizeof(magic), 1, fp) != 1
         || std::fwrite(&ver, sizeof(ver), 1, fp) != 1
         || std::fwrite(&player_n, sizeof(player_n), 1, fp) != 1) {
@@ -247,7 +246,7 @@ bool GameIo::save_players (cstr path, const GameState& state) {
         return false;
     }
     for (u16 p = 0; p < player_n; ++p) {
-        const PlayerState& ps = state.m_player_states[p];
+        const PlayerState& ps = seats[p];
         if (std::fwrite(&ps.m_civ_index, sizeof(ps.m_civ_index), 1, fp) != 1
             || std::fwrite(&ps.m_research_spending_perc, sizeof(ps.m_research_spending_perc), 1, fp) != 1
             || std::fwrite(&ps.m_current_research_target_idx, sizeof(ps.m_current_research_target_idx), 1, fp) != 1
@@ -263,6 +262,326 @@ bool GameIo::save_players (cstr path, const GameState& state) {
         }
     }
     std::fclose(fp);
+    return true;
+}
+
+bool GameIo::save_players (cstr path, const GameState& state) {
+    return save_players(path, state.m_player_states, state.m_player_n);
+}
+
+//================================================================================================================================
+//=> - Load helpers -
+//================================================================================================================================
+
+void GameIo::clr_units (UnitAddVector& units) {
+    for (u16 i = 0; i < UnitAddVector::MAX_PAGES; ++i) {
+        delete[] units.m_pages[i];
+        units.m_pages[i] = nullptr;
+        delete[] units.m_exists_pages[i];
+        units.m_exists_pages[i] = nullptr;
+        delete[] units.m_recycled_pages[i];
+        units.m_recycled_pages[i] = nullptr;
+    }
+    units.m_unit_add_count = 0;
+    units.m_head_unit_add_idx = 0;
+    units.m_page_count = 0;
+    units.m_recycled_unit_add_count = 0;
+    units.m_recycled_page_count = 0;
+}
+
+void GameIo::clr_cities (CityArray& cities) {
+    for (u16 i = 0; i < CityArray::MAX_PAGES; ++i) {
+        delete[] cities.m_pages[i];
+        cities.m_pages[i] = nullptr;
+    }
+    cities.m_city_count = 0;
+    cities.m_page_count = 0;
+    cities.clear_banks();
+}
+
+bool GameIo::rd_bit_bank (void* fp_raw, GeneralBitBank** out) {
+    std::FILE* fp = static_cast<std::FILE*>(fp_raw);
+    if (fp == nullptr || out == nullptr) {
+        return false;
+    }
+    u16 batch_size = 0;
+    u16 claimed = 0;
+    u8 page_n = 0;
+    if (std::fread(&batch_size, sizeof(batch_size), 1, fp) != 1
+        || std::fread(&claimed, sizeof(claimed), 1, fp) != 1
+        || std::fread(&page_n, sizeof(page_n), 1, fp) != 1) {
+        return false;
+    }
+    delete *out;
+    *out = nullptr;
+    if (batch_size == 0 && claimed == 0 && page_n == 0) {
+        return true;
+    }
+    if (batch_size == 0) {
+        return false;
+    }
+    GeneralBitBank* bank = new GeneralBitBank(batch_size);
+    bank->m_claimed_batch_count = claimed;
+    bank->m_allocated_page_count = 0;
+    const u32 page_bytes = bank_page_byte_n(batch_size);
+    for (u8 p = 0; p < page_n; ++p) {
+        bank->m_pages[p] = new u8[page_bytes];
+        if (std::fread(bank->m_pages[p], 1, page_bytes, fp) != page_bytes) {
+            delete bank;
+            return false;
+        }
+        bank->m_allocated_page_count = static_cast<u8>(bank->m_allocated_page_count + 1u);
+    }
+    *out = bank;
+    return true;
+}
+
+bool GameIo::rd_bit_cl (void* fp_raw, BitArrayCL** out) {
+    std::FILE* fp = static_cast<std::FILE*>(fp_raw);
+    if (fp == nullptr || out == nullptr) {
+        return false;
+    }
+    delete *out;
+    *out = nullptr;
+    u32 n = 0;
+    if (std::fread(&n, sizeof(n), 1, fp) != 1) {
+        return false;
+    }
+    if (n == 0) {
+        return true;
+    }
+    const u32 byte_n = (n + static_cast<u32>(k_bits_per_byte - 1u)) / static_cast<u32>(k_bits_per_byte);
+    u8* buf = new u8[byte_n];
+    if (std::fread(buf, 1, byte_n, fp) != byte_n) {
+        delete[] buf;
+        return false;
+    }
+    BitArrayCL* ba = new BitArrayCL(n);
+    for (u32 i = 0; i < n; ++i) {
+        const u8 bit = static_cast<u8>((buf[i / static_cast<u32>(k_bits_per_byte)]
+            >> (i % static_cast<u32>(k_bits_per_byte))) & 1u);
+        if (bit != 0) {
+            ba->set_bit(i);
+        }
+    }
+    delete[] buf;
+    *out = ba;
+    return true;
+}
+
+//================================================================================================================================
+//=> - Load -
+//================================================================================================================================
+
+bool GameIo::load_map_tiles (cstr path, GameArraySimple& map) {
+    if (path == nullptr) {
+        return false;
+    }
+    std::FILE* fp = std::fopen(path, "rb");
+    if (fp == nullptr) {
+        return false;
+    }
+    u32 magic = 0;
+    u32 ver = 0;
+    u16 w = 0;
+    u16 h = 0;
+    if (std::fread(&magic, sizeof(magic), 1, fp) != 1
+        || std::fread(&ver, sizeof(ver), 1, fp) != 1
+        || std::fread(&w, sizeof(w), 1, fp) != 1
+        || std::fread(&h, sizeof(h), 1, fp) != 1
+        || magic != k_tiles_magic
+        || ver < k_io_ver
+        || w == 0
+        || h == 0) {
+        std::fclose(fp);
+        return false;
+    }
+    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
+    map.clear();
+    map.m_w = w;
+    map.m_h = h;
+    map.m_tiles = new GameTileSimple[n];
+    if (std::fread(map.m_tiles, sizeof(GameTileSimple), n, fp) != n) {
+        map.clear();
+        std::fclose(fp);
+        return false;
+    }
+    std::fclose(fp);
+    return true;
+}
+
+bool GameIo::load_units (cstr path, UnitAddVector& units) {
+    if (path == nullptr) {
+        return false;
+    }
+    std::FILE* fp = std::fopen(path, "rb");
+    if (fp == nullptr) {
+        return false;
+    }
+    u32 magic = 0;
+    u32 ver = 0;
+    u32 live_n = 0;
+    if (std::fread(&magic, sizeof(magic), 1, fp) != 1
+        || std::fread(&ver, sizeof(ver), 1, fp) != 1
+        || std::fread(&live_n, sizeof(live_n), 1, fp) != 1
+        || magic != k_units_magic
+        || ver < k_io_ver) {
+        std::fclose(fp);
+        return false;
+    }
+    clr_units(units);
+    u16 max_key = 0;
+    for (u32 i = 0; i < live_n; ++i) {
+        u16 key = 0;
+        UnitAddStruct rec = {};
+        if (std::fread(&key, sizeof(key), 1, fp) != 1
+            || std::fread(&rec, sizeof(rec), 1, fp) != 1) {
+            clr_units(units);
+            std::fclose(fp);
+            return false;
+        }
+        const u16 page = static_cast<u16>(key >> 8);
+        const u16 slot = static_cast<u16>(key & 0xFFu);
+        if (page >= UnitAddVector::MAX_PAGES) {
+            clr_units(units);
+            std::fclose(fp);
+            return false;
+        }
+        if (units.m_pages[page] == nullptr) {
+            units.m_pages[page] = new UnitAddStruct[UnitAddVector::UNIT_ADD_ITEMS_PER_PAGE]();
+            units.m_exists_pages[page] = new u8[UnitAddVector::UNIT_ADD_ITEMS_PER_PAGE]();
+            units.m_page_count = static_cast<u16>(units.m_page_count + 1u);
+        }
+        units.m_pages[page][slot] = rec;
+        units.m_exists_pages[page][slot] = 1;
+        units.m_unit_add_count = static_cast<u16>(units.m_unit_add_count + 1u);
+        if (key >= max_key) {
+            max_key = static_cast<u16>(key + 1u);
+        }
+    }
+    units.m_head_unit_add_idx = max_key;
+    std::fclose(fp);
+    return true;
+}
+
+bool GameIo::load_cities (cstr path, CityArray& cities) {
+    if (path == nullptr) {
+        return false;
+    }
+    std::FILE* fp = std::fopen(path, "rb");
+    if (fp == nullptr) {
+        return false;
+    }
+    u32 magic = 0;
+    u32 ver = 0;
+    u16 cn = 0;
+    if (std::fread(&magic, sizeof(magic), 1, fp) != 1
+        || std::fread(&ver, sizeof(ver), 1, fp) != 1
+        || std::fread(&cn, sizeof(cn), 1, fp) != 1
+        || magic != k_cities_magic
+        || ver < k_io_ver) {
+        std::fclose(fp);
+        return false;
+    }
+    clr_cities(cities);
+    for (u16 i = 0; i < cn; ++i) {
+        CityDumpRec rec = {};
+        if (std::fread(&rec, sizeof(rec), 1, fp) != 1 || rec.m_idx != i) {
+            clr_cities(cities);
+            std::fclose(fp);
+            return false;
+        }
+        const u16 page = static_cast<u16>(i >> 8);
+        const u16 slot = static_cast<u16>(i & 0xFFu);
+        if (cities.m_pages[page] == nullptr) {
+            cities.m_pages[page] = new City[CityArray::CITIES_PER_PAGE];
+            cities.m_page_count = static_cast<u16>(cities.m_page_count + 1u);
+        }
+        City& city = cities.m_pages[page][slot];
+        if (rec.m_owner != U16_KEY_NULL) {
+            city.init(rec.m_owner, rec.m_x, rec.m_y);
+            city.set_population(rec.m_pop);
+            city.set_culture(rec.m_culture);
+            city.m_accumulated_food = static_cast<i8>(rec.m_food);
+            city.m_accumulated_production = rec.m_prod;
+        }
+        cities.m_city_count = static_cast<u16>(cities.m_city_count + 1u);
+    }
+    if (!rd_bit_bank(fp, &cities.m_flag_bank)
+        || !rd_bit_bank(fp, &cities.m_res_bank)
+        || !rd_bit_bank(fp, &cities.m_bld_bank)) {
+        clr_cities(cities);
+        std::fclose(fp);
+        return false;
+    }
+    City::bind_banks(cities.m_flag_bank, cities.m_res_bank, cities.m_bld_bank);
+    std::fclose(fp);
+    return true;
+}
+
+bool GameIo::load_players (cstr path, PlayerState*& seats, u16& player_n) {
+    if (path == nullptr) {
+        return false;
+    }
+    std::FILE* fp = std::fopen(path, "rb");
+    if (fp == nullptr) {
+        return false;
+    }
+    u32 magic = 0;
+    u32 ver = 0;
+    u16 n = 0;
+    if (std::fread(&magic, sizeof(magic), 1, fp) != 1
+        || std::fread(&ver, sizeof(ver), 1, fp) != 1
+        || std::fread(&n, sizeof(n), 1, fp) != 1
+        || magic != k_players_magic
+        || ver < k_io_ver
+        || n == 0) {
+        std::fclose(fp);
+        return false;
+    }
+    if (seats != nullptr) {
+        for (u16 i = 0; i < player_n; ++i) {
+            delete seats[i].m_techs_researched;
+            seats[i].m_techs_researched = nullptr;
+        }
+        delete[] seats;
+        seats = nullptr;
+        player_n = 0;
+    }
+    seats = new PlayerState[n];
+    player_n = n;
+    for (u16 p = 0; p < n; ++p) {
+        PlayerState& ps = seats[p];
+        if (std::fread(&ps.m_civ_index, sizeof(ps.m_civ_index), 1, fp) != 1
+            || std::fread(&ps.m_research_spending_perc, sizeof(ps.m_research_spending_perc), 1, fp) != 1
+            || std::fread(&ps.m_current_research_target_idx, sizeof(ps.m_current_research_target_idx), 1, fp) != 1
+            || std::fread(&ps.m_commerce, sizeof(ps.m_commerce), 1, fp) != 1
+            || std::fread(&ps.m_research, sizeof(ps.m_research), 1, fp) != 1
+            || std::fread(&ps.m_commerce_from_turn, sizeof(ps.m_commerce_from_turn), 1, fp) != 1
+            || !rd_bit_cl(fp, &ps.m_techs_researched)) {
+            for (u16 j = 0; j <= p; ++j) {
+                delete seats[j].m_techs_researched;
+                seats[j].m_techs_researched = nullptr;
+            }
+            delete[] seats;
+            seats = nullptr;
+            player_n = 0;
+            std::fclose(fp);
+            return false;
+        }
+    }
+    std::fclose(fp);
+    return true;
+}
+
+bool GameIo::load_players (cstr path, GameState& state) {
+    PlayerState* seats = state.m_player_states;
+    u16 n = state.m_player_n;
+    if (!load_players(path, seats, n)) {
+        return false;
+    }
+    state.m_player_states = seats;
+    state.m_player_n = n;
     return true;
 }
 

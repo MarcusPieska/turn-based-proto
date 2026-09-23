@@ -1,0 +1,64 @@
+#!/bin/bash
+set -e
+cd "$(dirname "$0")"
+ROOT="../.."
+LIB_SO="$ROOT/data_io/runtime_static_loader_lib.so"
+LOG_SO="$ROOT/log_dbg/log_dbg.so"
+if [ ! -f "$LIB_SO" ]; then
+    echo "missing $LIB_SO - run ../../data_io/runtime_static_loader_lib_comp first"
+    exit 1
+fi
+if [ ! -f "$LOG_SO" ]; then
+    echo "missing $LOG_SO - run ../../log_dbg/log_dbg_comp first"
+    exit 1
+fi
+
+INC="-I.. \
+     -I$ROOT \
+     -I$ROOT/game \
+     -I$ROOT/misc \
+     -I$ROOT/data_io \
+     -I$ROOT/static_state \
+     -I$ROOT/city \
+     -I$ROOT/city/assessor \
+     -I$ROOT/city/effector \
+     -I$ROOT/dyn_state \
+     -I$ROOT/gen_bit_banks \
+     -I$ROOT/ai_pathing/walk_general \
+     -I$ROOT/ai_pathing/walk_cities \
+     -I$ROOT/ai_proc \
+     -I$ROOT/map_loader \
+     -I$ROOT/simple_map_gen \
+     -I$ROOT/log_dbg"
+CXXFLAGS="-std=c++17 -Wall -Wextra"
+
+# shellcheck source=eval_save_link.inc
+source ./eval_save_link.inc
+compile_eval_save_deps
+
+g++ $CXXFLAGS $INC -c ../eval_paths.cpp -o eval_paths.o
+g++ $CXXFLAGS $INC -c ../eval_need.cpp -o eval_need.o
+g++ $CXXFLAGS $INC -c ../eval_bin_light.cpp -o eval_bin_light.o
+g++ $CXXFLAGS $INC -c ../eval_log.cpp -o eval_log.o
+g++ $CXXFLAGS $INC -c ../eval_driver.cpp -o eval_driver.o
+g++ $CXXFLAGS $INC -c ../player_unit_save_timeline.cpp -o player_unit_save_timeline.o
+g++ $CXXFLAGS $INC -c ../player_unit_save_timeline_mng.cpp -o player_unit_save_timeline_mng.o
+g++ $CXXFLAGS $INC -c player_unit_save_timeline_tester.cpp -o player_unit_save_timeline_tester.o
+
+g++ $CXXFLAGS -o player_unit_save_timeline_tester \
+    $EVAL_SAVE_DEP_OBJS \
+    eval_paths.o eval_need.o eval_bin_light.o eval_log.o eval_driver.o \
+    player_unit_save_timeline.o player_unit_save_timeline_mng.o player_unit_save_timeline_tester.o \
+    -ldl \
+    $LIB_SO \
+    $LOG_SO \
+    -Wl,-rpath,'$ORIGIN/../../data_io' \
+    -Wl,-rpath,'$ORIGIN/../../log_dbg' \
+    -Wl,--allow-shlib-undefined
+
+echo "--- running player_unit_save_timeline_tester ---"
+./player_unit_save_timeline_tester
+
+rm_eval_save_deps
+rm -f eval_paths.o eval_need.o eval_bin_light.o eval_log.o eval_driver.o \
+    player_unit_save_timeline.o player_unit_save_timeline_mng.o player_unit_save_timeline_tester.o

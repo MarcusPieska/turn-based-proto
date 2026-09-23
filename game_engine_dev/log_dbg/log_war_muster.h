@@ -15,26 +15,17 @@
 #include "game_primitives.h"
 #include "log_dbg_toggles.h"
 
-
+ 
 
 //================================================================================================================================
 //=> - LOG_WAR_MUSTER -
 //================================================================================================================================
 
+class LOG_WAR_MUSTER {
+public:
 #if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_MUSTER))
-
-class LOG_WAR_MUSTER {
-public:
     static void LOG (unsigned seat, unsigned enemy, unsigned sx, unsigned sy, unsigned n, unsigned turn);
-
-private:
-    LOG_WAR_MUSTER () = delete;
-};
-
 #else
-
-class LOG_WAR_MUSTER {
-public:
     static void LOG (unsigned seat, unsigned enemy, unsigned sx, unsigned sy, unsigned n, unsigned turn) {
         (void)seat;
         (void)enemy;
@@ -43,12 +34,12 @@ public:
         (void)n;
         (void)turn;
     }
+#endif
+    static bool PARSE (const char* line, unsigned* seat, unsigned* enemy, unsigned* sx, unsigned* sy, unsigned* n, unsigned* turn);
 
 private:
     LOG_WAR_MUSTER () = delete;
 };
-
-#endif
 
 #endif // LOG_WAR_MUSTER_H
 

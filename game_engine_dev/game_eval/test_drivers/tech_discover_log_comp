@@ -1,0 +1,25 @@
+#!/bin/bash
+set -e
+cd "$(dirname "$0")"
+ROOT="../.."
+LOG_SO="$ROOT/log_dbg/log_dbg.so"
+if [ ! -f "$LOG_SO" ]; then
+    echo "missing $LOG_SO - run ../../log_dbg/log_dbg_comp first"
+    exit 1
+fi
+INC="-I.. -I$ROOT -I$ROOT/misc -I$ROOT/log_dbg"
+CXXFLAGS="-std=c++17 -Wall -Wextra"
+g++ $CXXFLAGS $INC -c ../eval_paths.cpp -o eval_paths.o
+g++ $CXXFLAGS $INC -c ../eval_need.cpp -o eval_need.o
+g++ $CXXFLAGS $INC -c ../eval_bin_light.cpp -o eval_bin_light.o
+g++ $CXXFLAGS $INC -c ../eval_log.cpp -o eval_log.o
+g++ $CXXFLAGS $INC -c ../eval_driver.cpp -o eval_driver.o
+g++ $CXXFLAGS $INC -c tech_discover_log_tester.cpp -o tech_discover_log_tester.o
+g++ $CXXFLAGS -o tech_discover_log_tester \
+    eval_paths.o eval_need.o eval_bin_light.o eval_log.o eval_driver.o tech_discover_log_tester.o \
+    $LOG_SO \
+    -Wl,-rpath,'$ORIGIN/../../log_dbg' \
+    -Wl,--allow-shlib-undefined
+echo "--- running tech_discover_log_tester ---"
+./tech_discover_log_tester
+rm -f eval_paths.o eval_need.o eval_bin_light.o eval_log.o eval_driver.o tech_discover_log_tester.o

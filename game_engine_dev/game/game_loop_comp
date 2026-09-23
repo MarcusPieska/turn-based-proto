@@ -160,6 +160,7 @@ g++ $CXXFLAGS $INC -c ../city/effector/city_sanitation_booster_register.cpp -o c
 g++ $CXXFLAGS $INC -c ../city/effector/civ_sanitation_booster_register.cpp -o civ_sanitation_booster_register.o
 g++ $CXXFLAGS $INC -c ../ai_proc/settler_turn_handler.cpp -o settler_turn_handler.o
 g++ $CXXFLAGS $INC -c ../ai_proc/worker_turn_handler.cpp -o worker_turn_handler.o
+g++ $CXXFLAGS $INC -c ../ai_proc/worker_turn_handler_mk2.cpp -o worker_turn_handler_mk2.o
 g++ $CXXFLAGS $INC -c ../ai_proc/worker_pathing.cpp -o worker_pathing.o
 g++ $CXXFLAGS $INC -c ../ai_proc/defensive_unit_turn_handler.cpp -o defensive_unit_turn_handler.o
 g++ $CXXFLAGS $INC -c ../ai_proc/linear_tech.cpp -o linear_tech.o
@@ -297,7 +298,7 @@ g++ $CXXFLAGS -o game_loop_tester \
     tile_imp_helper.o \
     worker_build_progress.o \
     settler_turn_handler.o \
-    worker_turn_handler.o \
+    worker_turn_handler.o worker_turn_handler_mk2.o \
     worker_pathing.o \
     defensive_unit_turn_handler.o \
     linear_tech.o \
@@ -367,7 +368,7 @@ rm -f runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_load
     city_turn_handler_industrious.o city_turn_handler_commercial.o city_turn_handler_agricultural.o \
     city_turn_handler_expansionist.o city_turn_handler_religious.o city_turn_handler_militaristic.o \
     city_turn_handler_scientific.o research_turn_handler.o sense_settling_pts_opt.o settler_turn_handler.o \
-    worker_turn_handler.o defensive_unit_turn_handler.o linear_tech.o linear_bld.o \
+    worker_turn_handler.o worker_turn_handler_mk2.o defensive_unit_turn_handler.o linear_tech.o linear_bld.o \
     ai_unit_production_default.o ai_unit_production_aggressive.o \
     job_target_preference_only.o job_target_commerce_then_preference.o job_target_manager.o \
     ledger_balance_turn_handler.o \

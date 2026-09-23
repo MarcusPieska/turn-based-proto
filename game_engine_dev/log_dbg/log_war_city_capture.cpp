@@ -15,12 +15,34 @@
 
 #include "trace_sink.h"
 
+#include <cstdio>
+
 //================================================================================================================================
 //=> - LOG_WAR_CITY_CAPTURE -
 //================================================================================================================================
 
 void LOG_WAR_CITY_CAPTURE::LOG (unsigned seat, unsigned from, unsigned x, unsigned y, unsigned turn) {
     TraceSink::printf("war city capture seat=%u from=%u city=(%u,%u) turn=%u\n", seat, from, x, y, turn);
+}
+
+bool LOG_WAR_CITY_CAPTURE::PARSE (const char* line, unsigned* seat, unsigned* from, unsigned* x, unsigned* y, unsigned* turn) {
+    if (line == nullptr || seat == nullptr || from == nullptr || x == nullptr || y == nullptr || turn == nullptr) {
+        return false;
+    }
+    unsigned t0 = 0;
+    unsigned t1 = 0;
+    unsigned t2 = 0;
+    unsigned t3 = 0;
+    unsigned t4 = 0;
+    if (std::sscanf(line, "war city capture seat=%u from=%u city=(%u,%u) turn=%u", &t0, &t1, &t2, &t3, &t4) != 5) {
+        return false;
+    }
+    *seat = t0;
+    *from = t1;
+    *x = t2;
+    *y = t3;
+    *turn = t4;
+    return true;
 }
 
 //================================================================================================================================

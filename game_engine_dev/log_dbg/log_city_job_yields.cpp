@@ -15,12 +15,38 @@
 
 #include "trace_sink.h"
 
+#include <cstdio>
+
 //================================================================================================================================
 //=> - LOG_CITY_JOB_YIELDS -
 //================================================================================================================================
 
 void LOG_CITY_JOB_YIELDS::LOG (u16 n, i32 food, i32 production, i32 commerce, i32 culture, i32 science, i32 religion) {
     TraceSink::printf("city job yields n=%u food=%d production=%d commerce=%d culture=%d science=%d religion=%d\n", n, food, production, commerce, culture, science, religion);
+}
+
+bool LOG_CITY_JOB_YIELDS::PARSE (const char* line, u16* n, i32* food, i32* production, i32* commerce, i32* culture, i32* science, i32* religion) {
+    if (line == nullptr || n == nullptr || food == nullptr || production == nullptr || commerce == nullptr || culture == nullptr || science == nullptr || religion == nullptr) {
+        return false;
+    }
+    unsigned t0 = 0;
+    int t1 = 0;
+    int t2 = 0;
+    int t3 = 0;
+    int t4 = 0;
+    int t5 = 0;
+    int t6 = 0;
+    if (std::sscanf(line, "city job yields n=%u food=%d production=%d commerce=%d culture=%d science=%d religion=%d", &t0, &t1, &t2, &t3, &t4, &t5, &t6) != 7) {
+        return false;
+    }
+    *n = static_cast<u16>(t0);
+    *food = static_cast<i32>(t1);
+    *production = static_cast<i32>(t2);
+    *commerce = static_cast<i32>(t3);
+    *culture = static_cast<i32>(t4);
+    *science = static_cast<i32>(t5);
+    *religion = static_cast<i32>(t6);
+    return true;
 }
 
 //================================================================================================================================

@@ -340,7 +340,7 @@ static bool write_result_file (
     double loop_ms,
     double loop_ms_turn,
     u32 fort_ov,
-    u32 pass_roads)
+    u32 roads_built)
 {
     const auto now = std::chrono::system_clock::now();
     const std::time_t tt = std::chrono::system_clock::to_time_t(now);
@@ -407,7 +407,7 @@ static bool write_result_file (
         }
     }
     std::fprintf(fp, "build.fort_ov=%u\n", (unsigned)fort_ov);
-    std::fprintf(fp, "build.pass_roads=%u\n", (unsigned)pass_roads);
+    std::fprintf(fp, "build.roads_built=%u\n", (unsigned)roads_built);
     std::fclose(fp);
     std::printf(" result file: %s\n", path);
     return true;
@@ -652,6 +652,8 @@ static void after_city_turns (GameState& state) {
         ps.m_last_turn_settler_build_n = ps.m_this_turn_settler_build_n;
         ps.m_this_turn_settler_build_n = 0;
         ps.m_last_turn_settler_count = 0;
+        ps.m_last_turn_worker_build_n = ps.m_this_turn_worker_build_n;
+        ps.m_this_turn_worker_build_n = 0;
         ps.m_last_turn_worker_count = 0;
         ps.m_defensive_unit_count = 0;
     }
@@ -1371,6 +1373,7 @@ int main (int argc, char** argv) {
 
     const u32 pass0 = count_ai_intent(state, AI_TILE_OV_INTENT_MTN_PASS);
     const u32 fort0 = count_ai_intent(state, AI_TILE_OV_INTENT_FORT);
+    const u32 roads0 = count_roads(state);
 
     GameLoop loop;
     LOG_CITY_SETUP((G_CITY_LOG));
@@ -1506,15 +1509,16 @@ int main (int argc, char** argv) {
     const u16 workers1 = count_workers(state);
     const u32 irrs = count_imp_on_map(state, static_cast<u16>(WorkerJobImp::Irrigation));
     const u32 fort_jobs = job_tot_n(static_cast<u16>(WorkerJob::Build_Fort), U16_KEY_NULL);
-    const u32 dirt_jobs = job_tot_n(static_cast<u16>(WorkerJob::Build_Dirt_Path), U16_KEY_NULL);
     const u32 pass_roads = count_roads_on_intent(state, AI_TILE_OV_INTENT_MTN_PASS);
+    const u32 roads1 = count_roads(state);
+    const u32 roads_built = (roads1 > roads0) ? (roads1 - roads0) : 0u;
     const u32 fort_built = count_fort_ov_on_intent(state);
     const bool a_turns = state.m_current_turn == turn_cap;
     const bool a_jobs = g_job_apps > 0;
     const bool a_irr = irrs > 0;
     const bool a_tech = !g_gradual_tech || g_tech_cur >= tech.get_count();
     const bool a_stamp = pass0 > 0u && fort0 > 0u;
-    const bool a_pass = pass0 == 0u || dirt_jobs > 0u || pass_roads > 0u;
+    const bool a_pass = pass0 == 0u || pass_roads > 0u || roads_built > 0u;
     const bool a_fort = fort0 == 0u || fort_jobs > 0u || fort_built > 0u;
     const bool ok = a_turns && a_jobs && a_irr && a_tech && a_stamp && a_pass && a_fort;
     const double loop_ms = static_cast<double>(
@@ -1539,8 +1543,8 @@ int main (int argc, char** argv) {
     }
     {
         char msg[128];
-        std::snprintf(msg, sizeof(msg), "mtn pass work (dirt_jobs=%u roads_on_pass=%u)",
-            (unsigned)dirt_jobs, (unsigned)pass_roads);
+        std::snprintf(msg, sizeof(msg), "mtn pass / road tiles (pass_roads=%u roads_built=%u)",
+            (unsigned)pass_roads, (unsigned)roads_built);
         note_assert(a_pass, msg);
     }
     {
@@ -1555,8 +1559,8 @@ int main (int argc, char** argv) {
     std::printf(" imps: jobs_applied=%u  tile_skip_violations=%u  tech_unlocked=%u/%u\n",
         (unsigned)g_job_apps, (unsigned)g_tile_skip_viol,
         (unsigned)g_tech_cur, (unsigned)tech.get_count());
-    std::printf(" ai markers: mtn=%u fort=%u  dirt_jobs=%u pass_roads=%u fort_jobs=%u fort_ov=%u\n",
-        (unsigned)pass0, (unsigned)fort0, (unsigned)dirt_jobs, (unsigned)pass_roads,
+    std::printf(" ai markers: mtn=%u fort=%u  pass_roads=%u roads_built=%u fort_jobs=%u fort_ov=%u\n",
+        (unsigned)pass0, (unsigned)fort0, (unsigned)pass_roads, (unsigned)roads_built,
         (unsigned)fort_jobs, (unsigned)fort_built);
     print_imps_on_map(state);
     std::printf(" loop wall: %.3f ms total  %.3f ms/turn (includes tester spawn + ppm)\n", loop_ms, avg_ms);
@@ -1568,7 +1572,7 @@ int main (int argc, char** argv) {
     std::printf(" hot-path timings:\n");
     tm_report_all();
     print_job_tots();
-    if (!write_result_file(state.m_current_turn, loop_ms, avg_ms, fort_built, pass_roads)) {
+    if (!write_result_file(state.m_current_turn, loop_ms, avg_ms, fort_built, roads_built)) {
         std::printf(" result file write failed\n");
     }
     std::printf("=======================================================\n");

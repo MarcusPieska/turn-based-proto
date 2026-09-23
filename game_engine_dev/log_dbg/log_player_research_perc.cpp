@@ -15,12 +15,28 @@
 
 #include "trace_sink.h"
 
+#include <cstdio>
+
 //================================================================================================================================
 //=> - LOG_PLAYER_RESEARCH_PERC -
 //================================================================================================================================
 
 void LOG_PLAYER_RESEARCH_PERC::LOG (u16 player, u16 perc) {
     TraceSink::printf("player=%u research_perc=%u\n", player, perc);
+}
+
+bool LOG_PLAYER_RESEARCH_PERC::PARSE (const char* line, u16* player, u16* perc) {
+    if (line == nullptr || player == nullptr || perc == nullptr) {
+        return false;
+    }
+    unsigned t0 = 0;
+    unsigned t1 = 0;
+    if (std::sscanf(line, "player=%u research_perc=%u", &t0, &t1) != 2) {
+        return false;
+    }
+    *player = static_cast<u16>(t0);
+    *perc = static_cast<u16>(t1);
+    return true;
 }
 
 //================================================================================================================================

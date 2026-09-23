@@ -15,26 +15,17 @@
 #include "game_primitives.h"
 #include "log_dbg_toggles.h"
 
-
+ 
 
 //================================================================================================================================
 //=> - LOG_CITY_JOB_YIELDS -
 //================================================================================================================================
 
+class LOG_CITY_JOB_YIELDS {
+public:
 #if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_CITY_JOB_YIELDS))
-
-class LOG_CITY_JOB_YIELDS {
-public:
     static void LOG (u16 n, i32 food, i32 production, i32 commerce, i32 culture, i32 science, i32 religion);
-
-private:
-    LOG_CITY_JOB_YIELDS () = delete;
-};
-
 #else
-
-class LOG_CITY_JOB_YIELDS {
-public:
     static void LOG (u16 n, i32 food, i32 production, i32 commerce, i32 culture, i32 science, i32 religion) {
         (void)n;
         (void)food;
@@ -44,12 +35,12 @@ public:
         (void)science;
         (void)religion;
     }
+#endif
+    static bool PARSE (const char* line, u16* n, i32* food, i32* production, i32* commerce, i32* culture, i32* science, i32* religion);
 
 private:
     LOG_CITY_JOB_YIELDS () = delete;
 };
-
-#endif
 
 #endif // LOG_CITY_JOB_YIELDS_H
 

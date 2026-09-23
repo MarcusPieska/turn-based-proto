@@ -12,6 +12,7 @@ class City;
 class CityArray;
 class GeneralAssessor;
 class GameIo;
+class GameIoCmp;
 
 //================================================================================================================================
 //=> - GeneralBitBank class -
@@ -31,6 +32,7 @@ private:
     friend class CityArray;
     friend class GeneralAssessor;
     friend class GameIo;
+    friend class GameIoCmp;
 
     GeneralBitBank (const GeneralBitBank& other) = delete;
     GeneralBitBank (GeneralBitBank&& other) = delete;

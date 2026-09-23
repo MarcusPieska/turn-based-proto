@@ -24,8 +24,12 @@ public:
     CityTurnHandler_Core () = delete;
 
     static u16 find_settler_typ (const GameState& state, const BitArrayCL* units);
+    static u16 find_worker_typ (const GameState& state, const BitArrayCL* units);
     static u16 own_land_sup_on_tile (GameState& state, u16 player, u16 x, u16 y);
+    static bool need_worker (const GameState& state, u16 player);
+    static bool try_pick_worker (GameState& state, u16 city_idx, City* city);
     static bool try_pick_land_unit (GameState& state, u16 city_idx, City* city);
+    static void try_assess_imps (GameState& state, u16 city_idx, City* city);
 };
 
 #endif // CITY_TURN_HANDLER_CORE_H

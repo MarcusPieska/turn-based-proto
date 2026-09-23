@@ -15,37 +15,28 @@
 #include "game_primitives.h"
 #include "log_dbg_toggles.h"
 
-
+ 
 
 //================================================================================================================================
 //=> - LOG_CITY_FOUNDATION -
 //================================================================================================================================
 
+class LOG_CITY_FOUNDATION {
+public:
 #if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_CITY_FOUNDATION))
-
-class LOG_CITY_FOUNDATION {
-public:
     static void LOG (u16 x, u16 y, u16 player);
-
-private:
-    LOG_CITY_FOUNDATION () = delete;
-};
-
 #else
-
-class LOG_CITY_FOUNDATION {
-public:
     static void LOG (u16 x, u16 y, u16 player) {
         (void)x;
         (void)y;
         (void)player;
     }
+#endif
+    static bool PARSE (const char* line, u16* x, u16* y, u16* player);
 
 private:
     LOG_CITY_FOUNDATION () = delete;
 };
-
-#endif
 
 #endif // LOG_CITY_FOUNDATION_H
 

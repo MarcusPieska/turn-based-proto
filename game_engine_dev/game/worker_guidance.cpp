@@ -119,10 +119,16 @@ static bool fort_next_work (const RuntimeStatics* st, GameArraySimple& map, u16 
     if (map.get_ai_ov_intent(x, y) != AI_TILE_OV_INTENT_FORT) {
         return false;
     }
-    if (map.get_overlay(x, y) == static_cast<u16>(MapOverlay::Fort)) {
-        return false;
-    }
     const u16 fj = static_cast<u16>(WorkerJob::Build_Fort);
+    if (map.get_overlay(x, y) == static_cast<u16>(MapOverlay::Fort)) {
+        const u16 pick = WorkerImpSelect::pick(x, y, fj);
+        if (pick == U16_KEY_NULL) {
+            return false;
+        }
+        *job = fj;
+        *imp = pick;
+        return true;
+    }
     if (!job_ok(fj, x, y)) {
         return false;
     }
@@ -135,6 +141,43 @@ static bool fort_has_work (const RuntimeStatics* st, GameArraySimple& map, u16 x
     u16 job = U16_KEY_NULL;
     u16 imp = U16_KEY_NULL;
     return fort_next_work(st, map, x, y, &job, &imp);
+}
+
+static bool dirt_needed (GameArraySimple& map, u16 x, u16 y) {
+    if (road_is_built(map.get_road_typ(x, y))) {
+        return false;
+    }
+    if (road_is_virtual(map.get_road_typ(x, y))) {
+        return true;
+    }
+    const u8 iv = map.get_ai_ov_intent(x, y);
+    if (iv == AI_TILE_OV_INTENT_MTN_PASS) {
+        return true;
+    }
+    if (iv != AI_TILE_OV_INTENT_FORT) {
+        return false;
+    }
+    const u8 terr = map.get_terrain(x, y);
+    return terr == TERR_MOUNTAINS[0] || terr == TERR_VOLCANO[0];
+}
+
+static bool dirt_next_work (GameArraySimple& map, u16 x, u16 y, u16* job, u16* imp) {
+    if (!dirt_needed(map, x, y)) {
+        return false;
+    }
+    const u16 dj = static_cast<u16>(WorkerJob::Build_Dirt_Path);
+    if (!job_ok(dj, x, y)) {
+        return false;
+    }
+    *job = dj;
+    *imp = U16_KEY_NULL;
+    return true;
+}
+
+static bool dirt_has_work (GameArraySimple& map, u16 x, u16 y) {
+    u16 job = U16_KEY_NULL;
+    u16 imp = U16_KEY_NULL;
+    return dirt_next_work(map, x, y, &job, &imp);
 }
 
 static bool res_has_work (const RuntimeStatics* st, GameArraySimple& map, u16 x, u16 y) {
@@ -327,6 +370,9 @@ u8 WorkerGuidance::usage_for_intent (u16 x, u16 y, TileAssignIntent intent) {
 
 bool WorkerGuidance::has_pending_work (u16 x, u16 y, TileAssignIntent intent) {
     GAME_EXPECT(m_map != nullptr, "WorkerGuidance map");
+    if (dirt_has_work(*m_map, x, y)) {
+        return true;
+    }
     if (res_has_work(m_st, *m_map, x, y)) {
         return true;
     }
@@ -345,6 +391,9 @@ bool WorkerGuidance::next_work (u16 x, u16 y, TileAssignIntent intent, u16* job,
     GAME_EXPECT(job != nullptr && imp != nullptr, "WorkerGuidance next_work out");
     *job = U16_KEY_NULL;
     *imp = U16_KEY_NULL;
+    if (dirt_next_work(*m_map, x, y, job, imp)) {
+        return true;
+    }
     if (res_next_work(m_st, *m_map, x, y, job, imp)) {
         return true;
     }

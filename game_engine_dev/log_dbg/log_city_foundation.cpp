@@ -15,12 +15,30 @@
 
 #include "trace_sink.h"
 
+#include <cstdio>
+
 //================================================================================================================================
 //=> - LOG_CITY_FOUNDATION -
 //================================================================================================================================
 
 void LOG_CITY_FOUNDATION::LOG (u16 x, u16 y, u16 player) {
     TraceSink::printf("city founded at=(%u,%u) civ=%u\n", x, y, player);
+}
+
+bool LOG_CITY_FOUNDATION::PARSE (const char* line, u16* x, u16* y, u16* player) {
+    if (line == nullptr || x == nullptr || y == nullptr || player == nullptr) {
+        return false;
+    }
+    unsigned t0 = 0;
+    unsigned t1 = 0;
+    unsigned t2 = 0;
+    if (std::sscanf(line, "city founded at=(%u,%u) civ=%u", &t0, &t1, &t2) != 3) {
+        return false;
+    }
+    *x = static_cast<u16>(t0);
+    *y = static_cast<u16>(t1);
+    *player = static_cast<u16>(t2);
+    return true;
 }
 
 //================================================================================================================================

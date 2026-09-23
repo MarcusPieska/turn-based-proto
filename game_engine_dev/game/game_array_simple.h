@@ -28,15 +28,16 @@ typedef enum AiTileOvIntent {
 
 struct GameTileSimple {
 
-    // Highly volatile fields: First 8 bytes: 16×3 + 8 + 4 + 3 + 1 = 64b <= 64b
+    // Highly volatile fields: First 8 bytes: 16×3 + 8 + 3 + 3 + 1 + 1 = 64b <= 64b
 
     u64 m_unit_hd : 16; // Unit pool key on this tile; U16_KEY_NULL if empty
     u64 m_add_idx : 16; // Payload for m_ov: bitfield of imps, or external key (e.g. city); 0 for empty bit payloads
     u64 m_city_worker : 16; // Currently working on this tile, city pool key; U16_KEY_NULL if none
     u64 m_civ_owner : 8; // Civilization owner pool key; U8_KEY_NULL if none
-    u64 m_unused : 4; // This used to be m_add_typ; now unused
+    u64 m_unused : 3; // This used to be m_add_typ; now unused
     u64 m_road_typ : 3; // Road type (ROAD_* in game_map_defs.h)
     u64 m_settler_blocked : 1; // Settler blocked flag (0 none, nonzero is blocked by existing settlements)
+    u64 m_tile_work_needed : 1; // Worker mk2: tile needs an improvement job
 
     // Almost static fields: Second 8 bytes: 16×2 + 4×2 + 1 + 5 + 2 + 1 = 49b  <= 64b
 
@@ -85,6 +86,7 @@ public:
     u32 count_worked (u16 cx, u16 cy, u16 city_idx, const i8 (*brd)[2], u16 lim, u16 r) const; // Worked tiles in brd disk; r is max |offset|
     u8 get_civ_owner (u16 x, u16 y) const; // Civ/seat owner at tile; U8_KEY_NULL if none
     u8 get_settler_blocked (u16 x, u16 y) const; // 0 free, nonzero blocked for settling
+    u8 get_tile_work_needed (u16 x, u16 y) const; // 0 none, nonzero when worker job pending
     u8 get_planned_city (u16 x, u16 y) const; // 0 none, nonzero when m_ai_ov_intent is CITY
     u8 get_ai_ov_intent (u16 x, u16 y) const; // AiTileOvIntent at tile
     u8 get_tile_usage (u16 x, u16 y) const; // Assign intent (TileAssignIntent)
@@ -102,6 +104,7 @@ public:
     bool set_city_worker (u16 x, u16 y, u16 city_idx); // City worker key at tile; U16_KEY_NULL clears
     bool set_civ_owner (u16 x, u16 y, u8 owner); // Civ/seat owner at tile; U8_KEY_NULL clears
     bool set_settler_blocked (u16 x, u16 y, u8 blocked); // Settler block flag; 0 clears
+    bool set_tile_work_needed (u16 x, u16 y, u8 on); // Worker mk2 mark; 0 clears
     bool set_planned_city (u16 x, u16 y, u8 planned); // Sets CITY intent; 0 clears only if CITY
     bool set_ai_ov_intent (u16 x, u16 y, u8 intent); // Exclusive AiTileOvIntent; NONE clears
     bool set_tile_usage (u16 x, u16 y, u8 usage); // Assign intent; TileAssignIntent 0..1

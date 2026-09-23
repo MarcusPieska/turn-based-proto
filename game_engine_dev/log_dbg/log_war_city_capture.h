@@ -15,26 +15,17 @@
 #include "game_primitives.h"
 #include "log_dbg_toggles.h"
 
-
+ 
 
 //================================================================================================================================
 //=> - LOG_WAR_CITY_CAPTURE -
 //================================================================================================================================
 
+class LOG_WAR_CITY_CAPTURE {
+public:
 #if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_CITY_CAPTURE))
-
-class LOG_WAR_CITY_CAPTURE {
-public:
     static void LOG (unsigned seat, unsigned from, unsigned x, unsigned y, unsigned turn);
-
-private:
-    LOG_WAR_CITY_CAPTURE () = delete;
-};
-
 #else
-
-class LOG_WAR_CITY_CAPTURE {
-public:
     static void LOG (unsigned seat, unsigned from, unsigned x, unsigned y, unsigned turn) {
         (void)seat;
         (void)from;
@@ -42,12 +33,12 @@ public:
         (void)y;
         (void)turn;
     }
+#endif
+    static bool PARSE (const char* line, unsigned* seat, unsigned* from, unsigned* x, unsigned* y, unsigned* turn);
 
 private:
     LOG_WAR_CITY_CAPTURE () = delete;
 };
-
-#endif
 
 #endif // LOG_WAR_CITY_CAPTURE_H
 

@@ -15,36 +15,27 @@
 #include "game_primitives.h"
 #include "log_dbg_toggles.h"
 
-
+ 
 
 //================================================================================================================================
 //=> - LOG_CITY_JOB_SCIENCE -
 //================================================================================================================================
 
+class LOG_CITY_JOB_SCIENCE {
+public:
 #if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_CITY_JOB_SCIENCE))
-
-class LOG_CITY_JOB_SCIENCE {
-public:
     static void LOG (u16 jobs, u16 yield);
-
-private:
-    LOG_CITY_JOB_SCIENCE () = delete;
-};
-
 #else
-
-class LOG_CITY_JOB_SCIENCE {
-public:
     static void LOG (u16 jobs, u16 yield) {
         (void)jobs;
         (void)yield;
     }
+#endif
+    static bool PARSE (const char* line, u16* jobs, u16* yield);
 
 private:
     LOG_CITY_JOB_SCIENCE () = delete;
 };
-
-#endif
 
 #endif // LOG_CITY_JOB_SCIENCE_H
 

@@ -15,12 +15,36 @@
 
 #include "trace_sink.h"
 
+#include <cstdio>
+
 //================================================================================================================================
 //=> - LOG_WAR_ARMY_SIZE -
 //================================================================================================================================
 
 void LOG_WAR_ARMY_SIZE::LOG (unsigned seat, unsigned army_n, unsigned tile_n, unsigned sx, unsigned sy, unsigned turn) {
     TraceSink::printf("war army size seat=%u army_units=%u tile_units=%u staging=(%u,%u) turn=%u\n", seat, army_n, tile_n, sx, sy, turn);
+}
+
+bool LOG_WAR_ARMY_SIZE::PARSE (const char* line, unsigned* seat, unsigned* army_n, unsigned* tile_n, unsigned* sx, unsigned* sy, unsigned* turn) {
+    if (line == nullptr || seat == nullptr || army_n == nullptr || tile_n == nullptr || sx == nullptr || sy == nullptr || turn == nullptr) {
+        return false;
+    }
+    unsigned t0 = 0;
+    unsigned t1 = 0;
+    unsigned t2 = 0;
+    unsigned t3 = 0;
+    unsigned t4 = 0;
+    unsigned t5 = 0;
+    if (std::sscanf(line, "war army size seat=%u army_units=%u tile_units=%u staging=(%u,%u) turn=%u", &t0, &t1, &t2, &t3, &t4, &t5) != 6) {
+        return false;
+    }
+    *seat = t0;
+    *army_n = t1;
+    *tile_n = t2;
+    *sx = t3;
+    *sy = t4;
+    *turn = t5;
+    return true;
 }
 
 //================================================================================================================================

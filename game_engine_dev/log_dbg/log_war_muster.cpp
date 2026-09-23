@@ -15,12 +15,36 @@
 
 #include "trace_sink.h"
 
+#include <cstdio>
+
 //================================================================================================================================
 //=> - LOG_WAR_MUSTER -
 //================================================================================================================================
 
 void LOG_WAR_MUSTER::LOG (unsigned seat, unsigned enemy, unsigned sx, unsigned sy, unsigned n, unsigned turn) {
     TraceSink::printf("war muster start seat=%u enemy=%u staging=(%u,%u) muster_n=%u turn=%u\n", seat, enemy, sx, sy, n, turn);
+}
+
+bool LOG_WAR_MUSTER::PARSE (const char* line, unsigned* seat, unsigned* enemy, unsigned* sx, unsigned* sy, unsigned* n, unsigned* turn) {
+    if (line == nullptr || seat == nullptr || enemy == nullptr || sx == nullptr || sy == nullptr || n == nullptr || turn == nullptr) {
+        return false;
+    }
+    unsigned t0 = 0;
+    unsigned t1 = 0;
+    unsigned t2 = 0;
+    unsigned t3 = 0;
+    unsigned t4 = 0;
+    unsigned t5 = 0;
+    if (std::sscanf(line, "war muster start seat=%u enemy=%u staging=(%u,%u) muster_n=%u turn=%u", &t0, &t1, &t2, &t3, &t4, &t5) != 6) {
+        return false;
+    }
+    *seat = t0;
+    *enemy = t1;
+    *sx = t2;
+    *sy = t3;
+    *n = t4;
+    *turn = t5;
+    return true;
 }
 
 //================================================================================================================================

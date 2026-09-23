@@ -199,6 +199,15 @@ static bool unit_is_settler (u16 unit_idx) {
     return nm != nullptr && std::strcmp(nm, "LAND_SETTLER") == 0;
 }
 
+static bool unit_is_worker (u16 unit_idx) {
+    if (s_statics == nullptr || unit_idx == U16_KEY_NULL) {
+        return false;
+    }
+    const UnitStaticDataStruct& u = s_statics->unit().get_item(UnitStaticDataKey::from_raw(unit_idx));
+    cstr nm = s_statics->unit_type().get_name(UnitTypeStaticDataKey::from_raw(u.type));
+    return nm != nullptr && std::strcmp(nm, "LAND_WORKER") == 0;
+}
+
 static u8 spawn_unit_level (const City& city, u16 city_idx, u16 unit_idx) {
     const EffectCtx ctx = make_city_effect_ctx(city, city_idx);
     if (unit_is_sea(unit_idx)) {
@@ -255,6 +264,7 @@ void City::init (u16 owner, u16 x, u16 y) {
     m_road_conn = 0;
     m_misc.m_city_has_worker = 1;
     m_misc.m_city_defense_deduction = 0;
+    m_misc.m_tile_imp_count = 0;
 }
 
 void City::bind_statics (const RuntimeStatics& st) {
@@ -647,6 +657,25 @@ void City::set_city_has_worker (u8 on) {
     m_misc.m_city_has_worker = on != 0 ? 1u : 0u;
 }
 
+u8 City::get_tile_imp_count () const {
+    return static_cast<u8>(m_misc.m_tile_imp_count);
+}
+
+void City::set_tile_imp_count (u8 n) {
+    m_misc.m_tile_imp_count = n;
+}
+
+void City::add_tile_imp_count (i16 d) {
+    i32 n = static_cast<i32>(m_misc.m_tile_imp_count) + static_cast<i32>(d);
+    if (n < 0) {
+        n = 0;
+    }
+    if (n > 255) {
+        n = 255;
+    }
+    m_misc.m_tile_imp_count = static_cast<u8>(n);
+}
+
 void City::refresh_unit_support (u16 city_idx) {
     GAME_EXPECT(s_statics != nullptr, "City::refresh_unit_support null statics");
     GAME_EXPECT(s_player_states != nullptr, "City::refresh_unit_support null player states");
@@ -703,6 +732,10 @@ void City::count_unit_build_support (PlayerState* ps) {
     if (unit_is_settler(m_bld_idx)) {
         const u32 sn = static_cast<u32>(ps->m_this_turn_settler_build_n) + 1u;
         ps->m_this_turn_settler_build_n = sn > 65535u ? 65535u : static_cast<u16>(sn);
+    }
+    if (unit_is_worker(m_bld_idx)) {
+        const u32 wn = static_cast<u32>(ps->m_this_turn_worker_build_n) + 1u;
+        ps->m_this_turn_worker_build_n = wn > 65535u ? 65535u : static_cast<u16>(wn);
     }
     if (unit_is_land(m_bld_idx)) {
         const u32 sum = static_cast<u32>(ps->m_this_turn_new_land_unit_build_support) + static_cast<u32>(cost);

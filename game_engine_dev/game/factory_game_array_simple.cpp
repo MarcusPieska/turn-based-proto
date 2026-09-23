@@ -250,6 +250,7 @@ bool Factory_GameArraySimple::load_map_gen_data (
         t->m_city_worker = U16_KEY_NULL;
         t->m_road_typ = 0;
         t->m_settler_blocked = 0;
+        t->m_tile_work_needed = 0;
         t->m_ai_ov_intent = AI_TILE_OV_INTENT_NONE;
         t->m_tile_usage = 0;
         t->m_mtn_line = 0;
@@ -340,6 +341,7 @@ bool Factory_GameArraySimple::load_from_rslt (GameArraySimple* out, const MakeMa
         t->m_city_worker = U16_KEY_NULL;
         t->m_road_typ = 0;
         t->m_settler_blocked = 0;
+        t->m_tile_work_needed = 0;
         t->m_ai_ov_intent = AI_TILE_OV_INTENT_NONE;
         t->m_tile_usage = 0;
         t->m_mtn_line = rslt.m_flags[i].defensible_mtn != 0u ? 1u : 0u;

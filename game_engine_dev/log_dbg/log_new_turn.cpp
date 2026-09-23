@@ -15,12 +15,26 @@
 
 #include "trace_sink.h"
 
+#include <cstdio>
+
 //================================================================================================================================
 //=> - LOG_NEW_TURN -
 //================================================================================================================================
 
 void LOG_NEW_TURN::LOG (u16 turn) {
     TraceSink::printf("NEW_TURN:%u\n", turn);
+}
+
+bool LOG_NEW_TURN::PARSE (const char* line, u16* turn) {
+    if (line == nullptr || turn == nullptr) {
+        return false;
+    }
+    unsigned t0 = 0;
+    if (std::sscanf(line, "NEW_TURN:%u", &t0) != 1) {
+        return false;
+    }
+    *turn = static_cast<u16>(t0);
+    return true;
 }
 
 //================================================================================================================================

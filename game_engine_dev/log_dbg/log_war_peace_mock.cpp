@@ -15,12 +15,32 @@
 
 #include "trace_sink.h"
 
+#include <cstdio>
+
 //================================================================================================================================
 //=> - LOG_WAR_PEACE_MOCK -
 //================================================================================================================================
 
 void LOG_WAR_PEACE_MOCK::LOG (unsigned seat, unsigned x, unsigned y, unsigned turn) {
     TraceSink::printf("war peace mock-fail seat=%u city=(%u,%u) turn=%u\n", seat, x, y, turn);
+}
+
+bool LOG_WAR_PEACE_MOCK::PARSE (const char* line, unsigned* seat, unsigned* x, unsigned* y, unsigned* turn) {
+    if (line == nullptr || seat == nullptr || x == nullptr || y == nullptr || turn == nullptr) {
+        return false;
+    }
+    unsigned t0 = 0;
+    unsigned t1 = 0;
+    unsigned t2 = 0;
+    unsigned t3 = 0;
+    if (std::sscanf(line, "war peace mock-fail seat=%u city=(%u,%u) turn=%u", &t0, &t1, &t2, &t3) != 4) {
+        return false;
+    }
+    *seat = t0;
+    *x = t1;
+    *y = t2;
+    *turn = t3;
+    return true;
 }
 
 //================================================================================================================================

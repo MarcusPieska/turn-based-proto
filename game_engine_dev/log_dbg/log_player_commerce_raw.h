@@ -15,36 +15,27 @@
 #include "game_primitives.h"
 #include "log_dbg_toggles.h"
 
-
+ 
 
 //================================================================================================================================
 //=> - LOG_PLAYER_COMMERCE_RAW -
 //================================================================================================================================
 
+class LOG_PLAYER_COMMERCE_RAW {
+public:
 #if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_PLAYER_COMMERCE_RAW))
-
-class LOG_PLAYER_COMMERCE_RAW {
-public:
     static void LOG (u16 player, u32 amount);
-
-private:
-    LOG_PLAYER_COMMERCE_RAW () = delete;
-};
-
 #else
-
-class LOG_PLAYER_COMMERCE_RAW {
-public:
     static void LOG (u16 player, u32 amount) {
         (void)player;
         (void)amount;
     }
+#endif
+    static bool PARSE (const char* line, u16* player, u32* amount);
 
 private:
     LOG_PLAYER_COMMERCE_RAW () = delete;
 };
-
-#endif
 
 #endif // LOG_PLAYER_COMMERCE_RAW_H
 

@@ -15,38 +15,29 @@
 #include "game_primitives.h"
 #include "log_dbg_toggles.h"
 
-
+ 
 
 //================================================================================================================================
 //=> - LOG_WAR_PEACE_MOCK -
 //================================================================================================================================
 
+class LOG_WAR_PEACE_MOCK {
+public:
 #if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_PEACE_MOCK))
-
-class LOG_WAR_PEACE_MOCK {
-public:
     static void LOG (unsigned seat, unsigned x, unsigned y, unsigned turn);
-
-private:
-    LOG_WAR_PEACE_MOCK () = delete;
-};
-
 #else
-
-class LOG_WAR_PEACE_MOCK {
-public:
     static void LOG (unsigned seat, unsigned x, unsigned y, unsigned turn) {
         (void)seat;
         (void)x;
         (void)y;
         (void)turn;
     }
+#endif
+    static bool PARSE (const char* line, unsigned* seat, unsigned* x, unsigned* y, unsigned* turn);
 
 private:
     LOG_WAR_PEACE_MOCK () = delete;
 };
-
-#endif
 
 #endif // LOG_WAR_PEACE_MOCK_H
 

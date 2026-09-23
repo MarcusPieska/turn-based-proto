@@ -103,6 +103,8 @@ void CityTurnHandler::handle (GameState& state, u16 city_idx) {
     ctx.m_pop_change = pop_change;
 
     city->refresh_unit_support(city_idx);
+    CityTurnHandler_Core::try_assess_imps(state, city_idx, city);
+    CityTurnHandler_Core::try_pick_worker(state, city_idx, city);
     CityTurnHandler_Core::try_pick_land_unit(state, city_idx, city);
     switch (trait) {
     case CivTrait::Agricultural:

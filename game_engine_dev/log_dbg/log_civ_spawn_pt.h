@@ -15,37 +15,28 @@
 #include "game_primitives.h"
 #include "log_dbg_toggles.h"
 
-
+ 
 
 //================================================================================================================================
 //=> - LOG_CIV_SPAWN_PT -
 //================================================================================================================================
 
+class LOG_CIV_SPAWN_PT {
+public:
 #if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_CIV_SPAWN_PT))
-
-class LOG_CIV_SPAWN_PT {
-public:
     static void LOG (u16 x, u16 y, u16 civ_idx);
-
-private:
-    LOG_CIV_SPAWN_PT () = delete;
-};
-
 #else
-
-class LOG_CIV_SPAWN_PT {
-public:
     static void LOG (u16 x, u16 y, u16 civ_idx) {
         (void)x;
         (void)y;
         (void)civ_idx;
     }
+#endif
+    static bool PARSE (const char* line, u16* x, u16* y, u16* civ_idx);
 
 private:
     LOG_CIV_SPAWN_PT () = delete;
 };
-
-#endif
 
 #endif // LOG_CIV_SPAWN_PT_H
 

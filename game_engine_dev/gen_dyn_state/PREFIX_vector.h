@@ -39,6 +39,7 @@ public:
 
 private:
     friend class [CLASS_NAME_PREFIX]VectorTester;
+    friend class GameIo;
 
     [STRUCT_NAME]* m_pages[MAX_PAGES];
     u8* m_exists_pages[MAX_PAGES];

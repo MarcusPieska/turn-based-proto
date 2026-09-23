@@ -25,17 +25,20 @@ struct PlayerState;
 //================================================================================================================================
 
 typedef struct MiscCityData {
+    u64 m_city_defense_deduction : 16; // Barrage softens city defense boost; subtracted in combat
+    u64 m_tile_imp_count : 8; // Worker mk2: outstanding jobs on worked disk (saturates; may lag tech)
     u64 m_free_land_unit_support : 7;
     u64 m_free_naval_unit_support : 7;
     u64 m_city_has_worker : 1; // 1 = disk may need jobs; 0 = no work left on disk
-    u64 m_city_defense_deduction : 16; // Barrage softens city defense boost; subtracted in combat
-    u64 m_unused : 33;
+    u64 m_unused : 25;
 } MiscCityData;
 
 class alignas(8) City {
 public:
     City ();
     ~City ();
+
+    friend class GameIo;
 
     static void bind_statics (const RuntimeStatics& st);
     static void clear_assess_scratch ();
@@ -81,6 +84,9 @@ public:
     bool city_has_worker () const;
     void set_city_has_worker (u8 on);
     static void refresh_city_worker_flags (GameState& state, u16 player);
+    u8 get_tile_imp_count () const;
+    void set_tile_imp_count (u8 n);
+    void add_tile_imp_count (i16 d);
 
     void refresh_unit_support (u16 city_idx);
     u16 calc_city_land_unit_support (u16 city_idx) const;

@@ -15,26 +15,17 @@
 #include "game_primitives.h"
 #include "log_dbg_toggles.h"
 
-
+ 
 
 //================================================================================================================================
 //=> - LOG_WAR_ARMY_SIZE -
 //================================================================================================================================
 
+class LOG_WAR_ARMY_SIZE {
+public:
 #if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_ARMY_SIZE))
-
-class LOG_WAR_ARMY_SIZE {
-public:
     static void LOG (unsigned seat, unsigned army_n, unsigned tile_n, unsigned sx, unsigned sy, unsigned turn);
-
-private:
-    LOG_WAR_ARMY_SIZE () = delete;
-};
-
 #else
-
-class LOG_WAR_ARMY_SIZE {
-public:
     static void LOG (unsigned seat, unsigned army_n, unsigned tile_n, unsigned sx, unsigned sy, unsigned turn) {
         (void)seat;
         (void)army_n;
@@ -43,12 +34,12 @@ public:
         (void)sy;
         (void)turn;
     }
+#endif
+    static bool PARSE (const char* line, unsigned* seat, unsigned* army_n, unsigned* tile_n, unsigned* sx, unsigned* sy, unsigned* turn);
 
 private:
     LOG_WAR_ARMY_SIZE () = delete;
 };
-
-#endif
 
 #endif // LOG_WAR_ARMY_SIZE_H
 

@@ -1,0 +1,5 @@
+OUT_ROOT == /home/w/Projects/simple-map-gen
+SAVES_ROOT == /home/w/Projects/game-saves
+TRACE_PATH == /home/w/Projects/simple-map-gen/game_loop.trace
+SEED == 101
+PLAYERS == 100

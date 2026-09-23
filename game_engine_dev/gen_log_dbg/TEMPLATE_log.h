@@ -15,34 +15,25 @@
 #include "game_primitives.h"
 #include "log_dbg_toggles.h"
 
-[LOG_WRAP_INCLUDE_TAG]
+[LOG_WRAP_INCLUDE_TAG] 
 
 //================================================================================================================================
 //=> - [LOG_CLASS_TAG] -
 //================================================================================================================================
 
+class [LOG_CLASS_TAG] {
+public:
 #if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined([LOG_ENABLE_TAG]))
-
-class [LOG_CLASS_TAG] {
-public:
     static void LOG ([LOG_PARAMS_TAG]);
-
-private:
-    [LOG_CLASS_TAG] () = delete;
-};
-
 #else
-
-class [LOG_CLASS_TAG] {
-public:
     static void LOG ([LOG_PARAMS_TAG]) {
 [LOG_VOID_ARGS_TAG]    }
+#endif
+    static bool PARSE (const char* line[LOG_PARSE_PARAMS_TAG]);
 
 private:
     [LOG_CLASS_TAG] () = delete;
 };
-
-#endif
 
 #endif // [LOG_GUARD_TAG]
 

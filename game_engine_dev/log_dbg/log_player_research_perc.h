@@ -15,36 +15,27 @@
 #include "game_primitives.h"
 #include "log_dbg_toggles.h"
 
-
+ 
 
 //================================================================================================================================
 //=> - LOG_PLAYER_RESEARCH_PERC -
 //================================================================================================================================
 
+class LOG_PLAYER_RESEARCH_PERC {
+public:
 #if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_PLAYER_RESEARCH_PERC))
-
-class LOG_PLAYER_RESEARCH_PERC {
-public:
     static void LOG (u16 player, u16 perc);
-
-private:
-    LOG_PLAYER_RESEARCH_PERC () = delete;
-};
-
 #else
-
-class LOG_PLAYER_RESEARCH_PERC {
-public:
     static void LOG (u16 player, u16 perc) {
         (void)player;
         (void)perc;
     }
+#endif
+    static bool PARSE (const char* line, u16* player, u16* perc);
 
 private:
     LOG_PLAYER_RESEARCH_PERC () = delete;
 };
-
-#endif
 
 #endif // LOG_PLAYER_RESEARCH_PERC_H
 

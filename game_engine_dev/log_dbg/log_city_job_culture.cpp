@@ -15,12 +15,28 @@
 
 #include "trace_sink.h"
 
+#include <cstdio>
+
 //================================================================================================================================
 //=> - LOG_CITY_JOB_CULTURE -
 //================================================================================================================================
 
 void LOG_CITY_JOB_CULTURE::LOG (u16 jobs, u16 yield) {
     TraceSink::printf("city job culture jobs=%u yield=%u\n", jobs, yield);
+}
+
+bool LOG_CITY_JOB_CULTURE::PARSE (const char* line, u16* jobs, u16* yield) {
+    if (line == nullptr || jobs == nullptr || yield == nullptr) {
+        return false;
+    }
+    unsigned t0 = 0;
+    unsigned t1 = 0;
+    if (std::sscanf(line, "city job culture jobs=%u yield=%u", &t0, &t1) != 2) {
+        return false;
+    }
+    *jobs = static_cast<u16>(t0);
+    *yield = static_cast<u16>(t1);
+    return true;
 }
 
 //================================================================================================================================

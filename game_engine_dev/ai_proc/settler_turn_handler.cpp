@@ -11,6 +11,7 @@
 #include "game_state.h"
 #include "gen_ai_helpers.h"
 #include "gen_settlement_order.h"
+#include "log_dbg.h"
 #include "settler_mission_manager.h"
 #include "runtime_statics.h"
 #include "unit_add_vector_key.h"
@@ -138,6 +139,7 @@ static bool found_city (GameState& state, u16 x, u16 y, u16 player) {
     GAME_EXPECT(state.city_net_on_found(city_idx), "found_city city_net_on_found failed");
     CityBorder::claim_expand(x, y, 0, k_claim_cult, static_cast<u8>(player));
     stamp_block(state, x, y);
+    LOG_CITY_FOUNDATION::LOG(x, y, player);
     return true;
 }
 

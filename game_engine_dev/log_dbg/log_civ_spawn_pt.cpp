@@ -15,12 +15,30 @@
 
 #include "trace_sink.h"
 
+#include <cstdio>
+
 //================================================================================================================================
 //=> - LOG_CIV_SPAWN_PT -
 //================================================================================================================================
 
 void LOG_CIV_SPAWN_PT::LOG (u16 x, u16 y, u16 civ_idx) {
     TraceSink::printf("civ spawned at=(%u,%u) civ=%u\n", x, y, civ_idx);
+}
+
+bool LOG_CIV_SPAWN_PT::PARSE (const char* line, u16* x, u16* y, u16* civ_idx) {
+    if (line == nullptr || x == nullptr || y == nullptr || civ_idx == nullptr) {
+        return false;
+    }
+    unsigned t0 = 0;
+    unsigned t1 = 0;
+    unsigned t2 = 0;
+    if (std::sscanf(line, "civ spawned at=(%u,%u) civ=%u", &t0, &t1, &t2) != 3) {
+        return false;
+    }
+    *x = static_cast<u16>(t0);
+    *y = static_cast<u16>(t1);
+    *civ_idx = static_cast<u16>(t2);
+    return true;
 }
 
 //================================================================================================================================

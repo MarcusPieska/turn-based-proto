@@ -15,36 +15,27 @@
 #include "game_primitives.h"
 #include "log_dbg_toggles.h"
 
-
+ 
 
 //================================================================================================================================
 //=> - LOG_PLAYER_TECH_DISCOVER -
 //================================================================================================================================
 
+class LOG_PLAYER_TECH_DISCOVER {
+public:
 #if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_PLAYER_TECH_DISCOVER))
-
-class LOG_PLAYER_TECH_DISCOVER {
-public:
     static void LOG (u16 player, u16 tech);
-
-private:
-    LOG_PLAYER_TECH_DISCOVER () = delete;
-};
-
 #else
-
-class LOG_PLAYER_TECH_DISCOVER {
-public:
     static void LOG (u16 player, u16 tech) {
         (void)player;
         (void)tech;
     }
+#endif
+    static bool PARSE (const char* line, u16* player, u16* tech);
 
 private:
     LOG_PLAYER_TECH_DISCOVER () = delete;
 };
-
-#endif
 
 #endif // LOG_PLAYER_TECH_DISCOVER_H
 

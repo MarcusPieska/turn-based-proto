@@ -15,12 +15,32 @@
 
 #include "trace_sink.h"
 
+#include <cstdio>
+
 //================================================================================================================================
 //=> - LOG_UNIT_SPAWN -
 //================================================================================================================================
 
 void LOG_UNIT_SPAWN::LOG (u16 typ_idx, u16 civ_idx, u16 x, u16 y) {
     TraceSink::printf("unit spawned typ=%u civ=%u at=(%u,%u)\n", typ_idx, civ_idx, x, y);
+}
+
+bool LOG_UNIT_SPAWN::PARSE (const char* line, u16* typ_idx, u16* civ_idx, u16* x, u16* y) {
+    if (line == nullptr || typ_idx == nullptr || civ_idx == nullptr || x == nullptr || y == nullptr) {
+        return false;
+    }
+    unsigned t0 = 0;
+    unsigned t1 = 0;
+    unsigned t2 = 0;
+    unsigned t3 = 0;
+    if (std::sscanf(line, "unit spawned typ=%u civ=%u at=(%u,%u)", &t0, &t1, &t2, &t3) != 4) {
+        return false;
+    }
+    *typ_idx = static_cast<u16>(t0);
+    *civ_idx = static_cast<u16>(t1);
+    *x = static_cast<u16>(t2);
+    *y = static_cast<u16>(t3);
+    return true;
 }
 
 //================================================================================================================================

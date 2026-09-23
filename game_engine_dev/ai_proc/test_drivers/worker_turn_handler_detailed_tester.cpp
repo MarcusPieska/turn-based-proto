@@ -492,8 +492,7 @@ static void after_city_turns (GameState& state) {
         const auto t0 = std::chrono::steady_clock::now();
         ResearchTurnHandler::handle(state, p);
         const auto t1 = std::chrono::steady_clock::now();
-        tm_add(&g_tm_research, static_cast<u64>(
-            std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()));
+        tm_add(&g_tm_research, static_cast<u64>(std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()));
         City::refresh_city_worker_flags(state, p);
         PlayerState& ps = state.m_player_states[p];
         ps.m_last_turn_population_count = ps.m_this_turn_population_count;
@@ -501,6 +500,8 @@ static void after_city_turns (GameState& state) {
         ps.m_this_turn_population_count = 0;
         ps.m_this_turn_city_count = 0;
         ps.m_last_turn_settler_count = 0;
+        ps.m_last_turn_worker_build_n = ps.m_this_turn_worker_build_n;
+        ps.m_this_turn_worker_build_n = 0;
         ps.m_last_turn_worker_count = 0;
         ps.m_defensive_unit_count = 0;
     }
@@ -511,8 +512,7 @@ static void run_city_turns (GameState& state) {
         const auto t0 = std::chrono::steady_clock::now();
         SettlerTurnHandler::refresh_targets(state);
         const auto t1 = std::chrono::steady_clock::now();
-        tm_add(&g_tm_refresh, static_cast<u64>(
-            std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()));
+        tm_add(&g_tm_refresh, static_cast<u64>(std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()));
     }
     const u16 cn = state.m_cities.get_city_count();
     for (u16 i = 0; i < cn; ++i) {
@@ -522,8 +522,7 @@ static void run_city_turns (GameState& state) {
         const auto t0 = std::chrono::steady_clock::now();
         CityTurnHandler::handle(state, i);
         const auto t1 = std::chrono::steady_clock::now();
-        tm_add(&g_tm_city, static_cast<u64>(
-            std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()));
+        tm_add(&g_tm_city, static_cast<u64>(std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()));
     }
     LOG_CITY_FLUSH(());
     after_city_turns(state);
@@ -543,8 +542,7 @@ static void run_unit_turns (GameState& state) {
             const auto t0 = std::chrono::steady_clock::now();
             SettlerTurnHandler::handle(state, unit_idx);
             const auto t1 = std::chrono::steady_clock::now();
-            tm_add(&g_tm_settler, static_cast<u64>(
-                std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()));
+            tm_add(&g_tm_settler, static_cast<u64>(std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()));
         } else if (ut == state.m_land_worker_type_idx) {
             refill_mp(state, unit_idx);
             g_cur_unit_idx = unit_idx;
@@ -552,14 +550,12 @@ static void run_unit_turns (GameState& state) {
             WorkerTurnHandler::handle(state, unit_idx);
             g_cur_unit_idx = U16_KEY_NULL;
             const auto t1 = std::chrono::steady_clock::now();
-            tm_add(&g_tm_worker, static_cast<u64>(
-                std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()));
+            tm_add(&g_tm_worker, static_cast<u64>(std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()));
         } else if (ut == state.m_land_defense_type_idx) {
             const auto t0 = std::chrono::steady_clock::now();
             DefensiveUnitTurnHandler::handle(state, unit_idx);
             const auto t1 = std::chrono::steady_clock::now();
-            tm_add(&g_tm_defense, static_cast<u64>(
-                std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()));
+            tm_add(&g_tm_defense, static_cast<u64>(std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count())); 
         }
     }
 }
