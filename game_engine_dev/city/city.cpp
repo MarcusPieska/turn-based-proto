@@ -24,6 +24,7 @@
 
 #include "unit_add_struct.h"
 #include "unit_type_action_map.h"
+#include "worker_helper.h"
 
 #include "effect_ctx.h"
 #include "booster_apply.h"
@@ -262,7 +263,7 @@ void City::init (u16 owner, u16 x, u16 y) {
     m_conn_city_sw = U16_KEY_NULL;
     m_conn_city_se = U16_KEY_NULL;
     m_road_conn = 0;
-    m_misc.m_city_has_worker = 1;
+    m_misc.m_city_has_worker = 0;
     m_misc.m_city_defense_deduction = 0;
     m_misc.m_tile_imp_count = 0;
 }
@@ -450,6 +451,9 @@ void City::build_unit (u16 unit_idx) {
     m_build_type = BUILD_TYPE_UNIT;
     m_bld_idx = unit_idx;
     m_build_cost = static_cast<u16>(s_statics->unit().get_item(UnitStaticDataKey::from_raw(unit_idx)).cost);
+    if (unit_is_worker(unit_idx)) {
+        m_misc.m_city_has_worker = 1;
+    }
     LOG_CITY_BUILD((cur_bld_name(m_build_type, m_bld_idx), 1, 0));
 }
 
@@ -653,10 +657,6 @@ bool City::city_has_worker () const {
     return m_misc.m_city_has_worker != 0;
 }
 
-void City::set_city_has_worker (u8 on) {
-    m_misc.m_city_has_worker = on != 0 ? 1u : 0u;
-}
-
 u8 City::get_tile_imp_count () const {
     return static_cast<u8>(m_misc.m_tile_imp_count);
 }
@@ -732,10 +732,6 @@ void City::count_unit_build_support (PlayerState* ps) {
     if (unit_is_settler(m_bld_idx)) {
         const u32 sn = static_cast<u32>(ps->m_this_turn_settler_build_n) + 1u;
         ps->m_this_turn_settler_build_n = sn > 65535u ? 65535u : static_cast<u16>(sn);
-    }
-    if (unit_is_worker(m_bld_idx)) {
-        const u32 wn = static_cast<u32>(ps->m_this_turn_worker_build_n) + 1u;
-        ps->m_this_turn_worker_build_n = wn > 65535u ? 65535u : static_cast<u16>(wn);
     }
     if (unit_is_land(m_bld_idx)) {
         const u32 sum = static_cast<u32>(ps->m_this_turn_new_land_unit_build_support) + static_cast<u32>(cost);
@@ -822,14 +818,6 @@ void City::refresh_city_worker_flags (GameState& state, u16 player) {
     if (ps.m_tech_just_researched == 0) {
         return;
     }
-    const u16 cn = state.m_cities.get_city_count();
-    for (u16 i = 0; i < cn; ++i) {
-        City* c = state.m_cities.get_city(i);
-        if (c == nullptr || c->get_owner() != player) {
-            continue;
-        }
-        c->m_misc.m_city_has_worker = 1;
-    }
     ps.m_tech_just_researched = 0;
 }
 
@@ -893,21 +881,26 @@ bool City::finish_if_ready (u16 city_idx) {
                 GAME_EXPECT(false, "City unit add");
                 return false;
             }
+            const u16 typ = m_bld_idx;
             LOG_CITY_BUILD((cur_bld_name(m_build_type, m_bld_idx), 0, 1));
             unit->m_x = m_x;
             unit->m_y = m_y;
             unit->m_player_idx = m_owner;
-            unit->m_unit_typ_idx = m_bld_idx;
+            unit->m_unit_typ_idx = typ;
             unit->m_next_unit_on_tile = U16_KEY_NULL;
             unit->m_next_unit_in_group = U16_KEY_NULL;
             unit->m_mvt_points = 0;
             unit->m_health = UNIT_HEALTH;
-            unit->m_level = spawn_unit_level(*this, city_idx, m_bld_idx);
+            unit->m_level = spawn_unit_level(*this, city_idx, typ);
             m_accumulated_production = static_cast<u16>(m_accumulated_production - m_build_cost);
             m_build_type = BUILD_TYPE_NONE;
             m_bld_idx = U16_KEY_NULL;
             m_build_cost = 0;
             UnitMovementMng::finish_unit_spawn(unit_key, m_x, m_y, m_owner);
+            if (unit_is_worker(typ)) {
+                m_misc.m_city_has_worker = 1;
+                WorkerHelper::set_data(unit, city_idx);
+            }
             return true;
         }
         case ACCUMULATE_COMMERCE: {

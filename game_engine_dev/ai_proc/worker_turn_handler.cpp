@@ -226,13 +226,6 @@ static bool disk_tile_imp_pending (GameState& state, u16 ux, u16 uy) {
     return WorkerGuidance::has_pending_work(ux, uy, intent);
 }
 
-static bool disk_tile_pending (GameState& state, u16 ux, u16 uy) {
-    if (CityConnector::has_virtual_at(state, ux, uy)) {
-        return true;
-    }
-    return disk_tile_imp_pending(state, ux, uy);
-}
-
 static bool local_imp_fully_built (GameState& state, u16 city_idx, u16 cx, u16 cy) {
     const CircArea area = CityTileManager::work_area();
     for (u16 i = 0; i < area.m_lim; ++i) {
@@ -250,32 +243,6 @@ static bool local_imp_fully_built (GameState& state, u16 city_idx, u16 cx, u16 c
             continue;
         }
         if (disk_tile_imp_pending(state, ux, uy)) {
-            return false;
-        }
-    }
-    return true;
-}
-
-static bool local_is_fully_built (GameState& state, u16 city_idx, u16 cx, u16 cy) {
-    const CircArea area = CityTileManager::work_area();
-    for (u16 i = 0; i < area.m_lim; ++i) {
-        const i32 x = static_cast<i32>(cx) + static_cast<i32>(area.m_brd[i][0]);
-        const i32 y = static_cast<i32>(cy) + static_cast<i32>(area.m_brd[i][1]);
-        if (x < 0 || y < 0) {
-            continue;
-        }
-        const u16 ux = static_cast<u16>(x);
-        const u16 uy = static_cast<u16>(y);
-        if (ux >= state.m_map.width() || uy >= state.m_map.height()) {
-            continue;
-        }
-        if (TileWorking::get_worker(ux, uy) != city_idx) {
-            continue;
-        }
-        if (state.m_map.get_planned_city(ux, uy) != 0u) {
-            continue;
-        }
-        if (disk_tile_pending(state, ux, uy)) {
             return false;
         }
     }
@@ -748,7 +715,6 @@ void WorkerTurnHandler::handle (GameState& state, u16 unit_idx) {
     const u16 player = unit->m_player_idx;
     GAME_EXPECT(player < state.m_player_n, "WorkerTurnHandler player out of bounds");
     PlayerState& ps = state.m_player_states[player];
-    ps.m_last_turn_worker_count = static_cast<u16>(ps.m_last_turn_worker_count + 1u);
     if (!WorkerBuildProgress::can_start(unit)) {
         return;
     }
@@ -771,8 +737,6 @@ void WorkerTurnHandler::handle (GameState& state, u16 unit_idx) {
         wdest_clr(unit);
         return;
     }
-    bool fully = false;
-    bool know_fully = false;
     bool imp_fully = false;
     bool know_imp_fully = false;
     if (!found) {
@@ -784,8 +748,6 @@ void WorkerTurnHandler::handle (GameState& state, u16 unit_idx) {
     if (!found) {
         imp_fully = local_imp_fully_built(state, city_idx, cx, cy);
         know_imp_fully = true;
-        fully = local_is_fully_built(state, city_idx, cx, cy);
-        know_fully = true;
         if (!imp_fully) {
             found = pick_first(state, city_idx, cx, cy, &x, &y, &intent, &job, &imp);
         }
@@ -805,10 +767,6 @@ void WorkerTurnHandler::handle (GameState& state, u16 unit_idx) {
         }
     }
     if (!found) {
-        if (!know_fully) {
-            fully = local_is_fully_built(state, city_idx, cx, cy);
-        }
-        CityConnector::clear_idle_flag(state, city_idx, city, cx, cy, fully);
         wdest_clr(unit);
         if (CityConnector::on_road_tile(state, unit->m_x, unit->m_y)) {
             if (CityConnector::handle(state, unit_idx)) {

@@ -549,7 +549,6 @@ bool GameSetup::finish_with_starts (GameState* state, const SpgPickCoords& start
         state->clear();
         return false;
     }
-    CityConnector::sync_road_arms(*state);
     if (!ResourceTurnHandler::setup(*state)) {
         state->clear();
         return false;

@@ -33,11 +33,9 @@ CityArray* CityTileManager::m_cities = nullptr;
 static const u16 k_cand_max = 45;
 
 static void mark_worked_stamp (u16 x, u16 y, u16 city_idx, TileAssignIntent intent, City* city) {
+    (void)city;
     TileWorking::mark_worked(x, y, city_idx);
     TileWorking::set_tile_usage(x, y, static_cast<u8>(intent));
-    if (city != nullptr) {
-        city->set_city_has_worker(1);
-    }
 }
 
 static TileAssignIntent intent_from_sort (u8 sort_food, u8 sort_production, u8 sort_commerce) {

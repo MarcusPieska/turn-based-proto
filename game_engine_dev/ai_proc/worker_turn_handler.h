@@ -13,7 +13,7 @@ class GameState;
 //=> - WorkerTurnHandler -
 //================================================================================================================================
 //
-//  Per-worker unit step. Tallies into m_last_turn_worker_count, applies one WorkerGuidance job on a
+//  Per-worker unit step. Applies one WorkerGuidance job on a
 //  home-city worked tile via WorkerBuildProgress (mp deficit freeze). Each worker keeps a work tile until
 //  it is fully upgraded; only then scan (resource, fort marker on own tile in work disk, pick_first/best).
 //  CityConnector roads next; idle WorkerCityJobs list (own tiles, linear order) for FORT / MTN_PASS dirt.

@@ -245,9 +245,6 @@ static void after_city_turns (GameState& state) {
         ps.m_last_turn_settler_build_n = ps.m_this_turn_settler_build_n;
         ps.m_this_turn_settler_build_n = 0;
         ps.m_last_turn_settler_count = 0;
-        ps.m_last_turn_worker_build_n = ps.m_this_turn_worker_build_n;
-        ps.m_this_turn_worker_build_n = 0;
-        ps.m_last_turn_worker_count = 0;
         ps.m_defensive_unit_count = 0;
     }
 }

@@ -23,7 +23,6 @@
 
 static const u16 k_act_is_land = 0u;
 static const u16 k_unit_sup_cost = 1u;
-static const u16 k_workers_per_city = 1u;
 static const u16 k_worker_land_on_tile = 2u;
 static const u16 k_assess_mod = 10u;
 
@@ -114,24 +113,15 @@ u16 CityTurnHandler_Core::own_land_sup_on_tile (GameState& state, u16 player, u1
     return sum;
 }
 
-bool CityTurnHandler_Core::need_worker (const GameState& state, u16 player) {
-    if (state.m_player_states == nullptr || player >= state.m_player_n) {
-        return false;
-    }
-    const PlayerState& ps = state.m_player_states[player];
-    const u32 have = static_cast<u32>(ps.m_last_turn_worker_count)
-        + static_cast<u32>(ps.m_last_turn_worker_build_n)
-        + static_cast<u32>(ps.m_this_turn_worker_build_n);
-    const u32 want = static_cast<u32>(k_workers_per_city) * static_cast<u32>(ps.m_last_turn_city_count);
-    return have < want;
-}
-
 bool CityTurnHandler_Core::try_pick_worker (GameState& state, u16 city_idx, City* city) {
     if (city == nullptr || !city->need_prod_pick() || state.m_statics == nullptr || state.m_player_states == nullptr) {
         return false;
     }
+    if (city->city_has_worker()) {
+        return false;
+    }
     const u16 player = city->get_owner();
-    if (player >= state.m_player_n || !need_worker(state, player)) {
+    if (player >= state.m_player_n) {
         return false;
     }
     if (own_land_domain_on_tile(state, player, city->get_x(), city->get_y()) < k_worker_land_on_tile) {

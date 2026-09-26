@@ -29,7 +29,7 @@ typedef struct MiscCityData {
     u64 m_tile_imp_count : 8; // Worker mk2: outstanding jobs on worked disk (saturates; may lag tech)
     u64 m_free_land_unit_support : 7;
     u64 m_free_naval_unit_support : 7;
-    u64 m_city_has_worker : 1; // 1 = disk may need jobs; 0 = no work left on disk
+    u64 m_city_has_worker : 1; // 1 = city has queued/built a worker; 0 = not yet
     u64 m_unused : 25;
 } MiscCityData;
 
@@ -82,7 +82,6 @@ public:
     void city_no_longer_frontier ();
 
     bool city_has_worker () const;
-    void set_city_has_worker (u8 on);
     static void refresh_city_worker_flags (GameState& state, u16 player);
     u8 get_tile_imp_count () const;
     void set_tile_imp_count (u8 n);

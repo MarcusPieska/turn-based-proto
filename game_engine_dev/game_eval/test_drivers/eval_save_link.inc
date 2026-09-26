@@ -40,6 +40,7 @@ compile_eval_save_deps () {
     g++ $CXXFLAGS $INC -c "$ROOT/city/circular_tile_areas.cpp" -o circular_tile_areas.o
     g++ $CXXFLAGS $INC -c "$ROOT/city/city_border.cpp" -o city_border.o
     g++ $CXXFLAGS $INC -c "$ROOT/city/city.cpp" -o city.o
+    g++ $CXXFLAGS $INC -c "$ROOT/game/worker_helper.cpp" -o worker_helper.o
     g++ $CXXFLAGS $INC -c "$ROOT/game/city_array.cpp" -o city_array.o
     g++ $CXXFLAGS $INC -c "$ROOT/game/game_io.cpp" -o game_io.o
 }
@@ -82,6 +83,7 @@ EVAL_SAVE_DEP_OBJS="\
     circular_tile_areas.o \
     city_border.o \
     city.o \
+    worker_helper.o \
     city_array.o \
     game_io.o"
 

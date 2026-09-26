@@ -118,7 +118,6 @@ static HotTimer g_tm_research = {"ResearchTurnHandler::handle", 0, 0};
 static HotTimer g_tm_settler = {"SettlerTurnHandler::handle", 0, 0};
 static HotTimer g_tm_worker = {"WorkerTurnHandlerMk2::handle", 0, 0};
 static HotTimer g_tm_defense = {"DefensiveUnitTurnHandler::handle", 0, 0};
-static HotTimer g_tm_spawn = {"spawn_city_workers (tester)", 0, 0};
 static HotTimer g_tm_turn = {"turn e2e (city+unit)", 0, 0};
 
 static void tm_add (HotTimer* t, u64 ns) {
@@ -154,7 +153,6 @@ static void tm_report_all () {
         static_cast<unsigned long long>(sum_n),
         total_ms,
         avg_us);
-    tm_report(g_tm_spawn);
     tm_report(g_tm_turn);
 }
 
@@ -377,7 +375,6 @@ static bool write_result_file (
     }
     HotTimer sum_tm = {"handlers_sum", sum_n, sum_ns};
     res_write_tm(fp, sum_tm.name, sum_tm);
-    res_write_tm(fp, g_tm_spawn.name, g_tm_spawn);
     res_write_tm(fp, g_tm_turn.name, g_tm_turn);
     if (g_st != nullptr) {
         std::vector<u16> jobs;
@@ -461,28 +458,6 @@ static bool is_worker_typ (const RuntimeStatics& st, u16 typ_idx) {
     return std::strcmp(st.unit_type().get_name(tk), "LAND_WORKER") == 0;
 }
 
-static u16 find_worker_typ (const RuntimeStatics& st) {
-    u16 worker_type = U16_KEY_NULL;
-    const u16 tn = st.unit_type().get_item_count();
-    for (u16 i = 0; i < tn; ++i) {
-        cstr nm = st.unit_type().get_name(UnitTypeStaticDataKey::from_raw(i));
-        if (nm != nullptr && std::strcmp(nm, "LAND_WORKER") == 0) {
-            worker_type = i;
-            break;
-        }
-    }
-    if (worker_type == U16_KEY_NULL) {
-        return U16_KEY_NULL;
-    }
-    const u16 un = st.unit().get_item_count();
-    for (u16 i = 0; i < un; ++i) {
-        if (st.unit().get_item(UnitStaticDataKey::from_raw(i)).type == worker_type) {
-            return i;
-        }
-    }
-    return U16_KEY_NULL;
-}
-
 static u16 count_cities (const GameState& state) {
     u16 n = 0;
     const u16 cn = state.m_cities.get_city_count();
@@ -511,40 +486,6 @@ static u16 count_workers (const GameState& state) {
         }
     }
     return n;
-}
-
-static const u16 G_WORKERS_PER_CITY = 2u;
-static u16 g_city_spawned_n = 0;
-
-static u16 spawn_workers_for_city (GameState& state, u16 city_idx, u16 worker_typ, u16 n) {
-    City* city = state.m_cities.get_city(city_idx);
-    if (city == nullptr || city->get_owner() == U16_KEY_NULL) {
-        return 0;
-    }
-    u16 spawned = 0;
-    for (u16 k = 0; k < n; ++k) {
-        UnitAddKey key = UnitAddKey::None();
-        if (!UnitMovementMng::place_on_tile(state, city->get_x(), city->get_y(), city->get_owner(), worker_typ, &key)) {
-            break;
-        }
-        UnitAddStruct* u = state.m_units.get_unit_add(key);
-        if (u == nullptr) {
-            break;
-        }
-        WorkerHelper::set_data(u, city_idx);
-        spawned = static_cast<u16>(spawned + 1u);
-    }
-    return spawned;
-}
-
-static u16 spawn_workers_for_new_cities (GameState& state, u16 worker_typ) {
-    const u16 cn = state.m_cities.get_city_count();
-    u16 spawned = 0;
-    for (u16 i = g_city_spawned_n; i < cn; ++i) {
-        spawned = static_cast<u16>(spawned + spawn_workers_for_city(state, i, worker_typ, G_WORKERS_PER_CITY));
-    }
-    g_city_spawned_n = cn;
-    return spawned;
 }
 
 static void unlock_all_tech (GameState& state) {
@@ -652,9 +593,6 @@ static void after_city_turns (GameState& state) {
         ps.m_last_turn_settler_build_n = ps.m_this_turn_settler_build_n;
         ps.m_this_turn_settler_build_n = 0;
         ps.m_last_turn_settler_count = 0;
-        ps.m_last_turn_worker_build_n = ps.m_this_turn_worker_build_n;
-        ps.m_this_turn_worker_build_n = 0;
-        ps.m_last_turn_worker_count = 0;
         ps.m_defensive_unit_count = 0;
     }
 }
@@ -1301,9 +1239,8 @@ int main (int argc, char** argv) {
     wctx.m_resource = nullptr;
     TileWorkAssessor::bind_ctx(&wctx);
 
-    const u16 worker_typ = find_worker_typ(st);
-    if (worker_typ == U16_KEY_NULL) {
-        std::printf("fail find worker typ\n");
+    if (state.m_land_worker_type_idx == U16_KEY_NULL) {
+        std::printf("fail land worker type\n");
         state.clear();
         setup.release_map_gen();
         return 1;
@@ -1329,14 +1266,11 @@ int main (int argc, char** argv) {
     state.m_turn_limit = turn_cap;
     state.m_current_turn = 0;
     const u16 cities0 = count_cities(state);
-    g_city_spawned_n = 0;
-    spawn_workers_for_new_cities(state, worker_typ);
     const u16 workers0 = count_workers(state);
-    std::printf("*** start players=%u cities=%u workers=%u turn_cap=%u scan=%u reassign=%u workers_per_city=%u extend=%d ppm_every=%u time_only=%d tech=%d tech_iv=%u path_worker=%u out=%s\n",
+    std::printf("*** start players=%u cities=%u workers=%u turn_cap=%u scan=%u reassign=%u extend=%d ppm_every=%u time_only=%d tech=%d tech_iv=%u path_worker=%u out=%s\n",
         state.m_player_n, cities0, workers0, turn_cap,
         (unsigned)state.m_player_states[0].m_worker_tile_opt_scan,
         (unsigned)state.m_player_states[0].m_worker_tile_opt_reassign,
-        (unsigned)G_WORKERS_PER_CITY,
         extend ? 1 : 0, g_ppm_every, g_time_only ? 1 : 0,
         g_gradual_tech ? 1 : 0, g_tech_iv,
         (unsigned)state.m_path_worker, G_OUT_DIR);
@@ -1390,7 +1324,6 @@ int main (int argc, char** argv) {
         ps.m_worker_tile_opt_scan = 1;
         ps.m_worker_tile_opt_reassign = 0;
     }
-    spawn_workers_for_new_cities(state, worker_typ);
 
     const auto t_loop0 = std::chrono::steady_clock::now();
     while (state.m_current_turn < turn_cap) {
@@ -1402,13 +1335,6 @@ int main (int argc, char** argv) {
             run_unit_turns(state);
             const auto t1 = std::chrono::steady_clock::now();
             tm_add(&g_tm_turn, static_cast<u64>(
-                std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()));
-        }
-        {
-            const auto t0 = std::chrono::steady_clock::now();
-            spawn_workers_for_new_cities(state, worker_typ);
-            const auto t1 = std::chrono::steady_clock::now();
-            tm_add(&g_tm_spawn, static_cast<u64>(
                 std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()));
         }
         if (g_time_only) {

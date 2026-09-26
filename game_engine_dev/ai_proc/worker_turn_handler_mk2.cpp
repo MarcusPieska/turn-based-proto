@@ -35,6 +35,7 @@
 #include "worker_job_target_enum.h"
 #include "worker_job_type_enum.h"
 #include "worker_pathing.h"
+#include "city_connector.h"
 
 //================================================================================================================================
 //=> - Statics -
@@ -43,6 +44,7 @@
 WorkerTurnHandlerMk2::JobNoteFn WorkerTurnHandlerMk2::m_job_note = nullptr;
 
 static bool stamp_disk_cand (const GameState& state, u16 city_idx, u16 ux, u16 uy);
+static const bool k_conn = true; // CityConnector promote beyond disc; set false / drop call sites to disable
 
 //================================================================================================================================
 //=> - Helpers -
@@ -512,7 +514,6 @@ void WorkerTurnHandlerMk2::handle (GameState& state, u16 unit_idx) {
     const u16 player = unit->m_player_idx;
     GAME_EXPECT(player < state.m_player_n, "WorkerTurnHandlerMk2 player out of bounds");
     PlayerState& ps = state.m_player_states[player];
-    ps.m_last_turn_worker_count = static_cast<u16>(ps.m_last_turn_worker_count + 1u);
     if (!WorkerBuildProgress::can_start(unit)) {
         return;
     }
@@ -555,6 +556,9 @@ void WorkerTurnHandlerMk2::handle (GameState& state, u16 unit_idx) {
     if (cur->get_tile_imp_count() == 0u) {
         if (!tile_pending(state, cur_idx, unit->m_x, unit->m_y)) {
             wdest_clr(unit);
+            if (k_conn && CityConnector::handle(state, unit_idx)) {
+                return;
+            }
             return;
         }
     }
@@ -587,6 +591,9 @@ void WorkerTurnHandlerMk2::handle (GameState& state, u16 unit_idx) {
     if (!have) {
         if (!pick_marked(state, cur_idx, unit->m_x, unit->m_y, &x, &y)) {
             wdest_clr(unit);
+            if (k_conn && CityConnector::handle(state, unit_idx)) {
+                return;
+            }
             return;
         }
         intent = static_cast<TileAssignIntent>(state.m_map.get_tile_usage(x, y));
@@ -594,6 +601,9 @@ void WorkerTurnHandlerMk2::handle (GameState& state, u16 unit_idx) {
             state.m_map.set_tile_work_needed(x, y, 0u);
             cur->add_tile_imp_count(-1);
             wdest_clr(unit);
+            if (k_conn && CityConnector::handle(state, unit_idx)) {
+                return;
+            }
             return;
         }
         have = true;

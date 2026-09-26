@@ -324,18 +324,6 @@ static void stamp_spine (GameState& state, const CcSpine* sp) {
     }
 }
 
-static bool spine_has_virtual (const GameState& state, const CcSpine* sp) {
-    if (sp == nullptr) {
-        return false;
-    }
-    for (u16 i = 0; i < sp->m_n; ++i) {
-        if (road_is_virtual(state.m_map.get_road_typ(sp->m_x[i], sp->m_y[i]))) {
-            return true;
-        }
-    }
-    return false;
-}
-
 static bool spine_all_built (const GameState& state, const CcSpine* sp) {
     if (sp == nullptr) {
         return true;
@@ -411,23 +399,6 @@ static void mark_built (City* home, u8 hdir, City* tgt, u16 home_idx) {
     }
 }
 
-static void arm_city_roads (City* city, u16 city_idx) {
-    if (city == nullptr) {
-        return;
-    }
-    for (u8 d = 0; d < 4u; ++d) {
-        const u16 j = city->get_conn_city(d);
-        if (j == U16_KEY_NULL || j <= city_idx) {
-            continue;
-        }
-        if (city->is_conn_city_built(d)) {
-            continue;
-        }
-        city->set_city_has_worker(1);
-        return;
-    }
-}
-
 static bool in_max_brd (u16 cx, u16 cy, u16 x, u16 y) {
     const i32 dx = static_cast<i32>(x) - static_cast<i32>(cx);
     const i32 dy = static_cast<i32>(y) - static_cast<i32>(cy);
@@ -464,29 +435,6 @@ static void fill_link_ctrs (
 static bool is_link_ctr (u16 x, u16 y, const u16* lx, const u16* ly, u8 n) {
     for (u8 i = 0; i < n; ++i) {
         if (lx[i] == x && ly[i] == y) {
-            return true;
-        }
-    }
-    return false;
-}
-
-static bool disk_has_virtual (const GameState& state, u16 city_idx, u16 cx, u16 cy) {
-    const CircArea area = CityTileManager::work_area();
-    for (u16 i = 0; i < area.m_lim; ++i) {
-        const i32 x = static_cast<i32>(cx) + static_cast<i32>(area.m_brd[i][0]);
-        const i32 y = static_cast<i32>(cy) + static_cast<i32>(area.m_brd[i][1]);
-        if (x < 0 || y < 0) {
-            continue;
-        }
-        const u16 ux = static_cast<u16>(x);
-        const u16 uy = static_cast<u16>(y);
-        if (ux >= state.m_map.width() || uy >= state.m_map.height()) {
-            continue;
-        }
-        if (TileWorking::get_worker(ux, uy) != city_idx) {
-            continue;
-        }
-        if (road_is_virtual(state.m_map.get_road_typ(ux, uy))) {
             return true;
         }
     }
@@ -587,35 +535,6 @@ static bool handle_map_virtual (GameState& state, u16 unit_idx) {
     return true;
 }
 
-static bool city_has_road_pending (const GameState& state, u16 home_idx, const City* home) {
-    if (home == nullptr) {
-        return false;
-    }
-    if (!g_plan) {
-        return disk_has_virtual(state, home_idx, home->get_x(), home->get_y());
-    }
-    if (!state.m_city_net.is_valid()) {
-        return false;
-    }
-    for (u8 d = 0; d < 4u; ++d) {
-        const u16 j = home->get_conn_city(d);
-        if (j == U16_KEY_NULL || j <= home_idx) {
-            continue;
-        }
-        if (home->is_conn_city_built(d)) {
-            continue;
-        }
-        if (!home->is_conn_city_locked(d)) {
-            return true;
-        }
-        const CcSpine* sp = spine_get(home_idx, d);
-        if (sp != nullptr && spine_has_virtual(state, sp)) {
-            return true;
-        }
-    }
-    return false;
-}
-
 static CcSpine* ensure_stamped (GameState& state, City* home, u8 hdir, u16 home_idx, City* tgt) {
     if (!g_plan) {
         return nullptr;
@@ -630,7 +549,6 @@ static CcSpine* ensure_stamped (GameState& state, City* home, u8 hdir, u16 home_
     claim_link(home, hdir, tgt, home_idx);
     build_spine(state, home->get_x(), home->get_y(), tgt->get_x(), tgt->get_y(), sp);
     stamp_spine(state, sp);
-    home->set_city_has_worker(1);
     return sp;
 }
 
@@ -682,50 +600,8 @@ static bool pick_link_virtual (
 }
 
 void CityConnector::on_city_net_changed (GameState& state, u16 city_idx) {
-    City* city = state.m_cities.get_city(city_idx);
-    if (!g_plan) {
-        if (city != nullptr && disk_has_virtual(state, city_idx, city->get_x(), city->get_y())) {
-            city->set_city_has_worker(1);
-        }
-        return;
-    }
-    arm_city_roads(city, city_idx);
-    for (u16 i = 0; i < city_idx; ++i) {
-        City* c = state.m_cities.get_city(i);
-        if (c == nullptr) {
-            continue;
-        }
-        for (u8 d = 0; d < 4u; ++d) {
-            if (c->get_conn_city(d) != city_idx) {
-                continue;
-            }
-            if (c->is_conn_city_built(d)) {
-                break;
-            }
-            c->set_city_has_worker(1);
-            break;
-        }
-    }
-}
-
-void CityConnector::clear_idle_flag (
-    GameState& state,
-    u16 city_idx,
-    City* city,
-    u16 cx,
-    u16 cy,
-    bool imp_disk_done)
-{
-    if (city == nullptr || !imp_disk_done) {
-        return;
-    }
-    if (CityTileManager::count_worked(cx, cy, city_idx) == 0u) {
-        return;
-    }
-    if (city_has_road_pending(state, city_idx, city)) {
-        return;
-    }
-    city->set_city_has_worker(0);
+    (void)state;
+    (void)city_idx;
 }
 
 bool CityConnector::has_virtual_at (const GameState& state, u16 x, u16 y) {
@@ -798,22 +674,6 @@ void CityConnector::set_plan_spines (bool plan) {
 
 bool CityConnector::plan_spines () {
     return g_plan;
-}
-
-void CityConnector::sync_road_arms (GameState& state) {
-    if (g_plan) {
-        return;
-    }
-    const u16 n = state.m_cities.get_city_count();
-    for (u16 i = 0; i < n; ++i) {
-        City* c = state.m_cities.get_city(i);
-        if (c == nullptr) {
-            continue;
-        }
-        if (disk_has_virtual(state, i, c->get_x(), c->get_y())) {
-            c->set_city_has_worker(1);
-        }
-    }
 }
 
 void CityConnector::clear () {

@@ -29,10 +29,8 @@ public:
     static bool begin (GameState& state, bool plan_spines = true);
     static void set_plan_spines (bool plan);
     static bool plan_spines ();
-    static void sync_road_arms (GameState& state);
     static void clear ();
     static void on_city_net_changed (GameState& state, u16 city_idx);
-    static void clear_idle_flag (GameState& state, u16 city_idx, City* city, u16 cx, u16 cy, bool imp_disk_done);
     static bool has_virtual_at (const GameState& state, u16 x, u16 y);
     static bool on_road_tile (const GameState& state, u16 x, u16 y);
     static bool step_toward (GameState& state, u16 unit_idx, u16 tx, u16 ty);

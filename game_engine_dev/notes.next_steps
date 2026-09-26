@@ -13,6 +13,8 @@ Tile improvement and working:
 
 Combat:
  - We need to tweak combat math; terrain defence bonuses are overpowered
+ - We need class or function to handle unit deletion
+ - Workers units need to be removed also from the city that they work for
 
 
 Static data:

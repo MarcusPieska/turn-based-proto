@@ -17,7 +17,7 @@ class GameState;
 //  disk (e.g. place+irr+mill = 3); tiles use m_tile_work_needed. CityTurnHandler reassesses when
 //  count is 0 on a city_idx % 10 schedule. Workers stay tied to a base city (WorkerHelper data),
 //  greedily path to marked tiles, and may spill to connected cities when the base is idle. Prefer
-//  no stalls over optimal play.
+//  no stalls over optimal play. Optional CityConnector promote (k_conn) extends roads beyond the disc.
 //
 //================================================================================================================================
 

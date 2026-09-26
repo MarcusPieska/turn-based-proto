@@ -108,9 +108,6 @@ public:
     u16 m_last_turn_settler_count = 0; // Settlers counted during last unit pass (SettlerTurnHandler::handle)
     u16 m_this_turn_settler_build_n = 0; // Settlers in city queues counted this city pass
     u16 m_last_turn_settler_build_n = 0; // Prior this-turn settler builds; carried before reset
-    u16 m_last_turn_worker_count = 0; // Workers counted during last unit pass (WorkerTurnHandler::handle)
-    u16 m_this_turn_worker_build_n = 0; // Workers in city queues counted this city pass
-    u16 m_last_turn_worker_build_n = 0; // Prior this-turn worker builds; carried before reset
     u16 m_defensive_unit_count = 0; // Defensive units counted during last unit pass (DefensiveUnitTurnHandler::handle)
     
     // The counters below are copied over after the city turn loop; i.e., the city loop will know last turns city counts

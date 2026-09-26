@@ -34,7 +34,7 @@
 #include "war_turn_handler.h"
 #include "whiteboard_mng.h"
 #include "worker_build_progress.h"
-#include "worker_turn_handler.h"
+#include "worker_turn_handler_mk2.h"
 
 
 //================================================================================================================================
@@ -89,9 +89,6 @@ static void after_city_turns (GameState& state) {
         ps.m_last_turn_settler_build_n = ps.m_this_turn_settler_build_n;
         ps.m_this_turn_settler_build_n = 0;
         ps.m_last_turn_settler_count = 0;
-        ps.m_last_turn_worker_build_n = ps.m_this_turn_worker_build_n;
-        ps.m_this_turn_worker_build_n = 0;
-        ps.m_last_turn_worker_count = 0;
         ps.m_defensive_unit_count = 0;
     }
 }
@@ -322,7 +319,7 @@ static void run_unit_turns (GameState& state) {
             SettlerTurnHandler::handle(state, unit_idx);
         } else if (ut == state.m_land_worker_type_idx) {
             WorkerBuildProgress::refill_mp(state, unit_idx);
-            WorkerTurnHandler::handle(state, unit_idx);
+            WorkerTurnHandlerMk2::handle(state, unit_idx);
         } else if (ut == state.m_land_defense_type_idx) {
             refill_mp(state, unit_idx);
             DefensiveUnitTurnHandler::handle(state, unit_idx);
