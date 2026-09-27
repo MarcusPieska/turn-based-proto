@@ -5,6 +5,7 @@
 #include "worker_turn_handler_mk2.h"
 
 #include "assert_log.h"
+#include "bit_array.h"
 #include "city.h"
 #include "city_tile_manager.h"
 #include "circular_tile_areas.h"
@@ -329,29 +330,34 @@ static bool fort_territory_ok (const GameState& state, u16 city_idx, u16 ux, u16
     return state.m_map.get_civ_owner(ux, uy) == static_cast<u8>(player);
 }
 
+static bool road_site (const GameArraySimple& map, u16 x, u16 y) {
+    return map.get_road_typ(x, y) != ROAD_NONE;
+}
+
 static bool dirt_needed (const GameArraySimple& map, u16 x, u16 y) {
-    if (road_is_built(map.get_road_typ(x, y))) {
+    if (!road_site(map, x, y)) {
         return false;
     }
-    if (road_is_virtual(map.get_road_typ(x, y))) {
-        return true;
+    const u8 cur = road_is_virtual(map.get_road_typ(x, y)) ? static_cast<u8>(ROAD_NONE) : map.get_road_typ(x, y);
+    const u16 j0 = static_cast<u16>(WorkerJob::Build_Dirt_Path);
+    const u16 j1 = static_cast<u16>(WorkerJob::Build_Railroad);
+    for (u16 j = j0; j <= j1; ++j) {
+        u8 res = ROAD_NONE;
+        if (!TileWorkAssessor::road_result_typ(j, &res) || res <= cur) {
+            continue;
+        }
+        if (TileWorkAssessor::has_job_work(x, y, j)) {
+            return true;
+        }
     }
-    const u8 iv = map.get_ai_ov_intent(x, y);
-    if (iv == AI_TILE_OV_INTENT_MTN_PASS) {
-        return true;
-    }
-    if (iv != AI_TILE_OV_INTENT_FORT) {
-        return false;
-    }
-    const u8 terr = map.get_terrain(x, y);
-    return terr == TERR_MOUNTAINS[0] || terr == TERR_VOLCANO[0];
+    return false;
 }
 
 static bool stamp_disk_cand (const GameState& state, u16 city_idx, u16 ux, u16 uy) {
     if (!fort_territory_ok(state, city_idx, ux, uy)) {
         return false;
     }
-    if (road_is_virtual(state.m_map.get_road_typ(ux, uy))) {
+    if (state.m_map.get_road_typ(ux, uy) != ROAD_NONE) {
         return true;
     }
     const u8 iv = state.m_map.get_ai_ov_intent(ux, uy);
@@ -439,6 +445,39 @@ static bool apply_one (
 }
 
 //================================================================================================================================
+//=> - Work ctx -
+//================================================================================================================================
+
+static TileWorkCtx s_wctx;
+static BitArrayCL* s_res_bits = nullptr;
+static u16 s_res_n = 0;
+
+static void bind_work_ctx (GameState& state, u16 player) {
+    s_wctx.m_tech = nullptr;
+    s_wctx.m_resource = nullptr;
+    if (player < state.m_player_n) {
+        PlayerState& ps = state.m_player_states[player];
+        s_wctx.m_tech = ps.m_techs_researched;
+        const u16 rn = ps.m_res_ledger.count();
+        if (rn != 0u) {
+            if (s_res_bits == nullptr || s_res_n != rn) {
+                delete s_res_bits;
+                s_res_bits = new BitArrayCL(rn);
+                s_res_n = rn;
+            }
+            s_res_bits->clear_all();
+            for (u16 i = 0; i < rn; ++i) {
+                if (ps.m_res_ledger.get(i) > 0u) {
+                    s_res_bits->set_bit(i);
+                }
+            }
+            s_wctx.m_resource = s_res_bits;
+        }
+    }
+    TileWorkAssessor::bind_ctx(&s_wctx);
+}
+
+//================================================================================================================================
 //=> - WorkerTurnHandlerMk2 -
 //================================================================================================================================
 
@@ -458,13 +497,7 @@ u32 WorkerTurnHandlerMk2::assess (GameState& state, u16 city_idx) {
     if (city == nullptr) {
         return 0;
     }
-    static TileWorkCtx s_wctx;
-    s_wctx.m_tech = nullptr;
-    s_wctx.m_resource = nullptr;
-    if (city->get_owner() < state.m_player_n) {
-        s_wctx.m_tech = state.m_player_states[city->get_owner()].m_techs_researched;
-    }
-    TileWorkAssessor::bind_ctx(&s_wctx);
+    bind_work_ctx(state, city->get_owner());
 
     const u16 cx = city->get_x();
     const u16 cy = city->get_y();
@@ -517,6 +550,7 @@ void WorkerTurnHandlerMk2::handle (GameState& state, u16 unit_idx) {
     if (!WorkerBuildProgress::can_start(unit)) {
         return;
     }
+    bind_work_ctx(state, player);
 
     u16 base_idx = 0;
     u16 bx = 0;

@@ -4,6 +4,8 @@
 
 #include "tech_age_mng.h" 
 
+#include <cstdio>
+
 #include "assert_log.h"
 #include "runtime_statics.h"
 #include "tech_static_data.h"
@@ -138,6 +140,38 @@ u8 TechAgeMng::done (u16 age) const {
     GAME_EXPECT(m_done != nullptr, "TechAgeMng done ptr");
     GAME_EXPECT(age < m_age_n, "TechAgeMng done age");
     return m_done[age];
+}
+
+bool TechAgeMng::wr (void* fp_raw) const {
+    std::FILE* fp = static_cast<std::FILE*>(fp_raw);
+    if (fp == nullptr || m_done == nullptr || !m_ready) {
+        return false;
+    }
+    if (std::fwrite(&m_age_n, sizeof(m_age_n), 1, fp) != 1
+        || std::fwrite(&m_head, sizeof(m_head), 1, fp) != 1) {
+        return false;
+    }
+    return std::fwrite(m_done, sizeof(u8), static_cast<size_t>(m_age_n), fp) == static_cast<size_t>(m_age_n);
+}
+
+bool TechAgeMng::rd (void* fp_raw) {
+    std::FILE* fp = static_cast<std::FILE*>(fp_raw);
+    if (fp == nullptr || m_done == nullptr || !m_ready) {
+        return false;
+    }
+    u16 age_n = 0;
+    u16 head = 0;
+    if (std::fread(&age_n, sizeof(age_n), 1, fp) != 1
+        || std::fread(&head, sizeof(head), 1, fp) != 1
+        || age_n != m_age_n
+        || head >= m_age_n) {
+        return false;
+    }
+    if (std::fread(m_done, sizeof(u8), static_cast<size_t>(m_age_n), fp) != static_cast<size_t>(m_age_n)) {
+        return false;
+    }
+    m_head = head;
+    return true;
 }
 
 //================================================================================================================================

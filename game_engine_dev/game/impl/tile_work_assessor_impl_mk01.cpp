@@ -66,6 +66,89 @@ static bool push_cand (TileWorkCand* out, u16 out_cap, u16* n, u16 job_idx, u16 
     return true;
 }
 
+static const u16 k_road_tier_max = 8u;
+
+struct RoadTier {
+    u16 m_job; // worker_job catalog index
+    u16 m_attr; // map_attribute target_idx (sort key)
+    u8 m_result; // ROAD_* written when this job completes
+    u8 m_need; // required current ROAD_* (NONE for base; VIRTUAL counts as NONE)
+};
+
+static RoadTier s_road_tiers[k_road_tier_max];
+static u16 s_road_tier_n = 0;
+
+static void road_tiers_clear () {
+    s_road_tier_n = 0;
+    for (u16 i = 0; i < k_road_tier_max; ++i) {
+        s_road_tiers[i].m_job = U16_KEY_NULL;
+        s_road_tiers[i].m_attr = U16_KEY_NULL;
+        s_road_tiers[i].m_result = ROAD_NONE;
+        s_road_tiers[i].m_need = ROAD_NONE;
+    }
+}
+
+static void road_tiers_sort () {
+    for (u16 i = 1; i < s_road_tier_n; ++i) {
+        RoadTier key = s_road_tiers[i];
+        u16 j = i;
+        while (j > 0u && s_road_tiers[j - 1u].m_attr > key.m_attr) {
+            s_road_tiers[j] = s_road_tiers[j - 1u];
+            j = static_cast<u16>(j - 1u);
+        }
+        s_road_tiers[j] = key;
+    }
+}
+
+static bool road_tiers_build (const RuntimeStatics& st) {
+    road_tiers_clear();
+    const u16 jn = st.worker_job().get_item_count();
+    for (u16 j = 0; j < jn; ++j) {
+        const WorkerJobStaticDataStruct& row = st.worker_job().get_item(WorkerJobStaticDataKey::from_raw(j));
+        if (static_cast<WorkerJobType>(row.type) != WorkerJobType::Road) {
+            continue;
+        }
+        if (row.target_kind != static_cast<u16>(WorkerJobTarget::Attribute)) {
+            continue;
+        }
+        if (s_road_tier_n >= k_road_tier_max) {
+            return false;
+        }
+        RoadTier& t = s_road_tiers[s_road_tier_n];
+        t.m_job = j;
+        t.m_attr = row.target_idx;
+        t.m_result = ROAD_NONE;
+        t.m_need = ROAD_NONE;
+        s_road_tier_n = static_cast<u16>(s_road_tier_n + 1u);
+    }
+    road_tiers_sort();
+    for (u16 i = 0; i < s_road_tier_n; ++i) {
+        const u8 result = static_cast<u8>(s_road_tiers[i].m_attr);
+        if (result == ROAD_NONE || result >= ROAD_VIRTUAL) {
+            return false;
+        }
+        s_road_tiers[i].m_result = result;
+        s_road_tiers[i].m_need = (i == 0u) ? static_cast<u8>(ROAD_NONE) : s_road_tiers[i - 1u].m_result;
+    }
+    return s_road_tier_n > 0u;
+}
+
+static const RoadTier* road_tier_for_job (u16 job_idx) {
+    for (u16 i = 0; i < s_road_tier_n; ++i) {
+        if (s_road_tiers[i].m_job == job_idx) {
+            return &s_road_tiers[i];
+        }
+    }
+    return nullptr;
+}
+
+static u8 road_cur_eff (u8 road_typ) {
+    if (road_is_virtual(road_typ)) {
+        return ROAD_NONE;
+    }
+    return road_typ;
+}
+
 static bool place_ok_farm (const GameArraySimple& map, u16 job_idx, u16 x, u16 y) {
     const u8 terr = map.get_terrain(x, y);
     const u16 ov = map.get_overlay(x, y);
@@ -78,8 +161,15 @@ static bool place_ok_farm (const GameArraySimple& map, u16 job_idx, u16 x, u16 y
     return TileYields::job_raises_food(x, y, job_idx);
 }
 
-static bool place_ok_road (const GameArraySimple& map, u16 x, u16 y) {
-    return !overlay_is_water_terr(map.get_terrain(x, y));
+static bool place_ok_road (const GameArraySimple& map, u16 job_idx, u16 x, u16 y) {
+    if (overlay_is_water_terr(map.get_terrain(x, y))) {
+        return false;
+    }
+    const RoadTier* tier = road_tier_for_job(job_idx);
+    if (tier == nullptr) {
+        return false;
+    }
+    return road_cur_eff(map.get_road_typ(x, y)) == tier->m_need;
 }
 
 static bool place_ok_forest (const GameArraySimple& map, u16 x, u16 y) {
@@ -197,7 +287,11 @@ static bool place_ok_resource (const RuntimeStatics& st, const GameArraySimple& 
 
 bool TileWorkAssessor::setup (const RuntimeStatics& st) {
     m_st = &st;
-    return st.worker_job().get_item_count() > 0;
+    if (st.worker_job().get_item_count() == 0) {
+        road_tiers_clear();
+        return false;
+    }
+    return road_tiers_build(st);
 }
 
 void TileWorkAssessor::bind_map (const GameArraySimple* map) {
@@ -229,7 +323,7 @@ bool TileWorkAssessor::tile_ok (u16 job_idx, u16 x, u16 y) {
         case WorkerJobType::Resource:
             return place_ok_resource(*m_st, *m_map, job_idx, x, y);
         case WorkerJobType::Road:
-            return place_ok_road(*m_map, x, y);
+            return place_ok_road(*m_map, job_idx, x, y);
         case WorkerJobType::Forest:
             return place_ok_forest(*m_map, x, y);
         case WorkerJobType::Clearing:
@@ -239,6 +333,18 @@ bool TileWorkAssessor::tile_ok (u16 job_idx, u16 x, u16 y) {
         default:
             return false;
     }
+}
+
+bool TileWorkAssessor::road_result_typ (u16 job_idx, u8* out_typ) {
+    if (out_typ == nullptr) {
+        return false;
+    }
+    const RoadTier* tier = road_tier_for_job(job_idx);
+    if (tier == nullptr) {
+        return false;
+    }
+    *out_typ = tier->m_result;
+    return true;
 }
 
 static bool imp_already_set (const GameArraySimple& map, u16 x, u16 y, u16 imp_idx, const RuntimeStatics& st) {

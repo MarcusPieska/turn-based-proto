@@ -11,6 +11,7 @@
 #include "game_array_simple.h"
 #include "game_state.h"
 #include "general_bit_bank.h"
+#include "simple_dyn_state_io.h"
 #include "unit_add_struct.h"
 #include "unit_add_vector.h"
 #include "unit_add_vector_key.h"
@@ -229,44 +230,12 @@ bool GameIo::wr_bit_cl (void* fp_raw, const BitArrayCL* ba) {
     return ok;
 }
 
-bool GameIo::save_players (cstr path, const PlayerState* seats, u16 player_n) {
-    if (path == nullptr || seats == nullptr || player_n == 0) {
-        return false;
-    }
-    std::FILE* fp = std::fopen(path, "wb");
-    if (fp == nullptr) {
-        return false;
-    }
-    const u32 magic = k_players_magic;
-    const u32 ver = k_io_ver;
-    if (std::fwrite(&magic, sizeof(magic), 1, fp) != 1
-        || std::fwrite(&ver, sizeof(ver), 1, fp) != 1
-        || std::fwrite(&player_n, sizeof(player_n), 1, fp) != 1) {
-        std::fclose(fp);
-        return false;
-    }
-    for (u16 p = 0; p < player_n; ++p) {
-        const PlayerState& ps = seats[p];
-        if (std::fwrite(&ps.m_civ_index, sizeof(ps.m_civ_index), 1, fp) != 1
-            || std::fwrite(&ps.m_research_spending_perc, sizeof(ps.m_research_spending_perc), 1, fp) != 1
-            || std::fwrite(&ps.m_current_research_target_idx, sizeof(ps.m_current_research_target_idx), 1, fp) != 1
-            || std::fwrite(&ps.m_commerce, sizeof(ps.m_commerce), 1, fp) != 1
-            || std::fwrite(&ps.m_research, sizeof(ps.m_research), 1, fp) != 1
-            || std::fwrite(&ps.m_commerce_from_turn, sizeof(ps.m_commerce_from_turn), 1, fp) != 1) {
-            std::fclose(fp);
-            return false;
-        }
-        if (!wr_bit_cl(fp, ps.m_techs_researched)) {
-            std::fclose(fp);
-            return false;
-        }
-    }
-    std::fclose(fp);
-    return true;
+bool GameIo::save_players (cstr path, const PlayerState* seats, u16 player_n, u16 small_wonder_n) {
+    return SimpleDynStateIO::save_players(path, seats, player_n, small_wonder_n);
 }
 
 bool GameIo::save_players (cstr path, const GameState& state) {
-    return save_players(path, state.m_player_states, state.m_player_n);
+    return SimpleDynStateIO::save_players(path, state);
 }
 
 //================================================================================================================================
@@ -520,69 +489,11 @@ bool GameIo::load_cities (cstr path, CityArray& cities) {
 }
 
 bool GameIo::load_players (cstr path, PlayerState*& seats, u16& player_n) {
-    if (path == nullptr) {
-        return false;
-    }
-    std::FILE* fp = std::fopen(path, "rb");
-    if (fp == nullptr) {
-        return false;
-    }
-    u32 magic = 0;
-    u32 ver = 0;
-    u16 n = 0;
-    if (std::fread(&magic, sizeof(magic), 1, fp) != 1
-        || std::fread(&ver, sizeof(ver), 1, fp) != 1
-        || std::fread(&n, sizeof(n), 1, fp) != 1
-        || magic != k_players_magic
-        || ver < k_io_ver
-        || n == 0) {
-        std::fclose(fp);
-        return false;
-    }
-    if (seats != nullptr) {
-        for (u16 i = 0; i < player_n; ++i) {
-            delete seats[i].m_techs_researched;
-            seats[i].m_techs_researched = nullptr;
-        }
-        delete[] seats;
-        seats = nullptr;
-        player_n = 0;
-    }
-    seats = new PlayerState[n];
-    player_n = n;
-    for (u16 p = 0; p < n; ++p) {
-        PlayerState& ps = seats[p];
-        if (std::fread(&ps.m_civ_index, sizeof(ps.m_civ_index), 1, fp) != 1
-            || std::fread(&ps.m_research_spending_perc, sizeof(ps.m_research_spending_perc), 1, fp) != 1
-            || std::fread(&ps.m_current_research_target_idx, sizeof(ps.m_current_research_target_idx), 1, fp) != 1
-            || std::fread(&ps.m_commerce, sizeof(ps.m_commerce), 1, fp) != 1
-            || std::fread(&ps.m_research, sizeof(ps.m_research), 1, fp) != 1
-            || std::fread(&ps.m_commerce_from_turn, sizeof(ps.m_commerce_from_turn), 1, fp) != 1
-            || !rd_bit_cl(fp, &ps.m_techs_researched)) {
-            for (u16 j = 0; j <= p; ++j) {
-                delete seats[j].m_techs_researched;
-                seats[j].m_techs_researched = nullptr;
-            }
-            delete[] seats;
-            seats = nullptr;
-            player_n = 0;
-            std::fclose(fp);
-            return false;
-        }
-    }
-    std::fclose(fp);
-    return true;
+    return SimpleDynStateIO::load_players(path, seats, player_n);
 }
 
 bool GameIo::load_players (cstr path, GameState& state) {
-    PlayerState* seats = state.m_player_states;
-    u16 n = state.m_player_n;
-    if (!load_players(path, seats, n)) {
-        return false;
-    }
-    state.m_player_states = seats;
-    state.m_player_n = n;
-    return true;
+    return SimpleDynStateIO::load_players(path, state);
 }
 
 //================================================================================================================================

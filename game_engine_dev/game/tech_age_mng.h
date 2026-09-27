@@ -38,6 +38,9 @@ public:
     u16 head_age () const; // Highest unlocked age index
     u8 done (u16 age) const; // Researched count for age
 
+    bool wr (void* fp) const; // Instance m_done + m_head only
+    bool rd (void* fp); // Requires TechAgeMng::ready(); fills instance
+
 private:
     TechAgeMng (const TechAgeMng& o) = delete;
     TechAgeMng& operator= (const TechAgeMng& o) = delete;

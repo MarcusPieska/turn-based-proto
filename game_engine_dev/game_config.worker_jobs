@@ -9,6 +9,6 @@ Clear Jungle           :  400 : Jungle       : Overlay   : Clearing  : tech(Iron
 Clear Swamp            :  500 : Swamp        : Overlay   : Clearing  : tech(Engineering)
 
 Build Dirt Path        :   50 : Dirt Path    : Attribute : Road      : tech(The Wheel)
-Build Cobble Road      :  200 : Cobble Road  : Attribute : Road      : tech(Masonry) : resource(Stone)
+Build Cobble Road      :  200 : Cobble Road  : Attribute : Road      : tech(Iron Tools) : resource(Stone)
 Build Asphalt Road     :  500 : Asphalt Road : Attribute : Road      : tech(Refining) : resource(Oil)
 Build Railroad         : 1000 : Railroad     : Attribute : Road      : tech(Steam Power) : resource(Iron)

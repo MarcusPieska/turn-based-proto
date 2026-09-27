@@ -148,7 +148,7 @@ int main () {
     if (!GameIo::save_map_tiles(G_MAP_B, map_a)
         || !GameIo::save_units(G_UNITS_B, units_a)
         || !GameIo::save_cities(G_CITIES_B, cities_a)
-        || !GameIo::save_players(G_PLAYERS_B, seats_a, seat_n_a)) {
+        || !GameIo::save_players(G_PLAYERS_B, seats_a, seat_n_a, 0)) {
         std::printf("save B failed\n");
         return 1;
     }

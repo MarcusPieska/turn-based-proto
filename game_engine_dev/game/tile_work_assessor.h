@@ -58,6 +58,7 @@ public:
     static u16 assess_job (u16 x, u16 y, u16 job_idx, TileWorkCand* out, u16 out_cap);
     static bool has_job_work (u16 x, u16 y, u16 job_idx);
     static bool tile_ok (u16 job_idx, u16 x, u16 y);
+    static bool road_result_typ (u16 job_idx, u8* out_typ);
 
 private:
     static const GameArraySimple* m_map;

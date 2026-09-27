@@ -143,35 +143,30 @@ static bool fort_has_work (const RuntimeStatics* st, GameArraySimple& map, u16 x
     return fort_next_work(st, map, x, y, &job, &imp);
 }
 
-static bool dirt_needed (GameArraySimple& map, u16 x, u16 y) {
-    if (road_is_built(map.get_road_typ(x, y))) {
-        return false;
-    }
-    if (road_is_virtual(map.get_road_typ(x, y))) {
-        return true;
-    }
-    const u8 iv = map.get_ai_ov_intent(x, y);
-    if (iv == AI_TILE_OV_INTENT_MTN_PASS) {
-        return true;
-    }
-    if (iv != AI_TILE_OV_INTENT_FORT) {
-        return false;
-    }
-    const u8 terr = map.get_terrain(x, y);
-    return terr == TERR_MOUNTAINS[0] || terr == TERR_VOLCANO[0];
+static bool road_site (GameArraySimple& map, u16 x, u16 y) {
+    return map.get_road_typ(x, y) != ROAD_NONE;
 }
 
 static bool dirt_next_work (GameArraySimple& map, u16 x, u16 y, u16* job, u16* imp) {
-    if (!dirt_needed(map, x, y)) {
+    if (!road_site(map, x, y)) {
         return false;
     }
-    const u16 dj = static_cast<u16>(WorkerJob::Build_Dirt_Path);
-    if (!job_ok(dj, x, y)) {
-        return false;
+    const u8 cur = road_is_virtual(map.get_road_typ(x, y)) ? static_cast<u8>(ROAD_NONE) : map.get_road_typ(x, y);
+    const u16 j0 = static_cast<u16>(WorkerJob::Build_Dirt_Path);
+    const u16 j1 = static_cast<u16>(WorkerJob::Build_Railroad);
+    for (u16 j = j0; j <= j1; ++j) {
+        u8 res = ROAD_NONE;
+        if (!TileWorkAssessor::road_result_typ(j, &res) || res <= cur) {
+            continue;
+        }
+        if (!TileWorkAssessor::has_job_work(x, y, j)) {
+            continue;
+        }
+        *job = j;
+        *imp = U16_KEY_NULL;
+        return true;
     }
-    *job = dj;
-    *imp = U16_KEY_NULL;
-    return true;
+    return false;
 }
 
 static bool dirt_has_work (GameArraySimple& map, u16 x, u16 y) {
@@ -286,8 +281,27 @@ static bool apply_imp (const RuntimeStatics& st, GameArraySimple& map, u16 x, u1
     return TileImpHelper::set_imp(t, st, imp_idx);
 }
 
-static bool apply_overlay_job (GameArraySimple& map, u16 x, u16 y, u16 job_idx) {
-    if (job_idx == U16_KEY_NULL || !job_ok(job_idx, x, y)) {
+static bool apply_overlay_job (const RuntimeStatics* st, GameArraySimple& map, u16 x, u16 y, u16 job_idx) {
+    if (job_idx == U16_KEY_NULL) {
+        return false;
+    }
+    if (st != nullptr && job_idx < st->worker_job().get_item_count()) {
+        const WorkerJobStaticDataStruct& row = st->worker_job().get_item(WorkerJobStaticDataKey::from_raw(job_idx));
+        if (static_cast<WorkerJobType>(row.type) == WorkerJobType::Road) {
+            if (!TileWorkAssessor::has_job_work(x, y, job_idx)) {
+                return false;
+            }
+            u8 typ = ROAD_NONE;
+            if (!TileWorkAssessor::road_result_typ(job_idx, &typ)) {
+                return false;
+            }
+            if (map.get_road_typ(x, y) == typ) {
+                return false;
+            }
+            return map.set_road_typ(x, y, typ);
+        }
+    }
+    if (!job_ok(job_idx, x, y)) {
         return false;
     }
     switch (static_cast<WorkerJob>(job_idx)) {
@@ -322,11 +336,6 @@ static bool apply_overlay_job (GameArraySimple& map, u16 x, u16 y, u16 job_idx) 
                 return false;
             }
             return map.set_add_idx(x, y, 0u);
-        case WorkerJob::Build_Dirt_Path:
-            if (road_is_built(map.get_road_typ(x, y))) {
-                return false;
-            }
-            return map.set_road_typ(x, y, ROAD_PATH);
         default:
             return false;
     }
@@ -422,7 +431,7 @@ bool WorkerGuidance::apply_work (u16 x, u16 y, u16 job_idx, u16 imp_idx) {
     if (imp_idx != U16_KEY_NULL) {
         return apply_imp(*m_st, *m_map, x, y, imp_idx);
     }
-    return apply_overlay_job(*m_map, x, y, job_idx);
+    return apply_overlay_job(m_st, *m_map, x, y, job_idx);
 }
 
 bool WorkerGuidance::apply_job (u16 x, u16 y, u16 job_idx) {

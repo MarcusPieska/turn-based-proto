@@ -232,6 +232,49 @@ static void run_mode (cstr mode, u16 job_idx, GameArraySimple& map, cstr ppm_pat
     std::printf("    wrote %s\n", ppm_path);
 }
 
+static bool find_land_tile (const GameArraySimple& map, u16* ox, u16* oy) {
+    const u16 w = map.width();
+    const u16 h = map.height();
+    for (u16 y = 0; y < h; ++y) {
+        for (u16 x = 0; x < w; ++x) {
+            if (overlay_is_water_terr(map.get_terrain(x, y))) {
+                continue;
+            }
+            *ox = x;
+            *oy = y;
+            return true;
+        }
+    }
+    return false;
+}
+
+static void collect_road_jobs (const RuntimeStatics& st, std::vector<u16>* jobs) {
+    jobs->clear();
+    const u16 jn = st.worker_job().get_item_count();
+    for (u16 j = 0; j < jn; ++j) {
+        const WorkerJobStaticDataStruct& row = st.worker_job().get_item(WorkerJobStaticDataKey::from_raw(j));
+        if (static_cast<WorkerJobType>(row.type) != WorkerJobType::Road) {
+            continue;
+        }
+        jobs->push_back(j);
+    }
+    for (size_t i = 1; i < jobs->size(); ++i) {
+        const u16 key = (*jobs)[i];
+        const u16 key_attr = st.worker_job().get_item(WorkerJobStaticDataKey::from_raw(key)).target_idx;
+        size_t j = i;
+        while (j > 0) {
+            const u16 prev = (*jobs)[j - 1];
+            const u16 prev_attr = st.worker_job().get_item(WorkerJobStaticDataKey::from_raw(prev)).target_idx;
+            if (prev_attr <= key_attr) {
+                break;
+            }
+            (*jobs)[j] = prev;
+            j = j - 1;
+        }
+        (*jobs)[j] = key;
+    }
+}
+
 //================================================================================================================================
 //=> - Main -
 //================================================================================================================================
@@ -257,12 +300,14 @@ int main (int argc, char* argv[]) {
     note_result(Factory_GameArraySimple::load_res_dist_data(&map, g_res), "load resources");
 
     BitArrayCL tech(st.tech().get_item_count());
+    BitArrayCL res(st.resource().get_item_count());
     fill_bits(tech);
+    fill_bits(res);
     TileYieldCtx yctx = {};
     yctx.m_tech = &tech;
     TileWorkCtx wctx = {};
     wctx.m_tech = &tech;
-    wctx.m_resource = nullptr;
+    wctx.m_resource = &res;
     note_result(TileYields::setup(st), "TileYields::setup");
     TileYields::bind_map(&map);
     TileYields::bind_ctx(&yctx);
@@ -270,24 +315,55 @@ int main (int argc, char* argv[]) {
     TileWorkAssessor::bind_map(&map);
     TileWorkAssessor::bind_ctx(&wctx);
 
-    const u16 job_n = st.worker_job().get_item_count();
-    u32 road_job_n = 0;
-    for (u16 j = 0; j < job_n; ++j) {
-        const WorkerJobStaticDataStruct& row = st.worker_job().get_item(WorkerJobStaticDataKey::from_raw(j));
-        if (static_cast<WorkerJobType>(row.type) != WorkerJobType::Road) {
-            continue;
-        }
-        ++road_job_n;
+    std::vector<u16> road_jobs;
+    collect_road_jobs(st, &road_jobs);
+    note_result(road_jobs.size() >= 4u, "found Road jobs");
+
+    for (size_t i = 0; i < road_jobs.size(); ++i) {
+        const u16 j = road_jobs[i];
         cstr job_nm = st.worker_job().get_name(WorkerJobStaticDataKey::from_raw(j));
         std::printf("-----------------------------------------------------------\n");
-        std::printf("ROAD JOB: %s (idx=%u)\n", job_nm, j);
-
+        std::printf("ROAD JOB: %s (idx=%u)\n", job_nm != nullptr ? job_nm : "?", j);
         char ppm[384];
-        std::snprintf(ppm, sizeof(ppm), "%s/place_road_%s.ppm", g_dir, job_nm);
+        std::snprintf(ppm, sizeof(ppm), "%s/place_road_%s.ppm", g_dir, job_nm != nullptr ? job_nm : "job");
         slug_spaces(ppm);
-        run_mode("ov_default", j, map, ppm);
+        run_mode("ladder", j, map, ppm);
+        if (i == 0u) {
+            note_result(count_ok(j, map, nullptr) > 0u, "base road job has land sites");
+        } else {
+            note_result(count_ok(j, map, nullptr) == 0u, "upgrade job has no sites on bare map");
+        }
     }
-    note_result(road_job_n >= 4u, "found Road jobs");
+
+    u16 lx = 0;
+    u16 ly = 0;
+    note_result(find_land_tile(map, &lx, &ly), "find land tile");
+    if (total_test_fails == 0 && road_jobs.size() >= 2u) {
+        TileWorkCand cands[G_CAND_CAP];
+        const u16 j0 = road_jobs[0];
+        const u16 j1 = road_jobs[1];
+        note_result(TileWorkAssessor::tile_ok(j0, lx, ly), "base ok on NONE");
+        note_result(!TileWorkAssessor::tile_ok(j1, lx, ly), "upgrade blocked on NONE");
+        note_result(map.set_road_typ(lx, ly, ROAD_VIRTUAL), "stamp VIRTUAL");
+        note_result(TileWorkAssessor::tile_ok(j0, lx, ly), "base ok on VIRTUAL");
+        note_result(!TileWorkAssessor::tile_ok(j1, lx, ly), "upgrade blocked on VIRTUAL");
+        u8 r0 = ROAD_NONE;
+        note_result(TileWorkAssessor::road_result_typ(j0, &r0) && r0 == ROAD_PATH, "base result PATH");
+        note_result(map.set_road_typ(lx, ly, r0), "set PATH");
+        note_result(!TileWorkAssessor::tile_ok(j0, lx, ly), "base blocked on PATH");
+        note_result(TileWorkAssessor::tile_ok(j1, lx, ly), "next upgrade ok on PATH");
+        const u16 n1 = TileWorkAssessor::assess_job(lx, ly, j1, cands, G_CAND_CAP);
+        note_result(n1 == 1u && cands[0].m_job == j1 && cands[0].m_imp == U16_KEY_NULL, "assess_job next upgrade");
+        if (road_jobs.size() >= 3u) {
+            const u16 j2 = road_jobs[2];
+            note_result(!TileWorkAssessor::tile_ok(j2, lx, ly), "skip-tier blocked on PATH");
+            u8 r1 = ROAD_NONE;
+            note_result(TileWorkAssessor::road_result_typ(j1, &r1), "mid result typ");
+            note_result(map.set_road_typ(lx, ly, r1), "set mid road");
+            note_result(TileWorkAssessor::tile_ok(j2, lx, ly), "next ok after mid");
+            note_result(!TileWorkAssessor::tile_ok(j1, lx, ly), "mid blocked after built");
+        }
+    }
 
     loader.unload();
     std::printf("=======================================================\n");

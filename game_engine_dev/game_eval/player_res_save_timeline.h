@@ -2,46 +2,45 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef RESOURCE_LEDGER_H
-#define RESOURCE_LEDGER_H
+#ifndef PLAYER_RES_SAVE_TIMELINE_H
+#define PLAYER_RES_SAVE_TIMELINE_H
 
 #include "game_primitives.h"
 
 //================================================================================================================================
-//=> - ResourceLedger -
+//=> - PlayerResSaveTimeline -
 //================================================================================================================================
 //
-//  Per-seat stockpile mirroring the static resource catalog (one u16 slot per catalog index).
-//  add clamps each slot to CAP; setup allocates a zeroed row of length res_n.
+//  Per-seat ledger amount for one resource at each save index. m_n[si] = amount; m_count is sum over saves (sort key).
 //
 //================================================================================================================================
 
-class ResourceLedger {
+class PlayerResSaveTimeline {
 public:
-    static constexpr u16 CAP = 50000u;
+    PlayerResSaveTimeline ();
+    ~PlayerResSaveTimeline ();
 
-    ResourceLedger ();
-    ~ResourceLedger ();
+    void clr ();
+    bool setup (u16 save_n);
+    bool set (u16 save_i, u32 n);
+    void sync_count ();
 
-    bool setup (u16 res_n);
-    void clear ();
+    u16 save_n () const;
+    u64 count () const;
+    u32 at (u16 save_i) const;
 
-    bool add (u16 res_idx, u16 amt);
-    u16 get (u16 res_idx) const;
-    u16 count () const;
-
-    bool wr (void* fp) const;
-    bool rd (void* fp);
+    void swap (PlayerResSaveTimeline& o);
 
 private:
-    u16* m_v; // Dense stock; length m_n
-    u16 m_n; // Catalog length; 0 until setup
+    PlayerResSaveTimeline (const PlayerResSaveTimeline&) = delete;
+    PlayerResSaveTimeline& operator= (const PlayerResSaveTimeline&) = delete;
 
-    ResourceLedger (const ResourceLedger& other) = delete;
-    ResourceLedger (ResourceLedger&& other) = delete;
+    u32* m_n;
+    u16 m_save_n;
+    u64 m_count;
 };
 
-#endif // RESOURCE_LEDGER_H
+#endif // PLAYER_RES_SAVE_TIMELINE_H
 
 //================================================================================================================================
 //=> - End of file -

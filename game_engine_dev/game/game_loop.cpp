@@ -19,6 +19,7 @@
 #include "profile_time_opt.h"
 #include "ledger_balance_turn_handler.h"
 #include "research_turn_handler.h"
+#include "resource_turn_handler.h"
 #include "runtime_statics.h"
 #include "runtime_trace_dbg.h"
 #include "settler_turn_handler.h"
@@ -419,6 +420,7 @@ bool GameLoop::step () {
     LOG_NEW_TURN::LOG(static_cast<u16>(m_state->m_current_turn));
     check_start_wars(*m_state);
     run_city_turns(*m_state);
+    ResourceTurnHandler::handle(*m_state);
     run_unit_turns(*m_state);
     WarTurnHandler::handle(*m_state);
     return true;

@@ -3,9 +3,11 @@
 //================================================================================================================================
 
 #include "map_bit_overlay.h"
-#include "runtime_trace_dbg.h"
 
+#include <cstdio>
 #include <cstring>
+
+#include "runtime_trace_dbg.h"
 
 //================================================================================================================================
 //=> - MapBitOverlay -
@@ -90,6 +92,62 @@ bool MapBitOverlay::clr (u16 x, u16 y) {
     const u32 bi = i / 8u;
     const u32 sh = i % 8u;
     m_bits[bi] = static_cast<u8>(m_bits[bi] & static_cast<u8>(~static_cast<u8>(1u << sh)));
+    return true;
+}
+
+bool MapBitOverlay::wr (void* fp_raw) const {
+    std::FILE* fp = static_cast<std::FILE*>(fp_raw);
+    if (fp == nullptr) {
+        return false;
+    }
+    if (std::fwrite(&m_w, sizeof(m_w), 1, fp) != 1
+        || std::fwrite(&m_h, sizeof(m_h), 1, fp) != 1
+        || std::fwrite(&m_bytes, sizeof(m_bytes), 1, fp) != 1) {
+        return false;
+    }
+    if (m_bytes == 0u) {
+        return true;
+    }
+    if (m_bits == nullptr) {
+        return false;
+    }
+    return std::fwrite(m_bits, 1, static_cast<size_t>(m_bytes), fp) == static_cast<size_t>(m_bytes);
+}
+
+bool MapBitOverlay::rd (void* fp_raw) {
+    std::FILE* fp = static_cast<std::FILE*>(fp_raw);
+    if (fp == nullptr) {
+        return false;
+    }
+    u16 w = 0;
+    u16 h = 0;
+    u32 bytes = 0;
+    if (std::fread(&w, sizeof(w), 1, fp) != 1
+        || std::fread(&h, sizeof(h), 1, fp) != 1
+        || std::fread(&bytes, sizeof(bytes), 1, fp) != 1) {
+        return false;
+    }
+    clear();
+    if (w == 0u || h == 0u || bytes == 0u) {
+        return true;
+    }
+    const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
+    const u32 need = (n + 7u) / 8u;
+    if (bytes != need) {
+        return false;
+    }
+    u8* bits = new u8[bytes];
+    if (bits == nullptr) {
+        return false;
+    }
+    if (std::fread(bits, 1, static_cast<size_t>(bytes), fp) != static_cast<size_t>(bytes)) {
+        delete[] bits;
+        return false;
+    }
+    m_w = w;
+    m_h = h;
+    m_bits = bits;
+    m_bytes = bytes;
     return true;
 }
 

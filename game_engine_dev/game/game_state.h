@@ -54,6 +54,8 @@ enum class AiUnits : u8 {
 //================================================================================================================================
 //
 //  Per-player runtime slice inside GameState. One entry per seat in the match.
+//  Binary (de)serialize of the seat array is owned by SimpleDynStateIO (used by GameIo::save/load_players).
+//  Heap members are leaf buffers only; TechAgeMng process statics are setup-once and not part of the blob.
 //
 //================================================================================================================================
 

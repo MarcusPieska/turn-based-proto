@@ -64,6 +64,9 @@ g++ $CXXFLAGS $INC -c ../../city/circular_tile_areas.cpp -o circular_tile_areas.
 g++ $CXXFLAGS $INC -c ../../city/city_border.cpp -o city_border.o
 g++ $CXXFLAGS $INC -c ../../city/city.cpp -o city.o
 g++ $CXXFLAGS $INC -c ../city_array.cpp -o city_array.o
+g++ $CXXFLAGS $INC -c ../worker_helper.cpp -o worker_helper.o
+g++ $CXXFLAGS $INC -c ../simple_dyn_state_io.cpp -o simple_dyn_state_io.o
+g++ $CXXFLAGS $INC -c ../tech_age_mng.cpp -o tech_age_mng.o
 g++ $CXXFLAGS $INC -c ../game_io.cpp -o game_io.o
 g++ $CXXFLAGS $INC -c game_io_cmp.cpp -o game_io_cmp.o
 g++ $CXXFLAGS $INC -c game_io_roundtrip_tester.cpp -o game_io_roundtrip_tester.o
@@ -107,6 +110,9 @@ g++ $CXXFLAGS -o game_io_roundtrip_tester \
     city_border.o \
     city.o \
     city_array.o \
+    worker_helper.o \
+    simple_dyn_state_io.o \
+    tech_age_mng.o \
     game_io.o \
     game_io_cmp.o \
     game_io_roundtrip_tester.o \
@@ -127,4 +133,4 @@ rm -f runtime_static_loader.o bit_array.o map_bit_overlay.o map_bit_array_overla
     civ_sanitation_booster_register.o booster_register_link_stubs.o resource_ledger.o \
     unit_add_vector.o unit_movement_mng.o player_ledger.o tile_yields.o tile_working.o \
     tile_attr_tables.o game_array_simple.o civ_relations.o circular_tile_areas.o city_border.o city.o \
-    city_array.o game_io.o game_io_cmp.o game_io_roundtrip_tester.o
+    city_array.o worker_helper.o simple_dyn_state_io.o tech_age_mng.o game_io.o game_io_cmp.o game_io_roundtrip_tester.o
