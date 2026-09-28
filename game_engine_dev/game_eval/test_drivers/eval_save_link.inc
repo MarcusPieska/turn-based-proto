@@ -39,6 +39,7 @@ compile_eval_save_deps () {
     g++ $CXXFLAGS $INC -c "$ROOT/game/civ_relations.cpp" -o civ_relations.o
     g++ $CXXFLAGS $INC -c "$ROOT/city/circular_tile_areas.cpp" -o circular_tile_areas.o
     g++ $CXXFLAGS $INC -c "$ROOT/city/city_border.cpp" -o city_border.o
+    g++ $CXXFLAGS $INC -c "$ROOT/game/unit_roster_mng.cpp" -o unit_roster_mng.o
     g++ $CXXFLAGS $INC -c "$ROOT/city/city.cpp" -o city.o
     g++ $CXXFLAGS $INC -c "$ROOT/game/worker_helper.cpp" -o worker_helper.o
     g++ $CXXFLAGS $INC -c "$ROOT/game/city_array.cpp" -o city_array.o
@@ -84,6 +85,7 @@ EVAL_SAVE_DEP_OBJS="\
     civ_relations.o \
     circular_tile_areas.o \
     city_border.o \
+    unit_roster_mng.o \
     city.o \
     worker_helper.o \
     city_array.o \

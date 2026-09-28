@@ -2,36 +2,42 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef CITY_TURN_HANDLER_CORE_H
-#define CITY_TURN_HANDLER_CORE_H
+#ifndef MAP_OWN_XFER_SAVE_TIMELINE_MNG_H
+#define MAP_OWN_XFER_SAVE_TIMELINE_MNG_H
 
 #include "game_primitives.h"
 
-class BitArrayCL;
-class City;
-class GameState;
+class EvalPaths;
 
 //================================================================================================================================
-//=> - CityTurnHandler_Core -
+//=> - MapOwnXferSaveTimelineMng -
 //================================================================================================================================
 //
-//  Shared helpers for trait city AI strategies.
+//  Compares consecutive map saves; writes xfer_tXXXX.ppm for each save after the first (skip first).
 //
 //================================================================================================================================
 
-class CityTurnHandler_Core {
+class MapOwnXferSaveTimelineMng {
 public:
-    CityTurnHandler_Core () = delete;
+    MapOwnXferSaveTimelineMng ();
+    ~MapOwnXferSaveTimelineMng ();
 
-    static u16 find_settler_typ (const GameState& state, City* city, u16 city_idx, BitArrayCL* techs, BitArrayCL* civ);
-    static u16 find_worker_typ (const GameState& state, City* city, u16 city_idx, BitArrayCL* techs, BitArrayCL* civ);
-    static u16 own_land_sup_on_tile (GameState& state, u16 player, u16 x, u16 y);
-    static bool try_pick_worker (GameState& state, u16 city_idx, City* city);
-    static bool try_pick_land_unit (GameState& state, u16 city_idx, City* city);
-    static void try_assess_imps (GameState& state, u16 city_idx, City* city);
+    void clr ();
+    bool setup (u16 save_n);
+    bool fill (const EvalPaths& paths, cstr out_dir);
+
+    u16 save_n () const;
+    u16 wrote_n () const;
+
+private:
+    MapOwnXferSaveTimelineMng (const MapOwnXferSaveTimelineMng&) = delete;
+    MapOwnXferSaveTimelineMng& operator= (const MapOwnXferSaveTimelineMng&) = delete;
+
+    u16 m_save_n;
+    u16 m_wrote_n;
 };
 
-#endif // CITY_TURN_HANDLER_CORE_H
+#endif // MAP_OWN_XFER_SAVE_TIMELINE_MNG_H
 
 //================================================================================================================================
 //=> - End of file -

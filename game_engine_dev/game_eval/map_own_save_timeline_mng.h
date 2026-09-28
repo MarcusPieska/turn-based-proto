@@ -2,36 +2,42 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef CITY_TURN_HANDLER_CORE_H
-#define CITY_TURN_HANDLER_CORE_H
+#ifndef MAP_OWN_SAVE_TIMELINE_MNG_H
+#define MAP_OWN_SAVE_TIMELINE_MNG_H
 
 #include "game_primitives.h"
 
-class BitArrayCL;
-class City;
-class GameState;
+class EvalPaths;
 
 //================================================================================================================================
-//=> - CityTurnHandler_Core -
+//=> - MapOwnSaveTimelineMng -
 //================================================================================================================================
 //
-//  Shared helpers for trait city AI strategies.
+//  Loads one map blob per save and writes ownership PPMs into out_dir (own_tXXXX.ppm).
 //
 //================================================================================================================================
 
-class CityTurnHandler_Core {
+class MapOwnSaveTimelineMng {
 public:
-    CityTurnHandler_Core () = delete;
+    MapOwnSaveTimelineMng ();
+    ~MapOwnSaveTimelineMng ();
 
-    static u16 find_settler_typ (const GameState& state, City* city, u16 city_idx, BitArrayCL* techs, BitArrayCL* civ);
-    static u16 find_worker_typ (const GameState& state, City* city, u16 city_idx, BitArrayCL* techs, BitArrayCL* civ);
-    static u16 own_land_sup_on_tile (GameState& state, u16 player, u16 x, u16 y);
-    static bool try_pick_worker (GameState& state, u16 city_idx, City* city);
-    static bool try_pick_land_unit (GameState& state, u16 city_idx, City* city);
-    static void try_assess_imps (GameState& state, u16 city_idx, City* city);
+    void clr ();
+    bool setup (u16 save_n);
+    bool fill (const EvalPaths& paths, cstr out_dir);
+
+    u16 save_n () const;
+    u16 wrote_n () const;
+
+private:
+    MapOwnSaveTimelineMng (const MapOwnSaveTimelineMng&) = delete;
+    MapOwnSaveTimelineMng& operator= (const MapOwnSaveTimelineMng&) = delete;
+
+    u16 m_save_n;
+    u16 m_wrote_n;
 };
 
-#endif // CITY_TURN_HANDLER_CORE_H
+#endif // MAP_OWN_SAVE_TIMELINE_MNG_H
 
 //================================================================================================================================
 //=> - End of file -

@@ -2,36 +2,30 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef CITY_TURN_HANDLER_CORE_H
-#define CITY_TURN_HANDLER_CORE_H
+#ifndef MAP_OWN_SAVE_SNAP_H
+#define MAP_OWN_SAVE_SNAP_H
 
 #include "game_primitives.h"
 
-class BitArrayCL;
-class City;
-class GameState;
+class GameArraySimple;
 
 //================================================================================================================================
-//=> - CityTurnHandler_Core -
+//=> - MapOwnSaveSnap -
 //================================================================================================================================
 //
-//  Shared helpers for trait city AI strategies.
+//  One ownership PPM from a loaded map: climate (+ rivers/mountains), seat shade, dark-gray roads,
+//  black city pixels. Open water (coastal/sea/ocean) is not seat-shaded; inland sea/lake is.
 //
 //================================================================================================================================
 
-class CityTurnHandler_Core {
+class MapOwnSaveSnap {
 public:
-    CityTurnHandler_Core () = delete;
+    MapOwnSaveSnap () = delete;
 
-    static u16 find_settler_typ (const GameState& state, City* city, u16 city_idx, BitArrayCL* techs, BitArrayCL* civ);
-    static u16 find_worker_typ (const GameState& state, City* city, u16 city_idx, BitArrayCL* techs, BitArrayCL* civ);
-    static u16 own_land_sup_on_tile (GameState& state, u16 player, u16 x, u16 y);
-    static bool try_pick_worker (GameState& state, u16 city_idx, City* city);
-    static bool try_pick_land_unit (GameState& state, u16 city_idx, City* city);
-    static void try_assess_imps (GameState& state, u16 city_idx, City* city);
+    static bool write (cstr path, const GameArraySimple& map);
 };
 
-#endif // CITY_TURN_HANDLER_CORE_H
+#endif // MAP_OWN_SAVE_SNAP_H
 
 //================================================================================================================================
 //=> - End of file -

@@ -1,0 +1,34 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")"
+
+SEED="${UNIT_ROSTER_SEED:-42}"
+OUT_DIR="/home/w/Projects/simple-map-gen/unit-roster"
+mkdir -p "$OUT_DIR"
+
+fail=0
+for mk in mk01 mk02 mk03; do
+    echo "======== unit_roster_mng ${mk} (seed=$SEED) ========"
+    if ! UNIT_ROSTER_MNG_MK="$mk" UNIT_ROSTER_SEED="$SEED" ./unit_roster_mng_comp; then
+        echo "FAIL: ${mk} comp/run"
+        fail=$((fail + 1))
+    fi
+done
+
+echo "======== unit_roster_mng_best_cmp ========"
+g++ -std=c++17 -Wall -Wextra -o unit_roster_mng_best_cmp unit_roster_mng_best_cmp.cpp
+if ! ./unit_roster_mng_best_cmp mk01 mk02; then
+    fail=$((fail + 1))
+fi
+if ! ./unit_roster_mng_best_cmp mk01 mk03; then
+    fail=$((fail + 1))
+fi
+rm -f unit_roster_mng_best_cmp
+
+if [ "$fail" -ne 0 ]; then
+    echo "TOTAL fail=$fail"
+    exit 1
+fi
+echo "TOTAL fail=0"
+exit 0

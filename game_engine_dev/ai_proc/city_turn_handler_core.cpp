@@ -64,35 +64,20 @@ static u16 own_land_domain_on_tile (GameState& state, u16 player, u16 x, u16 y) 
 //=> - CityTurnHandler_Core -
 //================================================================================================================================
 
-u16 CityTurnHandler_Core::find_settler_typ (const GameState& state, const BitArrayCL* units) {
-    const u32 n = units->get_count();
-    for (u32 i = 0; i < n; ++i) {
-        if (units->get_bit(i) == 0) {
-            continue;
-        }
-        const UnitStaticDataKey uk = UnitStaticDataKey::from_raw(static_cast<u16>(i));
-        if (state.m_statics->unit().get_item(uk).type == state.m_land_settler_type_idx) {
-            return static_cast<u16>(i);
-        }
-    }
-    return U16_KEY_NULL;
-}
-
-u16 CityTurnHandler_Core::find_worker_typ (const GameState& state, const BitArrayCL* units) {
-    if (units == nullptr || state.m_statics == nullptr) {
+u16 CityTurnHandler_Core::find_settler_typ (const GameState& state, City* city, u16 city_idx, BitArrayCL* techs,
+    BitArrayCL* civ) {
+    if (city == nullptr || state.m_land_settler_type_idx == U16_KEY_NULL) {
         return U16_KEY_NULL;
     }
-    const u32 n = units->get_count();
-    for (u32 i = 0; i < n; ++i) {
-        if (units->get_bit(i) == 0) {
-            continue;
-        }
-        const UnitStaticDataKey uk = UnitStaticDataKey::from_raw(static_cast<u16>(i));
-        if (state.m_statics->unit().get_item(uk).type == state.m_land_worker_type_idx) {
-            return static_cast<u16>(i);
-        }
+    return city->best_unit_of_type(city_idx, techs, civ, state.m_land_settler_type_idx);
+}
+
+u16 CityTurnHandler_Core::find_worker_typ (const GameState& state, City* city, u16 city_idx, BitArrayCL* techs,
+    BitArrayCL* civ) {
+    if (city == nullptr || state.m_land_worker_type_idx == U16_KEY_NULL) {
+        return U16_KEY_NULL;
     }
-    return U16_KEY_NULL;
+    return city->best_unit_of_type(city_idx, techs, civ, state.m_land_worker_type_idx);
 }
 
 u16 CityTurnHandler_Core::own_land_sup_on_tile (GameState& state, u16 player, u16 x, u16 y) {
@@ -132,8 +117,7 @@ bool CityTurnHandler_Core::try_pick_worker (GameState& state, u16 city_idx, City
     if (ps.m_civ_index < civ.get_count()) {
         civ.set_bit(ps.m_civ_index);
     }
-    BitArrayCL* units = city->get_trainable_units(city_idx, ps.m_techs_researched, &civ);
-    const u16 worker = find_worker_typ(state, units);
+    const u16 worker = find_worker_typ(state, city, city_idx, ps.m_techs_researched, &civ);
     if (worker == U16_KEY_NULL) {
         return false;
     }

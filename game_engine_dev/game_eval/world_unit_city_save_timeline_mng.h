@@ -2,36 +2,44 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef CITY_TURN_HANDLER_CORE_H
-#define CITY_TURN_HANDLER_CORE_H
+#ifndef WORLD_UNIT_CITY_SAVE_TIMELINE_MNG_H
+#define WORLD_UNIT_CITY_SAVE_TIMELINE_MNG_H
 
 #include "game_primitives.h"
+#include "world_unit_city_save_timeline.h"
 
-class BitArrayCL;
-class City;
-class GameState;
+class EvalPaths;
 
 //================================================================================================================================
-//=> - CityTurnHandler_Core -
+//=> - WorldUnitCitySaveTimelineMng -
 //================================================================================================================================
 //
-//  Shared helpers for trait city AI strategies.
+//  Loads one units+cities save pair at a time; records global totals per save index.
 //
 //================================================================================================================================
 
-class CityTurnHandler_Core {
+class WorldUnitCitySaveTimelineMng {
 public:
-    CityTurnHandler_Core () = delete;
+    WorldUnitCitySaveTimelineMng ();
+    ~WorldUnitCitySaveTimelineMng ();
 
-    static u16 find_settler_typ (const GameState& state, City* city, u16 city_idx, BitArrayCL* techs, BitArrayCL* civ);
-    static u16 find_worker_typ (const GameState& state, City* city, u16 city_idx, BitArrayCL* techs, BitArrayCL* civ);
-    static u16 own_land_sup_on_tile (GameState& state, u16 player, u16 x, u16 y);
-    static bool try_pick_worker (GameState& state, u16 city_idx, City* city);
-    static bool try_pick_land_unit (GameState& state, u16 city_idx, City* city);
-    static void try_assess_imps (GameState& state, u16 city_idx, City* city);
+    void clr ();
+    bool setup (u16 save_n);
+    bool fill (const EvalPaths& paths);
+
+    u16 save_n () const;
+    WorldUnitCitySaveTimeline& tl ();
+    const WorldUnitCitySaveTimeline& tl () const;
+
+private:
+    WorldUnitCitySaveTimelineMng (const WorldUnitCitySaveTimelineMng&) = delete;
+    WorldUnitCitySaveTimelineMng& operator= (const WorldUnitCitySaveTimelineMng&) = delete;
+
+    WorldUnitCitySaveTimeline m_tl;
+    u16 m_save_n;
 };
 
-#endif // CITY_TURN_HANDLER_CORE_H
+#endif // WORLD_UNIT_CITY_SAVE_TIMELINE_MNG_H
 
 //================================================================================================================================
 //=> - End of file -

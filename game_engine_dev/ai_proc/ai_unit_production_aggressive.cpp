@@ -9,7 +9,6 @@
 #include "city_turn_handler_core.h"
 #include "game_state.h"
 #include "runtime_statics.h"
-#include "unit_typ_pick.h"
 
 //================================================================================================================================
 //=> - Helpers -
@@ -17,8 +16,8 @@
 
 static const u16 k_unit_sup_cost = 1u;
 
-static bool pick_build (City* city, GameState& state, BitArrayCL* units, u16 type_idx) {
-    const u16 u = UnitTypPick::pick_linear_right(state, units, type_idx);
+static bool pick_build (City* city, u16 city_idx, BitArrayCL* techs, BitArrayCL* civ, u16 type_idx) {
+    const u16 u = city->best_unit_of_type(city_idx, techs, civ, type_idx);
     if (u == U16_KEY_NULL) {
         return false;
     }
@@ -47,23 +46,19 @@ bool AiUnitProductionAggressive::try_pick_land_unit (GameState& state, u16 city_
         civ.set_bit(ps.m_civ_index);
     }
     BitArrayCL* techs = ps.m_techs_researched;
-    BitArrayCL* units = city->get_trainable_units(city_idx, techs, &civ);
-    if (units == nullptr) {
-        return false;
-    }
     const u16 on_tile = CityTurnHandler_Core::own_land_sup_on_tile(state, player, city->get_x(), city->get_y());
     if (on_tile < city->get_free_land_unit_support()) {
         const u16 first = (on_tile & 1u) == 0u ? state.m_land_attack_type_idx : state.m_land_defense_type_idx;
         const u16 second = (on_tile & 1u) == 0u ? state.m_land_defense_type_idx : state.m_land_attack_type_idx;
-        if (pick_build(city, state, units, first)) {
+        if (pick_build(city, city_idx, techs, &civ, first)) {
             return true;
         }
-        return pick_build(city, state, units, second);
+        return pick_build(city, city_idx, techs, &civ, second);
     }
     if (ps.m_last_turn_new_land_unit_build_support < ps.m_target_new_land_unit_support) {
         const u16 first = ps.m_ai_units_tog == 0u ? state.m_land_attack_type_idx : state.m_land_artillery_type_idx;
         const u16 second = ps.m_ai_units_tog == 0u ? state.m_land_artillery_type_idx : state.m_land_attack_type_idx;
-        if (!pick_build(city, state, units, first) && !pick_build(city, state, units, second)) {
+        if (!pick_build(city, city_idx, techs, &civ, first) && !pick_build(city, city_idx, techs, &civ, second)) {
             return false;
         }
         ps.m_ai_units_tog = ps.m_ai_units_tog == 0u ? 1u : 0u;

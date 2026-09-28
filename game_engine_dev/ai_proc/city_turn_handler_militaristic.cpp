@@ -35,8 +35,7 @@ static void pick_prod (GameState& state, u16 city_idx, City* city) {
     }
     BitArrayCL* techs = ps.m_techs_researched;
     if (SettlerTurnHandler::need_settler(state, player)) {
-        BitArrayCL* units = city->get_trainable_units(city_idx, techs, &civ);
-        const u16 settler = CityTurnHandler_Core::find_settler_typ(state, units);
+        const u16 settler = CityTurnHandler_Core::find_settler_typ(state, city, city_idx, techs, &civ);
         if (settler != U16_KEY_NULL) {
             city->build_unit(settler);
             return;

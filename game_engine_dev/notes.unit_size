@@ -1,0 +1,46 @@
+Unit size / aggregation (Civ6-style formations)
+================================================
+
+Context (2026-09)
+-----------------
+World unit totals on save timelines approach the u16 entity ceiling (~61k by late game
+in a 100-seat run). Playing with >50k discrete units is not enjoyable to manage, so the
+first capacity fix should be gameplay aggregation, not widening indices to 32-bit or
+splitting storage by player.
+
+Rejected / deferred for later
+-----------------------------
+1) Widen unit indices to 4 bytes — clean but raises memory/I/O for every unit touch;
+   better if we truly need huge simultaneous field armies.
+2) Separate idle/garrison arrays from adventuring u16 pool — good complement if most
+   mass is city/fort parked units; does not replace aggregation for field stacks.
+3) Per-player unit arrays — scales capacity per seat and helps per-player iteration
+   (player id already on units), but forces composite ids and reworks tile occupancy;
+   larger migration than aggregation. Revisit after formations.
+
+Chosen direction: unit size field + MAX_UNIT_SIZE
+-------------------------------------------------
+- Add a small bitfield on the runtime unit (about 4 bits) holding formation size
+  (consolidated count / formation tier; prefer count-style power scaling unless we
+  decide otherwise).
+- New civ/player runtime stat: MAX_UNIT_SIZE. Tech tree (and possibly wonders/traits)
+  grants +1 effects that raise this cap. Usable size must never exceed the player's
+  current MAX_UNIT_SIZE.
+- AI heavily biased to always aggregate eligible stacks (same tile, same catalog unit
+  or type — rules TBD). Prefer reinforcing/merging over spawning new entities when
+  under the size cap.
+- UnitRosterMng / production still select a catalog unit; aggregation is a post-build
+  / on-tile policy.
+
+Open design points (lock before coding)
+---------------------------------------
+- Merge eligibility: same unit row only? same type? domain? tile-only / city / fort?
+- Overflow when a+b > MAX: partial merge? refuse?
+- Split / disband for settlers, workers, transport; XP, damage, upgrades vs size.
+- Which types are excluded from aggregation (scouts, settlers, workers)?
+- Combat math: strength scales with size how?
+
+Related lever
+-------------
+City-bound garrison / third support type is tracked in notes.unit_support; it cuts
+static home-guard entity spam and pairs with aggregation for field armies.

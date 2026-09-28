@@ -2,36 +2,46 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef CITY_TURN_HANDLER_CORE_H
-#define CITY_TURN_HANDLER_CORE_H
+#ifndef LUCKY_SEAT_SAVE_LEDGER_MNG_H
+#define LUCKY_SEAT_SAVE_LEDGER_MNG_H
 
 #include "game_primitives.h"
 
-class BitArrayCL;
-class City;
-class GameState;
+class EvalPaths;
+class RuntimeStatics;
 
 //================================================================================================================================
-//=> - CityTurnHandler_Core -
+//=> - LuckySeatSaveLedgerMng -
 //================================================================================================================================
 //
-//  Shared helpers for trait city AI strategies.
+//  Discovers lucky seats from the first players.bin, then for each save appends a block to
+//  one text file per lucky seat: header (units/commerce/cities) + unit-name counts.
 //
 //================================================================================================================================
 
-class CityTurnHandler_Core {
+class LuckySeatSaveLedgerMng {
 public:
-    CityTurnHandler_Core () = delete;
+    LuckySeatSaveLedgerMng ();
+    ~LuckySeatSaveLedgerMng ();
 
-    static u16 find_settler_typ (const GameState& state, City* city, u16 city_idx, BitArrayCL* techs, BitArrayCL* civ);
-    static u16 find_worker_typ (const GameState& state, City* city, u16 city_idx, BitArrayCL* techs, BitArrayCL* civ);
-    static u16 own_land_sup_on_tile (GameState& state, u16 player, u16 x, u16 y);
-    static bool try_pick_worker (GameState& state, u16 city_idx, City* city);
-    static bool try_pick_land_unit (GameState& state, u16 city_idx, City* city);
-    static void try_assess_imps (GameState& state, u16 city_idx, City* city);
+    void clr ();
+    bool setup (u16 player_n, u16 save_n);
+    bool fill (const EvalPaths& paths, cstr out_dir, const RuntimeStatics& st);
+
+    u16 save_n () const;
+    u16 lucky_n () const;
+
+private:
+    LuckySeatSaveLedgerMng (const LuckySeatSaveLedgerMng&) = delete;
+    LuckySeatSaveLedgerMng& operator= (const LuckySeatSaveLedgerMng&) = delete;
+
+    u16* m_lucky;
+    u16 m_lucky_n;
+    u16 m_player_n;
+    u16 m_save_n;
 };
 
-#endif // CITY_TURN_HANDLER_CORE_H
+#endif // LUCKY_SEAT_SAVE_LEDGER_MNG_H
 
 //================================================================================================================================
 //=> - End of file -

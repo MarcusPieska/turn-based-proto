@@ -29,6 +29,7 @@
 #include "unit_add_vector.h"
 #include "unit_add_vector_key.h"
 #include "unit_movement_mng.h"
+#include "unit_roster_mng.h"
 #include "unit_static_key.h"
 #include "unit_turn_handler.h"
 #include "unit_type_action_map.h"
@@ -381,13 +382,19 @@ bool GameLoop::begin (GameState* state, cstr trace_path) {
     if (!CombatMng::setup(*state->m_statics)) {
         return false;
     }
+    if (!UnitRosterMng::setup(*state->m_statics)) {
+        CombatMng::clear();
+        return false;
+    }
     if (!SettlerTurnHandler::begin(*state)) {
+        UnitRosterMng::clear();
         CombatMng::clear();
         WhiteboardMng::terminate();
         return false;
     }
     if (!WarTurnHandler::begin(*state)) {
         SettlerTurnHandler::clear();
+        UnitRosterMng::clear();
         CombatMng::clear();
         WhiteboardMng::terminate();
         return false;
@@ -405,6 +412,7 @@ void GameLoop::end () {
     }
     WarTurnHandler::clear();
     SettlerTurnHandler::clear();
+    UnitRosterMng::clear();
     CombatMng::clear();
     if (WhiteboardMng::chkout() == 0u) {
         WhiteboardMng::terminate();

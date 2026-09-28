@@ -24,6 +24,7 @@
 
 #include "unit_add_struct.h"
 #include "unit_type_action_map.h"
+#include "unit_roster_mng.h"
 #include "worker_helper.h"
 
 #include "effect_ctx.h"
@@ -398,6 +399,14 @@ BitArrayCL* City::get_trainable_units (u16 city_idx, BitArrayCL* techs, BitArray
         }
     }
     return r;
+}
+
+u16 City::best_unit_of_type (u16 city_idx, BitArrayCL* techs, BitArrayCL* civ, u16 type_idx) const {
+    if (type_idx == U16_KEY_NULL) {
+        return U16_KEY_NULL;
+    }
+    AssessorCtx ctx = make_city_ctx(*this, city_idx, techs, civ);
+    return UnitRosterMng::get_best_unit_of_type(type_idx, ctx);
 }
 
 //================================================================================================================================

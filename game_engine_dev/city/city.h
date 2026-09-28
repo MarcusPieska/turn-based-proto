@@ -52,7 +52,8 @@ public:
     BitArrayCL* get_buildable_buildings (u16 city_idx, BitArrayCL* techs, BitArrayCL* civ) const;
     BitArrayCL* get_buildable_wonders (u16 city_idx, BitArrayCL* techs, BitArrayCL* civ) const;
     BitArrayCL* get_buildable_small_wonders (u16 city_idx, BitArrayCL* techs, BitArrayCL* civ) const;
-    BitArrayCL* get_trainable_units (u16 city_idx, BitArrayCL* techs, BitArrayCL* civ) const; 
+    BitArrayCL* get_trainable_units (u16 city_idx, BitArrayCL* techs, BitArrayCL* civ) const;
+    u16 best_unit_of_type (u16 city_idx, BitArrayCL* techs, BitArrayCL* civ, u16 type_idx) const;
 
     void build_building (u16 building_idx);
     void build_wonder (u16 wonder_idx);

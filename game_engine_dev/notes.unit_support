@@ -1,0 +1,54 @@
+Unit support model (free support + city garrison)
+=================================================
+
+Context (2026-09)
+-----------------
+Late-game unit counts push the global u16 unit vector toward saturation. Aggregation
+(notes.unit_size) shrinks field entity count. A second lever is Civ6-style city defense
+so every city does not need a permanent mobile land unit parked as garrison.
+
+Clarified support picture (three free-support kinds)
+----------------------------------------------------
+We keep free city support as it exists today and add city-bound garrison as a third
+kind. Intended model:
+
+1) Free civ-wide support
+   Empire-level free support pool (existing civ/player free support concept).
+
+2) Free city support while in city
+   Existing per-city free land / free naval support for normal units that are
+   currently in (or assigned to) that city — mobile units that can leave.
+
+3) Free support for units bound permanently to the city
+   New third support type for Civ6-style garrison: city-tied defense that does not
+   leave the city (other than possibly striking units that surround / adjacent to
+   the city). Consumes garrison support slots, not the mobile land support budget.
+
+So: free city support for visitors/home mobile units stays; garrison is an additional
+bucket for permanently city-bound defense, not a replacement for (1) or (2).
+
+Why a third type
+----------------
+- Garrisons stop competing with field armies for land free-support.
+- AI can fill garrison support via walls / city defense / bound garrison, and spend
+  land support on aggregated attack stacks.
+- Matches “city holds itself; field armies conquer.”
+
+Design notes / open points
+--------------------------
+- Is (3) purely city HP + city strike (no UnitAdd entity), or a real unit flagged
+  non-leaving that burns garrison support while in city?
+- If both a mobile land unit and garrison exist in a city: land support vs garrison
+  support ownership rules.
+- Garrison free slots should scale slower than land free support so late cities are
+  not invulnerable sponges.
+- City attack vs adjacent besiegers needs enough teeth that AI/players do not still
+  spam size-1 home guards.
+- Existing heuristics that assume “units on city tile” / free land support for
+  defense must be taught about garrison support and city combat.
+
+Relationship to unit size
+-------------------------
+Aggregation (notes.unit_size) targets mobile combat mass. Garrison support targets
+static home defense. Use both: do not rely on formations alone to clear city-guard
+spam, and do not rely on city defense alone to shrink field doomstacks.

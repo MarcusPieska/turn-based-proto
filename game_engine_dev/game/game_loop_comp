@@ -127,6 +127,7 @@ g++ $CXXFLAGS $INC -c ../misc/whiteboard_mng.cpp -o whiteboard_mng.o
 g++ $CXXFLAGS $INC -c ../misc/profile_time_opt.cpp -o profile_time_opt.o
 g++ $CXXFLAGS $INC -c city_turn_handler.cpp -o city_turn_handler.o
 g++ $CXXFLAGS $INC -c ../ai_proc/city_turn_handler_core.cpp -o city_turn_handler_core.o
+g++ $CXXFLAGS $INC -c unit_roster_mng.cpp -o unit_roster_mng.o
 g++ $CXXFLAGS $INC -c ../ai_proc/unit_typ_pick.cpp -o unit_typ_pick.o
 g++ $CXXFLAGS $INC -c ../ai_proc/city_turn_handler_default.cpp -o city_turn_handler_default.o
 g++ $CXXFLAGS $INC -c ../ai_proc/city_turn_handler_industrious.cpp -o city_turn_handler_industrious.o
@@ -271,7 +272,7 @@ g++ $CXXFLAGS -o game_loop_tester \
     whiteboard_mng.o \
     profile_time_opt.o \
     city_turn_handler.o \
-    city_turn_handler_core.o unit_typ_pick.o \
+    city_turn_handler_core.o unit_roster_mng.o unit_typ_pick.o \
     city_turn_handler_default.o \
     city_turn_handler_industrious.o \
     city_turn_handler_commercial.o \
@@ -366,7 +367,7 @@ rm -f runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_load
     settle_rules.o settler_mission_manager.o gen_settlement_order.o gen_settlement_targets.o \
     gen_mtn_passes.o gen_walkable_sectors.o gen_bottleneck_markers.o gen_bottleneck_forts.o gen_ai_helpers.o \
     worker_city_jobs.o gen_road_network.o worker_pathing.o \
-    city_turn_handler.o city_turn_handler_core.o unit_typ_pick.o city_turn_handler_default.o \
+    city_turn_handler.o city_turn_handler_core.o unit_roster_mng.o unit_typ_pick.o city_turn_handler_default.o \
     city_turn_handler_industrious.o city_turn_handler_commercial.o city_turn_handler_agricultural.o \
     city_turn_handler_expansionist.o city_turn_handler_religious.o city_turn_handler_militaristic.o \
     city_turn_handler_scientific.o research_turn_handler.o sense_settling_pts_opt.o settler_turn_handler.o \
