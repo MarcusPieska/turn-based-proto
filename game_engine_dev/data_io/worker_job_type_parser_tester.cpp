@@ -653,6 +653,7 @@ void WorkerJobTypeParserTester::pr_fx (cstr label, const ItemEffectsStruct& e) {
                 case ItemEffectBoosterType::CITY_LAND_UNIT_SUPPORT: tname = "CITY_LAND_UNIT_SUPPORT"; break;
                 case ItemEffectBoosterType::CIV_NAVAL_UNIT_SUPPORT: tname = "CIV_NAVAL_UNIT_SUPPORT"; break;
                 case ItemEffectBoosterType::CITY_NAVAL_UNIT_SUPPORT: tname = "CITY_NAVAL_UNIT_SUPPORT"; break;
+                case ItemEffectBoosterType::MAX_UNIT_SIZE: tname = "MAX_UNIT_SIZE"; break;
                 default: break;
             }
             const char* sc = "?";

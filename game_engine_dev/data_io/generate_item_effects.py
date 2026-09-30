@@ -56,6 +56,7 @@ ie_booster_type_enum.append("CIV_LAND_UNIT_SUPPORT")
 ie_booster_type_enum.append("CITY_LAND_UNIT_SUPPORT")
 ie_booster_type_enum.append("CIV_NAVAL_UNIT_SUPPORT")
 ie_booster_type_enum.append("CITY_NAVAL_UNIT_SUPPORT")
+ie_booster_type_enum.append("MAX_UNIT_SIZE")
 
 ie_terrain_yield_enum = []
 ie_terrain_yield_enum.append("NONE")

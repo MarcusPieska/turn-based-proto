@@ -56,17 +56,19 @@ struct UnitAddStruct {
     //u64 m_in_campaign : 1; // True if unit is in an AI-managed campaign
     //u64 m_unused : 7; // Extra padding to align to 16 bytes, keep these
 
-    u16 m_next_unit_in_group; // Group link: next UnitAddKey raw value, or U16_KEY_NULL
-    i16 m_mvt_points; // Remaining movement budget (static mvt_pts x 1000 scale)
-    u8 m_player_idx; // Owning seat index
-    u8 m_health; // Reduced via combat and attrition; increased when healing; UNIT_HEALTH at full
-    u8 m_level; // Nerf or boost to damage dealt and taken; green, regular, elite, etc'
-    u8 m_misc; // Only used by worker helper
+    u64 m_next_unit_in_group : 16; // Group link: next UnitAddKey raw value, or U16_KEY_NULL
+    u64 m_player_idx : 8; // Owning seat index
+    u64 m_health : 8; // Reduced via combat and attrition; increased when healing; UNIT_HEALTH at full
+    u64 m_level : 8; // Nerf or boost to damage dealt and taken; green, regular, elite, etc'
+    u64 m_misc : 8; // Only used by worker helper
+    u64 m_unit_size : 6; // The size of the unit formation
+    u64 m_in_campaign : 1; // Will be moved up to bit array once we refactor to use a U12_KEY_NULL sentinel
+    u64 m_being_extended : 1; // True if m_unit_size is being extended; will freeze unit in place until extension completes
+    u64 m_unused : 8; // Extra padding to align to 16 bytes, keep these
 
     i8 m_delta_x_dest; // Work tile dx from m_x; UNIT_DELTA_DEST_NONE or UNIT_DELTA_DEST_ARRIVED
     i8 m_delta_y_dest; // Work tile dy from m_y; UNIT_DELTA_DEST_NONE or UNIT_DELTA_DEST_ARRIVED
-    u8 m_in_campaign; // Will be moved up to bit array once we refactor to use a U12_KEY_NULL sentinel
-    u8 un_used2;
+    i16 m_mvt_points; // Remaining movement budget (static mvt_pts x 1000 scale)
     u8 un_used3;
     u8 un_used4;
     u8 un_used5;

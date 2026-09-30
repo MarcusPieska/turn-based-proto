@@ -23,9 +23,10 @@
 #include "game_state.h"
 
 #include "unit_add_struct.h"
-#include "unit_type_action_map.h"
+#include "unit_domain_enum.h"
 #include "unit_roster_mng.h"
 #include "worker_helper.h"
+#include "game_array_simple.h"
 
 #include "effect_ctx.h"
 #include "booster_apply.h"
@@ -73,9 +74,6 @@ static u16 s_flag_has_wonder = U16_KEY_NULL;
 static u16 s_flag_has_wonder_small = U16_KEY_NULL;
 static u16 s_wonder_n = 0;
 static u16 s_small_wonder_n = 0;
-
-static const u16 k_act_is_land = 0u;
-static const u16 k_act_is_sea = 2u; 
 
 //================================================================================================================================
 //=> - BuildType -
@@ -181,7 +179,7 @@ static bool unit_is_land (u16 unit_idx) {
         return false;
     }
     const UnitStaticDataStruct& u = s_statics->unit().get_item(UnitStaticDataKey::from_raw(unit_idx));
-    return s_statics->unit_type_action_map().unit_type_can_do(u.type, k_act_is_land);
+    return u.domain == static_cast<u16>(UnitDomain::LAND);
 }
 
 static bool unit_is_sea (u16 unit_idx) {
@@ -189,7 +187,7 @@ static bool unit_is_sea (u16 unit_idx) {
         return false;
     }
     const UnitStaticDataStruct& u = s_statics->unit().get_item(UnitStaticDataKey::from_raw(unit_idx));
-    return s_statics->unit_type_action_map().unit_type_can_do(u.type, k_act_is_sea);
+    return u.domain == static_cast<u16>(UnitDomain::SEA);
 }
 
 static bool unit_is_settler (u16 unit_idx) {
@@ -219,6 +217,53 @@ static u8 spawn_unit_level (const City& city, u16 city_idx, u16 unit_idx) {
         return apply_unit_level_boost(GREEN, LocalUnitExpBoosterRegister::determine_effect(ctx));
     }
     return GREEN;
+}
+
+static u8 land_max_unit_size (const City& city, u16 city_idx) {
+    GAME_EXPECT(s_statics != nullptr, "land_max_unit_size null statics");
+    const EffectCtx ctx = make_city_effect_ctx(city, city_idx);
+    const DynBoosterRegister& reg = s_statics->dyn_booster();
+    u16 sz = apply_booster_u16(0, reg.determine(ItemEffectBoosterType::MAX_UNIT_SIZE, ItemEffectsScope::CIV, ctx));
+    if (sz > 63u) {
+        sz = 63u;
+    }
+    return static_cast<u8>(sz);
+}
+
+static UnitAddStruct* find_tile_unit_flagged (City& city, bool want_extending, u8 max_sz) {
+    if (s_units == nullptr) {
+        return nullptr;
+    }
+    GameArraySimple* map = CityBorder::map();
+    if (map == nullptr) {
+        return nullptr;
+    }
+    u16 hd = map->get_unit_hd(city.get_x(), city.get_y());
+    while (hd != U16_KEY_NULL) {
+        UnitAddStruct* u = s_units->get_unit_add(UnitAddKey::from_raw(hd));
+        if (u == nullptr) {
+            break;
+        }
+        const u16 nxt = static_cast<u16>(u->m_next_unit_on_tile);
+        if (u->m_player_idx == city.get_owner() && unit_is_land(static_cast<u16>(u->m_unit_typ_idx))) {
+            if (want_extending) {
+                if (u->m_being_extended != 0u) {
+                    return u;
+                }
+            } else if (u->m_being_extended == 0u && static_cast<u8>(u->m_unit_size) < max_sz) {
+                return u;
+            }
+        }
+        hd = nxt;
+    }
+    return nullptr;
+}
+
+static void unfreeze_extending_unit (City& city) {
+    UnitAddStruct* u = find_tile_unit_flagged(city, true, 0);
+    if (u != nullptr) {
+        u->m_being_extended = 0;
+    }
 }
 
 //================================================================================================================================
@@ -267,6 +312,8 @@ void City::init (u16 owner, u16 x, u16 y) {
     m_misc.m_city_has_worker = 0;
     m_misc.m_city_defense_deduction = 0;
     m_misc.m_tile_imp_count = 0;
+    m_misc.m_target_unit_size = 0;
+    m_misc.m_unit_is_being_extended = 0;
 }
 
 void City::bind_statics (const RuntimeStatics& st) {
@@ -436,30 +483,79 @@ static cstr cur_bld_name (u8 build_type, u16 bld_idx) {
 }
 
 void City::build_building (u16 building_idx) {
+    unfreeze_extending_unit(*this);
     m_build_type = BUILD_TYPE_BUILDING;
     m_bld_idx = building_idx;
     m_build_cost = static_cast<u16>(s_statics->building().get_item(BuildingStaticDataKey::from_raw(building_idx)).cost);
+    m_misc.m_target_unit_size = 0;
+    m_misc.m_unit_is_being_extended = 0;
     LOG_CITY_BUILD((cur_bld_name(m_build_type, m_bld_idx), 1, 0));
 }
 
 void City::build_wonder (u16 wonder_idx) {
+    unfreeze_extending_unit(*this);
     m_build_type = BUILD_TYPE_WONDER;
     m_bld_idx = wonder_idx;
     m_build_cost = static_cast<u16>(s_statics->wonder().get_item(WonderStaticDataKey::from_raw(wonder_idx)).cost);
+    m_misc.m_target_unit_size = 0;
+    m_misc.m_unit_is_being_extended = 0;
     LOG_CITY_BUILD((cur_bld_name(m_build_type, m_bld_idx), 1, 0));
 }
 
 void City::build_small_wonder (u16 small_wonder_idx) {
+    unfreeze_extending_unit(*this);
     m_build_type = BUILD_TYPE_SMALL_WONDER;
     m_bld_idx = small_wonder_idx;
     m_build_cost = static_cast<u16>(s_statics->small_wonder().get_item(SmallWonderStaticDataKey::from_raw(small_wonder_idx)).cost);
+    m_misc.m_target_unit_size = 0;
+    m_misc.m_unit_is_being_extended = 0;
+    LOG_CITY_BUILD((cur_bld_name(m_build_type, m_bld_idx), 1, 0));
+}
+
+void City::extend_unit (UnitAddStruct* unit) {
+    GAME_EXPECT(unit != nullptr, "City::extend_unit null unit");
+    GAME_EXPECT(s_statics != nullptr, "City::extend_unit null statics");
+    unfreeze_extending_unit(*this);
+    const u8 max_sz = land_max_unit_size(*this, 0);
+    GAME_EXPECT(static_cast<u8>(unit->m_unit_size) < max_sz, "City::extend_unit not undersized");
+    const u8 delta = static_cast<u8>(max_sz - static_cast<u8>(unit->m_unit_size));
+    const u16 typ = static_cast<u16>(unit->m_unit_typ_idx);
+    u32 cost = s_statics->unit().get_item(UnitStaticDataKey::from_raw(typ)).cost;
+    cost = cost * (1u + static_cast<u32>(delta));
+    if (cost > 65535u) {
+        cost = 65535u;
+    }
+    m_build_type = BUILD_TYPE_UNIT;
+    m_bld_idx = typ;
+    m_misc.m_target_unit_size = max_sz;
+    m_misc.m_unit_is_being_extended = 1;
+    m_build_cost = static_cast<u16>(cost);
+    unit->m_being_extended = 1;
     LOG_CITY_BUILD((cur_bld_name(m_build_type, m_bld_idx), 1, 0));
 }
 
 void City::build_unit (u16 unit_idx) {
+    const u8 max_sz = land_max_unit_size(*this, 0);
+    UnitAddStruct* und = find_tile_unit_flagged(*this, false, max_sz);
+    if (und != nullptr) {
+        extend_unit(und);
+        return;
+    }
+    unfreeze_extending_unit(*this);
     m_build_type = BUILD_TYPE_UNIT;
     m_bld_idx = unit_idx;
-    m_build_cost = static_cast<u16>(s_statics->unit().get_item(UnitStaticDataKey::from_raw(unit_idx)).cost);
+    u32 cost = s_statics->unit().get_item(UnitStaticDataKey::from_raw(unit_idx)).cost;
+    u8 sz = 0;
+    if (unit_is_land(unit_idx)) {
+        sz = max_sz;
+        cost = cost * (1u + static_cast<u32>(sz));
+        if (cost > 65535u) {
+            cost = 65535u;
+        }
+    }
+    m_misc.m_target_unit_size = sz;
+    m_misc.m_unit_is_being_extended = 0;
+    m_build_cost = static_cast<u16>(cost);
     if (unit_is_worker(unit_idx)) {
         m_misc.m_city_has_worker = 1;
     }
@@ -467,9 +563,12 @@ void City::build_unit (u16 unit_idx) {
 }
 
 void City::accumulate_commerce () {
+    unfreeze_extending_unit(*this);
     m_build_type = ACCUMULATE_COMMERCE;
     m_bld_idx = U16_KEY_NULL;
     m_build_cost = 0;
+    m_misc.m_target_unit_size = 0;
+    m_misc.m_unit_is_being_extended = 0;
     LOG_CITY_BUILD((cur_bld_name(m_build_type, m_bld_idx), 1, 0));
 }
 
@@ -737,26 +836,32 @@ void City::count_unit_build_support (PlayerState* ps) {
     if (m_build_type != BUILD_TYPE_UNIT || m_bld_idx == U16_KEY_NULL) {
         return;
     }
-    const u16 cost = 1u;
     if (unit_is_settler(m_bld_idx)) {
         const u32 sn = static_cast<u32>(ps->m_this_turn_settler_build_n) + 1u;
         ps->m_this_turn_settler_build_n = sn > 65535u ? 65535u : static_cast<u16>(sn);
     }
     if (unit_is_land(m_bld_idx)) {
+        u16 sz = static_cast<u16>(m_misc.m_target_unit_size);
+        if (m_misc.m_unit_is_being_extended != 0u) {
+            UnitAddStruct* u = find_tile_unit_flagged(*this, true, 0);
+            if (u != nullptr && static_cast<u16>(u->m_unit_size) < sz) {
+                sz = static_cast<u16>(sz - static_cast<u16>(u->m_unit_size));
+            }
+        }
+        const u16 cost = static_cast<u16>(1u + sz);
         const u32 sum = static_cast<u32>(ps->m_this_turn_new_land_unit_build_support) + static_cast<u32>(cost);
         ps->m_this_turn_new_land_unit_build_support = sum > 65535u ? 65535u : static_cast<u16>(sum);
         return;
     }
     if (unit_is_sea(m_bld_idx)) {
-        const u32 sum = static_cast<u32>(ps->m_this_turn_new_naval_unit_build_support) + static_cast<u32>(cost);
+        const u32 sum = static_cast<u32>(ps->m_this_turn_new_naval_unit_build_support) + 1u;
         ps->m_this_turn_new_naval_unit_build_support = sum > 65535u ? 65535u : static_cast<u16>(sum);
     }
 }
 
 void City::refund_land_unit_upkeep (const UnitAddStruct& unit, PlayerState* ps) {
-    (void)unit;
     GAME_EXPECT(ps != nullptr, "City::refund_land_unit_upkeep null player state");
-    const u16 cost = 1u;
+    const u16 cost = static_cast<u16>(1u + static_cast<u16>(unit.m_unit_size));
     u16 free_n = static_cast<u16>(m_misc.m_free_land_unit_support);
     u16 covered = cost;
     if (covered > free_n) {
@@ -855,6 +960,8 @@ bool City::finish_if_ready (u16 city_idx) {
             m_build_type = BUILD_TYPE_NONE;
             m_bld_idx = U16_KEY_NULL;
             m_build_cost = 0;
+            m_misc.m_target_unit_size = 0;
+            m_misc.m_unit_is_being_extended = 0;
             return true;
         }
         case BUILD_TYPE_WONDER: {
@@ -866,6 +973,8 @@ bool City::finish_if_ready (u16 city_idx) {
             m_build_type = BUILD_TYPE_NONE;
             m_bld_idx = U16_KEY_NULL;
             m_build_cost = 0;
+            m_misc.m_target_unit_size = 0;
+            m_misc.m_unit_is_being_extended = 0;
             return true;
         }
         case BUILD_TYPE_SMALL_WONDER: {
@@ -878,10 +987,27 @@ bool City::finish_if_ready (u16 city_idx) {
             m_build_type = BUILD_TYPE_NONE;
             m_bld_idx = U16_KEY_NULL;
             m_build_cost = 0;
+            m_misc.m_target_unit_size = 0;
+            m_misc.m_unit_is_being_extended = 0;
             return true;
         }
         case BUILD_TYPE_UNIT: {
             GAME_EXPECT_RET(s_units != nullptr, false, "City units");
+            LOG_CITY_BUILD((cur_bld_name(m_build_type, m_bld_idx), 0, 1));
+            if (m_misc.m_unit_is_being_extended != 0u) {
+                UnitAddStruct* unit = find_tile_unit_flagged(*this, true, 0);
+                if (unit != nullptr) {
+                    unit->m_unit_size = static_cast<u8>(m_misc.m_target_unit_size);
+                    unit->m_being_extended = 0;
+                }
+                m_accumulated_production = static_cast<u16>(m_accumulated_production - m_build_cost);
+                m_build_type = BUILD_TYPE_NONE;
+                m_bld_idx = U16_KEY_NULL;
+                m_build_cost = 0;
+                m_misc.m_target_unit_size = 0;
+                m_misc.m_unit_is_being_extended = 0;
+                return true;
+            }
             const UnitAddKey unit_key = s_units->get_next_new_unit_add_key();
             GAME_EXPECT_RET(unit_key.is_valid(), false, "City unit pool");
             UnitAddStruct* unit = s_units->get_unit_add(unit_key);
@@ -891,7 +1017,6 @@ bool City::finish_if_ready (u16 city_idx) {
                 return false;
             }
             const u16 typ = m_bld_idx;
-            LOG_CITY_BUILD((cur_bld_name(m_build_type, m_bld_idx), 0, 1));
             unit->m_x = m_x;
             unit->m_y = m_y;
             unit->m_player_idx = m_owner;
@@ -901,10 +1026,13 @@ bool City::finish_if_ready (u16 city_idx) {
             unit->m_mvt_points = 0;
             unit->m_health = UNIT_HEALTH;
             unit->m_level = spawn_unit_level(*this, city_idx, typ);
+            unit->m_unit_size = static_cast<u8>(m_misc.m_target_unit_size);
             m_accumulated_production = static_cast<u16>(m_accumulated_production - m_build_cost);
             m_build_type = BUILD_TYPE_NONE;
             m_bld_idx = U16_KEY_NULL;
             m_build_cost = 0;
+            m_misc.m_target_unit_size = 0;
+            m_misc.m_unit_is_being_extended = 0;
             UnitMovementMng::finish_unit_spawn(unit_key, m_x, m_y, m_owner);
             if (unit_is_worker(typ)) {
                 m_misc.m_city_has_worker = 1;

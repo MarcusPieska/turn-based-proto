@@ -50,7 +50,7 @@ private:
     static u16 atk_mod (const GameState& st, u16 x, u16 y);
     static u16 def_mod (const GameState& st, u16 x, u16 y);
     static i16 city_def_pct (const GameState& st, u16 x, u16 y);
-    static u32 pwr (u16 base, i32 pct_mod, u8 level, u8 health);
+    static u32 pwr (u16 base, i32 pct_mod, u8 level, u8 health, u8 size);
     static u16 lvl_pct (u8 level);
     static u16 rnd ();
     static void resolve_atk_city (UnitAddStruct& atk, UnitAddStruct& def, const GameState& st, u16 x, u16 y);

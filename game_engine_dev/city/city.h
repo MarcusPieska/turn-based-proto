@@ -30,7 +30,9 @@ typedef struct MiscCityData {
     u64 m_free_land_unit_support : 7;
     u64 m_free_naval_unit_support : 7;
     u64 m_city_has_worker : 1; // 1 = city has queued/built a worker; 0 = not yet
-    u64 m_unused : 25;
+    u64 m_target_unit_size : 6; // The size of the unit formation that the city is targeting
+    u64 m_unit_is_being_extended : 1; // True if the unit is being extended
+    u64 m_unused : 18;
 } MiscCityData;
 
 class alignas(8) City {
@@ -59,6 +61,7 @@ public:
     void build_wonder (u16 wonder_idx);
     void build_small_wonder (u16 small_wonder_idx);
     void build_unit (u16 unit_idx);
+    void extend_unit (UnitAddStruct* unit);
     void accumulate_commerce ();
 
     i16 add_food (u16 city_idx, u16 amount, i16 net_sanitation);

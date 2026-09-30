@@ -24,15 +24,14 @@
 #include "runtime_trace_dbg.h"
 #include "settler_turn_handler.h"
 #include "tile_attr_tables.h"
-#include "unit_action_enum.h"
 #include "unit_add_struct.h"
 #include "unit_add_vector.h"
 #include "unit_add_vector_key.h"
+#include "unit_domain_enum.h"
 #include "unit_movement_mng.h"
 #include "unit_roster_mng.h"
 #include "unit_static_key.h"
 #include "unit_turn_handler.h"
-#include "unit_type_action_map.h"
 #include "war_turn_handler.h"
 #include "whiteboard_mng.h"
 #include "worker_build_progress.h"
@@ -129,10 +128,8 @@ static void charge_unit_upkeep (GameState& state, UnitAddStruct* u) {
     GAME_EXPECT(player < state.m_player_n, "GameLoop charge_unit_upkeep player out of bounds");
     PlayerState& ps = state.m_player_states[player];
     const UnitStaticDataStruct& us = state.m_statics->unit().get_item(UnitStaticDataKey::from_raw(u->m_unit_typ_idx));
-    const bool is_land = state.m_statics->unit_type_action_map().unit_type_can_do(
-        us.type, static_cast<u16>(UnitAction::isLandUnit));
-    const bool is_sea = state.m_statics->unit_type_action_map().unit_type_can_do(
-        us.type, static_cast<u16>(UnitAction::isSeaUnit));
+    const bool is_land = us.domain == static_cast<u16>(UnitDomain::LAND);
+    const bool is_sea = us.domain == static_cast<u16>(UnitDomain::SEA);
     if (!is_land && !is_sea) {
         return;
     }
@@ -148,7 +145,7 @@ static void charge_unit_upkeep (GameState& state, UnitAddStruct* u) {
         if (city != nullptr) {
             city->refund_land_unit_upkeep(*u, &ps);
         } else {
-            add_upkeep(&ps.m_land_unit_upkeep_needed, 1u);
+            add_upkeep(&ps.m_land_unit_upkeep_needed, static_cast<u16>(1u + static_cast<u16>(u->m_unit_size)));
         }
         return;
     }

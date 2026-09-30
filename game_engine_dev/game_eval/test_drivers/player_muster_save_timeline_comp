@@ -1,0 +1,86 @@
+#!/bin/bash
+set -e
+cd "$(dirname "$0")"
+ROOT="../.."
+LIB_SO="$ROOT/data_io/runtime_static_loader_lib.so"
+LOG_SO="$ROOT/log_dbg/log_dbg.so"
+if [ ! -f "$LIB_SO" ]; then
+    echo "missing $LIB_SO - run ../../data_io/runtime_static_loader_lib_comp first"
+    exit 1
+fi
+if [ ! -f "$LOG_SO" ]; then
+    echo "missing $LOG_SO - run ../../log_dbg/log_dbg_comp first"
+    exit 1
+fi
+
+INC="-I.. \
+     -I$ROOT \
+     -I$ROOT/game \
+     -I$ROOT/misc \
+     -I$ROOT/data_io \
+     -I$ROOT/static_state \
+     -I$ROOT/city \
+     -I$ROOT/city/assessor \
+     -I$ROOT/city/effector \
+     -I$ROOT/dyn_state \
+     -I$ROOT/gen_bit_banks \
+     -I$ROOT/ai_pathing/walk_general \
+     -I$ROOT/ai_pathing/walk_cities \
+     -I$ROOT/ai_proc \
+     -I$ROOT/map_loader \
+     -I$ROOT/simple_map_gen \
+     -I$ROOT/log_dbg \
+     -I$ROOT/gen_effector"
+CXXFLAGS="-std=c++17 -Wall -Wextra -ffunction-sections -fdata-sections"
+
+# shellcheck source=eval_save_link.inc
+source ./eval_save_link.inc
+compile_eval_save_deps
+
+g++ $CXXFLAGS $INC -c "$ROOT/dyn_state/unit_group_management.cpp" -o unit_group_management.o
+g++ $CXXFLAGS $INC -c "$ROOT/dyn_state/fort_add_vector.cpp" -o fort_add_vector.o
+g++ $CXXFLAGS $INC -c "$ROOT/dyn_state/mine_add_vector.cpp" -o mine_add_vector.o
+g++ $CXXFLAGS $INC -c "$ROOT/dyn_state/monastery_add_vector.cpp" -o monastery_add_vector.o
+g++ $CXXFLAGS $INC -c "$ROOT/dyn_state/outpost_add_vector.cpp" -o outpost_add_vector.o
+g++ $CXXFLAGS $INC -c "$ROOT/dyn_state/plantation_add_vector.cpp" -o plantation_add_vector.o
+g++ $CXXFLAGS $INC -c "$ROOT/dyn_state/shipyard_add_vector.cpp" -o shipyard_add_vector.o
+g++ $CXXFLAGS $INC -c "$ROOT/dyn_state/trade_post_add_vector.cpp" -o trade_post_add_vector.o
+g++ $CXXFLAGS $INC -c "$ROOT/game/combat_mods.cpp" -o combat_mods.o
+g++ $CXXFLAGS $INC -c "$ROOT/ai_pathing/walk_general/sector_network.cpp" -o sector_network.o
+g++ $CXXFLAGS $INC -c "$ROOT/ai_pathing/walk_general/sector_network_router.cpp" -o sector_network_router.o
+g++ $CXXFLAGS $INC -c "$ROOT/ai_pathing/walk_cities/city_network.cpp" -o city_network.o
+g++ $CXXFLAGS $INC -c player_muster_gen_ai_stubs.cpp -o player_muster_gen_ai_stubs.o
+g++ $CXXFLAGS $INC -c ../eval_paths.cpp -o eval_paths.o
+g++ $CXXFLAGS $INC -c ../eval_need.cpp -o eval_need.o
+g++ $CXXFLAGS $INC -c ../eval_bin_light.cpp -o eval_bin_light.o
+g++ $CXXFLAGS $INC -c ../eval_log.cpp -o eval_log.o
+g++ $CXXFLAGS $INC -c ../eval_driver.cpp -o eval_driver.o
+g++ $CXXFLAGS $INC -c ../player_unit_save_timeline.cpp -o player_unit_save_timeline.o
+g++ $CXXFLAGS $INC -c ../player_muster_save_timeline_mng.cpp -o player_muster_save_timeline_mng.o
+g++ $CXXFLAGS $INC -c player_muster_save_timeline_tester.cpp -o player_muster_save_timeline_tester.o
+
+GS_EXTRA_OBJS="unit_group_management.o fort_add_vector.o mine_add_vector.o monastery_add_vector.o \
+    outpost_add_vector.o plantation_add_vector.o shipyard_add_vector.o trade_post_add_vector.o \
+    combat_mods.o sector_network.o sector_network_router.o city_network.o player_muster_gen_ai_stubs.o"
+
+g++ $CXXFLAGS -o player_muster_save_timeline_tester \
+    $GS_EXTRA_OBJS \
+    $EVAL_SAVE_DEP_OBJS \
+    eval_paths.o eval_need.o eval_bin_light.o eval_log.o eval_driver.o \
+    player_unit_save_timeline.o player_muster_save_timeline_mng.o \
+    player_muster_save_timeline_tester.o \
+    -ldl \
+    $LIB_SO \
+    $LOG_SO \
+    -Wl,-rpath,'$ORIGIN/../../data_io' \
+    -Wl,-rpath,'$ORIGIN/../../log_dbg' \
+    -Wl,--allow-shlib-undefined \
+    -Wl,--allow-multiple-definition \
+    -Wl,--gc-sections
+
+echo "--- running player_muster_save_timeline_tester ---"
+./player_muster_save_timeline_tester
+
+rm_eval_save_deps
+rm -f $GS_EXTRA_OBJS eval_paths.o eval_need.o eval_bin_light.o eval_log.o eval_driver.o \
+    player_unit_save_timeline.o player_muster_save_timeline_mng.o player_muster_save_timeline_tester.o

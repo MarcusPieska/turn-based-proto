@@ -68,6 +68,12 @@ Solar Plant                    : booster(PRODUCTION, 100, CITY, PERCENTAGE)
 Capitalization                 : booster(PRODUCTION, 50, CITY, PERCENTAGE) : booster(COMMERCE, 50, CITY, PERCENTAGE)
 
 
+Heavy Formations               : booster(MAX_UNIT_SIZE, 1, CIV, COUNT)
+Professional Soldiering        : booster(MAX_UNIT_SIZE, 1, CIV, COUNT)
+Feudal Vassalage               : booster(MAX_UNIT_SIZE, 1, CIV, COUNT)
+The Arquebus                   : booster(MAX_UNIT_SIZE, 1, CIV, COUNT)
+General Mobilization           : booster(MAX_UNIT_SIZE, 1, CIV, COUNT)
+Total War                      : booster(MAX_UNIT_SIZE, 1, CIV, COUNT)
 Germ Theory                    : booster(SANITATION, 1, CIV, COUNT)
 Thermal Sterilization          : booster(SANITATION, 1, CIV, COUNT)
 Mass Immunization              : booster(SANITATION, 1, CIV, COUNT)

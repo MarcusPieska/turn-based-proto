@@ -146,7 +146,7 @@ i16 CombatMng::city_def_pct (const GameState& st, u16 x, u16 y) {
     return (eff < 0) ? 0 : eff;
 }
 
-u32 CombatMng::pwr (u16 base, i32 pct_mod, u8 level, u8 health) {
+u32 CombatMng::pwr (u16 base, i32 pct_mod, u8 level, u8 health, u8 size) {
     if (base == 0u || health == 0u) {
         return 0u;
     }
@@ -158,6 +158,7 @@ u32 CombatMng::pwr (u16 base, i32 pct_mod, u8 level, u8 health) {
         * static_cast<u64>(scale)
         * static_cast<u64>(lvl_pct(level))
         * static_cast<u64>(health)
+        * static_cast<u64>(1u + static_cast<u32>(size))
         / 10000ull;
     return static_cast<u32>(p);
 }
@@ -181,8 +182,8 @@ void CombatMng::resolve_attack (UnitAddStruct& atk, UnitAddStruct& def, const Ga
     const CombatBoost roles = st.m_combat_mods.get(as.role, ds.role, on_city);
     const i32 atk_pct = static_cast<i32>(atk_mod(st, x, y)) + static_cast<i32>(roles.m_atk);
     const i32 def_pct = static_cast<i32>(def_mod(st, x, y)) + static_cast<i32>(roles.m_def) + static_cast<i32>(city_def_pct(st, x, y));
-    const u32 ap = pwr(as.attack, atk_pct, atk.m_level, atk.m_health);
-    const u32 dp = pwr(ds.defense, def_pct, def.m_level, def.m_health);
+    const u32 ap = pwr(as.attack, atk_pct, atk.m_level, atk.m_health, static_cast<u8>(atk.m_unit_size));
+    const u32 dp = pwr(ds.defense, def_pct, def.m_level, def.m_health, static_cast<u8>(def.m_unit_size));
     bool atk_wins = false;
     if (ap == 0u && dp == 0u) {
         atk_wins = (rnd() & 1u) != 0u;
@@ -247,8 +248,8 @@ void CombatMng::resolve_atk_city (UnitAddStruct& atk, UnitAddStruct& def, const 
     const CombatBoost roles = st.m_combat_mods.get(as.role, ds.role, on_city);
     const i32 atk_pct = static_cast<i32>(roles.m_atk);
     const i32 def_pct = static_cast<i32>(roles.m_def);
-    const u32 ap = pwr(as.attack, atk_pct, atk.m_level, atk.m_health);
-    const u32 dp = pwr(ds.defense, def_pct, def.m_level, def.m_health);
+    const u32 ap = pwr(as.attack, atk_pct, atk.m_level, atk.m_health, static_cast<u8>(atk.m_unit_size));
+    const u32 dp = pwr(ds.defense, def_pct, def.m_level, def.m_health, static_cast<u8>(def.m_unit_size));
     bool atk_wins = false;
     if (ap == 0u && dp == 0u) {
         atk_wins = (rnd() & 1u) != 0u;

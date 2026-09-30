@@ -78,6 +78,7 @@ ItemEffectBoosterType ItemEffectHelper::booster_type_str_to_enum (cstr s) {
     if (s && std::strcmp(s, "CITY_LAND_UNIT_SUPPORT") == 0) { return ItemEffectBoosterType::CITY_LAND_UNIT_SUPPORT; }
     if (s && std::strcmp(s, "CIV_NAVAL_UNIT_SUPPORT") == 0) { return ItemEffectBoosterType::CIV_NAVAL_UNIT_SUPPORT; }
     if (s && std::strcmp(s, "CITY_NAVAL_UNIT_SUPPORT") == 0) { return ItemEffectBoosterType::CITY_NAVAL_UNIT_SUPPORT; }
+    if (s && std::strcmp(s, "MAX_UNIT_SIZE") == 0) { return ItemEffectBoosterType::MAX_UNIT_SIZE; }
     return ItemEffectBoosterType::NONE;
 }
 
@@ -113,6 +114,7 @@ cstr ItemEffectHelper::booster_type_enum_to_str (ItemEffectBoosterType v) {
         case ItemEffectBoosterType::CITY_LAND_UNIT_SUPPORT : return "CITY_LAND_UNIT_SUPPORT";
         case ItemEffectBoosterType::CIV_NAVAL_UNIT_SUPPORT : return "CIV_NAVAL_UNIT_SUPPORT";
         case ItemEffectBoosterType::CITY_NAVAL_UNIT_SUPPORT : return "CITY_NAVAL_UNIT_SUPPORT";
+        case ItemEffectBoosterType::MAX_UNIT_SIZE : return "MAX_UNIT_SIZE";
         default: return "NONE";
     }
 }

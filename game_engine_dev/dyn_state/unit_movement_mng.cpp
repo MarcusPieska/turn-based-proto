@@ -441,6 +441,9 @@ bool UnitMovementMng::can_step (const GameState& s, UnitAddKey key, u16 dest_x, 
     if (u == nullptr || is_grp_tail(*u)) {
         return false;
     }
+    if (u->m_being_extended != 0u) {
+        return false;
+    }
     if (!in_bounds(s, dest_x, dest_y)) {
         return false;
     }
@@ -543,6 +546,9 @@ static bool worker_dest_allows_domain (
 bool UnitMovementMng::can_step_worker (const GameState& s, UnitAddKey key, u16 dest_x, u16 dest_y, i16* out_cost) {
     const UnitAddStruct* u = u_get(s, key);
     if (u == nullptr || is_grp_tail(*u)) {
+        return false;
+    }
+    if (u->m_being_extended != 0u) {
         return false;
     }
     if (!in_bounds(s, dest_x, dest_y)) {
