@@ -21,12 +21,12 @@
 //=> - LOG_WAR_ARMY_SIZE -
 //================================================================================================================================
 
-void LOG_WAR_ARMY_SIZE::LOG (unsigned seat, unsigned army_n, unsigned tile_n, unsigned sx, unsigned sy, unsigned turn) {
-    TraceSink::printf("war army size seat=%u army_units=%u tile_units=%u staging=(%u,%u) turn=%u\n", seat, army_n, tile_n, sx, sy, turn);
+void LOG_WAR_ARMY_SIZE::LOG (unsigned seat, unsigned unit_n, unsigned size_sum, unsigned sx, unsigned sy, unsigned turn) {
+    TraceSink::printf("war army size seat=%u units=%u size=%u staging=(%u,%u) turn=%u\n", seat, unit_n, size_sum, sx, sy, turn);
 }
 
-bool LOG_WAR_ARMY_SIZE::PARSE (const char* line, unsigned* seat, unsigned* army_n, unsigned* tile_n, unsigned* sx, unsigned* sy, unsigned* turn) {
-    if (line == nullptr || seat == nullptr || army_n == nullptr || tile_n == nullptr || sx == nullptr || sy == nullptr || turn == nullptr) {
+bool LOG_WAR_ARMY_SIZE::PARSE (const char* line, unsigned* seat, unsigned* unit_n, unsigned* size_sum, unsigned* sx, unsigned* sy, unsigned* turn) {
+    if (line == nullptr || seat == nullptr || unit_n == nullptr || size_sum == nullptr || sx == nullptr || sy == nullptr || turn == nullptr) {
         return false;
     }
     unsigned t0 = 0;
@@ -35,12 +35,12 @@ bool LOG_WAR_ARMY_SIZE::PARSE (const char* line, unsigned* seat, unsigned* army_
     unsigned t3 = 0;
     unsigned t4 = 0;
     unsigned t5 = 0;
-    if (std::sscanf(line, "war army size seat=%u army_units=%u tile_units=%u staging=(%u,%u) turn=%u", &t0, &t1, &t2, &t3, &t4, &t5) != 6) {
+    if (std::sscanf(line, "war army size seat=%u units=%u size=%u staging=(%u,%u) turn=%u", &t0, &t1, &t2, &t3, &t4, &t5) != 6) {
         return false;
     }
     *seat = t0;
-    *army_n = t1;
-    *tile_n = t2;
+    *unit_n = t1;
+    *size_sum = t2;
     *sx = t3;
     *sy = t4;
     *turn = t5;

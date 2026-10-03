@@ -40,19 +40,13 @@ bool EvalDriver::chk () {
         }
     }
     if (m_need.want_logs ()) {
-        if (!m_need.want_trace ()) {
-            std::printf("EvalNeed: log mask requires a loaded trace\n");
-            return false;
-        }
         const u8* want = m_need.logs().bytes();
         for (u16 i = 0; i < LogNeedMask::n(); ++i) {
             if (want[i] == 0) {
                 continue;
             }
-            const u32 have = m_log.count_i(i);
-            if (have < static_cast<u32>(want[i])) {
-                std::printf("EvalNeed: missing log %s (have %u, need >= %u)\n",
-                    LogNeedMask::nm(i), have, static_cast<u32>(want[i]));
+            if (!LogNeedMask::on(i)) {
+                std::printf("EvalNeed: log %s not enabled\n", LogNeedMask::nm(i));
                 return false;
             }
         }

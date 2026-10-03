@@ -48,6 +48,7 @@ public:
     static i16 grp_min_mvt (const GameState& s, UnitAddKey key);
 
     static bool can_step (const GameState& s, UnitAddKey key, u16 dest_x, u16 dest_y, i16* out_cost);
+    static u8 can_step_reason (const GameState& s, UnitAddKey key, u16 dest_x, u16 dest_y, i16* out_cost);
     static bool apply_step (GameState& s, UnitAddKey key, u16 dest_x, u16 dest_y);
 
     static bool can_step_worker (const GameState& s, UnitAddKey key, u16 dest_x, u16 dest_y, i16* out_cost);
@@ -60,6 +61,7 @@ public:
     static bool link_group (GameState& s, UnitAddKey head, UnitAddKey tail);
     static bool unlink_group (GameState& s, UnitAddKey tail);
     static bool stack_append (GameState& s, UnitAddKey key, u16 x, u16 y);
+    static void set_grp_campaign (GameState& s, UnitAddKey head, u8 on);
 
     // Thin wrappers -> UnitGroupManagement (group selection policy)
     static bool muster_collect_depart (

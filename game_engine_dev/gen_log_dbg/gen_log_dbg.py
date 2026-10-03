@@ -18,10 +18,39 @@ LOGS = [
     ("CityFoundation", "u16 x, u16 y, u16 player", "city founded at=(%u,%u) civ=%u\n"),
     ("CivSpawnPt", "u16 x, u16 y, u16 civ_idx", "civ spawned at=(%u,%u) civ=%u\n"),
     ("UnitSpawn", "u16 typ_idx, u16 civ_idx, u16 x, u16 y", "unit spawned typ=%u civ=%u at=(%u,%u)\n"),
-    ("WarMuster", "unsigned seat, unsigned enemy, unsigned sx, unsigned sy, unsigned n, unsigned turn", "war muster start seat=%u enemy=%u staging=(%u,%u) muster_n=%u turn=%u\n"),
+    ("WarMuster", "unsigned seat, unsigned enemy, unsigned sx, unsigned sy, unsigned unit_n, unsigned size_sum, unsigned city_n, unsigned turn", "war muster start seat=%u enemy=%u staging=(%u,%u) units=%u size=%u cities=%u turn=%u\n"),
     ("WarPeaceMock", "unsigned seat, unsigned x, unsigned y, unsigned turn", "war peace mock-fail seat=%u city=(%u,%u) turn=%u\n"),
-    ("WarArmySize", "unsigned seat, unsigned army_n, unsigned tile_n, unsigned sx, unsigned sy, unsigned turn", "war army size seat=%u army_units=%u tile_units=%u staging=(%u,%u) turn=%u\n"),
+    ("WarPeace", "unsigned seat, unsigned enemy, unsigned turn", "war peace seat=%u enemy=%u turn=%u\n"),
+    ("WarTargets", "unsigned seat, unsigned enemy, unsigned tn, unsigned turn", "war targets seat=%u enemy=%u n=%u turn=%u\n"),
+    ("WarArmySize", "unsigned seat, unsigned unit_n, unsigned size_sum, unsigned sx, unsigned sy, unsigned turn", "war army size seat=%u units=%u size=%u staging=(%u,%u) turn=%u\n"),
     ("WarCityCapture", "unsigned seat, unsigned from, unsigned x, unsigned y, unsigned turn", "war city capture seat=%u from=%u city=(%u,%u) turn=%u\n"),
+    ("WarBeginFail", "unsigned seat_n, unsigned turn", "war begin fail seat_n=%u turn=%u\n"),
+    ("WarSecBeginFail", "unsigned turn, unsigned reason", "war sec begin fail turn=%u reason=%u\n"),
+    ("WarPickEnemyFail", "unsigned seat, unsigned turn, unsigned reason", "war pick enemy fail seat=%u turn=%u reason=%u\n"),
+    ("WarEngageFail", "unsigned seat, unsigned enemy, unsigned turn, unsigned reason", "war engage fail seat=%u enemy=%u turn=%u reason=%u\n"),
+    ("WarHandleCampFail", "unsigned seat, unsigned enemy, unsigned turn", "war handle camp fail seat=%u enemy=%u turn=%u\n"),
+    ("WarStartCampFail", "unsigned seat, unsigned enemy, unsigned turn, unsigned reason", "war start camp fail seat=%u enemy=%u turn=%u reason=%u\n"),
+    ("WarDeclareFail", "unsigned seat, unsigned enemy, unsigned turn, unsigned reason", "war declare fail seat=%u enemy=%u turn=%u reason=%u\n"),
+    ("WarStagingFail", "unsigned seat, unsigned enemy, unsigned turn, unsigned reason", "war staging fail seat=%u enemy=%u turn=%u reason=%u\n"),
+    ("WarOwnFreeCompFail", "unsigned seat, unsigned turn, unsigned reason", "war own free comp fail seat=%u turn=%u reason=%u\n"),
+    ("WarMusterGradFail", "unsigned seat, unsigned sx, unsigned sy, unsigned turn", "war muster grad fail seat=%u staging=(%u,%u) turn=%u\n"),
+    ("WarExposureFail", "unsigned seat, unsigned enemy, unsigned turn", "war exposure fail seat=%u enemy=%u turn=%u\n"),
+    ("WarWalkMusterFail", "unsigned seat, unsigned turn", "war walk muster fail seat=%u turn=%u\n"),
+    ("WarFormArmyFail", "unsigned seat, unsigned enemy, unsigned turn", "war form army fail seat=%u enemy=%u turn=%u\n"),
+    ("WarSetTargetFail", "unsigned seat, unsigned enemy, unsigned turn, unsigned reason", "war set target fail seat=%u enemy=%u turn=%u reason=%u\n"),
+    ("WarRefillTargetsFail", "unsigned seat, unsigned enemy, unsigned turn, unsigned reason", "war refill targets fail seat=%u enemy=%u turn=%u reason=%u\n"),
+    ("WarFindEnemySeedFail", "unsigned seat, unsigned enemy, unsigned turn", "war find enemy seed fail seat=%u enemy=%u turn=%u\n"),
+    ("WarSetGoalFail", "unsigned seat, unsigned tx, unsigned ty, unsigned turn", "war set goal fail seat=%u goal=(%u,%u) turn=%u\n"),
+    ("WarAssaultStallStop", "unsigned seat, unsigned enemy, unsigned tx, unsigned ty, unsigned turn", "war assault stall stop seat=%u enemy=%u city=(%u,%u) turn=%u\n"),
+    ("WarAssaultFailStop", "unsigned seat, unsigned enemy, unsigned tx, unsigned ty, unsigned turn", "war assault fail stop seat=%u enemy=%u city=(%u,%u) turn=%u\n"),
+    ("WarAssaultCityFail", "unsigned seat, unsigned tx, unsigned ty, unsigned army_i, unsigned turn", "war assault city fail seat=%u city=(%u,%u) army=%u turn=%u\n"),
+    ("WarCamAssaultFail", "unsigned seat, unsigned tx, unsigned ty, unsigned turn, unsigned reason", "war cam assault fail seat=%u city=(%u,%u) turn=%u reason=%u\n"),
+    ("WarCamMeleeFail", "unsigned seat, unsigned tx, unsigned ty, unsigned turn, unsigned reason", "war cam melee fail seat=%u city=(%u,%u) turn=%u reason=%u\n"),
+    ("WarClaimCityMiss", "unsigned seat, unsigned x, unsigned y, unsigned turn", "war claim city miss seat=%u tile=(%u,%u) turn=%u\n"),
+    ("WarRejoinMoveFail", "unsigned seat, unsigned enemy, unsigned army_i, unsigned turn, unsigned reason, unsigned sx, unsigned sy, unsigned dx, unsigned dy", "war rejoin move fail seat=%u enemy=%u army=%u turn=%u reason=%u stay=(%u,%u) occ=(%u,%u)\n"),
+    ("WarRejoinLinkFail", "unsigned seat, unsigned enemy, unsigned army_i, unsigned turn", "war rejoin link fail seat=%u enemy=%u army=%u turn=%u\n"),
+    ("WarArmyCantFight", "unsigned seat, unsigned enemy, unsigned army_i, unsigned turn", "war army cant fight seat=%u enemy=%u army=%u turn=%u\n"),
+    ("WarRetargetFail", "unsigned seat, unsigned enemy, unsigned turn", "war retarget fail seat=%u enemy=%u turn=%u\n"),
     ("CityJobFood", "u16 jobs, u16 yield", "city job food jobs=%u yield=%u\n"),
     ("CityJobProduction", "u16 jobs, u16 yield", "city job production jobs=%u yield=%u\n"),
     ("CityJobCommerce", "u16 jobs, u16 yield", "city job commerce jobs=%u yield=%u\n"),
@@ -344,6 +373,7 @@ def log_field_name (suffix: str) -> str:
 
 def gen_log_need_mask (entries: list[tuple]) -> None:
     fields = [log_field_name(unpack_entry(e)[0]) for e in entries]
+    enables = ["ENABLED_LOG_%s" % snake(unpack_entry(e)[0]).upper() for e in entries]
     n = len(fields)
     lines = []
     lines.append("//" + ("=" * 128))
@@ -361,12 +391,14 @@ def gen_log_need_mask (entries: list[tuple]) -> None:
     lines.append("#define LOG_NEED_MASK_H")
     lines.append("")
     lines.append('#include "game_primitives.h"')
+    lines.append('#include "log_dbg_toggles.h"')
     lines.append("")
     lines.append("//" + ("=" * 128))
     lines.append("//=> - LogNeedMask -")
     lines.append("//" + ("=" * 128))
     lines.append("//")
-    lines.append("//  One u8 per log channel (0 = not required). Drivers set desired channels to 1+.")
+    lines.append("//  One u8 per log channel (0 = not required). Drivers set desired channels to 1.")
+    lines.append("//  EvalDriver::chk verifies ENABLED_LOG_* (via on()), not occurrence counts.")
     lines.append("//")
     lines.append("//" + ("=" * 128))
     lines.append("")
@@ -382,6 +414,7 @@ def gen_log_need_mask (entries: list[tuple]) -> None:
     lines.append("    const u8* bytes () const;")
     lines.append("    static u16 n ();")
     lines.append("    static cstr nm (u16 i);")
+    lines.append("    static bool on (u16 i);")
     lines.append("};")
     lines.append("")
     lines.append("inline LogNeedMask::LogNeedMask ()")
@@ -423,6 +456,21 @@ def gen_log_need_mask (entries: list[tuple]) -> None:
     lines.append("    return k_nm[i];")
     lines.append("}")
     lines.append("")
+    lines.append("inline bool LogNeedMask::on (u16 i) {")
+    lines.append("    static const u8 k_on[LOG_NEED_N] = {")
+    for en in enables:
+        lines.append("#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(%s))" % en)
+        lines.append("        1u,")
+        lines.append("#else")
+        lines.append("        0u,")
+        lines.append("#endif")
+    lines.append("    };")
+    lines.append("    if (i >= LOG_NEED_N) {")
+    lines.append("        return false;")
+    lines.append("    }")
+    lines.append("    return k_on[i] != 0u;")
+    lines.append("}")
+    lines.append("")
     lines.append("#endif // LOG_NEED_MASK_H")
     lines.append("")
     lines.append("//" + ("=" * 128))
@@ -446,7 +494,7 @@ def gen_eval_log_count_inc (entries: list[tuple]) -> None:
             lines.append("        if (%s::PARSE(s, %s)) {" % (class_name, ptrs))
         else:
             lines.append("        if (%s::PARSE(s)) {" % class_name)
-        lines.append("            n = n + 1u;")
+        lines.append("            cnt = cnt + 1u;")
         lines.append("        }")
         lines.append("        break;")
         lines.append("    }")

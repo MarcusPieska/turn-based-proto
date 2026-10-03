@@ -43,9 +43,10 @@ struct MusterCity {
 //
 //  Per-seat war turn handler: muster, form army, march, assault (CityAttackManager), claim city with
 //  TileTransfer, two-step rejoin, then retarget until no fight left or no targets. begin builds
-//  GenLandSectors + LandSectorNetwork and binds SectorSupport; pick_enemy / refill_targets prefer
-//  TargetSector_Defensible (flood fallback). Assault may Stall when offensive units remain but spent
-//  this assault's MP; owner retries. Hot path: begin/clear with GameLoop; handle per engaged AI seat.
+//  GenLandSectors + LandSectorNetwork and binds SectorSupport; pick_enemy / refill_targets use
+//  war_target_pick (default WarTargetKind::SecureCapital). Assault may Stall when offensive units
+//  remain but spent this assault's MP; owner retries. Hot path: begin/clear with GameLoop; handle
+//  per engaged AI seat.
 //
 //================================================================================================================================
 
@@ -88,6 +89,7 @@ public:
     static bool pick_staging_city (const GameState& s, u16 seat, u16 enemy, u16* ox, u16* oy);
 
     u16 muster_n () const;
+    void muster_units (u32* unit_n, u32* size_sum) const;
     bool is_exposed (u16 i) const;
     u16 atk_hd (u16 i) const;
     u16 split_hd (u16 i) const;
@@ -95,6 +97,7 @@ public:
     u16 staging_y () const;
     u16 target_x () const;
     u16 target_y () const;
+    void clr_campaign ();
 
 private:
     WarTurnHandler (const WarTurnHandler& o) = delete;

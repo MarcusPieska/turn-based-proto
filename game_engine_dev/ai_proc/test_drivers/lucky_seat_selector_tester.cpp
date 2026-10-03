@@ -94,23 +94,6 @@ static void latt_for_map (u16 w, u16 h, u16* rows, u16* cols) {
     *cols = c;
 }
 
-static void terr_rgb (u8 cls, u8* r, u8* g, u8* b) {
-    static const u8* const k_rows[] = {
-        TERR_NONE, TERR_OCEAN, TERR_SEA, TERR_COASTAL, TERR_PLAINS, TERR_HILLS,
-        TERR_MOUNTAINS, TERR_VOLCANO, TERR_INLAND_SEA, TERR_INLAND_LAKE};
-    for (unsigned i = 0; i < sizeof(k_rows) / sizeof(k_rows[0]); ++i) {
-        if (k_rows[i][0] == cls) {
-            *r = k_rows[i][1];
-            *g = k_rows[i][2];
-            *b = k_rows[i][3];
-            return;
-        }
-    }
-    *r = 0u;
-    *g = 0u;
-    *b = 0u;
-}
-
 static void set_px (u8* rgb, u16 w, u16 h, i32 x, i32 y, u8 r, u8 g, u8 b) {
     if (x < 0 || y < 0 || x >= static_cast<i32>(w) || y >= static_cast<i32>(h)) {
         return;
@@ -254,7 +237,7 @@ static bool save_crop (
 
 static bool save_map (
     cstr path,
-    const MapTerrainData& terr,
+    const GameArraySimple& map,
     const SpgPickCoords& starts,
     const u16* lucky_seats,
     u16 lucky_n)
@@ -262,22 +245,34 @@ static bool save_map (
     if (path == nullptr) {
         return false;
     }
-    const u16 w = terr.width();
-    const u16 h = terr.height();
-    const u8* cls = terr.data();
-    if (cls == nullptr || w == 0u || h == 0u) {
+    const u16 w = map.width();
+    const u16 h = map.height();
+    if (w == 0u || h == 0u) {
         return false;
     }
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
     std::vector<u8> rgb(static_cast<size_t>(n) * 3u);
-    for (u32 i = 0; i < n; ++i) {
-        u8 r = 0u;
-        u8 g = 0u;
-        u8 b = 0u;
-        terr_rgb(cls[i], &r, &g, &b);
-        rgb[i * 3u + 0u] = r;
-        rgb[i * 3u + 1u] = g;
-        rgb[i * 3u + 2u] = b;
+    for (u16 y = 0; y < h; ++y) {
+        for (u16 x = 0; x < w; ++x) {
+            const u32 i = static_cast<u32>(y) * static_cast<u32>(w) + static_cast<u32>(x);
+            u8 r = 0u;
+            u8 g = 0u;
+            u8 b = 0u;
+            climate_to_rgb(map.get_climate(x, y), &r, &g, &b);
+            if (map.get_river(x, y) != 0u) {
+                r = G_RIV_R;
+                g = G_RIV_G;
+                b = G_RIV_B;
+            }
+            if (map.get_terrain(x, y) == TERR_MOUNTAINS[0]) {
+                r = 120u;
+                g = 72u;
+                b = 40u;
+            }
+            rgb[i * 3u + 0u] = r;
+            rgb[i * 3u + 1u] = g;
+            rgb[i * 3u + 2u] = b;
+        }
     }
     for (u32 i = 0; i < starts.n; ++i) {
         const u16 sx = starts.pts[i].x;
@@ -421,7 +416,7 @@ int main () {
     if (std::snprintf(out_path, sizeof(out_path), "%s/lucky_seats.ppm", G_OUT_DIR) <= 0) {
         return 1;
     }
-    if (!save_map(out_path, terr, starts, lucky_seats, req.m_lucky_n)) {
+    if (!save_map(out_path, map, starts, lucky_seats, req.m_lucky_n)) {
         std::printf("*** FAILED save %s\n", out_path);
         return 1;
     }

@@ -24,18 +24,20 @@
 class LOG_WAR_MUSTER {
 public:
 #if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_MUSTER))
-    static void LOG (unsigned seat, unsigned enemy, unsigned sx, unsigned sy, unsigned n, unsigned turn);
+    static void LOG (unsigned seat, unsigned enemy, unsigned sx, unsigned sy, unsigned unit_n, unsigned size_sum, unsigned city_n, unsigned turn);
 #else
-    static void LOG (unsigned seat, unsigned enemy, unsigned sx, unsigned sy, unsigned n, unsigned turn) {
+    static void LOG (unsigned seat, unsigned enemy, unsigned sx, unsigned sy, unsigned unit_n, unsigned size_sum, unsigned city_n, unsigned turn) {
         (void)seat;
         (void)enemy;
         (void)sx;
         (void)sy;
-        (void)n;
+        (void)unit_n;
+        (void)size_sum;
+        (void)city_n;
         (void)turn;
     }
 #endif
-    static bool PARSE (const char* line, unsigned* seat, unsigned* enemy, unsigned* sx, unsigned* sy, unsigned* n, unsigned* turn);
+    static bool PARSE (const char* line, unsigned* seat, unsigned* enemy, unsigned* sx, unsigned* sy, unsigned* unit_n, unsigned* size_sum, unsigned* city_n, unsigned* turn);
 
 private:
     LOG_WAR_MUSTER () = delete;

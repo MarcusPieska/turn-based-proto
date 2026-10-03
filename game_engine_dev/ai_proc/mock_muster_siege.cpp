@@ -46,6 +46,32 @@ u16 MockMusterSiege::army_live () const {
     return n;
 }
 
+u16 MockMusterSiege::barrage_n (GameState& s) const {
+    if (!m_ok || s.m_statics == nullptr || m_army_n == 0u) {
+        return 0u;
+    }
+    const u16 typ_n = s.m_statics->unit().get_item_count();
+    if (typ_n == 0u) {
+        return 0u;
+    }
+    u8 cache[typ_n];
+    std::memset(cache, 0, typ_n);
+    u16 n = 0u;
+    for (u16 i = 0; i < m_army_n; ++i) {
+        const u16 typ = m_army[i].m_unit_typ_idx;
+        if (typ >= typ_n) {
+            continue;
+        }
+        if (cache[typ] == 0u) {
+            cache[typ] = can_barrage(s, typ) ? 2u : 1u;
+        }
+        if (cache[typ] == 2u) {
+            ++n;
+        }
+    }
+    return n;
+}
+
 u16 MockMusterSiege::seat () const {
     return m_seat;
 }

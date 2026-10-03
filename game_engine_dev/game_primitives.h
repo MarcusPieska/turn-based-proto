@@ -26,6 +26,12 @@ typedef double f64;
 #define U16_KEY_INVALID 0xFFFF - 1
 #define U8_KEY_NULL 0xFF
 
+#define SC_U8(x) static_cast<u8>(x)
+#define SC_U16(x) static_cast<u16>(x)
+#define SC_U32(x) static_cast<u32>(x)
+#define SC_I16(x) static_cast<i16>(x)
+#define SC_I32(x) static_cast<i32>(x)
+
 #define MAX_EFFECTS_PER_ENTITY 4
 typedef struct EffectIndices {
     u16 indices[MAX_EFFECTS_PER_ENTITY];

@@ -13,6 +13,7 @@
 //================================================================================================================================
 //
 //  Declares what a driver requires: LogNeedMask channels and/or saves.
+//  logs(): channels that must be ENABLED_LOG_* at compile time (not occurrence counts).
 //  save(turn): named turns; EvalDriver fully unpacks each into EvalBin.
 //  save_seq(): all matching quartets on disk, ordered by turn; chk verifies only (no bulk unpack).
 //

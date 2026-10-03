@@ -37,6 +37,12 @@
 #include "worker_build_progress.h"
 #include "worker_turn_handler_mk2.h"
 
+//================================================================================================================================
+//=> - Constants -
+//================================================================================================================================
+
+#define WAR_DECLARE_MIN_ARMY 20u
+#define WAR_DECLARE_MIN_BARRAGE 10u
 
 //================================================================================================================================
 //=> - Helpers -
@@ -274,25 +280,36 @@ static void check_start_wars (GameState& state) {
     const u16 seat = lucky[li];
     PlayerState& ps = state.m_player_states[seat];
     if (ps.m_at_war != 0u || WarTurnHandler::is_engaged(seat)) {
+        LOG_WAR_DECLARE_FAIL::LOG(SC_U32(seat), SC_U32(U16_KEY_NULL), SC_U32(turn), 0u); 
         return;
     }
     u16 enemy = U16_KEY_NULL;
     if (!WarTurnHandler::pick_enemy(state, seat, &enemy)) {
         if (!pick_near_non_lucky(state, seat, &enemy)) {
+            LOG_WAR_DECLARE_FAIL::LOG(SC_U32(seat), SC_U32(U16_KEY_NULL), SC_U32(turn), 1u);
             return;
         }
     }
     MockMusterSiege mock;
     if (!mock.collect(state, seat)) {
+        LOG_WAR_DECLARE_FAIL::LOG(SC_U32(seat), SC_U32(enemy), SC_U32(turn), 2u);
         return;
     }
-    u16 taken = 0u;
-    u16 foe_n = 0u;
-    u16 war_turns = 0u;
-    if (!mock.campaign(state, enemy, &taken, &foe_n, &war_turns) || taken == 0u) {
+    if (mock.army_n() < WAR_DECLARE_MIN_ARMY) {
+        LOG_WAR_DECLARE_FAIL::LOG(SC_U32(seat), SC_U32(enemy), SC_U32(turn), 5u);
         return;
+    }
+    if (mock.barrage_n(state) <= WAR_DECLARE_MIN_BARRAGE) {
+        u16 taken = 0u;
+        u16 foe_n = 0u;
+        u16 war_turns = 0u;
+        if (!mock.campaign(state, enemy, &taken, &foe_n, &war_turns) || taken == 0u) {
+            LOG_WAR_DECLARE_FAIL::LOG(SC_U32(seat), SC_U32(enemy), SC_U32(turn), 3u);
+            return;
+        }
     }
     if (!WarTurnHandler::engage(state, seat, enemy)) {
+        LOG_WAR_DECLARE_FAIL::LOG(SC_U32(seat), SC_U32(enemy), SC_U32(turn), 4u);
         return;
     }
     ps.m_at_war = 1u;

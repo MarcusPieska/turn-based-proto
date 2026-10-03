@@ -6,6 +6,7 @@
 
 #include "combat_mng.h"
 #include "game_state.h"
+#include "log_dbg.h"
 #include "runtime_statics.h"
 #include "unit_action_enum.h"
 #include "unit_add_struct.h"
@@ -323,15 +324,18 @@ CityAssault CityAttackManager::melee (
         *out_occupy = UnitAddKey::None();
     }
     if (army_hd == nullptr || !CombatMng::ready() || s.m_statics == nullptr || !army_hd->is_valid()) {
+        LOG_WAR_CAM_MELEE_FAIL::LOG(65535u, SC_U32(city_x), SC_U32(city_y), SC_U32(s.m_current_turn), 0u);
         return CityAssault::Fail;
     }
     const u16 turn_mp = mp_turn(s);
     if (turn_mp == 0u) {
+        LOG_WAR_CAM_MELEE_FAIL::LOG(65535u, SC_U32(city_x), SC_U32(city_y), SC_U32(s.m_current_turn), 1u);
         return CityAssault::Fail;
     }
     UnitAddKey head = *army_hd;
     UnitAddStruct* hu = s.m_units.get_unit_add(head);
     if (hu == nullptr || hu->m_x == U16_KEY_NULL) {
+        LOG_WAR_CAM_MELEE_FAIL::LOG(65535u, SC_U32(city_x), SC_U32(city_y), SC_U32(s.m_current_turn), 2u);
         return CityAssault::Fail;
     }
     const u8 atk_seat = hu->m_player_idx;
@@ -347,11 +351,17 @@ CityAssault CityAttackManager::melee (
             if (out_stay != nullptr) {
                 *out_stay = head;
             }
-            return has_melee_cont(s, head) ? CityAssault::Stall : CityAssault::Fail;
+            if (has_melee_cont(s, head)) {
+                LOG_WAR_CAM_MELEE_FAIL::LOG(SC_U32(atk_seat), SC_U32(city_x), SC_U32(city_y), SC_U32(s.m_current_turn), 10u);
+                return CityAssault::Stall;
+            }
+            LOG_WAR_CAM_MELEE_FAIL::LOG(SC_U32(atk_seat), SC_U32(city_x), SC_U32(city_y), SC_U32(s.m_current_turn), 3u);
+            return CityAssault::Fail;
         }
         UnitAddStruct* au = s.m_units.get_unit_add(atk_k);
         UnitAddStruct* du = s.m_units.get_unit_add(def_k);
         if (au == nullptr || du == nullptr) {
+            LOG_WAR_CAM_MELEE_FAIL::LOG(SC_U32(atk_seat), SC_U32(city_x), SC_U32(city_y), SC_U32(s.m_current_turn), 4u);
             return CityAssault::Fail;
         }
         CombatMng::resolve_attack(*au, *du, s, city_x, city_y);
@@ -364,23 +374,27 @@ CityAssault CityAttackManager::melee (
                 nxt = UnitAddKey::from_raw(au->m_next_unit_in_group);
             }
             if (!UnitMovementMng::destroy_unit(s, atk_k)) {
+                LOG_WAR_CAM_MELEE_FAIL::LOG(SC_U32(atk_seat), SC_U32(city_x), SC_U32(city_y), SC_U32(s.m_current_turn), 5u);
                 return CityAssault::Fail;
             }
             last_atk = UnitAddKey::None();
             if (was_head) {
                 head = nxt;
                 if (!head.is_valid()) {
+                    LOG_WAR_CAM_MELEE_FAIL::LOG(SC_U32(atk_seat), SC_U32(city_x), SC_U32(city_y), SC_U32(s.m_current_turn), 6u);
                     return CityAssault::Fail;
                 }
             }
         }
         if (du->m_health == 0u) {
             if (!UnitMovementMng::destroy_unit(s, def_k)) {
+                LOG_WAR_CAM_MELEE_FAIL::LOG(SC_U32(atk_seat), SC_U32(city_x), SC_U32(city_y), SC_U32(s.m_current_turn), 5u);
                 return CityAssault::Fail;
             }
         }
         hu = s.m_units.get_unit_add(head);
         if (hu == nullptr || hu->m_x == U16_KEY_NULL) {
+            LOG_WAR_CAM_MELEE_FAIL::LOG(SC_U32(atk_seat), SC_U32(city_x), SC_U32(city_y), SC_U32(s.m_current_turn), 6u);
             return CityAssault::Fail;
         }
     }
@@ -390,7 +404,11 @@ CityAssault CityAttackManager::melee (
         if (out_stay != nullptr) {
             *out_stay = head;
         }
-        return has_melee_cont(s, head) ? CityAssault::Stall : CityAssault::Fail;
+        if (has_melee_cont(s, head)) {
+            return CityAssault::Stall;
+        }
+        LOG_WAR_CAM_MELEE_FAIL::LOG(SC_U32(atk_seat), SC_U32(city_x), SC_U32(city_y), SC_U32(s.m_current_turn), 7u);
+        return CityAssault::Fail;
     }
     UnitAddKey force = last_atk.is_valid() ? last_atk : head;
     UnitAddKey stay = UnitAddKey::None();
@@ -399,6 +417,7 @@ CityAssault CityAttackManager::melee (
         if (out_stay != nullptr) {
             *out_stay = head;
         }
+        LOG_WAR_CAM_MELEE_FAIL::LOG(SC_U32(atk_seat), SC_U32(city_x), SC_U32(city_y), SC_U32(s.m_current_turn), 8u);
         return CityAssault::Fail;
     }
     refill_grp_mp(s, go, turn_mp);
@@ -414,6 +433,7 @@ CityAssault CityAttackManager::melee (
                 if (out_occupy != nullptr) {
                     *out_occupy = go;
                 }
+                LOG_WAR_CAM_MELEE_FAIL::LOG(SC_U32(atk_seat), SC_U32(city_x), SC_U32(city_y), SC_U32(s.m_current_turn), 9u);
                 return CityAssault::Fail;
             }
         }
@@ -441,17 +461,30 @@ CityAttackResult CityAttackManager::assault (
     out.m_br_tot = 0u;
     out.m_br_last = 0u;
     if (army_hd == nullptr || !army_hd->is_valid()) {
+        LOG_WAR_CAM_ASSAULT_FAIL::LOG(65535u, SC_U32(city_x), SC_U32(city_y), SC_U32(s.m_current_turn), 0u);
         return out;
     }
     refill_mp(s, *army_hd);
     CityBarrage br = {};
     if (!barrage(s, *army_hd, city_x, city_y, &br)) {
+        unsigned atk_seat = 65535u;
+        const UnitAddStruct* hu = s.m_units.get_unit_add(*army_hd);
+        if (hu != nullptr) {
+            atk_seat = SC_U32(hu->m_player_idx);
+        }
+        LOG_WAR_CAM_ASSAULT_FAIL::LOG(atk_seat, SC_U32(city_x), SC_U32(city_y), SC_U32(s.m_current_turn), 1u);
         return out;
     }
     out.m_br_tot = br.m_tot;
     out.m_br_last = br.m_last;
     refill_mp(s, *army_hd);
     if (!barrage(s, *army_hd, city_x, city_y, &br)) {
+        unsigned atk_seat = 65535u;
+        const UnitAddStruct* hu = s.m_units.get_unit_add(*army_hd);
+        if (hu != nullptr) {
+            atk_seat = SC_U32(hu->m_player_idx);
+        }
+        LOG_WAR_CAM_ASSAULT_FAIL::LOG(atk_seat, SC_U32(city_x), SC_U32(city_y), SC_U32(s.m_current_turn), 1u);
         return out;
     }
     out.m_br_tot += br.m_tot;

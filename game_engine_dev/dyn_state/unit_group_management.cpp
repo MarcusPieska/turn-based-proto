@@ -79,28 +79,17 @@ bool UnitGroupManagement::muster_collect_depart (
         }
         cur = u->m_next_unit_on_tile;
     }
-    if (n < 2u) {
+    if (n == 0u) {
         return false;
     }
-    i32 leave_i = -1;
     for (u16 i = 0; i < n; ++i) {
-        const UnitAddStruct* u = ug_get(s, keys[i]);
-        if (u != nullptr && ug_is_defense(s, u->m_unit_typ_idx)) {
-            leave_i = static_cast<i32>(i);
-            break;
-        }
-    }
-    for (u16 i = 0; i < n; ++i) {
-        if (static_cast<i32>(i) == leave_i) {
-            continue;
-        }
         if (*out_n >= cap) {
             return false;
         }
         out_keys[*out_n] = keys[i];
         *out_n = static_cast<u16>(*out_n + 1u);
     }
-    return *out_n > 0u;
+    return true;
 }
 
 bool UnitGroupManagement::campaign_collect_depart (

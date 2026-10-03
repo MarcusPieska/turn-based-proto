@@ -250,7 +250,7 @@ static UnitAddStruct* find_tile_unit_flagged (City& city, bool want_extending, u
                 if (u->m_being_extended != 0u) {
                     return u;
                 }
-            } else if (u->m_being_extended == 0u && static_cast<u8>(u->m_unit_size) < max_sz) {
+            } else if (u->m_being_extended == 0u && u->m_in_campaign == 0u && static_cast<u8>(u->m_unit_size) < max_sz) {
                 return u;
             }
         }
@@ -515,6 +515,9 @@ void City::build_small_wonder (u16 small_wonder_idx) {
 void City::extend_unit (UnitAddStruct* unit) {
     GAME_EXPECT(unit != nullptr, "City::extend_unit null unit");
     GAME_EXPECT(s_statics != nullptr, "City::extend_unit null statics");
+    if (unit->m_in_campaign != 0u) {
+        return;
+    }
     unfreeze_extending_unit(*this);
     const u8 max_sz = land_max_unit_size(*this, 0);
     GAME_EXPECT(static_cast<u8>(unit->m_unit_size) < max_sz, "City::extend_unit not undersized");

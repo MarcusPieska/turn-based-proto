@@ -14,8 +14,8 @@ class GameState;
 //=> - UnitGroupManagement -
 //================================================================================================================================
 //
-//  Group selection policy for muster / campaign (leave-one / leave-five). Dry collect APIs share
-//  the same picks with live leave helpers; UnitMovementMng keeps thin wrappers for call sites.
+//  Group selection policy: muster takes all non-tail units on the tile; campaign still leave-five.
+//  Dry collect APIs share picks with live leave helpers; UnitMovementMng keeps thin wrappers.
 //
 //================================================================================================================================
 

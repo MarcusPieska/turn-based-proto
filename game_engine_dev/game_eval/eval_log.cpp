@@ -88,7 +88,7 @@ cstr EvalLog::line (u32 i) const {
 }
 
 u32 EvalLog::count_i (u16 kind_i) const {
-    u32 n = 0;
+    u32 cnt = 0;
     for (u32 li = 0; li < m_n; ++li) {
         const char* s = m_lines[li];
         switch (kind_i) {
@@ -97,7 +97,7 @@ u32 EvalLog::count_i (u16 kind_i) const {
             break;
         }
     }
-    return n;
+    return cnt;
 }
 
 bool EvalLog::parse_tech_discover (u32 i, u16* player, u16* tech) const {

@@ -2,6 +2,7 @@ LAND_WORKER      : canEmbark : canBeCaptured : canHold : canJoinCity : canBuildI
 LAND_SETTLER     : canEmbark : canBeCaptured : canHold : canJoinCity : canSettleCity
 LAND_SCOUT       : canEmbark : canHold : canExplore
 LAND_DEFENSE     : canEmbark : canFortify : canAttack : canDefend : canPillage : canCaptureCities
+LAND_SKIRMISH    : canEmbark : canFortify : canAttack : canDefend : canPillage : canCaptureCities
 LAND_ATTACK      : canEmbark : canFortify : canAttack : canDefend : canPillage : canCaptureCities
 LAND_MOBILE      : canEmbark : canFortify : canAttack : canDefend : canPillage : canCaptureCities : canRetreat
 LAND_ARTILLERY   : canEmbark : canHold : canBarrage

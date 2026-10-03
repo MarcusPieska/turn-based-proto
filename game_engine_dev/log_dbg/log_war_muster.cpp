@@ -21,12 +21,12 @@
 //=> - LOG_WAR_MUSTER -
 //================================================================================================================================
 
-void LOG_WAR_MUSTER::LOG (unsigned seat, unsigned enemy, unsigned sx, unsigned sy, unsigned n, unsigned turn) {
-    TraceSink::printf("war muster start seat=%u enemy=%u staging=(%u,%u) muster_n=%u turn=%u\n", seat, enemy, sx, sy, n, turn);
+void LOG_WAR_MUSTER::LOG (unsigned seat, unsigned enemy, unsigned sx, unsigned sy, unsigned unit_n, unsigned size_sum, unsigned city_n, unsigned turn) {
+    TraceSink::printf("war muster start seat=%u enemy=%u staging=(%u,%u) units=%u size=%u cities=%u turn=%u\n", seat, enemy, sx, sy, unit_n, size_sum, city_n, turn);
 }
 
-bool LOG_WAR_MUSTER::PARSE (const char* line, unsigned* seat, unsigned* enemy, unsigned* sx, unsigned* sy, unsigned* n, unsigned* turn) {
-    if (line == nullptr || seat == nullptr || enemy == nullptr || sx == nullptr || sy == nullptr || n == nullptr || turn == nullptr) {
+bool LOG_WAR_MUSTER::PARSE (const char* line, unsigned* seat, unsigned* enemy, unsigned* sx, unsigned* sy, unsigned* unit_n, unsigned* size_sum, unsigned* city_n, unsigned* turn) {
+    if (line == nullptr || seat == nullptr || enemy == nullptr || sx == nullptr || sy == nullptr || unit_n == nullptr || size_sum == nullptr || city_n == nullptr || turn == nullptr) {
         return false;
     }
     unsigned t0 = 0;
@@ -35,15 +35,19 @@ bool LOG_WAR_MUSTER::PARSE (const char* line, unsigned* seat, unsigned* enemy, u
     unsigned t3 = 0;
     unsigned t4 = 0;
     unsigned t5 = 0;
-    if (std::sscanf(line, "war muster start seat=%u enemy=%u staging=(%u,%u) muster_n=%u turn=%u", &t0, &t1, &t2, &t3, &t4, &t5) != 6) {
+    unsigned t6 = 0;
+    unsigned t7 = 0;
+    if (std::sscanf(line, "war muster start seat=%u enemy=%u staging=(%u,%u) units=%u size=%u cities=%u turn=%u", &t0, &t1, &t2, &t3, &t4, &t5, &t6, &t7) != 8) {
         return false;
     }
     *seat = t0;
     *enemy = t1;
     *sx = t2;
     *sy = t3;
-    *n = t4;
-    *turn = t5;
+    *unit_n = t4;
+    *size_sum = t5;
+    *city_n = t6;
+    *turn = t7;
     return true;
 }
 

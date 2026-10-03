@@ -13,16 +13,18 @@
 #define LOG_NEED_MASK_H
 
 #include "game_primitives.h"
+#include "log_dbg_toggles.h"
 
 //================================================================================================================================
 //=> - LogNeedMask -
 //================================================================================================================================
 //
-//  One u8 per log channel (0 = not required). Drivers set desired channels to 1+.
+//  One u8 per log channel (0 = not required). Drivers set desired channels to 1.
+//  EvalDriver::chk verifies ENABLED_LOG_* (via on()), not occurrence counts.
 //
 //================================================================================================================================
 
-static const u16 LOG_NEED_N = 20u;
+static const u16 LOG_NEED_N = 49u;
 
 struct LogNeedMask {
     u8 m_new_turn;
@@ -31,8 +33,37 @@ struct LogNeedMask {
     u8 m_unit_spawn;
     u8 m_war_muster;
     u8 m_war_peace_mock;
+    u8 m_war_peace;
+    u8 m_war_targets;
     u8 m_war_army_size;
     u8 m_war_city_capture;
+    u8 m_war_begin_fail;
+    u8 m_war_sec_begin_fail;
+    u8 m_war_pick_enemy_fail;
+    u8 m_war_engage_fail;
+    u8 m_war_handle_camp_fail;
+    u8 m_war_start_camp_fail;
+    u8 m_war_declare_fail;
+    u8 m_war_staging_fail;
+    u8 m_war_own_free_comp_fail;
+    u8 m_war_muster_grad_fail;
+    u8 m_war_exposure_fail;
+    u8 m_war_walk_muster_fail;
+    u8 m_war_form_army_fail;
+    u8 m_war_set_target_fail;
+    u8 m_war_refill_targets_fail;
+    u8 m_war_find_enemy_seed_fail;
+    u8 m_war_set_goal_fail;
+    u8 m_war_assault_stall_stop;
+    u8 m_war_assault_fail_stop;
+    u8 m_war_assault_city_fail;
+    u8 m_war_cam_assault_fail;
+    u8 m_war_cam_melee_fail;
+    u8 m_war_claim_city_miss;
+    u8 m_war_rejoin_move_fail;
+    u8 m_war_rejoin_link_fail;
+    u8 m_war_army_cant_fight;
+    u8 m_war_retarget_fail;
     u8 m_city_job_food;
     u8 m_city_job_production;
     u8 m_city_job_commerce;
@@ -52,6 +83,7 @@ struct LogNeedMask {
     const u8* bytes () const;
     static u16 n ();
     static cstr nm (u16 i);
+    static bool on (u16 i);
 };
 
 inline LogNeedMask::LogNeedMask ()
@@ -61,8 +93,37 @@ inline LogNeedMask::LogNeedMask ()
       m_unit_spawn(0),
       m_war_muster(0),
       m_war_peace_mock(0),
+      m_war_peace(0),
+      m_war_targets(0),
       m_war_army_size(0),
       m_war_city_capture(0),
+      m_war_begin_fail(0),
+      m_war_sec_begin_fail(0),
+      m_war_pick_enemy_fail(0),
+      m_war_engage_fail(0),
+      m_war_handle_camp_fail(0),
+      m_war_start_camp_fail(0),
+      m_war_declare_fail(0),
+      m_war_staging_fail(0),
+      m_war_own_free_comp_fail(0),
+      m_war_muster_grad_fail(0),
+      m_war_exposure_fail(0),
+      m_war_walk_muster_fail(0),
+      m_war_form_army_fail(0),
+      m_war_set_target_fail(0),
+      m_war_refill_targets_fail(0),
+      m_war_find_enemy_seed_fail(0),
+      m_war_set_goal_fail(0),
+      m_war_assault_stall_stop(0),
+      m_war_assault_fail_stop(0),
+      m_war_assault_city_fail(0),
+      m_war_cam_assault_fail(0),
+      m_war_cam_melee_fail(0),
+      m_war_claim_city_miss(0),
+      m_war_rejoin_move_fail(0),
+      m_war_rejoin_link_fail(0),
+      m_war_army_cant_fight(0),
+      m_war_retarget_fail(0),
       m_city_job_food(0),
       m_city_job_production(0),
       m_city_job_commerce(0),
@@ -107,8 +168,37 @@ inline cstr LogNeedMask::nm (u16 i) {
         "UnitSpawn",
         "WarMuster",
         "WarPeaceMock",
+        "WarPeace",
+        "WarTargets",
         "WarArmySize",
         "WarCityCapture",
+        "WarBeginFail",
+        "WarSecBeginFail",
+        "WarPickEnemyFail",
+        "WarEngageFail",
+        "WarHandleCampFail",
+        "WarStartCampFail",
+        "WarDeclareFail",
+        "WarStagingFail",
+        "WarOwnFreeCompFail",
+        "WarMusterGradFail",
+        "WarExposureFail",
+        "WarWalkMusterFail",
+        "WarFormArmyFail",
+        "WarSetTargetFail",
+        "WarRefillTargetsFail",
+        "WarFindEnemySeedFail",
+        "WarSetGoalFail",
+        "WarAssaultStallStop",
+        "WarAssaultFailStop",
+        "WarAssaultCityFail",
+        "WarCamAssaultFail",
+        "WarCamMeleeFail",
+        "WarClaimCityMiss",
+        "WarRejoinMoveFail",
+        "WarRejoinLinkFail",
+        "WarArmyCantFight",
+        "WarRetargetFail",
         "CityJobFood",
         "CityJobProduction",
         "CityJobCommerce",
@@ -126,6 +216,260 @@ inline cstr LogNeedMask::nm (u16 i) {
         return "";
     }
     return k_nm[i];
+}
+
+inline bool LogNeedMask::on (u16 i) {
+    static const u8 k_on[LOG_NEED_N] = {
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_NEW_TURN))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_CITY_FOUNDATION))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_CIV_SPAWN_PT))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_UNIT_SPAWN))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_MUSTER))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_PEACE_MOCK))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_PEACE))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_TARGETS))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_ARMY_SIZE))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_CITY_CAPTURE))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_BEGIN_FAIL))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_SEC_BEGIN_FAIL))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_PICK_ENEMY_FAIL))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_ENGAGE_FAIL))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_HANDLE_CAMP_FAIL))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_START_CAMP_FAIL))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_DECLARE_FAIL))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_STAGING_FAIL))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_OWN_FREE_COMP_FAIL))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_MUSTER_GRAD_FAIL))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_EXPOSURE_FAIL))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_WALK_MUSTER_FAIL))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_FORM_ARMY_FAIL))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_SET_TARGET_FAIL))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_REFILL_TARGETS_FAIL))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_FIND_ENEMY_SEED_FAIL))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_SET_GOAL_FAIL))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_ASSAULT_STALL_STOP))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_ASSAULT_FAIL_STOP))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_ASSAULT_CITY_FAIL))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_CAM_ASSAULT_FAIL))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_CAM_MELEE_FAIL))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_CLAIM_CITY_MISS))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_REJOIN_MOVE_FAIL))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_REJOIN_LINK_FAIL))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_ARMY_CANT_FIGHT))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_RETARGET_FAIL))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_CITY_JOB_FOOD))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_CITY_JOB_PRODUCTION))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_CITY_JOB_COMMERCE))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_CITY_JOB_CULTURE))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_CITY_JOB_SCIENCE))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_CITY_JOB_RELIGION))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_CITY_JOB_YIELDS))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_PLAYER_COMMERCE))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_PLAYER_COMMERCE_RAW))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_PLAYER_SCIENCE))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_PLAYER_RESEARCH_PERC))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_PLAYER_TECH_DISCOVER))
+        1u,
+#else
+        0u,
+#endif
+    };
+    if (i >= LOG_NEED_N) {
+        return false;
+    }
+    return k_on[i] != 0u;
 }
 
 #endif // LOG_NEED_MASK_H

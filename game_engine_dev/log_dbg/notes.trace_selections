@@ -1,0 +1,78 @@
+notes.trace_selections — which log_dbg channels to enable for common debug jobs
+================================================================================
+
+Master switch: LOG_DBG_ENABLE in log_dbg_toggles.h (required for any ENABLED_* log).
+Per-channel: uncomment #define ENABLED_LOG_* / ENABLED_ASSERT_* in the same file.
+Regen (gen_log_dbg.py) preserves on/off for existing names; new channels default ON.
+
+
+--------------------------------------------------------------------------------
+Use case: AI war path / lucky conquest stalling
+--------------------------------------------------------------------------------
+Progress / success (existing):
+  LOG_WAR_MUSTER          — campaign started; units, size sum, city count
+  LOG_WAR_ARMY_SIZE       — formed army: unit count + size sum at staging
+  LOG_WAR_CITY_CAPTURE    — city ownership transferred
+  LOG_WAR_PEACE_MOCK      — mock siege failed → peace (clears m_at_war)
+
+Declare / engage:
+  LOG_WAR_DECLARE_FAIL    — GameLoop lucky declare abort
+      reason: 0=already at war/engaged  1=no enemy  2=mock collect fail
+              3=mock campaign taken==0  4=engage fail  5=army_n below min
+  LOG_WAR_PICK_ENEMY_FAIL — TargetSector / lucky-enemy gate
+      reason: 0=bad args  1=no defensible pick  2=bad enemy id  3=enemy lucky/inactive
+  LOG_WAR_ENGAGE_FAIL     — engage() abort
+      reason: 0=bad seats  1=no player_states  2=start_camp fail
+  LOG_WAR_BEGIN_FAIL      — WarTurnHandler::begin seat cap / empty
+  LOG_WAR_SEC_BEGIN_FAIL  — land sectors / network / SectorSupport bind
+      reason: 0=GenLandSectors  1=seeds  2=network  3=SectorSupport::bind
+
+Start campaign / staging / muster:
+  LOG_WAR_START_CAMP_FAIL — war_start_camp abort
+      reason: 0=args  1=staging  2=handler  3=muster gradient  4=exposure  5=mock collect
+  LOG_WAR_STAGING_FAIL    — pick_staging_city
+      reason: 0=args  1=no cities  2=whiteboard  3=own-free label  4=no own comp  5=no city vs enemy
+  LOG_WAR_OWN_FREE_COMP_FAIL — label_own_free_comp
+      reason: 0=dims  1=whiteboard/que  2=no land comps
+  LOG_WAR_MUSTER_GRAD_FAIL — make_muster_gradient access/distance
+  LOG_WAR_EXPOSURE_FAIL   — determine_exposure
+  LOG_WAR_WALK_MUSTER_FAIL — walk_muster not ready (phase still advances to Form)
+
+Form / march / assault:
+  LOG_WAR_FORM_ARMY_FAIL  — form_army / leave_five_defense → war_stop
+  LOG_WAR_SET_TARGET_FAIL — set_target_city
+      reason: 0=args  1=refill_targets  2=no goal accepted
+  LOG_WAR_REFILL_TARGETS_FAIL — refill_targets
+      reason: 0=no defensible+no seed  1=flood empty
+  LOG_WAR_FIND_ENEMY_SEED_FAIL — find_enemy_seed
+  LOG_WAR_SET_GOAL_FAIL   — set_goal access/distance
+  LOG_WAR_ASSAULT_STALL_STOP — Assault Stall and !can_cont → war_stop
+  LOG_WAR_ASSAULT_FAIL_STOP  — Assault Fail → war_stop
+  LOG_WAR_ASSAULT_CITY_FAIL  — assault_city hard Fail (bad army / CityAssault≠Ok)
+  LOG_WAR_CAM_ASSAULT_FAIL — CityAttackManager::assault
+      reason: 0=null/invalid army  1=barrage fail
+  LOG_WAR_CAM_MELEE_FAIL  — CityAttackManager::melee
+      reason: 0=not ready/null  1=no MP  2=bad head  3=no attacker Fail
+              4=unit null  5=destroy fail  6=head wiped  7=defenders remain
+              8=split_half fail  9=occupy step fail  10=no attacker Stall (logged as melee stall path)
+  LOG_WAR_CLAIM_CITY_MISS — claim_city found no city at tile
+
+Rejoin / retarget / end:
+  LOG_WAR_REJOIN_MOVE_FAIL — rejoin_move → war_stop
+      reason: 0=bad ctx  1=occ key null  2=occ unit bad  3=stay unit bad
+              5=apply_step fail after can_step ok
+              41..48=can_step_reason+40 (1 null/tail 2 extended 3 oob 4 same
+              5 domain 6 cost 7 mp 8 entry)
+      also logs stay=(sx,sy) occ=(dx,dy)
+  LOG_WAR_REJOIN_LINK_FAIL — rejoin_link → war_stop
+  LOG_WAR_ARMY_CANT_FIGHT  — !army_can_fight after heal → war_stop
+  LOG_WAR_RETARGET_FAIL    — retarget set_target_city fail → war_stop
+  LOG_WAR_HANDLE_CAMP_FAIL — handle() restart war_start_camp fail → war_stop
+
+Assert (optional, also war-related):
+  ASSERT_WAR_ARMY_CAN_FIGHT
+
+
+--------------------------------------------------------------------------------
+Use case: (add more sections below as needed)
+--------------------------------------------------------------------------------

@@ -24,18 +24,18 @@
 class LOG_WAR_ARMY_SIZE {
 public:
 #if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_ARMY_SIZE))
-    static void LOG (unsigned seat, unsigned army_n, unsigned tile_n, unsigned sx, unsigned sy, unsigned turn);
+    static void LOG (unsigned seat, unsigned unit_n, unsigned size_sum, unsigned sx, unsigned sy, unsigned turn);
 #else
-    static void LOG (unsigned seat, unsigned army_n, unsigned tile_n, unsigned sx, unsigned sy, unsigned turn) {
+    static void LOG (unsigned seat, unsigned unit_n, unsigned size_sum, unsigned sx, unsigned sy, unsigned turn) {
         (void)seat;
-        (void)army_n;
-        (void)tile_n;
+        (void)unit_n;
+        (void)size_sum;
         (void)sx;
         (void)sy;
         (void)turn;
     }
 #endif
-    static bool PARSE (const char* line, unsigned* seat, unsigned* army_n, unsigned* tile_n, unsigned* sx, unsigned* sy, unsigned* turn);
+    static bool PARSE (const char* line, unsigned* seat, unsigned* unit_n, unsigned* size_sum, unsigned* sx, unsigned* sy, unsigned* turn);
 
 private:
     LOG_WAR_ARMY_SIZE () = delete;

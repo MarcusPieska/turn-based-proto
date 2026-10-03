@@ -436,39 +436,43 @@ i16 UnitMovementMng::grp_min_mvt (const GameState& s, UnitAddKey key) {
     return grp_min_mvt_walk(s, key);
 }
 
-bool UnitMovementMng::can_step (const GameState& s, UnitAddKey key, u16 dest_x, u16 dest_y, i16* out_cost) {
+u8 UnitMovementMng::can_step_reason (const GameState& s, UnitAddKey key, u16 dest_x, u16 dest_y, i16* out_cost) {
     const UnitAddStruct* u = u_get(s, key);
     if (u == nullptr || is_grp_tail(*u)) {
-        return false;
+        return 1u;
     }
     if (u->m_being_extended != 0u) {
-        return false;
+        return 2u;
     }
     if (!in_bounds(s, dest_x, dest_y)) {
-        return false;
+        return 3u;
     }
     if (u->m_x == dest_x && u->m_y == dest_y) {
-        return false;
+        return 4u;
     }
     const u8 dest_terr = s.m_map.get_terrain(dest_x, dest_y);
     if (!dest_allows_unit_domain(s, key, dest_terr)) {
-        return false;
+        return 5u;
     }
     const i16 cost = tile_cost(s, u->m_x, u->m_y, dest_x, dest_y);
     if (cost <= 0) {
-        return false;
+        return 6u;
     }
     if (grp_min_mvt_walk(s, key) <= 0) {
-        return false;
+        return 7u;
     }
     const bool grp_move = has_grp_followers(*u);
     if (!dest_allows_entry(s, u->m_player_idx, dest_x, dest_y, grp_move)) {
-        return false;
+        return 8u;
     }
     if (out_cost != nullptr) {
         *out_cost = cost;
     }
-    return true;
+    return 0u;
+}
+
+bool UnitMovementMng::can_step (const GameState& s, UnitAddKey key, u16 dest_x, u16 dest_y, i16* out_cost) {
+    return can_step_reason(s, key, dest_x, dest_y, out_cost) == 0u;
 }
 
 bool UnitMovementMng::apply_step (GameState& s, UnitAddKey key, u16 dest_x, u16 dest_y) {
@@ -717,6 +721,24 @@ bool UnitMovementMng::link_group (GameState& s, UnitAddKey head, UnitAddKey tail
         s.m_map.set_unit_hd(hu->m_x, hu->m_y, head.value());
     }
     return true;
+}
+
+void UnitMovementMng::set_grp_campaign (GameState& s, UnitAddKey head, u8 on) {
+    UnitAddKey cur = head;
+    while (cur.is_valid()) {
+        UnitAddStruct* u = u_get(s, cur);
+        if (u == nullptr) {
+            break;
+        }
+        u->m_in_campaign = (on != 0u) ? 1u : 0u;
+        if (on != 0u) {
+            u->m_being_extended = 0u;
+        }
+        if (u->m_next_unit_in_group == U16_KEY_NULL) {
+            break;
+        }
+        cur = UnitAddKey::from_raw(u->m_next_unit_in_group);
+    }
 }
 
 bool UnitMovementMng::unlink_group (GameState& s, UnitAddKey tail) {

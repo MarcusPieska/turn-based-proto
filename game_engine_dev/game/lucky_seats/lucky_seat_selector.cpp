@@ -15,6 +15,12 @@
 #include "whiteboard_mng.h"
 
 //================================================================================================================================
+//=> - Tunables -
+//================================================================================================================================
+
+#define LUCKY_BLOCK_N 5
+
+//================================================================================================================================
 //=> - Helpers -
 //================================================================================================================================
 
@@ -36,6 +42,10 @@ static bool already (const LuckySeats& lucky, u16 seat) {
     return false;
 }
 
+static bool is_blk (const u8* blk, u16 seat) {
+    return blk != nullptr && seat < SPG_MAX_PICK_PTS && blk[seat] != 0u;
+}
+
 static bool add_seat (LuckySeats* out, u16 seat) {
     if (out == nullptr || seat == U16_KEY_NULL || already(*out, seat)) {
         return false;
@@ -48,15 +58,69 @@ static bool add_seat (LuckySeats* out, u16 seat) {
     return true;
 }
 
-static u16 rem_on (const LocGroup& g, const SpgPickCoords& starts, const LuckySeats& lucky) {
+static void block_near (const SpgPickCoords& starts, u16 seat, u8* blk) {
+    const u16 n = static_cast<u16>(starts.n);
+    if (blk == nullptr || seat >= n || LUCKY_BLOCK_N == 0) {
+        return;
+    }
+    u32 dist[SPG_MAX_PICK_PTS];
+    u16 idx[SPG_MAX_PICK_PTS];
+    u16 en = 0u;
+    const i32 ax = static_cast<i32>(starts.pts[seat].x);
+    const i32 ay = static_cast<i32>(starts.pts[seat].y);
+    for (u16 i = 0; i < n; ++i) {
+        if (i == seat) {
+            continue;
+        }
+        const i32 dx = static_cast<i32>(starts.pts[i].x) - ax;
+        const i32 dy = static_cast<i32>(starts.pts[i].y) - ay;
+        dist[en] = static_cast<u32>(dx * dx + dy * dy);
+        idx[en] = i;
+        ++en;
+    }
+    const u16 kn = (static_cast<u16>(LUCKY_BLOCK_N) < en) ? static_cast<u16>(LUCKY_BLOCK_N) : en;
+    for (u16 k = 0; k < kn; ++k) {
+        u16 best = k;
+        for (u16 j = static_cast<u16>(k + 1u); j < en; ++j) {
+            if (dist[j] < dist[best]) {
+                best = j;
+            }
+        }
+        const u32 td = dist[k];
+        const u16 ti = idx[k];
+        dist[k] = dist[best];
+        idx[k] = idx[best];
+        dist[best] = td;
+        idx[best] = ti;
+        blk[idx[k]] = 1u;
+    }
+}
+
+static u16 rem_on (const LocGroup& g, const SpgPickCoords& starts, const LuckySeats& lucky, const u8* blk) {
     u16 rem = 0u;
     for (u16 i = 0; i < g.m_n; ++i) {
         const u16 seat = seat_of(starts, g.m_pts[i]);
-        if (seat != U16_KEY_NULL && !already(lucky, seat)) {
+        if (seat != U16_KEY_NULL && !already(lucky, seat) && !is_blk(blk, seat)) {
             ++rem;
         }
     }
     return rem;
+}
+
+static void mark_eligible (const ContSizeList& clist, u8* elig) {
+    for (u16 i = 0; i < ContSizeList::k_cap; ++i) {
+        elig[i] = 0u;
+    }
+    if (clist.m_n == 0u) {
+        return;
+    }
+    const u32 largest = clist.m_e[0].m_tiles;
+    const u32 min_tiles = (largest * static_cast<u32>(LuckySeatSelector::k_min_pct)) / 100u;
+    for (u16 i = 0; i < clist.m_n; ++i) {
+        if (i < LuckySeatSelector::k_top || clist.m_e[i].m_tiles >= min_tiles) {
+            elig[i] = 1u;
+        }
+    }
 }
 
 //================================================================================================================================
@@ -110,19 +174,27 @@ bool LuckySeatSelector::select (const GameArraySimple& map, const SpgPickCoords&
         WhiteboardMng::terminate();
         return false;
     }
+    u8 elig[ContSizeList::k_cap];
+    mark_eligible(clist, elig);
+    u8 blk[SPG_MAX_PICK_PTS] = {};
     for (u16 gi = 0; gi < groups.m_n; ++gi) {
         if (out->m_n >= target) {
             break;
         }
+        if (gi >= ContSizeList::k_cap || elig[gi] == 0u) {
+            continue;
+        }
         const LocGroup& g = groups.m_g[gi];
-        if (g.m_n == 0u) {
-            continue;
+        for (u16 i = 0; i < g.m_n; ++i) {
+            const u16 seat = seat_of(starts, g.m_pts[i]);
+            if (seat == U16_KEY_NULL || already(*out, seat) || is_blk(blk, seat)) {
+                continue;
+            }
+            if (add_seat(out, seat)) {
+                block_near(starts, seat, blk);
+            }
+            break;
         }
-        const u16 seat = seat_of(starts, g.m_pts[0]);
-        if (seat == U16_KEY_NULL) {
-            continue;
-        }
-        (void)add_seat(out, seat);
     }
     if (out->m_n < target) {
         const u16 quota = static_cast<u16>(target - out->m_n);
@@ -130,11 +202,14 @@ bool LuckySeatSelector::select (const GameArraySimple& map, const SpgPickCoords&
         u16 map_gi[ContSizeList::k_cap];
         u16 en = 0u;
         for (u16 gi = 0; gi < groups.m_n; ++gi) {
+            if (gi >= ContSizeList::k_cap || elig[gi] == 0u) {
+                continue;
+            }
             const LocGroup& g = groups.m_g[gi];
             if (g.m_n == 0u) {
                 continue;
             }
-            const u16 rem = rem_on(g, starts, *out);
+            const u16 rem = rem_on(g, starts, *out, blk);
             ents[en].m_tiles = clist.m_e[gi].m_tiles;
             ents[en].m_rem = rem;
             map_gi[en] = gi;
@@ -158,7 +233,7 @@ bool LuckySeatSelector::select (const GameArraySimple& map, const SpgPickCoords&
                 u16 cand_n = 0u;
                 for (u16 i = 0; i < g.m_n; ++i) {
                     const u16 seat = seat_of(starts, g.m_pts[i]);
-                    if (seat == U16_KEY_NULL || already(*out, seat)) {
+                    if (seat == U16_KEY_NULL || already(*out, seat) || is_blk(blk, seat)) {
                         continue;
                     }
                     cands[cand_n] = g.m_pts[i];
@@ -187,6 +262,7 @@ bool LuckySeatSelector::select (const GameArraySimple& map, const SpgPickCoords&
                 if (!add_seat(out, seat)) {
                     break;
                 }
+                block_near(starts, seat, blk);
                 --need;
             }
         }

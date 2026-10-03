@@ -47,6 +47,7 @@ public:
     bool collect (GameState& s, u16 seat); // Scan own cities; leave-one then leave-five; fill army copies
     u16 army_n () const;
     u16 army_live () const;
+    u16 barrage_n (GameState& s) const; // Count canBarrage units; caches by type for this call
     u16 seat () const;
     bool ok () const;
 
