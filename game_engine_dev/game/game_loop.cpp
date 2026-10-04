@@ -5,6 +5,8 @@
 #include "game_loop.h"
 #include "assert_log.h"
 #include "log_dbg.h"
+
+#include <cstring>
 #include "build_adds_array.h"
 #include "city.h"
 #include "city_border.h"
@@ -378,6 +380,20 @@ bool GameLoop::begin (GameState* state, cstr trace_path) {
         return false;
     }
     TRACE_SETUP((trace_path));
+    { 
+        char prof_dir[512];
+        prof_dir[0] = '.';
+        prof_dir[1] = 0;
+        const char* slash = std::strrchr(trace_path, '/');
+        if (slash != nullptr && slash > trace_path) {
+            const u32 n = static_cast<u32>(slash - trace_path);
+            if (n + 1u < sizeof(prof_dir)) {
+                std::memcpy(prof_dir, trace_path, n);
+                prof_dir[n] = 0;
+            }
+        }
+        ProfDbgSetup::setup(prof_dir);
+    }
     if (WhiteboardMng::width() != w || WhiteboardMng::height() != h) {
         if (WhiteboardMng::chkout() != 0u) {
             return false;
@@ -444,16 +460,17 @@ void GameLoop::end () {
 }
 
 bool GameLoop::step () {
+    PROF_GAME_LOOP_ENTER(__func__);
     GAME_EXPECT(m_state != nullptr, "GameLoop step got nullptr state");
     GAME_EXPECT(m_state->m_current_turn < m_state->m_turn_limit, "GameLoop step turn limit");
     m_state->m_current_turn = m_state->m_current_turn + 1u;
-    
     LOG_NEW_TURN::LOG(static_cast<u16>(m_state->m_current_turn));
-    check_start_wars(*m_state);
-    run_city_turns(*m_state);
-    ResourceTurnHandler::handle(*m_state);
-    run_unit_turns(*m_state);
-    WarTurnHandler::handle(*m_state);
+    
+    { PROF_GAME_LOOP_ENTER("check_start_wars"); check_start_wars(*m_state); }
+    { PROF_GAME_LOOP_ENTER("run_city_turns"); run_city_turns(*m_state); }
+    { PROF_GAME_LOOP_ENTER("ResourceTurnHandler"); ResourceTurnHandler::handle(*m_state); }
+    { PROF_GAME_LOOP_ENTER("run_unit_turns"); run_unit_turns(*m_state); }
+    { PROF_GAME_LOOP_ENTER("WarTurnHandler"); WarTurnHandler::handle(*m_state); }
     return true;
 }
 

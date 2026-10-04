@@ -79,6 +79,9 @@
 #include "log_dbg/eval_army_state_to_war.h"
 #include "log_dbg/eval_army_state_peace.h"
 #include "log_dbg/eval_army_state_muster_group.h"
+#include "log_dbg/prof_game_loop.h"
+#include "log_dbg/prof_th_war.h"
+#include "log_dbg/prof_dbg_setup.h"
 
 #endif // LOG_DBG_ALL_ENABLED_H
 

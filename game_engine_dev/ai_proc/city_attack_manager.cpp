@@ -206,7 +206,7 @@ static bool purge_dead_foes (GameState& s, u16 x, u16 y, u16 atk_seat) {
         cur = next_tile;
     }
     for (u16 i = 0; i < n; ++i) {
-        if (!UnitMovementMng::destroy_unit(s, dead[i])) {
+        if (!UnitMovementMng::destroy_unit_on_tile(s, x, y, dead[i])) {
             return false;
         }
     }
@@ -368,26 +368,18 @@ CityAssault CityAttackManager::melee (
         au->m_mvt_points = static_cast<i16>(au->m_mvt_points - static_cast<i16>(turn_mp));
         last_atk = atk_k;
         if (au->m_health == 0u) {
-            const bool was_head = (atk_k == head);
-            UnitAddKey nxt = UnitAddKey::None();
-            if (was_head && au->m_next_unit_in_group != U16_KEY_NULL) {
-                nxt = UnitAddKey::from_raw(au->m_next_unit_in_group);
-            }
-            if (!UnitMovementMng::destroy_unit(s, atk_k)) {
+            if (!UnitMovementMng::destroy_unit_in_grp(s, &head, atk_k)) {
                 LOG_WAR_CAM_MELEE_FAIL::LOG(SC_U32(atk_seat), SC_U32(city_x), SC_U32(city_y), SC_U32(s.m_current_turn), 5u);
                 return CityAssault::Fail;
             }
             last_atk = UnitAddKey::None();
-            if (was_head) {
-                head = nxt;
-                if (!head.is_valid()) {
-                    LOG_WAR_CAM_MELEE_FAIL::LOG(SC_U32(atk_seat), SC_U32(city_x), SC_U32(city_y), SC_U32(s.m_current_turn), 6u);
-                    return CityAssault::Fail;
-                }
+            if (!head.is_valid()) {
+                LOG_WAR_CAM_MELEE_FAIL::LOG(SC_U32(atk_seat), SC_U32(city_x), SC_U32(city_y), SC_U32(s.m_current_turn), 6u);
+                return CityAssault::Fail;
             }
         }
         if (du->m_health == 0u) {
-            if (!UnitMovementMng::destroy_unit(s, def_k)) {
+            if (!UnitMovementMng::destroy_unit_on_tile(s, city_x, city_y, def_k)) {
                 LOG_WAR_CAM_MELEE_FAIL::LOG(SC_U32(atk_seat), SC_U32(city_x), SC_U32(city_y), SC_U32(s.m_current_turn), 5u);
                 return CityAssault::Fail;
             }

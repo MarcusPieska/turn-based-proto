@@ -14,8 +14,8 @@ class GameState;
 //=> - UnitGroupManagement -
 //================================================================================================================================
 //
-//  Group selection policy: muster takes all non-tail units on the tile; campaign still leave-five.
-//  Dry collect APIs share picks with live leave helpers; UnitMovementMng keeps thin wrappers.
+//  Group selection policy: muster takes all non-tail units on the tile; campaign leave-five.
+//  campaign_form_land_army is the single-pass leave-five + land-army form used by war form_army.
 //
 //================================================================================================================================
 
@@ -42,6 +42,7 @@ public:
 
     static bool muster_leave_one_defense (GameState& s, u16 x, u16 y, u16 player_idx, UnitAddKey* out_head);
     static bool campaign_leave_five_defense (GameState& s, u16 x, u16 y, u16 player_idx, UnitAddKey* out_head);
+    static bool campaign_form_land_army (GameState& s, u16 x, u16 y, u16 player_idx, UnitAddKey* out_head);
 };
 
 #endif // UNIT_GROUP_MANAGEMENT_H

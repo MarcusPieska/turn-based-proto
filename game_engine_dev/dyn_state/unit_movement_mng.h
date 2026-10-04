@@ -81,6 +81,7 @@ public:
     static bool link_group (GameState& s, UnitAddKey head, UnitAddKey tail);
     static bool unlink_group (GameState& s, UnitAddKey tail);
     static bool stack_append (GameState& s, UnitAddKey key, u16 x, u16 y);
+    static bool form_group_chain (GameState& s, const UnitAddKey* keys, u16 n, UnitAddKey* out_head);
     static bool flatten_groups (GameState& s, const UnitAddKey* heads, u16 n, UnitAddKey* out_head);
     static void set_grp_campaign (GameState& s, UnitAddKey head, u8 on);
 
@@ -103,6 +104,8 @@ public:
     static bool muster_leave_one_defense (GameState& s, u16 x, u16 y, u16 player_idx, UnitAddKey* out_head);
     static bool campaign_leave_five_defense (GameState& s, u16 x, u16 y, u16 player_idx, UnitAddKey* out_head);
     static bool destroy_unit (GameState& s, UnitAddKey key);
+    static bool destroy_unit_in_grp (GameState& s, UnitAddKey* head_io, UnitAddKey key);
+    static bool destroy_unit_on_tile (GameState& s, u16 x, u16 y, UnitAddKey key);
     static bool split_group_half_by_type (
         GameState& s,
         UnitAddKey head,

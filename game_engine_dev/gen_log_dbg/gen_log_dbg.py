@@ -87,6 +87,11 @@ VALIDATES = [
     ("ArmyStateMusterGroup", "GameState& state, u16 sx, u16 sy, const u16* heads, u16 n"),
 ]
 
+PROFS = [
+    "GAME_LOOP",
+    "TH_WAR",
+]
+
 #================================================================================================================================#
 #=> - Paths -
 #================================================================================================================================#
@@ -295,6 +300,7 @@ def build_toggle_defines (
     log_names: list[str],
     assert_names: list[str],
     validate_names: list[str],
+    prof_names: list[str],
     prev: dict[str, bool],
 ) -> str:
     groups: list[list[str]] = []
@@ -305,6 +311,8 @@ def build_toggle_defines (
         groups.append(emit_toggle_group(assert_names, prev))
     if validate_names:
         groups.append(emit_toggle_group(validate_names, prev))
+    if prof_names:
+        groups.append(emit_toggle_group(prof_names, prev))
     body = "\n\n".join("\n".join(g) for g in groups)
     return "\n" + body + "\n"
 
@@ -395,6 +403,48 @@ def gen_one_eval (entry: tuple) -> tuple[str, str]:
     write_text_if_absent(cpp_path, cpp)
     return sn, "ENABLED_EVAL_%s" % sn.upper()
 
+def unpack_prof (entry: str) -> str:
+    if not isinstance(entry, str) or not entry:
+        raise ValueError("bad PROFS entry: %r" % (entry,))
+    return entry
+
+def gen_one_prof (entry: str) -> tuple[str, str]:
+    suffix = unpack_prof(entry)
+    sn = snake(suffix)
+    su = suffix.upper()
+    class_name = "PROF_%s" % su
+    pairs = [
+        ("[PROF_GUARD_TAG]", "PROF_%s_H" % su),
+        ("[PROF_CLASS_TAG]", class_name),
+        ("[PROF_ENABLE_TAG]", "ENABLED_PROF_%s" % su),
+        ("[PROF_HEADER_TAG]", "prof_%s.h" % sn),
+        ("[PROF_FILE_TAG]", "prof_%s.txt" % sn),
+        ("[PROF_SETUP_MACRO_TAG]", "PROF_%s_SETUP" % su),
+        ("[PROF_ENTER_MACRO_TAG]", "PROF_%s_ENTER" % su),
+    ]
+    h = apply_tags(read_template("TEMPLATE_prof.h"), pairs)
+    cpp = apply_tags(read_template("TEMPLATE_prof.cpp"), pairs)
+    write_text(os.path.join(OUT_DIR, "prof_%s.h" % sn), h)
+    write_text(os.path.join(OUT_DIR, "prof_%s.cpp" % sn), cpp)
+    return sn, "ENABLED_PROF_%s" % su
+
+def gen_prof_setup (entries: list[str]) -> None:
+    inc_lines = []
+    call_lines = []
+    for entry in entries:
+        suffix = unpack_prof(entry)
+        sn = snake(suffix)
+        su = suffix.upper()
+        inc_lines.append('#include "prof_%s.h"' % sn)
+        call_lines.append("    PROF_%s_SETUP(dir);" % su)
+    pairs = [
+        ("[PROF_SETUP_INCLUDES_TAG]", "\n".join(inc_lines) + "\n"),
+        ("[PROF_SETUP_CALLS_TAG]", "\n".join(call_lines) + "\n"),
+    ]
+    h = read_template("TEMPLATE_prof_setup.h")
+    cpp = apply_tags(read_template("TEMPLATE_prof_setup.cpp"), pairs)
+    write_text(os.path.join(OUT_DIR, "prof_dbg_setup.h"), h)
+    write_text(os.path.join(OUT_DIR, "prof_dbg_setup.cpp"), cpp)
 
 def log_field_name (suffix: str) -> str:
     return "m_" + snake(suffix)
@@ -550,6 +600,7 @@ def main () -> int:
     log_toggle_names: list[str] = []
     assert_toggle_names: list[str] = []
     validate_toggle_names: list[str] = []
+    prof_toggle_names: list[str] = []
     include_lines: list[str] = []
     so_objs: list[str] = []
 
@@ -575,6 +626,16 @@ def main () -> int:
         include_lines.append('#include "log_dbg/eval_%s.h"' % sn)
         so_objs.append("eval_%s" % sn)
 
+    for entry in PROFS:
+        sn, en = gen_one_prof(entry)
+        prof_toggle_names.append(en)
+        include_lines.append('#include "log_dbg/prof_%s.h"' % sn)
+        so_objs.append("prof_%s" % sn)
+
+    gen_prof_setup(PROFS)
+    include_lines.append('#include "log_dbg/prof_dbg_setup.h"')
+    so_objs.append("prof_dbg_setup")
+
     toggles = apply_tags(
         read_template("TEMPLATE_log_dbg_toggles.h"),
         [("[LOG_TOGGLE_DEFINES_TAG]", build_toggle_defines(
@@ -582,6 +643,7 @@ def main () -> int:
             log_toggle_names,
             assert_toggle_names,
             validate_toggle_names,
+            prof_toggle_names,
             prev_toggles,
         ))],
     )
@@ -603,7 +665,8 @@ def main () -> int:
     write_text(COMP_SCRIPT, build_comp_script(so_objs))
     os.chmod(COMP_SCRIPT, 0o755)
 
-    print("generated logs=%d asserts=%d validates=%d" %(len(LOGS), len(ASSERTS), len(VALIDATES)))
+    print("generated logs=%d asserts=%d validates=%d profs=%d" % (
+        len(LOGS), len(ASSERTS), len(VALIDATES), len(PROFS)))
     print("building %s ..." % COMP_SCRIPT, flush=True)
     rc = subprocess.call(["bash", COMP_SCRIPT])
     if rc != 0:

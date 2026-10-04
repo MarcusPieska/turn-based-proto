@@ -4,7 +4,7 @@
 
 #include "unit_group_management.h"
 
-#include <cstring>
+#include <cstring> 
 
 #include "game_map_defs.h"
 #include "game_state.h"
@@ -14,6 +14,7 @@
 #include "unit_movement_mng.h"
 #include "unit_static_key.h"
 #include "unit_type_static_key.h"
+#include "unit_utility_helper.h"
 
 //================================================================================================================================
 //=> - Helpers -
@@ -45,6 +46,42 @@ static bool ug_is_defense (const GameState& s, u16 typ_idx) {
     const UnitTypeStaticDataKey tk = UnitTypeStaticDataKey::from_raw(ut);
     cstr nm = s.m_statics->unit_type().get_name(tk);
     return nm != nullptr && std::strcmp(nm, "LAND_DEFENSE") == 0;
+}
+
+static bool ug_is_land_army (const GameState& s, u16 typ_idx) {
+    if (s.m_statics == nullptr) {
+        return false;
+    }
+    const u16 un = s.m_statics->unit().get_item_count();
+    if (typ_idx >= un) {
+        return false;
+    }
+    const u16 ut = s.m_statics->unit().get_item(UnitStaticDataKey::from_raw(typ_idx)).type;
+    return UnitUtilityHelper::is_type_for_land_army(ut);
+}
+
+static bool ug_flat_tile_grps (GameState& s, const UnitAddKey* heads, u16 hn, u16 x, u16 y) {
+    for (u16 i = 0; i < hn; ++i) {
+        UnitAddStruct* hu = ug_get(s, heads[i]);
+        if (hu == nullptr) {
+            return false;
+        }
+        UnitAddKey nxt = UnitAddKey::from_raw(hu->m_next_unit_in_group);
+        hu->m_next_unit_in_group = U16_KEY_NULL;
+        while (nxt.is_valid()) {
+            UnitAddStruct* tu = ug_get(s, nxt);
+            if (tu == nullptr) {
+                return false;
+            }
+            const UnitAddKey fol = UnitAddKey::from_raw(tu->m_next_unit_in_group);
+            tu->m_next_unit_in_group = U16_KEY_NULL;
+            if (!UnitMovementMng::stack_append(s, nxt, x, y)) {
+                return false;
+            }
+            nxt = fol;
+        }
+    }
+    return true;
 }
 
 //================================================================================================================================
@@ -171,57 +208,136 @@ bool UnitGroupManagement::campaign_leave_five_defense (
         return false;
     }
     static const u16 k_cap = 2048u;
-    bool peeling = true;
-    while (peeling) {
-        peeling = false;
-        u16 cur = s.m_map.get_unit_hd(x, y);
-        while (cur != U16_KEY_NULL) {
-            const UnitAddKey k = UnitAddKey::from_raw(cur);
-            UnitAddStruct* u = ug_get(s, k);
-            if (u == nullptr) {
-                break;
-            }
-            if (u->m_player_idx == player_idx && u->m_next_unit_in_group != U16_KEY_NULL) {
-                const UnitAddKey nxt = UnitAddKey::from_raw(u->m_next_unit_in_group);
-                if (!UnitMovementMng::unlink_group(s, nxt)) {
-                    return false;
-                }
-                if (!UnitMovementMng::stack_append(s, nxt, x, y)) {
-                    return false;
-                }
-                peeling = true;
-                break;
-            }
-            cur = u->m_next_unit_on_tile;
-        }
-    }
-    UnitAddKey keys[k_cap];
-    u16 n = 0;
+    UnitAddKey heads[k_cap];
+    u16 hn = 0;
     u16 cur = s.m_map.get_unit_hd(x, y);
-    while (cur != U16_KEY_NULL && n < k_cap) {
+    while (cur != U16_KEY_NULL && hn < k_cap) {
         const UnitAddKey k = UnitAddKey::from_raw(cur);
         const UnitAddStruct* u = ug_get(s, k);
         if (u == nullptr) {
             break;
         }
         if (u->m_player_idx == player_idx && !ug_is_tail(*u)) {
-            keys[n++] = k;
+            heads[hn++] = k;
         }
         cur = u->m_next_unit_on_tile;
+    }
+    if (hn == 0u) {
+        return false;
+    }
+    UnitAddKey keys[k_cap];
+    u16 n = 0;
+    for (u16 i = 0; i < hn && n < k_cap; ++i) {
+        keys[n++] = heads[i];
+    }
+    for (u16 i = 0; i < hn && n < k_cap; ++i) {
+        const UnitAddStruct* hu = ug_get(s, heads[i]);
+        if (hu == nullptr) {
+            return false;
+        }
+        UnitAddKey nxt = UnitAddKey::from_raw(hu->m_next_unit_in_group);
+        while (nxt.is_valid() && n < k_cap) {
+            keys[n++] = nxt;
+            const UnitAddStruct* tu = ug_get(s, nxt);
+            if (tu == nullptr || tu->m_next_unit_in_group == U16_KEY_NULL) {
+                break;
+            }
+            nxt = UnitAddKey::from_raw(tu->m_next_unit_in_group);
+        }
     }
     UnitAddKey army[k_cap];
     u16 an = 0;
     if (!campaign_collect_depart(s, keys, n, army, k_cap, &an) || an == 0u) {
         return false;
     }
-    UnitAddKey head = army[0];
-    for (u16 i = 1; i < an; ++i) {
-        if (!UnitMovementMng::link_group(s, head, army[i])) {
+    if (!ug_flat_tile_grps(s, heads, hn, x, y)) {
+        return false;
+    }
+    return UnitMovementMng::form_group_chain(s, army, an, out_head);
+}
+
+bool UnitGroupManagement::campaign_form_land_army (
+    GameState& s,
+    u16 x,
+    u16 y,
+    u16 player_idx,
+    UnitAddKey* out_head) {
+    if (out_head == nullptr || !ug_in_bounds(s, x, y) || player_idx >= s.m_player_n || s.m_statics == nullptr) {
+        return false;
+    }
+    static const u16 k_cap = 2048u;
+    static const u16 k_leave = 5u;
+    UnitAddKey heads[k_cap];
+    u16 hn = 0;
+    u16 cur = s.m_map.get_unit_hd(x, y);
+    while (cur != U16_KEY_NULL && hn < k_cap) {
+        const UnitAddKey k = UnitAddKey::from_raw(cur);
+        const UnitAddStruct* u = ug_get(s, k);
+        if (u == nullptr) {
+            break;
+        }
+        if (u->m_player_idx == player_idx && !ug_is_tail(*u)) {
+            heads[hn++] = k;
+        }
+        cur = u->m_next_unit_on_tile;
+    }
+    if (hn == 0u) {
+        return false;
+    }
+    UnitAddKey keys[k_cap];
+    u16 n = 0;
+    for (u16 i = 0; i < hn && n < k_cap; ++i) {
+        keys[n++] = heads[i];
+    }
+    for (u16 i = 0; i < hn && n < k_cap; ++i) {
+        const UnitAddStruct* hu = ug_get(s, heads[i]);
+        if (hu == nullptr) {
             return false;
         }
+        UnitAddKey nxt = UnitAddKey::from_raw(hu->m_next_unit_in_group);
+        while (nxt.is_valid() && n < k_cap) {
+            keys[n++] = nxt;
+            const UnitAddStruct* tu = ug_get(s, nxt);
+            if (tu == nullptr || tu->m_next_unit_in_group == U16_KEY_NULL) {
+                break;
+            }
+            nxt = UnitAddKey::from_raw(tu->m_next_unit_in_group);
+        }
     }
-    *out_head = head;
-    return true;
+    if (n < 2u) {
+        return false;
+    }
+    bool leave[k_cap];
+    for (u16 i = 0; i < n; ++i) {
+        leave[i] = false;
+    }
+    u16 left = 0;
+    for (u16 i = 0; i < n && left < k_leave; ++i) {
+        const UnitAddStruct* u = ug_get(s, keys[i]);
+        if (u != nullptr && ug_is_defense(s, u->m_unit_typ_idx)) {
+            leave[i] = true;
+            left++;
+        }
+    }
+    UnitAddKey army[k_cap];
+    u16 an = 0;
+    for (u16 i = 0; i < n; ++i) {
+        if (leave[i]) {
+            continue;
+        }
+        const UnitAddStruct* u = ug_get(s, keys[i]);
+        if (u == nullptr || !ug_is_land_army(s, u->m_unit_typ_idx)) {
+            continue;
+        }
+        army[an++] = keys[i];
+    }
+    if (an == 0u) {
+        return false;
+    }
+    if (!ug_flat_tile_grps(s, heads, hn, x, y)) {
+        return false;
+    }
+    return UnitMovementMng::form_group_chain(s, army, an, out_head);
 }
 
 //================================================================================================================================

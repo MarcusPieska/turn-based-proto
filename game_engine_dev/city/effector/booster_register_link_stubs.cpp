@@ -76,6 +76,11 @@ bool UnitGroupManagement::campaign_leave_five_defense (
     return false;
 }
 
+bool UnitGroupManagement::campaign_form_land_army (
+    GameState&, u16, u16, u16, UnitAddKey*) {
+    return false;
+}
+
 //================================================================================================================================
 //=> - End of file -
 //================================================================================================================================

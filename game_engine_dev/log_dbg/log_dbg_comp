@@ -72,6 +72,9 @@ g++ $CXXFLAGS $INC -c eval_navy_unit_support.cpp -o eval_navy_unit_support.o
 g++ $CXXFLAGS $INC -c eval_army_state_to_war.cpp -o eval_army_state_to_war.o
 g++ $CXXFLAGS $INC -c eval_army_state_peace.cpp -o eval_army_state_peace.o
 g++ $CXXFLAGS $INC -c eval_army_state_muster_group.cpp -o eval_army_state_muster_group.o
+g++ $CXXFLAGS $INC -c prof_game_loop.cpp -o prof_game_loop.o
+g++ $CXXFLAGS $INC -c prof_th_war.cpp -o prof_th_war.o
+g++ $CXXFLAGS $INC -c prof_dbg_setup.cpp -o prof_dbg_setup.o
 
 g++ -shared -o $OUT_SO \
     log_new_turn.o \
@@ -139,7 +142,10 @@ g++ -shared -o $OUT_SO \
     eval_army_state_to_war.o \
     eval_army_state_peace.o \
     eval_army_state_muster_group.o \
+    prof_game_loop.o \
+    prof_th_war.o \
+    prof_dbg_setup.o \
     -Wl,-soname,$OUT_SO
 
-rm -f log_new_turn.o log_city_foundation.o log_civ_spawn_pt.o log_unit_spawn.o log_war_muster.o log_war_peace_mock.o log_war_peace.o log_war_targets.o log_war_army_size.o log_war_city_capture.o log_war_begin_fail.o log_war_sec_begin_fail.o log_war_pick_enemy_fail.o log_war_engage_fail.o log_war_handle_camp_fail.o log_war_start_camp_fail.o log_war_declare_fail.o log_war_staging_fail.o log_war_own_free_comp_fail.o log_war_muster_grad_fail.o log_war_exposure_fail.o log_war_walk_muster_fail.o log_war_muster_can_step_fail.o log_war_muster_peek_fail.o log_war_tile_entry_resolve.o log_war_form_army_fail.o log_war_army_upgrade.o log_war_set_target_fail.o log_war_refill_targets_fail.o log_war_find_enemy_seed_fail.o log_war_set_goal_fail.o log_war_assault_stall_stop.o log_war_assault_fail_stop.o log_war_assault_city_fail.o log_war_cam_assault_fail.o log_war_cam_melee_fail.o log_war_claim_city_miss.o log_war_rejoin_move_fail.o log_war_rejoin_link_fail.o log_war_army_cant_fight.o log_war_retarget_fail.o log_city_job_food.o log_city_job_production.o log_city_job_commerce.o log_city_job_culture.o log_city_job_science.o log_city_job_religion.o log_city_job_yields.o log_player_commerce.o log_player_commerce_raw.o log_player_science.o log_player_research_perc.o log_player_tech_discover.o log_unit_state.o log_army_info.o assert_combat_ready.o assert_sector_support_bound.o assert_war_army_can_fight.o assert_city_job_are_covered.o eval_city_tile_work_count.o eval_army_unit_support.o eval_navy_unit_support.o eval_army_state_to_war.o eval_army_state_peace.o eval_army_state_muster_group.o
+rm -f log_new_turn.o log_city_foundation.o log_civ_spawn_pt.o log_unit_spawn.o log_war_muster.o log_war_peace_mock.o log_war_peace.o log_war_targets.o log_war_army_size.o log_war_city_capture.o log_war_begin_fail.o log_war_sec_begin_fail.o log_war_pick_enemy_fail.o log_war_engage_fail.o log_war_handle_camp_fail.o log_war_start_camp_fail.o log_war_declare_fail.o log_war_staging_fail.o log_war_own_free_comp_fail.o log_war_muster_grad_fail.o log_war_exposure_fail.o log_war_walk_muster_fail.o log_war_muster_can_step_fail.o log_war_muster_peek_fail.o log_war_tile_entry_resolve.o log_war_form_army_fail.o log_war_army_upgrade.o log_war_set_target_fail.o log_war_refill_targets_fail.o log_war_find_enemy_seed_fail.o log_war_set_goal_fail.o log_war_assault_stall_stop.o log_war_assault_fail_stop.o log_war_assault_city_fail.o log_war_cam_assault_fail.o log_war_cam_melee_fail.o log_war_claim_city_miss.o log_war_rejoin_move_fail.o log_war_rejoin_link_fail.o log_war_army_cant_fight.o log_war_retarget_fail.o log_city_job_food.o log_city_job_production.o log_city_job_commerce.o log_city_job_culture.o log_city_job_science.o log_city_job_religion.o log_city_job_yields.o log_player_commerce.o log_player_commerce_raw.o log_player_science.o log_player_research_perc.o log_player_tech_discover.o log_unit_state.o log_army_info.o assert_combat_ready.o assert_sector_support_bound.o assert_war_army_can_fight.o assert_city_job_are_covered.o eval_city_tile_work_count.o eval_army_unit_support.o eval_navy_unit_support.o eval_army_state_to_war.o eval_army_state_peace.o eval_army_state_muster_group.o prof_game_loop.o prof_th_war.o prof_dbg_setup.o
 echo "built $(pwd)/$OUT_SO"
