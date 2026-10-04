@@ -69,6 +69,8 @@ def ev_tag(k, a, b):
         return clip_tag("decl", a), "#8e44ad"
     if k == "X":
         return clip_tag("assault"), "#c0392b"
+    if k == "U":
+        return clip_tag("upgr", a), "#16a085"
     return None, None
 
 #================================================================================================================================

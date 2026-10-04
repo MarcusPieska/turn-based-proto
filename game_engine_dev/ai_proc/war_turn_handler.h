@@ -41,12 +41,12 @@ struct MusterCity {
 //=> - WarTurnHandler -
 //================================================================================================================================
 //
-//  Per-seat war turn handler: muster, form army, march, assault (CityAttackManager), claim city with
-//  TileTransfer, two-step rejoin, then retarget until no fight left or no targets. begin builds
-//  GenLandSectors + LandSectorNetwork and binds SectorSupport; pick_enemy / refill_targets use
-//  war_target_pick (default WarTargetKind::SecureCapital). Assault may Stall when offensive units
-//  remain but spent this assault's MP; owner retries. Hot path: begin/clear with GameLoop; handle
-//  per engaged AI seat.
+//  Per-seat war turn handler: muster, flatten arrived groups, form army, ArmyUpgradeMng at staging, march, assault
+//  (CityAttackManager), claim city with TileTransfer, two-step rejoin, then retarget until no fight
+//  left or no targets. begin builds GenLandSectors + LandSectorNetwork and binds SectorSupport;
+//  pick_enemy / refill_targets use war_target_pick (default WarTargetKind::SecureCapital). Assault
+//  may Stall when offensive units remain but spent this assault's MP; owner retries. Hot path:
+//  begin/clear with GameLoop; handle per engaged AI seat.
 //
 //================================================================================================================================
 
@@ -73,6 +73,7 @@ public:
     u16 do_total_muster ();
     bool determine_exposure (u16 enemy);
     bool walk_muster ();
+    bool flatten_muster ();
     bool form_army ();
     bool set_target_city (u16 enemy, u16* ox, u16* oy);
     bool walk_army ();
@@ -100,6 +101,8 @@ public:
     void clr_campaign ();
 
 private:
+    friend void prep_eval_muster_grps (const WarTurnHandler& camp);
+
     WarTurnHandler (const WarTurnHandler& o) = delete;
     WarTurnHandler (WarTurnHandler&& o) = delete;
     WarTurnHandler& operator= (const WarTurnHandler& o) = delete;

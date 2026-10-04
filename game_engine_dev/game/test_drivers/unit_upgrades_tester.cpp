@@ -106,16 +106,17 @@ int main () {
     }
     const u32 expect_cost = prod + stat_pts * static_cast<u32>(stat_rate);
 
+    note(wu.type == su.type, "Warrior and Swordsman share unit type");
     note(UnitUpgrades::can_upgrade(warrior, swordsman, units), "can_upgrade Warrior->Swordsman");
-    note(UnitUpgrades::can_upgrade(warrior, spearman, units), "can_upgrade Warrior->Spearman (same domain, non-NONE roles)");
+    note(!UnitUpgrades::can_upgrade(warrior, spearman, units), "rejects Warrior->Spearman (different unit type)");
     const u16 settler = find_unit("Settler");
     const u16 galley = find_unit("Galley");
     note(settler != U16_KEY_NULL && galley != U16_KEY_NULL, "catalog has Settler/Galley");
     if (settler != U16_KEY_NULL) {
-        note(!UnitUpgrades::can_upgrade(warrior, settler, units), "rejects Warrior->Settler (NONE role type mismatch)");
+        note(!UnitUpgrades::can_upgrade(warrior, settler, units), "rejects Warrior->Settler (different unit type)");
     }
     if (galley != U16_KEY_NULL) {
-        note(!UnitUpgrades::can_upgrade(warrior, galley, units), "rejects Warrior->Galley (domain mismatch)");
+        note(!UnitUpgrades::can_upgrade(warrior, galley, units), "rejects Warrior->Galley (type/domain)");
     }
 
     note(!UnitUpgrades::can_afford(0, warrior, swordsman, units), "cannot afford Warrior->Swordsman with empty treasury");
@@ -134,7 +135,7 @@ int main () {
     if (settler != U16_KEY_NULL) {
         seat.m_commerce = expect_cost;
         unit.m_unit_typ_idx = warrior;
-        note(!UnitUpgrades::upgrade(0, unit, settler, units), "upgrade rejects NONE-role type mismatch");
+        note(!UnitUpgrades::upgrade(0, unit, settler, units), "upgrade rejects different unit type");
         note(static_cast<u16>(unit.m_unit_typ_idx) == warrior, "unit typ unchanged on failed upgrade");
         note(seat.m_commerce == expect_cost, "treasury unchanged on failed upgrade");
     }

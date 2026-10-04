@@ -39,8 +39,7 @@ static bool load_statics () {
 
 enum Filt : u8 {
     FILT_ALL = 0,
-    FILT_TYPE = 1,
-    FILT_TYPE_ROLE = 2
+    FILT_ROLE = 1
 };
 
 static bool ok_tgt (u16 from, u16 to, const UnitStaticData& units, Filt filt) {
@@ -52,13 +51,7 @@ static bool ok_tgt (u16 from, u16 to, const UnitStaticData& units, Filt filt) {
     }
     const UnitStaticDataStruct& fu = units.get_item(UnitStaticDataKey::from_raw(from));
     const UnitStaticDataStruct& tu = units.get_item(UnitStaticDataKey::from_raw(to));
-    if (tu.type != fu.type) {
-        return false;
-    }
-    if (filt == FILT_TYPE_ROLE && tu.role != fu.role) {
-        return false;
-    }
-    return true;
+    return tu.role == fu.role;
 }
 
 static void wr_table (FILE* fp, cstr title, const UnitStaticData& units, Filt filt) {
@@ -128,9 +121,8 @@ int main () {
         std::printf("ERROR: failed to open %s\n", OUT_PATH);
         return 1;
     }
-    wr_table(fp, "=== all can_upgrade ===", units, FILT_ALL);
-    wr_table(fp, "=== same type only ===", units, FILT_TYPE);
-    wr_table(fp, "=== same type and role ===", units, FILT_TYPE_ROLE);
+    wr_table(fp, "=== can_upgrade (same type, better) ===", units, FILT_ALL);
+    wr_table(fp, "=== can_upgrade + same role ===", units, FILT_ROLE);
     std::fclose(fp);
     std::printf("wrote %s\n", OUT_PATH);
     return 0;

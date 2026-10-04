@@ -173,6 +173,9 @@ g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_target/generate_access_mask.cpp -o g
 g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_target/generate_distance_p2p.cpp -o generate_distance_p2p.o
 g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_target/walk_p2p.cpp -o walk_p2p.o
 g++ $CXXFLAGS $INC -c ../generate_exposure.cpp -o generate_exposure.o
+g++ $CXXFLAGS $INC -c ../../game/unit_roster_mng.cpp -o unit_roster_mng.o
+g++ $CXXFLAGS $INC -c ../../game/unit_upgrades.cpp -o unit_upgrades.o
+g++ $CXXFLAGS $INC -c ../army_upgrade_mng.cpp -o army_upgrade_mng.o
 g++ $CXXFLAGS $INC -c ../war_turn_handler.cpp -o war_turn_handler.o
 g++ $CXXFLAGS $INC -c ../city_attack_manager.cpp -o city_attack_manager.o
 g++ $CXXFLAGS $INC -c ../../game/combat_mng.cpp -o combat_mng.o
@@ -308,6 +311,9 @@ g++ $CXXFLAGS -o war_turn_handler_tester \
     generate_distance_p2p.o \
     walk_p2p.o \
     generate_exposure.o \
+    unit_roster_mng.o \
+    unit_upgrades.o \
+    army_upgrade_mng.o \
     war_turn_handler.o \
     city_attack_manager.o \
     combat_mng.o \

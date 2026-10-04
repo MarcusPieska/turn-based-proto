@@ -95,7 +95,7 @@ int MapOwnSaveTimelineTester::run () {
         return 1;
     }
     MapOwnSaveTimelineMng mng;
-    if (!mng.setup(save_n) || !mng.fill(paths(), data_dir)) {
+    if (!mng.setup(save_n) || !mng.fill(paths(), data_dir, eval_dir)) {
         std::printf("map_own_save_timeline: setup/fill failed\n");
         return 1;
     }

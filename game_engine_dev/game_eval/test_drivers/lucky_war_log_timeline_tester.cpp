@@ -78,6 +78,8 @@ static char kind_ch (LuckyWarEv k) {
         return 'D';
     case LuckyWarEv::AssaultFail:
         return 'X';
+    case LuckyWarEv::Upgrade:
+        return 'U';
     default:
         return '?';
     }
@@ -137,6 +139,9 @@ static void wr_ev_line (std::FILE* fp, const LuckyWarEvt& e) {
     case LuckyWarEv::AssaultFail:
         std::fprintf(fp, "  t%-4u assault_fail city=(%u,%u)\n", t, a, b);
         break;
+    case LuckyWarEv::Upgrade:
+        std::fprintf(fp, "  t%-4u upgrade n=%u\n", t, a);
+        break;
     default:
         std::fprintf(fp, "  t%-4u ? a=%u b=%u\n", t, a, b);
         break;
@@ -186,6 +191,7 @@ static EvalNeed make_need () {
     n.logs().m_war_form_army_fail = 1;
     n.logs().m_war_declare_fail = 1;
     n.logs().m_war_assault_fail_stop = 1;
+    n.logs().m_war_army_upgrade = 1;
     return n;
 }
 

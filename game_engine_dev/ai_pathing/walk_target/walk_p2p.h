@@ -11,6 +11,23 @@
 class GameState;
 
 //================================================================================================================================
+//=> - PeekFail -
+//================================================================================================================================
+//
+//  Failure codes for WalkP2P::peek; Ok means a downhill step was found.
+//
+//================================================================================================================================
+
+enum class PeekFail : u8 {
+    Ok = 0,
+    NotReady = 1, // Board not ok or mvt tables not ready
+    BadPos = 2, // Out of bounds or map size mismatch
+    Unreach = 3, // Current tile turn is sentinel
+    NoDown = 4, // No closer reachable neighbor
+    Cost = 5 // tile_cost to chosen neighbor <= 0
+};
+
+//================================================================================================================================
 //=> - WalkP2P -
 //================================================================================================================================
 //
@@ -21,11 +38,14 @@ class GameState;
 
 class WalkP2P {
 public:
+    static const u16 k_opt_n = 8u;
+
     struct StepRes {
         u16 nx;
         u16 ny;
         u16 cost;
         bool have;
+        PeekFail reason;
     };
 
     WalkP2P ();
@@ -39,6 +59,7 @@ public:
     u16* rem ();
     const u16* rem () const;
     StepRes peek (const GameState& s, u16 x, u16 y) const;
+    void peek_opts (const GameState& s, u16 x, u16 y, u16* ox, u16* oy) const;
 
 private:
     WalkP2P (const WalkP2P& other) = delete;
@@ -61,6 +82,17 @@ private:
         u16 y,
         u16& ox,
         u16& oy);
+    static void find_opts (
+        u16 t,
+        i32 r,
+        const u16* turn,
+        const u16* rem,
+        u16 w,
+        u16 h,
+        u16 x,
+        u16 y,
+        u16* ox,
+        u16* oy);
 
     Whiteboard_2B m_turn;
     Whiteboard_2B m_rem;

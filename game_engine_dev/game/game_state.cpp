@@ -6,6 +6,7 @@
 
 #include "game_state.h"
 #include "unit_movement_mng.h"
+#include "tile_entry_resolver.h"
 #include "player_ledger.h"
 #include "resource_turn_handler.h"
 #include "city.h"
@@ -67,6 +68,7 @@ void GameState::clear () {
 
     // Some static helper classes need access to the game state to be able to do anything useful.
     UnitMovementMng::bind_state(nullptr);
+    TileEntryResolver::bind_state(nullptr);
     PlayerLedger::bind_state(nullptr);
     ResourceTurnHandler::clear();
     TechAgeMng::clear();

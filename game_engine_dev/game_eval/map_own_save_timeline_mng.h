@@ -14,6 +14,7 @@ class EvalPaths;
 //================================================================================================================================
 //
 //  Loads one map blob per save and writes ownership PPMs into out_dir (own_tXXXX.ppm).
+//  Also writes the last snap to share_dir as tile_own_last.ppm when share_dir is set.
 //
 //================================================================================================================================
 
@@ -24,7 +25,7 @@ public:
 
     void clr ();
     bool setup (u16 save_n);
-    bool fill (const EvalPaths& paths, cstr out_dir);
+    bool fill (const EvalPaths& paths, cstr out_dir, cstr share_dir = nullptr);
 
     u16 save_n () const;
     u16 wrote_n () const;

@@ -27,6 +27,14 @@ bool LuckyWarLogTimeline::add (u16 turn, LuckyWarEv kind, u16 a, u16 b) {
     return true;
 }
 
+bool LuckyWarLogTimeline::add_upgrade (u16 turn) {
+    if (m_n > 0u && m_ev[m_n - 1u].m_kind == LuckyWarEv::Upgrade && m_ev[m_n - 1u].m_turn == turn) {
+        m_ev[m_n - 1u].m_a = static_cast<u16>(m_ev[m_n - 1u].m_a + 1u);
+        return true;
+    }
+    return add(turn, LuckyWarEv::Upgrade, 1u, 0u);
+}
+
 void LuckyWarLogTimeline::swap (LuckyWarLogTimeline& o) {
     const u16 n = (m_n > o.m_n) ? m_n : o.m_n;
     for (u16 i = 0; i < n; ++i) {

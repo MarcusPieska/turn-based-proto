@@ -4,6 +4,7 @@
 
 #include "war_turn_handler.h"
 
+#include "army_upgrade_mng.h"
 #include "city_attack_manager.h"
 #include "city.h"
 #include "civ_relations.h"
@@ -24,6 +25,7 @@
 #include "sector_support.h"
 #include "target_ordering_flood.h"
 #include "target_sector_defensible.h"
+#include "tile_entry_resolver.h"
 #include "tile_transfer.h"
 #include "unit_action_enum.h"
 #include "unit_add_struct.h"
@@ -33,11 +35,78 @@
 #include "unit_static_key.h"
 #include "unit_turn_handler.h"
 #include "unit_type_action_map.h"
+#include "unit_utility_helper.h"
 #include "whiteboard_mng.h"
 
 //================================================================================================================================
 //=> - Helpers -
 //================================================================================================================================
+
+static bool filt_land_army_grp (GameState& s, UnitAddKey* head_io) {
+    if (head_io == nullptr || !head_io->is_valid() || s.m_statics == nullptr) {
+        return false;
+    }
+    static const u16 k_cap = 2048u;
+    UnitAddKey keys[k_cap];
+    u16 n = 0u;
+    u16 x = U16_KEY_NULL;
+    u16 y = U16_KEY_NULL;
+    UnitAddKey cur = *head_io;
+    while (cur.is_valid() && n < k_cap) {
+        UnitAddStruct* u = s.m_units.get_unit_add(cur);
+        if (u == nullptr) {
+            break;
+        }
+        if (n == 0u) {
+            x = u->m_x;
+            y = u->m_y;
+        }
+        keys[n++] = cur;
+        if (u->m_next_unit_in_group == U16_KEY_NULL) {
+            break;
+        }
+        cur = UnitAddKey::from_raw(u->m_next_unit_in_group);
+    }
+    if (n == 0u || x == U16_KEY_NULL) {
+        return false;
+    }
+    UnitAddStruct* hu = s.m_units.get_unit_add(*head_io);
+    while (hu != nullptr && hu->m_next_unit_in_group != U16_KEY_NULL) {
+        const UnitAddKey nxt = UnitAddKey::from_raw(hu->m_next_unit_in_group);
+        if (!UnitMovementMng::unlink_group(s, nxt)) {
+            return false;
+        }
+        if (!UnitMovementMng::stack_append(s, nxt, x, y)) {
+            return false;
+        }
+    }
+    const u16 typ_n = s.m_statics->unit().get_item_count();
+    UnitAddKey keep[k_cap];
+    u16 kn = 0u;
+    for (u16 i = 0; i < n; ++i) {
+        const UnitAddStruct* u = s.m_units.get_unit_add(keys[i]);
+        if (u == nullptr || u->m_unit_typ_idx >= typ_n) {
+            continue;
+        }
+        const u16 ut = s.m_statics->unit().get_item(UnitStaticDataKey::from_raw(u->m_unit_typ_idx)).type;
+        if (!UnitUtilityHelper::is_type_for_land_army(ut)) {
+            continue;
+        }
+        keep[kn++] = keys[i];
+    }
+    if (kn == 0u) {
+        *head_io = UnitAddKey::None();
+        return false;
+    }
+    UnitAddKey head = keep[0];
+    for (u16 i = 1; i < kn; ++i) {
+        if (!UnitMovementMng::link_group(s, head, keep[i])) {
+            return false;
+        }
+    }
+    *head_io = head;
+    return true;
+}
 
 static bool mob_hit (const WalkP2P& mob, u16 x, u16 y) {
     if (!mob.ok() || x >= mob.w() || y >= mob.h()) {
@@ -238,6 +307,9 @@ u16 WarTurnHandler::do_total_muster () {
         if (!UnitMovementMng::muster_leave_one_defense(m_st, cx, cy, m_seat, &head)) {
             continue;
         }
+        if (!filt_land_army_grp(m_st, &head)) {
+            continue;
+        }
         UnitMovementMng::set_grp_campaign(m_st, head, 1u);
         m_grp[m_grp_n].m_hd = head.value();
         m_grp[m_grp_n].m_exp = GenerateExposure::k_none;
@@ -318,20 +390,109 @@ bool WarTurnHandler::walk_muster () {
             if (u->m_x == m_sx && u->m_y == m_sy) {
                 break;
             }
-            const WalkP2P::StepRes step = m_mob.peek(m_st, u->m_x, u->m_y);
+            const u16 ux = u->m_x;
+            const u16 uy = u->m_y;
+            const WalkP2P::StepRes step = m_mob.peek(m_st, ux, uy);
             if (!step.have) {
+                LOG_WAR_MUSTER_PEEK_FAIL::LOG(
+                    SC_U32(m_seat), SC_U32(key.value()), SC_U32(static_cast<u8>(step.reason)),
+                    SC_U32(ux), SC_U32(uy), SC_U32(m_st.m_current_turn));
                 break;
             }
-            if (!UnitMovementMng::can_step(m_st, key, step.nx, step.ny, nullptr)) {
+            const CanStepFail csr = UnitMovementMng::can_step_reason(m_st, key, step.nx, step.ny, nullptr);
+            if (csr == CanStepFail::Ok) {
+                if (!UnitMovementMng::apply_step(m_st, key, step.nx, step.ny)) {
+                    break;
+                }
+                any = true;
+                continue;
+            }
+            if (csr != CanStepFail::Entry) {
+                LOG_WAR_MUSTER_CAN_STEP_FAIL::LOG(
+                    SC_U32(m_seat), SC_U32(key.value()), SC_U32(static_cast<u8>(csr)),
+                    SC_U32(ux), SC_U32(uy), SC_U32(step.nx), SC_U32(step.ny),
+                    SC_U32(m_st.m_current_turn));
                 break;
             }
-            if (!UnitMovementMng::apply_step(m_st, key, step.nx, step.ny)) {
+            if (TileEntryResolver::resolve(key.value(), step.nx, step.ny) != TileEntryRes::BlockRemains) {
+                if (UnitMovementMng::can_step(m_st, key, step.nx, step.ny, nullptr)
+                    && UnitMovementMng::apply_step(m_st, key, step.nx, step.ny)) {
+                    any = true;
+                    continue;
+                }
+            }
+            u16 ox[WalkP2P::k_opt_n];
+            u16 oy[WalkP2P::k_opt_n];
+            // TODO: peek_opts fallback slowed execution a lot; optimize heavily or remove once Entry resolver exists.
+            m_mob.peek_opts(m_st, ux, uy, ox, oy);
+            bool moved = false;
+            CanStepFail last = csr;
+            u16 lnx = step.nx;
+            u16 lny = step.ny;
+            for (u16 k = 0u; k < WalkP2P::k_opt_n; ++k) {
+                if (ox[k] == U16_KEY_NULL) {
+                    break;
+                }
+                if (ox[k] == step.nx && oy[k] == step.ny) {
+                    continue;
+                }
+                const CanStepFail alt = UnitMovementMng::can_step_reason(m_st, key, ox[k], oy[k], nullptr);
+                if (alt != CanStepFail::Ok) {
+                    last = alt;
+                    lnx = ox[k];
+                    lny = oy[k];
+                    continue;
+                }
+                if (!UnitMovementMng::apply_step(m_st, key, ox[k], oy[k])) {
+                    last = CanStepFail::BadUnit;
+                    lnx = ox[k];
+                    lny = oy[k];
+                    continue;
+                }
+                moved = true;
                 break;
             }
-            any = true;
+            if (moved) {
+                any = true;
+                continue;
+            }
+            LOG_WAR_MUSTER_CAN_STEP_FAIL::LOG(
+                SC_U32(m_seat), SC_U32(key.value()), SC_U32(static_cast<u8>(last)),
+                SC_U32(ux), SC_U32(uy), SC_U32(lnx), SC_U32(lny), SC_U32(m_st.m_current_turn));
+            break;
         }
     }
     return any;
+}
+
+bool WarTurnHandler::flatten_muster () {
+    if (!ok() || m_grp_n == 0u) {
+        return false;
+    }
+    UnitAddKey heads[k_grp_cap];
+    u16 hn = 0u;
+    for (u16 i = 0; i < m_grp_n; ++i) {
+        if (m_grp[i].m_hd == U16_KEY_NULL) {
+            continue;
+        }
+        const UnitAddKey key = UnitAddKey::from_raw(m_grp[i].m_hd);
+        const UnitAddStruct* u = m_st.m_units.get_unit_add(key);
+        if (u == nullptr || u->m_x != m_sx || u->m_y != m_sy) {
+            continue;
+        }
+        heads[hn++] = key;
+    }
+    if (hn == 0u) {
+        return false;
+    }
+    UnitAddKey flat = UnitAddKey::None();
+    if (!UnitMovementMng::flatten_groups(m_st, heads, hn, &flat)) {
+        return false;
+    }
+    m_grp[0].m_hd = flat.value();
+    m_grp[0].m_exp = GenerateExposure::k_none;
+    m_grp_n = 1u;
+    return true;
 }
 
 bool WarTurnHandler::form_army () {
@@ -340,6 +501,9 @@ bool WarTurnHandler::form_army () {
     }
     UnitAddKey head = UnitAddKey::None();
     if (!UnitMovementMng::campaign_leave_five_defense(m_st, m_sx, m_sy, m_seat, &head)) {
+        return false;
+    }
+    if (!filt_land_army_grp(m_st, &head)) {
         return false;
     }
     UnitMovementMng::set_grp_campaign(m_st, head, 1u);
@@ -368,6 +532,7 @@ bool WarTurnHandler::form_army () {
         cur = UnitAddKey::from_raw(u->m_next_unit_in_group);
     }
     LOG_WAR_ARMY_SIZE::LOG(SC_U32(m_seat), SC_U32(army_n), SC_U32(size_sum), SC_U32(m_sx), SC_U32(m_sy), SC_U32(m_st.m_current_turn));
+    EVAL_ARMY_STATE_TO_WAR::EVAL(m_st, head.value());
     return true;
 }
 
@@ -631,10 +796,10 @@ bool WarTurnHandler::rejoin_move (u16 army_i) {
     if (sx == dx && sy == dy) {
         return true;
     }
-    const u8 step_r = UnitMovementMng::can_step_reason(m_st, key, dx, dy, nullptr);
-    if (step_r != 0u) {
+    const CanStepFail step_r = UnitMovementMng::can_step_reason(m_st, key, dx, dy, nullptr);
+    if (step_r != CanStepFail::Ok) {
         LOG_WAR_REJOIN_MOVE_FAIL::LOG(SC_U32(m_seat), SC_U32(m_enemy), SC_U32(army_i),
-            SC_U32(m_st.m_current_turn), static_cast<unsigned>(40u + step_r),
+            SC_U32(m_st.m_current_turn), static_cast<unsigned>(40u + static_cast<u8>(step_r)),
             SC_U32(sx), SC_U32(sy), SC_U32(dx), SC_U32(dy));
         return false;
     }
@@ -960,14 +1125,17 @@ u16 WarTurnHandler::split_hd (u16 i) const {
 void WarTurnHandler::clr_campaign () {
     for (u16 i = 0; i < m_grp_n; ++i) {
         if (m_grp[i].m_hd != U16_KEY_NULL) {
+            EVAL_ARMY_STATE_PEACE::EVAL(m_st, m_grp[i].m_hd);
             UnitMovementMng::set_grp_campaign(m_st, UnitAddKey::from_raw(m_grp[i].m_hd), 0u);
         }
     }
     for (u16 i = 0; i < k_atk_cap; ++i) {
         if (m_atk[i] != U16_KEY_NULL) {
+            EVAL_ARMY_STATE_PEACE::EVAL(m_st, m_atk[i]);
             UnitMovementMng::set_grp_campaign(m_st, UnitAddKey::from_raw(m_atk[i]), 0u);
         }
         if (m_split[i] != U16_KEY_NULL) {
+            EVAL_ARMY_STATE_PEACE::EVAL(m_st, m_split[i]);
             UnitMovementMng::set_grp_campaign(m_st, UnitAddKey::from_raw(m_split[i]), 0u);
         }
     }
@@ -988,6 +1156,28 @@ u16 WarTurnHandler::target_x () const {
 u16 WarTurnHandler::target_y () const {
     return m_ty;
 }
+
+//================================================================================================================================
+//= Eval prep =
+//================================================================================================================================
+
+#if defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_EVAL_ARMY_STATE_MUSTER_GROUP))
+void prep_eval_muster_grps (const WarTurnHandler& camp) {
+    u16 heads[WarTurnHandler::k_grp_cap];
+    u16 n = 0u;
+    for (u16 i = 0; i < camp.m_grp_n; ++i) {
+        if (camp.m_grp[i].m_hd == U16_KEY_NULL) {
+            continue;
+        }
+        heads[n++] = camp.m_grp[i].m_hd;
+    }
+    EVAL_ARMY_STATE_MUSTER_GROUP::EVAL(camp.m_st, camp.m_sx, camp.m_sy, heads, n);
+}
+#else
+void prep_eval_muster_grps (const WarTurnHandler& camp) {
+    (void)camp;
+}
+#endif
 
 //================================================================================================================================
 //=> - Hot-path orchestration -
@@ -1153,6 +1343,8 @@ static void war_advance (GameState& st, u16 seat, WarSlot* s) {
     switch (s->m_phase) {
     case WarPhase::Muster:
         if (!camp.walk_muster()) {
+            prep_eval_muster_grps(camp);
+            (void)camp.flatten_muster();
             s->m_phase = WarPhase::Form;
         }
         break;
@@ -1162,6 +1354,7 @@ static void war_advance (GameState& st, u16 seat, WarSlot* s) {
             war_stop(st, seat, s);
             break;
         }
+        (void)ArmyUpgradeMng::upgrade_all(st, seat, camp.atk_hd(0u), camp.staging_x(), camp.staging_y());
         {
             u16 tx = 0u;
             u16 ty = 0u;

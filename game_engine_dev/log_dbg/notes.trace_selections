@@ -72,6 +72,11 @@ Rejoin / retarget / end:
 Assert (optional, also war-related):
   ASSERT_WAR_ARMY_CAN_FIGHT
 
+Army linked-list dumps (eval → LOG; LOG toggles not required when eval is on):
+  EVAL_ARMY_STATE_TO_WAR  — after form_army: army state=toWar … unit state … army state=end
+  EVAL_ARMY_STATE_PEACE   — in clr_campaign before clear: army state=peace … end
+  LOG_UNIT_STATE / LOG_ARMY_INFO — underlying lines (owner/unit/at; army state=%s)
+
 
 --------------------------------------------------------------------------------
 Use case: (add more sections below as needed)

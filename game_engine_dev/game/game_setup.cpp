@@ -19,6 +19,7 @@
 #include "runtime_static_loader.h"
 #include "city.h"
 #include "unit_movement_mng.h"
+#include "tile_entry_resolver.h"
 #include "player_ledger.h"
 #include "resource_turn_handler.h"
 #include "tile_yields.h"
@@ -493,6 +494,7 @@ bool GameSetup::finish_with_starts (GameState* state, const SpgPickCoords& start
     City::bind_units(&state->m_units);
     City::bind_wonder_cities(state->m_wonder_city);
     UnitMovementMng::bind_state(state);
+    TileEntryResolver::bind_state(state);
     PlayerLedger::bind_state(state);
     if (!TileYields::setup(*g_rt_statics)) {
         state->clear();

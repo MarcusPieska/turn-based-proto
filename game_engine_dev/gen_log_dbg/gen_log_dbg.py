@@ -36,7 +36,11 @@ LOGS = [
     ("WarMusterGradFail", "unsigned seat, unsigned sx, unsigned sy, unsigned turn", "war muster grad fail seat=%u staging=(%u,%u) turn=%u\n"),
     ("WarExposureFail", "unsigned seat, unsigned enemy, unsigned turn", "war exposure fail seat=%u enemy=%u turn=%u\n"),
     ("WarWalkMusterFail", "unsigned seat, unsigned turn", "war walk muster fail seat=%u turn=%u\n"),
+    ("WarMusterCanStepFail", "unsigned seat, unsigned unit, unsigned reason, unsigned x, unsigned y, unsigned nx, unsigned ny, unsigned turn", "war muster can_step fail seat=%u unit=%u reason=%u at=(%u,%u) to=(%u,%u) turn=%u\n"),
+    ("WarMusterPeekFail", "unsigned seat, unsigned unit, unsigned reason, unsigned x, unsigned y, unsigned turn", "war muster peek fail seat=%u unit=%u reason=%u at=(%u,%u) turn=%u\n"),
+    ("WarTileEntryResolve", "unsigned seat, unsigned unit, unsigned x, unsigned y, unsigned reason, unsigned outcome, unsigned turn", "war tile entry resolve seat=%u unit=%u at=(%u,%u) reason=%u outcome=%u turn=%u\n"),
     ("WarFormArmyFail", "unsigned seat, unsigned enemy, unsigned turn", "war form army fail seat=%u enemy=%u turn=%u\n"),
+    ("WarArmyUpgrade", "unsigned seat, unsigned civ, unsigned from_u, unsigned to_u, unsigned turn", "war army upgrade seat=%u civ=%u from=%u to=%u turn=%u\n"),
     ("WarSetTargetFail", "unsigned seat, unsigned enemy, unsigned turn, unsigned reason", "war set target fail seat=%u enemy=%u turn=%u reason=%u\n"),
     ("WarRefillTargetsFail", "unsigned seat, unsigned enemy, unsigned turn, unsigned reason", "war refill targets fail seat=%u enemy=%u turn=%u reason=%u\n"),
     ("WarFindEnemySeedFail", "unsigned seat, unsigned enemy, unsigned turn", "war find enemy seed fail seat=%u enemy=%u turn=%u\n"),
@@ -63,6 +67,8 @@ LOGS = [
     ("PlayerScience", "u16 player, u32 amount", "player=%u science=%u\n"),
     ("PlayerResearchPerc", "u16 player, u16 perc", "player=%u research_perc=%u\n"),
     ("PlayerTechDiscover", "u16 player, u16 tech", "player=%u tech=%u\n"),
+    ("UnitState", "u16 owner, u16 unit, u16 x, u16 y", "unit state owner=%u unit=%u at=(%u,%u)\n"),
+    ("ArmyInfo", "cstr tag", "army state=%s\n"),
 ]
 
 ASSERTS = [
@@ -76,6 +82,9 @@ VALIDATES = [
     ("CityTileWorkCount", "const GameArraySimple& map, u16 city_idx, u16 pop"),
     ("ArmyUnitSupport", "GameState& state"),
     ("NavyUnitSupport", "GameState& state"),
+    ("ArmyStateToWar", "GameState& state, u16 head"),
+    ("ArmyStatePeace", "GameState& state, u16 head"),
+    ("ArmyStateMusterGroup", "GameState& state, u16 sx, u16 sy, const u16* heads, u16 n"),
 ]
 
 #================================================================================================================================#
@@ -196,6 +205,19 @@ def build_parse_bits (args: list[tuple[str, str]]) -> tuple[str, str]:
     assigns = []
     null_checks = ["line == nullptr"]
     for i, (ty, name) in enumerate(args):
+        if ty == "cstr":
+            param_parts.append("char* %s" % name)
+            param_parts.append("u32 %s_cap" % name)
+            null_checks.append("%s == nullptr" % name)
+            null_checks.append("%s_cap < 2u" % name)
+            tmp = "t%u" % i
+            tmp_decls.append("    char %s[128];" % tmp)
+            tmp_decls.append("    %s[0] = 0;" % tmp)
+            scan_addrs.append("%s" % tmp)
+            assigns.append("    if (std::snprintf(%s, %s_cap, \"%%s\", %s) < 0) {" % (name, name, tmp))
+            assigns.append("        return false;")
+            assigns.append("    }")
+            continue
         if ty not in SCAN_TEMP:
             raise ValueError("unsupported PARSE type %r for %r" % (ty, name))
         tmp_ty, cast = SCAN_TEMP[ty]
@@ -215,9 +237,12 @@ def build_parse_bits (args: list[tuple[str, str]]) -> tuple[str, str]:
     body_lines.append("        return false;")
     body_lines.append("    }")
     body_lines.extend(tmp_decls)
+    scan_fmt = "[LOG_SCAN_FMT_TAG]"
+    if any(ty == "cstr" for ty, _ in args):
+        scan_fmt = scan_fmt  # replaced later; %s -> %127s applied in gen_one_log
     body_lines.append(
-        "    if (std::sscanf(line, \"[LOG_SCAN_FMT_TAG]\", %s) != %d) {"
-        % (", ".join(scan_addrs), n)
+        "    if (std::sscanf(line, \"%s\", %s) != %d) {"
+        % (scan_fmt, ", ".join(scan_addrs), n)
     )
     body_lines.append("        return false;")
     body_lines.append("    }")
@@ -303,7 +328,10 @@ def gen_one_log (entry: tuple) -> tuple[str, str]:
         wrap_call = "        %s;\n" % wrap_out
     class_name = "LOG_%s" % sn.upper()
     parse_params, parse_body = build_parse_bits(args)
-    parse_body = parse_body.replace("[LOG_SCAN_FMT_TAG]", fmt_scan_string(fmt))
+    scan_fmt = fmt_scan_string(fmt)
+    if any(ty == "cstr" for ty, _ in args):
+        scan_fmt = scan_fmt.replace("%s", "%127s")
+    parse_body = parse_body.replace("[LOG_SCAN_FMT_TAG]", scan_fmt)
 
     pairs = [
         ("[LOG_GUARD_TAG]", "LOG_%s_H" % sn.upper()),
@@ -487,11 +515,18 @@ def gen_eval_log_count_inc (entries: list[tuple]) -> None:
         args = parse_args(signature)
         class_name = "LOG_%s" % sn.upper()
         lines.append("    case %du: {" % idx)
+        call_args = []
         for ty, name in args:
-            lines.append("        %s %s = 0;" % (ty, name))
-        ptrs = ", ".join("&%s" % name for _, name in args)
+            if ty == "cstr":
+                lines.append("        char %s[128];" % name)
+                lines.append("        %s[0] = 0;" % name)
+                call_args.append(name)
+                call_args.append("128u")
+            else:
+                lines.append("        %s %s = 0;" % (ty, name))
+                call_args.append("&%s" % name)
         if args:
-            lines.append("        if (%s::PARSE(s, %s)) {" % (class_name, ptrs))
+            lines.append("        if (%s::PARSE(s, %s)) {" % (class_name, ", ".join(call_args)))
         else:
             lines.append("        if (%s::PARSE(s)) {" % class_name)
         lines.append("            cnt = cnt + 1u;")

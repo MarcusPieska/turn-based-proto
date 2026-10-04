@@ -21,6 +21,26 @@ struct UnitMovementMngMvtTbl {
 };
 
 //================================================================================================================================
+//=> - CanStepFail -
+//================================================================================================================================
+//
+//  Failure codes from can_step_reason; Ok means the destination step is allowed.
+//
+//================================================================================================================================
+
+enum class CanStepFail : u8 {
+    Ok = 0,
+    BadUnit = 1, // Missing unit or group tail
+    Extending = 2, // Unit being extended
+    Oob = 3, // Dest out of bounds
+    SameTile = 4, // Dest is current tile
+    Domain = 5, // Terrain domain forbids dest
+    Cost = 6, // tile_cost <= 0
+    NoMp = 7, // Group min walk MP <= 0
+    Entry = 8 // Dest entry denied
+};
+
+//================================================================================================================================
 //=> - UnitMovementMng -
 //================================================================================================================================
 //
@@ -48,7 +68,7 @@ public:
     static i16 grp_min_mvt (const GameState& s, UnitAddKey key);
 
     static bool can_step (const GameState& s, UnitAddKey key, u16 dest_x, u16 dest_y, i16* out_cost);
-    static u8 can_step_reason (const GameState& s, UnitAddKey key, u16 dest_x, u16 dest_y, i16* out_cost);
+    static CanStepFail can_step_reason (const GameState& s, UnitAddKey key, u16 dest_x, u16 dest_y, i16* out_cost);
     static bool apply_step (GameState& s, UnitAddKey key, u16 dest_x, u16 dest_y);
 
     static bool can_step_worker (const GameState& s, UnitAddKey key, u16 dest_x, u16 dest_y, i16* out_cost);
@@ -61,6 +81,7 @@ public:
     static bool link_group (GameState& s, UnitAddKey head, UnitAddKey tail);
     static bool unlink_group (GameState& s, UnitAddKey tail);
     static bool stack_append (GameState& s, UnitAddKey key, u16 x, u16 y);
+    static bool flatten_groups (GameState& s, const UnitAddKey* heads, u16 n, UnitAddKey* out_head);
     static void set_grp_campaign (GameState& s, UnitAddKey head, u8 on);
 
     // Thin wrappers -> UnitGroupManagement (group selection policy)

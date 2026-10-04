@@ -32,6 +32,7 @@
 #include "unit_roster_mng.h"
 #include "unit_static_key.h"
 #include "unit_turn_handler.h"
+#include "unit_utility_helper.h"
 #include "war_turn_handler.h"
 #include "whiteboard_mng.h"
 #include "worker_build_progress.h"
@@ -400,7 +401,13 @@ bool GameLoop::begin (GameState* state, cstr trace_path) {
         CombatMng::clear();
         return false;
     }
+    if (!UnitUtilityHelper::setup(*state->m_statics)) {
+        UnitRosterMng::clear();
+        CombatMng::clear();
+        return false;
+    }
     if (!SettlerTurnHandler::begin(*state)) {
+        UnitUtilityHelper::clear();
         UnitRosterMng::clear();
         CombatMng::clear();
         WhiteboardMng::terminate();
@@ -408,6 +415,7 @@ bool GameLoop::begin (GameState* state, cstr trace_path) {
     }
     if (!WarTurnHandler::begin(*state)) {
         SettlerTurnHandler::clear();
+        UnitUtilityHelper::clear();
         UnitRosterMng::clear();
         CombatMng::clear();
         WhiteboardMng::terminate();
@@ -426,6 +434,7 @@ void GameLoop::end () {
     }
     WarTurnHandler::clear();
     SettlerTurnHandler::clear();
+    UnitUtilityHelper::clear();
     UnitRosterMng::clear();
     CombatMng::clear();
     if (WhiteboardMng::chkout() == 0u) {

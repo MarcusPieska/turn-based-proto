@@ -38,7 +38,7 @@ bool MapOwnSaveTimelineMng::setup (u16 save_n) {
     return true;
 }
 
-bool MapOwnSaveTimelineMng::fill (const EvalPaths& paths, cstr out_dir) {
+bool MapOwnSaveTimelineMng::fill (const EvalPaths& paths, cstr out_dir, cstr share_dir) {
     if (out_dir == nullptr || out_dir[0] == 0 || !paths.ok() || paths.save_turn_n() != m_save_n) {
         return false;
     }
@@ -60,6 +60,16 @@ bool MapOwnSaveTimelineMng::fill (const EvalPaths& paths, cstr out_dir) {
             }
             if (!MapOwnSaveSnap::write(out_p, map)) {
                 return false;
+            }
+            if (si + 1u == m_save_n && share_dir != nullptr && share_dir[0] != 0) {
+                char share_p[512];
+                if (std::snprintf(share_p, sizeof(share_p), "%s/tile_own_last.ppm", share_dir) <= 0) {
+                    return false;
+                }
+                if (!MapOwnSaveSnap::write(share_p, map)) {
+                    return false;
+                }
+                std::printf("wrote %s\n", share_p);
             }
         }
         m_wrote_n = static_cast<u16>(m_wrote_n + 1u);

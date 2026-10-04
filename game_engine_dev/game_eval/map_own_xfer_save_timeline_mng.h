@@ -13,7 +13,8 @@ class EvalPaths;
 //=> - MapOwnXferSaveTimelineMng -
 //================================================================================================================================
 //
-//  Compares consecutive map saves; writes xfer_tXXXX.ppm for each save after the first (skip first).
+//  Compares consecutive map saves; writes xfer_tXXXX.ppm for each save after the first (skip first),
+//  plus xfer_all.ppm. Also writes the all-transfer summary to share_dir as tile_own_xfer.ppm.
 //
 //================================================================================================================================
 
@@ -24,7 +25,7 @@ public:
 
     void clr ();
     bool setup (u16 save_n);
-    bool fill (const EvalPaths& paths, cstr out_dir);
+    bool fill (const EvalPaths& paths, cstr out_dir, cstr share_dir = nullptr);
 
     u16 save_n () const;
     u16 wrote_n () const;

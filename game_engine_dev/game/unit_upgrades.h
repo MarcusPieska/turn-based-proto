@@ -15,8 +15,8 @@ struct UnitAddStruct;
 //================================================================================================================================
 //
 //  Pay treasury commerce to change a live unit's catalog type. can_upgrade gates legality
-//  (same domain; NONE role requires same type; to.cost >= from.cost; some combat/mvt/sight
-//  stat strictly higher). Cost is (to.cost - from.cost) * UPGRADE_COST_PER_PROD plus positive
+//  (same unit type; to not worse on cost/attack/defense/mvt/sight; at least one of those
+//  strictly better). Cost is (to.cost - from.cost) * UPGRADE_COST_PER_PROD plus positive
 //  attack/defense/mvt/sight deltas * UPGRADE_COST_PER_STAT_PT. best_upgrade is a stub.
 //
 //================================================================================================================================

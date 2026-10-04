@@ -21,7 +21,8 @@ enum class LuckyWarEv : u8 {
     Targets = 6,
     FormFail = 7,
     DeclFail = 8,
-    AssaultFail = 9
+    AssaultFail = 9,
+    Upgrade = 10
 };
 
 //================================================================================================================================
@@ -30,14 +31,14 @@ enum class LuckyWarEv : u8 {
 //
 //  One war-log event for a seat. m_a/m_b meaning depends on kind: Start/End enemy; Muster/Army
 //  unit_n + size_sum; Loss size; Capture city (x,y); Targets remaining n; FormFail enemy;
-//  DeclFail reason; AssaultFail city (x,y).
+//  DeclFail reason; AssaultFail city (x,y); Upgrade count on that turn.
 //
 //================================================================================================================================
 
 struct LuckyWarEvt {
     u16 m_turn; // Event turn
     LuckyWarEv m_kind; // Event kind
-    u16 m_a; // Enemy, size, or city x
+    u16 m_a; // Enemy, size, city x, or upgrade count
     u16 m_b; // City y or unused
 };
 
@@ -57,6 +58,7 @@ public:
 
     void clr ();
     bool add (u16 turn, LuckyWarEv kind, u16 a, u16 b);
+    bool add_upgrade (u16 turn);
     void swap (LuckyWarLogTimeline& o);
     u16 n () const;
     const LuckyWarEvt& at (u16 i) const;

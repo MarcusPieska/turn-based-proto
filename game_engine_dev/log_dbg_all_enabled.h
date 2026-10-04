@@ -36,7 +36,11 @@
 #include "log_dbg/log_war_muster_grad_fail.h"
 #include "log_dbg/log_war_exposure_fail.h"
 #include "log_dbg/log_war_walk_muster_fail.h"
+#include "log_dbg/log_war_muster_can_step_fail.h"
+#include "log_dbg/log_war_muster_peek_fail.h"
+#include "log_dbg/log_war_tile_entry_resolve.h"
 #include "log_dbg/log_war_form_army_fail.h"
+#include "log_dbg/log_war_army_upgrade.h"
 #include "log_dbg/log_war_set_target_fail.h"
 #include "log_dbg/log_war_refill_targets_fail.h"
 #include "log_dbg/log_war_find_enemy_seed_fail.h"
@@ -63,6 +67,8 @@
 #include "log_dbg/log_player_science.h"
 #include "log_dbg/log_player_research_perc.h"
 #include "log_dbg/log_player_tech_discover.h"
+#include "log_dbg/log_unit_state.h"
+#include "log_dbg/log_army_info.h"
 #include "log_dbg/assert_combat_ready.h"
 #include "log_dbg/assert_sector_support_bound.h"
 #include "log_dbg/assert_war_army_can_fight.h"
@@ -70,6 +76,9 @@
 #include "log_dbg/eval_city_tile_work_count.h"
 #include "log_dbg/eval_army_unit_support.h"
 #include "log_dbg/eval_navy_unit_support.h"
+#include "log_dbg/eval_army_state_to_war.h"
+#include "log_dbg/eval_army_state_peace.h"
+#include "log_dbg/eval_army_state_muster_group.h"
 
 #endif // LOG_DBG_ALL_ENABLED_H
 

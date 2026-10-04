@@ -9,7 +9,6 @@
 #include "player_ledger.h"
 #include "runtime_statics.h"
 #include "unit_add_struct.h"
-#include "unit_role_enum.h"
 #include "unit_static_data.h"
 #include "unit_static_key.h"
 
@@ -48,17 +47,15 @@ bool UnitUpgrades::can_upgrade (u16 from_typ, u16 to_typ, const UnitStaticData& 
     }
     const UnitStaticDataStruct& from = units.get_item(UnitStaticDataKey::from_raw(from_typ));
     const UnitStaticDataStruct& to = units.get_item(UnitStaticDataKey::from_raw(to_typ));
-    if (from.domain != to.domain) {
+    if (from.type != to.type || from.domain != to.domain) {
         return false;
     }
-    const u16 none = static_cast<u16>(UnitRole::NONE);
-    if ((from.role == none || to.role == none) && from.type != to.type) {
+    if (to.cost < from.cost || to.attack < from.attack || to.defense < from.defense
+        || to.mvt_pts < from.mvt_pts || to.sight < from.sight) {
         return false;
     }
-    if (to.cost < from.cost) {
-        return false;
-    }
-    return to.attack > from.attack || to.defense > from.defense || to.mvt_pts > from.mvt_pts || to.sight > from.sight;
+    return to.cost > from.cost || to.attack > from.attack || to.defense > from.defense
+        || to.mvt_pts > from.mvt_pts || to.sight > from.sight;
 }
 
 bool UnitUpgrades::can_afford (u16 player, u16 from_typ, u16 to_typ, const UnitStaticData& units) {

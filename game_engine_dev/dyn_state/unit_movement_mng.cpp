@@ -162,11 +162,13 @@ static bool dest_allows_entry (const GameState& s, u16 mover_seat, u16 dest_x, u
     const UnitAddStruct* du = u_get(s, UnitAddKey::from_raw(hd));
     if (du == nullptr) {
         return false;
-    }
+    } 
     if (du->m_player_idx == mover_seat) {
         return true;
     }
     // TODO: also allow CivRel ALLY / SUBJECT via CivRelations (seats_ally) once wired for pathing.
+    // TODO: Entry deny is too blunt for muster/march (stranded foreign workers, hostiles, capturables). Hand off to a
+    // resolver outside UnitMovementMng / WalkP2P: own-land expel, hostile attack, capturable capture, etc.
     return false;
 }
 
@@ -436,43 +438,43 @@ i16 UnitMovementMng::grp_min_mvt (const GameState& s, UnitAddKey key) {
     return grp_min_mvt_walk(s, key);
 }
 
-u8 UnitMovementMng::can_step_reason (const GameState& s, UnitAddKey key, u16 dest_x, u16 dest_y, i16* out_cost) {
+CanStepFail UnitMovementMng::can_step_reason (const GameState& s, UnitAddKey key, u16 dest_x, u16 dest_y, i16* out_cost) {
     const UnitAddStruct* u = u_get(s, key);
     if (u == nullptr || is_grp_tail(*u)) {
-        return 1u;
+        return CanStepFail::BadUnit;
     }
     if (u->m_being_extended != 0u) {
-        return 2u;
+        return CanStepFail::Extending;
     }
     if (!in_bounds(s, dest_x, dest_y)) {
-        return 3u;
+        return CanStepFail::Oob;
     }
     if (u->m_x == dest_x && u->m_y == dest_y) {
-        return 4u;
+        return CanStepFail::SameTile;
     }
     const u8 dest_terr = s.m_map.get_terrain(dest_x, dest_y);
     if (!dest_allows_unit_domain(s, key, dest_terr)) {
-        return 5u;
+        return CanStepFail::Domain;
     }
     const i16 cost = tile_cost(s, u->m_x, u->m_y, dest_x, dest_y);
     if (cost <= 0) {
-        return 6u;
+        return CanStepFail::Cost;
     }
     if (grp_min_mvt_walk(s, key) <= 0) {
-        return 7u;
+        return CanStepFail::NoMp;
     }
     const bool grp_move = has_grp_followers(*u);
     if (!dest_allows_entry(s, u->m_player_idx, dest_x, dest_y, grp_move)) {
-        return 8u;
+        return CanStepFail::Entry;
     }
     if (out_cost != nullptr) {
         *out_cost = cost;
     }
-    return 0u;
+    return CanStepFail::Ok;
 }
 
 bool UnitMovementMng::can_step (const GameState& s, UnitAddKey key, u16 dest_x, u16 dest_y, i16* out_cost) {
-    return can_step_reason(s, key, dest_x, dest_y, out_cost) == 0u;
+    return can_step_reason(s, key, dest_x, dest_y, out_cost) == CanStepFail::Ok;
 }
 
 bool UnitMovementMng::apply_step (GameState& s, UnitAddKey key, u16 dest_x, u16 dest_y) {
@@ -763,6 +765,64 @@ bool UnitMovementMng::unlink_group (GameState& s, UnitAddKey tail) {
 
 bool UnitMovementMng::stack_append (GameState& s, UnitAddKey key, u16 x, u16 y) {
     return tile_stack_append(s, key, x, y);
+}
+
+bool UnitMovementMng::flatten_groups (GameState& s, const UnitAddKey* heads, u16 n, UnitAddKey* out_head) {
+    if (out_head == nullptr || heads == nullptr || n == 0u) {
+        return false;
+    }
+    static const u16 k_cap = 2048u;
+    UnitAddKey keys[k_cap];
+    u16 kn = 0u;
+    u16 x = U16_KEY_NULL;
+    u16 y = U16_KEY_NULL;
+    for (u16 i = 0; i < n; ++i) {
+        UnitAddStruct* hu = u_get(s, heads[i]);
+        if (hu == nullptr || hu->m_x == U16_KEY_NULL) {
+            continue;
+        }
+        if (x == U16_KEY_NULL) {
+            x = hu->m_x;
+            y = hu->m_y;
+        } else if (hu->m_x != x || hu->m_y != y) {
+            continue;
+        }
+        UnitAddKey cur = heads[i];
+        while (cur.is_valid() && kn < k_cap) {
+            keys[kn++] = cur;
+            const UnitAddStruct* u = u_get(s, cur);
+            if (u == nullptr || u->m_next_unit_in_group == U16_KEY_NULL) {
+                break;
+            }
+            cur = UnitAddKey::from_raw(u->m_next_unit_in_group);
+        }
+    }
+    if (kn == 0u || x == U16_KEY_NULL) {
+        return false;
+    }
+    for (u16 i = 0; i < n; ++i) {
+        UnitAddStruct* hu = u_get(s, heads[i]);
+        if (hu == nullptr || hu->m_x != x || hu->m_y != y) {
+            continue;
+        }
+        while (hu->m_next_unit_in_group != U16_KEY_NULL) {
+            const UnitAddKey nxt = UnitAddKey::from_raw(hu->m_next_unit_in_group);
+            if (!unlink_group(s, nxt)) {
+                return false;
+            }
+            if (!tile_stack_append(s, nxt, x, y)) {
+                return false;
+            }
+        }
+    }
+    UnitAddKey head = keys[0];
+    for (u16 i = 1; i < kn; ++i) {
+        if (!link_group(s, head, keys[i])) {
+            return false;
+        }
+    }
+    *out_head = head;
+    return true;
 }
 
 bool UnitMovementMng::muster_collect_depart (

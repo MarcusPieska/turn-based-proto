@@ -130,14 +130,79 @@ bool WalkP2P::find_lo (
     return true;
 }
 
+void WalkP2P::find_opts (
+    u16 t,
+    i32 r,
+    const u16* turn,
+    const u16* rem,
+    u16 w,
+    u16 h,
+    u16 x,
+    u16 y,
+    u16* ox,
+    u16* oy) {
+    u16 n = 0u;
+    u16 bt[k_opt_n];
+    i32 br[k_opt_n];
+    for (u32 k = 0u; k < k_opt_n; ++k) {
+        ox[k] = U16_KEY_NULL;
+        oy[k] = U16_KEY_NULL;
+        bt[k] = 0u;
+        br[k] = 0;
+    }
+    for (u32 k = 0u; k < MAP_NBR8_N; ++k) {
+        const i32 nx = static_cast<i32>(x) + MAP_NBR8_DX[k];
+        const i32 ny = static_cast<i32>(y) + MAP_NBR8_DY[k];
+        if (nx < 0 || ny < 0) {
+            continue;
+        }
+        const u16 tx = static_cast<u16>(nx);
+        const u16 ty = static_cast<u16>(ny);
+        if (tx >= w || ty >= h || !reach(turn, w, tx, ty)) {
+            continue;
+        }
+        const u32 i = tidx(w, tx, ty);
+        const u16 nt = turn[i];
+        const i32 nr = rem_dec(rem[i]);
+        if (!closer(t, r, nt, nr) || n >= k_opt_n) {
+            continue;
+        }
+        ox[n] = tx;
+        oy[n] = ty;
+        bt[n] = nt;
+        br[n] = nr;
+        n = static_cast<u16>(n + 1u);
+    }
+    for (u16 a = 1u; a < n; ++a) {
+        const u16 tx = ox[a];
+        const u16 ty = oy[a];
+        const u16 nt = bt[a];
+        const i32 nr = br[a];
+        u16 b = a;
+        while (b > 0u && closer(bt[b - 1u], br[b - 1u], nt, nr)) {
+            ox[b] = ox[b - 1u];
+            oy[b] = oy[b - 1u];
+            bt[b] = bt[b - 1u];
+            br[b] = br[b - 1u];
+            b = static_cast<u16>(b - 1u);
+        }
+        ox[b] = tx;
+        oy[b] = ty;
+        bt[b] = nt;
+        br[b] = nr;
+    }
+}
+
 WalkP2P::StepRes WalkP2P::peek (const GameState& s, u16 x, u16 y) const {
     StepRes res = {};
+    res.reason = PeekFail::NotReady;
     if (!ok() || !UnitMovementMng::mvt_ready()) {
         return res;
     }
     const u16 mw = s.m_map.width();
     const u16 mh = s.m_map.height();
     if (x >= mw || y >= mh || mw != w() || mh != h()) {
+        res.reason = PeekFail::BadPos;
         return res;
     }
     const u16* tarr = turn();
@@ -145,22 +210,68 @@ WalkP2P::StepRes WalkP2P::peek (const GameState& s, u16 x, u16 y) const {
     const u32 i = tidx(mw, x, y);
     const u16 t = tarr[i];
     if (t >= k_turn_sent) {
+        res.reason = PeekFail::Unreach;
         return res;
     }
     u16 tx = x;
     u16 ty = y;
     if (!find_lo(t, rem_dec(rarr[i]), tarr, rarr, mw, mh, x, y, tx, ty)) {
+        res.reason = PeekFail::NoDown;
         return res;
     }
     const i16 c = UnitMovementMng::tile_cost(s, x, y, tx, ty);
     if (c <= 0) {
+        res.reason = PeekFail::Cost;
         return res;
     }
     res.nx = tx;
     res.ny = ty;
     res.cost = static_cast<u16>(c);
     res.have = true;
+    res.reason = PeekFail::Ok;
     return res;
+}
+
+void WalkP2P::peek_opts (const GameState& s, u16 x, u16 y, u16* ox, u16* oy) const {
+    for (u32 k = 0u; k < k_opt_n; ++k) {
+        ox[k] = U16_KEY_NULL;
+        oy[k] = U16_KEY_NULL;
+    }
+    if (ox == nullptr || oy == nullptr || !ok() || !UnitMovementMng::mvt_ready()) {
+        return;
+    }
+    const u16 mw = s.m_map.width();
+    const u16 mh = s.m_map.height();
+    if (x >= mw || y >= mh || mw != w() || mh != h()) {
+        return;
+    }
+    const u16* tarr = turn();
+    const u16* rarr = rem();
+    const u32 i = tidx(mw, x, y);
+    const u16 t = tarr[i];
+    if (t >= k_turn_sent) {
+        return;
+    }
+    find_opts(t, rem_dec(rarr[i]), tarr, rarr, mw, mh, x, y, ox, oy);
+    u16 wpos = 0u;
+    for (u32 k = 0u; k < k_opt_n; ++k) {
+        if (ox[k] == U16_KEY_NULL) {
+            break;
+        }
+        const i16 c = UnitMovementMng::tile_cost(s, x, y, ox[k], oy[k]);
+        if (c <= 0) {
+            continue;
+        }
+        if (wpos != k) {
+            ox[wpos] = ox[k];
+            oy[wpos] = oy[k];
+        }
+        wpos = static_cast<u16>(wpos + 1u);
+    }
+    for (u32 k = wpos; k < k_opt_n; ++k) {
+        ox[k] = U16_KEY_NULL;
+        oy[k] = U16_KEY_NULL;
+    }
 }
 
 //================================================================================================================================

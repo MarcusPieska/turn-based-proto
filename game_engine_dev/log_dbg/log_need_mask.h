@@ -24,7 +24,7 @@
 //
 //================================================================================================================================
 
-static const u16 LOG_NEED_N = 49u;
+static const u16 LOG_NEED_N = 55u;
 
 struct LogNeedMask {
     u8 m_new_turn;
@@ -49,7 +49,11 @@ struct LogNeedMask {
     u8 m_war_muster_grad_fail;
     u8 m_war_exposure_fail;
     u8 m_war_walk_muster_fail;
+    u8 m_war_muster_can_step_fail;
+    u8 m_war_muster_peek_fail;
+    u8 m_war_tile_entry_resolve;
     u8 m_war_form_army_fail;
+    u8 m_war_army_upgrade;
     u8 m_war_set_target_fail;
     u8 m_war_refill_targets_fail;
     u8 m_war_find_enemy_seed_fail;
@@ -76,6 +80,8 @@ struct LogNeedMask {
     u8 m_player_science;
     u8 m_player_research_perc;
     u8 m_player_tech_discover;
+    u8 m_unit_state;
+    u8 m_army_info;
 
     LogNeedMask ();
     bool any () const;
@@ -109,7 +115,11 @@ inline LogNeedMask::LogNeedMask ()
       m_war_muster_grad_fail(0),
       m_war_exposure_fail(0),
       m_war_walk_muster_fail(0),
+      m_war_muster_can_step_fail(0),
+      m_war_muster_peek_fail(0),
+      m_war_tile_entry_resolve(0),
       m_war_form_army_fail(0),
+      m_war_army_upgrade(0),
       m_war_set_target_fail(0),
       m_war_refill_targets_fail(0),
       m_war_find_enemy_seed_fail(0),
@@ -135,7 +145,9 @@ inline LogNeedMask::LogNeedMask ()
       m_player_commerce_raw(0),
       m_player_science(0),
       m_player_research_perc(0),
-      m_player_tech_discover(0) {
+      m_player_tech_discover(0),
+      m_unit_state(0),
+      m_army_info(0) {
 }
 
 inline bool LogNeedMask::any () const {
@@ -184,7 +196,11 @@ inline cstr LogNeedMask::nm (u16 i) {
         "WarMusterGradFail",
         "WarExposureFail",
         "WarWalkMusterFail",
+        "WarMusterCanStepFail",
+        "WarMusterPeekFail",
+        "WarTileEntryResolve",
         "WarFormArmyFail",
+        "WarArmyUpgrade",
         "WarSetTargetFail",
         "WarRefillTargetsFail",
         "WarFindEnemySeedFail",
@@ -211,6 +227,8 @@ inline cstr LogNeedMask::nm (u16 i) {
         "PlayerScience",
         "PlayerResearchPerc",
         "PlayerTechDiscover",
+        "UnitState",
+        "ArmyInfo",
     };
     if (i >= LOG_NEED_N) {
         return "";
@@ -330,7 +348,27 @@ inline bool LogNeedMask::on (u16 i) {
 #else
         0u,
 #endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_MUSTER_CAN_STEP_FAIL))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_MUSTER_PEEK_FAIL))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_TILE_ENTRY_RESOLVE))
+        1u,
+#else
+        0u,
+#endif
 #if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_FORM_ARMY_FAIL))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_ARMY_UPGRADE))
         1u,
 #else
         0u,
@@ -461,6 +499,16 @@ inline bool LogNeedMask::on (u16 i) {
         0u,
 #endif
 #if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_PLAYER_TECH_DISCOVER))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_UNIT_STATE))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_ARMY_INFO))
         1u,
 #else
         0u,

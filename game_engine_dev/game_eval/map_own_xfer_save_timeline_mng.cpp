@@ -38,7 +38,7 @@ bool MapOwnXferSaveTimelineMng::setup (u16 save_n) {
     return true;
 }
 
-bool MapOwnXferSaveTimelineMng::fill (const EvalPaths& paths, cstr out_dir) {
+bool MapOwnXferSaveTimelineMng::fill (const EvalPaths& paths, cstr out_dir, cstr share_dir) {
     if (out_dir == nullptr || out_dir[0] == 0 || !paths.ok() || paths.save_turn_n() != m_save_n) {
         return false;
     }
@@ -118,6 +118,18 @@ bool MapOwnXferSaveTimelineMng::fill (const EvalPaths& paths, cstr out_dir) {
         return false;
     }
     std::printf("wrote %s\n", all_p);
+    if (share_dir != nullptr && share_dir[0] != 0) {
+        char share_p[512];
+        if (std::snprintf(share_p, sizeof(share_p), "%s/tile_own_xfer.ppm", share_dir) <= 0) {
+            delete[] acc;
+            return false;
+        }
+        if (!MapOwnXferSaveSnap::write_seats(share_p, *prev, acc)) {
+            delete[] acc;
+            return false;
+        }
+        std::printf("wrote %s\n", share_p);
+    }
     delete[] acc;
     return true;
 }
