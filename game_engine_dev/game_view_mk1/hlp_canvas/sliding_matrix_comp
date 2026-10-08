@@ -1,0 +1,4 @@
+#!/bin/bash
+g++ -c sliding_matrix_tester.cpp -o sliding_matrix_tester.o -std=c++11 || exit 1
+g++ -o sliding_matrix_tester sliding_matrix_tester.o -lSDL2 -lSDL2_image || exit 1
+rm -f sliding_matrix_tester.o

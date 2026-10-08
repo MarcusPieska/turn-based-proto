@@ -1,0 +1,12 @@
+#!/bin/bash
+GED=/home/w/Projects/rts-proto/game_engine_dev
+INC="-I. -I$GED -I$GED/map_loader -I$GED/simple_map_gen"
+
+g++ -std=c++17 -O2 $INC \
+    blend_thread.cpp \
+    blend_core.cpp \
+    blend_bench_tester.cpp \
+    $GED/map_loader/map_loader.cpp \
+    $GED/map_loader/map_terrain_data.cpp \
+    $GED/map_loader/map_terrain_validate.cpp \
+    -o blend_bench_tester

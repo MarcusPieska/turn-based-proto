@@ -1,0 +1,73 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")"
+
+INC="-I.. -I../../game -I../.. -I../../map_loader -I../../simple_map_gen -I../../adv_map_gen -I../../misc -I../../data_io -I../../static_state -I../../dyn_state -I../../gen_bit_banks -I../../city/effector"
+CXXFLAGS="-std=c++17 -Wall -Wextra"
+
+g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
+g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_data.cpp -o map_terrain_data.o
+g++ $CXXFLAGS $INC -c ../../map_loader/map_loader.cpp -o map_loader.o
+g++ $CXXFLAGS $INC -c ../../game/runtime_trace_dbg.cpp -o runtime_trace_dbg.o
+g++ $CXXFLAGS $INC -c ../../misc/assert_log.cpp -o assert_log.o
+g++ $CXXFLAGS $INC -c ../../ai_proc/test_drivers/game_array_simple_link_stubs.cpp -o game_array_simple_link_stubs.o
+g++ $CXXFLAGS $INC -c ../../game/game_array_simple.cpp -o game_array_simple.o
+g++ $CXXFLAGS $INC -c ../../game/factory_game_array_simple.cpp -o factory_game_array_simple.o
+g++ $CXXFLAGS $INC -c ../intf_snapshot_view.cpp -o intf_snapshot_view.o
+g++ $CXXFLAGS $INC -c ../intf_mk1_snapshot_view.cpp -o intf_mk1_snapshot_view.o
+g++ $CXXFLAGS $INC -c ../intf_mk1_snapshot_view_ppm.cpp -o intf_mk1_snapshot_view_ppm.o
+g++ $CXXFLAGS $INC -c intf_mk1_ppm_dump_tester.cpp -o intf_mk1_ppm_dump_tester.o
+
+g++ $CXXFLAGS -o intf_mk1_ppm_dump_tester \
+    map_terrain_validate.o \
+    map_terrain_data.o \
+    map_loader.o \
+    runtime_trace_dbg.o \
+    assert_log.o \
+    game_array_simple_link_stubs.o \
+    game_array_simple.o \
+    factory_game_array_simple.o \
+    intf_snapshot_view.o \
+    intf_mk1_snapshot_view.o \
+    intf_mk1_snapshot_view_ppm.o \
+    intf_mk1_ppm_dump_tester.o
+
+./intf_mk1_ppm_dump_tester
+
+python3 - <<'PY'
+import glob, os, struct
+out = "/home/w/Projects/simple-map-gen/game-ui"
+for ppm in sorted(glob.glob(out + "/ppm_*.ppm")):
+    with open(ppm, "rb") as f:
+        magic = f.readline().strip()
+        if magic != b"P6":
+            continue
+        line = f.readline()
+        while line.startswith(b"#"):
+            line = f.readline()
+        w, h = map(int, line.split())
+        f.readline()
+        data = f.read(w * h * 3)
+    png = ppm[:-4] + ".png"
+    try:
+        from PIL import Image
+        Image.frombytes("RGB", (w, h), data).save(png)
+        print("saved:", png)
+    except Exception:
+        # minimal uncompressed PNG
+        import zlib
+        def chunk(tag, payload):
+            return struct.pack(">I", len(payload)) + tag + payload + struct.pack(">I", zlib.crc32(tag + payload) & 0xffffffff)
+        raw = b"".join(b"\x00" + data[y*w*3:(y+1)*w*3] for y in range(h))
+        ihdr = struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0)
+        png_bytes = b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", ihdr) + chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b"")
+        with open(png, "wb") as f:
+            f.write(png_bytes)
+        print("saved:", png)
+PY
+
+rm -f map_terrain_validate.o map_terrain_data.o map_loader.o runtime_trace_dbg.o \
+    assert_log.o game_array_simple_link_stubs.o game_array_simple.o \
+    factory_game_array_simple.o intf_snapshot_view.o intf_mk1_snapshot_view.o \
+    intf_mk1_snapshot_view_ppm.o intf_mk1_ppm_dump_tester.o

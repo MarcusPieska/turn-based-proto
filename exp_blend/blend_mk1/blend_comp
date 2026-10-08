@@ -1,0 +1,6 @@
+#!/bin/bash
+g++ -std=c++11 -O2 \
+    blend_thread.cpp \
+    blend_core.cpp \
+    blend_tester.cpp \
+    -o blend_tester

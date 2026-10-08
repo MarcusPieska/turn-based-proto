@@ -1,0 +1,176 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")"
+
+LIB_SO="../../data_io/runtime_static_loader_lib.so"
+if [ ! -f "$LIB_SO" ]; then
+    echo "missing $LIB_SO - run ../../data_io/runtime_static_loader_lib_comp first"
+    exit 1
+fi
+
+INC="-I.. \
+     -I../../game \
+     -I../.. \
+     -I../../misc \
+     -I../../data_io \
+     -I../../static_state \
+     -I../../city \
+     -I../../city/assessor \
+     -I../../city/effector \
+     -I../../dyn_state \
+     -I../../gen_bit_banks \
+     -I../../ai_pathing/walk_general \
+     -I../../ai_pathing/walk_cities \
+     -I../../ai_proc \
+     -I../../map_loader \
+     -I../../simple_map_gen \
+     -I../../adv_map_gen"
+CXXFLAGS="-std=c++17 -Wall -Wextra"
+
+g++ $CXXFLAGS $INC -c ../../data_io/runtime_static_loader.cpp -o runtime_static_loader.o
+g++ $CXXFLAGS $INC -c ../../misc/bit_array.cpp -o bit_array.o
+g++ $CXXFLAGS $INC -c ../../misc/map_bit_overlay.cpp -o map_bit_overlay.o
+g++ $CXXFLAGS $INC -c ../../misc/map_bit_array_overlay.cpp -o map_bit_array_overlay.o
+g++ $CXXFLAGS $INC -c ../../map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
+g++ $CXXFLAGS $INC -c ../../game/runtime_trace_dbg.cpp -o runtime_trace_dbg.o
+g++ $CXXFLAGS $INC -c ../../gen_bit_banks/general_bit_bank.cpp -o general_bit_bank.o
+g++ $CXXFLAGS $INC -c ../../city/assessor/general_assessor.cpp -o general_assessor.o
+g++ $CXXFLAGS $INC -c ../../city/effect_ctx.cpp -o effect_ctx.o
+g++ $CXXFLAGS $INC -c ../../city/effector/effect_enabler.cpp -o effect_enabler.o
+g++ $CXXFLAGS $INC -c ../../city/effector/booster_effect_register.cpp -o booster_effect_register.o
+g++ $CXXFLAGS $INC -c ../../city/effector/local_unit_exp_booster_register.cpp -o local_unit_exp_booster_register.o
+g++ $CXXFLAGS $INC -c ../../city/effector/civ_ship_training_booster_register.cpp -o civ_ship_training_booster_register.o
+g++ $CXXFLAGS $INC -c ../../city/effector/city_commerce_booster_register.cpp -o city_commerce_booster_register.o
+g++ $CXXFLAGS $INC -c ../../city/effector/city_production_booster_register.cpp -o city_production_booster_register.o
+g++ $CXXFLAGS $INC -c ../../city/effector/local_production_booster_register.cpp -o local_production_booster_register.o
+g++ $CXXFLAGS $INC -c ../../city/effector/local_pop_growth_booster_register.cpp -o local_pop_growth_booster_register.o
+g++ $CXXFLAGS $INC -c ../../city/effector/local_commerce_booster_register.cpp -o local_commerce_booster_register.o
+g++ $CXXFLAGS $INC -c ../../city/effector/city_pop_growth_booster_register.cpp -o city_pop_growth_booster_register.o
+g++ $CXXFLAGS $INC -c ../../city/effector/civ_pop_growth_booster_register.cpp -o civ_pop_growth_booster_register.o
+g++ $CXXFLAGS $INC -c ../../city/effector/city_culture_booster_register.cpp -o city_culture_booster_register.o
+g++ $CXXFLAGS $INC -c ../../city/effector/local_sanitation_booster_register.cpp -o local_sanitation_booster_register.o
+g++ $CXXFLAGS $INC -c ../../city/effector/city_sanitation_booster_register.cpp -o city_sanitation_booster_register.o
+g++ $CXXFLAGS $INC -c ../../city/effector/civ_sanitation_booster_register.cpp -o civ_sanitation_booster_register.o
+g++ $CXXFLAGS $INC -c ../../city/effector/booster_register_link_stubs.cpp -o booster_register_link_stubs.o
+g++ $CXXFLAGS $INC -c ../../game/resource_ledger.cpp -o resource_ledger.o
+g++ $CXXFLAGS $INC -c ../../dyn_state/unit_add_vector.cpp -o unit_add_vector.o
+g++ $CXXFLAGS $INC -c ../../dyn_state/unit_movement_mng.cpp -o unit_movement_mng.o
+g++ $CXXFLAGS $INC -c ../../game/player_ledger.cpp -o player_ledger.o
+g++ $CXXFLAGS $INC -c ../../game/tile_yields.cpp -o tile_yields.o
+g++ $CXXFLAGS $INC -c ../../game/tile_working.cpp -o tile_working.o
+g++ $CXXFLAGS $INC -c ../../game/tile_attr_tables.cpp -o tile_attr_tables.o
+g++ $CXXFLAGS $INC -c ../../game/game_array_simple.cpp -o game_array_simple.o
+g++ $CXXFLAGS $INC -c ../../game/civ_relations.cpp -o civ_relations.o
+g++ $CXXFLAGS $INC -c ../../city/circular_tile_areas.cpp -o circular_tile_areas.o
+g++ $CXXFLAGS $INC -c ../../city/city_border.cpp -o city_border.o
+g++ $CXXFLAGS $INC -c ../../city/city.cpp -o city.o
+g++ $CXXFLAGS $INC -c ../../game/city_array.cpp -o city_array.o
+g++ $CXXFLAGS $INC -c ../../game/worker_helper.cpp -o worker_helper.o
+g++ $CXXFLAGS $INC -c ../../game/unit_roster_mng.cpp -o unit_roster_mng.o
+g++ $CXXFLAGS $INC -c ../../game/simple_dyn_state_io.cpp -o simple_dyn_state_io.o
+g++ $CXXFLAGS $INC -c ../../game/tech_age_mng.cpp -o tech_age_mng.o
+g++ $CXXFLAGS $INC -c ../../game/game_io.cpp -o game_io.o
+g++ $CXXFLAGS $INC -c ../intf_snapshot_view.cpp -o intf_snapshot_view.o
+g++ $CXXFLAGS $INC -c ../intf_mk1_snapshot_view.cpp -o intf_mk1_snapshot_view.o
+g++ $CXXFLAGS $INC -c ../intf_mk1_snapshot_view_io.cpp -o intf_mk1_snapshot_view_io.o
+g++ $CXXFLAGS $INC -c intf_mk1_tiles_dump_tester.cpp -o intf_mk1_tiles_dump_tester.o
+
+g++ $CXXFLAGS -o intf_mk1_tiles_dump_tester \
+    runtime_static_loader.o \
+    bit_array.o \
+    map_bit_overlay.o \
+    map_bit_array_overlay.o \
+    map_terrain_validate.o \
+    runtime_trace_dbg.o \
+    general_bit_bank.o \
+    general_assessor.o \
+    effect_ctx.o \
+    effect_enabler.o \
+    booster_effect_register.o \
+    local_unit_exp_booster_register.o \
+    civ_ship_training_booster_register.o \
+    city_commerce_booster_register.o \
+    city_production_booster_register.o \
+    local_production_booster_register.o \
+    local_pop_growth_booster_register.o \
+    local_commerce_booster_register.o \
+    city_pop_growth_booster_register.o \
+    civ_pop_growth_booster_register.o \
+    city_culture_booster_register.o \
+    local_sanitation_booster_register.o \
+    city_sanitation_booster_register.o \
+    civ_sanitation_booster_register.o \
+    booster_register_link_stubs.o \
+    resource_ledger.o \
+    unit_add_vector.o \
+    unit_movement_mng.o \
+    player_ledger.o \
+    tile_yields.o \
+    tile_working.o \
+    tile_attr_tables.o \
+    game_array_simple.o \
+    civ_relations.o \
+    circular_tile_areas.o \
+    city_border.o \
+    city.o \
+    city_array.o \
+    worker_helper.o \
+    unit_roster_mng.o \
+    simple_dyn_state_io.o \
+    tech_age_mng.o \
+    game_io.o \
+    intf_snapshot_view.o \
+    intf_mk1_snapshot_view.o \
+    intf_mk1_snapshot_view_io.o \
+    intf_mk1_tiles_dump_tester.o \
+    -ldl \
+    $LIB_SO \
+    -Wl,-rpath,'$ORIGIN/../../data_io'
+
+./intf_mk1_tiles_dump_tester
+
+python3 - <<'PY'
+import glob, struct, zlib
+out = "/home/w/Projects/simple-map-gen/game-ui"
+for ppm in sorted(glob.glob(out + "/tiles_*.ppm")):
+    with open(ppm, "rb") as f:
+        magic = f.readline().strip()
+        if magic != b"P6":
+            continue
+        line = f.readline()
+        while line.startswith(b"#"):
+            line = f.readline()
+        w, h = map(int, line.split())
+        f.readline()
+        data = f.read(w * h * 3)
+    png = ppm[:-4] + ".png"
+    try:
+        from PIL import Image
+        Image.frombytes("RGB", (w, h), data).save(png)
+        print("saved:", png)
+    except Exception:
+        def chunk(tag, payload):
+            return struct.pack(">I", len(payload)) + tag + payload + struct.pack(">I", zlib.crc32(tag + payload) & 0xffffffff)
+        raw = b"".join(b"\x00" + data[y*w*3:(y+1)*w*3] for y in range(h))
+        ihdr = struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0)
+        png_bytes = b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", ihdr) + chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b"")
+        with open(png, "wb") as f:
+            f.write(png_bytes)
+        print("saved:", png)
+PY
+
+rm -f runtime_static_loader.o bit_array.o map_bit_overlay.o map_bit_array_overlay.o map_terrain_validate.o \
+    runtime_trace_dbg.o general_bit_bank.o general_assessor.o effect_ctx.o effect_enabler.o booster_effect_register.o \
+    local_unit_exp_booster_register.o civ_ship_training_booster_register.o \
+    city_commerce_booster_register.o city_production_booster_register.o \
+    local_production_booster_register.o local_pop_growth_booster_register.o \
+    local_commerce_booster_register.o city_pop_growth_booster_register.o \
+    civ_pop_growth_booster_register.o city_culture_booster_register.o \
+    local_sanitation_booster_register.o city_sanitation_booster_register.o \
+    civ_sanitation_booster_register.o booster_register_link_stubs.o resource_ledger.o \
+    unit_add_vector.o unit_movement_mng.o player_ledger.o tile_yields.o tile_working.o \
+    tile_attr_tables.o game_array_simple.o civ_relations.o circular_tile_areas.o city_border.o city.o \
+    city_array.o worker_helper.o unit_roster_mng.o \
+    simple_dyn_state_io.o tech_age_mng.o game_io.o \
+    intf_snapshot_view.o intf_mk1_snapshot_view.o intf_mk1_snapshot_view_io.o intf_mk1_tiles_dump_tester.o

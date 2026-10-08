@@ -1,0 +1,21 @@
+selected 100 windows once; running methods into /home/w/Projects/simple-map-gen/blending/p1-seed-43
+suffixes: 0=tex_pixel(skip) 1=tex_seam 2=tex_seam_opt 3=tex_bake
+
+=== 1 tex_seam (100 windows) -> /home/w/Projects/simple-map-gen/blending/p1-seed-43 ===
+  thread       min    0.031  max    0.101  avg    0.050  ms  (n=100)
+  compose      min    3.208  max   10.287  avg    5.252  ms  (n=100)
+  png_save     min   64.460  max   77.333  avg   68.007  ms  (n=100)
+  pipe         min    3.239  max   10.388  avg    5.302  ms  (n=100)
+
+=== 2 tex_seam_opt (100 windows) -> /home/w/Projects/simple-map-gen/blending/p1-seed-43 ===
+  thread       min    0.027  max    0.086  avg    0.046  ms  (n=100)
+  compose_opt  min    1.805  max    5.330  avg    2.911  ms  (n=100)
+  png_save     min   64.121  max   69.620  avg   67.209  ms  (n=100)
+  pipe         min    1.833  max    5.386  avg    2.957  ms  (n=100)
+
+=== 3 tex_bake (100 windows) -> /home/w/Projects/simple-map-gen/blending/p1-seed-43 ===
+  thread       min    0.029  max    0.079  avg    0.046  ms  (n=100)
+  bake_build   min    1.882  max    7.752  avg    2.866  ms  (n=100)
+  bake_blit    min    0.813  max    2.534  avg    0.996  ms  (n=100)
+  png_save     min   64.420  max   71.789  avg   67.343  ms  (n=100)
+  pipe         min    2.727  max    9.329  avg    3.908  ms  (n=100)
