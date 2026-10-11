@@ -19,10 +19,11 @@
 #include "p1_adj_river_inlets.h"
 #include "p1_adj_river_lakes.h"
 #include "p1_gen_climate.h"
-#include "p1_gen_desert_river_cull.h"
+#include "p1_adj_desert_river_cull_mix.h"
 #include "p1_gen_distance_to_river.h"
 #include "p1_gen_land_depth.h"
 #include "p1_gen_loess_boost.h"
+#include "p1_gen_nearness_to_mtn.h"
 #include "p1_gen_nearness_to_watershed_mtn.h"
 #include "p1_gen_noise_perlin.h"
 #include "p1_gen_cont_outlines.h"
@@ -38,7 +39,11 @@
 #include "p1_gen_river_sectors.h"
 #include "p1_gen_river_sect_adj.h"
 #include "p1_gen_coastal_mtn_limits.h"
+#include "p1_gen_coastal_protrusion.h"
 #include "p1_gen_forest_overlay.h"
+#include "p1_map_summary_view.h"
+#include "p1_proc_distributed_coastal_points.h"
+#include "p1_wb_util.h"
 #include "p1_gen_watershed_mountains.h"
 #include "p1_gen_watershed_mountain_line_sets.h"
 #include "p1_gen_wind_pattern_adv.h"
@@ -46,7 +51,6 @@
 #include "game_map_defs.h"
 #include "p1_tester_cli.h"
 #include "p1_tester_util.h"
-#include "p1_wb_util.h"
 #include "r1_gen_std_res_dist.h"
 #include "r1_gen_empty_resource_overlay.h"
 #include "res_statics.h"
@@ -147,6 +151,107 @@ static void free_mk_early (u8* terrain, u8* river, u16* wshed, P1_TileFlags* fla
     delete[] terrain;
 }
 
+static void raise_sunk_ocean_to_sea (
+    u8* ter,
+    const u8* clip,
+    const u8* keep,
+    const f32* rough,
+    u32 n,
+    u8 top_pct) 
+{
+    if (ter == nullptr || clip == nullptr || keep == nullptr || rough == nullptr || n == 0u) {
+        return;
+    }
+    u8 pct = top_pct;
+    if (pct == 0u) {
+        pct = 40u;
+    }
+    if (pct > 100u) {
+        pct = 100u;
+    }
+    u32 cand_n = 0;
+    f32 vmin = 0.f;
+    f32 vmax = 0.f;
+    bool have = false;
+    for (u32 i = 0; i < n; ++i) {
+        if (clip[i] == 0 || keep[i] != 0 || ter[i] != TERR_OCEAN[0]) {
+            continue;
+        }
+        const f32 v = rough[i];
+        if (!have) {
+            vmin = v;
+            vmax = v;
+            have = true;
+        } else {
+            if (v < vmin) {
+                vmin = v;
+            }
+            if (v > vmax) {
+                vmax = v;
+            }
+        }
+        cand_n++;
+    }
+    if (cand_n == 0u || !have) {
+        return;
+    }
+    f32 denom = vmax - vmin;
+    if (denom < 1e-12f) {
+        denom = 1.f;
+    }
+    static const u32 k_buck_n = 100u;
+    u32 buck[k_buck_n];
+    std::memset(buck, 0, sizeof(buck));
+    for (u32 i = 0; i < n; ++i) {
+        if (clip[i] == 0 || keep[i] != 0 || ter[i] != TERR_OCEAN[0]) {
+            continue;
+        }
+        f32 t = (rough[i] - vmin) / denom;
+        if (t < 0.f) {
+            t = 0.f;
+        }
+        if (t > 1.f) {
+            t = 1.f;
+        }
+        u32 b = static_cast<u32>(t * static_cast<f32>(k_buck_n));
+        if (b >= k_buck_n) {
+            b = k_buck_n - 1u;
+        }
+        buck[b]++;
+    }
+    const u32 want = (cand_n * static_cast<u32>(pct) + 50u) / 100u;
+    u32 cum = 0;
+    u32 cut_b = 0u;
+    for (u32 bi = k_buck_n; bi > 0u;) {
+        --bi;
+        cum += buck[bi];
+        if (cum >= want) {
+            cut_b = bi;
+            break;
+        }
+    }
+    for (u32 i = 0; i < n; ++i) {
+        if (clip[i] == 0 || keep[i] != 0 || ter[i] != TERR_OCEAN[0]) {
+            continue;
+        }
+        f32 t = (rough[i] - vmin) / denom;
+        if (t < 0.f) {
+            t = 0.f;
+        }
+        if (t > 1.f) {
+            t = 1.f;
+        }
+        u32 b = static_cast<u32>(t * static_cast<f32>(k_buck_n));
+        if (b >= k_buck_n) {
+            b = k_buck_n - 1u;
+        }
+        if (b < cut_b) {
+            continue;
+        }
+        ter[i] = TERR_SEA[0];
+    }
+}
+
 //================================================================================================================================
 //=> - Map-gen statics session -
 //================================================================================================================================
@@ -199,6 +304,7 @@ P1_MakeMap::P1_MakeMap (const P1_RunPrm& prm, const MapConfig& cfg) :
     m_rslt.m_wind_str = nullptr;
     m_rslt.m_loess = nullptr;
     m_rslt.m_rain = nullptr;
+    m_rslt.m_near_mtn = nullptr;
     m_rslt.m_overlay = nullptr;
     m_rslt.m_resources = nullptr;
     m_rslt.m_flags = nullptr;
@@ -219,6 +325,7 @@ P1_MakeMap::P1_MakeMap (const P1_RunPrm& prm, const MapConfig& cfg, const P1_Mak
     m_rslt.m_wind_str = nullptr;
     m_rslt.m_loess = nullptr;
     m_rslt.m_rain = nullptr;
+    m_rslt.m_near_mtn = nullptr;
     m_rslt.m_overlay = nullptr;
     m_rslt.m_resources = nullptr;
     m_rslt.m_flags = nullptr;
@@ -240,6 +347,7 @@ void P1_MakeMap::free_rslt (P1_MakeMapRslt* rslt) {
     delete[] rslt->m_wind_str;
     delete[] rslt->m_loess;
     delete[] rslt->m_rain;
+    delete[] rslt->m_near_mtn;
     delete[] rslt->m_overlay;
     delete[] rslt->m_resources;
     delete[] rslt->m_flags;
@@ -251,6 +359,7 @@ void P1_MakeMap::free_rslt (P1_MakeMapRslt* rslt) {
     rslt->m_wind_str = nullptr;
     rslt->m_loess = nullptr;
     rslt->m_rain = nullptr;
+    rslt->m_near_mtn = nullptr;
     rslt->m_overlay = nullptr;
     rslt->m_resources = nullptr;
     rslt->m_flags = nullptr;
@@ -289,6 +398,10 @@ bool P1_MakeMap::copy_rslt (P1_MakeMapRslt* dst, const P1_MakeMapRslt& src) {
         return false;
     }
     if (src.m_rain != nullptr && !copy_u8_own(&dst->m_rain, src.m_rain, npx)) {
+        free_rslt(dst);
+        return false;
+    }
+    if (src.m_near_mtn != nullptr && !copy_u8_own(&dst->m_near_mtn, src.m_near_mtn, npx)) {
         free_rslt(dst);
         return false;
     }
@@ -452,6 +565,46 @@ bool P1_MakeMap::generate (u16 last_step) {
         }
         delete[] far_ter;
         delete[] near_ter;
+    }
+    if (!ok) {
+        delete[] perlin_f32;
+        free_mk_early(terrain, nullptr, nullptr, flags);
+        return false;
+    }
+    {
+        P1_CoastPtTrip trips[16];
+        u32 trips_n = 0u;
+        {
+            P1_MK_TIME("70 coastal_points");
+            P1_Proc_DistributedCoastalPoints pts_proc(m_prm);
+            trips_n = pts_proc.generate(terrain, w, h, trips, 16u);
+            ok = trips_n > 0u;
+        }
+        if (!ok) {
+            delete[] perlin_f32;
+            free_mk_early(terrain, nullptr, nullptr, flags);
+            return false;
+        }
+        {
+            P1_MK_TIME("71 coastal_protrusion");
+            P1_Gen_CoastalProtrusion prot(m_prm);
+            ok = prot.generate(terrain, perlin_f32, w, h, trips, trips_n) && prot.is_valid();
+            if (ok) {
+                const u8* keep = prot.result().m_ov.data();
+                const u8* clip = prot.result().m_clip.data();
+                ok = keep != nullptr && clip != nullptr;
+                if (ok) {
+                    for (u32 i = 0; i < npx; ++i) {
+                        if (keep[i] == 0 || !overlay_is_water_terr(terrain[i])) {
+                            continue;
+                        }
+                        terrain[i] = TERR_PLAINS[0];
+                        flags[i].island_chain = 1u;
+                    }
+                    raise_sunk_ocean_to_sea(terrain, clip, keep, perlin_f32, npx, 40u);
+                }
+            }
+        }
     }
     delete[] perlin_f32;
     if (!ok) {
@@ -715,6 +868,27 @@ bool P1_MakeMap::generate (u16 last_step) {
         m_valid_generation = true;
         return true;
     }
+    {
+        P1_MK_TIME("34 nearness_mtn");
+        P1_Gen_NearnessToMtnPrm near_sp = m_mp.m_near_mtn;
+        if (near_sp.m_stop == 0) {
+            near_sp.m_stop = p1_gen_nearness_to_mtn_stop_from_w(w);
+        }
+        P1_Gen_NearnessToMtn near_gen(m_prm, near_sp);
+        ok = near_gen.generate(terrain, w, h) && near_gen.is_valid();
+        if (ok) {
+            const u8* nov = near_gen.result().m_ov.data();
+            ok = nov != nullptr && copy_u8_own(&m_rslt.m_near_mtn, nov, npx);
+        }
+    }
+    if (!ok) {
+        free_rslt(&m_rslt);
+        return false;
+    }
+    if (last_step == k_p1_step_near_mtn) {
+        m_valid_generation = true;
+        return true;
+    }
     if (last_step >= k_p1_step_wind) {
         P1_MK_TIME("27 wind_pattern_adv");
         P1_Gen_WindPatternAdv wind_gen(m_prm, m_mp.m_wind);
@@ -756,10 +930,19 @@ bool P1_MakeMap::generate (u16 last_step) {
     if (last_step >= k_p1_step_climate) {
         P1_MK_TIME("29 climate");
         P1_Gen_Climate climate_gen(m_prm, m_mp.m_climate);
-        ok = climate_gen.generate(terrain, w, h, river, m_rslt.m_rain) && climate_gen.is_valid();
+        ok = climate_gen.generate(terrain, w, h, river, m_rslt.m_rain, m_rslt.m_near_mtn)
+            && climate_gen.is_valid();
         if (ok) {
             climate = climate_gen.result().m_ov.data();
-            ok = climate != nullptr;
+            const u8* hot = climate_gen.result().m_hot.data();
+            ok = climate != nullptr && hot != nullptr;
+            if (ok) {
+                for (u32 i = 0; i < npx; ++i) {
+                    if (hot[i] != 0) {
+                        flags[i].hot_desert = 1u;
+                    }
+                }
+            }
         }
     }
     if (!ok) {
@@ -779,8 +962,8 @@ bool P1_MakeMap::generate (u16 last_step) {
     }
     if (last_step >= k_p1_step_desert_cull) {
         P1_MK_TIME("30 desert_river_cull");
-        P1_Gen_DesertRiverCull cull_gen(m_prm);
-        ok = cull_gen.generate(river, w, h, terrain, climate, false) && cull_gen.is_valid();
+        P1_Adj_DesertRiverCullMix cull_mix(m_prm);
+        ok = cull_mix.adjust(river, w, h, terrain, climate, flags) && cull_mix.is_valid();
     }
     if (!ok) {
         free_rslt(&m_rslt);
@@ -1100,46 +1283,41 @@ bool P1_MakeMap::save_flags_data_ppm (cstr path) const {
     return true;
 }
 
-bool P1_MakeMap::save_flags_ppm (cstr path_pfx) const {
-    if (!m_valid_generation || path_pfx == nullptr || m_rslt.m_flags == nullptr || m_rslt.m_terrain == nullptr) {
+bool P1_MakeMap::save_flags_ppm (cstr dir) const {
+    if (!m_valid_generation || dir == nullptr || m_rslt.m_flags == nullptr
+        || m_rslt.m_terrain == nullptr || m_rslt.m_climate == nullptr) {
+        return false;
+    }
+    if (!p1_ensure_dir(dir)) {
         return false;
     }
     const u16 w = m_rslt.m_w;
     const u16 h = m_rslt.m_h;
     const u32 npx = static_cast<u32>(w) * static_cast<u32>(h);
-    const cstr names[2] = {"defensible_mtn", "watershed_lim"};
-    for (u32 fi = 0; fi < 2u; ++fi) {
-        char path[320];
-        std::snprintf(path, sizeof(path), "%s_%s.ppm", path_pfx, names[fi]);
-        std::FILE* fp = std::fopen(path, "wb");
-        if (fp == nullptr) {
-            return false;
-        }
-        std::fprintf(fp, "P6\n%u %u\n255\n", static_cast<unsigned>(w), static_cast<unsigned>(h));
+    Whiteboard_1B wb_mark("P1_MakeMap", "flag_mark", m_prm.m_seed);
+    P1_WB_CHK(wb_mark);
+    u8* mark = wb_mark.raw();
+    const cstr names[4] = {"defensible_mtn", "watershed_lim", "island_chain", "hot_desert"};
+    for (u32 fi = 0; fi < 4u; ++fi) {
+        std::memset(mark, 0, static_cast<size_t>(npx));
         for (u32 i = 0; i < npx; ++i) {
-            u8 r = 144u;
-            u8 g = 200u;
-            u8 b = 120u;
-            if (overlay_is_water_terr(m_rslt.m_terrain[i])) {
-                r = 40u;
-                g = 90u;
-                b = 200u;
-            }
             const bool on = (fi == 0u)
                 ? (m_rslt.m_flags[i].defensible_mtn != 0u)
-                : (m_rslt.m_flags[i].watershed_lim != 0u);
+                : (fi == 1u)
+                    ? (m_rslt.m_flags[i].watershed_lim != 0u)
+                    : (fi == 2u)
+                        ? (m_rslt.m_flags[i].island_chain != 0u)
+                        : (m_rslt.m_flags[i].hot_desert != 0u);
             if (on) {
-                r = 0u;
-                g = 0u;
-                b = 0u;
-            }
-            const u8 px[3] = {r, g, b};
-            if (std::fwrite(px, 1, 3, fp) != 3) {
-                std::fclose(fp);
-                return false;
+                mark[i] = 1;
             }
         }
-        std::fclose(fp);
+        char path[320];
+        std::snprintf(path, sizeof(path), "%s/%s.ppm", dir, names[fi]);
+        if (!P1_MapSummaryView::save_bleached_mark(
+                path, m_rslt.m_terrain, m_rslt.m_climate, m_rslt.m_rivers, mark, w, h)) {
+            return false;
+        }
     }
     return true;
 }
@@ -1154,29 +1332,26 @@ bool P1_MakeMap::save_seed_export () const {
     char riv_path[320];
     char ov_path[320];
     char res_path[320];
-    char flags_path[320];
-    char flags_pfx[320];
+    char flags_dir[320];
     if (batch) {
         if (!p1_make_batch_export_path(m_prm.m_seed, "terrain", terr_path, sizeof(terr_path))
             || !p1_make_batch_export_path(m_prm.m_seed, "climate", clim_path, sizeof(clim_path))
             || !p1_make_batch_export_path(m_prm.m_seed, "rivers", riv_path, sizeof(riv_path))
             || !p1_make_batch_export_path(m_prm.m_seed, "overlay", ov_path, sizeof(ov_path))
-            || !p1_make_batch_export_path(m_prm.m_seed, "resources", res_path, sizeof(res_path))
-            || !p1_make_batch_export_path(m_prm.m_seed, "flags", flags_path, sizeof(flags_path))) {
+            || !p1_make_batch_export_path(m_prm.m_seed, "resources", res_path, sizeof(res_path))) {
             return false;
         }
         if (!p1_ensure_dir(P1_OUT_ROOT) || !p1_ensure_dir(P1_MAPS_ROOT)) {
             return false;
         }
-        std::snprintf(flags_pfx, sizeof(flags_pfx), "%s/seed-%04u-flags", P1_MAPS_ROOT,
+        std::snprintf(flags_dir, sizeof(flags_dir), "%s/seed-%04u-flags", P1_MAPS_ROOT,
             static_cast<unsigned>(m_prm.m_seed));
     } else {
         if (!p1_make_final_export_path(m_prm.m_seed, "terrain", terr_path, sizeof(terr_path))
             || !p1_make_final_export_path(m_prm.m_seed, "climate", clim_path, sizeof(clim_path))
             || !p1_make_final_export_path(m_prm.m_seed, "rivers", riv_path, sizeof(riv_path))
             || !p1_make_final_export_path(m_prm.m_seed, "overlay", ov_path, sizeof(ov_path))
-            || !p1_make_final_export_path(m_prm.m_seed, "resources", res_path, sizeof(res_path))
-            || !p1_make_final_export_path(m_prm.m_seed, "flags", flags_path, sizeof(flags_path))) {
+            || !p1_make_final_export_path(m_prm.m_seed, "resources", res_path, sizeof(res_path))) {
             return false;
         }
         char dir[256];
@@ -1184,7 +1359,7 @@ bool P1_MakeMap::save_seed_export () const {
         if (!p1_ensure_dir(P1_OUT_ROOT) || !p1_ensure_dir(dir)) {
             return false;
         }
-        std::snprintf(flags_pfx, sizeof(flags_pfx), "%s/flags", dir);
+        std::snprintf(flags_dir, sizeof(flags_dir), "%s/flags", dir);
     }
     if (!save_terrain_ppm(terr_path)) {
         if (batch) {
@@ -1241,28 +1416,19 @@ bool P1_MakeMap::save_seed_export () const {
     if (!batch) {
         std::printf("saved: %s\n", res_path);
     }
-    if (!save_flags_data_ppm(flags_path)) {
+    if (!save_flags_ppm(flags_dir)) {
         if (batch) {
-            std::fprintf(stderr, "failed to save flags: %s\n", flags_path);
+            std::fprintf(stderr, "failed to save flags viz: %s/\n", flags_dir);
         } else {
-            std::printf("failed to save flags: %s\n", flags_path);
+            std::printf("failed to save flags viz: %s/\n", flags_dir);
         }
         return false;
     }
     if (!batch) {
-        std::printf("saved: %s\n", flags_path);
-    }
-    if (!save_flags_ppm(flags_pfx)) {
-        if (batch) {
-            std::fprintf(stderr, "failed to save flags viz: %s_*\n", flags_pfx);
-        } else {
-            std::printf("failed to save flags viz: %s_*\n", flags_pfx);
-        }
-        return false;
-    }
-    if (!batch) {
-        std::printf("saved: %s_defensible_mtn.ppm\n", flags_pfx);
-        std::printf("saved: %s_watershed_lim.ppm\n", flags_pfx);
+        std::printf("saved: %s/defensible_mtn.ppm\n", flags_dir);
+        std::printf("saved: %s/watershed_lim.ppm\n", flags_dir);
+        std::printf("saved: %s/island_chain.ppm\n", flags_dir);
+        std::printf("saved: %s/hot_desert.ppm\n", flags_dir);
     }
     return true;
 }

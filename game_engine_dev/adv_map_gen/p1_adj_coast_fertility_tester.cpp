@@ -132,7 +132,8 @@ i32 test_p1_adj_coast_fertility_basic (P1_TesterHarness& h) {
     const u16 ht = chain.m_h;
     const u32 npx = static_cast<u32>(w) * static_cast<u32>(ht);
     P1_Gen_Climate clim_gen(h.prm());
-    if (!clim_gen.generate(chain.m_terrain, w, ht, chain.m_rivers, chain.m_rain) || !clim_gen.is_valid()) {
+    if (!clim_gen.generate(chain.m_terrain, w, ht, chain.m_rivers, chain.m_rain, chain.m_near_mtn)
+        || !clim_gen.is_valid()) {
         std::printf("P1_Gen_Climate failed for coast fertility adjust\n");
         return -1;
     }

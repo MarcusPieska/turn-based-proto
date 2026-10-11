@@ -11,12 +11,15 @@
 //=> - P1 pipeline steps -
 //================================================================================================================================
 
-static const u16 P1_STEP_OUTLINE = 1u;
+static const u16 P1_STEP_OUTLINE = 1u; 
 static const u16 P1_STEP_OUTLINE_FILL = 2u;
 static const u16 P1_STEP_NOISE = 3u;
 static const u16 P1_STEP_LAND_DEPTH = 4u;
-static const u16 P1_STEP_SHAPED_OUTLINE = 7u;
-static const u16 P1_STEP_RIVER_PROB = 8u;
+    static const u16 P1_STEP_SHAPED_OUTLINE = 7u;
+    static const u16 P1_STEP_COASTAL_POINTS = 70u;
+    static const u16 P1_STEP_COASTAL_PROTRUSION = 71u;
+    static const u16 P1_STEP_FINE_PERLIN = 73u;
+    static const u16 P1_STEP_RIVER_PROB = 8u;
 static const u16 P1_STEP_OCEAN_INDEX = 9u;
 static const u16 P1_STEP_RIVER_PTS = 10u;
 static const u16 P1_STEP_RIVER_SECTORS = 11u;
@@ -36,6 +39,7 @@ static const u16 P1_STEP_ENSURE_COASTS = 24u;
 static const u16 P1_STEP_ENSURE_SEAS = 25u;
 static const u16 P1_STEP_ENSURE_RIVER_VALLEYS = 26u;
 static const u16 P1_STEP_ENSURE_MTN_FOOTHILLS = 27u;
+static const u16 P1_STEP_NEARNESS_MTN = 34u;
 static const u16 P1_STEP_WIND = 28u;
 static const u16 P1_STEP_RAIN = 29u;
 static const u16 P1_STEP_CLIMATE = 30u;

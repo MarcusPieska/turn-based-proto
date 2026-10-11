@@ -25,6 +25,7 @@ COMPS=(
     p1_gen_distance_to_river_comp
     p1_gen_river_dist_comp
     p1_gen_nearness_to_watershed_mtn_comp
+    p1_gen_nearness_to_mtn_comp
     p1_adj_land_altitude_comp
     p1_adj_ensure_coasts_comp
     p1_adj_ensure_seas_comp

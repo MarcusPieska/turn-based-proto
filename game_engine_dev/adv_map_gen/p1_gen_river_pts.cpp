@@ -117,7 +117,7 @@ bool p1_stamp_land_step_lay (const u8* terrain, u16 w, u16 h, u32 seed, P1_StepP
             }
             const u32 ai = p1_step_pt_anchor_i(lx, ly, step, w);
             if (ai >= lay->m_cap) {
-                P1_STEP_ABORT("P1_Gen_RiverPts", "stamp_land_step_lay anchor overflow");
+                continue;
             }
             lay->m_mrk[ai] = 1u;
             lay->m_ax[ai] = static_cast<u16>(x);

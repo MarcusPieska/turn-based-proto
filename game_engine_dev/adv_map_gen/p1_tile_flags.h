@@ -18,7 +18,9 @@
 struct P1_TileFlags {
     u8 defensible_mtn : 1; // Coastal mountain selections and watershed mountain line-set tiles
     u8 watershed_lim : 1; // Full inter-basin watershed border tiles
-    u8 reserved : 6; // Reserved for future flag bits
+    u8 island_chain : 1; // Land tiles added by coastal protrusion / island chains
+    u8 hot_desert : 1; // Desert tiles also in bottom desert_hot climate percent
+    u8 reserved : 4; // Reserved for future flag bits
 };
 
 static_assert(sizeof(P1_TileFlags) == 1u, "P1_TileFlags must be one byte");

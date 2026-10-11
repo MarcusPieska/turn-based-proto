@@ -11,6 +11,7 @@
 #include "p1_adj_land_altitude.h"
 #include "p1_gen_climate.h"
 #include "p1_gen_loess_boost.h"
+#include "p1_gen_nearness_to_mtn.h"
 #include "p1_gen_rich_coast_fertility.h"
 #include "p1_gen_rain_orographic.h"
 #include "p1_gen_shaped_outline.h"
@@ -31,6 +32,7 @@ struct P1_MakeMapPrm {
     P1_Gen_WindPatternAdvPrm m_wind;
     P1_Gen_RainOrographicPrm m_rain;
     P1_Gen_ClimatePrm m_climate;
+    P1_Gen_NearnessToMtnPrm m_near_mtn;
     P1_Gen_LoessBoostPrm m_loess;
     P1_Adj_GrasslandLoessTilesPrm m_grass_loess;
     P1_Gen_RichCoastFertilityPrm m_rich_coast;
@@ -47,6 +49,7 @@ static inline P1_MakeMapPrm p1_make_map_prm_from_cfg (const MapConfig& cfg) {
     p.m_wind = p1_gen_wind_pattern_adv_prm_def();
     p.m_rain = p1_gen_rain_orographic_prm_def();
     p.m_climate = p1_gen_climate_prm_def();
+    p.m_near_mtn = p1_gen_nearness_to_mtn_prm_def();
     p.m_loess = p1_gen_loess_boost_prm_def();
     p.m_grass_loess = p1_adj_grassland_loess_tiles_prm_def();
     p.m_grass_loess.m_w_rain = static_cast<u16>(CLIMATE_WT_MAX);
@@ -69,6 +72,7 @@ bool p1_map_gen_init (const RuntimeStatics* statics = nullptr);
 
 static const u16 k_p1_step_coastal_mtn_limits = P1_STEP_COASTAL_MTN_LIMITS;
 static const u16 k_p1_step_foothills = P1_STEP_ENSURE_MTN_FOOTHILLS;
+static const u16 k_p1_step_near_mtn = P1_STEP_NEARNESS_MTN;
 static const u16 k_p1_step_wind = P1_STEP_WIND;
 static const u16 k_p1_step_rain = P1_STEP_RAIN;
 static const u16 k_p1_step_climate = P1_STEP_CLIMATE;
@@ -98,6 +102,7 @@ struct P1_MakeMapRslt {
     u8* m_wind_str;
     u8* m_loess;
     u8* m_rain;
+    u8* m_near_mtn;
     u8* m_overlay;
     u16* m_resources;
     P1_TileFlags* m_flags;
@@ -122,7 +127,7 @@ public:
     bool save_overlay_ppm (cstr path) const;
     bool save_resources_ppm (cstr path) const;
     bool save_flags_data_ppm (cstr path) const;
-    bool save_flags_ppm (cstr path_pfx) const;
+    bool save_flags_ppm (cstr dir) const; // One PPM per named bit under dir/
     bool save_seed_export () const;
     static void free_rslt (P1_MakeMapRslt* rslt);
     static bool copy_rslt (P1_MakeMapRslt* dst, const P1_MakeMapRslt& src);

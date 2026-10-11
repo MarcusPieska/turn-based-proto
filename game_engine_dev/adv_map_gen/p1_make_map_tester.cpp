@@ -6,11 +6,13 @@
 #include <ctime>
 
 #include "game_primitives.h"
+#include "p1_map_summary_view.h"
 #include "p1_tester_cli.h"
 #include "p1_tester_harness.h"
+#include "p1_tester_util.h"
 
 //================================================================================================================================
-//=> - Test helpers -
+//=> - Test body -
 //================================================================================================================================
 
 i32 test_p1_make_map_basic (P1_TesterHarness& h) {
@@ -29,6 +31,20 @@ i32 test_p1_make_map_basic (P1_TesterHarness& h) {
             sec,
             static_cast<u32>(r.m_w),
             static_cast<u32>(r.m_h));
+    }
+    const P1_MakeMapRslt& r = mk.result();
+    char sum_path[320];
+    const bool batch = p1_tester_batch_export();
+    const bool path_ok = batch
+        ? p1_make_batch_export_path(h.prm().m_seed, "summary", sum_path, sizeof(sum_path))
+        : p1_make_final_export_path(h.prm().m_seed, "summary", sum_path, sizeof(sum_path));
+    if (!path_ok
+        || !P1_MapSummaryView::save(sum_path, r.m_terrain, r.m_climate, r.m_rivers, r.m_w, r.m_h)) {
+        std::fprintf(stderr, "failed to save summary: %s\n", sum_path);
+        return -1;
+    }
+    if (!batch) {
+        std::printf("saved: %s\n", sum_path);
     }
     return 0;
 }

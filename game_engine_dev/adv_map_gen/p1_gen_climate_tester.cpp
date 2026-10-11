@@ -33,13 +33,24 @@ static bool save_rgb_ppm (cstr path, const u8* rgb, u16 wi, u16 hi) {
     return ok;
 }
 
+static u8 blend_chan (u8 base, u8 over, u8 a) {
+    const u16 ia = static_cast<u16>(255u - static_cast<u16>(a));
+    return static_cast<u8>((static_cast<u16>(base) * ia + static_cast<u16>(over) * static_cast<u16>(a)) / 255u);
+}
+
+static bool is_water_terr (u8 cls) {
+    return cls == TERR_OCEAN[0] || cls == TERR_SEA[0] || cls == TERR_COASTAL[0]
+        || cls == TERR_INLAND_SEA[0] || cls == TERR_INLAND_LAKE[0];
+}
+
 static bool save_climate_viz (
     cstr path,
     const u8* terrain,
     const u8* river,
     const u8* climate,
     u16 w,
-    u16 h) 
+    u16 h,
+    bool overlay_mtn) 
 {
     if (path == nullptr || terrain == nullptr || climate == nullptr || w == 0 || h == 0) {
         return false;
@@ -49,6 +60,7 @@ static bool save_climate_viz (
     if (rgb == nullptr) {
         return false;
     }
+    const u8 mtn_a = 128u;
     for (u32 i = 0; i < n; ++i) {
         u8 r = 0;
         u8 g = 0;
@@ -58,7 +70,12 @@ static bool save_climate_viz (
         if (cl != CLIMATE_NONE) {
             climate_to_rgb(cl, &r, &g, &b);
         }
-        if (river != nullptr && river[i] != 0) {
+        if (overlay_mtn && terrain[i] == TERR_MOUNTAINS[0]) {
+            r = blend_chan(r, TERR_MOUNTAINS[1], mtn_a);
+            g = blend_chan(g, TERR_MOUNTAINS[2], mtn_a);
+            b = blend_chan(b, TERR_MOUNTAINS[3], mtn_a);
+        }
+        if (river != nullptr && river[i] != 0 && !is_water_terr(terrain[i])) {
             r = 0;
             g = 0;
             b = 255;
@@ -91,7 +108,7 @@ static bool run_rain_wt (
     sp.m_wts.m_w_rain = rain_wt;
     P1_Gen_Climate gen(h.prm(), sp);
     const clock_t t0 = clock();
-    const bool ok = gen.generate(chain.m_terrain, chain.m_w, chain.m_h, chain.m_rivers, chain.m_rain);
+    const bool ok = gen.generate(chain.m_terrain, chain.m_w, chain.m_h, chain.m_rivers, chain.m_rain, chain.m_near_mtn);
     const clock_t t1 = clock();
     const double sec = static_cast<double>(t1 - t0) / static_cast<double>(CLOCKS_PER_SEC);
     if (!ok || !gen.is_valid()) {
@@ -112,20 +129,21 @@ static bool run_rain_wt (
             PTIME_STOP(__func__);
             return false;
         }
-        if (!save_climate_viz(pri_path, chain.m_terrain, chain.m_rivers, climate, chain.m_w, chain.m_h)) {
+        if (!save_climate_viz(pri_path, chain.m_terrain, chain.m_rivers, climate, chain.m_w, chain.m_h, false)) {
             std::printf("failed to save map: %s\n", pri_path);
             PTIME_STOP(__func__);
             return false;
         }
         std::printf("saved: %s\n", pri_path);
-    } else if (!save_climate_viz(out_path, chain.m_terrain, chain.m_rivers, climate, chain.m_w, chain.m_h)) {
+    } else if (!save_climate_viz(out_path, chain.m_terrain, chain.m_rivers, climate, chain.m_w, chain.m_h, false)) {
         std::printf("failed to save map: %s\n", out_path);
         PTIME_STOP(__func__);
         return false;
     } else {
         std::printf("saved: %s\n", out_path);
     }
-    if (rain_wt == p1_gen_climate_prm_def().m_wts.m_w_rain && !save_climate_viz(terr_path, chain.m_terrain, nullptr, climate, chain.m_w, chain.m_h)) {
+    if (rain_wt == p1_gen_climate_prm_def().m_wts.m_w_rain
+        && !save_climate_viz(terr_path, chain.m_terrain, chain.m_rivers, climate, chain.m_w, chain.m_h, true)) {
         std::printf("failed to save terrain map: %s\n", terr_path);
         PTIME_STOP(__func__);
         return false;
@@ -156,10 +174,18 @@ i32 test_p1_gen_climate_basic (P1_TesterHarness& h, u8 rain_wt_arg, bool rain_wt
             return -1;
         }
     } else {
+        const u8 def_wt = p1_gen_climate_prm_def().m_wts.m_w_rain;
+        if (!run_rain_wt(h, chain, def_wt)) {
+            PTIME_STOP(__func__);
+            return -1;
+        }
         for (u32 wi = 0; wi <= 10u; ++wi) {
             u8 wt = static_cast<u8>(wi * 10u);
             if (wt > static_cast<u8>(CLIMATE_WT_MAX)) {
                 wt = static_cast<u8>(CLIMATE_WT_MAX);
+            }
+            if (wt == def_wt) {
+                continue;
             }
             if (!run_rain_wt(h, chain, wt)) {
                 PTIME_STOP(__func__);

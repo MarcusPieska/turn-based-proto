@@ -37,7 +37,7 @@ static bool is_land (u8 cls) {
 }
 
 static u8 clamp_wt (u8 w) {
-    return (w > CLIMATE_WT_MAX) ? CLIMATE_WT_MAX : w;
+    return (w > 100) ? 100 : w;
 }
 
 static u8 scale_dist_u16 (u16 d, u16 max_dist, bool land_all_zero) {
@@ -91,8 +91,9 @@ static u32 tile_score (
     u8 river,
     u8 open_w,
     u8 lat,
-    u8 plain_w, 
+    u8 plain_w,
     u8 rain,
+    u8 near_mtn,
     const P1_Gen_ClimateOverlayWts* wts) 
 {
     const u32 wr = static_cast<u32>(clamp_wt(wts->m_w_dist_river));
@@ -100,12 +101,14 @@ static u32 tile_score (
     const u32 wl = static_cast<u32>(clamp_wt(wts->m_w_latitude));
     const u32 wp = static_cast<u32>(clamp_wt(wts->m_w_plain_dist_water));
     const u32 wn = static_cast<u32>(clamp_wt(wts->m_w_rain));
+    const u32 wm = static_cast<u32>(wts->m_w_near_mtn);
     const u32 sr = static_cast<u32>(255u - static_cast<u32>(river));
     const u32 so = static_cast<u32>(255u - static_cast<u32>(open_w));
     const u32 sl = static_cast<u32>(255u - static_cast<u32>(lat));
     const u32 sp = static_cast<u32>(255u - static_cast<u32>(plain_w));
     const u32 sn = static_cast<u32>(rain);
-    return sr * wr + so * wo + sl * wl + sp * wp + sn * wn;
+    const u32 sm = static_cast<u32>(near_mtn);
+    return sr * wr + so * wo + sl * wl + sp * wp + sn * wn + sm * wm;
 }
 
 static u32 pct_count (u32 n, u8 pct) {
@@ -601,12 +604,20 @@ P1_Gen_Climate::P1_Gen_Climate (const P1_RunPrm& prm, const P1_Gen_ClimatePrm& s
     m_rslt.m_h = 0;
 }
 
-bool P1_Gen_Climate::generate (const u8* terrain, u16 w, u16 h, const u8* river_ov, const u8* rain_ov) {
+bool P1_Gen_Climate::generate (
+    const u8* terrain,
+    u16 w,
+    u16 h,
+    const u8* river_ov,
+    const u8* rain_ov,
+    const u8* near_mtn_ov) 
+{
     PTIME_START(__func__);
     m_valid_generation = false;
     m_rslt.m_w = 0;
     m_rslt.m_h = 0;
     m_rslt.m_ov.clear();
+    m_rslt.m_hot.clear();
     if (!p1_run_prm_ok(m_prm) || terrain == nullptr || river_ov == nullptr || w == 0 || h == 0) {
         PTIME_STOP(__func__);
         return false;
@@ -645,7 +656,9 @@ bool P1_Gen_Climate::generate (const u8* terrain, u16 w, u16 h, const u8* river_
             tile_n++;
         }
     }
-    if (!m_rslt.m_ov.resize(w, h)) {
+    if (!m_rslt.m_ov.resize(w, h) || !m_rslt.m_hot.resize(w, h)) {
+        m_rslt.m_ov.clear();
+        m_rslt.m_hot.clear();
         delete[] plain_dist_water;
         delete[] latitude;
         delete[] open_dist_water;
@@ -654,7 +667,9 @@ bool P1_Gen_Climate::generate (const u8* terrain, u16 w, u16 h, const u8* river_
         return false;
     }
     u8* climate = m_rslt.m_ov.data_w();
+    u8* hot = m_rslt.m_hot.data_w();
     std::memset(climate, CLIMATE_NONE, static_cast<size_t>(n));
+    std::memset(hot, 0, static_cast<size_t>(n));
     P1_ClimateTileVal* tiles = (tile_n > 0) ? new P1_ClimateTileVal[tile_n] : nullptr;
     if (tile_n > 0 && tiles == nullptr) {
         delete[] plain_dist_water;
@@ -678,12 +693,17 @@ bool P1_Gen_Climate::generate (const u8* terrain, u16 w, u16 h, const u8* river_
             if (rain_ov != nullptr) {
                 rain_v = rain_ov[i];
             }
+            u8 near_v = 0;
+            if (near_mtn_ov != nullptr) {
+                near_v = near_mtn_ov[i];
+            }
             e->m_val = tile_score(
                 dist_river[i],
                 open_dist_water[i],
                 latitude[i],
                 plain_dist_water[i],
                 rain_v,
+                near_v,
                 &m_sp.m_wts);
             ti++;
         }
@@ -692,6 +712,12 @@ bool P1_Gen_Climate::generate (const u8* terrain, u16 w, u16 h, const u8* river_
         std::qsort(tiles, tile_n, sizeof(P1_ClimateTileVal), cmp_climate_tile);
         const u32 grass_n = pct_count(tile_n, m_sp.m_pct.m_pct_grassland);
         const u32 plains_n = pct_count(tile_n, m_sp.m_pct.m_pct_plains);
+        u8 hot_pct = m_sp.m_pct.m_pct_desert_hot;
+        if (hot_pct > 100u) {
+            hot_pct = 100u;
+        }
+        const u32 hot_n = pct_count(tile_n, hot_pct);
+        const u32 hot_start = (hot_n >= tile_n) ? 0u : (tile_n - hot_n);
         for (u32 k = 0; k < tile_n; ++k) {
             const P1_ClimateTileVal* e = &tiles[k];
             const u32 idx = static_cast<u32>(e->m_y) * static_cast<u32>(w) + static_cast<u32>(e->m_x);
@@ -702,6 +728,9 @@ bool P1_Gen_Climate::generate (const u8* terrain, u16 w, u16 h, const u8* river_
                 cls = CLIMATE_PLAINS;
             }
             climate[idx] = cls;
+            if (cls == CLIMATE_DESERT && k >= hot_start) {
+                hot[idx] = 1;
+            }
         }
     }
     assign_mountain_climate(w, h, terrain, climate);

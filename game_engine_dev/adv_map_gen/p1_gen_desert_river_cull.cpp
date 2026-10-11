@@ -8,6 +8,7 @@
 
 #include "generator_constants.h"
 #include "p1_gen_climate.h"
+#include "p1_wb_util.h"
 
 //================================================================================================================================
 //=> - Private generation helpers -
@@ -19,6 +20,11 @@ static const i32 k_dx8[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
 static const i32 k_dy8[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
 
 static const u32 k_prev_none = 0xFFFFFFFFu;
+
+struct WalkFr {
+    u32 m_cur;
+    u32 m_prev;
+};
 
 static u32 tidx (u16 w, u16 x, u16 y) {
     return static_cast<u32>(y) * static_cast<u32>(w) + static_cast<u32>(x);
@@ -35,6 +41,18 @@ static bool is_water (u8 cls) {
 
 static bool is_desert_climate (u8 cl) {
     return cl == CLIMATE_DESERT;
+}
+
+static bool is_hot (const P1_TileFlags* flags, u32 i) {
+    return flags[i].hot_desert != 0u;
+}
+
+static bool is_inland_wat (u8 cls) {
+    return cls == TERR_INLAND_SEA[0] || cls == TERR_INLAND_LAKE[0];
+}
+
+static bool restore_stop (const u8* terrain, const P1_TileFlags* flags, u32 i) {
+    return is_hot(flags, i) || is_inland_wat(terrain[i]);
 }
 
 static bool is_riv_mouth (const u8* terrain, const u8* riv, u16 w, u16 h, u16 x, u16 y) {
@@ -98,6 +116,20 @@ static bool is_branch_tip (
     return count_riv_neighbors(riv, w, h, i, k_prev_none) == 1;
 }
 
+static bool near_mtn (const u8* terrain, u16 w, u16 h, u16 x, u16 y) {
+    for (i32 k = 0; k < 8; ++k) {
+        const i32 nx = static_cast<i32>(x) + k_dx8[k];
+        const i32 ny = static_cast<i32>(y) + k_dy8[k];
+        if (!in_map(w, h, nx, ny)) {
+            continue;
+        }
+        if (terrain[tidx(w, static_cast<u16>(nx), static_cast<u16>(ny))] == TERR_MOUNTAINS[0]) {
+            return true;
+        }
+    }
+    return false;
+}
+
 static u32 pick_riv_next (
     const u8* riv,
     u16 w,
@@ -153,25 +185,21 @@ static void cull_desert_run (
     }
 }
 
-static void walk_upstream_cull_desert (
+static void walk_upstream_cull (
     u8* riv,
-    const u8* climate,
+    const u8* terrain,
     u16 w,
     u16 h,
     u32 start,
     u32 prev,
     u8* walk_vis,
+    WalkFr* st,
     u32 n_max,
-    u32* culled) 
+    u32* culled,
+    bool use_hot,
+    const u8* climate,
+    const P1_TileFlags* flags) 
 {
-    struct WalkFr {
-        u32 m_cur;
-        u32 m_prev;
-    };
-    WalkFr* st = new WalkFr[n_max];
-    if (st == nullptr) {
-        return;
-    }
     u32 sp = 0;
     st[sp++] = WalkFr{start, prev};
     while (sp > 0) {
@@ -187,7 +215,8 @@ static void walk_upstream_cull_desert (
         }
         u32 next[8];
         const u32 nn = pick_riv_next(riv, w, h, cur, p, next);
-        if (is_desert_climate(climate[cur])) {
+        const bool hit = use_hot ? restore_stop(terrain, flags, cur) : is_desert_climate(climate[cur]);
+        if (hit) {
             riv[cur] = 0;
             (*culled)++;
         }
@@ -198,7 +227,6 @@ static void walk_upstream_cull_desert (
             st[sp++] = WalkFr{next[k], cur};
         }
     }
-    delete[] st;
 }
 
 static void flood_riv_from_mouths (
@@ -207,12 +235,9 @@ static void flood_riv_from_mouths (
     u16 w,
     u16 h,
     u8* flooded,
+    u32* st,
     u32 n_max) 
 {
-    u32* st = new u32[n_max];
-    if (st == nullptr) {
-        return;
-    }
     u32 sp = 0;
     for (u16 y = 0; y < h; ++y) {
         for (u16 x = 0; x < w; ++x) {
@@ -248,18 +273,21 @@ static void flood_riv_from_mouths (
             st[sp++] = ni;
         }
     }
-    delete[] st;
 }
 
 static u32 cull_from_downstream_mouths (
     const u8* terrain,
     u8* riv,
-    const u8* climate,
     u16 w,
     u16 h,
     u8* walk_vis,
     u8* flooded,
-    u32 n_max) 
+    WalkFr* walk_st,
+    u32* flood_st,
+    u32 n_max,
+    bool use_hot,
+    const u8* climate,
+    const P1_TileFlags* flags) 
 {
     u32 culled = 0;
     std::memset(walk_vis, 0, static_cast<size_t>(n_max));
@@ -269,19 +297,26 @@ static u32 cull_from_downstream_mouths (
                 continue;
             }
             const u32 mi = tidx(w, x, y);
-            if (riv[mi] != 0 && is_desert_climate(climate[mi])) {
-                riv[mi] = 0;
-                culled++;
+            if (riv[mi] != 0) {
+                const bool hit = use_hot
+                    ? restore_stop(terrain, flags, mi)
+                    : is_desert_climate(climate[mi]);
+                if (hit) {
+                    riv[mi] = 0;
+                    culled++;
+                }
             }
             u32 nb[8];
             const u32 nn = pick_riv_next(riv, w, h, mi, k_prev_none, nb);
             for (u32 k = 0; k < nn; ++k) {
-                walk_upstream_cull_desert(riv, climate, w, h, nb[k], mi, walk_vis, n_max, &culled);
+                walk_upstream_cull(
+                    riv, terrain, w, h, nb[k], mi, walk_vis, walk_st, n_max, &culled, use_hot,
+                    climate, flags);
             }
         }
     }
     std::memset(flooded, 0, static_cast<size_t>(n_max));
-    flood_riv_from_mouths(terrain, riv, w, h, flooded, n_max);
+    flood_riv_from_mouths(terrain, riv, w, h, flooded, flood_st, n_max);
     for (u32 i = 0; i < n_max; ++i) {
         if (riv[i] == 0 || flooded[i] != 0) {
             continue;
@@ -311,27 +346,93 @@ static void cull_from_upstream_tips (
     }
 }
 
+static void restore_from_src_tips (
+    const u8* terrain,
+    const u8* src,
+    u8* riv,
+    const P1_TileFlags* flags,
+    u16 w,
+    u16 h,
+    u8* vis,
+    WalkFr* st,
+    u32 n_max) 
+{
+    std::memset(vis, 0, static_cast<size_t>(n_max));
+    for (u16 y = 0; y < h; ++y) {
+        for (u16 x = 0; x < w; ++x) {
+            if (!is_branch_tip(terrain, src, w, h, x, y) || !near_mtn(terrain, w, h, x, y)) {
+                continue;
+            }
+            const u32 tip = tidx(w, x, y);
+            if (vis[tip] != 0 || restore_stop(terrain, flags, tip)) {
+                continue;
+            }
+            u32 sp = 0;
+            st[sp++] = WalkFr{tip, k_prev_none};
+            while (sp > 0) {
+                const WalkFr f = st[--sp];
+                const u32 cur = f.m_cur;
+                if (vis[cur] != 0) {
+                    continue;
+                }
+                vis[cur] = 1;
+                if (src[cur] == 0 || restore_stop(terrain, flags, cur)) {
+                    continue;
+                }
+                riv[cur] = 1;
+                u32 next[8];
+                const u32 nn = pick_riv_next(src, w, h, cur, f.m_prev, next);
+                for (u32 k = 0; k < nn; ++k) {
+                    if (sp >= n_max) {
+                        break;
+                    }
+                    st[sp++] = WalkFr{next[k], cur};
+                }
+            }
+        }
+    }
+}
+
+static u32 count_nz (const u8* a, u32 n) {
+    u32 c = 0;
+    for (u32 i = 0; i < n; ++i) {
+        if (a[i] != 0) {
+            c++;
+        }
+    }
+    return c;
+}
+
 static bool apply_desert_river_cull (
+    const P1_RunPrm& prm,
     u8* riv,
     u16 w,
     u16 h,
     const u8* terrain,
     const u8* climate,
-    bool cull_from_upstream,
+    const P1_TileFlags* flags,
+    u8 mode,
     u32* culled_n) 
 {
     const u32 n = static_cast<u32>(w) * static_cast<u32>(h);
-    u8* mark = new u8[n];
-    u8* walk_vis = new u8[n];
-    u8* flooded = new u8[n];
-    if (mark == nullptr || walk_vis == nullptr || flooded == nullptr) {
-        delete[] flooded;
-        delete[] walk_vis;
-        delete[] mark;
-        return false;
-    }
+    Whiteboard_1B wb_mark("P1_Gen_DesertRiverCull", "mark", prm.m_seed);
+    Whiteboard_1B wb_walk("P1_Gen_DesertRiverCull", "walk", prm.m_seed);
+    Whiteboard_1B wb_flood("P1_Gen_DesertRiverCull", "flood", prm.m_seed);
+    Whiteboard_1B wb_src("P1_Gen_DesertRiverCull", "src", prm.m_seed);
+    Whiteboard_8B wb_wst("P1_Gen_DesertRiverCull", "wst", prm.m_seed);
+    Whiteboard_4B wb_fst("P1_Gen_DesertRiverCull", "fst", prm.m_seed);
+    P1_WB_CHK(wb_mark);
+    P1_WB_CHK(wb_walk);
+    P1_WB_CHK(wb_flood);
+    P1_WB_CHK(wb_wst);
+    P1_WB_CHK(wb_fst);
+    u8* mark = wb_mark.raw();
+    u8* walk_vis = wb_walk.raw();
+    u8* flooded = wb_flood.raw();
+    WalkFr* walk_st = reinterpret_cast<WalkFr*>(wb_wst.get_iter_ptr());
+    u32* flood_st = wb_fst.get_iter_ptr();
     u32 cn = 0;
-    if (cull_from_upstream) {
+    if (mode == P1_DESERT_CULL_TIP) {
         std::memset(mark, 0, static_cast<size_t>(n));
         cull_from_upstream_tips(terrain, riv, climate, mark, w, h, n);
         for (u32 i = 0; i < n; ++i) {
@@ -341,15 +442,27 @@ static bool apply_desert_river_cull (
             riv[i] = 0;
             cn++;
         }
+    } else if (mode == P1_DESERT_CULL_MOUTH) {
+        cn = cull_from_downstream_mouths(
+            terrain, riv, w, h, walk_vis, flooded, walk_st, flood_st, n, false, climate, nullptr);
+    } else if (mode == P1_DESERT_CULL_MOUTH_RESTORE) {
+        if (flags == nullptr) {
+            return false;
+        }
+        P1_WB_CHK(wb_src);
+        u8* src = wb_src.raw();
+        std::memcpy(src, riv, static_cast<size_t>(n));
+        const u32 before = count_nz(src, n);
+        cull_from_downstream_mouths(
+            terrain, riv, w, h, walk_vis, flooded, walk_st, flood_st, n, true, climate, flags);
+        restore_from_src_tips(terrain, src, riv, flags, w, h, mark, walk_st, n);
+        cn = before - count_nz(riv, n);
     } else {
-        cn = cull_from_downstream_mouths(terrain, riv, climate, w, h, walk_vis, flooded, n);
+        return false;
     }
     if (culled_n != nullptr) {
         *culled_n = cn;
     }
-    delete[] flooded;
-    delete[] walk_vis;
-    delete[] mark;
     return true;
 }
 
@@ -371,6 +484,19 @@ bool P1_Gen_DesertRiverCull::generate (
     const u8* climate,
     bool cull_from_upstream) 
 {
+    const u8 mode = cull_from_upstream ? P1_DESERT_CULL_TIP : P1_DESERT_CULL_MOUTH;
+    return generate(riv, w, h, terrain, climate, nullptr, mode);
+}
+
+bool P1_Gen_DesertRiverCull::generate (
+    u8* riv,
+    u16 w,
+    u16 h,
+    const u8* terrain,
+    const u8* climate,
+    const P1_TileFlags* flags,
+    u8 mode) 
+{
     m_valid_generation = false;
     m_culled_n = 0;
     if (!p1_run_prm_ok(m_prm) || riv == nullptr || terrain == nullptr || climate == nullptr) {
@@ -379,7 +505,11 @@ bool P1_Gen_DesertRiverCull::generate (
     if (w != m_prm.m_w || h != m_prm.m_h || w == 0 || h == 0) {
         return false;
     }
-    if (!apply_desert_river_cull(riv, w, h, terrain, climate, cull_from_upstream, &m_culled_n)) {
+    if (mode == P1_DESERT_CULL_MOUTH_RESTORE && flags == nullptr) {
+        return false;
+    }
+    if (!apply_desert_river_cull(
+            m_prm, riv, w, h, terrain, climate, flags, mode, &m_culled_n)) {
         return false;
     }
     m_valid_generation = true;

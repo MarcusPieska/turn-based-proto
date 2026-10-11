@@ -11,7 +11,9 @@
 #include "game_primitives.h"
 #include "generator_constants.h"
 #include "map_terrain_validate.h"
+#include "p1_map_summary_view.h"
 #include "p1_tester_harness.h"
+#include "p1_tester_util.h"
 
 //================================================================================================================================
 //=> - Test helpers -
@@ -107,6 +109,40 @@ static bool run_cull_case (
     return saved;
 }
 
+static bool run_cull_restore (
+    const P1_RunPrm& prm,
+    const u8* terrain,
+    const u8* climate,
+    const P1_TileFlags* flags,
+    const u8* riv_src,
+    u16 w,
+    u16 h,
+    cstr out_path,
+    double* out_sec,
+    u32* out_culled) 
+{
+    const u32 npx = static_cast<u32>(w) * static_cast<u32>(h);
+    u8* riv = new u8[npx];
+    if (riv == nullptr) {
+        return false;
+    }
+    std::memcpy(riv, riv_src, static_cast<size_t>(npx));
+    P1_Gen_DesertRiverCull gen(prm);
+    const clock_t t0 = clock();
+    const bool ok = gen.generate(
+        riv, w, h, terrain, climate, flags, P1_DESERT_CULL_MOUTH_RESTORE);
+    const clock_t t1 = clock();
+    *out_sec = static_cast<double>(t1 - t0) / static_cast<double>(CLOCKS_PER_SEC);
+    if (!ok || !gen.is_valid()) {
+        delete[] riv;
+        return false;
+    }
+    *out_culled = gen.culled_n();
+    const bool saved = P1_MapSummaryView::save(out_path, terrain, climate, riv, w, h);
+    delete[] riv;
+    return saved;
+}
+
 i32 test_p1_gen_desert_river_cull_basic (P1_TesterHarness& h) {
     char up_path[320];
     char dn_path[320];
@@ -120,15 +156,17 @@ i32 test_p1_gen_desert_river_cull_basic (P1_TesterHarness& h) {
     }
     const P1_MakeMapRslt& chain = h.mk();
     if (chain.m_terrain == nullptr || chain.m_climate == nullptr || chain.m_rivers == nullptr
-        || chain.m_w == 0 || chain.m_h == 0) {
+        || chain.m_flags == nullptr || chain.m_w == 0 || chain.m_h == 0) {
         std::printf("invalid chain input for desert river cull\n");
         return -1;
     }
     const u8* climate = chain.m_climate;
     double sec_up = 0.0;
     double sec_dn = 0.0;
+    double sec_rs = 0.0;
     u32 culled_up = 0;
     u32 culled_dn = 0;
+    u32 culled_rs = 0;
     std::printf("P1 steps 1-24 input time: %.6f s\n", h.input_sec());
     if (!run_cull_case(
             h.prm(),
@@ -172,6 +210,33 @@ i32 test_p1_gen_desert_river_cull_basic (P1_TesterHarness& h) {
         static_cast<u32>(chain.m_w),
         static_cast<u32>(chain.m_h));
     std::printf("saved: %s\n", dn_path);
+    char rs_path[320];
+    if (!p1_make_out_path(
+            h.seed(), "31_step3_desert_river_cull_mouth_restore.ppm", rs_path, sizeof(rs_path))) {
+        std::printf("failed to ensure mouth_restore path\n");
+        return -1;
+    }
+    if (!run_cull_restore(
+            h.prm(),
+            chain.m_terrain,
+            climate,
+            chain.m_flags,
+            chain.m_rivers,
+            chain.m_w,
+            chain.m_h,
+            rs_path,
+            &sec_rs,
+            &culled_rs)) {
+        std::printf("P1_Gen_DesertRiverCull mouth_restore failed\n");
+        return -1;
+    }
+    std::printf(
+        "P1_Gen_DesertRiverCull mouth_restore time: %.6f s (culled %u, %u x %u)\n",
+        sec_rs,
+        culled_rs,
+        static_cast<u32>(chain.m_w),
+        static_cast<u32>(chain.m_h));
+    std::printf("saved: %s\n", rs_path);
     return 0;
 }
 

@@ -32,6 +32,7 @@ i32 test_tile_flags (P1_TesterHarness& h) {
     const u32 npx = static_cast<u32>(r.m_w) * static_cast<u32>(r.m_h);
     u32 defensible_mtn_n = 0u;
     u32 watershed_lim_n = 0u;
+    u32 island_chain_n = 0u;
     for (u32 i = 0; i < npx; ++i) {
         if (r.m_flags[i].defensible_mtn != 0u) {
             ++defensible_mtn_n;
@@ -39,29 +40,41 @@ i32 test_tile_flags (P1_TesterHarness& h) {
         if (r.m_flags[i].watershed_lim != 0u) {
             ++watershed_lim_n;
         }
+        if (r.m_flags[i].island_chain != 0u) {
+            ++island_chain_n;
+        }
     }
-    char flags_pfx[320];
-    std::snprintf(flags_pfx, sizeof(flags_pfx), "%s/p1-seed-%u/flags", P1_OUT_ROOT,
+    char seed_dir[256];
+    std::snprintf(seed_dir, sizeof(seed_dir), "%s/p1-seed-%u", P1_OUT_ROOT,
         static_cast<unsigned>(h.seed()));
+    char flags_dir[320];
+    std::snprintf(flags_dir, sizeof(flags_dir), "%s/flags", seed_dir);
+    if (!p1_ensure_dir(P1_OUT_ROOT) || !p1_ensure_dir(seed_dir) || !p1_ensure_dir(flags_dir)) {
+        std::fprintf(stderr, "failed to ensure flags dir: %s\n", flags_dir);
+        return -1;
+    }
     char flags_path[320];
-    std::snprintf(flags_path, sizeof(flags_path), "%s.ppm", flags_pfx);
+    std::snprintf(flags_path, sizeof(flags_path), "%s/flags.ppm", seed_dir);
     if (!mk.save_flags_data_ppm(flags_path)) {
         std::fprintf(stderr, "save_flags_data_ppm failed: %s\n", flags_path);
         return -1;
     }
-    if (!mk.save_flags_ppm(flags_pfx)) {
-        std::fprintf(stderr, "save_flags_ppm failed: %s_*\n", flags_pfx);
+    if (!mk.save_flags_ppm(flags_dir)) {
+        std::fprintf(stderr, "save_flags_ppm failed: %s/\n", flags_dir);
         return -1;
     }
-    std::printf("TileFlags: %.6f s (%u x %u) defensible_mtn=%u watershed_lim=%u\n",
+    std::printf(
+        "TileFlags: %.6f s (%u x %u) defensible_mtn=%u watershed_lim=%u island_chain=%u\n",
         sec,
         static_cast<u32>(r.m_w),
         static_cast<u32>(r.m_h),
         static_cast<unsigned>(defensible_mtn_n),
-        static_cast<unsigned>(watershed_lim_n));
+        static_cast<unsigned>(watershed_lim_n),
+        static_cast<unsigned>(island_chain_n));
     std::printf("saved: %s\n", flags_path);
-    std::printf("saved: %s_defensible_mtn.ppm\n", flags_pfx);
-    std::printf("saved: %s_watershed_lim.ppm\n", flags_pfx);
+    std::printf("saved: %s/defensible_mtn.ppm\n", flags_dir);
+    std::printf("saved: %s/watershed_lim.ppm\n", flags_dir);
+    std::printf("saved: %s/island_chain.ppm\n", flags_dir);
     return 0;
 }
 
