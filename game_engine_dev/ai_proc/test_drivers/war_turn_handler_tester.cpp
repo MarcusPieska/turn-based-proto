@@ -20,6 +20,7 @@
 #include "game_setup.h"
 #include "game_state.h"
 #include "runtime_statics.h"
+#include "army_turn_test_hlp.h"
 #include "siege_snapshot.h"
 #include "test_hlp_city_attack.h"
 #include "tile_attr_tables.h"
@@ -730,7 +731,8 @@ static bool run_march (
     }
     (*turn_io)++;
     for (;;) {
-        if (!camp.walk_army()) {
+        WarArmy* slot = camp.army(0);
+        if (slot == nullptr || !ArmyTurnTestHlp::walk(state, *slot)) {
             break;
         }
         if (chain_check && !TestHlpUnitChainValidation::run(state, chain_print_all, nullptr)) {
@@ -1165,14 +1167,16 @@ int main (int argc, char** argv) {
             state.clear();
             return 1;
         }
+        WarArmy* aslot = camp.army(0);
         WarAssault ar = TestHlpCityAttack::run(state, camp, tx, ty, false);
         while (ar == WarAssault::Stall) {
+            const bool cont = (aslot != nullptr) && ArmyTurnTestHlp::can_cont(state, *aslot);
             std::printf("assault stall at (%u,%u); can_cont=%u barrage tot=%u last=%u\n",
                 static_cast<unsigned>(tx), static_cast<unsigned>(ty),
-                camp.can_cont(0u) ? 1u : 0u,
+                cont ? 1u : 0u,
                 static_cast<unsigned>(camp.br_tot()),
                 static_cast<unsigned>(camp.br_last()));
-            if (!camp.can_cont(0u)) {
+            if (!cont) {
                 break;
             }
             if (!save_frame(state, cap, static_cast<u8>(pa), static_cast<u8>(pb), tx, ty, turn)) {
@@ -1232,7 +1236,8 @@ int main (int argc, char** argv) {
             if (occ->m_x == spl->m_x && occ->m_y == spl->m_y) {
                 break;
             }
-            if (!camp.rejoin_move(0u)) {
+            WarArmy* rslot = camp.army(0);
+            if (rslot == nullptr || !ArmyTurnTestHlp::rejoin_move(state, camp.seat(), camp.enemy(), *rslot)) {
                 std::printf("*** FAILED rejoin_move\n");
                 WhiteboardMng::terminate();
                 state.clear();
@@ -1245,7 +1250,8 @@ int main (int argc, char** argv) {
             }
             turn++;
         }
-        if (!camp.rejoin_link(0u)) {
+        WarArmy* lslot = camp.army(0);
+        if (lslot == nullptr || !ArmyTurnTestHlp::rejoin_link(state, *lslot)) {
             std::printf("*** FAILED rejoin_link\n");
             WhiteboardMng::terminate();
             state.clear();
@@ -1260,7 +1266,8 @@ int main (int argc, char** argv) {
             turn++;
         }
         {
-            const u16 rested = camp.rest_heal(0u);
+            WarArmy* hslot = camp.army(0);
+            const u16 rested = (hslot != nullptr) ? ArmyTurnTestHlp::rest_heal(state, *hslot) : 0u;
             if (rested > 0u) {
                 std::printf("rest heal turns=%u\n", static_cast<unsigned>(rested));
                 turn = static_cast<u32>(turn + rested);
@@ -1272,7 +1279,8 @@ int main (int argc, char** argv) {
                 turn++;
             }
         }
-        if (!camp.army_can_fight(0u)) {
+        WarArmy* fslot = camp.army(0);
+        if (fslot == nullptr || !ArmyTurnTestHlp::can_fight(state, *fslot)) {
             std::printf("war stop: no offensive units left captured=%u\n", captured);
             print_army("remaining army", state, UnitAddKey::from_raw(camp.atk_hd(0)));
             break;

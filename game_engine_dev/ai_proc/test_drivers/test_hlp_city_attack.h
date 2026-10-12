@@ -6,16 +6,17 @@
 #define TEST_HLP_CITY_ATTACK_H
 
 #include "game_primitives.h"
-#include "war_turn_handler.h"
+#include "army_turn_handler.h"
 
 class GameState;
+class WarTurnHandler;
 
 //================================================================================================================================
 //=> - TestHlpCityAttack -
 //================================================================================================================================
 //
-//  Runs WarTurnHandler::assault_city and optionally logs army composition before/after,
-//  losses by type, and survivors with reduced health.
+//  Runs ArmyTurnTestHlp::assault on the campaign army slot and optionally logs army composition
+//  before/after, losses by type, and survivors with reduced health.
 //
 //================================================================================================================================
 

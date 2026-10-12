@@ -7,7 +7,7 @@ LAND_ATTACK      : canEmbark : canFortify : canAttack : canDefend : canPillage :
 LAND_MOBILE      : canEmbark : canFortify : canAttack : canDefend : canPillage : canCaptureCities : canRetreat
 LAND_ARTILLERY   : canEmbark : canHold : canBarrage
 LAND_PARADROP    : canEmbark : canFortify : canAttack : canDefend : canPillage : canCaptureCities : canParadrop
-LAND_ANIT_AIR    : canEmbark : canDoAntiAir
+LAND_ANTI_AIR    : canEmbark : canDoAntiAir
 LAND_SPY         : canEmbark : canSpy
 AIR_BOMBER       : canRebase : canDoAirBombing
 AIR_FIGHTER      : canRebase : canDoAirSupport : canIntercept

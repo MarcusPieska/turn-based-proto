@@ -6,6 +6,7 @@
 #include <cstdio>
 
 #include "test_hlp_walk_army.h"
+#include "army_turn_test_hlp.h"
 #include "war_turn_handler.h"
 #include "game_state.h"
 #include "unit_chain_validation.h"
@@ -50,7 +51,8 @@ bool TestHlpWalkArmy::run (
     double last_step_us = 0.0;
     for (;;) {
         const auto w0 = std::chrono::steady_clock::now();
-        const bool moved = camp.walk_army();
+        WarArmy* slot = camp.army(0);
+        const bool moved = (slot != nullptr) && ArmyTurnTestHlp::walk(s, *slot);
         const auto w1 = std::chrono::steady_clock::now();
         last_step_us = std::chrono::duration<double, std::micro>(w1 - w0).count();
         if (!moved) {

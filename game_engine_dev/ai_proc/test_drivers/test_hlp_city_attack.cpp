@@ -7,6 +7,7 @@
 #include <cstring>
 
 #include "test_hlp_city_attack.h"
+#include "army_turn_test_hlp.h"
 #include "war_turn_handler.h"
 #include "game_state.h"
 #include "runtime_statics.h"
@@ -106,13 +107,14 @@ WarAssault TestHlpCityAttack::run (GameState& s, WarTurnHandler& camp, u16 city_
     if (s.m_statics == nullptr) {
         return WarAssault::Fail;
     }
-    const UnitAddKey army = UnitAddKey::from_raw(camp.atk_hd(0));
-    if (!army.is_valid()) {
+    WarArmy* slot = camp.army(0);
+    if (slot == nullptr || slot->m_hd == U16_KEY_NULL) {
         if (print_log) {
             std::printf("city_attack: no army head\n");
         }
         return WarAssault::Fail;
     }
+    const UnitAddKey army = UnitAddKey::from_raw(slot->m_hd);
     const u16 typ_n = s.m_statics->unit().get_item_count();
     SnapUnit before[k_snap_cap];
     u16 bn = 0;
@@ -125,18 +127,23 @@ WarAssault TestHlpCityAttack::run (GameState& s, WarTurnHandler& camp, u16 city_
     }
 
     const auto t0 = std::chrono::steady_clock::now();
-    const WarAssault r = camp.assault_city(city_x, city_y, 0u);
+    const WarAssault r = ArmyTurnTestHlp::assault(s, camp.seat(), *slot, city_x, city_y);
     const auto t1 = std::chrono::steady_clock::now();
     const double us = std::chrono::duration<double, std::micro>(t1 - t0).count();
+    if (r == WarAssault::Ok) {
+        slot->m_tx = city_x;
+        slot->m_ty = city_y;
+        camp.sync_from_army(0);
+    }
     if (r != WarAssault::Ok) {
         if (print_log) {
-            std::printf("WarTurnHandler::assault_city %s (%.2f us)\n",
+            std::printf("ArmyTurnTestHlp::assault %s (%.2f us)\n",
                 r == WarAssault::Stall ? "stall" : "fail", us);
         }
         return r;
     }
-    const UnitAddKey stay = UnitAddKey::from_raw(camp.split_hd(0));
-    const UnitAddKey occupy = UnitAddKey::from_raw(camp.atk_hd(0));
+    const UnitAddKey stay = UnitAddKey::from_raw(slot->m_split);
+    const UnitAddKey occupy = UnitAddKey::from_raw(slot->m_hd);
     if (!print_log) {
         return WarAssault::Ok;
     }

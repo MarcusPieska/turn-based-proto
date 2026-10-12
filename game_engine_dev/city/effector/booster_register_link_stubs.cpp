@@ -81,6 +81,11 @@ bool UnitGroupManagement::campaign_form_land_army (
     return false;
 }
 
+bool UnitGroupManagement::partition_land_armies_by_arty (
+    GameState&, UnitAddKey, UnitAddKey*, u16, u16*) {
+    return false;
+}
+
 //================================================================================================================================
 //=> - End of file -
 //================================================================================================================================

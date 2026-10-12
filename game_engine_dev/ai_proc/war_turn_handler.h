@@ -5,24 +5,12 @@
 #ifndef WAR_TURN_HANDLER_H
 #define WAR_TURN_HANDLER_H
 
+#include "army_turn_handler.h"
 #include "game_primitives.h"
+#include "path_gradients.h"
 #include "walk_p2p.h"
 
 class GameState;
-
-//================================================================================================================================
-//=> - WarAssault -
-//================================================================================================================================
-//
-//  Result of assault_city: Ok captured, Stall out of assault MP with fight left, Fail hard stop.
-//
-//================================================================================================================================
-
-enum class WarAssault : u8 {
-    Ok = 0,
-    Stall = 1,
-    Fail = 2
-};
 
 //================================================================================================================================
 //=> - MusterCity -
@@ -41,12 +29,11 @@ struct MusterCity {
 //=> - WarTurnHandler -
 //================================================================================================================================
 //
-//  Per-seat war turn handler: muster, flatten arrived groups, form army, ArmyUpgradeMng at staging, march, assault
-//  (CityAttackManager), claim city with TileTransfer, two-step rejoin, then retarget until no fight
-//  left or no targets. begin builds GenLandSectors + LandSectorNetwork and binds SectorSupport;
-//  pick_enemy / refill_targets use war_target_pick (default WarTargetKind::SecureCapital). Assault
-//  may Stall when offensive units remain but spent this assault's MP; owner retries. Hot path:
-//  begin/clear with GameLoop; handle per engaged AI seat.
+//  Per-seat war campaign: muster, form, target pick, staging, and phase orchestration. Owns WarArmy
+//  slots (one army for now); army march/assault/rejoin is ArmyTurnHandler::handle only. begin builds
+//  GenLandSectors + LandSectorNetwork and binds SectorSupport; pick_enemy / refill_targets use
+//  war_target_pick (default WarTargetKind::SecureCapital). Hot path: begin/clear with GameLoop;
+//  handle per engaged AI seat.
 //
 //================================================================================================================================
 
@@ -76,13 +63,8 @@ public:
     bool flatten_muster ();
     bool form_army ();
     bool set_target_city (u16 enemy, u16* ox, u16* oy);
-    bool walk_army ();
-    WarAssault assault_city (u16 city_x, u16 city_y, u16 army_i = 0);
-    bool rejoin_move (u16 army_i = 0);
-    bool rejoin_link (u16 army_i = 0);
-    u16 rest_heal (u16 army_i = 0);
-    bool army_can_fight (u16 army_i = 0) const;
-    bool can_cont (u16 army_i = 0) const;
+    ArmyTurnRslt army_handle (u16 army_i = 0);
+    void sync_from_army (u16 army_i = 0);
     bool stalled () const;
     u32 br_tot () const;
     u32 br_last () const;
@@ -92,8 +74,12 @@ public:
     u16 muster_n () const;
     void muster_units (u32* unit_n, u32* size_sum) const;
     bool is_exposed (u16 i) const;
+    WarArmy* army (u16 i);
+    const WarArmy* army (u16 i) const;
     u16 atk_hd (u16 i) const;
     u16 split_hd (u16 i) const;
+    u16 seat () const;
+    u16 enemy () const;
     u16 staging_x () const;
     u16 staging_y () const;
     u16 target_x () const;
@@ -110,19 +96,17 @@ private:
 
     bool set_goal (u16 x1, u16 y1, u16 x2, u16 y2);
     void refill_grp (u16 head_idx);
-    void claim_city (u16 x, u16 y);
     bool refill_targets (u16 enemy);
     bool find_enemy_seed (u16 enemy, u16* ox, u16* oy) const;
 
     GameState& m_st;
     u16 m_seat;
-    WalkP2P m_walk;
-    WalkP2P m_mob;
+    PathGradients m_paths; // Per-army march gradients; slot i for m_atk[i]
+    WalkP2P m_mob; // Muster gradient to staging
     MusterCity m_grp[k_grp_cap];
     u16 m_grp_n;
-    u16 m_atk[k_atk_cap];
+    WarArmy m_atk[k_atk_cap]; // Partitioned armies; hot path still drives slot 0 until multi advance
     u16 m_atk_n;
-    u16 m_split[k_atk_cap]; // Remainder outside city after army i split; U16_KEY_NULL if none
     u16 m_tgts[k_tgt_cap]; // Flood-ordered enemy city indices
     u16 m_tgt_n; // Valid entries in m_tgts
     u16 m_tgt_i; // Next index to try
@@ -133,9 +117,6 @@ private:
     u8 m_enemy; // Enemy seat for current target queue
     bool m_ready;
     bool m_mob_ok;
-    bool m_stall; // True when last assault_city returned Stall
-    u32 m_br_tot; // Last barrage pass total HP removed
-    u32 m_br_last; // Last barrage pass final-shot HP removed
 };
 
 #endif // WAR_TURN_HANDLER_H

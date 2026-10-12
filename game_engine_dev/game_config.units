@@ -48,7 +48,7 @@ Galleon             : SEA  : SEA_SCOUT       : NONE         :   50 :    4 :    4
 Ansar Warrior       : LAND : LAND_MOBILE     : NONE         :   50 :    4 :    2 :    6 :    2 : tech(Chivalry)                  : resource(Horses) : civ(Arabia)
 Privateer           : SEA  : SEA_MAIN_LINE   : NONE         :   50 :    2 :    2 :    8 :    2 : tech(Magnetism)                 : flag(IS_COASTAL)
 Rifleman            : LAND : LAND_DEFENSE    : RIFLEMAN     :   90 :    4 :    6 :    2 :    2 : tech(Replaceable Parts)         : resource(Saltpeter)
-Mobile SAM          : LAND : LAND_ANIT_AIR   : ARTILLERY    :  100 :    0 :    8 :    4 :    2 : tech(Rocketry)                  : resource(Oil)
+Mobile SAM          : LAND : LAND_ANTI_AIR   : ARTILLERY    :  100 :    0 :    8 :    4 :    2 : tech(Rocketry)                  : resource(Oil)
 Keshik              : LAND : LAND_MOBILE     : CAVALRY      :   50 :    4 :    2 :    6 :    2 : tech(Chivalry)                  : resource(Horses) : civ(Mongols)
 Carrack             : SEA  : SEA_MAIN_LINE   : NONE         :   50 :    3 :    2 :    8 :    2 : tech(Navigation)                : flag(IS_COASTAL) : civ(Portugal)
 Frigate             : SEA  : SEA_MAIN_LINE   : NONE         :   60 :    4 :    2 :    8 :    2 : tech(Magnetism)                 : flag(IS_COASTAL)
