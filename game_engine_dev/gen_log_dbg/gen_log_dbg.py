@@ -23,6 +23,7 @@ LOGS = [
     ("WarPeace", "unsigned seat, unsigned enemy, unsigned turn", "war peace seat=%u enemy=%u turn=%u\n"),
     ("WarTargets", "unsigned seat, unsigned enemy, unsigned tn, unsigned turn", "war targets seat=%u enemy=%u n=%u turn=%u\n"),
     ("WarArmySize", "unsigned seat, unsigned unit_n, unsigned size_sum, unsigned sx, unsigned sy, unsigned turn", "war army size seat=%u units=%u size=%u staging=(%u,%u) turn=%u\n"),
+    ("WarArmyGroups", "unsigned seat, unsigned grp_n, unsigned turn", "war army groups seat=%u grps=%u turn=%u\n"),
     ("WarCityCapture", "unsigned seat, unsigned from, unsigned x, unsigned y, unsigned turn", "war city capture seat=%u from=%u city=(%u,%u) turn=%u\n"),
     ("WarBeginFail", "unsigned seat_n, unsigned turn", "war begin fail seat_n=%u turn=%u\n"),
     ("WarSecBeginFail", "unsigned turn, unsigned reason", "war sec begin fail turn=%u reason=%u\n"),
@@ -69,6 +70,7 @@ LOGS = [
     ("PlayerTechDiscover", "u16 player, u16 tech", "player=%u tech=%u\n"),
     ("UnitState", "u16 owner, u16 unit, u16 x, u16 y", "unit state owner=%u unit=%u at=(%u,%u)\n"),
     ("ArmyInfo", "cstr tag", "army state=%s\n"),
+    ("UnitTypeCount", "u16 player, cstr info, u16 count, u16 total", "unit type count player=%u info=%s count=%u/%u\n"),
 ]
 
 ASSERTS = [
@@ -85,6 +87,7 @@ VALIDATES = [
     ("ArmyStateToWar", "GameState& state, u16 head"),
     ("ArmyStatePeace", "GameState& state, u16 head"),
     ("ArmyStateMusterGroup", "GameState& state, u16 sx, u16 sy, const u16* heads, u16 n"),
+    ("CountArtillery", "GameState& state, u16 player"),
 ]
 
 PROFS = [

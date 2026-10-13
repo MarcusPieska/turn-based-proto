@@ -143,6 +143,7 @@ bool SimpleDynStateIO::wr_seat (void* fp_raw, const PlayerState& ps, u16 small_w
         || std::fwrite(&ps.m_scout_2_idx, sizeof(ps.m_scout_2_idx), 1, fp) != 1
         || std::fwrite(&ps.m_scout_3_idx, sizeof(ps.m_scout_3_idx), 1, fp) != 1
         || std::fwrite(&ps.m_scout_4_idx, sizeof(ps.m_scout_4_idx), 1, fp) != 1
+        || std::fwrite(ps.m_general_idx, sizeof(u16), GENERAL_SLOTS, fp) != GENERAL_SLOTS
         || std::fwrite(&ps.m_last_turn_settler_count, sizeof(ps.m_last_turn_settler_count), 1, fp) != 1
         || std::fwrite(&ps.m_this_turn_settler_build_n, sizeof(ps.m_this_turn_settler_build_n), 1, fp) != 1
         || std::fwrite(&ps.m_last_turn_settler_build_n, sizeof(ps.m_last_turn_settler_build_n), 1, fp) != 1
@@ -223,6 +224,7 @@ bool SimpleDynStateIO::rd_seat (void* fp_raw, PlayerState& ps, u16 small_wonder_
         || std::fread(&ps.m_scout_2_idx, sizeof(ps.m_scout_2_idx), 1, fp) != 1
         || std::fread(&ps.m_scout_3_idx, sizeof(ps.m_scout_3_idx), 1, fp) != 1
         || std::fread(&ps.m_scout_4_idx, sizeof(ps.m_scout_4_idx), 1, fp) != 1
+        || std::fread(ps.m_general_idx, sizeof(u16), GENERAL_SLOTS, fp) != GENERAL_SLOTS
         || std::fread(&ps.m_last_turn_settler_count, sizeof(ps.m_last_turn_settler_count), 1, fp) != 1
         || std::fread(&ps.m_this_turn_settler_build_n, sizeof(ps.m_this_turn_settler_build_n), 1, fp) != 1
         || std::fread(&ps.m_last_turn_settler_build_n, sizeof(ps.m_last_turn_settler_build_n), 1, fp) != 1

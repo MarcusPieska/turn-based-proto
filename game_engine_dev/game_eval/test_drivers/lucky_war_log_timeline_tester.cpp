@@ -80,6 +80,8 @@ static char kind_ch (LuckyWarEv k) {
         return 'X';
     case LuckyWarEv::Upgrade:
         return 'U';
+    case LuckyWarEv::Groups:
+        return 'G';
     default:
         return '?';
     }
@@ -142,6 +144,9 @@ static void wr_ev_line (std::FILE* fp, const LuckyWarEvt& e) {
     case LuckyWarEv::Upgrade:
         std::fprintf(fp, "  t%-4u upgrade n=%u\n", t, a);
         break;
+    case LuckyWarEv::Groups:
+        std::fprintf(fp, "  t%-4u groups n=%u\n", t, a);
+        break;
     default:
         std::fprintf(fp, "  t%-4u ? a=%u b=%u\n", t, a, b);
         break;
@@ -186,6 +191,7 @@ static EvalNeed make_need () {
     n.logs().m_war_peace = 1;
     n.logs().m_war_peace_mock = 1;
     n.logs().m_war_army_size = 1;
+    n.logs().m_war_army_groups = 1;
     n.logs().m_war_city_capture = 1;
     n.logs().m_war_army_cant_fight = 1;
     n.logs().m_war_form_army_fail = 1;

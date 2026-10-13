@@ -6,6 +6,7 @@
 
 #include "combat_mng.h"
 #include "game_state.h"
+#include "general_move_boost.h"
 #include "log_dbg.h"
 #include "runtime_statics.h"
 #include "unit_action_enum.h"
@@ -233,6 +234,7 @@ static void refill_grp_mp (GameState& s, UnitAddKey head, u16 turn_mp) {
         }
         cur = UnitAddKey::from_raw(u->m_next_unit_in_group);
     }
+    GeneralMoveBoost::on_grp_refilled(s, head);
 }
 
 //================================================================================================================================

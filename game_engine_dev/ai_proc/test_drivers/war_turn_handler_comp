@@ -6,6 +6,7 @@ cd "$(dirname "$0")"
 LIB_SO="../../data_io/runtime_static_loader_lib.so"
 MAP_SO="../../adv_map_gen/map_gen.so"
 LUCKY_SO="../../game/lucky_seats/lucky_seats.so"
+LOG_SO="../../log_dbg/log_dbg.so"
 if [ ! -f "$LIB_SO" ]; then
     echo "missing $LIB_SO - run ../../data_io/runtime_static_loader_lib_comp first"
     exit 1
@@ -16,6 +17,10 @@ if [ ! -f "$MAP_SO" ]; then
 fi
 if [ ! -f "$LUCKY_SO" ]; then
     echo "missing $LUCKY_SO - run ../../game/lucky_seats/lucky_seat_lib_comp first"
+    exit 1
+fi
+if [ ! -f "$LOG_SO" ]; then
+    echo "missing $LOG_SO - run ../../log_dbg/log_dbg_comp first"
     exit 1
 fi
 
@@ -90,6 +95,12 @@ g++ $CXXFLAGS $INC -c ../../game/worker_build_progress.cpp -o worker_build_progr
 g++ $CXXFLAGS $INC -c ../../game/worker_guidance.cpp -o worker_guidance.o
 g++ $CXXFLAGS $INC -c ../../game/worker_helper.cpp -o worker_helper.o
 g++ $CXXFLAGS $INC -c ../../game/civ_relations.cpp -o civ_relations.o
+g++ $CXXFLAGS $INC -c ../../game/negotiate_peace.cpp -o negotiate_peace.o
+g++ $CXXFLAGS $INC -c ../war_target_policy.cpp -o war_target_policy.o
+g++ $CXXFLAGS $INC -c ../war_target_policy_sector_flood.cpp -o war_target_policy_sector_flood.o
+g++ $CXXFLAGS $INC -c ../war_target_secure_capital.cpp -o war_target_secure_capital.o
+g++ $CXXFLAGS $INC -c ../mock_muster_siege.cpp -o mock_muster_siege.o
+g++ $CXXFLAGS $INC -c ../tile_entry_resolver.cpp -o tile_entry_resolver.o
 g++ $CXXFLAGS $INC -c ../../adv_map_gen/map_gen_loader.cpp -o map_gen_loader.o
 g++ $CXXFLAGS $INC -c ../../game/lucky_seats/lucky_seat_loader.cpp -o lucky_seat_loader.o
 g++ $CXXFLAGS $INC -c ../../gen_bit_banks/general_bit_bank.cpp -o general_bit_bank.o
@@ -179,6 +190,7 @@ g++ $CXXFLAGS $INC -c ../war_staging_selector.cpp -o war_staging_selector.o
 g++ $CXXFLAGS $INC -c ../../game/unit_roster_mng.cpp -o unit_roster_mng.o
 g++ $CXXFLAGS $INC -c ../../game/unit_upgrades.cpp -o unit_upgrades.o
 g++ $CXXFLAGS $INC -c ../army_upgrade_mng.cpp -o army_upgrade_mng.o
+g++ $CXXFLAGS $INC -c ../general_move_boost.cpp -o general_move_boost.o
 g++ $CXXFLAGS $INC -c ../army_turn_handler.cpp -o army_turn_handler.o
 g++ $CXXFLAGS $INC -c ../war_turn_handler.cpp -o war_turn_handler.o
 g++ $CXXFLAGS $INC -c ../city_attack_manager.cpp -o city_attack_manager.o
@@ -243,6 +255,12 @@ g++ $CXXFLAGS -o war_turn_handler_tester \
     worker_guidance.o \
     worker_helper.o \
     civ_relations.o \
+    negotiate_peace.o \
+    war_target_policy.o \
+    war_target_policy_sector_flood.o \
+    war_target_secure_capital.o \
+    mock_muster_siege.o \
+    tile_entry_resolver.o \
     map_gen_loader.o \
     lucky_seat_loader.o \
     city.o \
@@ -322,6 +340,7 @@ g++ $CXXFLAGS -o war_turn_handler_tester \
     unit_roster_mng.o \
     unit_upgrades.o \
     army_upgrade_mng.o \
+    general_move_boost.o \
     army_turn_handler.o \
     war_turn_handler.o \
     city_attack_manager.o \
@@ -335,7 +354,10 @@ g++ $CXXFLAGS -o war_turn_handler_tester \
     war_turn_handler_tester.o \
     -ldl \
     $LIB_SO \
+    $LOG_SO \
     -Wl,-rpath,'$ORIGIN/../../data_io' \
+    -Wl,-rpath,'$ORIGIN/../../log_dbg' \
+    -Wl,--allow-shlib-undefined \
     -lm
 
 mkdir -p /home/w/Projects/simple-map-gen/war-turn-handler
@@ -343,7 +365,7 @@ echo "--- running war_turn_handler_tester ---"
 ./war_turn_handler_tester "$@"
 rm -f war_turn_handler_tester
 
-rm -f war_turn_handler_tester siege_snapshot.o city_attack_manager.o
+rm -f war_turn_handler_tester siege_snapshot.o city_attack_manager.o general_move_boost.o
 rm -f runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_loader.o \
     starting_point_generator.o runtime_trace_dbg.o map_bit_overlay.o \
     map_bit_array_overlay.o bit_array.o assert_log.o \

@@ -15,8 +15,8 @@ class EvalLog;
 //================================================================================================================================
 //
 //  Discovers lucky seats from war muster/capture/peace lines and fills per-seat event timelines.
-//  Start=muster, End=war peace, Muster/Army sizes, Capture, Loss, FormFail, DeclFail (skip
-//  reason 0), AssaultFail-stop, Upgrade (same-turn counts coalesced).
+//  Start=muster, End=war peace, Muster/Army sizes, Groups count, Capture, Loss, FormFail,
+//  DeclFail (skip reason 0), AssaultFail-stop, Upgrade (same-turn counts coalesced).
 //
 //================================================================================================================================
 

@@ -11,6 +11,7 @@
 #include "civ_static_key.h"
 #include "game_map_defs.h"
 #include "game_state.h"
+#include "general_move_boost.h"
 #include "runtime_statics.h"
 #include "tile_attr_tables.h"
 #include "unit_group_management.h"
@@ -271,7 +272,7 @@ static bool tile_stack_append (GameState& s, UnitAddKey key, u16 x, u16 y) {
     return false;
 }
 
-static void init_mvt_pts (GameState& s, UnitAddStruct* u) {
+static void init_mvt_pts (GameState& s, UnitAddStruct* u, u16 unit_idx) {
     u->m_mvt_points = 0;
     if (s.m_statics == nullptr || u == nullptr) {
         return;
@@ -283,6 +284,7 @@ static void init_mvt_pts (GameState& s, UnitAddStruct* u) {
     const u16 pts = s.m_statics->unit().get_item(UnitStaticDataKey::from_raw(u->m_unit_typ_idx)).mvt_pts;
     const u16 mp_turn = s.m_statics->config().get_mov_pt_per_turn();
     u->m_mvt_points = static_cast<i16>(pts * mp_turn);
+    GeneralMoveBoost::on_unit_refilled(s, unit_idx);
 }
 
 static UnitAddKey grp_prev_from (const GameState& s, UnitAddKey head, UnitAddKey tail) {
@@ -682,7 +684,7 @@ bool UnitMovementMng::finish_unit_spawn (UnitAddKey key, u16 x, u16 y, u16 playe
         }
     }
     unit->m_player_idx = player_idx;
-    init_mvt_pts(*s_state, unit);
+    init_mvt_pts(*s_state, unit, key.value());
     return tile_stack_append(*s_state, key, x, y);
 }
 
@@ -715,7 +717,7 @@ bool UnitMovementMng::place_on_tile (GameState& s, u16 x, u16 y, u16 player_idx,
     unit->m_health = UNIT_HEALTH;
     unit->m_level = 0;
     unit->m_next_unit_in_group = U16_KEY_NULL;
-    init_mvt_pts(s, unit);
+    init_mvt_pts(s, unit, key.value());
     if (!tile_stack_append(s, key, x, y)) {
         s.m_units.return_unit_add(key);
         return false;

@@ -7,6 +7,7 @@
 #include "city.h"
 #include "city_attack_manager.h"
 #include "game_state.h"
+#include "general_move_boost.h"
 #include "log_dbg.h"
 #include "runtime_statics.h"
 #include "tile_transfer.h"
@@ -44,6 +45,7 @@ void ArmyTurnHandler::refill_grp (GameState& s, u16 head_idx) {
         }
         cur = UnitAddKey::from_raw(u->m_next_unit_in_group);
     }
+    GeneralMoveBoost::on_grp_refilled(s, UnitAddKey::from_raw(head_idx));
 }
 
 void ArmyTurnHandler::claim_city (GameState& s, u16 seat, u16 x, u16 y) {

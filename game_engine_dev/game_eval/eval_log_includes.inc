@@ -8,6 +8,7 @@
 #include "log_dbg/log_war_peace.h"
 #include "log_dbg/log_war_targets.h"
 #include "log_dbg/log_war_army_size.h"
+#include "log_dbg/log_war_army_groups.h"
 #include "log_dbg/log_war_city_capture.h"
 #include "log_dbg/log_war_begin_fail.h"
 #include "log_dbg/log_war_sec_begin_fail.h"
@@ -54,3 +55,4 @@
 #include "log_dbg/log_player_tech_discover.h"
 #include "log_dbg/log_unit_state.h"
 #include "log_dbg/log_army_info.h"
+#include "log_dbg/log_unit_type_count.h"

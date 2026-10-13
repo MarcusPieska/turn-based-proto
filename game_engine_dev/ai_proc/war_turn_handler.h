@@ -41,6 +41,7 @@ class WarTurnHandler {
 public:
     static const u16 k_grp_cap = 1000u;
     static const u16 k_atk_cap = 20u;
+    static const u16 k_army_use = 10u; // Active army limit; raise toward k_atk_cap when ready 
     static const u8 k_exp_lim = 10u;
     static const u16 k_tgt_cap = 256u;
     static const u16 k_seat_cap = 256u;
@@ -63,6 +64,7 @@ public:
     bool flatten_muster ();
     bool form_army ();
     bool set_target_city (u16 enemy, u16* ox, u16* oy);
+    bool retarget_idle (u16 enemy, u16* ox, u16* oy);
     ArmyTurnRslt army_handle (u16 army_i = 0);
     void sync_from_army (u16 army_i = 0);
     bool stalled () const;
@@ -95,9 +97,13 @@ private:
     WarTurnHandler& operator= (WarTurnHandler&& o) = delete;
 
     bool set_goal (u16 x1, u16 y1, u16 x2, u16 y2);
+    bool set_goal_army (u16 army_i, u16 x2, u16 y2);
     void refill_grp (u16 head_idx);
     bool refill_targets (u16 enemy);
+    bool next_enemy_city (u16 enemy, u16* ox, u16* oy);
+    bool city_in_use (u16 x, u16 y, u16 skip_army) const;
     bool find_enemy_seed (u16 enemy, u16* ox, u16* oy) const;
+    u16 army_use_n () const;
 
     GameState& m_st;
     u16 m_seat;
@@ -105,7 +111,7 @@ private:
     WalkP2P m_mob; // Muster gradient to staging
     MusterCity m_grp[k_grp_cap];
     u16 m_grp_n;
-    WarArmy m_atk[k_atk_cap]; // Partitioned armies; hot path still drives slot 0 until multi advance
+    WarArmy m_atk[k_atk_cap]; // Partitioned armies; active count limited by k_army_use
     u16 m_atk_n;
     u16 m_tgts[k_tgt_cap]; // Flood-ordered enemy city indices
     u16 m_tgt_n; // Valid entries in m_tgts

@@ -23,7 +23,7 @@ class PlayerState;
 class SimpleDynStateIO {
 public:
     static const u32 k_magic = 0x53445950u; // 'SDYP'
-    static const u32 k_ver = 1u;
+    static const u32 k_ver = 2u;
 
     SimpleDynStateIO () = delete;
 

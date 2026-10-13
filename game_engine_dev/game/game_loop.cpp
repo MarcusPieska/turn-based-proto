@@ -17,6 +17,7 @@
 #include "game_array_simple.h"
 #include "game_map_defs.h"
 #include "game_state.h"
+#include "general_move_boost.h"
 #include "mock_muster_siege.h"
 #include "profile_time_opt.h"
 #include "ledger_balance_turn_handler.h"
@@ -78,6 +79,7 @@ static void refill_mp (GameState& state, u16 unit_idx) {
     GAME_EXPECT(state.m_statics != nullptr, "GameLoop refill_mp got nullptr statics");
     const u16 pts = state.m_statics->unit().get_item(UnitStaticDataKey::from_raw(u->m_unit_typ_idx)).mvt_pts;
     u->m_mvt_points = static_cast<i16>(pts * state.m_statics->config().get_mov_pt_per_turn());
+    GeneralMoveBoost::on_unit_refilled(state, unit_idx);
 }
 
 static void after_city_turns (GameState& state) {

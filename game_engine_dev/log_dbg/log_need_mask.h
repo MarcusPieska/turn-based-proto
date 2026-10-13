@@ -24,7 +24,7 @@
 //
 //================================================================================================================================
 
-static const u16 LOG_NEED_N = 55u;
+static const u16 LOG_NEED_N = 57u;
 
 struct LogNeedMask {
     u8 m_new_turn;
@@ -36,6 +36,7 @@ struct LogNeedMask {
     u8 m_war_peace;
     u8 m_war_targets;
     u8 m_war_army_size;
+    u8 m_war_army_groups;
     u8 m_war_city_capture;
     u8 m_war_begin_fail;
     u8 m_war_sec_begin_fail;
@@ -82,6 +83,7 @@ struct LogNeedMask {
     u8 m_player_tech_discover;
     u8 m_unit_state;
     u8 m_army_info;
+    u8 m_unit_type_count;
 
     LogNeedMask ();
     bool any () const;
@@ -102,6 +104,7 @@ inline LogNeedMask::LogNeedMask ()
       m_war_peace(0),
       m_war_targets(0),
       m_war_army_size(0),
+      m_war_army_groups(0),
       m_war_city_capture(0),
       m_war_begin_fail(0),
       m_war_sec_begin_fail(0),
@@ -147,7 +150,8 @@ inline LogNeedMask::LogNeedMask ()
       m_player_research_perc(0),
       m_player_tech_discover(0),
       m_unit_state(0),
-      m_army_info(0) {
+      m_army_info(0),
+      m_unit_type_count(0) {
 }
 
 inline bool LogNeedMask::any () const {
@@ -183,6 +187,7 @@ inline cstr LogNeedMask::nm (u16 i) {
         "WarPeace",
         "WarTargets",
         "WarArmySize",
+        "WarArmyGroups",
         "WarCityCapture",
         "WarBeginFail",
         "WarSecBeginFail",
@@ -229,6 +234,7 @@ inline cstr LogNeedMask::nm (u16 i) {
         "PlayerTechDiscover",
         "UnitState",
         "ArmyInfo",
+        "UnitTypeCount",
     };
     if (i >= LOG_NEED_N) {
         return "";
@@ -279,6 +285,11 @@ inline bool LogNeedMask::on (u16 i) {
         0u,
 #endif
 #if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_ARMY_SIZE))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_ARMY_GROUPS))
         1u,
 #else
         0u,
@@ -509,6 +520,11 @@ inline bool LogNeedMask::on (u16 i) {
         0u,
 #endif
 #if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_ARMY_INFO))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_UNIT_TYPE_COUNT))
         1u,
 #else
         0u,

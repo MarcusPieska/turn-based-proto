@@ -6,6 +6,7 @@
 #define GAME_STATE_H
 
 #define SETTLER_MISSION_SLOTS 20
+#define GENERAL_SLOTS 10
 
 #include "game_array_simple.h"
 #include "bit_array.h"
@@ -67,6 +68,9 @@ public:
             m_settle_x[i] = U16_KEY_NULL;
             m_settle_y[i] = U16_KEY_NULL;
         }
+        for (u16 i = 0; i < static_cast<u16>(GENERAL_SLOTS); ++i) {
+            m_general_idx[i] = U16_KEY_NULL;
+        }
     }
 
     u16* m_small_wonder_city = nullptr; // Built small wonder city index per catalog row; U16_KEY_NULL if none
@@ -105,7 +109,8 @@ public:
     u16 m_scout_2_idx = U16_KEY_NULL; // Scout unit slot 2
     u16 m_scout_3_idx = U16_KEY_NULL; // Scout unit slot 3
     u16 m_scout_4_idx = U16_KEY_NULL; // Scout unit slot 4
-    
+    u16 m_general_idx[GENERAL_SLOTS]; // General-commanded unit keys; U16_KEY_NULL if empty
+
     // The counters below are zeroed after the city turn loop; i.e., the city loop will know last turns unit counts
     u16 m_last_turn_settler_count = 0; // Settlers counted during last unit pass (SettlerTurnHandler::handle)
     u16 m_this_turn_settler_build_n = 0; // Settlers in city queues counted this city pass
@@ -127,7 +132,7 @@ public:
     u8 m_lucky = 0; // Nonzero if seat was marked lucky at setup
     u8 m_at_war = 0; // Sticky: set when this seat starts a war; blocks another declare
     AiUnits m_ai_units = AiUnits::AI_UNITS_DEFAULT; // Unit production policy; Default for all seats for now
-    u8 m_ai_units_tog = 0; // Aggressive civ-free pick toggle; 0 attack, 1 artillery
+    u8 m_ai_units_tog = 0; // Aggressive army role counter; %3 -> def/atk/arty
     ResourceLedger m_res_ledger; // Per-seat resource stockpile; length matches resource catalog
 };
 

@@ -71,6 +71,8 @@ def ev_tag(k, a, b):
         return clip_tag("assault"), "#c0392b"
     if k == "U":
         return clip_tag("upgr", a), "#16a085"
+    if k == "G":
+        return clip_tag("grp", a), "#2980b9"
     return None, None
 
 #================================================================================================================================
@@ -145,7 +147,7 @@ def main():
     ax.set_ylim(-1.5, n * band - 0.5)
     ax.set_xlabel("turn")
     ax.set_yticks([])
-    ax.set_title("Lucky war log (war/peace + C capture; mst/army/tgt/loss/form/decl/assault)")
+    ax.set_title("Lucky war log (war/peace + C capture; mst/army/grp/tgt/loss/form/decl/assault)")
     ax.grid(True, axis="x", alpha=0.25)
     fig.tight_layout()
     eval_dir.mkdir(parents=True, exist_ok=True)

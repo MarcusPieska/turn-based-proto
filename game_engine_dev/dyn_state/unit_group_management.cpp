@@ -12,8 +12,10 @@
 #include "unit_add_struct.h"
 #include "unit_add_vector.h"
 #include "unit_movement_mng.h"
+#include "unit_action_enum.h"
 #include "unit_role_enum.h"
 #include "unit_static_key.h"
+#include "unit_type_action_map.h"
 #include "unit_type_static_key.h"
 #include "unit_utility_helper.h"
 
@@ -86,7 +88,10 @@ static bool ug_is_role_none (const GameState& s, u16 typ_idx) {
 
 static bool ug_is_arty (const GameState& s, u16 typ_idx) {
     const u16 ut = ug_utype(s, typ_idx);
-    return ut != U16_KEY_NULL && ut == s.m_land_artillery_type_idx;
+    if (ut == U16_KEY_NULL || s.m_statics == nullptr) {
+        return false;
+    }
+    return s.m_statics->unit_type_action_map().unit_type_can_do(ut, static_cast<u16>(UnitAction::canBarrage));
 }
 
 static void ug_tile_unlink (GameState& s, UnitAddKey key) {

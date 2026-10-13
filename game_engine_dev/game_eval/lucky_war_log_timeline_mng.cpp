@@ -6,6 +6,7 @@
 
 #include "eval_log.h"
 #include "log_dbg/log_war_army_cant_fight.h"
+#include "log_dbg/log_war_army_groups.h"
 #include "log_dbg/log_war_army_size.h"
 #include "log_dbg/log_war_army_upgrade.h"
 #include "log_dbg/log_war_assault_fail_stop.h"
@@ -121,6 +122,16 @@ bool LuckyWarLogTimelineMng::fill (const EvalLog& log) {
             }
             m_last_army[idx] = army;
             (void)m_tl[idx].add(turn, LuckyWarEv::Army, army, static_cast<u16>(a2));
+            continue;
+        }
+        if (LOG_WAR_ARMY_GROUPS::PARSE(s, &a0, &a1, &a2)) {
+            u16 idx = 0;
+            if (!ensure(static_cast<u16>(a0), &idx)) {
+                continue;
+            }
+            const u16 turn = static_cast<u16>(a2);
+            note_turn(&m_max_turn, turn);
+            (void)m_tl[idx].add(turn, LuckyWarEv::Groups, static_cast<u16>(a1), 0u);
             continue;
         }
         if (LOG_WAR_CITY_CAPTURE::PARSE(s, &a0, &a1, &a2, &a3, &a4)) {
