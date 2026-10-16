@@ -37,7 +37,7 @@ static const char* G_CACHE_ROOT = "/home/w/Projects/simple-map-gen";
 static const char* G_SAVES_ROOT = "/home/w/Projects/game-saves";
 static const char* G_PPM_ROOT = "/home/w/Projects/simple-map-gen/game-loop-frames";
 static const char* G_TRACE_PATH = "/home/w/Projects/simple-map-gen/game_loop.trace";
-static u32 g_seed = 101u;
+static u32 g_seed = 5u;
 static u16 g_players = 0;
 static u32 g_turn_limit = 0;
 static u32 g_save_every = 0;
@@ -117,7 +117,7 @@ static bool parse_u32 (cstr s, u32* out) {
 }
 
 static void print_usage (cstr prog) {
-    std::printf("usage: %s <players> <turns> <save_interval> [ppm_every]\n",
+    std::printf("usage: %s <seed> <players> <turns> <save_interval> [ppm_every]\n",
         prog != nullptr ? prog : "game_loop_tester");
 }
 
@@ -559,24 +559,25 @@ void test_settler_count_in_unit_array () {
 int main (int argc, char* argv[]) {
     u32 players = 0;
     g_ppm_every = 0u;
-    if (argc < 4 || argc > 5
-        || !parse_u32(argv[1], &players)
-        || !parse_u32(argv[2], &g_turn_limit)
-        || !parse_u32(argv[3], &g_save_every)
+    if (argc < 5 || argc > 6
+        || !parse_u32(argv[1], &g_seed)
+        || !parse_u32(argv[2], &players)
+        || !parse_u32(argv[3], &g_turn_limit)
+        || !parse_u32(argv[4], &g_save_every)
         || players == 0
         || players > 0xffffu
         || g_turn_limit == 0) {
         print_usage(argc > 0 ? argv[0] : nullptr);
         return 1;
     }
-    if (argc == 5 && !parse_u32(argv[4], &g_ppm_every)) {
+    if (argc == 6 && !parse_u32(argv[5], &g_ppm_every)) {
         print_usage(argc > 0 ? argv[0] : nullptr);
         return 1;
     }
     g_players = static_cast<u16>(players);
     print_level = 1;
-    std::printf("players=%u turns=%u save_interval=%u ppm_every=%u\n",
-        g_players, g_turn_limit, g_save_every, g_ppm_every);
+    std::printf("seed=%u players=%u turns=%u save_interval=%u ppm_every=%u\n",
+        g_seed, g_players, g_turn_limit, g_save_every, g_ppm_every);
     test_game_loop_fast_path();
     test_settler_count_in_unit_array();
     std::printf("=======================================================\n");

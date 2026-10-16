@@ -13,7 +13,9 @@
 //=> - EvalPaths -
 //================================================================================================================================
 
-EvalPaths::EvalPaths () : m_seed(0), m_players(0), m_ok(false), m_save_turn_n(0) {
+static const u32 k_seed_none = static_cast<u32>(-1);
+
+EvalPaths::EvalPaths () : m_seed(k_seed_none), m_players(0), m_ok(false), m_save_turn_n(0) {
     m_out[0] = 0;
     m_saves[0] = 0;
     m_trace[0] = 0;
@@ -24,7 +26,7 @@ EvalPaths::EvalPaths () : m_seed(0), m_players(0), m_ok(false), m_save_turn_n(0)
 
 bool EvalPaths::load (cstr path) {
     m_ok = false;
-    m_seed = 0;
+    m_seed = k_seed_none;
     m_players = 0;
     m_out[0] = 0;
     m_saves[0] = 0;
@@ -73,7 +75,7 @@ bool EvalPaths::load (cstr path) {
             std::snprintf(m_trace, sizeof(m_trace), "%s", v);
         } else if (std::strcmp(key, "SEED") == 0) {
             unsigned long s = 0;
-            if (std::sscanf(v, "%lu", &s) != 1 || s == 0) {
+            if (std::sscanf(v, "%lu", &s) != 1 || s > 0xfffffffful) {
                 std::printf("EvalPaths: bad SEED '%s'\n", v);
                 std::fclose(fp);
                 return false;
@@ -94,7 +96,7 @@ bool EvalPaths::load (cstr path) {
         }
     }
     std::fclose(fp);
-    if (m_out[0] == 0 || m_saves[0] == 0 || m_trace[0] == 0 || m_seed == 0 || m_players == 0) {
+    if (m_out[0] == 0 || m_saves[0] == 0 || m_trace[0] == 0 || m_seed == k_seed_none || m_players == 0) {
         std::printf("EvalPaths: missing OUT_ROOT/SAVES_ROOT/TRACE_PATH/SEED/PLAYERS in %s\n", path);
         return false;
     }

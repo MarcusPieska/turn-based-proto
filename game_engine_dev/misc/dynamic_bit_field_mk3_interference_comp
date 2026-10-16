@@ -1,0 +1,16 @@
+#!/bin/bash
+
+INC="-I.. -I../gen_bit_banks"
+CXXFLAGS="-std=c++11 -Wall -Wextra"
+IMPL='-DDYNAMIC_BIT_FIELD_IMPL="impl/dynamic_bit_field_impl_mk03.cpp"'
+
+g++ $CXXFLAGS $INC $IMPL -c dynamic_bit_field.cpp -o dynamic_bit_field.o
+g++ $CXXFLAGS $INC -c ../gen_bit_banks/general_bit_bank.cpp -o general_bit_bank.o
+g++ $CXXFLAGS $INC -c dynamic_bit_field_mk3_interference_tester.cpp -o dynamic_bit_field_mk3_interference_tester.o
+
+g++ $CXXFLAGS -o dynamic_bit_field_mk3_interference_tester \
+    dynamic_bit_field.o \
+    general_bit_bank.o \
+    dynamic_bit_field_mk3_interference_tester.o
+
+rm dynamic_bit_field.o general_bit_bank.o dynamic_bit_field_mk3_interference_tester.o

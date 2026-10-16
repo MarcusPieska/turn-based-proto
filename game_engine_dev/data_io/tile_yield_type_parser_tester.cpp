@@ -654,6 +654,8 @@ void TileYieldTypeParserTester::pr_fx (cstr label, const ItemEffectsStruct& e) {
                 case ItemEffectBoosterType::CIV_NAVAL_UNIT_SUPPORT: tname = "CIV_NAVAL_UNIT_SUPPORT"; break;
                 case ItemEffectBoosterType::CITY_NAVAL_UNIT_SUPPORT: tname = "CITY_NAVAL_UNIT_SUPPORT"; break;
                 case ItemEffectBoosterType::MAX_UNIT_SIZE: tname = "MAX_UNIT_SIZE"; break;
+                case ItemEffectBoosterType::LAND_MVT_PTS: tname = "LAND_MVT_PTS"; break;
+                case ItemEffectBoosterType::SEA_MVT_PTS: tname = "SEA_MVT_PTS"; break;
                 default: break;
             }
             const char* sc = "?";

@@ -8,6 +8,7 @@
 #include "game_state.h"
 #include "general_move_boost.h"
 #include "log_dbg.h"
+#include "mvt_pts_boost_mng.h"
 #include "runtime_statics.h"
 #include "unit_action_enum.h"
 #include "unit_add_struct.h"
@@ -214,7 +215,7 @@ static bool purge_dead_foes (GameState& s, u16 x, u16 y, u16 atk_seat) {
     return true;
 }
 
-static void refill_grp_mp (GameState& s, UnitAddKey head, u16 turn_mp) {
+static void refill_grp_mp (GameState& s, UnitAddKey head) {
     if (s.m_statics == nullptr) {
         return;
     }
@@ -226,8 +227,7 @@ static void refill_grp_mp (GameState& s, UnitAddKey head, u16 turn_mp) {
             break;
         }
         if (u->m_unit_typ_idx < typ_n) {
-            const u16 pts = s.m_statics->unit().get_item(UnitStaticDataKey::from_raw(u->m_unit_typ_idx)).mvt_pts;
-            u->m_mvt_points = static_cast<i16>(pts * turn_mp);
+            MvtPtsBoostMng::fill(s, u);
         }
         if (u->m_next_unit_in_group == U16_KEY_NULL) {
             break;
@@ -242,11 +242,10 @@ static void refill_grp_mp (GameState& s, UnitAddKey head, u16 turn_mp) {
 //================================================================================================================================
 
 void CityAttackManager::refill_mp (GameState& s, UnitAddKey army_hd) {
-    const u16 turn_mp = mp_turn(s);
-    if (turn_mp == 0u || !army_hd.is_valid()) {
+    if (s.m_statics == nullptr || !army_hd.is_valid()) {
         return;
     }
-    refill_grp_mp(s, army_hd, turn_mp);
+    refill_grp_mp(s, army_hd);
 }
 
 bool CityAttackManager::barrage (
@@ -414,7 +413,7 @@ CityAssault CityAttackManager::melee (
         LOG_WAR_CAM_MELEE_FAIL::LOG(SC_U32(atk_seat), SC_U32(city_x), SC_U32(city_y), SC_U32(s.m_current_turn), 8u);
         return CityAssault::Fail;
     }
-    refill_grp_mp(s, go, turn_mp);
+    refill_grp_mp(s, go);
     {
         UnitAddStruct* gu = s.m_units.get_unit_add(go);
         const bool on_city = gu != nullptr && gu->m_x == city_x && gu->m_y == city_y;

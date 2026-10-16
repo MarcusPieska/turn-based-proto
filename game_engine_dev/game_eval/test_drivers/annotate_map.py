@@ -21,7 +21,7 @@ def load_anno(path: Path):
                 raise ValueError(f"bad annotation line (need x y text): {line}")
             x = int(parts[0])
             y = int(parts[1])
-            text = parts[2]
+            text = parts[2].replace("\\n", "\n")
             items.append((x, y, text))
     return items
 
@@ -45,15 +45,20 @@ def text_size(draw: ImageDraw.ImageDraw, text: str, font):
     return box[2] - box[0], box[3] - box[1]
 
 def draw_label(draw: ImageDraw.ImageDraw, x: int, y: int, text: str, font, fill, outline):
-    tw, th = text_size(draw, text, font)
-    tx = x - tw // 2
-    ty = y - th // 2
-    for dx in (-2, -1, 0, 1, 2):
-        for dy in (-2, -1, 0, 1, 2):
-            if dx == 0 and dy == 0:
-                continue
-            draw.text((tx + dx, ty + dy), text, font=font, fill=outline)
-    draw.text((tx, ty), text, font=font, fill=fill)
+    lines = text.split("\n")
+    sizes = [text_size(draw, line, font) for line in lines]
+    gap = max(2, sizes[0][1] // 5) if sizes else 2
+    block_h = sum(h for _, h in sizes) + gap * (len(lines) - 1)
+    ty = y - block_h // 2
+    for (line, (tw, th)) in zip(lines, sizes):
+        tx = x - tw // 2
+        for dx in (-2, -1, 0, 1, 2):
+            for dy in (-2, -1, 0, 1, 2):
+                if dx == 0 and dy == 0:
+                    continue
+                draw.text((tx + dx, ty + dy), line, font=font, fill=outline)
+        draw.text((tx, ty), line, font=font, fill=fill)
+        ty += th + gap
 
 def annotate(img_path: Path, anno_path: Path, out_path: Path, font_size: int):
     img = Image.open(img_path).convert("RGB")

@@ -6,6 +6,7 @@
 
 #include "assert_log.h"
 #include "game_state.h"
+#include "mvt_pts_boost_mng.h"
 #include "runtime_statics.h"
 #include "unit_add_struct.h"
 #include "unit_add_vector_key.h"
@@ -26,8 +27,7 @@ void WorkerBuildProgress::refill_mp (GameState& state, u16 unit_idx) {
     UnitAddStruct* u = state.m_units.get_unit_add(UnitAddKey::from_raw(unit_idx));
     GAME_EXPECT(u != nullptr, "WorkerBuildProgress::refill_mp null unit");
     GAME_EXPECT(state.m_statics != nullptr, "WorkerBuildProgress::refill_mp null statics");
-    const u16 pts = state.m_statics->unit().get_item(UnitStaticDataKey::from_raw(u->m_unit_typ_idx)).mvt_pts;
-    const i32 budget = static_cast<i32>(pts) * static_cast<i32>(state.m_statics->config().get_mov_pt_per_turn());
+    const i32 budget = MvtPtsBoostMng::budget(state, *u);
     if (u->m_mvt_points < 0) {
         u->m_mvt_points = static_cast<i16>(static_cast<i32>(u->m_mvt_points) + budget);
     } else {

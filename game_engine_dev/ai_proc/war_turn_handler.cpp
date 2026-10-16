@@ -18,6 +18,7 @@
 #include "game_state.h"
 #include "general_move_boost.h"
 #include "game_map_defs.h"
+#include "mvt_pts_boost_mng.h"
 #include "land_sector_network.h"
 #include "log_dbg.h"
 #include "mock_muster_siege.h"
@@ -327,9 +328,7 @@ void WarTurnHandler::refill_grp (u16 head_idx) {
             break;
         }
         if (u->m_unit_typ_idx < typ_n) {
-            const u16 pts = m_st.m_statics->unit().get_item(UnitStaticDataKey::from_raw(u->m_unit_typ_idx)).mvt_pts;
-            const u16 turn_mp = m_st.m_statics->config().get_mov_pt_per_turn();
-            u->m_mvt_points = static_cast<i16>(pts * turn_mp);
+            MvtPtsBoostMng::fill(m_st, u);
         }
         if (u->m_next_unit_in_group == U16_KEY_NULL) {
             break;

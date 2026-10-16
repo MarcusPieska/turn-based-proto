@@ -10,7 +10,9 @@
 class AddAccessHelper;
 class City;
 class CityArray;
+class DynamicBitField;
 class GeneralAssessor;
+class JobCountArray;
 class GameIo;
 class GameIoCmp;
 
@@ -25,12 +27,16 @@ public:
     bool is_flagged (u16 batch_idx, u16 flag_idx) const;
     void set_flag (u16 batch_idx, u16 flag_idx);
     void clear_flag (u16 batch_idx, u16 flag_idx);
+    u32 get_slice (u16 batch_idx, u16 bit_off, u8 width) const;
+    void set_slice (u16 batch_idx, u16 bit_off, u8 width, u32 val);
 
 private:
     friend class AddAccessHelper;
     friend class City;
     friend class CityArray;
+    friend class DynamicBitField;
     friend class GeneralAssessor;
+    friend class JobCountArray;
     friend class GameIo;
     friend class GameIoCmp;
 

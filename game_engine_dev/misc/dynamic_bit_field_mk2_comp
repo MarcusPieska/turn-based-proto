@@ -1,0 +1,14 @@
+#!/bin/bash
+
+INC="-I.."
+CXXFLAGS="-std=c++11 -Wall -Wextra"
+IMPL='-DDYNAMIC_BIT_FIELD_IMPL="impl/dynamic_bit_field_impl_mk02.cpp"'
+
+g++ $CXXFLAGS $INC $IMPL -c dynamic_bit_field.cpp -o dynamic_bit_field.o
+g++ $CXXFLAGS $INC -c dynamic_bit_field_mk2_tester.cpp -o dynamic_bit_field_mk2_tester.o
+
+g++ $CXXFLAGS -o dynamic_bit_field_mk2_tester \
+    dynamic_bit_field.o \
+    dynamic_bit_field_mk2_tester.o
+
+rm dynamic_bit_field.o dynamic_bit_field_mk2_tester.o

@@ -9,6 +9,7 @@
 #include "game_state.h"
 #include "general_move_boost.h"
 #include "log_dbg.h"
+#include "mvt_pts_boost_mng.h"
 #include "runtime_statics.h"
 #include "tile_transfer.h"
 #include "unit_action_enum.h"
@@ -36,9 +37,7 @@ void ArmyTurnHandler::refill_grp (GameState& s, u16 head_idx) {
             break;
         }
         if (u->m_unit_typ_idx < typ_n) {
-            const u16 pts = s.m_statics->unit().get_item(UnitStaticDataKey::from_raw(u->m_unit_typ_idx)).mvt_pts;
-            const u16 turn_mp = s.m_statics->config().get_mov_pt_per_turn();
-            u->m_mvt_points = static_cast<i16>(pts * turn_mp);
+            MvtPtsBoostMng::fill(s, u);
         }
         if (u->m_next_unit_in_group == U16_KEY_NULL) {
             break;

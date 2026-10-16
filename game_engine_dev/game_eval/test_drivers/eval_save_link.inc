@@ -31,6 +31,8 @@ compile_eval_save_deps () {
     g++ $CXXFLAGS $INC -c "$ROOT/game/resource_ledger.cpp" -o resource_ledger.o
     g++ $CXXFLAGS $INC -c "$ROOT/dyn_state/unit_add_vector.cpp" -o unit_add_vector.o
     g++ $CXXFLAGS $INC -c "$ROOT/dyn_state/unit_movement_mng.cpp" -o unit_movement_mng.o
+    g++ $CXXFLAGS $INC -c "$ROOT/game/mvt_pts_boost_mng.cpp" -o mvt_pts_boost_mng.o
+    g++ $CXXFLAGS $INC -c "$ROOT/ai_proc/general_move_boost.cpp" -o general_move_boost.o
     g++ $CXXFLAGS $INC -c "$ROOT/game/player_ledger.cpp" -o player_ledger.o
     g++ $CXXFLAGS $INC -c "$ROOT/game/tile_yields.cpp" -o tile_yields.o
     g++ $CXXFLAGS $INC -c "$ROOT/game/tile_working.cpp" -o tile_working.o
@@ -77,6 +79,8 @@ EVAL_SAVE_DEP_OBJS="\
     resource_ledger.o \
     unit_add_vector.o \
     unit_movement_mng.o \
+    mvt_pts_boost_mng.o \
+    general_move_boost.o \
     player_ledger.o \
     tile_yields.o \
     tile_working.o \

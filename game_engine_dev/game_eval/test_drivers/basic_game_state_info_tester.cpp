@@ -9,14 +9,18 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include "civ_static_key.h"
+#include "civ_trait_static_key.h"
 #include "eval_driver.h"
 #include "eval_need.h"
 #include "game_array_simple.h"
 #include "game_io.h"
 #include "game_map_defs.h"
 #include "game_state.h"
+#include "item_reqs.h"
 #include "map_own_save_snap.h"
 #include "runtime_static_loader.h"
+#include "runtime_statics.h"
 #include "tech_age_mng.h"
 
 //================================================================================================================================
@@ -146,6 +150,58 @@ static bool wr_seat_anno (cstr path, u32 turn, const u16* cx, const u16* cy, con
     return wrote > 0u;
 }
 
+static void trait_abbr (cstr name, char* out, u32 out_n) {
+    if (out == nullptr || out_n < 4u) {
+        return;
+    }
+    out[0] = 0;
+    if (name == nullptr) {
+        return;
+    }
+    u32 w = 0u;
+    for (u32 i = 0; name[i] != 0 && w < 3u; ++i) {
+        const char c = name[i];
+        if (c >= 'a' && c <= 'z') {
+            out[w++] = static_cast<char>(c - 32);
+        } else if (c >= 'A' && c <= 'Z') {
+            out[w++] = c;
+        }
+    }
+    out[w] = 0;
+}
+
+static void fmt_traits (const RuntimeStatics& st, u16 civ_idx, char* out, u32 out_n) {
+    if (out == nullptr || out_n == 0u) {
+        return;
+    }
+    out[0] = 0;
+    if (civ_idx >= st.civ().get_item_count()) {
+        return;
+    }
+    const CivTraitStruct& tr = st.civ().get_item(CivStaticDataKey::from_raw(civ_idx)).traits;
+    const u16 tn = st.civ_trait().get_item_count();
+    u32 pos = 0u;
+    for (u32 t = 0; t < MAX_CIV_TRAIT_COUNT; ++t) {
+        const u16 tix = tr.indices[t];
+        if (tix == U16_KEY_NULL || tix >= tn) {
+            continue;
+        }
+        char ab[4];
+        trait_abbr(st.civ_trait().get_name(CivTraitStaticDataKey::from_raw(tix)), ab, sizeof(ab));
+        if (ab[0] == 0) {
+            continue;
+        }
+        const int n = (pos == 0u)
+            ? std::snprintf(out + pos, out_n - pos, "%s", ab)
+            : std::snprintf(out + pos, out_n - pos, " - %s", ab);
+        if (n <= 0 || static_cast<u32>(n) >= out_n - pos) {
+            out[pos] = 0;
+            return;
+        }
+        pos = static_cast<u32>(pos + static_cast<u32>(n));
+    }
+}
+
 static bool wr_lucky_anno (
     cstr path,
     u32 turn,
@@ -153,7 +209,8 @@ static bool wr_lucky_anno (
     u16 seat_n,
     const u16* cx,
     const u16* cy,
-    const u32* sn) {
+    const u32* sn,
+    const RuntimeStatics& st) {
     if (path == nullptr || seats == nullptr || cx == nullptr || cy == nullptr || sn == nullptr) {
         return false;
     }
@@ -169,8 +226,15 @@ static bool wr_lucky_anno (
         if (seats[seat].m_lucky == 0u || sn[seat] == 0u) {
             continue;
         }
-        std::fprintf(fp, "%u %u Lucky: %u\n", static_cast<u32>(cx[seat]), static_cast<u32>(cy[seat]),
-            static_cast<u32>(seat));
+        char traits[32];
+        fmt_traits(st, seats[seat].m_civ_index, traits, sizeof(traits));
+        if (traits[0] != 0) {
+            std::fprintf(fp, "%u %u Lucky: %u\\n%s\n", static_cast<u32>(cx[seat]),
+                static_cast<u32>(cy[seat]), static_cast<u32>(seat), traits);
+        } else {
+            std::fprintf(fp, "%u %u Lucky: %u\n", static_cast<u32>(cx[seat]),
+                static_cast<u32>(cy[seat]), static_cast<u32>(seat));
+        }
         wrote = static_cast<u16>(wrote + 1u);
     }
     std::fclose(fp);
@@ -289,7 +353,7 @@ int BasicGameStateInfoTester::run () {
         TechAgeMng::clear();
         return 1;
     }
-    if (!wr_lucky_anno(anno_lucky, turn, seats, seat_n, cx, cy, sn)) {
+    if (!wr_lucky_anno(anno_lucky, turn, seats, seat_n, cx, cy, sn, loader.statics())) {
         std::printf("basic_game_state_info: lucky anno write failed\n");
         free_seats(seats, seat_n);
         TechAgeMng::clear();

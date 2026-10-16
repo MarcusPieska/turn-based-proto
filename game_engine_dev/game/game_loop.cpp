@@ -19,6 +19,7 @@
 #include "game_state.h"
 #include "general_move_boost.h"
 #include "mock_muster_siege.h"
+#include "mvt_pts_boost_mng.h"
 #include "profile_time_opt.h"
 #include "ledger_balance_turn_handler.h"
 #include "research_turn_handler.h"
@@ -77,8 +78,7 @@ static void refill_mp (GameState& state, u16 unit_idx) {
 
     GAME_EXPECT(u != nullptr, "GameLoop refill_mp got nullptr unit");
     GAME_EXPECT(state.m_statics != nullptr, "GameLoop refill_mp got nullptr statics");
-    const u16 pts = state.m_statics->unit().get_item(UnitStaticDataKey::from_raw(u->m_unit_typ_idx)).mvt_pts;
-    u->m_mvt_points = static_cast<i16>(pts * state.m_statics->config().get_mov_pt_per_turn());
+    MvtPtsBoostMng::fill(state, u);
     GeneralMoveBoost::on_unit_refilled(state, unit_idx);
 }
 
@@ -323,6 +323,7 @@ static void check_start_wars (GameState& state) {
 static void run_unit_turns (GameState& state) {
     PTO_START(PtoId::PTO_UNIT_LOOP);
     GAME_EXPECT(state.m_statics != nullptr, "GameLoop run_unit_turns got nullptr statics");
+    MvtPtsBoostMng::refresh(state);
 
     const u32 scan_n = static_cast<u32>(state.m_units.get_head_unit_add_idx());
     for (u32 idx = 0; idx < scan_n; ++idx) {
@@ -412,6 +413,10 @@ bool GameLoop::begin (GameState* state, cstr trace_path) {
     if (!UnitMovementMng::setup_mvt_costs(*state->m_statics)) {
         return false;
     }
+    if (!MvtPtsBoostMng::setup(state->m_player_n)) {
+        return false;
+    }
+    MvtPtsBoostMng::refresh(*state);
     if (!CombatMng::setup(*state->m_statics)) {
         return false;
     }
@@ -455,6 +460,7 @@ void GameLoop::end () {
     UnitUtilityHelper::clear();
     UnitRosterMng::clear();
     CombatMng::clear();
+    MvtPtsBoostMng::clear();
     if (WhiteboardMng::chkout() == 0u) {
         WhiteboardMng::terminate();
     }

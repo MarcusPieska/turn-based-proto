@@ -4,6 +4,8 @@
 
 #include "unit_movement_mng.h"
 
+#include "mvt_pts_boost_mng.h"
+
 #include "assert_log.h"
 #include "civ_relations.h"
 #include "unit_add_vector.h"
@@ -281,9 +283,7 @@ static void init_mvt_pts (GameState& s, UnitAddStruct* u, u16 unit_idx) {
     if (u->m_unit_typ_idx >= typ_n) {
         return;
     }
-    const u16 pts = s.m_statics->unit().get_item(UnitStaticDataKey::from_raw(u->m_unit_typ_idx)).mvt_pts;
-    const u16 mp_turn = s.m_statics->config().get_mov_pt_per_turn();
-    u->m_mvt_points = static_cast<i16>(pts * mp_turn);
+    MvtPtsBoostMng::fill(s, u);
     GeneralMoveBoost::on_unit_refilled(s, unit_idx);
 }
 

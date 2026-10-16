@@ -70,7 +70,9 @@ enum class ItemEffectBoosterType : u16 {
     CITY_LAND_UNIT_SUPPORT = 27,
     CIV_NAVAL_UNIT_SUPPORT = 28,
     CITY_NAVAL_UNIT_SUPPORT = 29,
-    MAX_UNIT_SIZE = 30
+    MAX_UNIT_SIZE = 30,
+    LAND_MVT_PTS = 31,
+    SEA_MVT_PTS = 32
 };
 
 enum class ItemTerrainYield : u8 {
