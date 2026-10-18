@@ -17,6 +17,7 @@
 #include "city_tile_manager.h"
 #include "city_border.h"
 #include "city_connector.h"
+#include "job_count_array.h"
 #include "tech_age_mng.h"
 
 //================================================================================================================================
@@ -72,6 +73,7 @@ void GameState::clear () {
     PlayerLedger::bind_state(nullptr);
     ResourceTurnHandler::clear();
     TechAgeMng::clear();
+    JobCountArray::clear();
     TileYields::bind_map(nullptr);
     TileWorking::bind_map(nullptr);
     WorkerGuidance::bind_map(nullptr);

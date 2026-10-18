@@ -31,8 +31,12 @@ static EffectCtx make_ctx (GameState& state, u16 city_idx, u16 owner) {
     ctx.m_owner = owner;
     ctx.m_city_idx = city_idx;
     if (state.m_player_states != nullptr && owner < state.m_player_n) {
-        ctx.m_tech = state.m_player_states[owner].m_techs_researched;
-        ctx.m_small_wonder_city = state.m_player_states[owner].m_small_wonder_city;
+        const PlayerState& ps = state.m_player_states[owner];
+        ctx.m_tech = ps.m_techs_researched;
+        ctx.m_small_wonder_city = ps.m_small_wonder_city;
+        if (state.m_statics != nullptr) {
+            effect_ctx_bind_civ_traits(ctx, *state.m_statics, ps.m_civ_index);
+        }
     }
     ctx.m_bld_bank = state.m_cities.get_bld_bank();
     ctx.m_wonder_city = state.m_wonder_city;
@@ -64,13 +68,14 @@ DynJobYieldPack JobTargetManager::fill (GameState& state, u16 city_idx, u16 trai
     const u16 owner = city->get_owner();
     GAME_EXPECT_RET(owner < state.m_player_n, empty, "JobTargetManager owner");
 
+    RuntimeStatics& st = *const_cast<RuntimeStatics*>(state.m_statics);
+    DynJobYieldRegister& yld = st.dyn_job_yield();
     const u16 left = leftover_pops(state, city, city_idx);
     if (left == 0) {
+        yld.reset_remain();
         return empty;
     }
 
-    RuntimeStatics& st = *const_cast<RuntimeStatics*>(state.m_statics);
-    DynJobYieldRegister& yld = st.dyn_job_yield();
     const DynJobSlotRegister& slots = st.dyn_job_slot();
     const EffectCtx ctx = make_ctx(state, city_idx, owner);
     if (state.m_player_states[owner].m_lucky != 0u) {

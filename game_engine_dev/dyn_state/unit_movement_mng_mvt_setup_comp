@@ -19,7 +19,11 @@ INC="-I. \
      -I../city/assessor \
      -I../city/effector \
      -I../gen_bit_banks \
-     -I../gen_effector"
+     -I../gen_effector \
+     -I../ai_pathing/walk_general \
+     -I../ai_pathing/walk_cities \
+     -I../map_loader \
+     -I../ai_proc"
 CXXFLAGS="-std=c++17 -Wall -Wextra"
 
 g++ $CXXFLAGS $INC -c ../data_io/runtime_static_loader.cpp -o runtime_static_loader.o

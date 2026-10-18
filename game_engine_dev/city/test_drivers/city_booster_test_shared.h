@@ -13,6 +13,7 @@
 #include "building_static_key.h"
 #include "city.h"
 #include "city_array.h"
+#include "city_border.h"
 #include "factory_game_array_simple.h"
 #include "game_state.h"
 #include "player_ledger.h"
@@ -45,6 +46,7 @@ struct CityBoosterTestEnv {
         delete[] m_seat.m_small_wonder_city;
         PlayerLedger::bind_state(nullptr);
         UnitMovementMng::bind_state(nullptr);
+        CityBorder::bind_map(nullptr);
         City::bind_wonder_cities(nullptr);
         City::bind_player_states(nullptr, 0);
         City::bind_units(nullptr);
@@ -67,7 +69,6 @@ struct CityBoosterTestEnv {
         for (u16 i = 0; i < wonder_n; ++i) {
             m_wonder_city[i] = U16_KEY_NULL;
         }
-        m_seat = {};
         if (sw_n > 0) {
             m_seat.m_small_wonder_city = new u16[sw_n];
             for (u16 i = 0; i < sw_n; ++i) {
@@ -87,6 +88,7 @@ struct CityBoosterTestEnv {
         City::bind_wonder_cities(m_wonder_city);
         City::bind_player_states(m_state.m_player_states, m_state.m_player_n);
         City::bind_units(&m_state.m_units);
+        CityBorder::bind_map(&m_state.m_map);
         PlayerLedger::bind_state(&m_state);
         UnitMovementMng::bind_state(&m_state);
         m_city_idx = m_array.get_next_new_city_idx();
@@ -157,19 +159,17 @@ struct CityBoosterTestEnv {
 
     const UnitAddStruct* find_spawned_unit (u16 typ, u16 x, u16 y) const {
         const UnitAddStruct* best = nullptr;
-        u16 best_key = 0;
-        for (u16 k = 0; k < 4096; ++k) {
-            const UnitAddStruct* u = m_state.m_units.get_unit_add(UnitAddKey::from_raw(k));
+        u16 hd = m_state.m_map.get_unit_hd(x, y);
+        while (hd != U16_KEY_NULL) {
+            const UnitAddStruct* u = m_state.m_units.get_unit_add(UnitAddKey::from_raw(hd));
             if (u == nullptr) {
-                continue;
+                break;
             }
-            if (u->m_unit_typ_idx != typ || u->m_x != x || u->m_y != y) {
-                continue;
-            }
-            if (best == nullptr || k >= best_key) {
-                best_key = k;
+            const u16 nxt = static_cast<u16>(u->m_next_unit_on_tile);
+            if (u->m_unit_typ_idx == typ) {
                 best = u;
             }
+            hd = nxt;
         }
         return best;
     }

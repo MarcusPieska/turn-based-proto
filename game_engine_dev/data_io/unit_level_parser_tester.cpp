@@ -11,20 +11,20 @@
 
 #include <cstdio>
 
-#include "tile_attribute_parser_tester.h"
+#include "unit_level_parser_tester.h"
 #include "item_effect_helpers.h"
 
 //================================================================================================================================
 //=> - Static members -
 //================================================================================================================================
 
-TileAttributeParserTester* TileAttributeParserTester::s_inst = NULL;
+UnitLevelParserTester* UnitLevelParserTester::s_inst = NULL;
 
 //================================================================================================================================
-//=> - TileAttributeParserTester implementation -
+//=> - UnitLevelParserTester implementation -
 //================================================================================================================================
 
-TileAttributeParserTester::TileAttributeParserTester () : 
+UnitLevelParserTester::UnitLevelParserTester () : 
     m_plvl(0), 
     m_out(NULL), 
     m_building_sd(NULL),
@@ -34,7 +34,6 @@ TileAttributeParserTester::TileAttributeParserTester () :
     m_city_job_sd(NULL),
     m_civ_sd(NULL),
     m_civ_trait_sd(NULL),
-    m_tile_attribute_sd(NULL),
     m_resource_sd(NULL),
     m_res_dist_sd(NULL),
     m_res_type_sd(NULL),
@@ -46,6 +45,7 @@ TileAttributeParserTester::TileAttributeParserTester () :
     m_unit_role_sd(NULL),
     m_unit_type_sd(NULL),
     m_unit_domain_sd(NULL),
+    m_unit_level_sd(NULL),
     m_unit_sd(NULL),
     m_wonder_sd(NULL),
     m_map_overlay_sd(NULL),
@@ -65,7 +65,6 @@ TileAttributeParserTester::TileAttributeParserTester () :
     m_city_job_psr(NULL),
     m_civ_psr(NULL),
     m_civ_trait_psr(NULL),
-    m_tile_attribute_psr(NULL),
     m_resource_psr(NULL),
     m_res_dist_psr(NULL),
     m_res_type_psr(NULL),
@@ -77,6 +76,7 @@ TileAttributeParserTester::TileAttributeParserTester () :
     m_unit_role_psr(NULL),
     m_unit_type_psr(NULL),
     m_unit_domain_psr(NULL),
+    m_unit_level_psr(NULL),
     m_unit_psr(NULL),
     m_wonder_psr(NULL),
     m_map_overlay_psr(NULL),
@@ -92,215 +92,215 @@ TileAttributeParserTester::TileAttributeParserTester () :
 {
 }
 
-void TileAttributeParserTester::set_building_sd (const BuildingStaticData* sd) {
+void UnitLevelParserTester::set_building_sd (const BuildingStaticData* sd) {
 
     m_building_sd = sd;
 
 }
 
-void TileAttributeParserTester::set_toggle_city_sd (const ToggleCityStaticData* sd) {
+void UnitLevelParserTester::set_toggle_city_sd (const ToggleCityStaticData* sd) {
 
     m_toggle_city_sd = sd;
 
 }
 
-void TileAttributeParserTester::set_toggle_civ_sd (const ToggleCivStaticData* sd) {
+void UnitLevelParserTester::set_toggle_civ_sd (const ToggleCivStaticData* sd) {
 
     m_toggle_civ_sd = sd;
 
 }
 
-void TileAttributeParserTester::set_toggle_global_sd (const ToggleGlobalStaticData* sd) {
+void UnitLevelParserTester::set_toggle_global_sd (const ToggleGlobalStaticData* sd) {
 
     m_toggle_global_sd = sd;
 
 }
 
-void TileAttributeParserTester::set_city_job_sd (const CityJobStaticData* sd) {
+void UnitLevelParserTester::set_city_job_sd (const CityJobStaticData* sd) {
 
     m_city_job_sd = sd;
 
 }
 
-void TileAttributeParserTester::set_civ_sd (const CivStaticData* sd) {
+void UnitLevelParserTester::set_civ_sd (const CivStaticData* sd) {
 
     m_civ_sd = sd;
 
 }
 
-void TileAttributeParserTester::set_civ_trait_sd (const CivTraitStaticData* sd) {
+void UnitLevelParserTester::set_civ_trait_sd (const CivTraitStaticData* sd) {
 
     m_civ_trait_sd = sd;
 
 }
 
-void TileAttributeParserTester::set_tile_attribute_sd (const TileAttributeStaticData* sd) {
-
-    m_tile_attribute_sd = sd;
-
-}
-
-void TileAttributeParserTester::set_resource_sd (const ResourceStaticData* sd) {
+void UnitLevelParserTester::set_resource_sd (const ResourceStaticData* sd) {
 
     m_resource_sd = sd;
 
 }
 
-void TileAttributeParserTester::set_res_dist_sd (const ResDistStaticData* sd) {
+void UnitLevelParserTester::set_res_dist_sd (const ResDistStaticData* sd) {
 
     m_res_dist_sd = sd;
 
 }
 
-void TileAttributeParserTester::set_res_type_sd (const ResTypeStaticData* sd) {
+void UnitLevelParserTester::set_res_type_sd (const ResTypeStaticData* sd) {
 
     m_res_type_sd = sd;
 
 }
 
-void TileAttributeParserTester::set_small_wonder_sd (const SmallWonderStaticData* sd) {
+void UnitLevelParserTester::set_small_wonder_sd (const SmallWonderStaticData* sd) {
 
     m_small_wonder_sd = sd;
 
 }
 
-void TileAttributeParserTester::set_tech_era_sd (const TechEraStaticData* sd) {
+void UnitLevelParserTester::set_tech_era_sd (const TechEraStaticData* sd) {
 
     m_tech_era_sd = sd;
 
 }
 
-void TileAttributeParserTester::set_tech_age_sd (const TechAgeStaticData* sd) {
+void UnitLevelParserTester::set_tech_age_sd (const TechAgeStaticData* sd) {
 
     m_tech_age_sd = sd;
 
 }
 
-void TileAttributeParserTester::set_tech_sd (const TechStaticData* sd) {
+void UnitLevelParserTester::set_tech_sd (const TechStaticData* sd) {
 
     m_tech_sd = sd;
 
 }
 
-void TileAttributeParserTester::set_unit_action_sd (const UnitActionStaticData* sd) {
+void UnitLevelParserTester::set_unit_action_sd (const UnitActionStaticData* sd) {
 
     m_unit_action_sd = sd;
 
 }
 
-void TileAttributeParserTester::set_unit_role_sd (const UnitRoleStaticData* sd) {
+void UnitLevelParserTester::set_unit_role_sd (const UnitRoleStaticData* sd) {
 
     m_unit_role_sd = sd;
 
 }
 
-void TileAttributeParserTester::set_unit_type_sd (const UnitTypeStaticData* sd) {
+void UnitLevelParserTester::set_unit_type_sd (const UnitTypeStaticData* sd) {
 
     m_unit_type_sd = sd;
 
 }
 
-void TileAttributeParserTester::set_unit_domain_sd (const UnitDomainStaticData* sd) {
+void UnitLevelParserTester::set_unit_domain_sd (const UnitDomainStaticData* sd) {
 
     m_unit_domain_sd = sd;
 
 }
 
-void TileAttributeParserTester::set_unit_sd (const UnitStaticData* sd) {
+void UnitLevelParserTester::set_unit_level_sd (const UnitLevelStaticData* sd) {
+
+    m_unit_level_sd = sd;
+
+}
+
+void UnitLevelParserTester::set_unit_sd (const UnitStaticData* sd) {
 
     m_unit_sd = sd;
 
 }
 
-void TileAttributeParserTester::set_wonder_sd (const WonderStaticData* sd) {
+void UnitLevelParserTester::set_wonder_sd (const WonderStaticData* sd) {
 
     m_wonder_sd = sd;
 
 }
 
-void TileAttributeParserTester::set_map_overlay_sd (const MapOverlayStaticData* sd) {
+void UnitLevelParserTester::set_map_overlay_sd (const MapOverlayStaticData* sd) {
 
     m_map_overlay_sd = sd;
 
 }
 
-void TileAttributeParserTester::set_map_attribute_sd (const MapAttributeStaticData* sd) {
+void UnitLevelParserTester::set_map_attribute_sd (const MapAttributeStaticData* sd) {
 
     m_map_attribute_sd = sd;
 
 }
 
-void TileAttributeParserTester::set_map_terrain_sd (const MapTerrainStaticData* sd) {
+void UnitLevelParserTester::set_map_terrain_sd (const MapTerrainStaticData* sd) {
 
     m_map_terrain_sd = sd;
 
 }
 
-void TileAttributeParserTester::set_map_climate_sd (const MapClimateStaticData* sd) {
+void UnitLevelParserTester::set_map_climate_sd (const MapClimateStaticData* sd) {
 
     m_map_climate_sd = sd;
 
 }
 
-void TileAttributeParserTester::set_worker_job_target_sd (const WorkerJobTargetStaticData* sd) {
+void UnitLevelParserTester::set_worker_job_target_sd (const WorkerJobTargetStaticData* sd) {
 
     m_worker_job_target_sd = sd;
 
 }
 
-void TileAttributeParserTester::set_worker_job_type_sd (const WorkerJobTypeStaticData* sd) {
+void UnitLevelParserTester::set_worker_job_type_sd (const WorkerJobTypeStaticData* sd) {
 
     m_worker_job_type_sd = sd;
 
 }
 
-void TileAttributeParserTester::set_worker_job_sd (const WorkerJobStaticData* sd) {
+void UnitLevelParserTester::set_worker_job_sd (const WorkerJobStaticData* sd) {
 
     m_worker_job_sd = sd;
 
 }
 
-void TileAttributeParserTester::set_worker_job_imp_sd (const WorkerJobImpStaticData* sd) {
+void UnitLevelParserTester::set_worker_job_imp_sd (const WorkerJobImpStaticData* sd) {
 
     m_worker_job_imp_sd = sd;
 
 }
 
-void TileAttributeParserTester::set_tile_yield_type_sd (const TileYieldTypeStaticData* sd) {
+void UnitLevelParserTester::set_tile_yield_type_sd (const TileYieldTypeStaticData* sd) {
 
     m_tile_yield_type_sd = sd;
 
 }
 
-void TileAttributeParserTester::set_improvement_yield_sd (const ImprovementYieldStaticData* sd) {
+void UnitLevelParserTester::set_improvement_yield_sd (const ImprovementYieldStaticData* sd) {
 
     m_improvement_yield_sd = sd;
 
 }
 
-FILE* TileAttributeParserTester::out () const {
+FILE* UnitLevelParserTester::out () const {
     return m_out != NULL ? m_out : stdout;
 }
 
-void TileAttributeParserTester::open_writer () {
+void UnitLevelParserTester::open_writer () {
     if (m_out != NULL) {
         return;
     }
-    m_out = fopen("RESULTS_NEW_TILE_ATTRIBUTE", "w");
+    m_out = fopen("RESULTS_NEW_UNIT_LEVEL", "w");
 }
 
-void TileAttributeParserTester::close_writer () {
+void UnitLevelParserTester::close_writer () {
     if (m_out != NULL) {
         fclose(m_out);
         m_out = NULL;
     }
 }
 
-void TileAttributeParserTester::set_plvl (int lvl) {
+void UnitLevelParserTester::set_plvl (int lvl) {
     m_plvl = lvl;
 }
 
-bool TileAttributeParserTester::ld_sm (StringManager& sm, cstr path) {
+bool UnitLevelParserTester::ld_sm (StringManager& sm, cstr path) {
     if (sm.load_file_content(path)) {
         sm.split_string_by_char(0, '\n');
         DataParserBase::normalize_lines(sm);
@@ -312,236 +312,236 @@ bool TileAttributeParserTester::ld_sm (StringManager& sm, cstr path) {
     return false;
 }
 
-u16 TileAttributeParserTester::st_building_n2i (cstr name) {
+u16 UnitLevelParserTester::st_building_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_building_psr == NULL) {
         return U16_KEY_NULL;
     }
     return s_inst->m_building_psr->name_to_idx(name);
 }
 
-u16 TileAttributeParserTester::st_toggle_city_n2i (cstr name) {
+u16 UnitLevelParserTester::st_toggle_city_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_toggle_city_psr == NULL) {
         return U16_KEY_NULL;
     }
     return s_inst->m_toggle_city_psr->name_to_idx(name);
 }
 
-u16 TileAttributeParserTester::st_toggle_civ_n2i (cstr name) {
+u16 UnitLevelParserTester::st_toggle_civ_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_toggle_civ_psr == NULL) {
         return U16_KEY_NULL;
     }
     return s_inst->m_toggle_civ_psr->name_to_idx(name);
 }
 
-u16 TileAttributeParserTester::st_toggle_global_n2i (cstr name) {
+u16 UnitLevelParserTester::st_toggle_global_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_toggle_global_psr == NULL) {
         return U16_KEY_NULL;
     }
     return s_inst->m_toggle_global_psr->name_to_idx(name);
 }
 
-u16 TileAttributeParserTester::st_city_job_n2i (cstr name) {
+u16 UnitLevelParserTester::st_city_job_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_city_job_psr == NULL) {
         return U16_KEY_NULL;
     }
     return s_inst->m_city_job_psr->name_to_idx(name);
 }
 
-u16 TileAttributeParserTester::st_civ_n2i (cstr name) {
+u16 UnitLevelParserTester::st_civ_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_civ_psr == NULL) {
         return U16_KEY_NULL;
     }
     return s_inst->m_civ_psr->name_to_idx(name);
 }
 
-u16 TileAttributeParserTester::st_civ_trait_n2i (cstr name) {
+u16 UnitLevelParserTester::st_civ_trait_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_civ_trait_psr == NULL) {
         return U16_KEY_NULL;
     }
     return s_inst->m_civ_trait_psr->name_to_idx(name);
 }
 
-u16 TileAttributeParserTester::st_tile_attribute_n2i (cstr name) {
-    if (s_inst == NULL || s_inst->m_tile_attribute_psr == NULL) {
-        return U16_KEY_NULL;
-    }
-    return s_inst->m_tile_attribute_psr->name_to_idx(name);
-}
-
-u16 TileAttributeParserTester::st_resource_n2i (cstr name) {
+u16 UnitLevelParserTester::st_resource_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_resource_psr == NULL) {
         return U16_KEY_NULL;
     }
     return s_inst->m_resource_psr->name_to_idx(name);
 }
 
-u16 TileAttributeParserTester::st_res_dist_n2i (cstr name) {
+u16 UnitLevelParserTester::st_res_dist_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_res_dist_psr == NULL) {
         return U16_KEY_NULL;
     }
     return s_inst->m_res_dist_psr->name_to_idx(name);
 }
 
-u16 TileAttributeParserTester::st_res_type_n2i (cstr name) {
+u16 UnitLevelParserTester::st_res_type_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_res_type_psr == NULL) {
         return U16_KEY_NULL;
     }
     return s_inst->m_res_type_psr->name_to_idx(name);
 }
 
-u16 TileAttributeParserTester::st_small_wonder_n2i (cstr name) {
+u16 UnitLevelParserTester::st_small_wonder_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_small_wonder_psr == NULL) {
         return U16_KEY_NULL;
     }
     return s_inst->m_small_wonder_psr->name_to_idx(name);
 }
 
-u16 TileAttributeParserTester::st_tech_era_n2i (cstr name) {
+u16 UnitLevelParserTester::st_tech_era_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_tech_era_psr == NULL) {
         return U16_KEY_NULL;
     }
     return s_inst->m_tech_era_psr->name_to_idx(name);
 }
 
-u16 TileAttributeParserTester::st_tech_age_n2i (cstr name) {
+u16 UnitLevelParserTester::st_tech_age_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_tech_age_psr == NULL) {
         return U16_KEY_NULL;
     }
     return s_inst->m_tech_age_psr->name_to_idx(name);
 }
 
-u16 TileAttributeParserTester::st_tech_n2i (cstr name) {
+u16 UnitLevelParserTester::st_tech_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_tech_psr == NULL) {
         return U16_KEY_NULL;
     }
     return s_inst->m_tech_psr->name_to_idx(name);
 }
 
-u16 TileAttributeParserTester::st_unit_action_n2i (cstr name) {
+u16 UnitLevelParserTester::st_unit_action_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_unit_action_psr == NULL) {
         return U16_KEY_NULL;
     }
     return s_inst->m_unit_action_psr->name_to_idx(name);
 }
 
-u16 TileAttributeParserTester::st_unit_role_n2i (cstr name) {
+u16 UnitLevelParserTester::st_unit_role_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_unit_role_psr == NULL) {
         return U16_KEY_NULL;
     }
     return s_inst->m_unit_role_psr->name_to_idx(name);
 }
 
-u16 TileAttributeParserTester::st_unit_type_n2i (cstr name) {
+u16 UnitLevelParserTester::st_unit_type_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_unit_type_psr == NULL) {
         return U16_KEY_NULL;
     }
     return s_inst->m_unit_type_psr->name_to_idx(name);
 }
 
-u16 TileAttributeParserTester::st_unit_domain_n2i (cstr name) {
+u16 UnitLevelParserTester::st_unit_domain_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_unit_domain_psr == NULL) {
         return U16_KEY_NULL;
     }
     return s_inst->m_unit_domain_psr->name_to_idx(name);
 }
 
-u16 TileAttributeParserTester::st_unit_n2i (cstr name) {
+u16 UnitLevelParserTester::st_unit_level_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_unit_level_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_unit_level_psr->name_to_idx(name);
+}
+
+u16 UnitLevelParserTester::st_unit_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_unit_psr == NULL) {
         return U16_KEY_NULL;
     }
     return s_inst->m_unit_psr->name_to_idx(name);
 }
 
-u16 TileAttributeParserTester::st_wonder_n2i (cstr name) {
+u16 UnitLevelParserTester::st_wonder_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_wonder_psr == NULL) {
         return U16_KEY_NULL;
     }
     return s_inst->m_wonder_psr->name_to_idx(name);
 }
 
-u16 TileAttributeParserTester::st_map_overlay_n2i (cstr name) {
+u16 UnitLevelParserTester::st_map_overlay_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_map_overlay_psr == NULL) {
         return U16_KEY_NULL;
     }
     return s_inst->m_map_overlay_psr->name_to_idx(name);
 }
 
-u16 TileAttributeParserTester::st_map_attribute_n2i (cstr name) {
+u16 UnitLevelParserTester::st_map_attribute_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_map_attribute_psr == NULL) {
         return U16_KEY_NULL;
     }
     return s_inst->m_map_attribute_psr->name_to_idx(name);
 }
 
-u16 TileAttributeParserTester::st_map_terrain_n2i (cstr name) {
+u16 UnitLevelParserTester::st_map_terrain_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_map_terrain_psr == NULL) {
         return U16_KEY_NULL;
     }
     return s_inst->m_map_terrain_psr->name_to_idx(name);
 }
 
-u16 TileAttributeParserTester::st_map_climate_n2i (cstr name) {
+u16 UnitLevelParserTester::st_map_climate_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_map_climate_psr == NULL) {
         return U16_KEY_NULL;
     }
     return s_inst->m_map_climate_psr->name_to_idx(name);
 }
 
-u16 TileAttributeParserTester::st_worker_job_target_n2i (cstr name) {
+u16 UnitLevelParserTester::st_worker_job_target_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_worker_job_target_psr == NULL) {
         return U16_KEY_NULL;
     }
     return s_inst->m_worker_job_target_psr->name_to_idx(name);
 }
 
-u16 TileAttributeParserTester::st_worker_job_type_n2i (cstr name) {
+u16 UnitLevelParserTester::st_worker_job_type_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_worker_job_type_psr == NULL) {
         return U16_KEY_NULL;
     }
     return s_inst->m_worker_job_type_psr->name_to_idx(name);
 }
 
-u16 TileAttributeParserTester::st_worker_job_n2i (cstr name) {
+u16 UnitLevelParserTester::st_worker_job_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_worker_job_psr == NULL) {
         return U16_KEY_NULL;
     }
     return s_inst->m_worker_job_psr->name_to_idx(name);
 }
 
-u16 TileAttributeParserTester::st_worker_job_imp_n2i (cstr name) {
+u16 UnitLevelParserTester::st_worker_job_imp_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_worker_job_imp_psr == NULL) {
         return U16_KEY_NULL;
     }
     return s_inst->m_worker_job_imp_psr->name_to_idx(name);
 }
 
-u16 TileAttributeParserTester::st_tile_yield_type_n2i (cstr name) {
+u16 UnitLevelParserTester::st_tile_yield_type_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_tile_yield_type_psr == NULL) {
         return U16_KEY_NULL;
     }
     return s_inst->m_tile_yield_type_psr->name_to_idx(name);
 }
 
-u16 TileAttributeParserTester::st_improvement_yield_n2i (cstr name) {
+u16 UnitLevelParserTester::st_improvement_yield_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_improvement_yield_psr == NULL) {
         return U16_KEY_NULL;
     }
     return s_inst->m_improvement_yield_psr->name_to_idx(name);
 }
 
-void TileAttributeParserTester::pr_u16 (cstr label, u16 value) {
+void UnitLevelParserTester::pr_u16 (cstr label, u16 value) {
     fprintf(out(), "  %s: %u\n", label, value);
 }
 
-void TileAttributeParserTester::pr_i16 (cstr label, i16 value) {
+void UnitLevelParserTester::pr_i16 (cstr label, i16 value) {
     fprintf(out(), "  %s: %d\n", label, (int)value);
 }
 
-void TileAttributeParserTester::pr_u32 (cstr label, u32 value) {
+void UnitLevelParserTester::pr_u32 (cstr label, u32 value) {
     fprintf(out(), "  %s: %u\n", label, value);
 }
 
-void TileAttributeParserTester::pr_reqs (cstr label, const ItemReqsStruct& reqs) {
+void UnitLevelParserTester::pr_reqs (cstr label, const ItemReqsStruct& reqs) {
     fprintf(out(), "  %s:\n", label);
     for (u32 j = 0; j < MAX_PREREQ_COUNT; ++j) {
         if (reqs.types[j] == ITEM_REQ_TYPE_NONE) {
@@ -610,7 +610,7 @@ void TileAttributeParserTester::pr_reqs (cstr label, const ItemReqsStruct& reqs)
     }
 }
 
-void TileAttributeParserTester::pr_fx (cstr label, const ItemEffectsStruct& e) {
+void UnitLevelParserTester::pr_fx (cstr label, const ItemEffectsStruct& e) {
     fprintf(out(), "  %s:\n", label);
     for (u32 j = 0; j < MAX_EFFECT_COUNT; ++j) {
         const ItemEffectStruct& slot = e.items[j];
@@ -641,7 +641,9 @@ void TileAttributeParserTester::pr_fx (cstr label, const ItemEffectsStruct& e) {
                 case ItemEffectBoosterType::SHIP_DEFENSE: tname = "SHIP_DEFENSE"; break;
                 case ItemEffectBoosterType::SHIP_MOVEMENT: tname = "SHIP_MOVEMENT"; break;
                 case ItemEffectBoosterType::SHIP_TRAINING: tname = "SHIP_TRAINING"; break;
-                case ItemEffectBoosterType::UNIT_EXP: tname = "UNIT_EXP"; break;
+                case ItemEffectBoosterType::UNIT_LEVEL_DEFAULT: tname = "UNIT_LEVEL_DEFAULT"; break;
+                case ItemEffectBoosterType::UNIT_TRAINING_MAX: tname = "UNIT_TRAINING_MAX"; break;
+                case ItemEffectBoosterType::UNIT_TRAINING_DAILY: tname = "UNIT_TRAINING_DAILY"; break;
                 case ItemEffectBoosterType::UPGRADE_COST: tname = "UPGRADE_COST"; break;
                 case ItemEffectBoosterType::WAR_WEAR: tname = "WAR_WEAR"; break;
                 case ItemEffectBoosterType::CULTURE: tname = "CULTURE"; break;
@@ -848,7 +850,7 @@ void TileAttributeParserTester::pr_fx (cstr label, const ItemEffectsStruct& e) {
     }
 }
 
-void TileAttributeParserTester::pr_traits (cstr label, const CivTraitStruct& traits) {
+void UnitLevelParserTester::pr_traits (cstr label, const CivTraitStruct& traits) {
     fprintf(out(), "  %s:\n", label);
     for (u32 j = 0; j < MAX_CIV_TRAIT_COUNT; ++j) {
         const u16 tix = traits.indices[j];
@@ -867,20 +869,12 @@ void TileAttributeParserTester::pr_traits (cstr label, const CivTraitStruct& tra
 
 
 
-void TileAttributeParserTester::pr_item (cstr name, const TileAttributeStaticDataStruct& item) {
+void UnitLevelParserTester::pr_item (cstr name, const UnitLevelStaticDataStruct& item) {
     fprintf(out(), "name: %s\n", name);
-    pr_u16("mvt_cost", item.mvt_cost);
-    pr_i16("food", item.food);
-    pr_u16("production", item.production);
-    pr_u16("commerce", item.commerce);
-    pr_u16("culture", item.culture);
-    pr_u16("science", item.science);
-    pr_u16("religion", item.religion);
-    pr_u16("attack_mod", item.attack_mod);
-    pr_u16("defense_mod", item.defense_mod);
+    // No parsing instructions provided
 }
 
-int TileAttributeParserTester::run () {
+int UnitLevelParserTester::run () {
     s_inst = this;
     NameToIdxCbs cbs = {};
 
@@ -891,7 +885,6 @@ int TileAttributeParserTester::run () {
     cbs.city_job_name_to_idx = st_city_job_n2i;
     cbs.civ_name_to_idx = st_civ_n2i;
     cbs.civ_trait_name_to_idx = st_civ_trait_n2i;
-    cbs.tile_attribute_name_to_idx = st_tile_attribute_n2i;
     cbs.resource_name_to_idx = st_resource_n2i;
     cbs.res_dist_name_to_idx = st_res_dist_n2i;
     cbs.res_type_name_to_idx = st_res_type_n2i;
@@ -903,6 +896,7 @@ int TileAttributeParserTester::run () {
     cbs.unit_role_name_to_idx = st_unit_role_n2i;
     cbs.unit_type_name_to_idx = st_unit_type_n2i;
     cbs.unit_domain_name_to_idx = st_unit_domain_n2i;
+    cbs.unit_level_name_to_idx = st_unit_level_n2i;
     cbs.unit_name_to_idx = st_unit_n2i;
     cbs.wonder_name_to_idx = st_wonder_n2i;
     cbs.map_overlay_name_to_idx = st_map_overlay_n2i;
@@ -925,7 +919,6 @@ int TileAttributeParserTester::run () {
     StringManager city_job_items;
     StringManager civ_items;
     StringManager civ_trait_items;
-    StringManager tile_attribute_items;
     StringManager resource_items;
     StringManager res_dist_items;
     StringManager res_type_items;
@@ -937,6 +930,7 @@ int TileAttributeParserTester::run () {
     StringManager unit_role_items;
     StringManager unit_type_items;
     StringManager unit_domain_items;
+    StringManager unit_level_items;
     StringManager unit_items;
     StringManager wonder_items;
     StringManager map_overlay_items;
@@ -959,7 +953,6 @@ int TileAttributeParserTester::run () {
     ld_sm(city_job_items, paths.get_path_to_city_jobs());
     ld_sm(civ_items, paths.get_path_to_civs());
     ld_sm(civ_trait_items, paths.get_path_to_civ_traits());
-    ld_sm(tile_attribute_items, paths.get_path_to_tile_attributes());
     ld_sm(resource_items, paths.get_path_to_resources());
     ld_sm(res_dist_items, paths.get_path_to_res_dists());
     ld_sm(res_type_items, paths.get_path_to_res_types());
@@ -971,6 +964,7 @@ int TileAttributeParserTester::run () {
     ld_sm(unit_role_items, paths.get_path_to_unit_roles());
     ld_sm(unit_type_items, paths.get_path_to_unit_types());
     ld_sm(unit_domain_items, paths.get_path_to_unit_domains());
+    ld_sm(unit_level_items, paths.get_path_to_unit_levels());
     ld_sm(unit_items, paths.get_path_to_units());
     ld_sm(wonder_items, paths.get_path_to_wonders());
     ld_sm(map_overlay_items, paths.get_path_to_map_overlays());
@@ -996,7 +990,6 @@ int TileAttributeParserTester::run () {
     DataParserBase city_job_parser(city_job_items, cbs);
     DataParserBase civ_parser(civ_items, cbs);
     DataParserBase civ_trait_parser(civ_trait_items, cbs);
-    DataParserBase tile_attribute_parser(tile_attribute_items, cbs);
     DataParserBase resource_parser(resource_items, cbs);
     DataParserBase res_dist_parser(res_dist_items, cbs);
     DataParserBase res_type_parser(res_type_items, cbs);
@@ -1008,6 +1001,7 @@ int TileAttributeParserTester::run () {
     DataParserBase unit_role_parser(unit_role_items, cbs);
     DataParserBase unit_type_parser(unit_type_items, cbs);
     DataParserBase unit_domain_parser(unit_domain_items, cbs);
+    DataParserBase unit_level_parser(unit_level_items, cbs);
     DataParserBase unit_parser(unit_items, cbs);
     DataParserBase wonder_parser(wonder_items, cbs);
     DataParserBase map_overlay_parser(map_overlay_items, cbs);
@@ -1028,7 +1022,6 @@ int TileAttributeParserTester::run () {
     m_city_job_psr = &city_job_parser;
     m_civ_psr = &civ_parser;
     m_civ_trait_psr = &civ_trait_parser;
-    m_tile_attribute_psr = &tile_attribute_parser;
     m_resource_psr = &resource_parser;
     m_res_dist_psr = &res_dist_parser;
     m_res_type_psr = &res_type_parser;
@@ -1040,6 +1033,7 @@ int TileAttributeParserTester::run () {
     m_unit_role_psr = &unit_role_parser;
     m_unit_type_psr = &unit_type_parser;
     m_unit_domain_psr = &unit_domain_parser;
+    m_unit_level_psr = &unit_level_parser;
     m_unit_psr = &unit_parser;
     m_wonder_psr = &wonder_parser;
     m_map_overlay_psr = &map_overlay_parser;
@@ -1054,7 +1048,7 @@ int TileAttributeParserTester::run () {
     m_improvement_yield_psr = &improvement_yield_parser;
 
     StringManager raw_items;
-    if (!ld_sm(raw_items, paths.get_path_to_tile_attributes())) {
+    if (!ld_sm(raw_items, paths.get_path_to_unit_levels())) {
         s_inst = NULL;
         return 0;
     }
@@ -1062,8 +1056,8 @@ int TileAttributeParserTester::run () {
         s_inst = NULL;
         return 0;
     }
-    TileAttributeParser parser(raw_items, cbs);
-    TileAttributeStaticDataStruct* parsed_data = parser.parse_data_dependencies();
+    UnitLevelParser parser(raw_items, cbs);
+    UnitLevelStaticDataStruct* parsed_data = parser.parse_data_dependencies();
     if (m_plvl >= 2) {
         for (u32 i = 0; i < raw_items.get_string_count(); ++i) {
             pr_item(parser.idx_to_name(i), parsed_data[i]);

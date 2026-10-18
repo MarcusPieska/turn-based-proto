@@ -37,7 +37,6 @@ const DataParserBase* g_toggle_global_name_parser = nullptr;
 const DataParserBase* g_city_job_name_parser = nullptr;
 const DataParserBase* g_civ_name_parser = nullptr;
 const DataParserBase* g_civ_trait_name_parser = nullptr;
-const DataParserBase* g_tile_attribute_name_parser = nullptr;
 const DataParserBase* g_resource_name_parser = nullptr;
 const DataParserBase* g_res_dist_name_parser = nullptr;
 const DataParserBase* g_res_type_name_parser = nullptr;
@@ -49,6 +48,7 @@ const DataParserBase* g_unit_action_name_parser = nullptr;
 const DataParserBase* g_unit_role_name_parser = nullptr;
 const DataParserBase* g_unit_type_name_parser = nullptr;
 const DataParserBase* g_unit_domain_name_parser = nullptr;
+const DataParserBase* g_unit_level_name_parser = nullptr;
 const DataParserBase* g_unit_name_parser = nullptr;
 const DataParserBase* g_wonder_name_parser = nullptr;
 const DataParserBase* g_map_overlay_name_parser = nullptr;
@@ -88,10 +88,6 @@ u16 cb_civ_name_to_idx (cstr name) {
 
 u16 cb_civ_trait_name_to_idx (cstr name) {
     return g_civ_trait_name_parser->name_to_idx(name);
-}
-
-u16 cb_tile_attribute_name_to_idx (cstr name) {
-    return g_tile_attribute_name_parser->name_to_idx(name);
 }
 
 u16 cb_resource_name_to_idx (cstr name) {
@@ -136,6 +132,10 @@ u16 cb_unit_type_name_to_idx (cstr name) {
 
 u16 cb_unit_domain_name_to_idx (cstr name) {
     return g_unit_domain_name_parser->name_to_idx(name);
+}
+
+u16 cb_unit_level_name_to_idx (cstr name) {
+    return g_unit_level_name_parser->name_to_idx(name);
 }
 
 u16 cb_unit_name_to_idx (cstr name) {
@@ -203,7 +203,6 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_city_job_items(),
     m_civ_items(),
     m_civ_trait_items(),
-    m_tile_attribute_items(),
     m_resource_items(),
     m_res_dist_items(),
     m_res_type_items(),
@@ -215,6 +214,7 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_unit_role_items(),
     m_unit_type_items(),
     m_unit_domain_items(),
+    m_unit_level_items(),
     m_unit_items(),
     m_wonder_items(),
     m_map_overlay_items(),
@@ -235,7 +235,6 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_city_job_name_parser(nullptr),
     m_civ_name_parser(nullptr),
     m_civ_trait_name_parser(nullptr),
-    m_tile_attribute_name_parser(nullptr),
     m_resource_name_parser(nullptr),
     m_res_dist_name_parser(nullptr),
     m_res_type_name_parser(nullptr),
@@ -247,6 +246,7 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_unit_role_name_parser(nullptr),
     m_unit_type_name_parser(nullptr),
     m_unit_domain_name_parser(nullptr),
+    m_unit_level_name_parser(nullptr),
     m_unit_name_parser(nullptr),
     m_wonder_name_parser(nullptr),
     m_map_overlay_name_parser(nullptr),
@@ -273,7 +273,6 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_city_job_data(nullptr),
     m_civ_data(nullptr),
     m_civ_trait_data(nullptr),
-    m_tile_attribute_data(nullptr),
     m_resource_data(nullptr),
     m_res_dist_data(nullptr),
     m_res_type_data(nullptr),
@@ -285,6 +284,7 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_unit_role_data(nullptr),
     m_unit_type_data(nullptr),
     m_unit_domain_data(nullptr),
+    m_unit_level_data(nullptr),
     m_unit_data(nullptr),
     m_wonder_data(nullptr),
     m_map_overlay_data(nullptr),
@@ -322,9 +322,6 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_civ_trait_items.load_file_content(m_paths.get_path_to_civ_traits());
     m_civ_trait_items.split_string_by_char(0, '\n');
     DataParserBase::normalize_lines(m_civ_trait_items);
-    m_tile_attribute_items.load_file_content(m_paths.get_path_to_tile_attributes());
-    m_tile_attribute_items.split_string_by_char(0, '\n');
-    DataParserBase::normalize_lines(m_tile_attribute_items);
     m_resource_items.load_file_content(m_paths.get_path_to_resources());
     m_resource_items.split_string_by_char(0, '\n');
     DataParserBase::normalize_lines(m_resource_items);
@@ -358,6 +355,9 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_unit_domain_items.load_file_content(m_paths.get_path_to_unit_domains());
     m_unit_domain_items.split_string_by_char(0, '\n');
     DataParserBase::normalize_lines(m_unit_domain_items);
+    m_unit_level_items.load_file_content(m_paths.get_path_to_unit_levels());
+    m_unit_level_items.split_string_by_char(0, '\n');
+    DataParserBase::normalize_lines(m_unit_level_items);
     m_unit_items.load_file_content(m_paths.get_path_to_units());
     m_unit_items.split_string_by_char(0, '\n');
     DataParserBase::normalize_lines(m_unit_items);
@@ -404,7 +404,6 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_city_job_name_parser = new DataParserBase(m_city_job_items, NameToIdxCbs());
     m_civ_name_parser = new DataParserBase(m_civ_items, NameToIdxCbs());
     m_civ_trait_name_parser = new DataParserBase(m_civ_trait_items, NameToIdxCbs());
-    m_tile_attribute_name_parser = new DataParserBase(m_tile_attribute_items, NameToIdxCbs());
     m_resource_name_parser = new DataParserBase(m_resource_items, NameToIdxCbs());
     m_res_dist_name_parser = new DataParserBase(m_res_dist_items, NameToIdxCbs());
     m_res_type_name_parser = new DataParserBase(m_res_type_items, NameToIdxCbs());
@@ -416,6 +415,7 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_unit_role_name_parser = new DataParserBase(m_unit_role_items, NameToIdxCbs());
     m_unit_type_name_parser = new DataParserBase(m_unit_type_items, NameToIdxCbs());
     m_unit_domain_name_parser = new DataParserBase(m_unit_domain_items, NameToIdxCbs());
+    m_unit_level_name_parser = new DataParserBase(m_unit_level_items, NameToIdxCbs());
     m_unit_name_parser = new DataParserBase(m_unit_items, NameToIdxCbs());
     m_wonder_name_parser = new DataParserBase(m_wonder_items, NameToIdxCbs());
     m_map_overlay_name_parser = new DataParserBase(m_map_overlay_items, NameToIdxCbs());
@@ -442,7 +442,6 @@ StaticParsingManager::~StaticParsingManager () {
     delete m_city_job_name_parser;
     delete m_civ_name_parser;
     delete m_civ_trait_name_parser;
-    delete m_tile_attribute_name_parser;
     delete m_resource_name_parser;
     delete m_res_dist_name_parser;
     delete m_res_type_name_parser;
@@ -454,6 +453,7 @@ StaticParsingManager::~StaticParsingManager () {
     delete m_unit_role_name_parser;
     delete m_unit_type_name_parser;
     delete m_unit_domain_name_parser;
+    delete m_unit_level_name_parser;
     delete m_unit_name_parser;
     delete m_wonder_name_parser;
     delete m_map_overlay_name_parser;
@@ -522,14 +522,6 @@ const CivTraitStaticDataStruct* StaticParsingManager::get_civ_trait_data () cons
 
 u16 StaticParsingManager::get_civ_trait_count () const {
     return safe_size_to_u16(m_civ_trait_items.get_string_count());
-}
-
-const TileAttributeStaticDataStruct* StaticParsingManager::get_tile_attribute_data () const {
-    return m_tile_attribute_data;
-}
-
-u16 StaticParsingManager::get_tile_attribute_count () const {
-    return safe_size_to_u16(m_tile_attribute_items.get_string_count());
 }
 
 const ResourceStaticDataStruct* StaticParsingManager::get_resource_data () const {
@@ -618,6 +610,14 @@ const UnitDomainStaticDataStruct* StaticParsingManager::get_unit_domain_data () 
 
 u16 StaticParsingManager::get_unit_domain_count () const {
     return safe_size_to_u16(m_unit_domain_items.get_string_count());
+}
+
+const UnitLevelStaticDataStruct* StaticParsingManager::get_unit_level_data () const {
+    return m_unit_level_data;
+}
+
+u16 StaticParsingManager::get_unit_level_count () const {
+    return safe_size_to_u16(m_unit_level_items.get_string_count());
 }
 
 const UnitStaticDataStruct* StaticParsingManager::get_unit_data () const {
@@ -743,10 +743,6 @@ const DataParserBase& StaticParsingManager::get_civ_trait_name_parser () const {
     return *m_civ_trait_name_parser;
 }
 
-const DataParserBase& StaticParsingManager::get_tile_attribute_name_parser () const {
-    return *m_tile_attribute_name_parser;
-}
-
 const DataParserBase& StaticParsingManager::get_resource_name_parser () const {
     return *m_resource_name_parser;
 }
@@ -789,6 +785,10 @@ const DataParserBase& StaticParsingManager::get_unit_type_name_parser () const {
 
 const DataParserBase& StaticParsingManager::get_unit_domain_name_parser () const {
     return *m_unit_domain_name_parser;
+}
+
+const DataParserBase& StaticParsingManager::get_unit_level_name_parser () const {
+    return *m_unit_level_name_parser;
 }
 
 const DataParserBase& StaticParsingManager::get_unit_name_parser () const {
@@ -879,7 +879,6 @@ void StaticParsingManager::build_name_to_idx_callbacks () {
     g_city_job_name_parser = m_city_job_name_parser;
     g_civ_name_parser = m_civ_name_parser;
     g_civ_trait_name_parser = m_civ_trait_name_parser;
-    g_tile_attribute_name_parser = m_tile_attribute_name_parser;
     g_resource_name_parser = m_resource_name_parser;
     g_res_dist_name_parser = m_res_dist_name_parser;
     g_res_type_name_parser = m_res_type_name_parser;
@@ -891,6 +890,7 @@ void StaticParsingManager::build_name_to_idx_callbacks () {
     g_unit_role_name_parser = m_unit_role_name_parser;
     g_unit_type_name_parser = m_unit_type_name_parser;
     g_unit_domain_name_parser = m_unit_domain_name_parser;
+    g_unit_level_name_parser = m_unit_level_name_parser;
     g_unit_name_parser = m_unit_name_parser;
     g_wonder_name_parser = m_wonder_name_parser;
     g_map_overlay_name_parser = m_map_overlay_name_parser;
@@ -911,7 +911,6 @@ void StaticParsingManager::build_name_to_idx_callbacks () {
     m_name_to_idx_cbs.city_job_name_to_idx = cb_city_job_name_to_idx;
     m_name_to_idx_cbs.civ_name_to_idx = cb_civ_name_to_idx;
     m_name_to_idx_cbs.civ_trait_name_to_idx = cb_civ_trait_name_to_idx;
-    m_name_to_idx_cbs.tile_attribute_name_to_idx = cb_tile_attribute_name_to_idx;
     m_name_to_idx_cbs.resource_name_to_idx = cb_resource_name_to_idx;
     m_name_to_idx_cbs.res_dist_name_to_idx = cb_res_dist_name_to_idx;
     m_name_to_idx_cbs.res_type_name_to_idx = cb_res_type_name_to_idx;
@@ -923,6 +922,7 @@ void StaticParsingManager::build_name_to_idx_callbacks () {
     m_name_to_idx_cbs.unit_role_name_to_idx = cb_unit_role_name_to_idx;
     m_name_to_idx_cbs.unit_type_name_to_idx = cb_unit_type_name_to_idx;
     m_name_to_idx_cbs.unit_domain_name_to_idx = cb_unit_domain_name_to_idx;
+    m_name_to_idx_cbs.unit_level_name_to_idx = cb_unit_level_name_to_idx;
     m_name_to_idx_cbs.unit_name_to_idx = cb_unit_name_to_idx;
     m_name_to_idx_cbs.wonder_name_to_idx = cb_wonder_name_to_idx;
     m_name_to_idx_cbs.map_overlay_name_to_idx = cb_map_overlay_name_to_idx;
@@ -948,7 +948,6 @@ void StaticParsingManager::parse_supported_data () {
     CityJobParser city_job_parser(m_city_job_items, m_name_to_idx_cbs);
     CivParser civ_parser(m_civ_items, m_name_to_idx_cbs);
     CivTraitParser civ_trait_parser(m_civ_trait_items, m_name_to_idx_cbs);
-    TileAttributeParser tile_attribute_parser(m_tile_attribute_items, m_name_to_idx_cbs);
     ResourceParser resource_parser(m_resource_items, m_name_to_idx_cbs);
     ResDistParser res_dist_parser(m_res_dist_items, m_name_to_idx_cbs);
     ResTypeParser res_type_parser(m_res_type_items, m_name_to_idx_cbs);
@@ -960,6 +959,7 @@ void StaticParsingManager::parse_supported_data () {
     UnitRoleParser unit_role_parser(m_unit_role_items, m_name_to_idx_cbs);
     UnitTypeParser unit_type_parser(m_unit_type_items, m_name_to_idx_cbs);
     UnitDomainParser unit_domain_parser(m_unit_domain_items, m_name_to_idx_cbs);
+    UnitLevelParser unit_level_parser(m_unit_level_items, m_name_to_idx_cbs);
     UnitParser unit_parser(m_unit_items, m_name_to_idx_cbs);
     WonderParser wonder_parser(m_wonder_items, m_name_to_idx_cbs);
     MapOverlayParser map_overlay_parser(m_map_overlay_items, m_name_to_idx_cbs);
@@ -980,7 +980,6 @@ void StaticParsingManager::parse_supported_data () {
     m_city_job_data = city_job_parser.parse_data_dependencies();
     m_civ_data = civ_parser.parse_data_dependencies();
     m_civ_trait_data = civ_trait_parser.parse_data_dependencies();
-    m_tile_attribute_data = tile_attribute_parser.parse_data_dependencies();
     m_resource_data = resource_parser.parse_data_dependencies();
     m_res_dist_data = res_dist_parser.parse_data_dependencies();
     m_res_type_data = res_type_parser.parse_data_dependencies();
@@ -992,6 +991,7 @@ void StaticParsingManager::parse_supported_data () {
     m_unit_role_data = unit_role_parser.parse_data_dependencies();
     m_unit_type_data = unit_type_parser.parse_data_dependencies();
     m_unit_domain_data = unit_domain_parser.parse_data_dependencies();
+    m_unit_level_data = unit_level_parser.parse_data_dependencies();
     m_unit_data = unit_parser.parse_data_dependencies();
     m_wonder_data = wonder_parser.parse_data_dependencies();
     m_map_overlay_data = map_overlay_parser.parse_data_dependencies();

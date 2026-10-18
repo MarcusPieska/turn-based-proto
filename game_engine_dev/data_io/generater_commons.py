@@ -20,7 +20,6 @@ def get_entries ():
         "city_job",
         "civ",
         "civ_trait",
-        "tile_attribute",
         "resource",
         "res_dist",
         "res_type",
@@ -32,6 +31,7 @@ def get_entries ():
         "unit_role",
         "unit_type",
         "unit_domain",
+        "unit_level",
         "unit",
         "wonder",
         "map_overlay",
@@ -44,6 +44,10 @@ def get_entries ():
         "worker_job_imp",
         "tile_yield_type",
         "improvement_yield",
+    ]
+
+def get_retired_load_stems (): 
+    return [
     ]
 
 def get_req_test_stems ():

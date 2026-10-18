@@ -23,7 +23,6 @@ class StaticParsingManager;
 #include "city_job_static_data.h"
 #include "civ_static_data.h"
 #include "civ_trait_static_data.h"
-#include "tile_attribute_static_data.h"
 #include "resource_static_data.h"
 #include "res_dist_static_data.h"
 #include "res_type_static_data.h"
@@ -35,6 +34,7 @@ class StaticParsingManager;
 #include "unit_role_static_data.h"
 #include "unit_type_static_data.h"
 #include "unit_domain_static_data.h"
+#include "unit_level_static_data.h"
 #include "unit_static_data.h"
 #include "wonder_static_data.h"
 #include "map_overlay_static_data.h"
@@ -99,10 +99,6 @@ public:
 
     const CivTraitStaticData& civ_trait () const;
 
-    TileAttributeStaticData& tile_attribute ();
-
-    const TileAttributeStaticData& tile_attribute () const;
-
     ResourceStaticData& resource ();
 
     const ResourceStaticData& resource () const;
@@ -146,6 +142,10 @@ public:
     UnitDomainStaticData& unit_domain ();
 
     const UnitDomainStaticData& unit_domain () const;
+
+    UnitLevelStaticData& unit_level ();
+
+    const UnitLevelStaticData& unit_level () const;
 
     UnitStaticData& unit ();
 
@@ -252,7 +252,6 @@ private:
     CityJobStaticData m_city_job;
     CivStaticData m_civ;
     CivTraitStaticData m_civ_trait;
-    TileAttributeStaticData m_tile_attribute;
     ResourceStaticData m_resource;
     ResDistStaticData m_res_dist;
     ResTypeStaticData m_res_type;
@@ -264,6 +263,7 @@ private:
     UnitRoleStaticData m_unit_role;
     UnitTypeStaticData m_unit_type;
     UnitDomainStaticData m_unit_domain;
+    UnitLevelStaticData m_unit_level;
     UnitStaticData m_unit;
     WonderStaticData m_wonder;
     MapOverlayStaticData m_map_overlay;

@@ -23,15 +23,16 @@
 //================================================================================================================================
 
 enum class MapTerrain : u16 {
-    Ocean = 0,
-    Sea = 1,
-    Coastal = 2,
-    Plains = 3,
-    Hills = 4,
-    Mountains = 5,
-    Volcano = 6,
-    Inland_Sea = 7,
-    Inland_Lake = 8
+    None = 0,
+    Ocean = 1,
+    Sea = 2,
+    Coastal = 3,
+    Plains = 4,
+    Hills = 5,
+    Mountains = 6,
+    Volcano = 7,
+    Inland_Sea = 8,
+    Inland_Lake = 9
 };
 
 #endif // MAP_TERRAIN_ENUM_H

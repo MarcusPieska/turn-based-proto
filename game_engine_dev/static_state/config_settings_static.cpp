@@ -59,6 +59,13 @@ static void clr_data (ConfigSettingsData* d) {
     d->m_upgrade_cost_per_stat_pt = 0;
     d->m_tech_age_unlock_pct = 0;
     d->m_default_culture_per_turn = 0;
+    d->m_default_unit_level = 0;
+    d->m_unit_level_damage_factor = 0;
+    d->m_unit_stat_damage_factor = 0;
+    d->m_unit_size_damage_factor = 0;
+    d->m_unit_role_damage_factor = 0;
+    d->m_unit_city_damage_factor = 0;
+    d->m_unit_terrain_damage_factor = 0;
 }
 
 //================================================================================================================================
@@ -238,6 +245,111 @@ void GameConfigSettings::set_default_culture_per_turn (u16 v) {
     }
     ensure_ovr();
     assign_u16(&m_cfg->m_default_culture_per_turn, v);
+}
+
+u16 GameConfigSettings::get_default_unit_level () const {
+    return cur().m_default_unit_level;
+}
+
+void GameConfigSettings::set_default_unit_level (u16 v) {
+    if (eq_u16(v, m_defaults.m_default_unit_level)) {
+        if (!m_is_default) {
+            assign_u16(&m_cfg->m_default_unit_level, v);
+        }
+        return;
+    }
+    ensure_ovr();
+    assign_u16(&m_cfg->m_default_unit_level, v);
+}
+
+u16 GameConfigSettings::get_unit_level_damage_factor () const {
+    return cur().m_unit_level_damage_factor;
+}
+
+void GameConfigSettings::set_unit_level_damage_factor (u16 v) {
+    if (eq_u16(v, m_defaults.m_unit_level_damage_factor)) {
+        if (!m_is_default) {
+            assign_u16(&m_cfg->m_unit_level_damage_factor, v);
+        }
+        return;
+    }
+    ensure_ovr();
+    assign_u16(&m_cfg->m_unit_level_damage_factor, v);
+}
+
+u16 GameConfigSettings::get_unit_stat_damage_factor () const {
+    return cur().m_unit_stat_damage_factor;
+}
+
+void GameConfigSettings::set_unit_stat_damage_factor (u16 v) {
+    if (eq_u16(v, m_defaults.m_unit_stat_damage_factor)) {
+        if (!m_is_default) {
+            assign_u16(&m_cfg->m_unit_stat_damage_factor, v);
+        }
+        return;
+    }
+    ensure_ovr();
+    assign_u16(&m_cfg->m_unit_stat_damage_factor, v);
+}
+
+u16 GameConfigSettings::get_unit_size_damage_factor () const {
+    return cur().m_unit_size_damage_factor;
+}
+
+void GameConfigSettings::set_unit_size_damage_factor (u16 v) {
+    if (eq_u16(v, m_defaults.m_unit_size_damage_factor)) {
+        if (!m_is_default) {
+            assign_u16(&m_cfg->m_unit_size_damage_factor, v);
+        }
+        return;
+    }
+    ensure_ovr();
+    assign_u16(&m_cfg->m_unit_size_damage_factor, v);
+}
+
+u16 GameConfigSettings::get_unit_role_damage_factor () const {
+    return cur().m_unit_role_damage_factor;
+}
+
+void GameConfigSettings::set_unit_role_damage_factor (u16 v) {
+    if (eq_u16(v, m_defaults.m_unit_role_damage_factor)) {
+        if (!m_is_default) {
+            assign_u16(&m_cfg->m_unit_role_damage_factor, v);
+        }
+        return;
+    }
+    ensure_ovr();
+    assign_u16(&m_cfg->m_unit_role_damage_factor, v);
+}
+
+u16 GameConfigSettings::get_unit_city_damage_factor () const {
+    return cur().m_unit_city_damage_factor;
+}
+
+void GameConfigSettings::set_unit_city_damage_factor (u16 v) {
+    if (eq_u16(v, m_defaults.m_unit_city_damage_factor)) {
+        if (!m_is_default) {
+            assign_u16(&m_cfg->m_unit_city_damage_factor, v);
+        }
+        return;
+    }
+    ensure_ovr();
+    assign_u16(&m_cfg->m_unit_city_damage_factor, v);
+}
+
+u16 GameConfigSettings::get_unit_terrain_damage_factor () const {
+    return cur().m_unit_terrain_damage_factor;
+}
+
+void GameConfigSettings::set_unit_terrain_damage_factor (u16 v) {
+    if (eq_u16(v, m_defaults.m_unit_terrain_damage_factor)) {
+        if (!m_is_default) {
+            assign_u16(&m_cfg->m_unit_terrain_damage_factor, v);
+        }
+        return;
+    }
+    ensure_ovr();
+    assign_u16(&m_cfg->m_unit_terrain_damage_factor, v);
 }
 
 //================================================================================================================================

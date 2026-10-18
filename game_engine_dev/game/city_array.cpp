@@ -5,6 +5,7 @@
 #include "city_array.h"
 #include "city.h"
 #include "general_bit_bank.h"
+#include "job_count_array.h"
 #include "runtime_statics.h"
 
 //================================================================================================================================
@@ -92,6 +93,9 @@ u16 CityArray::get_next_new_city_idx() {
         m_flag_bank->claim_batch();
         m_res_bank->claim_batch();
         m_bld_bank->claim_batch();
+    }
+    if (JobCountArray::ready()) {
+        JobCountArray::claim();
     }
     m_city_count = static_cast<u16>(m_city_count + 1);
     return idx;

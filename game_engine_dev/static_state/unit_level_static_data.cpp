@@ -11,23 +11,23 @@
 
 #include <cstring>
 
-#include "tile_attribute_static_data.h"
+#include "unit_level_static_data.h"
 
 //================================================================================================================================
-//=> - TileAttributeStaticData implementation -
+//=> - UnitLevelStaticData implementation -
 //================================================================================================================================
 
-TileAttributeStaticData::~TileAttributeStaticData () {
+UnitLevelStaticData::~UnitLevelStaticData () {
     release_items();
 }
 
-void TileAttributeStaticData::set_items (TileAttributeStaticDataStruct* items, u16 item_count) {
+void UnitLevelStaticData::set_items (UnitLevelStaticDataStruct* items, u16 item_count) {
     m_item_array = items;
     m_item_count = item_count;
     m_owns_array = false;
 }
 
-bool TileAttributeStaticData::load_names (cstr const* names, u16 n) {
+bool UnitLevelStaticData::load_names (cstr const* names, u16 n) {
     if (!names || n == 0) {
         return false;
     }
@@ -46,11 +46,11 @@ bool TileAttributeStaticData::load_names (cstr const* names, u16 n) {
     return true;
 }
 
-void TileAttributeStaticData::take_ownership () {
-    TileAttributeStaticDataStruct* tmp_array = m_item_array;
+void UnitLevelStaticData::take_ownership () {
+    UnitLevelStaticDataStruct* tmp_array = m_item_array;
     bool tmp_owned = m_owns_array;
     StaticStringPool tmp_pool(m_name_pool);
-    m_item_array = new TileAttributeStaticDataStruct[m_item_count];
+    m_item_array = new UnitLevelStaticDataStruct[m_item_count];
     for (u16 i = 0; i < m_item_count; ++i) {
         m_item_array[i] = tmp_array[i];
     }
@@ -61,7 +61,7 @@ void TileAttributeStaticData::take_ownership () {
     m_owns_array = true;
 }
 
-void TileAttributeStaticData::release_items () {
+void UnitLevelStaticData::release_items () {
     if (m_owns_array) {
         delete[] m_item_array;
         m_owns_array = false;
@@ -71,16 +71,16 @@ void TileAttributeStaticData::release_items () {
     m_name_pool.reset();
 }
 
-const TileAttributeStaticDataStruct& TileAttributeStaticData::get_item (TileAttributeStaticDataKey key) const {
+const UnitLevelStaticDataStruct& UnitLevelStaticData::get_item (UnitLevelStaticDataKey key) const {
     u16 idx = key.value();
     return m_item_array[idx];
 }
 
-cstr TileAttributeStaticData::get_name (TileAttributeStaticDataKey key) const {
+cstr UnitLevelStaticData::get_name (UnitLevelStaticDataKey key) const {
     return m_name_pool.get(key.value());
 }
 
-u16 TileAttributeStaticData::get_item_count () const {
+u16 UnitLevelStaticData::get_item_count () const {
     return m_item_count;
 }
 

@@ -26,7 +26,7 @@ int main () {
     return booster_register_run_toggle_scan<GlobalUnitExpBoosterRegister>(
         g_rt_loader.statics(),
         "GLOBAL",
-        "UNIT_EXP"
+        "UNIT_LEVEL_DEFAULT"
     );
 }
 

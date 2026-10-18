@@ -12,7 +12,8 @@ fi
 INC="-I.. -I../.. -I../../misc -I../../data_io -I../../static_state -I../../dyn_state \
      -I../../map_loader -I../../adv_map_gen -I../../simple_map_gen \
      -I../../city -I../../city/effector -I../../city/assessor -I../../gen_bit_banks \
-     -I../../ai_pathing/walk_general -I../../gen_effector -I../../ai_proc"
+     -I../../ai_pathing/walk_general -I../../ai_pathing/walk_cities \
+     -I../../gen_effector -I../../ai_proc"
 CXXFLAGS="-std=c++17 -Wall -Wextra"
 
 g++ $CXXFLAGS $INC -c ../../data_io/runtime_static_loader.cpp -o runtime_static_loader.o
@@ -27,6 +28,9 @@ g++ $CXXFLAGS $INC -c ../combat_mods.cpp -o combat_mods.o
 g++ $CXXFLAGS $INC -c ../combat_mng.cpp -o combat_mng.o
 g++ $CXXFLAGS $INC -c ../civ_relations.cpp -o civ_relations.o
 g++ $CXXFLAGS $INC -c ../city_array.cpp -o city_array.o
+g++ $CXXFLAGS $INC -c ../../city/job_count_array.cpp -o job_count_array.o
+g++ $CXXFLAGS $INC -c ../mvt_pts_boost_mng.cpp -o mvt_pts_boost_mng.o
+g++ $CXXFLAGS $INC -c ../../ai_proc/general_move_boost.cpp -o general_move_boost.o
 g++ $CXXFLAGS $INC -c ../player_ledger.cpp -o player_ledger.o
 g++ $CXXFLAGS $INC -c ../tile_yields.cpp -o tile_yields.o
 g++ $CXXFLAGS $INC -c ../../misc/map_bit_array_overlay.cpp -o map_bit_array_overlay.o
@@ -62,6 +66,7 @@ g++ $CXXFLAGS $INC -c ../../dyn_state/shipyard_add_vector.cpp -o shipyard_add_ve
 g++ $CXXFLAGS $INC -c ../../dyn_state/trade_post_add_vector.cpp -o trade_post_add_vector.o
 g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_general/sector_network.cpp -o sector_network.o
 g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_general/sector_network_router.cpp -o sector_network_router.o
+g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_cities/city_network.cpp -o city_network.o
 g++ $CXXFLAGS $INC -c combat_mng_probe.cpp -o combat_mng_probe.o
 
 g++ $CXXFLAGS -o combat_mng_probe_tester \
@@ -77,6 +82,9 @@ g++ $CXXFLAGS -o combat_mng_probe_tester \
     combat_mng.o \
     civ_relations.o \
     city_array.o \
+    job_count_array.o \
+    mvt_pts_boost_mng.o \
+    general_move_boost.o \
     player_ledger.o \
     tile_yields.o \
     map_bit_array_overlay.o \
@@ -112,6 +120,7 @@ g++ $CXXFLAGS -o combat_mng_probe_tester \
     trade_post_add_vector.o \
     sector_network.o \
     sector_network_router.o \
+    city_network.o \
     combat_mng_probe.o \
     -ldl \
     $LIB_SO \

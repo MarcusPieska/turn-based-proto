@@ -28,6 +28,9 @@ UPGRADE_COST            : 0 : Militaristic
 WAR_WEAR                : 0 : Militaristic
 CIV_LAND_UNIT_SUPPORT   : 2 : Militaristic
 CITY_LAND_UNIT_SUPPORT  : 6 : Militaristic
+UNIT_LEVEL_DEFAULT      : 0 : Militaristic
+UNIT_TRAINING_MAX       : 0 : Militaristic
+UNIT_TRAINING_DAILY     : 0 : Militaristic
 
 CORRUPTION              : 0 : Expansionist
 ESPIONAGE               : 0 : Expansionist

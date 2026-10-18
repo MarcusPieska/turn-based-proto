@@ -23,7 +23,16 @@ MapAttributeStaticDataStruct* MapAttributeParser::parse_data_dependencies () {
     for (u32 i = 0; i < m_item_count; ++i) {
         StringManager line_items;
         get_line_items(get_raw_lines().get_string_content(i), line_items);
-        // No parsing instructions provided
+        parsed_data[i].kind = parse_map_attr_kind(line_items, 1);
+        parsed_data[i].mvt_cost = parse_u16(line_items, 2);
+        parsed_data[i].food = parse_i16(line_items, 3);
+        parsed_data[i].production = parse_u16(line_items, 4);
+        parsed_data[i].commerce = parse_u16(line_items, 5);
+        parsed_data[i].culture = parse_u16(line_items, 6);
+        parsed_data[i].science = parse_u16(line_items, 7);
+        parsed_data[i].religion = parse_u16(line_items, 8);
+        parsed_data[i].attack_mod = parse_u16(line_items, 9);
+        parsed_data[i].defense_mod = parse_u16(line_items, 10);
     }
     return parsed_data;
 }

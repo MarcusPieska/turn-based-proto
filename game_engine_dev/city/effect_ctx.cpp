@@ -5,9 +5,11 @@
 #include "effect_ctx.h"
 
 #include "bit_array.h"
+#include "civ_static_key.h"
 #include "general_bit_bank.h"
 #include "item_effects.h"
 #include "item_reqs.h"
+#include "runtime_statics.h"
 
 //================================================================================================================================
 //=> - Private helpers -
@@ -94,6 +96,17 @@ bool effect_applies_to_city (const EffectMapStruct& row, const EffectCtx& ctx) {
         return false;
     }
     return true;
+}
+
+void effect_ctx_bind_civ_traits (EffectCtx& ctx, const RuntimeStatics& st, u16 civ_idx) {
+    ctx.m_trait_idx = nullptr;
+    ctx.m_trait_n = 0;
+    if (civ_idx >= st.civ().get_item_count()) {
+        return;
+    }
+    const CivTraitStruct& tr = st.civ().get_item(CivStaticDataKey::from_raw(civ_idx)).traits;
+    ctx.m_trait_idx = tr.indices;
+    ctx.m_trait_n = MAX_CIV_TRAIT_COUNT;
 }
 
 //================================================================================================================================

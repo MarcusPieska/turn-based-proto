@@ -10,12 +10,14 @@
 
 class BitArrayCL;
 class GeneralBitBank;
+class RuntimeStatics;
 
 //================================================================================================================================
 //=> - EmpireBldFn -
 //================================================================================================================================
 
 typedef bool (*EmpireBldFn) (u16 owner, u16 bld_idx, void* ud);
+typedef u8 (*CityJobSeatFn) (u16 city_idx, u16 job_id, void* ud);
 
 //================================================================================================================================
 //=> - EffectCtx -
@@ -36,10 +38,15 @@ struct EffectCtx {
     u16 m_small_wonder_n; // Small-wonder catalog count
     EmpireBldFn m_emp_bld_fn; // Optional empire-wide building probe for CIV-scoped building sources
     void* m_emp_bld_ud; // User data for m_emp_bld_fn
+    CityJobSeatFn m_job_seat_fn; // Optional JobCountArray seat probe for CITY_JOB enablers
+    void* m_job_seat_ud; // User data for m_job_seat_fn
+    const u16* m_trait_idx; // Owner civ trait indices; length m_trait_n (U16_KEY_NULL pads)
+    u16 m_trait_n; // Trait index count for m_trait_idx
 };
 
 bool effect_src_active (const EffectMapStruct& row, const EffectCtx& ctx);
 bool effect_applies_to_city (const EffectMapStruct& row, const EffectCtx& ctx);
+void effect_ctx_bind_civ_traits (EffectCtx& ctx, const RuntimeStatics& st, u16 civ_idx);
 
 #endif // EFFECT_CTX_H
 

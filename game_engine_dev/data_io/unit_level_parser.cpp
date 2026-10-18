@@ -9,42 +9,26 @@
 //=> - Includes and globals -
 //================================================================================================================================
 
-#include "tile_attribute_bit_array.h"
+#include "unit_level_parser.h"
 
 //================================================================================================================================
-//=> - TileAttributeBitArray implementation -
+//=> - UnitLevelParser implementation -
 //================================================================================================================================
 
-TileAttributeBitArray::TileAttributeBitArray (u16 count) :
-    m_flags(count) {
+UnitLevelParser::UnitLevelParser (const StringManager& items, const NameToIdxCbs& map) : DataParserBase(items, map) {
 }
 
-TileAttributeBitArray::~TileAttributeBitArray () {
-}
-
-bool TileAttributeBitArray::is_flagged (TileAttributeStaticDataKey key) const {
-    return m_flags.get_bit(key.value()) != 0;
-}
-
-void TileAttributeBitArray::set_flag (TileAttributeStaticDataKey key) {
-    m_flags.set_bit(key.value());
-}
-
-void TileAttributeBitArray::clear_flag (TileAttributeStaticDataKey key) {
-    m_flags.clear_bit(key.value());
-}
-
-bool TileAttributeBitArray::can_access (u16 idx, TileAttributeStaticDataKey& out_key) const {
-    if (idx >= m_flags.get_count()) {
-        return false;
+UnitLevelStaticDataStruct* UnitLevelParser::parse_data_dependencies () {
+    UnitLevelStaticDataStruct* parsed_data = new UnitLevelStaticDataStruct[m_item_count]();
+    for (u32 i = 0; i < m_item_count; ++i) {
+        StringManager line_items;
+        get_line_items(get_raw_lines().get_string_content(i), line_items);
+        // No parsing instructions provided
     }
-    if (m_flags.get_bit(idx) == 0) {
-        return false;
-    }
-    out_key = TileAttributeStaticDataKey::from_raw(idx);
-    return true;
+    return parsed_data;
 }
 
 //================================================================================================================================
 //=> - End -
 //================================================================================================================================
+

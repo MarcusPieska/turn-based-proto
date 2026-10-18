@@ -23,11 +23,14 @@
 //================================================================================================================================
 
 enum class MapAttribute : u16 {
-    River = 0,
-    Dirt_Path = 1,
-    Cobble_Road = 2,
-    Asphalt_Road = 3,
-    Railroad = 4
+    No_River = 0,
+    River = 1,
+    No_Road = 2,
+    Dirt_Path = 3,
+    Cobble_Road = 4,
+    Asphalt_Road = 5,
+    Railroad = 6,
+    Planned_Road = 7
 };
 
 #endif // MAP_ATTRIBUTE_ENUM_H

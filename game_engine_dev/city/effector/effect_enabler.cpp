@@ -47,6 +47,25 @@ static bool chk_wonder (const EffectCtx& ctx, u16 ix) {
     return ctx.m_wonder_city[ix] != U16_KEY_NULL;
 }
 
+static bool chk_city_job (const EffectCtx& ctx, u16 ix) {
+    if (ctx.m_job_seat_fn == nullptr) {
+        return false;
+    }
+    return ctx.m_job_seat_fn(ctx.m_city_idx, ix, ctx.m_job_seat_ud) > 0u;
+}
+
+static bool chk_civ_trait (const EffectCtx& ctx, u16 ix) {
+    if (ctx.m_trait_idx == nullptr) {
+        return false;
+    }
+    for (u16 i = 0; i < ctx.m_trait_n; ++i) {
+        if (ctx.m_trait_idx[i] == ix) {
+            return true;
+        }
+    }
+    return false;
+}
+
 static bool active_with_bld_fn (
     const EffectEnabler& en,
     const EffectCtx& ctx,
@@ -61,6 +80,10 @@ static bool active_with_bld_fn (
         return chk_small_wonder(ctx, en.m_idx);
     case EffectEnablerKind::WONDER:
         return chk_wonder(ctx, en.m_idx);
+    case EffectEnablerKind::CITY_JOB:
+        return chk_city_job(ctx, en.m_idx);
+    case EffectEnablerKind::CIV_TRAIT:
+        return chk_civ_trait(ctx, en.m_idx);
     default:
         return false;
     }

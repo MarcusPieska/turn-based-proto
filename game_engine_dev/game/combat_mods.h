@@ -14,15 +14,15 @@ class RuntimeStatics;
 //================================================================================================================================
 
 struct CombatBoost {
-    i16 m_atk; // Attacker pct boost vs defender role
-    i16 m_def; // Defender pct boost vs attacker role (+ city if on_city)
+    i16 m_atk; // Attacker role points vs defender role
+    i16 m_def; // Defender role points vs attacker role (+ city if on_city)
 };
 
 //================================================================================================================================
 //=> - CombatMods -
 //================================================================================================================================
 //
-//  Role-vs-role combat pct table from unit_role statics. CITY_DEFENSE applies to the defender only.
+//  Role-vs-role combat point table from unit_role statics. CITY_DEFENSE applies to the defender only.
 //
 //================================================================================================================================
 
@@ -40,8 +40,8 @@ private:
     CombatMods (const CombatMods& o) = delete;
     CombatMods& operator= (const CombatMods& o) = delete;
 
-    i16* m_vs; // Flat n*n; m_vs[a*n+d] = role a boost vs role d
-    i16* m_city; // Per-role city-defense pct for the defender
+    i16* m_vs; // Flat n*n; m_vs[a*n+d] = role a points vs role d
+    i16* m_city; // Per-role city-defense points for the defender
     u16 m_n; // Role count
 };
 

@@ -36,7 +36,6 @@ public:
     cstr get_path_to_civs () const;
     cstr get_path_to_effects () const;
     cstr get_path_to_governments () const;
-    cstr get_path_to_tile_attributes () const;
     cstr get_path_to_resources () const;
     cstr get_path_to_res_dists () const;
     cstr get_path_to_res_types () const;
@@ -48,6 +47,7 @@ public:
     cstr get_path_to_unit_roles () const;
     cstr get_path_to_unit_types () const;
     cstr get_path_to_unit_domains () const;
+    cstr get_path_to_unit_levels () const;
     cstr get_path_to_units () const;
     cstr get_path_to_wonders () const;
     cstr get_path_to_map_overlays () const;
@@ -82,7 +82,6 @@ private:
     char m_path_civs[PATH_MNG_PATH_N];
     char m_path_effects[PATH_MNG_PATH_N];
     char m_path_governments[PATH_MNG_PATH_N];
-    char m_path_tile_attributes[PATH_MNG_PATH_N];
     char m_path_resources[PATH_MNG_PATH_N];
     char m_path_res_dists[PATH_MNG_PATH_N];
     char m_path_res_types[PATH_MNG_PATH_N];
@@ -94,6 +93,7 @@ private:
     char m_path_unit_roles[PATH_MNG_PATH_N];
     char m_path_unit_types[PATH_MNG_PATH_N];
     char m_path_unit_domains[PATH_MNG_PATH_N];
+    char m_path_unit_levels[PATH_MNG_PATH_N];
     char m_path_units[PATH_MNG_PATH_N];
     char m_path_wonders[PATH_MNG_PATH_N];
     char m_path_map_overlays[PATH_MNG_PATH_N];

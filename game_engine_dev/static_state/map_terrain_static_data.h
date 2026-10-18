@@ -27,7 +27,15 @@ class DataParserBase;
 //================================================================================================================================
 
 typedef struct MapTerrainStaticDataStruct {
-
+    u16 mvt_cost;
+    i16 food;
+    u16 production;
+    u16 commerce;
+    u16 culture;
+    u16 science;
+    u16 religion;
+    u16 attack_mod;
+    u16 defense_mod;
 } MapTerrainStaticDataStruct;
 
 //================================================================================================================================

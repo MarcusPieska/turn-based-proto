@@ -24,13 +24,14 @@
 //
 //================================================================================================================================
 
-static const u16 LOG_NEED_N = 57u;
+static const u16 LOG_NEED_N = 58u;
 
 struct LogNeedMask {
     u8 m_new_turn;
     u8 m_city_foundation;
     u8 m_civ_spawn_pt;
     u8 m_unit_spawn;
+    u8 m_city_unit_train;
     u8 m_war_muster;
     u8 m_war_peace_mock;
     u8 m_war_peace;
@@ -99,6 +100,7 @@ inline LogNeedMask::LogNeedMask ()
       m_city_foundation(0),
       m_civ_spawn_pt(0),
       m_unit_spawn(0),
+      m_city_unit_train(0),
       m_war_muster(0),
       m_war_peace_mock(0),
       m_war_peace(0),
@@ -182,6 +184,7 @@ inline cstr LogNeedMask::nm (u16 i) {
         "CityFoundation",
         "CivSpawnPt",
         "UnitSpawn",
+        "CityUnitTrain",
         "WarMuster",
         "WarPeaceMock",
         "WarPeace",
@@ -260,6 +263,11 @@ inline bool LogNeedMask::on (u16 i) {
         0u,
 #endif
 #if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_UNIT_SPAWN))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_CITY_UNIT_TRAIN))
         1u,
 #else
         0u,

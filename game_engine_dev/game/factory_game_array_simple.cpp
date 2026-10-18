@@ -243,7 +243,7 @@ bool Factory_GameArraySimple::load_map_gen_data (
         t->m_res = U16_KEY_NULL;
         t->m_terr = terr[i];
         t->m_clim = clim[i];
-        t->m_ov = ov != nullptr ? map_gen_ov_to_catalog(ov[i]) : U16_KEY_NULL;
+        t->m_ov = ov != nullptr ? map_gen_ov_to_catalog(ov[i]) : static_cast<u16>(MapOverlay::None);
         t->m_riv = riv[i];
         t->m_unused = 0;
         t->m_civ_owner = U8_KEY_NULL;
@@ -363,7 +363,7 @@ bool Factory_GameArraySimple::init_test_grid (GameArraySimple* out, u16 w, u16 h
         tiles[i] = {};
         tiles[i].m_unit_hd = U16_KEY_NULL;
         tiles[i].m_add_idx = 0u;
-        tiles[i].m_ov = U16_KEY_NULL;
+        tiles[i].m_ov = static_cast<u16>(MapOverlay::None);
         tiles[i].m_res = UINT16_MAX;
         tiles[i].m_civ_owner = U8_KEY_NULL;
     }

@@ -15,6 +15,7 @@ from generater_commons import (
     get_map_specs,
     get_req_test_stems,
     get_table_specs,
+    get_retired_load_stems,
     join_tag_lines,
     lines_comp_clean_maps,
     lines_comp_clean_parsers,
@@ -89,12 +90,18 @@ def lines_cpp_callback_parsers ():
     return ["const DataParserBase* g_%s_name_parser = nullptr;" % stem for stem in entries]
 
 def lines_cpp_callback_func_blocks ():
+    retired = set(get_retired_load_stems())
     blocks = []
     for stem in entries:
         lines = []
-        lines.append("u16 cb_%s_name_to_idx (cstr name) {" % stem)
-        lines.append("    return g_%s_name_parser->name_to_idx(name);" % stem)
-        lines.append("}")
+        if stem in retired:
+            lines.append("u16 cb_%s_name_to_idx (cstr) {" % stem)
+            lines.append("    return U16_KEY_NULL;")
+            lines.append("}")
+        else:
+            lines.append("u16 cb_%s_name_to_idx (cstr name) {" % stem)
+            lines.append("    return g_%s_name_parser->name_to_idx(name);" % stem)
+            lines.append("}")
         blocks.append("\n".join(lines))
     return blocks
 
@@ -112,6 +119,7 @@ def lines_cpp_data_ptr_inits ():
     return lines
 
 def lines_cpp_typed_getter_blocks ():
+    retired = set(get_retired_load_stems())
     blocks = []
     for stem in entries:
         lines = []
@@ -120,7 +128,10 @@ def lines_cpp_typed_getter_blocks ():
         lines.append("}")
         lines.append("")
         lines.append("u16 StaticParsingManager::get_%s_count () const {" % stem)
-        lines.append("    return safe_size_to_u16(m_%s_items.get_string_count());" % stem)
+        if stem in retired:
+            lines.append("    return 0u;")
+        else:
+            lines.append("    return safe_size_to_u16(m_%s_items.get_string_count());" % stem)
         lines.append("}")
         blocks.append("\n".join(lines))
     return blocks
@@ -145,27 +156,58 @@ def lines_cpp_callback_assign_cbs ():
     return ["m_name_to_idx_cbs.%s_name_to_idx = cb_%s_name_to_idx;" % (stem, stem) for stem in entries]
 
 def lines_cpp_local_parsers ():
-    return ["%s %s_parser(m_%s_items, m_name_to_idx_cbs);" % (parser_class(stem), stem, stem) for stem in entries]
+    retired = set(get_retired_load_stems())
+    lines = []
+    for stem in entries:
+        if stem in retired:
+            continue
+        lines.append("%s %s_parser(m_%s_items, m_name_to_idx_cbs);" % (parser_class(stem), stem, stem))
+    return lines
 
 def lines_cpp_load_items ():
+    retired = set(get_retired_load_stems())
     lines = [
         "m_effect_items.split_string_by_char(0, '\\n');",
         "DataParserBase::normalize_lines(m_effect_items);",
     ]
     for stem in entries:
+        if stem in retired:
+            lines.append("// retired: %s (attrs live on map_* catalogs)" % stem)
+            continue
         lines.append("m_%s_items.load_file_content(m_paths.get_path_to_%s());" % (stem, path_from_stem(stem)))
         lines.append("m_%s_items.split_string_by_char(0, '\\n');" % stem)
         lines.append("DataParserBase::normalize_lines(m_%s_items);" % stem)
     return lines
 
 def lines_cpp_init_name_parsers ():
-    return ["m_%s_name_parser = new DataParserBase(m_%s_items, NameToIdxCbs());" % (stem, stem) for stem in entries]
+    retired = set(get_retired_load_stems())
+    lines = []
+    for stem in entries:
+        if stem in retired:
+            lines.append("m_%s_name_parser = nullptr; // retired" % stem)
+            continue
+        lines.append("m_%s_name_parser = new DataParserBase(m_%s_items, NameToIdxCbs());" % (stem, stem))
+    return lines
 
 def lines_cpp_delete_name_parsers ():
-    return ["delete m_%s_name_parser;" % stem for stem in entries]
+    retired = set(get_retired_load_stems())
+    lines = []
+    for stem in entries:
+        if stem in retired:
+            lines.append("m_%s_name_parser = nullptr;" % stem)
+            continue
+        lines.append("delete m_%s_name_parser;" % stem)
+    return lines
 
 def lines_cpp_parse_assignments ():
-    return ["m_%s_data = %s_parser.parse_data_dependencies();" % (stem, stem) for stem in entries]
+    retired = set(get_retired_load_stems())
+    lines = []
+    for stem in entries:
+        if stem in retired:
+            lines.append("m_%s_data = new %s[0]();" % (stem, data_struct(stem)))
+            continue
+        lines.append("m_%s_data = %s_parser.parse_data_dependencies();" % (stem, stem))
+    return lines
 
 def lines_tester_print_counts ():
     return ['print_u16_member("%s", parser.get_%s_count());' % (stem, stem) for stem in entries]

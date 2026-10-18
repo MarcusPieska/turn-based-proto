@@ -15,12 +15,15 @@
 #include "game_map_defs.h"
 #include "game_state.h"
 #include "general_bit_bank.h"
+#include "map_overlay_enum.h"
 #include "runtime_static_loader.h"
 #include "runtime_statics.h"
 #include "small_wonder_static_key.h"
 #include "tech_static_key.h"
 #include "tile_attr_tables.h"
 #include "unit_add_struct.h"
+#include "unit_level_static_data.h"
+#include "unit_level_static_key.h"
 #include "unit_static_data.h"
 #include "unit_static_key.h"
 #include "wonder_static_key.h"
@@ -63,12 +66,12 @@ static void cfg_def (Cfg* c) {
     std::memset(c, 0, sizeof(*c));
     std::snprintf(c->m_atk, sizeof(c->m_atk), "Horseman");
     std::snprintf(c->m_def, sizeof(c->m_def), "Spearman");
-    c->m_atk_lv = GREEN;
-    c->m_def_lv = GREEN;
+    c->m_atk_lv = 0u;
+    c->m_def_lv = 0u;
     c->m_atk_hp = UNIT_HEALTH;
     c->m_def_hp = UNIT_HEALTH;
     c->m_terr = TERR_PLAINS[0];
-    c->m_ov = OV_NONE[0];
+    c->m_ov = static_cast<u8>(MapOverlay::None);
     c->m_riv = 0u;
     c->m_city = 0u;
 }
@@ -103,14 +106,21 @@ static bool parse_u8 (cstr s, u8* out) {
 }
 
 static bool parse_lv (cstr s, u8* out) {
-    if (std::strcmp(s, "VERY_GREEN") == 0) { *out = VERY_GREEN; return true; }
-    if (std::strcmp(s, "GREEN") == 0) { *out = GREEN; return true; }
-    if (std::strcmp(s, "REGULAR") == 0) { *out = REGULAR; return true; }
-    if (std::strcmp(s, "DISCIPLINED") == 0) { *out = DISCIPLINED; return true; }
-    if (std::strcmp(s, "HARDENED") == 0) { *out = HARDENED; return true; }
-    if (std::strcmp(s, "VETERAN") == 0) { *out = VETERAN; return true; }
-    if (std::strcmp(s, "COMMANDO") == 0) { *out = COMMANDO; return true; }
-    if (std::strcmp(s, "ELITE") == 0) { *out = ELITE; return true; }
+    if (parse_u8(s, out)) {
+        return true;
+    }
+    if (g_st == nullptr || s == nullptr || out == nullptr) {
+        return false;
+    }
+    const UnitLevelStaticData& lv = g_st->unit_level();
+    const u16 n = lv.get_item_count();
+    for (u16 i = 0; i < n; ++i) {
+        cstr nm = lv.get_name(UnitLevelStaticDataKey::from_raw(i));
+        if (nm != nullptr && std::strcmp(nm, s) == 0) {
+            *out = static_cast<u8>(i);
+            return true;
+        }
+    }
     return false;
 }
 
@@ -125,10 +135,10 @@ static bool parse_terr (cstr s, u8* out) {
 }
 
 static bool parse_ov (cstr s, u8* out) {
-    if (std::strcmp(s, "none") == 0) { *out = OV_NONE[0]; return true; }
-    if (std::strcmp(s, "forest") == 0) { *out = OV_FOREST[0]; return true; }
-    if (std::strcmp(s, "swamp") == 0) { *out = OV_SWAMP[0]; return true; }
-    if (std::strcmp(s, "jungle") == 0) { *out = OV_JUNGLE[0]; return true; }
+    if (std::strcmp(s, "none") == 0) { *out = static_cast<u8>(MapOverlay::None); return true; }
+    if (std::strcmp(s, "forest") == 0) { *out = static_cast<u8>(MapOverlay::Forest); return true; }
+    if (std::strcmp(s, "swamp") == 0) { *out = static_cast<u8>(MapOverlay::Swamp); return true; }
+    if (std::strcmp(s, "jungle") == 0) { *out = static_cast<u8>(MapOverlay::Jungle); return true; }
     return false;
 }
 

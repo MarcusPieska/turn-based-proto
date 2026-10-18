@@ -9,7 +9,7 @@ if [ ! -f "$LIB_SO" ]; then
     exit 1
 fi
 
-INC="-I.. -I../.. -I../../misc -I../../data_io -I../../static_state"
+INC="-I.. -I../.. -I../../misc -I../../data_io -I../../static_state -I../../city/effector -I../../gen_effector"
 CXXFLAGS="-std=c++17 -Wall -Wextra"
 
 g++ $CXXFLAGS $INC -c ../../data_io/runtime_static_loader.cpp -o runtime_static_loader.o

@@ -9,39 +9,60 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef TILE_ATTRIBUTE_BIT_ARRAY_H
-#define TILE_ATTRIBUTE_BIT_ARRAY_H
+#ifndef UNIT_LEVEL_STATIC_KEY_H
+#define UNIT_LEVEL_STATIC_KEY_H
 
-#include "bit_array.h"
 #include "game_primitives.h"
-#include "tile_attribute_static_key.h"
-
-class GeneralAssessor;
-class KeyHolder;
 
 //================================================================================================================================
-//=> - TileAttributeBitArray class -
+//=> - UnitLevelStaticDataKey class -
 //================================================================================================================================
 
-class TileAttributeBitArray {
+class UnitLevelStaticDataKey {
+    friend class UnitLevelStaticData;
+    friend class UnitLevelBitArray;
+    friend class GeneralAssessor;
+    friend class KeyHolder;
 public:
-    explicit TileAttributeBitArray (u16 count);
-    ~TileAttributeBitArray ();
+    constexpr UnitLevelStaticDataKey() : m_val(U16_KEY_NULL) {}
 
-    bool is_flagged (u16 index) const;
-    void set_flag (TileAttributeStaticDataKey key);
-    void clear_flag (TileAttributeStaticDataKey key);
+    constexpr bool operator==(UnitLevelStaticDataKey other) const {
+        return m_val == other.m_val; 
+    }
 
-    bool can_access (u16 idx, TileAttributeStaticDataKey& out_key) const;
+    constexpr bool operator!=(UnitLevelStaticDataKey other) const { 
+        return m_val != other.m_val; 
+    }
+
+    constexpr bool is_null() const { 
+        return m_val == U16_KEY_NULL; 
+    }
+
+    constexpr bool is_valid() const { 
+        return m_val != U16_KEY_NULL; 
+    }
+
+    static constexpr UnitLevelStaticDataKey None() { 
+        return UnitLevelStaticDataKey(U16_KEY_NULL); 
+    }
+
+    static constexpr UnitLevelStaticDataKey from_raw(u16 val) {
+        return UnitLevelStaticDataKey(val);
+    }
+
+    constexpr u16 value() const {
+        return m_val;
+    }
 
 private:
-    TileAttributeBitArray (const TileAttributeBitArray& other) = delete;
-    TileAttributeBitArray (TileAttributeBitArray&& other) = delete;
+    u16 m_val;
 
-    BitArrayCL m_flags;
+    explicit constexpr UnitLevelStaticDataKey(u16 val) : 
+        m_val(val) {
+    }    
 };
 
-#endif // TILE_ATTRIBUTE_BIT_ARRAY_H
+#endif // UNIT_LEVEL_STATIC_KEY_H
 
 //================================================================================================================================
 //=> - End of file -

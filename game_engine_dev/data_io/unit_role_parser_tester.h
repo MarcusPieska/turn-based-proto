@@ -29,7 +29,6 @@
 #include "city_job_static_data.h"
 #include "civ_static_data.h"
 #include "civ_trait_static_data.h"
-#include "tile_attribute_static_data.h"
 #include "resource_static_data.h"
 #include "res_dist_static_data.h"
 #include "res_type_static_data.h"
@@ -41,6 +40,7 @@
 #include "unit_role_static_data.h"
 #include "unit_type_static_data.h"
 #include "unit_domain_static_data.h"
+#include "unit_level_static_data.h"
 #include "unit_static_data.h"
 #include "wonder_static_data.h"
 #include "map_overlay_static_data.h"
@@ -74,7 +74,6 @@ public:
     void set_city_job_sd (const CityJobStaticData* sd);
     void set_civ_sd (const CivStaticData* sd);
     void set_civ_trait_sd (const CivTraitStaticData* sd);
-    void set_tile_attribute_sd (const TileAttributeStaticData* sd);
     void set_resource_sd (const ResourceStaticData* sd);
     void set_res_dist_sd (const ResDistStaticData* sd);
     void set_res_type_sd (const ResTypeStaticData* sd);
@@ -86,6 +85,7 @@ public:
     void set_unit_role_sd (const UnitRoleStaticData* sd);
     void set_unit_type_sd (const UnitTypeStaticData* sd);
     void set_unit_domain_sd (const UnitDomainStaticData* sd);
+    void set_unit_level_sd (const UnitLevelStaticData* sd);
     void set_unit_sd (const UnitStaticData* sd);
     void set_wonder_sd (const WonderStaticData* sd);
     void set_map_overlay_sd (const MapOverlayStaticData* sd);
@@ -112,7 +112,6 @@ private:
     const CityJobStaticData* m_city_job_sd;
     const CivStaticData* m_civ_sd;
     const CivTraitStaticData* m_civ_trait_sd;
-    const TileAttributeStaticData* m_tile_attribute_sd;
     const ResourceStaticData* m_resource_sd;
     const ResDistStaticData* m_res_dist_sd;
     const ResTypeStaticData* m_res_type_sd;
@@ -124,6 +123,7 @@ private:
     const UnitRoleStaticData* m_unit_role_sd;
     const UnitTypeStaticData* m_unit_type_sd;
     const UnitDomainStaticData* m_unit_domain_sd;
+    const UnitLevelStaticData* m_unit_level_sd;
     const UnitStaticData* m_unit_sd;
     const WonderStaticData* m_wonder_sd;
     const MapOverlayStaticData* m_map_overlay_sd;
@@ -144,7 +144,6 @@ private:
     const DataParserBase* m_city_job_psr;
     const DataParserBase* m_civ_psr;
     const DataParserBase* m_civ_trait_psr;
-    const DataParserBase* m_tile_attribute_psr;
     const DataParserBase* m_resource_psr;
     const DataParserBase* m_res_dist_psr;
     const DataParserBase* m_res_type_psr;
@@ -156,6 +155,7 @@ private:
     const DataParserBase* m_unit_role_psr;
     const DataParserBase* m_unit_type_psr;
     const DataParserBase* m_unit_domain_psr;
+    const DataParserBase* m_unit_level_psr;
     const DataParserBase* m_unit_psr;
     const DataParserBase* m_wonder_psr;
     const DataParserBase* m_map_overlay_psr;
@@ -178,7 +178,6 @@ private:
     static u16 st_city_job_n2i (cstr name);
     static u16 st_civ_n2i (cstr name);
     static u16 st_civ_trait_n2i (cstr name);
-    static u16 st_tile_attribute_n2i (cstr name);
     static u16 st_resource_n2i (cstr name);
     static u16 st_res_dist_n2i (cstr name);
     static u16 st_res_type_n2i (cstr name);
@@ -190,6 +189,7 @@ private:
     static u16 st_unit_role_n2i (cstr name);
     static u16 st_unit_type_n2i (cstr name);
     static u16 st_unit_domain_n2i (cstr name);
+    static u16 st_unit_level_n2i (cstr name);
     static u16 st_unit_n2i (cstr name);
     static u16 st_wonder_n2i (cstr name);
     static u16 st_map_overlay_n2i (cstr name);

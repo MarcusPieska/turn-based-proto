@@ -42,6 +42,7 @@ static u16 seat_boost (const GameState& s, u16 seat, ItemEffectBoosterType tp) {
     ctx.m_wonder_n = s.m_wonder_count;
     ctx.m_small_wonder_city = ps.m_small_wonder_city;
     ctx.m_small_wonder_n = s.m_small_wonder_count;
+    effect_ctx_bind_civ_traits(ctx, *s.m_statics, ps.m_civ_index);
     const BoosterRegisterResult r = s.m_statics->dyn_booster().determine(tp, ItemEffectsScope::CIV, ctx);
     return apply_booster_u16(0u, r);
 }

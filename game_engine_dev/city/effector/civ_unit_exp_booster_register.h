@@ -14,7 +14,7 @@ struct EffectCtx;
 //=> - CivUnitExpBoosterRegister -
 //================================================================================================================================
 //
-//  Static CIV-scoped UNIT_EXP booster register.
+//  Static CIV-scoped UNIT_LEVEL_DEFAULT booster register.
 //
 //================================================================================================================================
 
@@ -36,7 +36,7 @@ private:
     CivUnitExpBoosterRegister (CivUnitExpBoosterRegister&& other) = delete;
 
     static constexpr ItemEffectBoosterType booster_type () {
-        return ItemEffectBoosterType::UNIT_EXP;
+        return ItemEffectBoosterType::UNIT_LEVEL_DEFAULT;
     }
 
     static constexpr ItemEffectsScope scope () {

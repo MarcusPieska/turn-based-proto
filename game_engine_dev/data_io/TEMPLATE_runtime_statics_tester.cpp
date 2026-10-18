@@ -167,6 +167,13 @@ void run_config_smoke_tests (const RuntimeStatics& s) {
     note_result(cfg.get_mov_pt_per_turn() == 1000, "PATH_MP_TURN matches game_config.settings");
     note_result(cfg.get_tech_age_unlock_pct() == 80, "TECH_AGE_UNLOCK_PCT matches game_config.settings");
     note_result(cfg.get_default_culture_per_turn() == 2, "DEFAULT_CULTURE_PER_TURN matches game_config.settings");
+    note_result(cfg.get_default_unit_level() == 0, "DEFAULT_UNIT_LEVEL matches game_config.settings");
+    note_result(cfg.get_unit_level_damage_factor() == 4, "UNIT_LEVEL_DAMAGE_FACTOR matches game_config.settings");
+    note_result(cfg.get_unit_stat_damage_factor() == 4, "UNIT_STAT_DAMAGE_FACTOR matches game_config.settings");
+    note_result(cfg.get_unit_size_damage_factor() == 16, "UNIT_SIZE_DAMAGE_FACTOR matches game_config.settings");
+    note_result(cfg.get_unit_role_damage_factor() == 4, "UNIT_ROLE_DAMAGE_FACTOR matches game_config.settings");
+    note_result(cfg.get_unit_city_damage_factor() == 4, "UNIT_CITY_DAMAGE_FACTOR matches game_config.settings");
+    note_result(cfg.get_unit_terrain_damage_factor() == 4, "UNIT_TERRAIN_DAMAGE_FACTOR matches game_config.settings");
     const ConfigListUnit& su = cfg.get_start_units();
     note_result(su.n == 2, "START_UNITS count");
     note_result(std::strcmp(s.unit().get_name(su.keys[0]), "Settler") == 0, "START_UNITS first is Settler");

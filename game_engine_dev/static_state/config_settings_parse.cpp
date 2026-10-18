@@ -230,6 +230,62 @@ bool GameConfigSettingsParser::parse_line (cstr line, GameConfigSettings* out) c
         }
         out->set_default_culture_per_turn(tmp);
         return true;
+    } else if (std::strcmp(k, "DEFAULT_UNIT_LEVEL") == 0) {
+        u16 tmp = 0;
+        if (!parse_u16(v, &tmp)) {
+            std::printf("ERROR: config could not parse u16 for '%s': '%s'\n", k, v);
+            return false;
+        }
+        out->set_default_unit_level(tmp);
+        return true;
+    } else if (std::strcmp(k, "UNIT_LEVEL_DAMAGE_FACTOR") == 0) {
+        u16 tmp = 0;
+        if (!parse_u16(v, &tmp)) {
+            std::printf("ERROR: config could not parse u16 for '%s': '%s'\n", k, v);
+            return false;
+        }
+        out->set_unit_level_damage_factor(tmp);
+        return true;
+    } else if (std::strcmp(k, "UNIT_STAT_DAMAGE_FACTOR") == 0) {
+        u16 tmp = 0;
+        if (!parse_u16(v, &tmp)) {
+            std::printf("ERROR: config could not parse u16 for '%s': '%s'\n", k, v);
+            return false;
+        }
+        out->set_unit_stat_damage_factor(tmp);
+        return true;
+    } else if (std::strcmp(k, "UNIT_SIZE_DAMAGE_FACTOR") == 0) {
+        u16 tmp = 0;
+        if (!parse_u16(v, &tmp)) {
+            std::printf("ERROR: config could not parse u16 for '%s': '%s'\n", k, v);
+            return false;
+        }
+        out->set_unit_size_damage_factor(tmp);
+        return true;
+    } else if (std::strcmp(k, "UNIT_ROLE_DAMAGE_FACTOR") == 0) {
+        u16 tmp = 0;
+        if (!parse_u16(v, &tmp)) {
+            std::printf("ERROR: config could not parse u16 for '%s': '%s'\n", k, v);
+            return false;
+        }
+        out->set_unit_role_damage_factor(tmp);
+        return true;
+    } else if (std::strcmp(k, "UNIT_CITY_DAMAGE_FACTOR") == 0) {
+        u16 tmp = 0;
+        if (!parse_u16(v, &tmp)) {
+            std::printf("ERROR: config could not parse u16 for '%s': '%s'\n", k, v);
+            return false;
+        }
+        out->set_unit_city_damage_factor(tmp);
+        return true;
+    } else if (std::strcmp(k, "UNIT_TERRAIN_DAMAGE_FACTOR") == 0) {
+        u16 tmp = 0;
+        if (!parse_u16(v, &tmp)) {
+            std::printf("ERROR: config could not parse u16 for '%s': '%s'\n", k, v);
+            return false;
+        }
+        out->set_unit_terrain_damage_factor(tmp);
+        return true;
     }
 
     std::printf("ERROR: unknown config settings key '%s'\n", k);

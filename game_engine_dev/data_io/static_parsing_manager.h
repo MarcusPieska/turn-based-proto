@@ -25,7 +25,6 @@ class StaticBitBank;
 #include "city_job_parser.h"
 #include "civ_parser.h"
 #include "civ_trait_parser.h"
-#include "tile_attribute_parser.h"
 #include "resource_parser.h"
 #include "res_dist_parser.h"
 #include "res_type_parser.h"
@@ -37,6 +36,7 @@ class StaticBitBank;
 #include "unit_role_parser.h"
 #include "unit_type_parser.h"
 #include "unit_domain_parser.h"
+#include "unit_level_parser.h"
 #include "unit_parser.h"
 #include "wonder_parser.h"
 #include "map_overlay_parser.h"
@@ -57,7 +57,6 @@ class StaticBitBank;
 #include "city_job_static_data.h"
 #include "civ_static_data.h"
 #include "civ_trait_static_data.h"
-#include "tile_attribute_static_data.h"
 #include "resource_static_data.h"
 #include "res_dist_static_data.h"
 #include "res_type_static_data.h"
@@ -69,6 +68,7 @@ class StaticBitBank;
 #include "unit_role_static_data.h"
 #include "unit_type_static_data.h"
 #include "unit_domain_static_data.h"
+#include "unit_level_static_data.h"
 #include "unit_static_data.h"
 #include "wonder_static_data.h"
 #include "map_overlay_static_data.h"
@@ -121,10 +121,6 @@ public:
 
     u16 get_civ_trait_count () const;
 
-    const TileAttributeStaticDataStruct* get_tile_attribute_data () const;
-
-    u16 get_tile_attribute_count () const;
-
     const ResourceStaticDataStruct* get_resource_data () const;
 
     u16 get_resource_count () const;
@@ -168,6 +164,10 @@ public:
     const UnitDomainStaticDataStruct* get_unit_domain_data () const;
 
     u16 get_unit_domain_count () const;
+
+    const UnitLevelStaticDataStruct* get_unit_level_data () const;
+
+    u16 get_unit_level_count () const;
 
     const UnitStaticDataStruct* get_unit_data () const;
 
@@ -230,8 +230,6 @@ public:
 
     const DataParserBase& get_civ_trait_name_parser () const;
 
-    const DataParserBase& get_tile_attribute_name_parser () const;
-
     const DataParserBase& get_resource_name_parser () const;
 
     const DataParserBase& get_res_dist_name_parser () const;
@@ -253,6 +251,8 @@ public:
     const DataParserBase& get_unit_type_name_parser () const;
 
     const DataParserBase& get_unit_domain_name_parser () const;
+
+    const DataParserBase& get_unit_level_name_parser () const;
 
     const DataParserBase& get_unit_name_parser () const;
 
@@ -311,7 +311,6 @@ private:
     StringManager m_city_job_items;
     StringManager m_civ_items;
     StringManager m_civ_trait_items;
-    StringManager m_tile_attribute_items;
     StringManager m_resource_items;
     StringManager m_res_dist_items;
     StringManager m_res_type_items;
@@ -323,6 +322,7 @@ private:
     StringManager m_unit_role_items;
     StringManager m_unit_type_items;
     StringManager m_unit_domain_items;
+    StringManager m_unit_level_items;
     StringManager m_unit_items;
     StringManager m_wonder_items;
     StringManager m_map_overlay_items;
@@ -344,7 +344,6 @@ private:
     DataParserBase* m_city_job_name_parser;
     DataParserBase* m_civ_name_parser;
     DataParserBase* m_civ_trait_name_parser;
-    DataParserBase* m_tile_attribute_name_parser;
     DataParserBase* m_resource_name_parser;
     DataParserBase* m_res_dist_name_parser;
     DataParserBase* m_res_type_name_parser;
@@ -356,6 +355,7 @@ private:
     DataParserBase* m_unit_role_name_parser;
     DataParserBase* m_unit_type_name_parser;
     DataParserBase* m_unit_domain_name_parser;
+    DataParserBase* m_unit_level_name_parser;
     DataParserBase* m_unit_name_parser;
     DataParserBase* m_wonder_name_parser;
     DataParserBase* m_map_overlay_name_parser;
@@ -383,7 +383,6 @@ private:
     CityJobStaticDataStruct* m_city_job_data;
     CivStaticDataStruct* m_civ_data;
     CivTraitStaticDataStruct* m_civ_trait_data;
-    TileAttributeStaticDataStruct* m_tile_attribute_data;
     ResourceStaticDataStruct* m_resource_data;
     ResDistStaticDataStruct* m_res_dist_data;
     ResTypeStaticDataStruct* m_res_type_data;
@@ -395,6 +394,7 @@ private:
     UnitRoleStaticDataStruct* m_unit_role_data;
     UnitTypeStaticDataStruct* m_unit_type_data;
     UnitDomainStaticDataStruct* m_unit_domain_data;
+    UnitLevelStaticDataStruct* m_unit_level_data;
     UnitStaticDataStruct* m_unit_data;
     WonderStaticDataStruct* m_wonder_data;
     MapOverlayStaticDataStruct* m_map_overlay_data;

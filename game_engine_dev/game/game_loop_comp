@@ -102,6 +102,9 @@ g++ $CXXFLAGS $INC -c ../city/effector/city_pop_growth_booster_register.cpp -o c
 g++ $CXXFLAGS $INC -c ../city/effector/civ_pop_growth_booster_register.cpp -o civ_pop_growth_booster_register.o
 g++ $CXXFLAGS $INC -c ../city/effector/city_culture_booster_register.cpp -o city_culture_booster_register.o
 g++ $CXXFLAGS $INC -c ../city/city.cpp -o city.o
+g++ $CXXFLAGS $INC -c ../city/job_count_array.cpp -o job_count_array.o
+g++ $CXXFLAGS $INC -c ../city/job_assigner.cpp -o job_assigner.o
+g++ $CXXFLAGS $INC -c ../city/job_effect_realizer.cpp -o job_effect_realizer.o
 g++ $CXXFLAGS $INC -c city_array.cpp -o city_array.o
 g++ $CXXFLAGS $INC -c game_helpers/civ_spawner.cpp -o civ_spawner.o
 g++ $CXXFLAGS $INC -c game_loop_cache.cpp -o game_loop_cache.o
@@ -249,6 +252,9 @@ g++ $CXXFLAGS -o game_loop_tester \
     map_gen_loader.o \
     lucky_seat_loader.o \
     city.o \
+    job_count_array.o \
+    job_assigner.o \
+    job_effect_realizer.o \
     general_bit_bank.o \
     general_assessor.o \
     resource_assessor.o \
@@ -378,7 +384,7 @@ rm -f runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_load
     resource_ledger.o resource_turn_handler.o \
     tile_yields.o tile_working.o tile_work_assessor.o worker_imp_select.o tile_imp_helper.o worker_build_progress.o \
     worker_guidance.o worker_helper.o std_add_helper.o \
-    civ_relations.o negotiate_peace.o combat_mods.o map_gen_loader.o lucky_seat_loader.o city.o general_bit_bank.o general_assessor.o \
+    civ_relations.o negotiate_peace.o combat_mods.o map_gen_loader.o lucky_seat_loader.o city.o job_count_array.o job_assigner.o job_effect_realizer.o general_bit_bank.o general_assessor.o \
     resource_assessor.o resource_effector.o \
     effect_ctx.o effect_enabler.o booster_effect_register.o \
     local_unit_exp_booster_register.o civ_ship_training_booster_register.o city_commerce_booster_register.o \

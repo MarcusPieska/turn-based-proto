@@ -19,7 +19,6 @@
 #include "city_job_parser_tester.h"
 #include "civ_parser_tester.h"
 #include "civ_trait_parser_tester.h"
-#include "tile_attribute_parser_tester.h"
 #include "resource_parser_tester.h"
 #include "res_dist_parser_tester.h"
 #include "res_type_parser_tester.h"
@@ -31,6 +30,7 @@
 #include "unit_role_parser_tester.h"
 #include "unit_type_parser_tester.h"
 #include "unit_domain_parser_tester.h"
+#include "unit_level_parser_tester.h"
 #include "unit_parser_tester.h"
 #include "wonder_parser_tester.h"
 #include "map_overlay_parser_tester.h"
@@ -62,7 +62,6 @@ public:
     CityJobParserTester& city_job () { return m_city_job; }
     CivParserTester& civ () { return m_civ; }
     CivTraitParserTester& civ_trait () { return m_civ_trait; }
-    TileAttributeParserTester& tile_attribute () { return m_tile_attribute; }
     ResourceParserTester& resource () { return m_resource; }
     ResDistParserTester& res_dist () { return m_res_dist; }
     ResTypeParserTester& res_type () { return m_res_type; }
@@ -74,6 +73,7 @@ public:
     UnitRoleParserTester& unit_role () { return m_unit_role; }
     UnitTypeParserTester& unit_type () { return m_unit_type; }
     UnitDomainParserTester& unit_domain () { return m_unit_domain; }
+    UnitLevelParserTester& unit_level () { return m_unit_level; }
     UnitParserTester& unit () { return m_unit; }
     WonderParserTester& wonder () { return m_wonder; }
     MapOverlayParserTester& map_overlay () { return m_map_overlay; }
@@ -97,7 +97,6 @@ private:
     CityJobParserTester m_city_job;
     CivParserTester m_civ;
     CivTraitParserTester m_civ_trait;
-    TileAttributeParserTester m_tile_attribute;
     ResourceParserTester m_resource;
     ResDistParserTester m_res_dist;
     ResTypeParserTester m_res_type;
@@ -109,6 +108,7 @@ private:
     UnitRoleParserTester m_unit_role;
     UnitTypeParserTester m_unit_type;
     UnitDomainParserTester m_unit_domain;
+    UnitLevelParserTester m_unit_level;
     UnitParserTester m_unit;
     WonderParserTester m_wonder;
     MapOverlayParserTester m_map_overlay;

@@ -26,7 +26,6 @@ g++ $INC -c ../static_state/toggle_global_static_data.cpp -o toggle_global_stati
 g++ $INC -c ../static_state/city_job_static_data.cpp -o city_job_static_data.o
 g++ $INC -c ../static_state/civ_static_data.cpp -o civ_static_data.o
 g++ $INC -c ../static_state/civ_trait_static_data.cpp -o civ_trait_static_data.o
-g++ $INC -c ../static_state/tile_attribute_static_data.cpp -o tile_attribute_static_data.o
 g++ $INC -c ../static_state/resource_static_data.cpp -o resource_static_data.o
 g++ $INC -c ../static_state/res_dist_static_data.cpp -o res_dist_static_data.o
 g++ $INC -c ../static_state/res_type_static_data.cpp -o res_type_static_data.o
@@ -38,6 +37,7 @@ g++ $INC -c ../static_state/unit_action_static_data.cpp -o unit_action_static_da
 g++ $INC -c ../static_state/unit_role_static_data.cpp -o unit_role_static_data.o
 g++ $INC -c ../static_state/unit_type_static_data.cpp -o unit_type_static_data.o
 g++ $INC -c ../static_state/unit_domain_static_data.cpp -o unit_domain_static_data.o
+g++ $INC -c ../static_state/unit_level_static_data.cpp -o unit_level_static_data.o
 g++ $INC -c ../static_state/unit_static_data.cpp -o unit_static_data.o
 g++ $INC -c ../static_state/wonder_static_data.cpp -o wonder_static_data.o
 g++ $INC -c ../static_state/map_overlay_static_data.cpp -o map_overlay_static_data.o
@@ -69,7 +69,6 @@ g++ -o improvement_yield_parser_tester \
     city_job_static_data.o \
     civ_static_data.o \
     civ_trait_static_data.o \
-    tile_attribute_static_data.o \
     resource_static_data.o \
     res_dist_static_data.o \
     res_type_static_data.o \
@@ -81,6 +80,7 @@ g++ -o improvement_yield_parser_tester \
     unit_role_static_data.o \
     unit_type_static_data.o \
     unit_domain_static_data.o \
+    unit_level_static_data.o \
     unit_static_data.o \
     wonder_static_data.o \
     map_overlay_static_data.o \
@@ -112,7 +112,6 @@ rm \
     city_job_static_data.o \
     civ_static_data.o \
     civ_trait_static_data.o \
-    tile_attribute_static_data.o \
     resource_static_data.o \
     res_dist_static_data.o \
     res_type_static_data.o \
@@ -124,6 +123,7 @@ rm \
     unit_role_static_data.o \
     unit_type_static_data.o \
     unit_domain_static_data.o \
+    unit_level_static_data.o \
     unit_static_data.o \
     wonder_static_data.o \
     map_overlay_static_data.o \

@@ -38,6 +38,9 @@ g++ $CXXFLAGS $INC -c ../combat_mods.cpp -o combat_mods.o
 g++ $CXXFLAGS $INC -c ../combat_mng.cpp -o combat_mng.o
 g++ $CXXFLAGS $INC -c ../civ_relations.cpp -o civ_relations.o
 g++ $CXXFLAGS $INC -c ../city_array.cpp -o city_array.o
+g++ $CXXFLAGS $INC -c ../../city/job_count_array.cpp -o job_count_array.o
+g++ $CXXFLAGS $INC -c ../mvt_pts_boost_mng.cpp -o mvt_pts_boost_mng.o
+g++ $CXXFLAGS $INC -c ../../ai_proc/general_move_boost.cpp -o general_move_boost.o
 g++ $CXXFLAGS $INC -c ../player_ledger.cpp -o player_ledger.o
 g++ $CXXFLAGS $INC -c ../tile_yields.cpp -o tile_yields.o
 g++ $CXXFLAGS $INC -c ../worker_helper.cpp -o worker_helper.o
@@ -96,6 +99,9 @@ g++ $CXXFLAGS -o combat_mng_noise_tester \
     combat_mng.o \
     civ_relations.o \
     city_array.o \
+    job_count_array.o \
+    mvt_pts_boost_mng.o \
+    general_move_boost.o \
     player_ledger.o \
     tile_yields.o \
     worker_helper.o \

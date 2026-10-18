@@ -8,10 +8,8 @@
 #include "improvement_yield_static_key.h"
 #include "item_effects.h"
 #include "map_overlay_enum.h"
-#include "map_ov_bridge.h"
 #include "runtime_statics.h"
 #include "tile_attr_tables.h"
-#include "tile_attribute_static_key.h"
 #include "tile_yield_type_enum.h"
 #include "worker_job_imp_index.h"
 #include "worker_job_imp_static_key.h"
@@ -65,8 +63,7 @@ bool OverlayYields::base_ok (u8 kind, u8 id, u16 ov) {
         return id == CLIMATE_PLAINS;
     }
     if (kind == TileAttrTables::k_kind_ov) {
-        const u8 gen = catalog_ov_to_map_gen(ov);
-        return gen == id;
+        return id == static_cast<u8>(ov);
     }
     return false;
 }
@@ -171,8 +168,8 @@ void OverlayYields::sort_rank (u16* ids, u16 n, int (*cmp)(u16, u16)) {
 }
 
 void OverlayYields::fill_tots (const RuntimeStatics& st) {
-    const TileAttributeStaticDataStruct& terr = TileAttrTables::terr(TERR_PLAINS[0]);
-    const TileAttributeStaticDataStruct& clim = TileAttrTables::clim(CLIMATE_PLAINS);
+    const TileAttrRow& terr = TileAttrTables::terr(TERR_PLAINS[0]);
+    const TileAttrRow& clim = TileAttrTables::clim(CLIMATE_PLAINS);
     for (u16 ov = 0; ov < m_ov_n; ++ov) {
         OvYldTot& t = m_tot[ov];
         t.m_food = static_cast<i16>(terr.food + clim.food);
@@ -180,7 +177,7 @@ void OverlayYields::fill_tots (const RuntimeStatics& st) {
         t.m_comm = static_cast<i16>(terr.commerce + clim.commerce);
         if (ov == static_cast<u16>(MapOverlay::Forest) || ov == static_cast<u16>(MapOverlay::Swamp)
             || ov == static_cast<u16>(MapOverlay::Jungle) || ov == static_cast<u16>(MapOverlay::Glacier)) {
-            const TileAttributeStaticDataStruct& ova = TileAttrTables::ov(catalog_ov_to_map_gen(ov));
+            const TileAttrRow& ova = TileAttrTables::ov(static_cast<u8>(ov));
             t.m_food = static_cast<i16>(t.m_food + ova.food);
             t.m_prod = static_cast<i16>(t.m_prod + ova.production);
             t.m_comm = static_cast<i16>(t.m_comm + ova.commerce);
@@ -199,20 +196,15 @@ void OverlayYields::fill_tots (const RuntimeStatics& st) {
         }
     }
     const ImprovementYieldStaticData& iy = st.improvement_yield();
-    const TileAttributeStaticData& attrs = st.tile_attribute();
     const u16 iy_n = iy.get_item_count();
     for (u16 i = 0; i < iy_n; ++i) {
         const ImprovementYieldStaticDataStruct& row = iy.get_item(ImprovementYieldStaticDataKey::from_raw(i));
         if (row.site_kind != static_cast<u16>(WorkerJobTarget::Overlay) || row.site_idx >= m_ov_n) {
             continue;
         }
-        if (row.cond_attr >= attrs.get_item_count()) {
-            continue;
-        }
         u8 kind = 0u;
         u8 id = 0u;
-        cstr aname = attrs.get_name(TileAttributeStaticDataKey::from_raw(row.cond_attr));
-        if (!TileAttrTables::map_name(aname, &kind, &id)) {
+        if (!TileAttrTables::unpack_cond(row.cond_attr, &kind, &id)) {
             continue;
         }
         if (!base_ok(kind, id, row.site_idx)) {

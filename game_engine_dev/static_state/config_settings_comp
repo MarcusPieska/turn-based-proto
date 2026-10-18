@@ -31,7 +31,6 @@ g++ $CXXFLAGS $INC -c $DIO/toggle_civ_parser.cpp -o toggle_civ_parser.o
 g++ $CXXFLAGS $INC -c $DIO/toggle_global_parser.cpp -o toggle_global_parser.o
 g++ $CXXFLAGS $INC -c $DIO/civ_parser.cpp -o civ_parser.o
 g++ $CXXFLAGS $INC -c $DIO/civ_trait_parser.cpp -o civ_trait_parser.o
-g++ $CXXFLAGS $INC -c $DIO/tile_attribute_parser.cpp -o tile_attribute_parser.o
 g++ $CXXFLAGS $INC -c $DIO/resource_parser.cpp -o resource_parser.o
 g++ $CXXFLAGS $INC -c $DIO/res_dist_parser.cpp -o res_dist_parser.o
 g++ $CXXFLAGS $INC -c $DIO/small_wonder_parser.cpp -o small_wonder_parser.o
@@ -62,7 +61,6 @@ g++ $CXXFLAGS -o config_settings_tester \
     toggle_global_parser.o \
     civ_parser.o \
     civ_trait_parser.o \
-    tile_attribute_parser.o \
     resource_parser.o \
     res_dist_parser.o \
     small_wonder_parser.o \
@@ -93,7 +91,6 @@ rm -f \
     toggle_global_parser.o \
     civ_parser.o \
     civ_trait_parser.o \
-    tile_attribute_parser.o \
     resource_parser.o \
     res_dist_parser.o \
     small_wonder_parser.o \

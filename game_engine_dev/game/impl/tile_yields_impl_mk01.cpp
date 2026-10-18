@@ -13,7 +13,6 @@
 #include "runtime_statics.h"
 #include "std_add_helper.h"
 #include "tile_attr_tables.h"
-#include "tile_attribute_static_key.h"
 #include "tile_yield_type_enum.h"
 #include "tile_yields_imp_dump.h"
 #include "map_overlay_enum.h"
@@ -49,7 +48,7 @@ static u8 clamp_u8 (i32 v) {
     return static_cast<u8>(v);
 }
 
-static void add_row (i32* food, i32* prod, i32* comm, const TileAttributeStaticDataStruct& row) {
+static void add_row (i32* food, i32* prod, i32* comm, const TileAttrRow& row) {
     *food += static_cast<i32>(row.food);
     *prod += static_cast<i32>(row.production);
     *comm += static_cast<i32>(row.commerce);
@@ -126,7 +125,6 @@ bool TileYields::setup_imp (const RuntimeStatics& st) {
         m_attr_sites = new ImpYldJob[m_attr_n]();
     }
     const ImprovementYieldStaticData& src = st.improvement_yield();
-    const TileAttributeStaticData& attrs = st.tile_attribute();
     const u16 n = src.get_item_count();
     for (u16 i = 0; i < n; ++i) {
         const ImprovementYieldStaticDataKey key = ImprovementYieldStaticDataKey::from_raw(i);
@@ -147,15 +145,9 @@ bool TileYields::setup_imp (const RuntimeStatics& st) {
             clear_jobs();
             return false;
         }
-        if (row.cond_attr >= attrs.get_item_count()) {
-            clear_jobs();
-            return false;
-        }
-        const TileAttributeStaticDataKey akey = TileAttributeStaticDataKey::from_raw(row.cond_attr);
-        cstr aname = attrs.get_name(akey);
         u8 kind = 0u;
         u8 id = 0u;
-        if (!TileAttrTables::map_name(aname, &kind, &id)) {
+        if (!TileAttrTables::unpack_cond(row.cond_attr, &kind, &id)) {
             clear_jobs();
             return false;
         }
@@ -449,11 +441,11 @@ bool TileYieldsImpDump::terr_nm (u8 id, cstr* out) {
 
 bool TileYieldsImpDump::ov_nm (u8 id, cstr* out) {
     static const struct { u8 m_id; cstr m_nm; } k_rows[] = {
-        {OV_NONE[0], "OV_NONE"},
-        {OV_FOREST[0], "OV_FORESTS"},
-        {OV_SWAMP[0], "OV_SWAMPS"},
-        {OV_JUNGLE[0], "OV_JUNGLES"},
-        {OV_GLACIER[0], "OV_GLACIER"},
+        {static_cast<u8>(MapOverlay::None), "None"},
+        {static_cast<u8>(MapOverlay::Forest), "Forest"},
+        {static_cast<u8>(MapOverlay::Swamp), "Swamp"},
+        {static_cast<u8>(MapOverlay::Jungle), "Jungle"},
+        {static_cast<u8>(MapOverlay::Glacier), "Glacier"},
     };
     for (u32 i = 0; i < sizeof(k_rows) / sizeof(k_rows[0]); ++i) {
         if (k_rows[i].m_id == id) {

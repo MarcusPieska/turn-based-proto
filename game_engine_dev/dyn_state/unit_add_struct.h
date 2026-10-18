@@ -13,15 +13,6 @@
 
 #define UNIT_HEALTH 100 // Default unit health at spawn and training
 
-#define VERY_GREEN 0
-#define GREEN 1 // Default unit skill level
-#define REGULAR 2
-#define DISCIPLINED 3
-#define HARDENED 4
-#define VETERAN 5
-#define COMMANDO 6
-#define ELITE 7
-
 #define UNIT_DELTA_DEST_NONE (-128) // Per-axis sentinel: no work destination
 #define UNIT_DELTA_DEST_ARRIVED 0 // Both axes zero: standing on work tile
 

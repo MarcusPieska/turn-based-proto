@@ -21,7 +21,6 @@ typedef struct NameToIdxCbs {
     u16 (*civ_trait_name_to_idx)(cstr);
     u16 (*effect_name_to_idx)(cstr);
     u16 (*government_name_to_idx)(cstr);
-    u16 (*tile_attribute_name_to_idx)(cstr);
     u16 (*resource_name_to_idx)(cstr);
     u16 (*res_dist_name_to_idx)(cstr);
     u16 (*res_type_name_to_idx)(cstr);
@@ -34,6 +33,7 @@ typedef struct NameToIdxCbs {
     u16 (*unit_role_name_to_idx)(cstr);
     u16 (*unit_type_name_to_idx)(cstr);
     u16 (*unit_domain_name_to_idx)(cstr);
+    u16 (*unit_level_name_to_idx)(cstr);
     u16 (*wonder_name_to_idx)(cstr);
     u16 (*map_overlay_name_to_idx)(cstr);
     u16 (*map_attribute_name_to_idx)(cstr);

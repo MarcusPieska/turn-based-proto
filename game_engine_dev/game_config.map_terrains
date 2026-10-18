@@ -1,9 +1,10 @@
-Ocean
-Sea
-Coastal
-Plains
-Hills
-Mountains
-Volcano
-Inland Sea
-Inland Lake
+None          :   0    : 0  : 0  : 0  : 0  : 0  : 0    : 0   : 0    
+Ocean         :   1000 : 0  : 0  : 0  : 0  : 0  : 0    : 0   : 0   
+Sea           :   1000 : 1  : 0  : 1  : 0  : 0  : 0    : 0   : 0   
+Coastal       :   1000 : 1  : 0  : 1  : 0  : 0  : 0    : 0   : 0   
+Plains        :   1000 : 0  : 0  : 0  : 0  : 0  : 0    : 1   : 0   
+Hills         :   2000 :-1  : 1  : 0  : 0  : 0  : 0    : 0   : 1  
+Mountains     :   4000 :-10 : 2  : 0  : 0  : 0  : 0    : 0   : 2 
+Volcano       :   4000 :-10 : 3  : 0  : 0  : 0  : 0    : 0   : 2   
+Inland Sea    :   1000 : 2  : 0  : 1  : 0  : 0  : 0    : 0   : 0   
+Inland Lake   :   1000 : 2  : 0  : 1  : 0  : 0  : 0    : 0   : 0     

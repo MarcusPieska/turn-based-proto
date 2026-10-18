@@ -23,15 +23,16 @@
 //================================================================================================================================
 
 enum class MapOverlay : u16 {
-    City = 0,
-    Glacier = 1,
-    Forest = 2,
-    Jungle = 3,
-    Swamp = 4,
-    Farm = 5,
-    Fort = 6,
-    Mine = 7,
-    Plantation = 8
+    None = 0,
+    City = 1,
+    Glacier = 2,
+    Forest = 3,
+    Jungle = 4,
+    Swamp = 5,
+    Farm = 6,
+    Fort = 7,
+    Mine = 8,
+    Plantation = 9
 };
 
 #endif // MAP_OVERLAY_ENUM_H

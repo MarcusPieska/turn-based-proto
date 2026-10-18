@@ -13,7 +13,7 @@
 #include <cstdint>
 #include <cstdlib>
 
-#include "tile_attribute_bit_array.h"
+#include "unit_level_bit_array.h"
 
 //================================================================================================================================
 //=> - Globals -
@@ -66,8 +66,8 @@ void summarize_test_results () {
 
 void test_bit_array_can_access () {
     const u16 count = 16;
-    TileAttributeBitArray arr(count);
-    TileAttributeStaticDataKey key;
+    UnitLevelBitArray arr(count);
+    UnitLevelStaticDataKey key;
     for (u16 i = 0; i < count; ++i) {
         bool can = arr.can_access(i, key);
         note_result(!can, "Default can_access is false");

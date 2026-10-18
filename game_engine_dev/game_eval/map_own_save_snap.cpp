@@ -7,45 +7,15 @@
 #include <cstdio>
 
 #include "build_adds_array.h"
+#include "draw_map_tile_ownership.h"
 #include "game_array_simple.h"
 #include "game_map_defs.h"
 
 //================================================================================================================================
-//=> - Palette -
-//================================================================================================================================
-
-static const u8 k_own_pal[][3] = {
-    {220, 40, 40},
-    {40, 90, 220},
-    {40, 170, 70},
-    {220, 110, 30},
-    {190, 40, 170},
-    {30, 170, 170},
-    {150, 70, 30},
-    {100, 40, 180},
-    {200, 160, 40},
-    {40, 140, 200},
-    {160, 50, 90},
-    {90, 140, 40},
-    {137, 25, 25},
-    {25, 56, 137},
-    {25, 106, 44},
-    {137, 69, 19},
-    {119, 25, 106},
-    {19, 106, 106},
-    {94, 44, 19},
-    {62, 25, 112},
-    {125, 100, 25},
-    {25, 87, 125},
-    {100, 31, 56},
-    {56, 87, 25},
-};
-static const u16 k_own_pal_n = static_cast<u16>(sizeof(k_own_pal) / sizeof(k_own_pal[0]));
-static const u8 k_road_gray = 64u;
-
-//================================================================================================================================
 //=> - Locals -
 //================================================================================================================================
+
+static const u8 k_road_gray = 64u;
 
 static void set_px (u8* rgb, u16 w, u16 h, u16 x, u16 y, u8 r, u8 g, u8 b) {
     if (x >= w || y >= h) {
@@ -86,20 +56,6 @@ static bool is_open_water (u8 terr) {
 
 static bool is_water_base (u8 terr) {
     return is_open_water(terr) || terr == TERR_INLAND_SEA[0] || terr == TERR_INLAND_LAKE[0];
-}
-
-static void shade_own (u8* rgb, u16 w, u16 h, u16 x, u16 y, u16 seat) {
-    if (x >= w || y >= h) {
-        return;
-    }
-    const u8* c = k_own_pal[seat % k_own_pal_n];
-    const u32 i = (static_cast<u32>(y) * static_cast<u32>(w) + static_cast<u32>(x)) * 3u;
-    const u16 cr = (static_cast<u16>(c[0]) * 5u) / 8u;
-    const u16 cg = (static_cast<u16>(c[1]) * 5u) / 8u;
-    const u16 cb = (static_cast<u16>(c[2]) * 5u) / 8u;
-    rgb[i + 0] = static_cast<u8>((static_cast<u16>(rgb[i + 0]) + cr * 3u) / 4u);
-    rgb[i + 1] = static_cast<u8>((static_cast<u16>(rgb[i + 1]) + cg * 3u) / 4u);
-    rgb[i + 2] = static_cast<u8>((static_cast<u16>(rgb[i + 2]) + cb * 3u) / 4u);
 }
 
 //================================================================================================================================
@@ -144,18 +100,31 @@ bool MapOwnSaveSnap::write (cstr path, const GameArraySimple& map) {
             set_px(rgb, w, h, x, y, r, g, b);
         }
     }
+    u8* seats = new u8[static_cast<size_t>(n)];
+    if (seats == nullptr) {
+        delete[] rgb;
+        return false;
+    }
     for (u16 y = 0; y < h; ++y) {
         for (u16 x = 0; x < w; ++x) {
-            const u8 own = map.get_civ_owner(x, y);
-            if (own == U8_KEY_NULL) {
-                continue;
-            }
+            const u32 i = static_cast<u32>(y) * static_cast<u32>(w) + static_cast<u32>(x);
             if (is_open_water(map.get_terrain(x, y))) {
-                continue;
+                seats[i] = U8_KEY_NULL;
+            } else {
+                seats[i] = map.get_civ_owner(x, y);
             }
-            shade_own(rgb, w, h, x, y, static_cast<u16>(own));
         }
     }
+    for (u16 y = 0; y < h; ++y) {
+        for (u16 x = 0; x < w; ++x) {
+            const u32 i = static_cast<u32>(y) * static_cast<u32>(w) + static_cast<u32>(x);
+            if (seats[i] == U8_KEY_NULL) {
+                continue;
+            }
+            DrawMapTileOwnership::blend(rgb, w, h, x, y, seats);
+        }
+    }
+    delete[] seats;
     for (u16 y = 0; y < h; ++y) {
         for (u16 x = 0; x < w; ++x) {
             if (!road_is_built(map.get_road_typ(x, y))) {

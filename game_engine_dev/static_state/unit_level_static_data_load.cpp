@@ -1,7 +1,7 @@
-#include "tile_attribute_static_data.h"
+#include "unit_level_static_data.h"
 #include "data_parser_base.h"
 
-bool TileAttributeStaticData::load_names_from (const DataParserBase& psr, u16 n) {
+bool UnitLevelStaticData::load_names_from (const DataParserBase& psr, u16 n) {
     if (n == 0) {
         return false;
     }

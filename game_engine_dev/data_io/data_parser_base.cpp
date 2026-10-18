@@ -11,6 +11,15 @@
 #include "item_effect_handler.h"
 #include "worker_job_target_enum.h"
 
+static constexpr u8 k_cond_terr = 0u;
+static constexpr u8 k_cond_clim = 1u;
+static constexpr u8 k_cond_ov = 2u;
+static constexpr u8 k_cond_riv = 4u;
+
+static u16 pack_cond (u8 kind, u16 id) {
+    return static_cast<u16>((static_cast<u16>(kind) << 8) | (id & 0x00FFu));
+}
+
 typedef struct PlcTokRow {
     cstr m_tok;
     u8 m_val;
@@ -388,6 +397,19 @@ u16 DataParserBase::parse_map_climate_idx (const StringManager& line_items, u16 
     return m_name_to_idx_cbs.map_climate_name_to_idx(line_items.get_string_content(start_idx));
 }
 
+u16 DataParserBase::parse_map_attr_kind (const StringManager& line_items, u16 start_idx) const {
+    cstr tok = line_items.get_string_content(start_idx);
+    if (tok != nullptr && std::strcmp(tok, "Waterway") == 0) {
+        return 0u;
+    }
+    if (tok != nullptr && std::strcmp(tok, "Road") == 0) {
+        return 1u;
+    }
+    printf("ERROR: DataParserBase parse_map_attr_kind: bad kind '%s'\n", tok ? tok : "");
+    ++m_error_count;
+    return U16_KEY_NULL;
+}
+
 u16 DataParserBase::parse_worker_job_site_idx (const StringManager& line_items, u16 start_idx) const {
     cstr name = line_items.get_string_content(start_idx);
     const u16 kind = m_name_to_idx_cbs.worker_job_target_name_to_idx(
@@ -408,7 +430,74 @@ u16 DataParserBase::parse_tile_yield_type (const StringManager& line_items, u16 
 }
 
 u16 DataParserBase::parse_tile_attribute_idx (const StringManager& line_items, u16 start_idx) const {
-    return m_name_to_idx_cbs.tile_attribute_name_to_idx(line_items.get_string_content(start_idx));
+    cstr name = line_items.get_string_content(start_idx);
+    if (name == nullptr) {
+        ++m_error_count;
+        return U16_KEY_NULL;
+    }
+    if (std::strcmp(name, "CLIMATE_NONE") == 0) {
+        return pack_cond(k_cond_clim, m_name_to_idx_cbs.map_climate_name_to_idx("None"));
+    }
+    if (std::strcmp(name, "CLIMATE_DESERT") == 0) {
+        return pack_cond(k_cond_clim, m_name_to_idx_cbs.map_climate_name_to_idx("Desert"));
+    }
+    if (std::strcmp(name, "CLIMATE_PLAINS") == 0) {
+        return pack_cond(k_cond_clim, m_name_to_idx_cbs.map_climate_name_to_idx("Plains"));
+    }
+    if (std::strcmp(name, "CLIMATE_GRASSLAND") == 0) {
+        return pack_cond(k_cond_clim, m_name_to_idx_cbs.map_climate_name_to_idx("Grassland"));
+    }
+    if (std::strcmp(name, "CLIMATE_BLACK_SOIL") == 0) {
+        return pack_cond(k_cond_clim, m_name_to_idx_cbs.map_climate_name_to_idx("Black Soil"));
+    }
+    if (std::strcmp(name, "TERR_NONE") == 0) {
+        return pack_cond(k_cond_terr, m_name_to_idx_cbs.map_terrain_name_to_idx("None"));
+    }
+    if (std::strcmp(name, "TERR_OCEAN") == 0) {
+        return pack_cond(k_cond_terr, m_name_to_idx_cbs.map_terrain_name_to_idx("Ocean"));
+    }
+    if (std::strcmp(name, "TERR_SEA") == 0) {
+        return pack_cond(k_cond_terr, m_name_to_idx_cbs.map_terrain_name_to_idx("Sea"));
+    }
+    if (std::strcmp(name, "TERR_COASTAL") == 0) {
+        return pack_cond(k_cond_terr, m_name_to_idx_cbs.map_terrain_name_to_idx("Coastal"));
+    }
+    if (std::strcmp(name, "TERR_PLAINS") == 0) {
+        return pack_cond(k_cond_terr, m_name_to_idx_cbs.map_terrain_name_to_idx("Plains"));
+    }
+    if (std::strcmp(name, "TERR_HILLS") == 0) {
+        return pack_cond(k_cond_terr, m_name_to_idx_cbs.map_terrain_name_to_idx("Hills"));
+    }
+    if (std::strcmp(name, "TERR_MOUNTAINS") == 0) {
+        return pack_cond(k_cond_terr, m_name_to_idx_cbs.map_terrain_name_to_idx("Mountains"));
+    }
+    if (std::strcmp(name, "TERR_VOLCANO") == 0) {
+        return pack_cond(k_cond_terr, m_name_to_idx_cbs.map_terrain_name_to_idx("Volcano"));
+    }
+    if (std::strcmp(name, "TERR_INLAND_SEA") == 0) {
+        return pack_cond(k_cond_terr, m_name_to_idx_cbs.map_terrain_name_to_idx("Inland Sea"));
+    }
+    if (std::strcmp(name, "TERR_INLAND_LAKE") == 0) {
+        return pack_cond(k_cond_terr, m_name_to_idx_cbs.map_terrain_name_to_idx("Inland Lake"));
+    }
+    if (std::strcmp(name, "OV_FORESTS") == 0) {
+        return pack_cond(k_cond_ov, m_name_to_idx_cbs.map_overlay_name_to_idx("Forest"));
+    }
+    if (std::strcmp(name, "OV_SWAMPS") == 0) {
+        return pack_cond(k_cond_ov, m_name_to_idx_cbs.map_overlay_name_to_idx("Swamp"));
+    }
+    if (std::strcmp(name, "OV_JUNGLES") == 0) {
+        return pack_cond(k_cond_ov, m_name_to_idx_cbs.map_overlay_name_to_idx("Jungle"));
+    }
+    if (std::strcmp(name, "OV_GLACIER") == 0) {
+        return pack_cond(k_cond_ov, m_name_to_idx_cbs.map_overlay_name_to_idx("Glacier"));
+    }
+    if (std::strcmp(name, "OV_RIVERS") == 0) {
+        return pack_cond(k_cond_riv, 0u);
+    }
+    printf("ERROR: DataParserBase parse_tile_attribute_idx: bad name '%s'\n", name);
+    ++m_error_count;
+    return U16_KEY_NULL;
 }
 
 u16 DataParserBase::parse_worker_job_idx (const StringManager& line_items, u16 start_idx) const {

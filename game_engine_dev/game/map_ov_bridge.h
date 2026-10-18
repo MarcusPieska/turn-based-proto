@@ -1,5 +1,5 @@
 //================================================================================================================================
-//=> - Include guards -
+//= - Include guards -
 //================================================================================================================================
 
 #ifndef MAP_OV_BRIDGE_H
@@ -11,18 +11,18 @@
 #include "map_overlay_enum.h"
 
 //================================================================================================================================
-//=> - Map overlay bridge -
+//= - Map overlay bridge -
 //================================================================================================================================
 //
 //  Map-gen / PPM overlay class ids (OV_* in game_map_defs.h) are not the same as
 //  game_config.map_overlays catalog indices. Translate at the GameTileSimple boundary.
-//  Empty occupancy is U16_KEY_NULL (not MapOverlay::City / not OV_NONE).
+//  Empty occupancy is MapOverlay::None.
 //
 //================================================================================================================================
 
 static inline u16 map_gen_ov_to_catalog (u8 ov) {
     if (ov == OV_NONE[0]) {
-        return U16_KEY_NULL;
+        return static_cast<u16>(MapOverlay::None);
     }
     if (ov == OV_FOREST[0]) {
         return static_cast<u16>(MapOverlay::Forest);
@@ -37,11 +37,11 @@ static inline u16 map_gen_ov_to_catalog (u8 ov) {
         return static_cast<u16>(MapOverlay::Glacier);
     }
     GAME_EXPECT(false, "map_gen_ov_to_catalog unknown overlay class");
-    return U16_KEY_NULL;
+    return static_cast<u16>(MapOverlay::None);
 }
 
 static inline u8 catalog_ov_to_map_gen (u16 ov) {
-    if (ov == U16_KEY_NULL) {
+    if (ov == static_cast<u16>(MapOverlay::None) || ov == U16_KEY_NULL) {
         return OV_NONE[0];
     }
     if (ov == static_cast<u16>(MapOverlay::Forest)) {
@@ -56,11 +56,11 @@ static inline u8 catalog_ov_to_map_gen (u16 ov) {
     if (ov == static_cast<u16>(MapOverlay::Glacier)) {
         return OV_GLACIER[0];
     }
-    return OV_GLACIER[0];
+    return OV_NONE[0];
 }
 
 #endif // MAP_OV_BRIDGE_H
 
 //================================================================================================================================
-//=> - End of file -
+//= - End of file -
 //================================================================================================================================

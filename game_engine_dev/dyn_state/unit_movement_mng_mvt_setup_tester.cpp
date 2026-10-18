@@ -6,20 +6,17 @@
 #include <cstdlib>
 
 #include "game_map_defs.h"
+#include "map_overlay_enum.h"
 #include "runtime_static_loader.h"
 #include "runtime_statics.h"
 #include "tile_attr_tables.h"
-#include "tile_attribute_static_key.h"
 #include "unit_movement_mng.h"
 
 //================================================================================================================================
-//=> - Globals -
+//= - Globals -
 //================================================================================================================================
 
 typedef const char* cstr;
-
-static const char* k_red = "\033[31m";
-static const char* k_rst = "\033[0m";
 
 static RuntimeStaticLoader g_rt_loader;
 static RuntimeStatics* g_rt_statics = nullptr;
@@ -31,7 +28,7 @@ int total_tests_run = 0;
 int print_level = 1;
 
 //================================================================================================================================
-//=> - Helpers -
+//= - Helpers -
 //================================================================================================================================
 
 void note_result (bool cond, cstr msg) {
@@ -112,55 +109,22 @@ static cstr clim_lbl (u8 id) {
 }
 
 static cstr ov_lbl (u8 id) {
-    if (id == OV_NONE[0]) {
-        return "OV_NONE";
+    if (id == static_cast<u8>(MapOverlay::None)) {
+        return "None";
     }
-    if (id == OV_SWAMP[0]) {
-        return "OV_SWAMPS";
+    if (id == static_cast<u8>(MapOverlay::Swamp)) {
+        return "Swamp";
     }
-    if (id == OV_FOREST[0]) {
-        return "OV_FORESTS";
+    if (id == static_cast<u8>(MapOverlay::Forest)) {
+        return "Forest";
     }
-    if (id == OV_JUNGLE[0]) {
-        return "OV_JUNGLES";
+    if (id == static_cast<u8>(MapOverlay::Jungle)) {
+        return "Jungle";
     }
-    if (id == OV_GLACIER[0]) {
-        return "OV_GLACIER";
+    if (id == static_cast<u8>(MapOverlay::Glacier)) {
+        return "Glacier";
     }
     return "OV_OTHER";
-}
-
-static bool print_map_rows (const RuntimeStatics& st, u16* out_mapped) {
-    std::printf("--- mvt_cost config -> game class mapping ---\n");
-    u16 mapped = 0u;
-    const u16 n = st.tile_attribute().get_item_count();
-    for (u16 i = 0; i < n; ++i) {
-        cstr nm = st.tile_attribute().get_name(TileAttributeStaticDataKey::from_raw(i));
-        const u16 cost = st.tile_attribute().get_item(TileAttributeStaticDataKey::from_raw(i)).mvt_cost;
-        u8 gid = 0u;
-        u8 kind = 0u;
-        if (nm == nullptr || !UnitMovementMng::map_mvt_cost_name(nm, &gid, &kind)) {
-            std::printf("%sUNMAPPED: %s (cost=%u)%s\n",
-                k_red, (nm != nullptr) ? nm : "(null)",
-                static_cast<unsigned>(cost), k_rst);
-            continue;
-        }
-        mapped = static_cast<u16>(mapped + 1u);
-        if (kind == TileAttrTables::k_kind_terr) {
-            std::printf("  %s -> %s id=%u cost=%u\n", nm, terr_lbl(gid), gid, cost);
-        } else if (kind == TileAttrTables::k_kind_clim) {
-            std::printf("  %s -> %s id=%u cost=%u\n", nm, clim_lbl(gid), gid, cost);
-        } else if (kind == TileAttrTables::k_kind_ov) {
-            std::printf("  %s -> %s id=%u cost=%u\n", nm, ov_lbl(gid), gid, cost);
-        } else if (kind == TileAttrTables::k_kind_riv) {
-            std::printf("  %s -> river transport cost=%u\n", nm, cost);
-        } else if (kind == TileAttrTables::k_kind_road) {
-            std::printf("  %s -> road id=%u cost=%u\n", nm, gid, cost);
-        }
-    }
-    *out_mapped = mapped;
-    std::printf("  mapped %u / %u mvt_cost rows\n", mapped, n);
-    return mapped == n;
 }
 
 static void print_tbl (const UnitMovementMngMvtTbl& t) {
@@ -181,17 +145,21 @@ static void print_tbl (const UnitMovementMngMvtTbl& t) {
         std::printf("  id=%u(%s) cost=%u\n", id, clim_lbl(id), UnitMovementMng::mvt_cost_clim(id));
     }
     std::printf("--- overlay cost table ---\n");
-    std::printf("  id=%u(%s) cost=%u\n", OVERLAY_NONE, ov_lbl(OVERLAY_NONE), UnitMovementMng::mvt_cost_ov(OVERLAY_NONE));
-    std::printf("  id=%u(%s) cost=%u\n", OV_SWAMP[0], ov_lbl(OV_SWAMP[0]), UnitMovementMng::mvt_cost_ov(OV_SWAMP[0]));
-    std::printf("  id=%u(%s) cost=%u\n", OV_FOREST[0], ov_lbl(OV_FOREST[0]), UnitMovementMng::mvt_cost_ov(OV_FOREST[0]));
-    std::printf("  id=%u(%s) cost=%u\n", OV_JUNGLE[0], ov_lbl(OV_JUNGLE[0]), UnitMovementMng::mvt_cost_ov(OV_JUNGLE[0]));
+    std::printf("  id=%u(%s) cost=%u\n", static_cast<unsigned>(MapOverlay::None), ov_lbl(static_cast<u8>(MapOverlay::None)),
+        UnitMovementMng::mvt_cost_ov(static_cast<u8>(MapOverlay::None)));
+    std::printf("  id=%u(%s) cost=%u\n", static_cast<unsigned>(MapOverlay::Swamp), ov_lbl(static_cast<u8>(MapOverlay::Swamp)),
+        UnitMovementMng::mvt_cost_ov(static_cast<u8>(MapOverlay::Swamp)));
+    std::printf("  id=%u(%s) cost=%u\n", static_cast<unsigned>(MapOverlay::Forest), ov_lbl(static_cast<u8>(MapOverlay::Forest)),
+        UnitMovementMng::mvt_cost_ov(static_cast<u8>(MapOverlay::Forest)));
+    std::printf("  id=%u(%s) cost=%u\n", static_cast<unsigned>(MapOverlay::Jungle), ov_lbl(static_cast<u8>(MapOverlay::Jungle)),
+        UnitMovementMng::mvt_cost_ov(static_cast<u8>(MapOverlay::Jungle)));
     std::printf("--- transport cost ---\n");
     std::printf("  river cost=%u\n", t.m_riv);
     std::printf("  road cost=%u\n", t.m_road);
 }
 
 //================================================================================================================================
-//=> - Test -
+//= - Test -
 //================================================================================================================================
 
 void test_mvt_setup () {
@@ -200,14 +168,14 @@ void test_mvt_setup () {
     if (!ok) {
         return;
     }
-    u16 mapped = 0u;
-    ok = print_map_rows(*g_rt_statics, &mapped);
-    note_result(ok, "mvt_cost mapped count matches item count");
     ok = UnitMovementMng::setup_mvt_costs(*g_rt_statics);
     note_result(ok, "setup_mvt_costs");
     note_result(UnitMovementMng::mvt_mapped_count() == UnitMovementMng::mvt_cost_count(),
         "setup mapped count matches item count");
     note_result(UnitMovementMng::mvt_ready(), "mvt_ready");
+    note_result(UnitMovementMng::mvt_cost_count() == static_cast<u16>(
+        TileAttrTables::terr_n() + TileAttrTables::clim_n() + TileAttrTables::ov_n()
+        + TileAttrTables::road_n() + 1u), "mvt_cost_count is catalog sum");
     if (print_level > 0) {
         std::printf("  setup reports mapped %u / %u\n",
             UnitMovementMng::mvt_mapped_count(), UnitMovementMng::mvt_cost_count());
@@ -220,7 +188,7 @@ void test_mvt_setup () {
 }
 
 //================================================================================================================================
-//=> - Main -
+//= - Main -
 //================================================================================================================================
 
 int main (int argc, char* argv[]) {
@@ -235,5 +203,5 @@ int main (int argc, char* argv[]) {
 }
 
 //================================================================================================================================
-//=> - End -
+//= - End -
 //================================================================================================================================

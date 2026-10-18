@@ -13,6 +13,7 @@ from generater_commons import (
     generate_from_templates,
     get_entries,
     get_map_specs,
+    get_retired_load_stems,
     get_req_test_stems,
     get_table_specs,
     join_tag_lines,
@@ -169,10 +170,13 @@ def lines_runtime_cpp_load_dyn_regs ():
     return lines
 
 def lines_runtime_cpp_load_items_set ():
+    retired = set(get_retired_load_stems())
     lines = []
     for stem in entries:
         lines.append("m_%s.set_items(const_cast<%s*>(p.get_%s_data()), p.get_%s_count());" % (
             stem, data_struct(stem), stem, stem))
+        if stem in retired:
+            continue
         lines.append("m_%s.load_names_from(p.get_%s_name_parser(), p.get_%s_count());" % (stem, stem, stem))
     return lines
 
@@ -341,7 +345,14 @@ def lines_loader_tester_print_counts ():
     return ['print_u16_member("%s", s.%s().get_item_count());' % (stem, stem) for stem in entries]
 
 def lines_loader_tester_load_count_tests ():
-    return ['note_result(s.%s().get_item_count() > 0, "%s holder has items");' % (stem, stem) for stem in entries]
+    retired = set(get_retired_load_stems())
+    lines = []
+    for stem in entries:
+        if stem in retired:
+            lines.append('note_result(s.%s().get_item_count() == 0, "%s retired from load (attrs on map_*)");' % (stem, stem))
+        else:
+            lines.append('note_result(s.%s().get_item_count() > 0, "%s holder has items");' % (stem, stem))
+    return lines
 
 def map_count_getters (map_base, row_stem, col_stem):
     if map_base == "unit_type_action_map":

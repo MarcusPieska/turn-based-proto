@@ -104,10 +104,6 @@ cstr PathMng::get_path_to_governments () const {
     return m_path_governments;
 }
 
-cstr PathMng::get_path_to_tile_attributes () const {
-    return m_path_tile_attributes;
-}
-
 cstr PathMng::get_path_to_resources () const {
     return m_path_resources;
 }
@@ -150,6 +146,10 @@ cstr PathMng::get_path_to_unit_types () const {
 
 cstr PathMng::get_path_to_unit_domains () const {
     return m_path_unit_domains;
+}
+
+cstr PathMng::get_path_to_unit_levels () const {
+    return m_path_unit_levels;
 }
 
 cstr PathMng::get_path_to_units () const {
@@ -218,7 +218,6 @@ void PathMng::build_paths () {
     join_path(m_path_civs, PATH_MNG_PATH_N, m_path_offset, "game_config.civs");
     join_path(m_path_effects, PATH_MNG_PATH_N, m_path_offset, "game_config.effects");
     join_path(m_path_governments, PATH_MNG_PATH_N, m_path_offset, "game_config.governments");
-    join_path(m_path_tile_attributes, PATH_MNG_PATH_N, m_path_offset, "game_config.tile_attributes");
     join_path(m_path_resources, PATH_MNG_PATH_N, m_path_offset, "game_config.resources");
     join_path(m_path_res_dists, PATH_MNG_PATH_N, m_path_offset, "game_config.res_dists");
     join_path(m_path_res_types, PATH_MNG_PATH_N, m_path_offset, "game_config.res_types");
@@ -230,6 +229,7 @@ void PathMng::build_paths () {
     join_path(m_path_unit_roles, PATH_MNG_PATH_N, m_path_offset, "game_config.unit_roles");
     join_path(m_path_unit_types, PATH_MNG_PATH_N, m_path_offset, "game_config.unit_types");
     join_path(m_path_unit_domains, PATH_MNG_PATH_N, m_path_offset, "game_config.unit_domains");
+    join_path(m_path_unit_levels, PATH_MNG_PATH_N, m_path_offset, "game_config.unit_levels");
     join_path(m_path_units, PATH_MNG_PATH_N, m_path_offset, "game_config.units");
     join_path(m_path_wonders, PATH_MNG_PATH_N, m_path_offset, "game_config.wonders");
     join_path(m_path_map_overlays, PATH_MNG_PATH_N, m_path_offset, "game_config.map_overlays");
@@ -285,10 +285,6 @@ void PathMng::validate_paths_or_exit () const {
         printf("ERROR: Missing file: %s\n", m_path_governments);
         ++error_count;
     }
-    if (!does_file_exist(m_path_tile_attributes)) {
-        printf("ERROR: Missing file: %s\n", m_path_tile_attributes);
-        ++error_count;
-    }
     if (!does_file_exist(m_path_resources)) {
         printf("ERROR: Missing file: %s\n", m_path_resources);
         ++error_count;
@@ -331,6 +327,10 @@ void PathMng::validate_paths_or_exit () const {
     }
     if (!does_file_exist(m_path_unit_domains)) {
         printf("ERROR: Missing file: %s\n", m_path_unit_domains);
+        ++error_count;
+    }
+    if (!does_file_exist(m_path_unit_levels)) {
+        printf("ERROR: Missing file: %s\n", m_path_unit_levels);
         ++error_count;
     }
     if (!does_file_exist(m_path_units)) {

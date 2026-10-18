@@ -26,7 +26,7 @@ int main () {
     return booster_register_run_toggle_scan<CivUnitExpBoosterRegister>(
         g_rt_loader.statics(),
         "CIV",
-        "UNIT_EXP"
+        "UNIT_LEVEL_DEFAULT"
     );
 }
 

@@ -408,10 +408,12 @@ static i16 land_tile_cost (const GameState& s, u16 x, u16 y) {
 bool UnitMovementMng::setup_mvt_costs (const RuntimeStatics& st) {
     g_mvt_ready = false;
     g_mvt_mapped_n = 0u;
-    g_mvt_cost_n = st.tile_attribute().get_item_count();
+    g_mvt_cost_n = 0u;
     if (!TileAttrTables::setup(st)) {
         return false;
     }
+    g_mvt_cost_n = static_cast<u16>(TileAttrTables::terr_n() + TileAttrTables::clim_n()
+        + TileAttrTables::ov_n() + TileAttrTables::road_n() + 1u);
     g_mvt_mapped_n = g_mvt_cost_n;
     g_mvt_ready = true;
     return true;
@@ -458,7 +460,13 @@ u16 UnitMovementMng::mvt_cost_ov (u8 id) {
 }
 
 bool UnitMovementMng::map_mvt_cost_name (cstr name, u8* out_id, u8* out_kind) {
-    return TileAttrTables::map_name(name, out_kind, out_id);
+    if (name == nullptr || out_id == nullptr || out_kind == nullptr || !g_mvt_ready) {
+        return false;
+    }
+    (void)name;
+    (void)out_id;
+    (void)out_kind;
+    return false;
 }
 
 i16 UnitMovementMng::tile_cost (const GameState& s, u16 from_x, u16 from_y, u16 to_x, u16 to_y) {

@@ -34,7 +34,6 @@ MapClimateParserTester::MapClimateParserTester () :
     m_city_job_sd(NULL),
     m_civ_sd(NULL),
     m_civ_trait_sd(NULL),
-    m_tile_attribute_sd(NULL),
     m_resource_sd(NULL),
     m_res_dist_sd(NULL),
     m_res_type_sd(NULL),
@@ -46,6 +45,7 @@ MapClimateParserTester::MapClimateParserTester () :
     m_unit_role_sd(NULL),
     m_unit_type_sd(NULL),
     m_unit_domain_sd(NULL),
+    m_unit_level_sd(NULL),
     m_unit_sd(NULL),
     m_wonder_sd(NULL),
     m_map_overlay_sd(NULL),
@@ -65,7 +65,6 @@ MapClimateParserTester::MapClimateParserTester () :
     m_city_job_psr(NULL),
     m_civ_psr(NULL),
     m_civ_trait_psr(NULL),
-    m_tile_attribute_psr(NULL),
     m_resource_psr(NULL),
     m_res_dist_psr(NULL),
     m_res_type_psr(NULL),
@@ -77,6 +76,7 @@ MapClimateParserTester::MapClimateParserTester () :
     m_unit_role_psr(NULL),
     m_unit_type_psr(NULL),
     m_unit_domain_psr(NULL),
+    m_unit_level_psr(NULL),
     m_unit_psr(NULL),
     m_wonder_psr(NULL),
     m_map_overlay_psr(NULL),
@@ -131,12 +131,6 @@ void MapClimateParserTester::set_civ_sd (const CivStaticData* sd) {
 void MapClimateParserTester::set_civ_trait_sd (const CivTraitStaticData* sd) {
 
     m_civ_trait_sd = sd;
-
-}
-
-void MapClimateParserTester::set_tile_attribute_sd (const TileAttributeStaticData* sd) {
-
-    m_tile_attribute_sd = sd;
 
 }
 
@@ -203,6 +197,12 @@ void MapClimateParserTester::set_unit_type_sd (const UnitTypeStaticData* sd) {
 void MapClimateParserTester::set_unit_domain_sd (const UnitDomainStaticData* sd) {
 
     m_unit_domain_sd = sd;
+
+}
+
+void MapClimateParserTester::set_unit_level_sd (const UnitLevelStaticData* sd) {
+
+    m_unit_level_sd = sd;
 
 }
 
@@ -361,13 +361,6 @@ u16 MapClimateParserTester::st_civ_trait_n2i (cstr name) {
     return s_inst->m_civ_trait_psr->name_to_idx(name);
 }
 
-u16 MapClimateParserTester::st_tile_attribute_n2i (cstr name) {
-    if (s_inst == NULL || s_inst->m_tile_attribute_psr == NULL) {
-        return U16_KEY_NULL;
-    }
-    return s_inst->m_tile_attribute_psr->name_to_idx(name);
-}
-
 u16 MapClimateParserTester::st_resource_n2i (cstr name) {
     if (s_inst == NULL || s_inst->m_resource_psr == NULL) {
         return U16_KEY_NULL;
@@ -443,6 +436,13 @@ u16 MapClimateParserTester::st_unit_domain_n2i (cstr name) {
         return U16_KEY_NULL;
     }
     return s_inst->m_unit_domain_psr->name_to_idx(name);
+}
+
+u16 MapClimateParserTester::st_unit_level_n2i (cstr name) {
+    if (s_inst == NULL || s_inst->m_unit_level_psr == NULL) {
+        return U16_KEY_NULL;
+    }
+    return s_inst->m_unit_level_psr->name_to_idx(name);
 }
 
 u16 MapClimateParserTester::st_unit_n2i (cstr name) {
@@ -641,7 +641,9 @@ void MapClimateParserTester::pr_fx (cstr label, const ItemEffectsStruct& e) {
                 case ItemEffectBoosterType::SHIP_DEFENSE: tname = "SHIP_DEFENSE"; break;
                 case ItemEffectBoosterType::SHIP_MOVEMENT: tname = "SHIP_MOVEMENT"; break;
                 case ItemEffectBoosterType::SHIP_TRAINING: tname = "SHIP_TRAINING"; break;
-                case ItemEffectBoosterType::UNIT_EXP: tname = "UNIT_EXP"; break;
+                case ItemEffectBoosterType::UNIT_LEVEL_DEFAULT: tname = "UNIT_LEVEL_DEFAULT"; break;
+                case ItemEffectBoosterType::UNIT_TRAINING_MAX: tname = "UNIT_TRAINING_MAX"; break;
+                case ItemEffectBoosterType::UNIT_TRAINING_DAILY: tname = "UNIT_TRAINING_DAILY"; break;
                 case ItemEffectBoosterType::UPGRADE_COST: tname = "UPGRADE_COST"; break;
                 case ItemEffectBoosterType::WAR_WEAR: tname = "WAR_WEAR"; break;
                 case ItemEffectBoosterType::CULTURE: tname = "CULTURE"; break;
@@ -869,7 +871,15 @@ void MapClimateParserTester::pr_traits (cstr label, const CivTraitStruct& traits
 
 void MapClimateParserTester::pr_item (cstr name, const MapClimateStaticDataStruct& item) {
     fprintf(out(), "name: %s\n", name);
-    // No parsing instructions provided
+    pr_u16("mvt_cost", item.mvt_cost);
+    pr_i16("food", item.food);
+    pr_u16("production", item.production);
+    pr_u16("commerce", item.commerce);
+    pr_u16("culture", item.culture);
+    pr_u16("science", item.science);
+    pr_u16("religion", item.religion);
+    pr_u16("attack_mod", item.attack_mod);
+    pr_u16("defense_mod", item.defense_mod);
 }
 
 int MapClimateParserTester::run () {
@@ -883,7 +893,6 @@ int MapClimateParserTester::run () {
     cbs.city_job_name_to_idx = st_city_job_n2i;
     cbs.civ_name_to_idx = st_civ_n2i;
     cbs.civ_trait_name_to_idx = st_civ_trait_n2i;
-    cbs.tile_attribute_name_to_idx = st_tile_attribute_n2i;
     cbs.resource_name_to_idx = st_resource_n2i;
     cbs.res_dist_name_to_idx = st_res_dist_n2i;
     cbs.res_type_name_to_idx = st_res_type_n2i;
@@ -895,6 +904,7 @@ int MapClimateParserTester::run () {
     cbs.unit_role_name_to_idx = st_unit_role_n2i;
     cbs.unit_type_name_to_idx = st_unit_type_n2i;
     cbs.unit_domain_name_to_idx = st_unit_domain_n2i;
+    cbs.unit_level_name_to_idx = st_unit_level_n2i;
     cbs.unit_name_to_idx = st_unit_n2i;
     cbs.wonder_name_to_idx = st_wonder_n2i;
     cbs.map_overlay_name_to_idx = st_map_overlay_n2i;
@@ -917,7 +927,6 @@ int MapClimateParserTester::run () {
     StringManager city_job_items;
     StringManager civ_items;
     StringManager civ_trait_items;
-    StringManager tile_attribute_items;
     StringManager resource_items;
     StringManager res_dist_items;
     StringManager res_type_items;
@@ -929,6 +938,7 @@ int MapClimateParserTester::run () {
     StringManager unit_role_items;
     StringManager unit_type_items;
     StringManager unit_domain_items;
+    StringManager unit_level_items;
     StringManager unit_items;
     StringManager wonder_items;
     StringManager map_overlay_items;
@@ -951,7 +961,6 @@ int MapClimateParserTester::run () {
     ld_sm(city_job_items, paths.get_path_to_city_jobs());
     ld_sm(civ_items, paths.get_path_to_civs());
     ld_sm(civ_trait_items, paths.get_path_to_civ_traits());
-    ld_sm(tile_attribute_items, paths.get_path_to_tile_attributes());
     ld_sm(resource_items, paths.get_path_to_resources());
     ld_sm(res_dist_items, paths.get_path_to_res_dists());
     ld_sm(res_type_items, paths.get_path_to_res_types());
@@ -963,6 +972,7 @@ int MapClimateParserTester::run () {
     ld_sm(unit_role_items, paths.get_path_to_unit_roles());
     ld_sm(unit_type_items, paths.get_path_to_unit_types());
     ld_sm(unit_domain_items, paths.get_path_to_unit_domains());
+    ld_sm(unit_level_items, paths.get_path_to_unit_levels());
     ld_sm(unit_items, paths.get_path_to_units());
     ld_sm(wonder_items, paths.get_path_to_wonders());
     ld_sm(map_overlay_items, paths.get_path_to_map_overlays());
@@ -988,7 +998,6 @@ int MapClimateParserTester::run () {
     DataParserBase city_job_parser(city_job_items, cbs);
     DataParserBase civ_parser(civ_items, cbs);
     DataParserBase civ_trait_parser(civ_trait_items, cbs);
-    DataParserBase tile_attribute_parser(tile_attribute_items, cbs);
     DataParserBase resource_parser(resource_items, cbs);
     DataParserBase res_dist_parser(res_dist_items, cbs);
     DataParserBase res_type_parser(res_type_items, cbs);
@@ -1000,6 +1009,7 @@ int MapClimateParserTester::run () {
     DataParserBase unit_role_parser(unit_role_items, cbs);
     DataParserBase unit_type_parser(unit_type_items, cbs);
     DataParserBase unit_domain_parser(unit_domain_items, cbs);
+    DataParserBase unit_level_parser(unit_level_items, cbs);
     DataParserBase unit_parser(unit_items, cbs);
     DataParserBase wonder_parser(wonder_items, cbs);
     DataParserBase map_overlay_parser(map_overlay_items, cbs);
@@ -1020,7 +1030,6 @@ int MapClimateParserTester::run () {
     m_city_job_psr = &city_job_parser;
     m_civ_psr = &civ_parser;
     m_civ_trait_psr = &civ_trait_parser;
-    m_tile_attribute_psr = &tile_attribute_parser;
     m_resource_psr = &resource_parser;
     m_res_dist_psr = &res_dist_parser;
     m_res_type_psr = &res_type_parser;
@@ -1032,6 +1041,7 @@ int MapClimateParserTester::run () {
     m_unit_role_psr = &unit_role_parser;
     m_unit_type_psr = &unit_type_parser;
     m_unit_domain_psr = &unit_domain_parser;
+    m_unit_level_psr = &unit_level_parser;
     m_unit_psr = &unit_parser;
     m_wonder_psr = &wonder_parser;
     m_map_overlay_psr = &map_overlay_parser;

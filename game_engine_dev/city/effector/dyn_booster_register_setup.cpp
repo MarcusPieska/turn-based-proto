@@ -5,6 +5,8 @@
 #include "dyn_booster_register_setup.h"
 
 #include "building_static_key.h"
+#include "city_job_static_key.h"
+#include "civ_trait_static_key.h"
 #include "effect_enabler.h"
 #include "runtime_statics.h"
 #include "small_wonder_static_key.h"
@@ -81,6 +83,12 @@ bool DynBoosterRegisterSetup::build (const RuntimeStatics& st, DynBoosterRegiste
     for (u16 i = 0; i < st.wonder().get_item_count(); ++i) {
         tally_boost(st.wonder().get_item(WonderStaticDataKey::from_raw(i)).effects, counts, total);
     }
+    for (u16 i = 0; i < st.city_job().get_item_count(); ++i) {
+        tally_boost(st.city_job().get_item(CityJobStaticDataKey::from_raw(i)).effects, counts, total);
+    }
+    for (u16 i = 0; i < st.civ_trait().get_item_count(); ++i) {
+        tally_boost(st.civ_trait().get_item(CivTraitStaticDataKey::from_raw(i)).effects, counts, total);
+    }
     out.m_entry_n = total;
     out.m_off = new u16[DynBoosterRegister::KEY_N + 1u];
     out.m_off[0] = 0;
@@ -107,6 +115,14 @@ bool DynBoosterRegisterSetup::build (const RuntimeStatics& st, DynBoosterRegiste
     for (u16 i = 0; i < st.wonder().get_item_count(); ++i) {
         fill_boost(st.wonder().get_item(WonderStaticDataKey::from_raw(i)).effects,
             EffectEnablerKind::WONDER, i, out.m_entry, curs);
+    }
+    for (u16 i = 0; i < st.city_job().get_item_count(); ++i) {
+        fill_boost(st.city_job().get_item(CityJobStaticDataKey::from_raw(i)).effects,
+            EffectEnablerKind::CITY_JOB, i, out.m_entry, curs);
+    }
+    for (u16 i = 0; i < st.civ_trait().get_item_count(); ++i) {
+        fill_boost(st.civ_trait().get_item(CivTraitStaticDataKey::from_raw(i)).effects,
+            EffectEnablerKind::CIV_TRAIT, i, out.m_entry, curs);
     }
     delete[] curs;
     delete[] counts;

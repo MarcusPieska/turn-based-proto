@@ -18,6 +18,7 @@ LOGS = [
     ("CityFoundation", "u16 x, u16 y, u16 player", "city founded at=(%u,%u) civ=%u\n"),
     ("CivSpawnPt", "u16 x, u16 y, u16 civ_idx", "civ spawned at=(%u,%u) civ=%u\n"),
     ("UnitSpawn", "u16 typ_idx, u16 civ_idx, u16 x, u16 y", "unit spawned typ=%u civ=%u at=(%u,%u)\n"),
+    ("CityUnitTrain", "u16 seat, u16 unit, u16 level", "city unit train seat=%u unit=%u level=%u\n"),
     ("WarMuster", "unsigned seat, unsigned enemy, unsigned sx, unsigned sy, unsigned unit_n, unsigned size_sum, unsigned city_n, unsigned turn", "war muster start seat=%u enemy=%u staging=(%u,%u) units=%u size=%u cities=%u turn=%u\n"),
     ("WarPeaceMock", "unsigned seat, unsigned x, unsigned y, unsigned turn", "war peace mock-fail seat=%u city=(%u,%u) turn=%u\n"),
     ("WarPeace", "unsigned seat, unsigned enemy, unsigned turn", "war peace seat=%u enemy=%u turn=%u\n"),

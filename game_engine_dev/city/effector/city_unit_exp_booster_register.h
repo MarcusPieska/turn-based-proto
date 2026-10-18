@@ -14,7 +14,7 @@ struct EffectCtx;
 //=> - CityUnitExpBoosterRegister -
 //================================================================================================================================
 //
-//  Static CITY-scoped UNIT_EXP booster register.
+//  Static CITY-scoped UNIT_LEVEL_DEFAULT booster register.
 //
 //================================================================================================================================
 
@@ -36,7 +36,7 @@ private:
     CityUnitExpBoosterRegister (CityUnitExpBoosterRegister&& other) = delete;
 
     static constexpr ItemEffectBoosterType booster_type () {
-        return ItemEffectBoosterType::UNIT_EXP;
+        return ItemEffectBoosterType::UNIT_LEVEL_DEFAULT;
     }
 
     static constexpr ItemEffectsScope scope () {

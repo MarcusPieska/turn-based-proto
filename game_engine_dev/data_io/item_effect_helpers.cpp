@@ -66,7 +66,9 @@ ItemEffectBoosterType ItemEffectHelper::booster_type_str_to_enum (cstr s) {
     if (s && std::strcmp(s, "SHIP_DEFENSE") == 0) { return ItemEffectBoosterType::SHIP_DEFENSE; }
     if (s && std::strcmp(s, "SHIP_MOVEMENT") == 0) { return ItemEffectBoosterType::SHIP_MOVEMENT; }
     if (s && std::strcmp(s, "SHIP_TRAINING") == 0) { return ItemEffectBoosterType::SHIP_TRAINING; }
-    if (s && std::strcmp(s, "UNIT_EXP") == 0) { return ItemEffectBoosterType::UNIT_EXP; }
+    if (s && std::strcmp(s, "UNIT_LEVEL_DEFAULT") == 0) { return ItemEffectBoosterType::UNIT_LEVEL_DEFAULT; }
+    if (s && std::strcmp(s, "UNIT_TRAINING_MAX") == 0) { return ItemEffectBoosterType::UNIT_TRAINING_MAX; }
+    if (s && std::strcmp(s, "UNIT_TRAINING_DAILY") == 0) { return ItemEffectBoosterType::UNIT_TRAINING_DAILY; }
     if (s && std::strcmp(s, "UPGRADE_COST") == 0) { return ItemEffectBoosterType::UPGRADE_COST; }
     if (s && std::strcmp(s, "WAR_WEAR") == 0) { return ItemEffectBoosterType::WAR_WEAR; }
     if (s && std::strcmp(s, "CULTURE") == 0) { return ItemEffectBoosterType::CULTURE; }
@@ -104,7 +106,9 @@ cstr ItemEffectHelper::booster_type_enum_to_str (ItemEffectBoosterType v) {
         case ItemEffectBoosterType::SHIP_DEFENSE : return "SHIP_DEFENSE";
         case ItemEffectBoosterType::SHIP_MOVEMENT : return "SHIP_MOVEMENT";
         case ItemEffectBoosterType::SHIP_TRAINING : return "SHIP_TRAINING";
-        case ItemEffectBoosterType::UNIT_EXP : return "UNIT_EXP";
+        case ItemEffectBoosterType::UNIT_LEVEL_DEFAULT : return "UNIT_LEVEL_DEFAULT";
+        case ItemEffectBoosterType::UNIT_TRAINING_MAX : return "UNIT_TRAINING_MAX";
+        case ItemEffectBoosterType::UNIT_TRAINING_DAILY : return "UNIT_TRAINING_DAILY";
         case ItemEffectBoosterType::UPGRADE_COST : return "UPGRADE_COST";
         case ItemEffectBoosterType::WAR_WEAR : return "WAR_WEAR";
         case ItemEffectBoosterType::CULTURE : return "CULTURE";

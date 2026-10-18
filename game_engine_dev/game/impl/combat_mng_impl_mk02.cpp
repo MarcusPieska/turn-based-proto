@@ -26,43 +26,21 @@
 
 static constexpr double k_noise_sig = 8.0;
 static constexpr double k_noise_cap = 30.0;
-
-static constexpr double k_d_base = 0.25;
-static constexpr double k_d_terr = 0.25;
-static constexpr double k_d_role = 0.25;
-static constexpr double k_d_city = 0.25;
-static constexpr double k_d_lvl = 0.50;
-static constexpr double k_d_hp = 0.25;
-static constexpr double k_d_size = 0.45;
 static constexpr double k_d_sharp = 1.0 + 85.0 / 12.0;
 
-static double s_mix (double neut, double val, double w) {
-    if (w <= 0.0) {
-        return neut;
-    }
-    if (w >= 1.0) {
-        return val;
-    }
-    return neut + w * (val - neut);
+static i32 s_delta (i32 own, i32 other, i32 f) {
+    return (own - other) * f;
 }
 
-static u32 s_pwr (u16 base, i32 terr, i32 role, i32 city, u16 lvl_p, u8 health, u8 size) {
-    const double b = s_mix(1.0, static_cast<double>(base), k_d_base);
-    const double t = s_mix(0.0, static_cast<double>(terr), k_d_terr);
-    const double r = s_mix(0.0, static_cast<double>(role), k_d_role);
-    const double c = s_mix(0.0, static_cast<double>(city), k_d_city);
-    const double lv = s_mix(100.0, static_cast<double>(lvl_p), k_d_lvl);
-    const double hp = s_mix(static_cast<double>(UNIT_HEALTH), static_cast<double>(health), k_d_hp);
-    const double sz = s_mix(1.0, 1.0 + static_cast<double>(size), k_d_size);
-    if (b <= 0.0 || hp <= 0.0) {
+static u32 s_pwr_pts (i32 pts, u8 health) {
+    if (health == 0u) {
         return 0u;
     }
-    double scale = 100.0 + t + r + c;
-    if (scale < 0.0) {
-        scale = 0.0;
+    i32 score = 100 + pts;
+    if (score < 1) {
+        score = 1;
     }
-    const double p = b * scale * lv * hp * sz / 10000.0;
-    return static_cast<u32>(p);
+    return static_cast<u32>(score) * static_cast<u32>(health);
 }
 
 //================================================================================================================================
@@ -100,53 +78,39 @@ u16 CombatMng::rnd () {
     return static_cast<u16>((m_seed >> 16) & 0xFFFFu);
 }
 
-u16 CombatMng::lvl_pct (u8 level) {
-    switch (level) {
-        case VERY_GREEN: return 75u;
-        case GREEN: return 100u;
-        case REGULAR: return 125u;
-        case DISCIPLINED: return 150u;
-        case HARDENED: return 175u;
-        case VETERAN: return 200u;
-        case COMMANDO: return 225u;
-        case ELITE: return 250u;
-        default: return 100u;
-    }
-}
-
-u16 CombatMng::atk_mod (const GameState& st, u16 x, u16 y) {
+i32 CombatMng::atk_mod (const GameState& st, u16 x, u16 y) {
     const GameArraySimple& map = st.m_map;
     if (x >= map.width() || y >= map.height()) {
-        return 0u;
+        return 0;
     }
     const GameTileSimple* t = map.tile(x, y);
-    u16 m = TileAttrTables::terr(static_cast<u8>(t->m_terr)).attack_mod;
-    m = static_cast<u16>(m + TileAttrTables::clim(static_cast<u8>(t->m_clim)).attack_mod);
-    m = static_cast<u16>(m + TileAttrTables::ov(static_cast<u8>(t->m_ov)).attack_mod);
-    m = static_cast<u16>(m + TileAttrTables::road(static_cast<u8>(t->m_road_typ)).attack_mod);
+    i32 m = static_cast<i32>(TileAttrTables::terr(static_cast<u8>(t->m_terr)).attack_mod);
+    m += static_cast<i32>(TileAttrTables::clim(static_cast<u8>(t->m_clim)).attack_mod);
+    m += static_cast<i32>(TileAttrTables::ov(static_cast<u8>(t->m_ov)).attack_mod);
+    m += static_cast<i32>(TileAttrTables::road(static_cast<u8>(t->m_road_typ)).attack_mod);
     if (t->m_riv != 0u) {
-        m = static_cast<u16>(m + TileAttrTables::riv().attack_mod);
+        m += static_cast<i32>(TileAttrTables::riv().attack_mod);
     }
     return m;
 }
 
-u16 CombatMng::def_mod (const GameState& st, u16 x, u16 y) {
+i32 CombatMng::def_mod (const GameState& st, u16 x, u16 y) {
     const GameArraySimple& map = st.m_map;
     if (x >= map.width() || y >= map.height()) {
-        return 0u;
+        return 0;
     }
     const GameTileSimple* t = map.tile(x, y);
-    u16 m = TileAttrTables::terr(static_cast<u8>(t->m_terr)).defense_mod;
-    m = static_cast<u16>(m + TileAttrTables::clim(static_cast<u8>(t->m_clim)).defense_mod);
-    m = static_cast<u16>(m + TileAttrTables::ov(static_cast<u8>(t->m_ov)).defense_mod);
-    m = static_cast<u16>(m + TileAttrTables::road(static_cast<u8>(t->m_road_typ)).defense_mod);
+    i32 m = static_cast<i32>(TileAttrTables::terr(static_cast<u8>(t->m_terr)).defense_mod);
+    m += static_cast<i32>(TileAttrTables::clim(static_cast<u8>(t->m_clim)).defense_mod);
+    m += static_cast<i32>(TileAttrTables::ov(static_cast<u8>(t->m_ov)).defense_mod);
+    m += static_cast<i32>(TileAttrTables::road(static_cast<u8>(t->m_road_typ)).defense_mod);
     if (t->m_riv != 0u) {
-        m = static_cast<u16>(m + TileAttrTables::riv().defense_mod);
+        m += static_cast<i32>(TileAttrTables::riv().defense_mod);
     }
     return m;
 }
 
-i16 CombatMng::city_def_pct (const GameState& st, u16 x, u16 y) {
+i16 CombatMng::city_def_pts (const GameState& st, u16 x, u16 y) {
     const GameArraySimple& map = st.m_map;
     if (x >= map.width() || y >= map.height()) {
         return 0;
@@ -160,8 +124,12 @@ i16 CombatMng::city_def_pct (const GameState& st, u16 x, u16 y) {
     ctx.m_owner = static_cast<u16>(t->m_civ_owner);
     ctx.m_city_idx = city_idx;
     if (st.m_player_states != nullptr && ctx.m_owner < st.m_player_n) {
-        ctx.m_tech = st.m_player_states[ctx.m_owner].m_techs_researched;
-        ctx.m_small_wonder_city = st.m_player_states[ctx.m_owner].m_small_wonder_city;
+        const PlayerState& ps = st.m_player_states[ctx.m_owner];
+        ctx.m_tech = ps.m_techs_researched;
+        ctx.m_small_wonder_city = ps.m_small_wonder_city;
+        if (st.m_statics != nullptr) {
+            effect_ctx_bind_civ_traits(ctx, *st.m_statics, ps.m_civ_index);
+        }
     }
     ctx.m_bld_bank = st.m_cities.get_bld_bank();
     ctx.m_wonder_city = st.m_wonder_city;
@@ -180,21 +148,8 @@ i16 CombatMng::city_def_pct (const GameState& st, u16 x, u16 y) {
     return (eff < 0) ? 0 : eff;
 }
 
-u32 CombatMng::pwr (u16 base, i32 pct_mod, u8 level, u8 health, u8 size) {
-    if (base == 0u || health == 0u) {
-        return 0u;
-    }
-    i32 scale = 100 + pct_mod;
-    if (scale < 0) {
-        scale = 0;
-    }
-    const u64 p = static_cast<u64>(base)
-        * static_cast<u64>(scale)
-        * static_cast<u64>(lvl_pct(level))
-        * static_cast<u64>(health)
-        * static_cast<u64>(1u + static_cast<u32>(size))
-        / 10000ull;
-    return static_cast<u32>(p);
+u32 CombatMng::pwr (i32 pts, u8 health) {
+    return s_pwr_pts(pts, health);
 }
 
 void CombatMng::apply_odds (UnitAddStruct& atk, UnitAddStruct& def, u32 ap, u32 dp) {
@@ -294,6 +249,46 @@ double CombatMng::odds_raw (u32 ap, u32 dp) {
     return ag / (ag + dg);
 }
 
+static void s_fight_pwr (
+    const RuntimeStatics& cfg_st,
+    const UnitStaticDataStruct& as,
+    const UnitStaticDataStruct& ds,
+    const UnitAddStruct& atk,
+    const UnitAddStruct& def,
+    i32 a_terr,
+    i32 d_terr,
+    i32 a_role,
+    i32 d_role,
+    i32 d_city,
+    u32* out_ap,
+    u32* out_dp)
+{
+    const GameConfigSettings& cfg = cfg_st.config();
+    const i32 sf = static_cast<i32>(cfg.get_unit_stat_damage_factor());
+    const i32 lf = static_cast<i32>(cfg.get_unit_level_damage_factor());
+    const i32 zf = static_cast<i32>(cfg.get_unit_size_damage_factor());
+    const i32 rf = static_cast<i32>(cfg.get_unit_role_damage_factor());
+    const i32 tf = static_cast<i32>(cfg.get_unit_terrain_damage_factor());
+    const i32 cf = static_cast<i32>(cfg.get_unit_city_damage_factor());
+    const i32 a_sz = static_cast<i32>(atk.m_unit_size);
+    const i32 d_sz = static_cast<i32>(def.m_unit_size);
+    i32 a_pts = 0;
+    a_pts += s_delta(static_cast<i32>(as.attack), static_cast<i32>(ds.defense), sf);
+    a_pts += s_delta(static_cast<i32>(atk.m_level), static_cast<i32>(def.m_level), lf);
+    a_pts += s_delta(a_sz, d_sz, zf);
+    a_pts += a_terr * tf;
+    a_pts += a_role * rf;
+    i32 d_pts = 0;
+    d_pts += s_delta(static_cast<i32>(ds.defense), static_cast<i32>(as.attack), sf);
+    d_pts += s_delta(static_cast<i32>(def.m_level), static_cast<i32>(atk.m_level), lf);
+    d_pts += s_delta(d_sz, a_sz, zf);
+    d_pts += d_terr * tf;
+    d_pts += d_city * cf;
+    d_pts += d_role * rf;
+    *out_ap = s_pwr_pts(a_pts, atk.m_health);
+    *out_dp = s_pwr_pts(d_pts, def.m_health);
+}
+
 double CombatMng::odds_split (const UnitAddStruct& atk, const UnitAddStruct& def, const GameState& st, u16 x, u16 y) {
     if (!ready()) {
         return 0.0;
@@ -311,13 +306,11 @@ double CombatMng::odds_split (const UnitAddStruct& atk, const UnitAddStruct& def
         on_city = (map.get_add_typ(x, y) == BUILD_ADD_CITY);
     }
     const CombatBoost roles = st.m_combat_mods.get(as.role, ds.role, on_city);
-    const i32 a_terr = static_cast<i32>(atk_mod(st, x, y));
-    const i32 d_terr = static_cast<i32>(def_mod(st, x, y));
-    const i32 a_role = static_cast<i32>(roles.m_atk);
-    const i32 d_role = static_cast<i32>(roles.m_def);
-    const i32 d_city = static_cast<i32>(city_def_pct(st, x, y));
-    const u32 ap = s_pwr(as.attack, a_terr, a_role, 0, lvl_pct(atk.m_level), atk.m_health, static_cast<u8>(atk.m_unit_size));
-    const u32 dp = s_pwr(ds.defense, d_terr, d_role, d_city, lvl_pct(def.m_level), def.m_health, static_cast<u8>(def.m_unit_size));
+    u32 ap = 0u;
+    u32 dp = 0u;
+    s_fight_pwr(*m_st, as, ds, atk, def, atk_mod(st, x, y), def_mod(st, x, y),
+        static_cast<i32>(roles.m_atk), static_cast<i32>(roles.m_def),
+        static_cast<i32>(city_def_pts(st, x, y)), &ap, &dp);
     return odds_raw(ap, dp);
 }
 
@@ -338,13 +331,11 @@ void CombatMng::resolve_attack (UnitAddStruct& atk, UnitAddStruct& def, const Ga
         on_city = (map.get_add_typ(x, y) == BUILD_ADD_CITY);
     }
     const CombatBoost roles = st.m_combat_mods.get(as.role, ds.role, on_city);
-    const i32 a_terr = static_cast<i32>(atk_mod(st, x, y));
-    const i32 d_terr = static_cast<i32>(def_mod(st, x, y));
-    const i32 a_role = static_cast<i32>(roles.m_atk);
-    const i32 d_role = static_cast<i32>(roles.m_def);
-    const i32 d_city = static_cast<i32>(city_def_pct(st, x, y));
-    const u32 ap = s_pwr(as.attack, a_terr, a_role, 0, lvl_pct(atk.m_level), atk.m_health, static_cast<u8>(atk.m_unit_size));
-    const u32 dp = s_pwr(ds.defense, d_terr, d_role, d_city, lvl_pct(def.m_level), def.m_health, static_cast<u8>(def.m_unit_size));
+    u32 ap = 0u;
+    u32 dp = 0u;
+    s_fight_pwr(*m_st, as, ds, atk, def, atk_mod(st, x, y), def_mod(st, x, y),
+        static_cast<i32>(roles.m_atk), static_cast<i32>(roles.m_def),
+        static_cast<i32>(city_def_pts(st, x, y)), &ap, &dp);
     apply_odds(atk, def, ap, dp);
 }
 
@@ -365,10 +356,10 @@ void CombatMng::resolve_atk_city (UnitAddStruct& atk, UnitAddStruct& def, const 
         on_city = (map.get_add_typ(x, y) == BUILD_ADD_CITY);
     }
     const CombatBoost roles = st.m_combat_mods.get(as.role, ds.role, on_city);
-    const i32 a_role = static_cast<i32>(roles.m_atk);
-    const i32 d_role = static_cast<i32>(roles.m_def);
-    const u32 ap = s_pwr(as.attack, 0, a_role, 0, lvl_pct(atk.m_level), atk.m_health, static_cast<u8>(atk.m_unit_size));
-    const u32 dp = s_pwr(ds.defense, 0, d_role, 0, lvl_pct(def.m_level), def.m_health, static_cast<u8>(def.m_unit_size));
+    u32 ap = 0u;
+    u32 dp = 0u;
+    s_fight_pwr(*m_st, as, ds, atk, def, 0, 0,
+        static_cast<i32>(roles.m_atk), static_cast<i32>(roles.m_def), 0, &ap, &dp);
     apply_odds(atk, def, ap, dp);
 }
 
@@ -399,8 +390,12 @@ u32 CombatMng::resolve_barrage (UnitAddStruct& atk, GameState& st, u16 x, u16 y)
             ctx.m_owner = static_cast<u16>(st.m_map.get_civ_owner(x, y));
             ctx.m_city_idx = city_idx;
             if (st.m_player_states != nullptr && ctx.m_owner < st.m_player_n) {
-                ctx.m_tech = st.m_player_states[ctx.m_owner].m_techs_researched;
-                ctx.m_small_wonder_city = st.m_player_states[ctx.m_owner].m_small_wonder_city;
+                const PlayerState& ps = st.m_player_states[ctx.m_owner];
+                ctx.m_tech = ps.m_techs_researched;
+                ctx.m_small_wonder_city = ps.m_small_wonder_city;
+                if (st.m_statics != nullptr) {
+                    effect_ctx_bind_civ_traits(ctx, *st.m_statics, ps.m_civ_index);
+                }
             }
             ctx.m_bld_bank = st.m_cities.get_bld_bank();
             ctx.m_wonder_city = st.m_wonder_city;

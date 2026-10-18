@@ -10,6 +10,7 @@
 #include "factory_game_array_simple.h"
 #include "game_map_defs.h"
 #include "game_state.h"
+#include "map_overlay_enum.h"
 #include "runtime_static_loader.h"
 #include "runtime_statics.h"
 #include "tile_attr_tables.h"
@@ -64,8 +65,8 @@ static bool mk_map () {
     b->m_road_typ = ROAD_NONE;
     a->m_terr = TERR_PLAINS[0];
     b->m_terr = TERR_PLAINS[0];
-    a->m_ov = OV_NONE[0];
-    b->m_ov = OV_NONE[0];
+    a->m_ov = static_cast<u16>(MapOverlay::None);
+    b->m_ov = static_cast<u16>(MapOverlay::None);
     a->m_riv = 0u;
     b->m_riv = 0u;
     return true;
@@ -92,7 +93,7 @@ static UnitAddStruct mk_unit (u16 typ_idx, u16 x, u16 y) {
     u.m_mvt_points = 0;
     u.m_player_idx = 0u;
     u.m_health = UNIT_HEALTH;
-    u.m_level = GREEN;
+    u.m_level = 0u;
     u.m_misc = 0u;
     return u;
 }
@@ -175,7 +176,7 @@ static void run_single_eval (cstr name) {
         g_fails++;
         return;
     }
-    set_scene(TERR_PLAINS[0], OV_NONE[0], 0u);
+    set_scene(TERR_PLAINS[0], static_cast<u8>(MapOverlay::None), 0u);
     eval_attack(mk_unit(typ, 0u, 0u));
 }
 
@@ -187,13 +188,13 @@ struct TerrScene {
 };
 
 static const TerrScene k_terr_scenes[] = {
-    {"plains", TERR_PLAINS[0], OV_NONE[0], 0u},
-    {"plains+forest", TERR_PLAINS[0], OV_FOREST[0], 0u},
-    {"hills", TERR_HILLS[0], OV_NONE[0], 0u},
-    {"hills+forest", TERR_HILLS[0], OV_FOREST[0], 0u},
-    {"swamps", TERR_PLAINS[0], OV_SWAMP[0], 0u},
-    {"hills+jungle", TERR_HILLS[0], OV_JUNGLE[0], 0u},
-    {"hills+jungle+river", TERR_HILLS[0], OV_JUNGLE[0], 1u},
+    {"plains", TERR_PLAINS[0], static_cast<u8>(MapOverlay::None), 0u},
+    {"plains+forest", TERR_PLAINS[0], static_cast<u8>(MapOverlay::Forest), 0u},
+    {"hills", TERR_HILLS[0], static_cast<u8>(MapOverlay::None), 0u},
+    {"hills+forest", TERR_HILLS[0], static_cast<u8>(MapOverlay::Forest), 0u},
+    {"swamps", TERR_PLAINS[0], static_cast<u8>(MapOverlay::Swamp), 0u},
+    {"hills+jungle", TERR_HILLS[0], static_cast<u8>(MapOverlay::Jungle), 0u},
+    {"hills+jungle+river", TERR_HILLS[0], static_cast<u8>(MapOverlay::Jungle), 1u},
 };
 
 static void run_terrain_eval (cstr atk_name, cstr def_name) {
@@ -232,7 +233,7 @@ static void run_terrain_eval (cstr atk_name, cstr def_name) {
 }
 
 static const u8 k_levels[] = {
-    VERY_GREEN, GREEN, REGULAR, DISCIPLINED, HARDENED, VETERAN, COMMANDO, ELITE
+    0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u
 };
 static const cstr k_level_names[] = {
     "V.Green", "Green", "Regular", "Discipl", "Hardened", "Veteran", "Commando", "Elite"
@@ -255,7 +256,7 @@ static void run_training_eval (cstr atk_name, cstr def_name) {
     const UnitStaticData& ud = g_rt_statics->unit();
     const u16 atk_str = ud.get_item(UnitStaticDataKey::from_raw(atk_typ)).attack;
     const u16 def_str = ud.get_item(UnitStaticDataKey::from_raw(def_typ)).defense;
-    set_scene(TERR_PLAINS[0], OV_NONE[0], 0u);
+    set_scene(TERR_PLAINS[0], static_cast<u8>(MapOverlay::None), 0u);
     std::printf("\n=== training_eval: %s%s%s (atk=%u) vs %s%s%s (def=%u), plains ===\n",
         k_c_blu, atk_name, k_c_rst, static_cast<u32>(atk_str),
         k_c_blu, def_name, k_c_rst, static_cast<u32>(def_str));
@@ -297,7 +298,7 @@ static void run_health_eval (cstr atk_name, cstr def_name) {
     const UnitStaticData& ud = g_rt_statics->unit();
     const u16 atk_str = ud.get_item(UnitStaticDataKey::from_raw(atk_typ)).attack;
     const u16 def_str = ud.get_item(UnitStaticDataKey::from_raw(def_typ)).defense;
-    set_scene(TERR_PLAINS[0], OV_NONE[0], 0u);
+    set_scene(TERR_PLAINS[0], static_cast<u8>(MapOverlay::None), 0u);
     std::printf("\n=== health_eval: %s%s%s (atk=%u) vs %s%s%s (def=%u), GREEN plains ===\n",
         k_c_blu, atk_name, k_c_rst, static_cast<u32>(atk_str),
         k_c_blu, def_name, k_c_rst, static_cast<u32>(def_str));
@@ -339,7 +340,7 @@ static void run_size_eval (cstr atk_name, cstr def_name) {
     const UnitStaticData& ud = g_rt_statics->unit();
     const u16 atk_str = ud.get_item(UnitStaticDataKey::from_raw(atk_typ)).attack;
     const u16 def_str = ud.get_item(UnitStaticDataKey::from_raw(def_typ)).defense;
-    set_scene(TERR_PLAINS[0], OV_NONE[0], 0u);
+    set_scene(TERR_PLAINS[0], static_cast<u8>(MapOverlay::None), 0u);
     std::printf("\n=== size_eval: %s%s%s (atk=%u) vs %s%s%s (def=%u), GREEN plains ===\n",
         k_c_blu, atk_name, k_c_rst, static_cast<u32>(atk_str),
         k_c_blu, def_name, k_c_rst, static_cast<u32>(def_str));
@@ -366,7 +367,16 @@ static void run_size_eval (cstr atk_name, cstr def_name) {
 //=> - Main -
 //================================================================================================================================
 
-int main () {
+int main (int argc, char** argv) {
+    u32 prog = 0u;
+    if (argc >= 2) {
+        unsigned v = 0u;
+        if (std::sscanf(argv[1], "%u", &v) != 1) {
+            std::printf("usage: %s [program_index]\n", argv[0]);
+            return 1;
+        }
+        prog = v;
+    }
     if (!load_statics()) {
         std::printf("FAILED load statics\n");
         return 1;
@@ -389,7 +399,8 @@ int main () {
         std::printf("FAILED map\n");
         return 1;
     }
-    if (0) {
+    std::printf("program %u\n", prog);
+    if (prog == 0u) {
         run_single_eval("Archer");
         run_single_eval("Swordsman");
         run_single_eval("Knight");
@@ -397,42 +408,35 @@ int main () {
         run_single_eval("Cavalry");
         run_single_eval("Tank");
         run_single_eval("Modern Armor");
-    }
-    if (0) {
+    } else if (prog == 1u) {
         run_terrain_eval("Swordsman", "Spearman");
         run_terrain_eval("Swordsman", "Pikeman");
         run_terrain_eval("Swordsman", "Rifleman");
         run_terrain_eval("Swordsman", "Infantry");
         run_terrain_eval("Swordsman", "Mech Infantry");
-    }
-    if (0) {
+    } else if (prog == 2u) {
         run_training_eval("Swordsman", "Spearman");
         run_training_eval("Swordsman", "Pikeman");
         run_training_eval("Swordsman", "Rifleman");
         run_training_eval("Swordsman", "Infantry");
         run_training_eval("Swordsman", "Mech Infantry");
-    }
-    if (0) {
+    } else if (prog == 3u) {
         run_health_eval("Swordsman", "Spearman");
         run_health_eval("Swordsman", "Pikeman");
         run_health_eval("Swordsman", "Rifleman");
         run_health_eval("Swordsman", "Infantry");
         run_health_eval("Swordsman", "Mech Infantry");
-    }
-    if (0) {
+    } else if (prog == 4u) {
         run_terrain_eval("Horseman", "Spearman");
         run_terrain_eval("Horseman", "Archer");
-
         run_terrain_eval("Bowman", "Spearman");
         run_terrain_eval("Bowman", "Archer");
-
         run_terrain_eval("Swordsman", "Archer");
         run_terrain_eval("Swordsman", "Spearman");
         run_terrain_eval("Swordsman", "Horseman");
         run_terrain_eval("Horseman", "Swordsman");
         run_terrain_eval("Bowman", "Swordsman");
-    }
-    if (1) {
+    } else if (prog == 5u) {
         run_size_eval("Horseman", "Spearman");
         run_size_eval("Horseman", "Archer");
         run_size_eval("Bowman", "Spearman");
@@ -442,6 +446,11 @@ int main () {
         run_size_eval("Swordsman", "Horseman");
         run_size_eval("Horseman", "Swordsman");
         run_size_eval("Bowman", "Swordsman");
+    } else {
+        std::printf("unknown program %u (valid 0..5)\n", prog);
+        CombatMng::clear();
+        TileAttrTables::clear();
+        return 1;
     }
 
     CombatMng::clear();

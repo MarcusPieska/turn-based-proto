@@ -64,8 +64,6 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_civ.load_names_from(p.get_civ_name_parser(), p.get_civ_count());
     m_civ_trait.set_items(const_cast<CivTraitStaticDataStruct*>(p.get_civ_trait_data()), p.get_civ_trait_count());
     m_civ_trait.load_names_from(p.get_civ_trait_name_parser(), p.get_civ_trait_count());
-    m_tile_attribute.set_items(const_cast<TileAttributeStaticDataStruct*>(p.get_tile_attribute_data()), p.get_tile_attribute_count());
-    m_tile_attribute.load_names_from(p.get_tile_attribute_name_parser(), p.get_tile_attribute_count());
     m_resource.set_items(const_cast<ResourceStaticDataStruct*>(p.get_resource_data()), p.get_resource_count());
     m_resource.load_names_from(p.get_resource_name_parser(), p.get_resource_count());
     m_res_dist.set_items(const_cast<ResDistStaticDataStruct*>(p.get_res_dist_data()), p.get_res_dist_count());
@@ -88,6 +86,8 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_unit_type.load_names_from(p.get_unit_type_name_parser(), p.get_unit_type_count());
     m_unit_domain.set_items(const_cast<UnitDomainStaticDataStruct*>(p.get_unit_domain_data()), p.get_unit_domain_count());
     m_unit_domain.load_names_from(p.get_unit_domain_name_parser(), p.get_unit_domain_count());
+    m_unit_level.set_items(const_cast<UnitLevelStaticDataStruct*>(p.get_unit_level_data()), p.get_unit_level_count());
+    m_unit_level.load_names_from(p.get_unit_level_name_parser(), p.get_unit_level_count());
     m_unit.set_items(const_cast<UnitStaticDataStruct*>(p.get_unit_data()), p.get_unit_count());
     m_unit.load_names_from(p.get_unit_name_parser(), p.get_unit_count());
     m_wonder.set_items(const_cast<WonderStaticDataStruct*>(p.get_wonder_data()), p.get_wonder_count());
@@ -132,7 +132,6 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_city_job.take_ownership();
     m_civ.take_ownership();
     m_civ_trait.take_ownership();
-    m_tile_attribute.take_ownership();
     m_resource.take_ownership();
     m_res_dist.take_ownership();
     m_res_type.take_ownership();
@@ -144,6 +143,7 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_unit_role.take_ownership();
     m_unit_type.take_ownership();
     m_unit_domain.take_ownership();
+    m_unit_level.take_ownership();
     m_unit.take_ownership();
     m_wonder.take_ownership();
     m_map_overlay.take_ownership();
@@ -255,14 +255,6 @@ const CivTraitStaticData& RuntimeStatics::civ_trait () const {
     return m_civ_trait;
 }
 
-TileAttributeStaticData& RuntimeStatics::tile_attribute () {
-    return m_tile_attribute;
-}
-
-const TileAttributeStaticData& RuntimeStatics::tile_attribute () const {
-    return m_tile_attribute;
-}
-
 ResourceStaticData& RuntimeStatics::resource () {
     return m_resource;
 }
@@ -349,6 +341,14 @@ UnitDomainStaticData& RuntimeStatics::unit_domain () {
 
 const UnitDomainStaticData& RuntimeStatics::unit_domain () const {
     return m_unit_domain;
+}
+
+UnitLevelStaticData& RuntimeStatics::unit_level () {
+    return m_unit_level;
+}
+
+const UnitLevelStaticData& RuntimeStatics::unit_level () const {
+    return m_unit_level;
 }
 
 UnitStaticData& RuntimeStatics::unit () {

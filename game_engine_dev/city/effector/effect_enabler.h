@@ -17,7 +17,9 @@ enum class EffectEnablerKind : u8 {
     BUILDING = 0,
     TECH = 1,
     SMALL_WONDER = 2,
-    WONDER = 3
+    WONDER = 3,
+    CITY_JOB = 4,
+    CIV_TRAIT = 5
 };
 
 //================================================================================================================================

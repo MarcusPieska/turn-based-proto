@@ -30,7 +30,6 @@
 
 #include "effect_ctx.h"
 #include "booster_apply.h"
-#include "local_unit_exp_booster_register.h"
 #include "civ_ship_training_booster_register.h"
 #include "city_commerce_booster_register.h"
 #include "city_production_booster_register.h"
@@ -47,6 +46,8 @@
 #include "dyn_booster_register.h"
 #include "city_border.h"
 #include "city_tracer.h"
+#include "job_count_array.h"
+#include "log_dbg.h"
 #include "tile_yields.h"
 
 #include <cstring>
@@ -159,18 +160,32 @@ static u16* small_wonder_row (u16 owner) {
     return s_player_states[owner].m_small_wonder_city;
 }
 
+static u8 city_job_seat_get (u16 city_idx, u16 job_id, void* ud) {
+    (void)ud;
+    if (!JobCountArray::ready()) {
+        return 0u;
+    }
+    return JobCountArray::get(city_idx, job_id);
+}
+
 static EffectCtx make_city_effect_ctx (const City& city, u16 city_idx) {
     EffectCtx ctx = {};
     ctx.m_owner = city.get_owner();
     ctx.m_city_idx = city_idx;
     if (s_player_states != nullptr && ctx.m_owner < s_player_n) {
-        ctx.m_tech = s_player_states[ctx.m_owner].m_techs_researched;
+        const PlayerState& ps = s_player_states[ctx.m_owner];
+        ctx.m_tech = ps.m_techs_researched;
+        if (s_statics != nullptr) {
+            effect_ctx_bind_civ_traits(ctx, *s_statics, ps.m_civ_index);
+        }
     }
     ctx.m_bld_bank = s_bld_bank;
     ctx.m_wonder_city = s_wonder_city;
     ctx.m_wonder_n = s_wonder_n;
     ctx.m_small_wonder_city = small_wonder_row(ctx.m_owner);
     ctx.m_small_wonder_n = s_small_wonder_n;
+    ctx.m_job_seat_fn = city_job_seat_get;
+    ctx.m_job_seat_ud = nullptr;
     return ctx;
 }
 
@@ -209,14 +224,27 @@ static bool unit_is_worker (u16 unit_idx) {
 }
 
 static u8 spawn_unit_level (const City& city, u16 city_idx, u16 unit_idx) {
+    GAME_EXPECT(s_statics != nullptr, "spawn_unit_level null statics");
+    const u8 def_lv = static_cast<u8>(s_statics->config().get_default_unit_level());
+    const u16 lvl_n = s_statics->unit_level().get_item_count();
+    const u8 hi = (lvl_n == 0u) ? 0u : static_cast<u8>(lvl_n - 1u);
     const EffectCtx ctx = make_city_effect_ctx(city, city_idx);
     if (unit_is_sea(unit_idx)) {
-        return apply_unit_level_boost(GREEN, CivShipTrainingBoosterRegister::determine_effect(ctx));
+        return apply_unit_level_boost(def_lv, CivShipTrainingBoosterRegister::determine_effect(ctx), hi);
     }
-    if (unit_is_land(unit_idx)) {
-        return apply_unit_level_boost(GREEN, LocalUnitExpBoosterRegister::determine_effect(ctx));
+    if (!unit_is_land(unit_idx)) {
+        return def_lv;
     }
-    return GREEN;
+    const DynBoosterRegister& reg = s_statics->dyn_booster();
+    u16 lv = def_lv;
+    lv = apply_booster_u16(lv, reg.determine(ItemEffectBoosterType::UNIT_LEVEL_DEFAULT, ItemEffectsScope::LOCAL, ctx));
+    lv = apply_booster_u16(lv, reg.determine(ItemEffectBoosterType::UNIT_LEVEL_DEFAULT, ItemEffectsScope::CITY, ctx));
+    lv = apply_booster_u16(lv, reg.determine(ItemEffectBoosterType::UNIT_LEVEL_DEFAULT, ItemEffectsScope::CIV, ctx));
+    lv = apply_booster_u16(lv, reg.determine(ItemEffectBoosterType::UNIT_LEVEL_DEFAULT, ItemEffectsScope::GLOBAL, ctx));
+    if (lv > hi) {
+        lv = hi;
+    }
+    return static_cast<u8>(lv);
 }
 
 static u8 land_max_unit_size (const City& city, u16 city_idx) {
@@ -669,6 +697,58 @@ void City::add_commerce (u16 city_idx, u16 amount) {
         GAME_EXPECT(false, "City commerce ledger");
     }
     LOG_CITY_COM((commerce));
+}
+
+u16 City::add_training (u16 city_idx, u16 amount) {
+    GAME_EXPECT_RET(s_statics != nullptr, amount, "City add_training statics");
+    GAME_EXPECT_RET(s_units != nullptr, amount, "City add_training units");
+    if (amount == 0u) {
+        return 0u;
+    }
+    const EffectCtx ctx = make_city_effect_ctx(*this, city_idx); 
+    const DynBoosterRegister& reg = s_statics->dyn_booster();
+    u16 max_lv = 0u;
+    max_lv = apply_booster_u16(max_lv, reg.determine(ItemEffectBoosterType::UNIT_TRAINING_MAX, ItemEffectsScope::LOCAL, ctx));
+    max_lv = apply_booster_u16(max_lv, reg.determine(ItemEffectBoosterType::UNIT_TRAINING_MAX, ItemEffectsScope::CITY, ctx));
+    max_lv = apply_booster_u16(max_lv, reg.determine(ItemEffectBoosterType::UNIT_TRAINING_MAX, ItemEffectsScope::CIV, ctx));
+    max_lv = apply_booster_u16(max_lv, reg.determine(ItemEffectBoosterType::UNIT_TRAINING_MAX, ItemEffectsScope::GLOBAL, ctx));
+    const u16 lvl_n = s_statics->unit_level().get_item_count();
+    const u16 cat_hi = (lvl_n == 0u) ? 0u : static_cast<u16>(lvl_n - 1u);
+    if (max_lv > cat_hi) {
+        max_lv = cat_hi;
+    }
+    if (max_lv == 0u) {
+        return amount;
+    }
+    GameArraySimple* map = CityBorder::map();
+    GAME_EXPECT_RET(map != nullptr, amount, "City add_training map");
+    const u8 hi = static_cast<u8>(max_lv);
+    u16 hd = map->get_unit_hd(m_x, m_y);
+    while (hd != U16_KEY_NULL && amount > 0u) {
+        UnitAddStruct* u = s_units->get_unit_add(UnitAddKey::from_raw(hd));
+        if (u == nullptr) {
+            break;
+        }
+        const u16 nxt_tile = static_cast<u16>(u->m_next_unit_on_tile);
+        u16 g = hd;
+        while (g != U16_KEY_NULL && amount > 0u) {
+            UnitAddStruct* gu = s_units->get_unit_add(UnitAddKey::from_raw(g));
+            if (gu == nullptr) {
+                break;
+            }
+            const u16 nxt_g = static_cast<u16>(gu->m_next_unit_in_group);
+            if (gu->m_player_idx == m_owner && unit_is_land(static_cast<u16>(gu->m_unit_typ_idx))) {
+                while (amount > 0u && gu->m_level < hi) {
+                    gu->m_level = static_cast<u8>(gu->m_level + 1u);
+                    amount = static_cast<u16>(amount - 1u);
+                    LOG_CITY_UNIT_TRAIN::LOG(m_owner, g, static_cast<u16>(gu->m_level));
+                }
+            }
+            g = nxt_g;
+        }
+        hd = nxt_tile;
+    }
+    return amount;
 }
 
 void City::add_culture (u16 city_idx, u16 amount) {

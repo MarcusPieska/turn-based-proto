@@ -54,10 +54,6 @@ static u16 st_civ_trait_n2i (cstr name) {
     return g_st->get_civ_trait_name_parser().name_to_idx(name);
 }
 
-static u16 st_tile_attribute_n2i (cstr name) {
-    return g_st->get_tile_attribute_name_parser().name_to_idx(name);
-}
-
 static u16 st_resource_n2i (cstr name) {
     return g_st->get_resource_name_parser().name_to_idx(name);
 }
@@ -101,7 +97,6 @@ static void fill_cbs (NameToIdxCbs* cbs) {
     cbs->toggle_global_name_to_idx = st_toggle_global_n2i;
     cbs->civ_name_to_idx = st_civ_n2i;
     cbs->civ_trait_name_to_idx = st_civ_trait_n2i;
-    cbs->tile_attribute_name_to_idx = st_tile_attribute_n2i;
     cbs->resource_name_to_idx = st_resource_n2i;
     cbs->res_dist_name_to_idx = st_res_dist_n2i;
     cbs->small_wonder_name_to_idx = st_small_wonder_n2i;
@@ -146,6 +141,13 @@ static void print_config (const GameConfigSettings& cfg) {
     std::printf("  UPGRADE_COST_PER_STAT_PT: %u\n", cfg.get_upgrade_cost_per_stat_pt());
     std::printf("  TECH_AGE_UNLOCK_PCT: %u\n", cfg.get_tech_age_unlock_pct());
     std::printf("  DEFAULT_CULTURE_PER_TURN: %u\n", cfg.get_default_culture_per_turn());
+    std::printf("  DEFAULT_UNIT_LEVEL: %u\n", cfg.get_default_unit_level());
+    std::printf("  UNIT_LEVEL_DAMAGE_FACTOR: %u\n", cfg.get_unit_level_damage_factor());
+    std::printf("  UNIT_STAT_DAMAGE_FACTOR: %u\n", cfg.get_unit_stat_damage_factor());
+    std::printf("  UNIT_SIZE_DAMAGE_FACTOR: %u\n", cfg.get_unit_size_damage_factor());
+    std::printf("  UNIT_ROLE_DAMAGE_FACTOR: %u\n", cfg.get_unit_role_damage_factor());
+    std::printf("  UNIT_CITY_DAMAGE_FACTOR: %u\n", cfg.get_unit_city_damage_factor());
+    std::printf("  UNIT_TERRAIN_DAMAGE_FACTOR: %u\n", cfg.get_unit_terrain_damage_factor());
 }
 
 //================================================================================================================================

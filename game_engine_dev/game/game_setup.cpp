@@ -30,6 +30,7 @@
 #include "city_border.h"
 #include "building_trait_orderings.h"
 #include "city_job_trait_orderings.h"
+#include "job_count_array.h"
 #include "tech_trait_orderings.h"
 #include "tech_age_mng.h"
 #include "assert_log.h"
@@ -513,6 +514,10 @@ bool GameSetup::finish_with_starts (GameState* state, const SpgPickCoords& start
         return false;
     }
     if (!CityJobTraitOrderings::begin(g_rt_statics->city_job(), g_rt_statics->trait_affinity_map())) {
+        state->clear();
+        return false;
+    }
+    if (!JobCountArray::setup(*g_rt_statics)) {
         state->clear();
         return false;
     }

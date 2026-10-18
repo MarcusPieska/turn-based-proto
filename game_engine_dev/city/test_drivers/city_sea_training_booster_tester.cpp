@@ -23,15 +23,18 @@ int main () {
         return 1;
     }
 
+    const u8 def_lv = static_cast<u8>(env.m_st->config().get_default_unit_level());
+
     if (!env.finish_unit_build(galley)) {
         std::printf("ERROR: galley spawn failed\n");
         return 1;
     }
     const UnitAddStruct* plain = env.find_spawned_unit(galley, 5, 5);
-    const bool plain_ok = plain != nullptr && plain->m_level == GREEN;
-    city_booster_note(plain_ok, "Galley without Great Lighthouse stays GREEN");
+    const bool plain_ok = plain != nullptr && plain->m_level == def_lv;
+    city_booster_note(plain_ok, "Galley without Great Lighthouse stays at DEFAULT_UNIT_LEVEL");
     if (plain != nullptr) {
-        std::printf("  spawned Galley level=%u (expect GREEN=1)\n", static_cast<unsigned>(plain->m_level));
+        std::printf("  spawned Galley level=%u (expect default=%u)\n",
+            static_cast<unsigned>(plain->m_level), static_cast<unsigned>(def_lv));
     }
 
     env.m_wonder_city[lighthouse] = env.m_city_idx;
@@ -40,10 +43,12 @@ int main () {
         return 1;
     }
     const UnitAddStruct* boosted = env.find_spawned_unit(galley, 5, 5);
-    const bool boost_ok = boosted != nullptr && boosted->m_level == DISCIPLINED;
-    city_booster_note(boost_ok, "Galley with Great Lighthouse gets +1 level (DISCIPLINED)");
+    const u8 expect_boost = static_cast<u8>(def_lv + 1u);
+    const bool boost_ok = boosted != nullptr && boosted->m_level == expect_boost;
+    city_booster_note(boost_ok, "Galley with Great Lighthouse gets +1 level index");
     if (boosted != nullptr) {
-        std::printf("  spawned Galley level=%u (expect DISCIPLINED=2)\n", static_cast<unsigned>(boosted->m_level));
+        std::printf("  spawned Galley level=%u (expect %u)\n",
+            static_cast<unsigned>(boosted->m_level), static_cast<unsigned>(expect_boost));
     }
 
     std::printf("done\n");

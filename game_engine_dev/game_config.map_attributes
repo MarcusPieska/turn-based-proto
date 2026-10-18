@@ -1,5 +1,8 @@
-River
-Dirt Path
-Cobble Road
-Asphalt Road
-Railroad
+No River      : Waterway :   0    : 0  : 0  : 0  : 0  : 0  : 0    : 0   : 0 
+River         : Waterway :   500  : 1  : 0  : 1  : 0  : 0  : 0    : 0   : 2  
+No Road       : Road     :   0    : 0  : 0  : 0  : 0  : 0  : 0    : 0   : 0 
+Dirt Path     : Road     :   1000 : 0  : 0  : 0  : 0  : 0  : 0    : 0   : 0 
+Cobble Road   : Road     :   500  : 0  : 0  : 0  : 0  : 0  : 0    : 0   : 0 
+Asphalt Road  : Road     :   250  : 0  : 0  : 0  : 0  : 0  : 0    : 0   : 0 
+Railroad      : Road     :   100  : 0  : 0  : 0  : 0  : 0  : 0    : 0   : 0 
+Planned Road  : Road     :   0    : 0  : 0  : 0  : 0  : 0  : 0    : 0   : 0 

@@ -136,7 +136,9 @@ void [CLASS_TAG]ParserTester::pr_fx (cstr label, const ItemEffectsStruct& e) {
                 case ItemEffectBoosterType::SHIP_DEFENSE: tname = "SHIP_DEFENSE"; break;
                 case ItemEffectBoosterType::SHIP_MOVEMENT: tname = "SHIP_MOVEMENT"; break;
                 case ItemEffectBoosterType::SHIP_TRAINING: tname = "SHIP_TRAINING"; break;
-                case ItemEffectBoosterType::UNIT_EXP: tname = "UNIT_EXP"; break;
+                case ItemEffectBoosterType::UNIT_LEVEL_DEFAULT: tname = "UNIT_LEVEL_DEFAULT"; break;
+                case ItemEffectBoosterType::UNIT_TRAINING_MAX: tname = "UNIT_TRAINING_MAX"; break;
+                case ItemEffectBoosterType::UNIT_TRAINING_DAILY: tname = "UNIT_TRAINING_DAILY"; break;
                 case ItemEffectBoosterType::UPGRADE_COST: tname = "UPGRADE_COST"; break;
                 case ItemEffectBoosterType::WAR_WEAR: tname = "WAR_WEAR"; break;
                 case ItemEffectBoosterType::CULTURE: tname = "CULTURE"; break;

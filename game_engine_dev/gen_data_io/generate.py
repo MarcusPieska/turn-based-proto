@@ -21,8 +21,7 @@ PARSER_SPECS.append(("toggle_civ", "ToggleCiv", ""))
 PARSER_SPECS.append(("toggle_global", "ToggleGlobal", ""))
 PARSER_SPECS.append(("city_job", "CityJob", "food,1,i16:production,2,u16:commerce,3,u16:culture,4,u16:science,5,u16:religion,6,u16:slots,7,u16:effects,8,ItemEffectsStructOpt"))
 PARSER_SPECS.append(("civ", "Civ", "traits,1,CivTraitStruct"))
-PARSER_SPECS.append(("civ_trait", "CivTrait", ""))
-PARSER_SPECS.append(("tile_attribute", "TileAttribute", "mvt_cost,1,u16:food,2,i16:production,3,u16:commerce,4,u16:culture,5,u16:science,6,u16:religion,7,u16:attack_mod,8,u16:defense_mod,9,u16"))
+PARSER_SPECS.append(("civ_trait", "CivTrait", "effects,0,ItemEffectsStructOpt"))
 PARSER_SPECS.append(("resource", "Resource", "food,1,u16:shields,2,u16:commerce,3,u16:culture,4,u16:science,5,u16:religion,6,u16:type,7,ResType:worker_job_idx,8,WorkerJobColIdx:reqs,9,ItemReqsStruct:res_dist_idx,0,ResDistIdx"))
 PARSER_SPECS.append(("res_dist", "ResDist", "plc,1,ResPlacement"))
 PARSER_SPECS.append(("res_type", "ResType", ""))
@@ -34,12 +33,13 @@ PARSER_SPECS.append(("unit_action", "UnitAction", ""))
 PARSER_SPECS.append(("unit_role", "UnitRole", "mods,1,CombatModList"))
 PARSER_SPECS.append(("unit_type", "UnitType", ""))
 PARSER_SPECS.append(("unit_domain", "UnitDomain", ""))
+PARSER_SPECS.append(("unit_level", "UnitLevel", ""))
 PARSER_SPECS.append(("unit", "Unit", "domain,1,UnitDomain:type,2,UnitType:role,3,UnitRole:cost,4,u32:attack,5,u16:defense,6,u16:mvt_pts,7,u16:sight,8,u16:reqs,9,ItemReqsStruct"))
 PARSER_SPECS.append(("wonder", "Wonder", "cost,1,u32:reqs,2,ItemReqsStruct:effects,3,ItemEffectsStruct"))
-PARSER_SPECS.append(("map_overlay", "MapOverlay", ""))
-PARSER_SPECS.append(("map_attribute", "MapAttribute", ""))
-PARSER_SPECS.append(("map_terrain", "MapTerrain", ""))
-PARSER_SPECS.append(("map_climate", "MapClimate", ""))
+PARSER_SPECS.append(("map_overlay", "MapOverlay", "mvt_cost,1,u16:food,2,i16:production,3,u16:commerce,4,u16:culture,5,u16:science,6,u16:religion,7,u16:attack_mod,8,u16:defense_mod,9,u16"))
+PARSER_SPECS.append(("map_attribute", "MapAttribute", "kind,1,MapAttrKind:mvt_cost,2,u16:food,3,i16:production,4,u16:commerce,5,u16:culture,6,u16:science,7,u16:religion,8,u16:attack_mod,9,u16:defense_mod,10,u16"))
+PARSER_SPECS.append(("map_terrain", "MapTerrain", "mvt_cost,1,u16:food,2,i16:production,3,u16:commerce,4,u16:culture,5,u16:science,6,u16:religion,7,u16:attack_mod,8,u16:defense_mod,9,u16"))
+PARSER_SPECS.append(("map_climate", "MapClimate", "mvt_cost,1,u16:food,2,i16:production,3,u16:commerce,4,u16:culture,5,u16:science,6,u16:religion,7,u16:attack_mod,8,u16:defense_mod,9,u16"))
 PARSER_SPECS.append(("worker_job_target", "WorkerJobTarget", ""))
 PARSER_SPECS.append(("worker_job_type", "WorkerJobType", ""))
 PARSER_SPECS.append(("worker_job", "WorkerJob", "cost,1,u32:target_idx,2,WorkerJobSiteIdx:target_kind,3,WorkerJobTarget:type,4,WorkerJobType:reqs,5,ItemReqsStruct"))
@@ -99,6 +99,8 @@ def get_function_name_from_output_type(output_type):
         return "parse_map_terrain_idx"
     elif output_type == "MapClimateColIdx":
         return "parse_map_climate_idx"
+    elif output_type == "MapAttrKind":
+        return "parse_map_attr_kind"
     elif output_type == "WorkerJobSiteIdx":
         return "parse_worker_job_site_idx"
     elif output_type == "TileYieldType":
@@ -152,7 +154,7 @@ def derive_member_print_lines(parsing_instructions):
         return ["// No parsing instructions provided"]
     for instruction in parsing_instructions.split(":"):
         mem, idx, data_type = [part.strip() for part in instruction.strip().split(",")]
-        if data_type in ["u16", "UnitType", "UnitRole", "UnitDomain", "ResType", "TechEra", "TechAge", "WorkerJobType", "WorkerJobTarget", "ResDistIdx", "TileYieldType", "TileAttributeIdx", "WorkerJobIdx", "WorkerJobColIdx", "MapOverlayColIdx", "MapAttributeColIdx", "WorkerJobSiteIdx"]:
+        if data_type in ["u16", "UnitType", "UnitRole", "UnitDomain", "ResType", "TechEra", "TechAge", "WorkerJobType", "WorkerJobTarget", "ResDistIdx", "TileYieldType", "TileAttributeIdx", "WorkerJobIdx", "WorkerJobColIdx", "MapOverlayColIdx", "MapAttributeColIdx", "MapTerrainColIdx", "MapClimateColIdx", "MapAttrKind", "WorkerJobSiteIdx"]:
             lines.append('pr_u16("%s", item.%s);' % (mem, mem))
         elif data_type == "i16":
             lines.append('pr_i16("%s", item.%s);' % (mem, mem))

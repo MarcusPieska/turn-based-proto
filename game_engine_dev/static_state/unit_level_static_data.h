@@ -9,10 +9,10 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef TILE_ATTRIBUTE_STATIC_DATA_H
-#define TILE_ATTRIBUTE_STATIC_DATA_H
+#ifndef UNIT_LEVEL_STATIC_DATA_H
+#define UNIT_LEVEL_STATIC_DATA_H
 
-#include "tile_attribute_static_key.h"
+#include "unit_level_static_key.h"
 #include "item_reqs.h"
 #include "item_effects.h"
 #include "res_placement.h"
@@ -23,49 +23,41 @@
 class DataParserBase;
 
 //================================================================================================================================
-//=> - TileAttributeStaticDataStruct -
+//=> - UnitLevelStaticDataStruct -
 //================================================================================================================================
 
-typedef struct TileAttributeStaticDataStruct {
-    u16 mvt_cost;
-    i16 food;
-    u16 production;
-    u16 commerce;
-    u16 culture;
-    u16 science;
-    u16 religion;
-    u16 attack_mod;
-    u16 defense_mod;
-} TileAttributeStaticDataStruct;
+typedef struct UnitLevelStaticDataStruct {
+
+} UnitLevelStaticDataStruct;
 
 //================================================================================================================================
-//=> - TileAttributeStaticData class -
+//=> - UnitLevelStaticData class -
 //================================================================================================================================
 
-class TileAttributeStaticData {
+class UnitLevelStaticData {
 public:
-    TileAttributeStaticData () = default;
-    ~TileAttributeStaticData ();
-    void set_items (TileAttributeStaticDataStruct* items, u16 item_count);
+    UnitLevelStaticData () = default;
+    ~UnitLevelStaticData ();
+    void set_items (UnitLevelStaticDataStruct* items, u16 item_count);
     bool load_names (cstr const* names, u16 n);
     bool load_names_from (const DataParserBase& psr, u16 n);
     void take_ownership ();
     void release_items ();
-    const TileAttributeStaticDataStruct& get_item (TileAttributeStaticDataKey key) const;
-    cstr get_name (TileAttributeStaticDataKey key) const;
+    const UnitLevelStaticDataStruct& get_item (UnitLevelStaticDataKey key) const;
+    cstr get_name (UnitLevelStaticDataKey key) const;
     u16 get_item_count () const;
 
 private:
-    TileAttributeStaticData (const TileAttributeStaticData& other) = delete;
-    TileAttributeStaticData (TileAttributeStaticData&& other) = delete;
+    UnitLevelStaticData (const UnitLevelStaticData& other) = delete;
+    UnitLevelStaticData (UnitLevelStaticData&& other) = delete;
 
-    TileAttributeStaticDataStruct* m_item_array = nullptr;
+    UnitLevelStaticDataStruct* m_item_array = nullptr;
     u16 m_item_count = 0;
     bool m_owns_array = false;
     StaticStringPool m_name_pool;
 };
 
-#endif // TILE_ATTRIBUTE_STATIC_DATA_H
+#endif // UNIT_LEVEL_STATIC_DATA_H
 
 //================================================================================================================================
 //=> - End of file -

@@ -55,6 +55,7 @@ protected:
     u16 parse_map_attribute_idx (const StringManager& line_items, u16 start_idx) const;
     u16 parse_map_terrain_idx (const StringManager& line_items, u16 start_idx) const;
     u16 parse_map_climate_idx (const StringManager& line_items, u16 start_idx) const;
+    u16 parse_map_attr_kind (const StringManager& line_items, u16 start_idx) const;
     u16 parse_worker_job_site_idx (const StringManager& line_items, u16 start_idx) const;
     u16 parse_tile_yield_type (const StringManager& line_items, u16 start_idx) const;
     u16 parse_tile_attribute_idx (const StringManager& line_items, u16 start_idx) const;

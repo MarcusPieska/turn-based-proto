@@ -1,41 +1,45 @@
 //================================================================================================================================
-//=> - Include guards -
+//= - Include guards -
 //================================================================================================================================
 
 #ifndef TILE_ATTR_TABLES_H
 #define TILE_ATTR_TABLES_H
 
 #include "game_primitives.h"
-#include "tile_attribute_static_data.h"
+#include "map_terrain_static_data.h"
 
 class RuntimeStatics;
 
 //================================================================================================================================
-//=> - TileAttrTables -
+//= - TileAttrTables -
 //================================================================================================================================
 //
-//  Unpacks RuntimeStatics tile_attribute rows into ID-indexed tables matching game_map_defs class ids.
-//  Hot path indexes terr/clim/ov/road by map cell ids; OV_RIVERS is stored once as m_riv.
+//  Hot-path attr rows copied from RuntimeStatics map_terrain / map_climate / map_overlay /
+//  map_attribute catalogs. Indexes match those catalog ids (and m_terr / m_clim / m_ov / m_road_typ).
+//  Waterway "River" is stored once as riv(); roads are kind-local among Road rows.
 //
 //================================================================================================================================
+
+typedef MapTerrainStaticDataStruct TileAttrRow;
 
 class TileAttrTables {
 public:
     static bool setup (const RuntimeStatics& st);
     static void clear ();
     static bool ready ();
-    static bool map_name (cstr name, u8* out_kind, u8* out_id);
+    static bool unpack_cond (u16 packed, u8* out_kind, u8* out_id);
+    static u16 pack_cond (u8 kind, u16 id);
 
     static u16 terr_n ();
     static u16 clim_n ();
     static u16 ov_n ();
     static u16 road_n ();
 
-    static const TileAttributeStaticDataStruct& terr (u8 id);
-    static const TileAttributeStaticDataStruct& clim (u8 id);
-    static const TileAttributeStaticDataStruct& ov (u8 id);
-    static const TileAttributeStaticDataStruct& road (u8 id);
-    static const TileAttributeStaticDataStruct& riv ();
+    static const TileAttrRow& terr (u8 id);
+    static const TileAttrRow& clim (u8 id);
+    static const TileAttrRow& ov (u8 id);
+    static const TileAttrRow& road (u8 id);
+    static const TileAttrRow& riv ();
 
     static const u8 k_kind_terr = 0u;
     static const u8 k_kind_clim = 1u;
@@ -46,22 +50,26 @@ public:
 private:
     TileAttrTables () = delete;
 
-    static const u16 k_terr_n = 16u; // TERR_TILE_SENTINEL id + 1
-    static const u16 k_clim_n = 5u; // CLIMATE_BLACK_SOIL + 1
-    static const u16 k_ov_n = 16u; // OV_MAX id + 1
-    static const u16 k_road_n = 8u; // ROAD_VIRTUAL + 1
+    static const u16 k_terr_n = 16u;
+    static const u16 k_clim_n = 8u;
+    static const u16 k_ov_n = 16u;
+    static const u16 k_road_n = 8u;
 
-    static bool m_ready; // True after a successful setup
-    static TileAttributeStaticDataStruct m_terr[k_terr_n]; // Terrain attrs by TERR_*[0]
-    static TileAttributeStaticDataStruct m_clim[k_clim_n]; // Climate attrs by CLIMATE_*
-    static TileAttributeStaticDataStruct m_ov[k_ov_n]; // Overlay attrs by OV_*[0]
-    static TileAttributeStaticDataStruct m_road[k_road_n]; // Road attrs by ROAD_*
-    static TileAttributeStaticDataStruct m_riv; // OV_RIVERS attrs (not an overlay class id)
-    static TileAttributeStaticDataStruct m_zero; // Returned for out-of-range ids
+    static bool m_ready;
+    static TileAttrRow m_terr[k_terr_n];
+    static TileAttrRow m_clim[k_clim_n];
+    static TileAttrRow m_ov[k_ov_n];
+    static TileAttrRow m_road[k_road_n];
+    static TileAttrRow m_riv;
+    static TileAttrRow m_zero;
+    static u16 m_terr_n;
+    static u16 m_clim_n;
+    static u16 m_ov_n;
+    static u16 m_road_n;
 };
 
 #endif // TILE_ATTR_TABLES_H
 
 //================================================================================================================================
-//=> - End of file -
+//= - End of file -
 //================================================================================================================================

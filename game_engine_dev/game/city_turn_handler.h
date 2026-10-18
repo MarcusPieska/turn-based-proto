@@ -13,9 +13,9 @@ class GameState;
 //=> - CityTurnHandler -
 //================================================================================================================================
 //
-//  Per-city turn step invoked by the main game loop. Gathers worked-tile yields, fills leftover pops into city jobs,
-//  then banks tile+job yields (commerce/science to PlayerLedger; food/production/culture to City; religion ignored)
-//  before finish_if_ready / growth / trait AI. Tallies m_this_turn_city_count and m_this_turn_population_count.
+//  Per-city turn step invoked by the main game loop. Gathers worked-tile yields, realizes JobCountArray seats via
+//  JobEffectRealizer (JobAssigner fills leftovers when empty; refills after pop_change tile rematrix), then banks
+//  tile+job yields before finish_if_ready / growth / trait AI. Tallies this-turn city and population counts.
 //
 //================================================================================================================================
 

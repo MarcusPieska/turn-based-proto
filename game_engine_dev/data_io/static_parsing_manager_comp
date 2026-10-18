@@ -33,7 +33,6 @@ g++ $INC -c toggle_global_parser.cpp -o toggle_global_parser.o
 g++ $INC -c city_job_parser.cpp -o city_job_parser.o
 g++ $INC -c civ_parser.cpp -o civ_parser.o
 g++ $INC -c civ_trait_parser.cpp -o civ_trait_parser.o
-g++ $INC -c tile_attribute_parser.cpp -o tile_attribute_parser.o
 g++ $INC -c resource_parser.cpp -o resource_parser.o
 g++ $INC -c res_dist_parser.cpp -o res_dist_parser.o
 g++ $INC -c res_type_parser.cpp -o res_type_parser.o
@@ -45,6 +44,7 @@ g++ $INC -c unit_action_parser.cpp -o unit_action_parser.o
 g++ $INC -c unit_role_parser.cpp -o unit_role_parser.o
 g++ $INC -c unit_type_parser.cpp -o unit_type_parser.o
 g++ $INC -c unit_domain_parser.cpp -o unit_domain_parser.o
+g++ $INC -c unit_level_parser.cpp -o unit_level_parser.o
 g++ $INC -c unit_parser.cpp -o unit_parser.o
 g++ $INC -c wonder_parser.cpp -o wonder_parser.o
 g++ $INC -c map_overlay_parser.cpp -o map_overlay_parser.o
@@ -72,8 +72,6 @@ g++ $INC $CXXFLAGS -c ../static_state/civ_static_data.cpp -o civ_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/civ_static_data_load.cpp -o civ_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/civ_trait_static_data.cpp -o civ_trait_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/civ_trait_static_data_load.cpp -o civ_trait_static_data_load.o
-g++ $INC $CXXFLAGS -c ../static_state/tile_attribute_static_data.cpp -o tile_attribute_static_data.o
-g++ $INC $CXXFLAGS -c ../static_state/tile_attribute_static_data_load.cpp -o tile_attribute_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/resource_static_data.cpp -o resource_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/resource_static_data_load.cpp -o resource_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/res_dist_static_data.cpp -o res_dist_static_data.o
@@ -96,6 +94,8 @@ g++ $INC $CXXFLAGS -c ../static_state/unit_type_static_data.cpp -o unit_type_sta
 g++ $INC $CXXFLAGS -c ../static_state/unit_type_static_data_load.cpp -o unit_type_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/unit_domain_static_data.cpp -o unit_domain_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/unit_domain_static_data_load.cpp -o unit_domain_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/unit_level_static_data.cpp -o unit_level_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/unit_level_static_data_load.cpp -o unit_level_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/unit_static_data.cpp -o unit_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/unit_static_data_load.cpp -o unit_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/wonder_static_data.cpp -o wonder_static_data.o
@@ -167,7 +167,6 @@ g++ $CXXFLAGS -o static_parsing_manager_tester \
     city_job_parser.o \
     civ_parser.o \
     civ_trait_parser.o \
-    tile_attribute_parser.o \
     resource_parser.o \
     res_dist_parser.o \
     res_type_parser.o \
@@ -179,6 +178,7 @@ g++ $CXXFLAGS -o static_parsing_manager_tester \
     unit_role_parser.o \
     unit_type_parser.o \
     unit_domain_parser.o \
+    unit_level_parser.o \
     unit_parser.o \
     wonder_parser.o \
     map_overlay_parser.o \
@@ -205,8 +205,6 @@ g++ $CXXFLAGS -o static_parsing_manager_tester \
     civ_static_data_load.o \
     civ_trait_static_data.o \
     civ_trait_static_data_load.o \
-    tile_attribute_static_data.o \
-    tile_attribute_static_data_load.o \
     resource_static_data.o \
     resource_static_data_load.o \
     res_dist_static_data.o \
@@ -229,6 +227,8 @@ g++ $CXXFLAGS -o static_parsing_manager_tester \
     unit_type_static_data_load.o \
     unit_domain_static_data.o \
     unit_domain_static_data_load.o \
+    unit_level_static_data.o \
+    unit_level_static_data_load.o \
     unit_static_data.o \
     unit_static_data_load.o \
     wonder_static_data.o \
@@ -300,7 +300,6 @@ g++ $INC -c toggle_global_parser.cpp -o toggle_global_parser.o
 g++ $INC -c city_job_parser.cpp -o city_job_parser.o
 g++ $INC -c civ_parser.cpp -o civ_parser.o
 g++ $INC -c civ_trait_parser.cpp -o civ_trait_parser.o
-g++ $INC -c tile_attribute_parser.cpp -o tile_attribute_parser.o
 g++ $INC -c resource_parser.cpp -o resource_parser.o
 g++ $INC -c res_dist_parser.cpp -o res_dist_parser.o
 g++ $INC -c res_type_parser.cpp -o res_type_parser.o
@@ -312,6 +311,7 @@ g++ $INC -c unit_action_parser.cpp -o unit_action_parser.o
 g++ $INC -c unit_role_parser.cpp -o unit_role_parser.o
 g++ $INC -c unit_type_parser.cpp -o unit_type_parser.o
 g++ $INC -c unit_domain_parser.cpp -o unit_domain_parser.o
+g++ $INC -c unit_level_parser.cpp -o unit_level_parser.o
 g++ $INC -c unit_parser.cpp -o unit_parser.o
 g++ $INC -c wonder_parser.cpp -o wonder_parser.o
 g++ $INC -c map_overlay_parser.cpp -o map_overlay_parser.o
@@ -339,8 +339,6 @@ g++ $INC $CXXFLAGS -c ../static_state/civ_static_data.cpp -o civ_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/civ_static_data_load.cpp -o civ_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/civ_trait_static_data.cpp -o civ_trait_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/civ_trait_static_data_load.cpp -o civ_trait_static_data_load.o
-g++ $INC $CXXFLAGS -c ../static_state/tile_attribute_static_data.cpp -o tile_attribute_static_data.o
-g++ $INC $CXXFLAGS -c ../static_state/tile_attribute_static_data_load.cpp -o tile_attribute_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/resource_static_data.cpp -o resource_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/resource_static_data_load.cpp -o resource_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/res_dist_static_data.cpp -o res_dist_static_data.o
@@ -363,6 +361,8 @@ g++ $INC $CXXFLAGS -c ../static_state/unit_type_static_data.cpp -o unit_type_sta
 g++ $INC $CXXFLAGS -c ../static_state/unit_type_static_data_load.cpp -o unit_type_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/unit_domain_static_data.cpp -o unit_domain_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/unit_domain_static_data_load.cpp -o unit_domain_static_data_load.o
+g++ $INC $CXXFLAGS -c ../static_state/unit_level_static_data.cpp -o unit_level_static_data.o
+g++ $INC $CXXFLAGS -c ../static_state/unit_level_static_data_load.cpp -o unit_level_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/unit_static_data.cpp -o unit_static_data.o
 g++ $INC $CXXFLAGS -c ../static_state/unit_static_data_load.cpp -o unit_static_data_load.o
 g++ $INC $CXXFLAGS -c ../static_state/wonder_static_data.cpp -o wonder_static_data.o
@@ -434,7 +434,6 @@ g++ $CXXFLAGS $OPT -o static_parsing_manager_opt_tester \
     city_job_parser.o \
     civ_parser.o \
     civ_trait_parser.o \
-    tile_attribute_parser.o \
     resource_parser.o \
     res_dist_parser.o \
     res_type_parser.o \
@@ -446,6 +445,7 @@ g++ $CXXFLAGS $OPT -o static_parsing_manager_opt_tester \
     unit_role_parser.o \
     unit_type_parser.o \
     unit_domain_parser.o \
+    unit_level_parser.o \
     unit_parser.o \
     wonder_parser.o \
     map_overlay_parser.o \
@@ -472,8 +472,6 @@ g++ $CXXFLAGS $OPT -o static_parsing_manager_opt_tester \
     civ_static_data_load.o \
     civ_trait_static_data.o \
     civ_trait_static_data_load.o \
-    tile_attribute_static_data.o \
-    tile_attribute_static_data_load.o \
     resource_static_data.o \
     resource_static_data_load.o \
     res_dist_static_data.o \
@@ -496,6 +494,8 @@ g++ $CXXFLAGS $OPT -o static_parsing_manager_opt_tester \
     unit_type_static_data_load.o \
     unit_domain_static_data.o \
     unit_domain_static_data_load.o \
+    unit_level_static_data.o \
+    unit_level_static_data_load.o \
     unit_static_data.o \
     unit_static_data_load.o \
     wonder_static_data.o \
@@ -568,7 +568,6 @@ rm \
     city_job_parser.o \
     civ_parser.o \
     civ_trait_parser.o \
-    tile_attribute_parser.o \
     resource_parser.o \
     res_dist_parser.o \
     res_type_parser.o \
@@ -580,6 +579,7 @@ rm \
     unit_role_parser.o \
     unit_type_parser.o \
     unit_domain_parser.o \
+    unit_level_parser.o \
     unit_parser.o \
     wonder_parser.o \
     map_overlay_parser.o \
@@ -606,8 +606,6 @@ rm \
     civ_static_data_load.o \
     civ_trait_static_data.o \
     civ_trait_static_data_load.o \
-    tile_attribute_static_data.o \
-    tile_attribute_static_data_load.o \
     resource_static_data.o \
     resource_static_data_load.o \
     res_dist_static_data.o \
@@ -630,6 +628,8 @@ rm \
     unit_type_static_data_load.o \
     unit_domain_static_data.o \
     unit_domain_static_data_load.o \
+    unit_level_static_data.o \
+    unit_level_static_data_load.o \
     unit_static_data.o \
     unit_static_data_load.o \
     wonder_static_data.o \

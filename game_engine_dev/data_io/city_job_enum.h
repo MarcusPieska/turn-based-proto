@@ -36,7 +36,8 @@ enum class CityJob : u16 {
     Technician = 10,
     Policeman = 11,
     Dung_Collector = 12,
-    Doctor = 13
+    Doctor = 13,
+    Drillmaster = 14
 };
 
 #endif // CITY_JOB_ENUM_H

@@ -41,12 +41,13 @@ g++ $CXXFLAGS $INC -c ../eval_need.cpp -o eval_need.o
 g++ $CXXFLAGS $INC -c ../eval_bin_light.cpp -o eval_bin_light.o
 g++ $CXXFLAGS $INC -c ../eval_log.cpp -o eval_log.o
 g++ $CXXFLAGS $INC -c ../eval_driver.cpp -o eval_driver.o
+g++ $CXXFLAGS $INC -c ../draw_map_tile_ownership.cpp -o draw_map_tile_ownership.o
 g++ $CXXFLAGS $INC -c failed_muster_map_tester.cpp -o failed_muster_map_tester.o
 
 g++ $CXXFLAGS -o failed_muster_map_tester \
     $EVAL_SAVE_DEP_OBJS \
     eval_paths.o eval_need.o eval_bin_light.o eval_log.o eval_driver.o \
-    failed_muster_map_tester.o \
+    draw_map_tile_ownership.o failed_muster_map_tester.o \
     -ldl \
     $LIB_SO \
     $LOG_SO \
@@ -60,4 +61,4 @@ echo "--- running failed_muster_map_tester ---"
 
 rm_eval_save_deps
 rm -f eval_paths.o eval_need.o eval_bin_light.o eval_log.o eval_driver.o \
-    failed_muster_map_tester.o
+    draw_map_tile_ownership.o failed_muster_map_tester.o

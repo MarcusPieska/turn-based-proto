@@ -68,6 +68,7 @@ public:
     bool add_production (u16 city_idx, u16 amount);
     void add_commerce (u16 city_idx, u16 amount);
     void add_culture (u16 city_idx, u16 amount);
+    u16 add_training (u16 city_idx, u16 amount);
 
     i16 get_city_net_sanitation (u16 sanitation_boost) const;
     u16 get_city_sanitation_boost (u16 city_idx) const;

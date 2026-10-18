@@ -23,10 +23,11 @@
 //================================================================================================================================
 
 enum class MapClimate : u16 {
-    Desert = 0,
+    None = 0,
     Plains = 1,
-    Grassland = 2,
-    Black_Soil = 3
+    Desert = 2,
+    Grassland = 3,
+    Black_Soil = 4
 };
 
 #endif // MAP_CLIMATE_ENUM_H

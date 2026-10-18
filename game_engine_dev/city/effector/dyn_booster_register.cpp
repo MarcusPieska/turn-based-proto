@@ -86,8 +86,15 @@ BoosterRegisterResult DynBoosterRegister::determine (
         if (!src_on(sc, e.m_enabler, ctx)) {
             continue;
         }
-        out.m_unit = static_cast<i16>(static_cast<i32>(out.m_unit) + static_cast<i32>(e.m_unit));
-        out.m_perc = static_cast<i16>(static_cast<i32>(out.m_perc) + static_cast<i32>(e.m_perc));
+        i32 mult = 1;
+        if (e.m_enabler.m_kind == EffectEnablerKind::CITY_JOB) {
+            if (ctx.m_job_seat_fn == nullptr) {
+                continue;
+            }
+            mult = static_cast<i32>(ctx.m_job_seat_fn(ctx.m_city_idx, e.m_enabler.m_idx, ctx.m_job_seat_ud));
+        }
+        out.m_unit = static_cast<i16>(static_cast<i32>(out.m_unit) + static_cast<i32>(e.m_unit) * mult);
+        out.m_perc = static_cast<i16>(static_cast<i32>(out.m_perc) + static_cast<i32>(e.m_perc) * mult);
     }
     return out;
 }

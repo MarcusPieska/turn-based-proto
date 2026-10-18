@@ -44,6 +44,13 @@ struct ConfigSettingsData {
     u16 m_upgrade_cost_per_stat_pt;
     u16 m_tech_age_unlock_pct;
     u16 m_default_culture_per_turn;
+    u16 m_default_unit_level;
+    u16 m_unit_level_damage_factor;
+    u16 m_unit_stat_damage_factor;
+    u16 m_unit_size_damage_factor;
+    u16 m_unit_role_damage_factor;
+    u16 m_unit_city_damage_factor;
+    u16 m_unit_terrain_damage_factor;
 };
 
 //================================================================================================================================
@@ -84,6 +91,27 @@ public:
 
     u16 get_default_culture_per_turn () const;
     void set_default_culture_per_turn (u16 v);
+
+    u16 get_default_unit_level () const;
+    void set_default_unit_level (u16 v);
+
+    u16 get_unit_level_damage_factor () const;
+    void set_unit_level_damage_factor (u16 v);
+
+    u16 get_unit_stat_damage_factor () const;
+    void set_unit_stat_damage_factor (u16 v);
+
+    u16 get_unit_size_damage_factor () const;
+    void set_unit_size_damage_factor (u16 v);
+
+    u16 get_unit_role_damage_factor () const;
+    void set_unit_role_damage_factor (u16 v);
+
+    u16 get_unit_city_damage_factor () const;
+    void set_unit_city_damage_factor (u16 v);
+
+    u16 get_unit_terrain_damage_factor () const;
+    void set_unit_terrain_damage_factor (u16 v);
 
 private:
     GameConfigSettings (const GameConfigSettings& o) = delete;

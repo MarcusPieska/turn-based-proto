@@ -23,7 +23,7 @@ CivTraitStaticDataStruct* CivTraitParser::parse_data_dependencies () {
     for (u32 i = 0; i < m_item_count; ++i) {
         StringManager line_items;
         get_line_items(get_raw_lines().get_string_content(i), line_items);
-        // No parsing instructions provided
+        parsed_data[i].effects = parse_item_effects_optional(line_items, 0);
     }
     return parsed_data;
 }
