@@ -23,7 +23,9 @@ UnitLevelStaticDataStruct* UnitLevelParser::parse_data_dependencies () {
     for (u32 i = 0; i < m_item_count; ++i) {
         StringManager line_items;
         get_line_items(get_raw_lines().get_string_content(i), line_items);
-        // No parsing instructions provided
+        parsed_data[i].up_prob = parse_u16(line_items, 1);
+        parsed_data[i].mvt_boost = parse_u16(line_items, 2);
+        parsed_data[i].dmg_pts = parse_u16(line_items, 3);
     }
     return parsed_data;
 }

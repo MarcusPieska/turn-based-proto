@@ -19,6 +19,7 @@
 #include "log_dbg/log_civ_spawn_pt.h"
 #include "log_dbg/log_unit_spawn.h"
 #include "log_dbg/log_city_unit_train.h"
+#include "log_dbg/log_army_gen_mvt_lvl.h"
 #include "log_dbg/log_war_muster.h"
 #include "log_dbg/log_war_peace_mock.h"
 #include "log_dbg/log_war_peace.h"

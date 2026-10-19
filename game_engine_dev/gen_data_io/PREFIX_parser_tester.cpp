@@ -153,6 +153,7 @@ void [CLASS_TAG]ParserTester::pr_fx (cstr label, const ItemEffectsStruct& e) {
                 case ItemEffectBoosterType::MAX_UNIT_SIZE: tname = "MAX_UNIT_SIZE"; break;
                 case ItemEffectBoosterType::LAND_MVT_PTS: tname = "LAND_MVT_PTS"; break;
                 case ItemEffectBoosterType::SEA_MVT_PTS: tname = "SEA_MVT_PTS"; break;
+                case ItemEffectBoosterType::ARMY_GENERAL_LIMIT: tname = "ARMY_GENERAL_LIMIT"; break;
                 default: break;
             }
             const char* sc = "?";

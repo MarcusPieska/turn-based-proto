@@ -44,6 +44,25 @@ static u32 s_pwr_pts (i32 pts, u8 health) {
 }
 
 //================================================================================================================================
+//=> - Level-up RNG (xorshift32) -
+//================================================================================================================================
+
+static u32 s_xp = 1u;
+
+static void xp_seed (u32 s) {
+    s_xp = (s == 0u) ? 1u : s;
+}
+
+static u32 xp_next () {
+    u32 x = s_xp;
+    x ^= x << 13;
+    x ^= x >> 17;
+    x ^= x << 5;
+    s_xp = x;
+    return x;
+}
+
+//================================================================================================================================
 //=> - CombatMng (mk02) -
 //================================================================================================================================
 
@@ -51,6 +70,7 @@ void CombatMng::set_dials (u16 pred, u16 dmg_spread, u32 seed) {
     m_pred = (pred > 100u) ? 100u : pred;
     m_dmg_spread = (dmg_spread > 100u) ? 100u : dmg_spread;
     m_seed = (seed == 0u) ? 1u : seed;
+    xp_seed(m_seed);
 }
 
 bool CombatMng::setup (const RuntimeStatics& st) {
@@ -174,6 +194,24 @@ void CombatMng::apply_odds (UnitAddStruct& atk, UnitAddStruct& def, u32 ap, u32 
         def.m_health = 0u;
     } else {
         def.m_health = static_cast<u8>(static_cast<double>(def.m_health) * rd);
+    }
+    UnitAddStruct* win = nullptr;
+    if (atk.m_health > 0u && def.m_health == 0u) {
+        win = &atk;
+    } else if (def.m_health > 0u && atk.m_health == 0u) {
+        win = &def;
+    }
+    if (win == nullptr || m_st == nullptr) {
+        return;
+    }
+    const u16 n = m_st->unit_level().get_item_count();
+    if (n <= 1u || win->m_level >= static_cast<u8>(n - 1u)) {
+        return;
+    }
+    const u16 prob = m_st->unit_level().get_item(
+        UnitLevelStaticDataKey::from_raw(static_cast<u16>(win->m_level))).up_prob;
+    if (prob != 0u && ((xp_next() >> 16) * 100u) >> 16 < static_cast<u32>(prob)) {
+        win->m_level = static_cast<u8>(win->m_level + 1u);
     }
 }
 

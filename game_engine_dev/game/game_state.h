@@ -30,6 +30,7 @@
 #include "sector_network_router.h"
 #include "city_network.h"
 
+#include "army_general.h"
 #include "game_primitives.h"
 #include "gen_ai_helpers.h"
 #include "resource_ledger.h"
@@ -67,9 +68,6 @@ public:
             m_settler_idx[i] = U16_KEY_NULL;
             m_settle_x[i] = U16_KEY_NULL;
             m_settle_y[i] = U16_KEY_NULL;
-        }
-        for (u16 i = 0; i < static_cast<u16>(GENERAL_SLOTS); ++i) {
-            m_general_idx[i] = U16_KEY_NULL;
         }
     }
 
@@ -109,7 +107,7 @@ public:
     u16 m_scout_2_idx = U16_KEY_NULL; // Scout unit slot 2
     u16 m_scout_3_idx = U16_KEY_NULL; // Scout unit slot 3
     u16 m_scout_4_idx = U16_KEY_NULL; // Scout unit slot 4
-    u16 m_general_idx[GENERAL_SLOTS]; // General-commanded unit keys; U16_KEY_NULL if empty
+    ArmyGeneral m_generals[GENERAL_SLOTS]; // Deployed generals; empty slots have grp()==U16_KEY_NULL
 
     // The counters below are zeroed after the city turn loop; i.e., the city loop will know last turns unit counts
     u16 m_last_turn_settler_count = 0; // Settlers counted during last unit pass (SettlerTurnHandler::handle)

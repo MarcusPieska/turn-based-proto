@@ -15,8 +15,9 @@ class GameState;
 //================================================================================================================================
 //
 //  After a normal MP assign, adds one PATH_MP_TURN to a unit if its group is commanded by a general
-//  listed in PlayerState::m_general_idx. Call on_unit_refilled after single-unit refill; on_grp_refilled
-//  after a full group-chain refill.
+//  listed in PlayerState::m_generals. Call on_unit_refilled after single-unit refill; on_grp_refilled
+//  after a full group-chain refill (delegates to ArmyGeneral::boost_mvt_pts). Unit-loop general
+//  MP is applied by ArmyGeneralTurnHandler::handle instead of on_unit_refilled.
 //
 //================================================================================================================================
 

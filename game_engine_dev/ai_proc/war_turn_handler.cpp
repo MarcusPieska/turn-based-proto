@@ -4,10 +4,14 @@
 
 #include "war_turn_handler.h"
 
+#include "army_general.h"
 #include "army_upgrade_mng.h"
+#include "booster_apply.h"
 #include "city_attack_manager.h"
 #include "city.h"
 #include "civ_relations.h"
+#include "dyn_booster_register.h"
+#include "effect_ctx.h"
 #include "civ_static_key.h"
 #include "game_array_simple.h"
 #include "generate_access_mask.h"
@@ -380,6 +384,7 @@ bool WarTurnHandler::walk_muster () {
                 if (!UnitMovementMng::apply_step(m_st, key, step.nx, step.ny)) {
                     break;
                 }
+                ArmyGeneral::stamp_moved(m_st, m_seat, m_grp[i].m_hd);
                 any = true;
                 continue;
             }
@@ -393,6 +398,7 @@ bool WarTurnHandler::walk_muster () {
             if (TileEntryResolver::resolve(key.value(), step.nx, step.ny) != TileEntryRes::BlockRemains) {
                 if (UnitMovementMng::can_step(m_st, key, step.nx, step.ny, nullptr)
                     && UnitMovementMng::apply_step(m_st, key, step.nx, step.ny)) {
+                    ArmyGeneral::stamp_moved(m_st, m_seat, m_grp[i].m_hd);
                     any = true;
                     continue;
                 }
@@ -429,6 +435,7 @@ bool WarTurnHandler::walk_muster () {
                 break;
             }
             if (moved) {
+                ArmyGeneral::stamp_moved(m_st, m_seat, m_grp[i].m_hd);
                 any = true;
                 continue;
             }
@@ -1090,25 +1097,53 @@ static bool war_start_camp (GameState& st, u16 seat, u16 enemy, WarSlot* s) {
     return true;
 }
 
+static u16 gen_lim (GameState& st, u16 seat) {
+    u16 lim = static_cast<u16>(GENERAL_SLOTS);
+    if (st.m_statics == nullptr || st.m_player_states == nullptr || seat >= st.m_player_n) {
+        return lim;
+    }
+    const PlayerState& ps = st.m_player_states[seat];
+    EffectCtx ctx = {};
+    ctx.m_owner = seat;
+    ctx.m_city_idx = U16_KEY_NULL;
+    ctx.m_tech = ps.m_techs_researched;
+    ctx.m_wonder_city = st.m_wonder_city;
+    ctx.m_wonder_n = st.m_wonder_count;
+    ctx.m_small_wonder_city = ps.m_small_wonder_city;
+    ctx.m_small_wonder_n = st.m_small_wonder_count;
+    effect_ctx_bind_civ_traits(ctx, *st.m_statics, ps.m_civ_index);
+    const DynBoosterRegister& reg = st.m_statics->dyn_booster();
+    u16 n = 0u;
+    n = apply_booster_u16(n, reg.determine(ItemEffectBoosterType::ARMY_GENERAL_LIMIT, ItemEffectsScope::LOCAL, ctx));
+    n = apply_booster_u16(n, reg.determine(ItemEffectBoosterType::ARMY_GENERAL_LIMIT, ItemEffectsScope::CITY, ctx));
+    n = apply_booster_u16(n, reg.determine(ItemEffectBoosterType::ARMY_GENERAL_LIMIT, ItemEffectsScope::CIV, ctx));
+    n = apply_booster_u16(n, reg.determine(ItemEffectBoosterType::ARMY_GENERAL_LIMIT, ItemEffectsScope::GLOBAL, ctx));
+    if (n > 0u && n < lim) {
+        lim = n;
+    }
+    return lim;
+}
+
 static void bind_generals (GameState& st, u16 seat, WarSlot* s) {
     if (st.m_player_states == nullptr || seat >= st.m_player_n) {
         return;
     }
     PlayerState& ps = st.m_player_states[seat];
     for (u16 i = 0; i < static_cast<u16>(GENERAL_SLOTS); ++i) {
-        ps.m_general_idx[i] = U16_KEY_NULL;
+        ps.m_generals[i].unasgn();
     }
     if (s == nullptr || s->m_camp == nullptr) {
         return;
     }
     WarTurnHandler& camp = *s->m_camp;
+    const u16 lim = gen_lim(st, seat);
     u16 slot = 0u;
-    for (u16 i = 0; i < WarTurnHandler::k_army_use && slot < static_cast<u16>(GENERAL_SLOTS); ++i) {
+    for (u16 i = 0; i < WarTurnHandler::k_army_use && slot < lim; ++i) {
         const u16 hd = camp.atk_hd(i);
         if (hd == U16_KEY_NULL) {
             continue;
         }
-        ps.m_general_idx[slot] = hd;
+        ps.m_generals[slot].asgn(hd);
         ++slot;
     }
 }

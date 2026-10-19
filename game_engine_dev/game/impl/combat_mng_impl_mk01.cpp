@@ -20,6 +20,40 @@
 #include "unit_static_key.h"
 
 //================================================================================================================================
+//=> - Level-up RNG (xorshift32) -
+//================================================================================================================================
+
+static u32 s_xp = 1u;
+
+static void xp_seed (u32 s) {
+    s_xp = (s == 0u) ? 1u : s;
+}
+
+static u32 xp_next () {
+    u32 x = s_xp;
+    x ^= x << 13;
+    x ^= x >> 17;
+    x ^= x << 5;
+    s_xp = x;
+    return x;
+}
+
+static void try_up (const RuntimeStatics* st, UnitAddStruct& u) {
+    if (st == nullptr) {
+        return;
+    }
+    const u16 n = st->unit_level().get_item_count();
+    if (n <= 1u || u.m_level >= static_cast<u8>(n - 1u)) {
+        return;
+    }
+    const u16 prob = st->unit_level().get_item(
+        UnitLevelStaticDataKey::from_raw(static_cast<u16>(u.m_level))).up_prob;
+    if (prob != 0u && ((xp_next() >> 16) * 100u) >> 16 < static_cast<u32>(prob)) {
+        u.m_level = static_cast<u8>(u.m_level + 1u);
+    }
+}
+
+//================================================================================================================================
 //=> - CombatMng (mk01) -
 //================================================================================================================================
 
@@ -27,6 +61,7 @@ void CombatMng::set_dials (u16 pred, u16 dmg_spread, u32 seed) {
     m_pred = (pred > 100u) ? 100u : pred;
     m_dmg_spread = (dmg_spread > 100u) ? 100u : dmg_spread;
     m_seed = (seed == 0u) ? 1u : seed;
+    xp_seed(m_seed);
 }
 
 bool CombatMng::setup (const RuntimeStatics& st) {
@@ -244,9 +279,15 @@ void CombatMng::resolve_attack (UnitAddStruct& atk, UnitAddStruct& def, const Ga
     if (atk_wins) {
         def.m_health = 0u;
         atk.m_health = static_cast<u8>(static_cast<u32>(atk.m_health) - base_dmg);
+        if (atk.m_health > 0u) {
+            try_up(m_st, atk);
+        }
     } else {
         atk.m_health = 0u;
         def.m_health = static_cast<u8>(static_cast<u32>(def.m_health) - base_dmg);
+        if (def.m_health > 0u) {
+            try_up(m_st, def);
+        }
     }
 }
 
@@ -310,9 +351,15 @@ void CombatMng::resolve_atk_city (UnitAddStruct& atk, UnitAddStruct& def, const 
     if (atk_wins) {
         def.m_health = 0u;
         atk.m_health = static_cast<u8>(static_cast<u32>(atk.m_health) - base_dmg);
+        if (atk.m_health > 0u) {
+            try_up(m_st, atk);
+        }
     } else {
         atk.m_health = 0u;
         def.m_health = static_cast<u8>(static_cast<u32>(def.m_health) - base_dmg);
+        if (def.m_health > 0u) {
+            try_up(m_st, def);
+        }
     }
 }
 

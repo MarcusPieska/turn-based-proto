@@ -17,7 +17,7 @@
 #include "game_array_simple.h"
 #include "game_map_defs.h"
 #include "game_state.h"
-#include "general_move_boost.h"
+#include "army_general_turn_handler.h"
 #include "mock_muster_siege.h"
 #include "mvt_pts_boost_mng.h"
 #include "profile_time_opt.h"
@@ -79,7 +79,6 @@ static void refill_mp (GameState& state, u16 unit_idx) {
     GAME_EXPECT(u != nullptr, "GameLoop refill_mp got nullptr unit");
     GAME_EXPECT(state.m_statics != nullptr, "GameLoop refill_mp got nullptr statics");
     MvtPtsBoostMng::fill(state, u);
-    GeneralMoveBoost::on_unit_refilled(state, unit_idx);
 }
 
 static void after_city_turns (GameState& state) {
@@ -478,6 +477,7 @@ bool GameLoop::step () {
     { PROF_GAME_LOOP_ENTER("run_city_turns"); run_city_turns(*m_state); }
     { PROF_GAME_LOOP_ENTER("ResourceTurnHandler"); ResourceTurnHandler::handle(*m_state); }
     { PROF_GAME_LOOP_ENTER("run_unit_turns"); run_unit_turns(*m_state); }
+    { PROF_GAME_LOOP_ENTER("ArmyGeneralTurnHandler"); ArmyGeneralTurnHandler::handle(*m_state); }
     { PROF_GAME_LOOP_ENTER("WarTurnHandler"); WarTurnHandler::handle(*m_state); }
     return true;
 }

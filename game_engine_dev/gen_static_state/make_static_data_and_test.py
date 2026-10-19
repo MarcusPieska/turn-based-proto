@@ -37,7 +37,7 @@ if __name__ == "__main__":
     specs.append(("unit_role", "UnitRole", "CombatModList mods;", "None", "None"))
     specs.append(("unit_type", "UnitType", "", "None", "None"))
     specs.append(("unit_domain", "UnitDomain", "", "None", "None"))
-    specs.append(("unit_level", "UnitLevel", "", "None", "None"))
+    specs.append(("unit_level", "UnitLevel", "u16 up_prob; u16 mvt_boost; u16 dmg_pts;", "up_prob", "mvt_boost"))
     specs.append(("unit", "Unit", std_members + "u32 cost; u16 domain; u16 type; u16 role; u16 attack; u16 defense; u16 mvt_pts; u16 sight;", "cost", "domain"))
     
     specs.append(("wonder", "Wonder", std_members + "u32 cost; ItemEffectsStruct effects;", "cost", "effects.items[0].type"))

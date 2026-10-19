@@ -4,8 +4,13 @@ set -e
 cd "$(dirname "$0")"
 
 LIB_SO="../../data_io/runtime_static_loader_lib.so"
+LOG_SO="../../log_dbg/log_dbg.so"
 if [ ! -f "$LIB_SO" ]; then
     echo "missing $LIB_SO - run ../../data_io/runtime_static_loader_lib_comp first"
+    exit 1
+fi
+if [ ! -f "$LOG_SO" ]; then
+    echo "missing $LOG_SO - run ../../log_dbg/log_dbg_comp first"
     exit 1
 fi
 
@@ -123,7 +128,8 @@ g++ $CXXFLAGS -o dyn_booster_register_tester \
     dyn_booster_register_tester.o \
     -ldl \
     $LIB_SO \
-    -Wl,-rpath,'$ORIGIN/../../data_io'
+    $LOG_SO \
+    -Wl,-rpath,'$ORIGIN/../../data_io:$ORIGIN/../../log_dbg'
 
 if [ "$#" -ge 1 ]; then
     ./dyn_booster_register_tester "$@"

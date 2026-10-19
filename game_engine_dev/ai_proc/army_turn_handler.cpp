@@ -7,6 +7,7 @@
 #include "city.h"
 #include "city_attack_manager.h"
 #include "game_state.h"
+#include "army_general.h"
 #include "general_move_boost.h"
 #include "log_dbg.h"
 #include "mvt_pts_boost_mng.h"
@@ -102,6 +103,7 @@ bool ArmyTurnHandler::walk (GameState& s, WarArmy& army) {
         if (!UnitMovementMng::apply_step(s, key, step.nx, step.ny)) {
             break;
         }
+        ArmyGeneral::stamp_moved(s, static_cast<u16>(u->m_player_idx), army.m_hd);
         any = true;
     }
     return any;
@@ -203,6 +205,7 @@ bool ArmyTurnHandler::rejoin_move (GameState& s, u16 seat, u16 enemy, WarArmy& a
             SC_U32(s.m_current_turn), 5u, SC_U32(sx), SC_U32(sy), SC_U32(dx), SC_U32(dy));
         return false;
     }
+    ArmyGeneral::stamp_moved(s, seat, army.m_hd);
     return true;
 }
 
