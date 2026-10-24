@@ -108,10 +108,8 @@ void DiaSuper::flat (uint8_t *dst, int dw, int dh, const BlendMap &map, const Su
         for (int c = 0; c < map.cols (); c++) {
             for (int si = 0; si < SUBTILE_DIV; si++) {
                 for (int sj = 0; sj < SUBTILE_DIV; sj++) {
-                    int li = SUBTILE_DIV - 1 - sj;
-                    int lj = si;
-                    int sr = r * SUBTILE_DIV + li;
-                    int sc = c * SUBTILE_DIV + lj;
+                    int sr = r * SUBTILE_DIV + si;
+                    int sc = c * SUBTILE_DIV + sj;
                     int id = sg.get (sr, sc);
                     if (id < 0 || id >= TERRAIN_N) id = 0;
                     Rgb col = TER_COL[id];
@@ -140,10 +138,8 @@ void DiaSuper::flat (uint8_t *dst, int dw, int dh, const BlendMap &map, const Su
         for (int c = 0; c < map.cols (); c++) {
             for (int si = 0; si < SUBTILE_DIV; si++) {
                 for (int sj = 0; sj < SUBTILE_DIV; sj++) {
-                    int li = SUBTILE_DIV - 1 - sj;
-                    int lj = si;
-                    int sr = r * SUBTILE_DIV + li;
-                    int sc = c * SUBTILE_DIV + lj;
+                    int sr = r * SUBTILE_DIV + si;
+                    int sc = c * SUBTILE_DIV + sj;
                     int id = sg.get (sr, sc);
                     if (id < 0 || id >= TERRAIN_N) id = 0;
                     uint8_t corn = sg.corn (sr, sc);
@@ -185,10 +181,8 @@ void DiaSuper::tex (uint8_t *dst, int dw, int dh, const BlendMap &map, const Sub
             Vx ctr = grid.center (r, c);
             for (int si = 0; si < SUBTILE_DIV; si++) {
                 for (int sj = 0; sj < SUBTILE_DIV; sj++) {
-                    int li = SUBTILE_DIV - 1 - sj;
-                    int lj = si;
-                    int sr = r * SUBTILE_DIV + li;
-                    int sc = c * SUBTILE_DIV + lj;
+                    int sr = r * SUBTILE_DIV + si;
+                    int sc = c * SUBTILE_DIV + sj;
                     int id = sg.get (sr, sc);
                     if (id < 0 || id >= n_banks) id = 0;
                     const DiaDat15 *b = banks[id];
@@ -223,10 +217,8 @@ void DiaSuper::tex (uint8_t *dst, int dw, int dh, const BlendMap &map, const Sub
             Vx ctr = grid.center (r, c);
             for (int si = 0; si < SUBTILE_DIV; si++) {
                 for (int sj = 0; sj < SUBTILE_DIV; sj++) {
-                    int li = SUBTILE_DIV - 1 - sj;
-                    int lj = si;
-                    int sr = r * SUBTILE_DIV + li;
-                    int sc = c * SUBTILE_DIV + lj;
+                    int sr = r * SUBTILE_DIV + si;
+                    int sc = c * SUBTILE_DIV + sj;
                     int id = sg.get (sr, sc);
                     if (id < 0 || id >= n_banks) id = 0;
                     uint8_t corn = sg.corn (sr, sc);

@@ -9,9 +9,9 @@ g++ -std=c++17 -O2 $INC \
     dia_pat.cpp \
     dia_dat15.cpp \
     dia_super.cpp \
-    dia_super_tester_v2.cpp \
+    dia_super_v2_tester.cpp \
     $GED/map_loader/map_loader.cpp \
     $GED/map_loader/map_terrain_data.cpp \
     $GED/map_loader/map_terrain_validate.cpp \
-    -o dia_super_tester_v2 \
+    -o dia_super_v2_tester \
     -lpng -lz

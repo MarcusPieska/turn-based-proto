@@ -114,10 +114,8 @@ void DiaBlit::run (uint8_t *dst, int dw, int dh, const BlendMap &map, const SubG
                     if (!owns (map, grid, r, c, x, y)) continue;
                     int si, sj;
                     home (ctr, x, y, si, sj);
-                    int li = SUBTILE_DIV - 1 - sj;
-                    int lj = si;
-                    int sr = r * SUBTILE_DIV + li;
-                    int sc = c * SUBTILE_DIV + lj;
+                    int sr = r * SUBTILE_DIV + si;
+                    int sc = c * SUBTILE_DIV + sj;
                     int id = sg.get (sr, sc);
                     if (id < 0 || id >= m_n) id = 0;
                     int lx = x - (ctr.x - TILE_HALF_W);

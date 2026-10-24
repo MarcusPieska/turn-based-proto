@@ -53,6 +53,7 @@ public:
     ~SubGrid ();
 
     void build (const BlendMap &map);
+    void copy_tiles (const SubGrid &src, int tr0, int tc0, int rows, int cols);
     int srows () const;
     int scols () const;
     int get (int sr, int sc) const;

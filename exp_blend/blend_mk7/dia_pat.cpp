@@ -208,10 +208,8 @@ void JuncRun::apply (SubGrid &sg, int tr, int tc, const uint8_t *pat, const uint
                 si = qr - PAT_HALF;
                 sj = PAT_N - 1 - (qc - PAT_HALF);
             }
-            int li = PAT_N - 1 - sj;
-            int lj = si;
-            int sr = tile_r * SUBTILE_DIV + li;
-            int sc = tile_c * SUBTILE_DIV + lj;
+            int sr = tile_r * SUBTILE_DIV + si;
+            int sc = tile_c * SUBTILE_DIV + sj;
             sg.set (sr, sc, id, lab >= 4);
 
             uint8_t bits = 0;

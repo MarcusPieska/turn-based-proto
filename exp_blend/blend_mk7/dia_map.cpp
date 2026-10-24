@@ -83,6 +83,37 @@ void SubGrid::build (const BlendMap &map) {
     }
 }
 
+void SubGrid::copy_tiles (const SubGrid &src, int tr0, int tc0, int rows, int cols) {
+    m_srows = rows * SUBTILE_DIV;
+    m_scols = cols * SUBTILE_DIV;
+    m_ter.assign ((size_t)m_srows * m_scols, 0);
+    m_beach.assign ((size_t)m_srows * m_scols, 0);
+    m_corn.assign ((size_t)m_srows * m_scols, 0);
+    m_oth.assign ((size_t)m_srows * m_scols * 4, -1);
+    const int N = SUBTILE_DIV;
+    for (int r = 0; r < rows; r++) {
+        for (int c = 0; c < cols; c++) {
+            for (int si = 0; si < N; si++) {
+                for (int sj = 0; sj < N; sj++) {
+                    int dsr = r * N + si, dsc = c * N + sj;
+                    int ssr = (tr0 + r) * N + si, ssc = (tc0 + c) * N + sj;
+                    if (ssr < 0 || ssc < 0 || ssr >= src.m_srows || ssc >= src.m_scols) continue;
+                    size_t di = (size_t)dsr * m_scols + dsc;
+                    size_t si_ = (size_t)ssr * src.m_scols + ssc;
+                    m_ter[di] = src.m_ter[si_];
+                    m_beach[di] = src.m_beach[si_];
+                    m_corn[di] = src.m_corn[si_];
+                    size_t do_ = di * 4, so = si_ * 4;
+                    m_oth[do_] = src.m_oth[so];
+                    m_oth[do_ + 1] = src.m_oth[so + 1];
+                    m_oth[do_ + 2] = src.m_oth[so + 2];
+                    m_oth[do_ + 3] = src.m_oth[so + 3];
+                }
+            }
+        }
+    }
+}
+
 int SubGrid::srows () const { return m_srows; }
 int SubGrid::scols () const { return m_scols; }
 int SubGrid::get (int sr, int sc) const { return m_ter[sr * m_scols + sc]; }

@@ -184,18 +184,12 @@ static bool g_trip (int a, int b, int c, int t) {
 }
 
 static void fill_corn_solo (SubGrid &sg, const BlendMap &map) {
-    const int N = SUBTILE_DIV;
+    (void)map;
     const int srows = sg.srows (), scols = sg.scols ();
     std::vector<int> g ((size_t)srows * scols, 0);
-    for (int r = 0; r < map.rows (); r++) {
-        for (int c = 0; c < map.cols (); c++) {
-            for (int si = 0; si < N; si++) {
-                for (int sj = 0; sj < N; sj++) {
-                    int li = N - 1 - sj, lj = si;
-                    g[(r * N + si) * scols + (c * N + sj)] = sg.get (r * N + li, c * N + lj);
-                }
-            }
-        }
+    for (int y = 0; y < srows; y++) {
+        for (int x = 0; x < scols; x++)
+            g[(size_t)y * scols + x] = sg.get (y, x);
     }
     for (int y = 0; y < srows; y++) {
         for (int x = 0; x < scols; x++) {
@@ -220,8 +214,6 @@ static void fill_corn_solo (SubGrid &sg, const BlendMap &map) {
             c = g_at (g.data (), srows, scols, y + 1, x);
             if (g_trip (a, b, c, t)) { raw |= CORN_S; os = a; }
 
-            // Isolated singleton (all 8 nbrs equal): all 4 tips fire — not a notes-style
-            // junction (those put 1 tip on 4/6 and 2 on 5). Drop these as false positives.
             if (raw == (CORN_N | CORN_E | CORN_S | CORN_W)) {
                 raw = 0;
                 on = oe = os = ow = -1;
@@ -229,13 +221,8 @@ static void fill_corn_solo (SubGrid &sg, const BlendMap &map) {
 
             uint8_t bits = dia_tips_si_sj (raw);
             int rn = ow, re = os, rs = oe, rw = on;
-
-            int tr = y / N, tc = x / N;
-            int si = y - tr * N, sj = x - tc * N;
-            int li = N - 1 - sj, lj = si;
-            int sr = tr * N + li, sc = tc * N + lj;
-            sg.set_corn (sr, sc, bits);
-            sg.set_oth (sr, sc,
+            sg.set_corn (y, x, bits);
+            sg.set_oth (y, x,
                         (bits & CORN_N) ? rn : -1,
                         (bits & CORN_E) ? re : -1,
                         (bits & CORN_S) ? rs : -1,
