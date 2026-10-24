@@ -1,0 +1,10 @@
+# super subtile stamp  anchor=sub_ctr  tl = ctr - (ox,oy)
+sw=11
+sh=6
+ox=5
+oy=2
+min_rx=-5
+min_ry=-2
+max_rx=5
+max_ry=3
+on_pixels=36

@@ -1,0 +1,8 @@
+#!/bin/bash
+g++ -std=c++17 -O2 \
+    dia_grid.cpp \
+    dia_pull.cpp \
+    dia_thread.cpp \
+    dia_tester.cpp \
+    -o dia_tester \
+    -lpng -lz

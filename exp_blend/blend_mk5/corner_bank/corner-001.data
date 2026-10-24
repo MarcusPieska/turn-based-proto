@@ -1,0 +1,12 @@
+# mk5 corner pattern  solo=SE  0=majority 1=solo
+# 10x10 subtilles at the shared corner (four 5x5 tile quadrants)
+0000000000
+0000000000
+0000000000
+0000000000
+0000000000
+0000000111
+0000001111
+0000011111
+0000011111
+0000011111

@@ -1,0 +1,5 @@
+#!/bin/bash
+# Regenerate pixel map (optional) then super subtile mask + tiling previews.
+cd "$(dirname "$0")"
+python3 gen_dia_submask.py
+python3 gen_super_submask.py

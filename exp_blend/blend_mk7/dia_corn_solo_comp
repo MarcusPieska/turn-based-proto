@@ -1,0 +1,8 @@
+#!/bin/bash
+INC="-I."
+
+g++ -std=c++17 -O2 $INC \
+    dia_corn.cpp \
+    dia_corn_solo_tester.cpp \
+    -o dia_corn_solo_tester \
+    -lpng -lz

@@ -1,0 +1,34 @@
+
+
+Distinct corner pull: [2, 3] x [2, 3]
+X != A
+
+X X
+X A
+
+30% chance we instead to a corner duplication: 
+X == Y == Z
+Pull into Y and Z.
+
+X Y
+Z A
+
+
+
+Pull into A.
+
+Line dent: x = 0, y = +/-[2, 3]
+
+A A
+B B
+
+
+Corner duplication:
+Do double cloning corner pull: [2, 3] x [2, 3] into A and D
+Connect the corners that were just duplicated.
+
+A B
+C D
+
+A B
+B D

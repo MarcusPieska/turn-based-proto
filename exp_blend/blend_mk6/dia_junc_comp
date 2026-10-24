@@ -1,0 +1,10 @@
+#!/bin/bash
+g++ -std=c++17 -O2 \
+    dia_map.cpp \
+    dia_grid.cpp \
+    dia_pat.cpp \
+    dia_dat15.cpp \
+    dia_blit.cpp \
+    dia_junc_tester.cpp \
+    -o dia_junc_tester \
+    -lpng -lz

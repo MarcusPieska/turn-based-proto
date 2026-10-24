@@ -1,0 +1,6 @@
+#!/bin/bash
+g++ -std=c++17 -O2 \
+    sub_map.cpp \
+    sub_tester.cpp \
+    -o sub_tester \
+    -lpng -lz
