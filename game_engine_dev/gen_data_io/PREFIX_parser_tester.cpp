@@ -154,6 +154,7 @@ void [CLASS_TAG]ParserTester::pr_fx (cstr label, const ItemEffectsStruct& e) {
                 case ItemEffectBoosterType::LAND_MVT_PTS: tname = "LAND_MVT_PTS"; break;
                 case ItemEffectBoosterType::SEA_MVT_PTS: tname = "SEA_MVT_PTS"; break;
                 case ItemEffectBoosterType::ARMY_GENERAL_LIMIT: tname = "ARMY_GENERAL_LIMIT"; break;
+                case ItemEffectBoosterType::CIVIC_LIMIT: tname = "CIVIC_LIMIT"; break;
                 default: break;
             }
             const char* sc = "?";

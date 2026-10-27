@@ -286,6 +286,22 @@ bool GameConfigSettingsParser::parse_line (cstr line, GameConfigSettings* out) c
         }
         out->set_unit_terrain_damage_factor(tmp);
         return true;
+    } else if (std::strcmp(k, "STATIC_ARMY_GENERAL_LIMIT") == 0) {
+        u16 tmp = 0;
+        if (!parse_u16(v, &tmp)) {
+            std::printf("ERROR: config could not parse u16 for '%s': '%s'\n", k, v);
+            return false;
+        }
+        out->set_static_army_general_limit(tmp);
+        return true;
+    } else if (std::strcmp(k, "STATIC_CIVIC_LIMIT") == 0) {
+        u16 tmp = 0;
+        if (!parse_u16(v, &tmp)) {
+            std::printf("ERROR: config could not parse u16 for '%s': '%s'\n", k, v);
+            return false;
+        }
+        out->set_static_civic_limit(tmp);
+        return true;
     }
 
     std::printf("ERROR: unknown config settings key '%s'\n", k);

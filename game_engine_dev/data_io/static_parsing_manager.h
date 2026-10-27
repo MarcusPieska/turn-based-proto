@@ -25,6 +25,8 @@ class StaticBitBank;
 #include "city_job_parser.h"
 #include "civ_parser.h"
 #include "civ_trait_parser.h"
+#include "civic_type_parser.h"
+#include "civic_parser.h"
 #include "resource_parser.h"
 #include "res_dist_parser.h"
 #include "res_type_parser.h"
@@ -57,6 +59,8 @@ class StaticBitBank;
 #include "city_job_static_data.h"
 #include "civ_static_data.h"
 #include "civ_trait_static_data.h"
+#include "civic_type_static_data.h"
+#include "civic_static_data.h"
 #include "resource_static_data.h"
 #include "res_dist_static_data.h"
 #include "res_type_static_data.h"
@@ -120,6 +124,14 @@ public:
     const CivTraitStaticDataStruct* get_civ_trait_data () const;
 
     u16 get_civ_trait_count () const;
+
+    const CivicTypeStaticDataStruct* get_civic_type_data () const;
+
+    u16 get_civic_type_count () const;
+
+    const CivicStaticDataStruct* get_civic_data () const;
+
+    u16 get_civic_count () const;
 
     const ResourceStaticDataStruct* get_resource_data () const;
 
@@ -230,6 +242,10 @@ public:
 
     const DataParserBase& get_civ_trait_name_parser () const;
 
+    const DataParserBase& get_civic_type_name_parser () const;
+
+    const DataParserBase& get_civic_name_parser () const;
+
     const DataParserBase& get_resource_name_parser () const;
 
     const DataParserBase& get_res_dist_name_parser () const;
@@ -311,6 +327,8 @@ private:
     StringManager m_city_job_items;
     StringManager m_civ_items;
     StringManager m_civ_trait_items;
+    StringManager m_civic_type_items;
+    StringManager m_civic_items;
     StringManager m_resource_items;
     StringManager m_res_dist_items;
     StringManager m_res_type_items;
@@ -344,6 +362,8 @@ private:
     DataParserBase* m_city_job_name_parser;
     DataParserBase* m_civ_name_parser;
     DataParserBase* m_civ_trait_name_parser;
+    DataParserBase* m_civic_type_name_parser;
+    DataParserBase* m_civic_name_parser;
     DataParserBase* m_resource_name_parser;
     DataParserBase* m_res_dist_name_parser;
     DataParserBase* m_res_type_name_parser;
@@ -383,6 +403,8 @@ private:
     CityJobStaticDataStruct* m_city_job_data;
     CivStaticDataStruct* m_civ_data;
     CivTraitStaticDataStruct* m_civ_trait_data;
+    CivicTypeStaticDataStruct* m_civic_type_data;
+    CivicStaticDataStruct* m_civic_data;
     ResourceStaticDataStruct* m_resource_data;
     ResDistStaticDataStruct* m_res_dist_data;
     ResTypeStaticDataStruct* m_res_type_data;

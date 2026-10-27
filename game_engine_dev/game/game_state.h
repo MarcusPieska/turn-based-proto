@@ -74,6 +74,7 @@ public:
     u16* m_small_wonder_city = nullptr; // Built small wonder city index per catalog row; U16_KEY_NULL if none
     MapBitOverlay* m_explored_overlay = nullptr; // Fog/explored bit grid; same size as map
     BitArrayCL* m_techs_researched = nullptr; // Researched-tech bitset for this seat
+    BitArrayCL* m_civics_adopted = nullptr; // Adopted-civic bitset for this seat
     TechAgeMng* m_tech_age = nullptr; // Per-seat age unlock gate; requires TechAgeMng::setup
     u32 m_commerce = 0; // Accumulated commerce treasury for this seat
     u32 m_research = 0; // Accumulated research beakers for this seat

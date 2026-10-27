@@ -51,6 +51,8 @@ struct ConfigSettingsData {
     u16 m_unit_role_damage_factor;
     u16 m_unit_city_damage_factor;
     u16 m_unit_terrain_damage_factor;
+    u16 m_static_army_general_limit;
+    u16 m_static_civic_limit;
 };
 
 //================================================================================================================================
@@ -112,6 +114,12 @@ public:
 
     u16 get_unit_terrain_damage_factor () const;
     void set_unit_terrain_damage_factor (u16 v);
+
+    u16 get_static_army_general_limit () const;
+    void set_static_army_general_limit (u16 v);
+
+    u16 get_static_civic_limit () const;
+    void set_static_civic_limit (u16 v);
 
 private:
     GameConfigSettings (const GameConfigSettings& o) = delete;

@@ -35,6 +35,8 @@ void GameState::clear () {
            
             delete m_player_states[i].m_techs_researched;
             m_player_states[i].m_techs_researched = nullptr;
+            delete m_player_states[i].m_civics_adopted;
+            m_player_states[i].m_civics_adopted = nullptr;
             delete m_player_states[i].m_tech_age;
             m_player_states[i].m_tech_age = nullptr;
             m_player_states[i].m_res_ledger.clear();

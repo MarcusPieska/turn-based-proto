@@ -167,6 +167,16 @@ uint8_t DiaSiSj::tip_hit (uint8_t corn, int sx, int sy, int ix) const {
     return 0;
 }
 
+uint8_t DiaSiSj::tip_px (const SubGrid &sg, const DiaGrid &grid, int r, int c, int si, int sj, int x, int y) const {
+    int sr = r * SUBTILE_DIV + si, sc = c * SUBTILE_DIV + sj;
+    uint8_t corn = sg.corn (sr, sc);
+    if (!corn) return 0;
+    Vx a = grid.sub_ctr (r, c, si, sj);
+    int sx = x - (a.x - m_ox), sy = y - (a.y - m_oy);
+    if (!on (sx, sy)) return 0;
+    return tip_hit (corn, sx, sy, sp_ix (sr, sc));
+}
+
 Rgb DiaSiSj::darken (Rgb c, float t) const {
     return Rgb ((uint8_t)std::max (0, (int)(c.r * t)),
                 (uint8_t)std::max (0, (int)(c.g * t)),

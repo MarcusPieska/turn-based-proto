@@ -44,6 +44,7 @@ public:
               const DiaDat15 *const *banks, int n_banks) const;
     void splat_tex (uint8_t *dst, int dw, int dh, const BlendMap &map, const SubGrid &sg, const DiaGrid &grid,
                     const DiaDat15 *const *banks, int n_banks) const;
+    uint8_t tip_px (const SubGrid &sg, const DiaGrid &grid, int r, int c, int si, int sj, int x, int y) const;
 
 private:
     static const int SP_N = 2;

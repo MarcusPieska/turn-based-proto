@@ -23,6 +23,8 @@ class StaticParsingManager;
 #include "city_job_static_data.h"
 #include "civ_static_data.h"
 #include "civ_trait_static_data.h"
+#include "civic_type_static_data.h"
+#include "civic_static_data.h"
 #include "resource_static_data.h"
 #include "res_dist_static_data.h"
 #include "res_type_static_data.h"
@@ -98,6 +100,14 @@ public:
     CivTraitStaticData& civ_trait ();
 
     const CivTraitStaticData& civ_trait () const;
+
+    CivicTypeStaticData& civic_type ();
+
+    const CivicTypeStaticData& civic_type () const;
+
+    CivicStaticData& civic ();
+
+    const CivicStaticData& civic () const;
 
     ResourceStaticData& resource ();
 
@@ -252,6 +262,8 @@ private:
     CityJobStaticData m_city_job;
     CivStaticData m_civ;
     CivTraitStaticData m_civ_trait;
+    CivicTypeStaticData m_civic_type;
+    CivicStaticData m_civic;
     ResourceStaticData m_resource;
     ResDistStaticData m_res_dist;
     ResTypeStaticData m_res_type;

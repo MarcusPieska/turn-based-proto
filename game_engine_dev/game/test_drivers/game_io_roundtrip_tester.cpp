@@ -172,10 +172,12 @@ int main () {
         static_cast<u32>(seat_n_a));
     for (u16 i = 0; i < seat_n_a; ++i) {
         delete seats_a[i].m_techs_researched;
+        delete seats_a[i].m_civics_adopted;
     }
     delete[] seats_a;
     for (u16 i = 0; i < seat_n_b; ++i) {
         delete seats_b[i].m_techs_researched;
+        delete seats_b[i].m_civics_adopted;
     }
     delete[] seats_b;
     return 0;

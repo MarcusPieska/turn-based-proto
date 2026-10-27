@@ -1,5 +1,5 @@
 Palace                         :  000 : tech(Masonry)             : flag(IS_CAPITAL, CITY)
-Forbidden Palace               :  200 : tech(Masonry)             : building(Courthouse, 8)
+Forbidden Palace               :  200 : tech(Massive Stone Works) : building(Courthouse, 8)
 Military Academy               :  400 : tech(Military Tradition)  : flag(VICTORIES, CIV)
 Pentagon                       :  400 : tech(Military Tradition)  : building(Barracks, 5)
 Battlefield Medicine           :  500 : tech(Medicine)            : building(Hospital, 5)

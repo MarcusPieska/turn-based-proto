@@ -129,6 +129,7 @@ int main () {
     std::printf("mvt_pts_boost_mng_tester ok hits=%u final_land_boost=%u\n", hit_n, MvtPtsBoostMng::land(0u));
     MvtPtsBoostMng::clear();
     delete state->m_player_states[0].m_techs_researched;
+    delete state->m_player_states[0].m_civics_adopted;
     delete[] state->m_player_states[0].m_small_wonder_city;
     delete[] state->m_player_states;
     delete[] state->m_wonder_city;

@@ -89,7 +89,8 @@ void note_all_paths_exist (const PathMng& paths, cstr tag) {
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s civ_traits exists", tag); note_result(does_file_exist(paths.get_path_to_civ_traits()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s civs exists", tag); note_result(does_file_exist(paths.get_path_to_civs()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s effects exists", tag); note_result(does_file_exist(paths.get_path_to_effects()), _buf); }
-        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s governments exists", tag); note_result(does_file_exist(paths.get_path_to_governments()), _buf); }
+        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s civics exists", tag); note_result(does_file_exist(paths.get_path_to_civics()), _buf); }
+        { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s civic_types exists", tag); note_result(does_file_exist(paths.get_path_to_civic_types()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s resources exists", tag); note_result(does_file_exist(paths.get_path_to_resources()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s res_dists exists", tag); note_result(does_file_exist(paths.get_path_to_res_dists()), _buf); }
         { char _buf[96]; std::snprintf(_buf, sizeof(_buf), "%s res_types exists", tag); note_result(does_file_exist(paths.get_path_to_res_types()), _buf); }

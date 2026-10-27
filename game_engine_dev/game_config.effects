@@ -90,9 +90,92 @@ Quartermaster Corps            : booster(LAND_MVT_PTS, 500, CIV, COUNT)
 Warrior Code                   : booster(UNIT_TRAINING_MAX, 1, CIV, COUNT)
 Chivalry                       : booster(UNIT_TRAINING_MAX, 1, CIV, COUNT)
 Nationalism                    : booster(UNIT_TRAINING_MAX, 1, CIV, COUNT)
-
+Professional Soldiering        : booster(ARMY_GENERAL_LIMIT, 1, CIV, COUNT)
+Feudal Vassalage               : booster(ARMY_GENERAL_LIMIT, 1, CIV, COUNT)
+Condottieri                    : booster(ARMY_GENERAL_LIMIT, 1, CIV, COUNT)
+Military Tradition             : booster(ARMY_GENERAL_LIMIT, 1, CIV, COUNT)
+General Mobilization           : booster(ARMY_GENERAL_LIMIT, 1, CIV, COUNT)
+Cuneiform Writing              : booster(CIVIC_LIMIT, 1, CIV, COUNT)
+Centralized Bureaucracy        : booster(CIVIC_LIMIT, 1, CIV, COUNT)
+Code of Laws                   : booster(CIVIC_LIMIT, 1, CIV, COUNT)
+Feudalism                      : booster(CIVIC_LIMIT, 1, CIV, COUNT)
+Jurisprudence                  : booster(CIVIC_LIMIT, 1, CIV, COUNT)
+Universities                   : booster(CIVIC_LIMIT, 1, CIV, COUNT)
+Merchant Republics             : booster(CIVIC_LIMIT, 1, CIV, COUNT)
+Constitutionalism              : booster(CIVIC_LIMIT, 1, CIV, COUNT)
+Separation of Powers           : booster(CIVIC_LIMIT, 1, CIV, COUNT)
+Labor Unionism                 : booster(CIVIC_LIMIT, 1, CIV, COUNT)
 
 Militaristic                   : booster(UNIT_TRAINING_MAX, 1, CIV, COUNT) : booster(UNIT_LEVEL_DEFAULT, 1, CIV, COUNT)
+
+
+Warrior Bands                  : booster(UNIT_TRAINING_MAX, 1, CIV, COUNT)
+Tribal Host                    : booster(ARMY_GENERAL_LIMIT, 1, CIV, COUNT)
+Shield Wall                    : booster(DEFENSE, 1, CITY, PERCENTAGE)
+Citizen Levy                   : booster(CITY_LAND_UNIT_SUPPORT, 1, CITY, COUNT)
+Cohort Discipline              : booster(UNIT_LEVEL_DEFAULT, 1, CIV, COUNT)
+Vassal Hosts                   : booster(ARMY_GENERAL_LIMIT, 1, CIV, COUNT)
+Knightly Retinue               : booster(UNIT_TRAINING_MAX, 1, CIV, COUNT)
+Mercenary Contracts            : booster(CIV_LAND_UNIT_SUPPORT, 2, CIV, COUNT)
+Camp Drill                     : booster(UNIT_TRAINING_DAILY, 1, CITY, COUNT)
+Standing Regiments             : booster(MAX_UNIT_SIZE, 1, CIV, COUNT)
+Officer Corps                  : booster(ARMY_GENERAL_LIMIT, 1, CIV, COUNT)
+Nation in Arms                 : booster(UNIT_TRAINING_MAX, 1, CIV, COUNT)
+Mass Conscription              : booster(WORKER_DRAFT, 1, CITY, COUNT)
+Supply Doctrine                : booster(LAND_MVT_PTS, 500, CIV, COUNT)
+War Economy                    : booster(MAX_UNIT_SIZE, 1, CIV, COUNT)
+Elite Cadres                   : booster(UNIT_LEVEL_DEFAULT, 1, CIV, COUNT)
+
+Artisan Statutes               : booster(PRODUCTION, 2, CITY, COUNT)
+Market Rights                  : booster(COMMERCE, 2, CITY, COUNT)
+Merchant Licenses              : jobSlots(Merchant, 1, CITY, COUNT)
+
+Chiefdom                       : booster(CORRUPTION, -5, CITY, COUNT)
+Royal Edicts                   : booster(CORRUPTION, -10, CITY, PERCENTAGE)
+Cabinet Rule                   : booster(CORRUPTION, -20, CITY, PERCENTAGE)
+
+Communal Labor                 : booster(FOOD, 1, CITY, COUNT)
+Corvee Rolls                   : booster(PRODUCTION, 2, CITY, COUNT)
+Guild Compacts                 : booster(PRODUCTION, 2, CITY, COUNT)
+
+Gift Exchange                  : booster(CULTURE, 1, CITY, COUNT)
+Caravan Privileges             : booster(COMMERCE, 2, CITY, COUNT)
+Harbor Rights                  : booster(SEA_TRADE, 1, CITY, COUNT)
+
+Ancestor Cult                  : booster(HAPPINESS, 1, CITY, COUNT)
+Temple Tithes                  : booster(CULTURE, 2, CITY, COUNT)
+Canonical Law                  : booster(HAPPINESS, 1, CITY, COUNT) : booster(CULTURE, 1, CITY, COUNT)
+
+Oral Tradition                 : booster(CULTURE, 2, CITY, COUNT)
+Scribal Schools                : booster(SCIENCE, 25, CITY, PERCENTAGE)
+Lecture Halls                  : booster(SCIENCE, 50, CITY, PERCENTAGE)
+
+Clan Bonds                     : booster(HAPPINESS, 1, CITY, COUNT)
+Civic Franchise                : booster(CORRUPTION, -10, CITY, PERCENTAGE)
+Equal Statutes                 : booster(HAPPINESS, 1, CITY, COUNT)
+
+Seasonal Camps                 : booster(FOOD, 1, CITY, COUNT)
+Frontier Posts                 : booster(LAND_MVT_PTS, 500, CIV, COUNT)
+Colonial Charters              : booster(POP_GROWTH, 50, CITY, PERCENTAGE)
+
+Folk Custom                    : booster(CULTURE, 1, CITY, COUNT)
+Civic Creed                    : booster(CULTURE, 2, CITY, COUNT)
+Humanist Ethos                 : booster(HAPPINESS, 1, CITY, COUNT)
+
+Factory Discipline             : booster(PRODUCTION, 50, CITY, PERCENTAGE)
+Shop Floor Rules               : booster(PRODUCTION, 2, CITY, COUNT)
+
+Public Hygiene                 : booster(SANITATION, 1, CIV, COUNT)
+Poor Relief                    : booster(HAPPINESS, 1, CITY, COUNT)
+
+Cabinet Secrets                : booster(ESPIONAGE, 50, CITY, PERCENTAGE)
+
+National Will                  : booster(UNIT_TRAINING_MAX, 1, CIV, COUNT)
+Popular Mandate                : booster(HAPPINESS, 1, CITY, COUNT)
+
+Biosphere Compact              : booster(POLLUTION, -25, CITY, PERCENTAGE)
+
+
 
 
 Entertainer                    : booster(HAPPINESS, 2, CITY, COUNT)

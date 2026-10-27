@@ -64,6 +64,10 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_civ.load_names_from(p.get_civ_name_parser(), p.get_civ_count());
     m_civ_trait.set_items(const_cast<CivTraitStaticDataStruct*>(p.get_civ_trait_data()), p.get_civ_trait_count());
     m_civ_trait.load_names_from(p.get_civ_trait_name_parser(), p.get_civ_trait_count());
+    m_civic_type.set_items(const_cast<CivicTypeStaticDataStruct*>(p.get_civic_type_data()), p.get_civic_type_count());
+    m_civic_type.load_names_from(p.get_civic_type_name_parser(), p.get_civic_type_count());
+    m_civic.set_items(const_cast<CivicStaticDataStruct*>(p.get_civic_data()), p.get_civic_count());
+    m_civic.load_names_from(p.get_civic_name_parser(), p.get_civic_count());
     m_resource.set_items(const_cast<ResourceStaticDataStruct*>(p.get_resource_data()), p.get_resource_count());
     m_resource.load_names_from(p.get_resource_name_parser(), p.get_resource_count());
     m_res_dist.set_items(const_cast<ResDistStaticDataStruct*>(p.get_res_dist_data()), p.get_res_dist_count());
@@ -132,6 +136,8 @@ void RuntimeStatics::load_from (StaticParsingManager& p) {
     m_city_job.take_ownership();
     m_civ.take_ownership();
     m_civ_trait.take_ownership();
+    m_civic_type.take_ownership();
+    m_civic.take_ownership();
     m_resource.take_ownership();
     m_res_dist.take_ownership();
     m_res_type.take_ownership();
@@ -253,6 +259,22 @@ CivTraitStaticData& RuntimeStatics::civ_trait () {
 
 const CivTraitStaticData& RuntimeStatics::civ_trait () const {
     return m_civ_trait;
+}
+
+CivicTypeStaticData& RuntimeStatics::civic_type () {
+    return m_civic_type;
+}
+
+const CivicTypeStaticData& RuntimeStatics::civic_type () const {
+    return m_civic_type;
+}
+
+CivicStaticData& RuntimeStatics::civic () {
+    return m_civic;
+}
+
+const CivicStaticData& RuntimeStatics::civic () const {
+    return m_civic;
 }
 
 ResourceStaticData& RuntimeStatics::resource () {

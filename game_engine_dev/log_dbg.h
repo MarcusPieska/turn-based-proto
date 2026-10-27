@@ -73,6 +73,7 @@
 #include "log_dbg/log_player_science.h"
 #include "log_dbg/log_player_research_perc.h"
 #include "log_dbg/log_player_tech_discover.h"
+#include "log_dbg/log_player_civic_adopt.h"
 #include "log_dbg/log_unit_state.h"
 #include "log_dbg/log_army_info.h"
 #include "log_dbg/log_unit_type_count.h"

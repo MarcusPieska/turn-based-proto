@@ -70,6 +70,7 @@ LOGS = [
     ("PlayerScience", "u16 player, u32 amount", "player=%u science=%u\n"),
     ("PlayerResearchPerc", "u16 player, u16 perc", "player=%u research_perc=%u\n"),
     ("PlayerTechDiscover", "u16 player, u16 tech", "player=%u tech=%u\n"),
+    ("PlayerCivicAdopt", "u16 seat, u16 limit, u16 civic", "player=%u civic_limit=%u civic=%u\n"),
     ("UnitState", "u16 owner, u16 unit, u16 x, u16 y", "unit state owner=%u unit=%u at=(%u,%u)\n"),
     ("ArmyInfo", "cstr tag", "army state=%s\n"),
     ("UnitTypeCount", "u16 player, cstr info, u16 count, u16 total", "unit type count player=%u info=%s count=%u/%u\n"),

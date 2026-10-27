@@ -24,6 +24,8 @@ void SimpleDynStateIO::clr_seat (PlayerState& ps) {
     ps.m_explored_overlay = nullptr;
     delete ps.m_techs_researched;
     ps.m_techs_researched = nullptr;
+    delete ps.m_civics_adopted;
+    ps.m_civics_adopted = nullptr;
     delete ps.m_tech_age;
     ps.m_tech_age = nullptr;
     ps.m_res_ledger.clear();
@@ -164,10 +166,12 @@ bool SimpleDynStateIO::wr_seat (void* fp_raw, const PlayerState& ps, u16 small_w
     const u8 has_sw = (ps.m_small_wonder_city != nullptr && small_wonder_n != 0u) ? 1u : 0u;
     const u8 has_fog = (ps.m_explored_overlay != nullptr) ? 1u : 0u;
     const u8 has_tech = (ps.m_techs_researched != nullptr) ? 1u : 0u;
+    const u8 has_civic = (ps.m_civics_adopted != nullptr) ? 1u : 0u;
     const u8 has_age = (ps.m_tech_age != nullptr) ? 1u : 0u;
     if (std::fwrite(&has_sw, sizeof(has_sw), 1, fp) != 1
         || std::fwrite(&has_fog, sizeof(has_fog), 1, fp) != 1
         || std::fwrite(&has_tech, sizeof(has_tech), 1, fp) != 1
+        || std::fwrite(&has_civic, sizeof(has_civic), 1, fp) != 1
         || std::fwrite(&has_age, sizeof(has_age), 1, fp) != 1) {
         return false;
     }
@@ -181,6 +185,9 @@ bool SimpleDynStateIO::wr_seat (void* fp_raw, const PlayerState& ps, u16 small_w
         return false;
     }
     if (has_tech != 0u && !wr_bit_cl(fp, ps.m_techs_researched)) {
+        return false;
+    }
+    if (has_civic != 0u && !wr_bit_cl(fp, ps.m_civics_adopted)) {
         return false;
     }
     if (has_age != 0u && !ps.m_tech_age->wr(fp)) {
@@ -246,10 +253,12 @@ bool SimpleDynStateIO::rd_seat (void* fp_raw, PlayerState& ps, u16 small_wonder_
     u8 has_sw = 0;
     u8 has_fog = 0;
     u8 has_tech = 0;
+    u8 has_civic = 0;
     u8 has_age = 0;
     if (std::fread(&has_sw, sizeof(has_sw), 1, fp) != 1
         || std::fread(&has_fog, sizeof(has_fog), 1, fp) != 1
         || std::fread(&has_tech, sizeof(has_tech), 1, fp) != 1
+        || std::fread(&has_civic, sizeof(has_civic), 1, fp) != 1
         || std::fread(&has_age, sizeof(has_age), 1, fp) != 1) {
         return false;
     }
@@ -270,6 +279,9 @@ bool SimpleDynStateIO::rd_seat (void* fp_raw, PlayerState& ps, u16 small_wonder_
         }
     }
     if (has_tech != 0u && !rd_bit_cl(fp, &ps.m_techs_researched)) {
+        return false;
+    }
+    if (has_civic != 0u && !rd_bit_cl(fp, &ps.m_civics_adopted)) {
         return false;
     }
     if (has_age != 0u) {

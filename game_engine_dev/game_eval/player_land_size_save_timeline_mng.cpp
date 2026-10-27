@@ -40,6 +40,8 @@ static void free_seats (PlayerState*& seats, u16& n) {
         seats[i].m_explored_overlay = nullptr;
         delete seats[i].m_techs_researched;
         seats[i].m_techs_researched = nullptr;
+        delete seats[i].m_civics_adopted;
+        seats[i].m_civics_adopted = nullptr;
         delete seats[i].m_tech_age;
         seats[i].m_tech_age = nullptr;
         seats[i].m_res_ledger.clear();

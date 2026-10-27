@@ -24,7 +24,7 @@
 //
 //================================================================================================================================
 
-static const u16 LOG_NEED_N = 59u;
+static const u16 LOG_NEED_N = 60u;
 
 struct LogNeedMask {
     u8 m_new_turn;
@@ -83,6 +83,7 @@ struct LogNeedMask {
     u8 m_player_science;
     u8 m_player_research_perc;
     u8 m_player_tech_discover;
+    u8 m_player_civic_adopt;
     u8 m_unit_state;
     u8 m_army_info;
     u8 m_unit_type_count;
@@ -153,6 +154,7 @@ inline LogNeedMask::LogNeedMask ()
       m_player_science(0),
       m_player_research_perc(0),
       m_player_tech_discover(0),
+      m_player_civic_adopt(0),
       m_unit_state(0),
       m_army_info(0),
       m_unit_type_count(0) {
@@ -238,6 +240,7 @@ inline cstr LogNeedMask::nm (u16 i) {
         "PlayerScience",
         "PlayerResearchPerc",
         "PlayerTechDiscover",
+        "PlayerCivicAdopt",
         "UnitState",
         "ArmyInfo",
         "UnitTypeCount",
@@ -526,6 +529,11 @@ inline bool LogNeedMask::on (u16 i) {
         0u,
 #endif
 #if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_PLAYER_TECH_DISCOVER))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_PLAYER_CIVIC_ADOPT))
         1u,
 #else
         0u,

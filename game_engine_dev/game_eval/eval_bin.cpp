@@ -34,6 +34,8 @@ struct EvalBin::Snap {
             for (u16 i = 0; i < m_seat_n; ++i) {
                 delete m_seats[i].m_techs_researched;
                 m_seats[i].m_techs_researched = nullptr;
+                delete m_seats[i].m_civics_adopted;
+                m_seats[i].m_civics_adopted = nullptr;
             }
             delete[] m_seats;
             m_seats = nullptr;

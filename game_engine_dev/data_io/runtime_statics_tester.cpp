@@ -78,6 +78,8 @@ void print_holder_counts (const RuntimeStatics& s) {
     print_u16_member("city_job", s.city_job().get_item_count());
     print_u16_member("civ", s.civ().get_item_count());
     print_u16_member("civ_trait", s.civ_trait().get_item_count());
+    print_u16_member("civic_type", s.civic_type().get_item_count());
+    print_u16_member("civic", s.civic().get_item_count());
     print_u16_member("resource", s.resource().get_item_count());
     print_u16_member("res_dist", s.res_dist().get_item_count());
     print_u16_member("res_type", s.res_type().get_item_count());
@@ -176,6 +178,8 @@ void run_load_tests (const RuntimeStaticLoader& loader) {
     note_result(s.city_job().get_item_count() > 0, "city_job holder has items");
     note_result(s.civ().get_item_count() > 0, "civ holder has items");
     note_result(s.civ_trait().get_item_count() > 0, "civ_trait holder has items");
+    note_result(s.civic_type().get_item_count() > 0, "civic_type holder has items");
+    note_result(s.civic().get_item_count() > 0, "civic holder has items");
     note_result(s.resource().get_item_count() > 0, "resource holder has items");
     note_result(s.res_dist().get_item_count() > 0, "res_dist holder has items");
     note_result(s.res_type().get_item_count() > 0, "res_type holder has items");
@@ -283,6 +287,15 @@ void run_req_bounds_tests (const RuntimeStatics& s) {
         }
     }
     note_result(result, "WorkerJobImpStaticDataStruct req indices in bounds");
+    
+    result = true;
+    for (u16 i = 0; i < s.civic().get_item_count(); ++i) {
+        if (!are_reqs_in_bounds(s, s.civic().get_item(CivicStaticDataKey::from_raw(i)).reqs, "civic", i)) {
+            result = false;
+            break;
+        }
+    }
+    note_result(result, "CivicStaticDataStruct req indices in bounds");
 }
 
 void run_map_smoke_tests (const RuntimeStatics& s) {

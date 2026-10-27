@@ -100,8 +100,12 @@ cstr PathMng::get_path_to_effects () const {
     return m_path_effects;
 }
 
-cstr PathMng::get_path_to_governments () const {
-    return m_path_governments;
+cstr PathMng::get_path_to_civics () const {
+    return m_path_civics;
+}
+
+cstr PathMng::get_path_to_civic_types () const {
+    return m_path_civic_types;
 }
 
 cstr PathMng::get_path_to_resources () const {
@@ -217,7 +221,8 @@ void PathMng::build_paths () {
     join_path(m_path_civ_traits, PATH_MNG_PATH_N, m_path_offset, "game_config.civ_traits");
     join_path(m_path_civs, PATH_MNG_PATH_N, m_path_offset, "game_config.civs");
     join_path(m_path_effects, PATH_MNG_PATH_N, m_path_offset, "game_config.effects");
-    join_path(m_path_governments, PATH_MNG_PATH_N, m_path_offset, "game_config.governments");
+    join_path(m_path_civics, PATH_MNG_PATH_N, m_path_offset, "game_config.civics");
+    join_path(m_path_civic_types, PATH_MNG_PATH_N, m_path_offset, "game_config.civic_types");
     join_path(m_path_resources, PATH_MNG_PATH_N, m_path_offset, "game_config.resources");
     join_path(m_path_res_dists, PATH_MNG_PATH_N, m_path_offset, "game_config.res_dists");
     join_path(m_path_res_types, PATH_MNG_PATH_N, m_path_offset, "game_config.res_types");
@@ -281,8 +286,12 @@ void PathMng::validate_paths_or_exit () const {
         printf("ERROR: Missing file: %s\n", m_path_effects);
         ++error_count;
     }
-    if (!does_file_exist(m_path_governments)) {
-        printf("ERROR: Missing file: %s\n", m_path_governments);
+    if (!does_file_exist(m_path_civics)) {
+        printf("ERROR: Missing file: %s\n", m_path_civics);
+        ++error_count;
+    }
+    if (!does_file_exist(m_path_civic_types)) {
+        printf("ERROR: Missing file: %s\n", m_path_civic_types);
         ++error_count;
     }
     if (!does_file_exist(m_path_resources)) {

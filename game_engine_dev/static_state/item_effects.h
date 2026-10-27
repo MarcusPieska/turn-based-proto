@@ -75,7 +75,8 @@ enum class ItemEffectBoosterType : u16 {
     MAX_UNIT_SIZE = 32,
     LAND_MVT_PTS = 33,
     SEA_MVT_PTS = 34,
-    ARMY_GENERAL_LIMIT = 35
+    ARMY_GENERAL_LIMIT = 35,
+    CIVIC_LIMIT = 36
 };
 
 enum class ItemTerrainYield : u8 {

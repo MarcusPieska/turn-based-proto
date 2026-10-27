@@ -84,6 +84,7 @@ ItemEffectBoosterType ItemEffectHelper::booster_type_str_to_enum (cstr s) {
     if (s && std::strcmp(s, "LAND_MVT_PTS") == 0) { return ItemEffectBoosterType::LAND_MVT_PTS; }
     if (s && std::strcmp(s, "SEA_MVT_PTS") == 0) { return ItemEffectBoosterType::SEA_MVT_PTS; }
     if (s && std::strcmp(s, "ARMY_GENERAL_LIMIT") == 0) { return ItemEffectBoosterType::ARMY_GENERAL_LIMIT; }
+    if (s && std::strcmp(s, "CIVIC_LIMIT") == 0) { return ItemEffectBoosterType::CIVIC_LIMIT; }
     return ItemEffectBoosterType::NONE;
 }
 
@@ -125,6 +126,7 @@ cstr ItemEffectHelper::booster_type_enum_to_str (ItemEffectBoosterType v) {
         case ItemEffectBoosterType::LAND_MVT_PTS : return "LAND_MVT_PTS";
         case ItemEffectBoosterType::SEA_MVT_PTS : return "SEA_MVT_PTS";
         case ItemEffectBoosterType::ARMY_GENERAL_LIMIT : return "ARMY_GENERAL_LIMIT";
+        case ItemEffectBoosterType::CIVIC_LIMIT : return "CIVIC_LIMIT";
         default: return "NONE";
     }
 }

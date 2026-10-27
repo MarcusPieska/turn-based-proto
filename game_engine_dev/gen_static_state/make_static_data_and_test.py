@@ -25,6 +25,8 @@ if __name__ == "__main__":
     specs.append(("city_job", "CityJob", "i16 food; u16 production; u16 commerce; u16 culture; u16 science; u16 religion; u16 slots; ItemEffectsStruct effects;", "food", "slots"))
     specs.append(("civ", "Civ", "CivTraitStruct traits;", "traits.indices[0]", "traits.indices[1]"))
     specs.append(("civ_trait", "CivTrait", "ItemEffectsStruct effects;", "effects.items[0].type", "effects.items[1].type"))
+    specs.append(("civic_type", "CivicType", "", "None", "None"))
+    specs.append(("civic", "Civic", std_members + "ItemEffectsStruct effects; u16 type;", "type", "effects.items[0].type"))
     specs.append(("resource", "Resource", std_members + "u16 food; u16 shields; u16 commerce; u16 culture; u16 science; u16 religion; u16 type; u16 worker_job_idx; u16 res_dist_idx;", "food", "type"))
     specs.append(("res_dist", "ResDist", "u8 has_plc; ResPlacement plc;", "None", "None"))
     specs.append(("res_type", "ResType", "", "None", "None"))

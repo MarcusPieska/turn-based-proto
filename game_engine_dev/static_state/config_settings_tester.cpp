@@ -148,6 +148,8 @@ static void print_config (const GameConfigSettings& cfg) {
     std::printf("  UNIT_ROLE_DAMAGE_FACTOR: %u\n", cfg.get_unit_role_damage_factor());
     std::printf("  UNIT_CITY_DAMAGE_FACTOR: %u\n", cfg.get_unit_city_damage_factor());
     std::printf("  UNIT_TERRAIN_DAMAGE_FACTOR: %u\n", cfg.get_unit_terrain_damage_factor());
+    std::printf("  STATIC_ARMY_GENERAL_LIMIT: %u\n", cfg.get_static_army_general_limit());
+    std::printf("  STATIC_CIVIC_LIMIT: %u\n", cfg.get_static_civic_limit());
 }
 
 //================================================================================================================================

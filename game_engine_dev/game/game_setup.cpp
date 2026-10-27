@@ -30,6 +30,7 @@
 #include "city_border.h"
 #include "building_trait_orderings.h"
 #include "city_job_trait_orderings.h"
+#include "civic_trait_orderings.h"
 #include "job_count_array.h"
 #include "tech_trait_orderings.h"
 #include "tech_age_mng.h"
@@ -351,6 +352,7 @@ bool GameSetup::init_players (GameState* state, u16 player_n, u16 small_wonder_n
         }
         seats[i].m_explored_overlay = new MapBitOverlay(w, h);
         seats[i].m_techs_researched = nullptr;
+        seats[i].m_civics_adopted = nullptr;
         seats[i].m_tech_age = nullptr;
         seats[i].m_small_wonder_city = nullptr;
         GAME_EXPECT(TechAgeMng::ready(), "GameSetup init_players TechAgeMng");
@@ -514,6 +516,10 @@ bool GameSetup::finish_with_starts (GameState* state, const SpgPickCoords& start
         return false;
     }
     if (!CityJobTraitOrderings::begin(g_rt_statics->city_job(), g_rt_statics->trait_affinity_map())) {
+        state->clear();
+        return false;
+    }
+    if (!CivicTraitOrderings::begin(g_rt_statics->civic(), g_rt_statics->trait_affinity_map())) {
         state->clear();
         return false;
     }

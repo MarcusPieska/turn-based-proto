@@ -77,6 +77,8 @@ void print_item_counts (const StaticParsingManager& parser) {
     print_u16_member("city_job", parser.get_city_job_count());
     print_u16_member("civ", parser.get_civ_count());
     print_u16_member("civ_trait", parser.get_civ_trait_count());
+    print_u16_member("civic_type", parser.get_civic_type_count());
+    print_u16_member("civic", parser.get_civic_count());
     print_u16_member("resource", parser.get_resource_count());
     print_u16_member("res_dist", parser.get_res_dist_count());
     print_u16_member("res_type", parser.get_res_type_count());
@@ -203,6 +205,9 @@ void run_req_bounds_tests (const StaticParsingManager& parser) {
     
     result = test_dataset_req_bounds(parser, parser.get_worker_job_imp_data(), parser.get_worker_job_imp_count(), "worker_job_imp");
     note_result(result, "WorkerJobImpStaticDataStruct req indices in bounds");
+    
+    result = test_dataset_req_bounds(parser, parser.get_civic_data(), parser.get_civic_count(), "civic");
+    note_result(result, "CivicStaticDataStruct req indices in bounds");
 }
 
 void run_map_tests (const StaticParsingManager& parser, const RuntimeStatics& statics) {

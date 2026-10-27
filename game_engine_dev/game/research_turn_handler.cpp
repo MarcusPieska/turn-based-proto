@@ -8,6 +8,7 @@
 #include "civ_static_data.h"
 #include "civ_static_key.h"
 #include "civ_trait_enum.h"
+#include "civic_adopt_helper.h"
 #include "game_state.h"
 #include "general_assessor.h"
 #include "runtime_statics.h"
@@ -107,7 +108,12 @@ static void bank_commerce (PlayerState& ps) {
     ps.m_commerce_from_turn = 0;
 }
 
-static void finish_ready (PlayerState& ps, const RuntimeStatics& st, u16 player) {
+static void finish_ready (GameState& state, u16 player) {
+    GAME_EXPECT(state.m_statics != nullptr, "ResearchTurnHandler finish_ready statics");
+    GAME_EXPECT(state.m_player_states != nullptr, "ResearchTurnHandler finish_ready seats");
+    GAME_EXPECT(player < state.m_player_n, "ResearchTurnHandler finish_ready player");
+    PlayerState& ps = state.m_player_states[player];
+    const RuntimeStatics& st = *state.m_statics;
     GAME_EXPECT(ps.m_techs_researched != nullptr, "ResearchTurnHandler finish_ready techs null");
     GAME_EXPECT(ps.m_tech_age != nullptr, "ResearchTurnHandler finish_ready tech age");
     while (true) {
@@ -129,6 +135,7 @@ static void finish_ready (PlayerState& ps, const RuntimeStatics& st, u16 player)
         LOG_PLAYER_TECH_DISCOVER::LOG(player, tgt);
         ps.m_tech_just_researched = 1;
         ps.m_current_research_target_idx = U16_KEY_NULL;
+        CivicAdoptHelper::fill(state, player);
     }
 }
 
@@ -150,7 +157,7 @@ void ResearchTurnHandler::handle (GameState& state, u16 player) {
     GAME_EXPECT(player < state.m_player_n, "ResearchTurnHandler handle player out of bounds");
     PlayerState& ps = state.m_player_states[player];
     bank_commerce(ps);
-    finish_ready(ps, *state.m_statics, player);
+    finish_ready(state, player);
 }
 
 //================================================================================================================================

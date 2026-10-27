@@ -1,0 +1,65 @@
+Warrior Bands              : Warfare : tech(Warrior Code)
+Tribal Host                : Warfare : tech(Tribal Warlords)
+Shield Wall                : Warfare : tech(Heavy Formations)
+Citizen Levy               : Warfare : tech(Code of Laws)
+Cohort Discipline          : Warfare : tech(Professional Soldiering)
+Vassal Hosts               : Warfare : tech(Feudal Vassalage)
+Knightly Retinue           : Warfare : tech(Chivalry)
+Mercenary Contracts        : Warfare : tech(Condottieri)
+Camp Drill                 : Warfare : tech(Military Drill)
+Standing Regiments         : Warfare : tech(Standing Armies)
+Officer Corps              : Warfare : tech(Military Tradition)
+Nation in Arms             : Warfare : tech(Nationalism)
+Mass Conscription          : Warfare : tech(General Mobilization)
+Supply Doctrine            : Warfare : tech(Quartermaster Corps)
+War Economy                : Warfare : tech(Total War)
+Elite Cadres               : Warfare : tech(Military Drill)
+
+Artisan Statutes           : Economy : tech(Early Urbanization)
+Market Rights              : Economy : tech(Early Urbanization)
+Merchant Licenses          : Economy : tech(Market Law)
+
+Chiefdom                   : Authority : tech(Foundation)
+Royal Edicts               : Authority : tech(Code of Laws)
+Cabinet Rule               : Authority : tech(Cabinet Government)
+
+Communal Labor             : Labor : tech(Agriculture)
+Corvee Rolls               : Labor : tech(Code of Laws)
+Guild Compacts             : Labor : tech(Guilds)
+
+Gift Exchange              : Diplomacy : tech(Foundation)
+Caravan Privileges         : Diplomacy : tech(Caravan Trade)
+Harbor Rights              : Diplomacy : tech(Navigation)
+
+Ancestor Cult              : Belief : tech(Foundation)
+Temple Tithes              : Belief : tech(Polytheism)
+Canonical Law              : Belief : tech(Theology)
+
+Oral Tradition             : Learning : tech(Alphabet)
+Scribal Schools            : Learning : tech(Writing)
+Lecture Halls              : Learning : tech(Universities)
+
+Clan Bonds                 : Citizenship : tech(Foundation)
+Civic Franchise            : Citizenship : tech(Republic)
+Equal Statutes             : Citizenship : tech(Democracy)
+
+Seasonal Camps             : Expansion : tech(Agriculture)
+Frontier Posts             : Expansion : tech(Map Making)
+Colonial Charters          : Expansion : tech(Navigation)
+
+Folk Custom                : Doctrine : tech(Foundation)
+Civic Creed                : Doctrine : tech(Philosophy)
+Humanist Ethos             : Doctrine : tech(Humanism)
+
+Factory Discipline         : Industry : tech(Factory System)
+Shop Floor Rules           : Industry : tech(Industrial Capitalism)
+
+Public Hygiene             : Welfare : tech(Urban Sanitation)
+Poor Relief                : Welfare : tech(Social Contract)
+
+Cabinet Secrets            : Espionage : tech(Espionage)
+
+National Will              : Ideology : tech(Nationalism)
+Popular Mandate            : Ideology : tech(Democracy)
+
+Biosphere Compact          : Futures : tech(Ecology)

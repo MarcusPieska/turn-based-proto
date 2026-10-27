@@ -35,7 +35,8 @@ public:
     cstr get_path_to_civ_traits () const;
     cstr get_path_to_civs () const;
     cstr get_path_to_effects () const;
-    cstr get_path_to_governments () const;
+    cstr get_path_to_civics () const;
+    cstr get_path_to_civic_types () const;
     cstr get_path_to_resources () const;
     cstr get_path_to_res_dists () const;
     cstr get_path_to_res_types () const;
@@ -81,7 +82,8 @@ private:
     char m_path_civ_traits[PATH_MNG_PATH_N];
     char m_path_civs[PATH_MNG_PATH_N];
     char m_path_effects[PATH_MNG_PATH_N];
-    char m_path_governments[PATH_MNG_PATH_N];
+    char m_path_civics[PATH_MNG_PATH_N];
+    char m_path_civic_types[PATH_MNG_PATH_N];
     char m_path_resources[PATH_MNG_PATH_N];
     char m_path_res_dists[PATH_MNG_PATH_N];
     char m_path_res_types[PATH_MNG_PATH_N];

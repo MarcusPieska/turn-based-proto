@@ -546,6 +546,15 @@
         break;
     }
     case 56u: {
+        u16 seat = 0;
+        u16 limit = 0;
+        u16 civic = 0;
+        if (LOG_PLAYER_CIVIC_ADOPT::PARSE(s, &seat, &limit, &civic)) {
+            cnt = cnt + 1u;
+        }
+        break;
+    }
+    case 57u: {
         u16 owner = 0;
         u16 unit = 0;
         u16 x = 0;
@@ -555,7 +564,7 @@
         }
         break;
     }
-    case 57u: {
+    case 58u: {
         char tag[128];
         tag[0] = 0;
         if (LOG_ARMY_INFO::PARSE(s, tag, 128u)) {
@@ -563,7 +572,7 @@
         }
         break;
     }
-    case 58u: {
+    case 59u: {
         u16 player = 0;
         char info[128];
         info[0] = 0;

@@ -62,6 +62,7 @@ ie_booster_type_enum.append("MAX_UNIT_SIZE")
 ie_booster_type_enum.append("LAND_MVT_PTS")
 ie_booster_type_enum.append("SEA_MVT_PTS")
 ie_booster_type_enum.append("ARMY_GENERAL_LIMIT")
+ie_booster_type_enum.append("CIVIC_LIMIT")
 
 ie_terrain_yield_enum = []
 ie_terrain_yield_enum.append("NONE")

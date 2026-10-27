@@ -66,6 +66,8 @@ static void clr_data (ConfigSettingsData* d) {
     d->m_unit_role_damage_factor = 0;
     d->m_unit_city_damage_factor = 0;
     d->m_unit_terrain_damage_factor = 0;
+    d->m_static_army_general_limit = 0;
+    d->m_static_civic_limit = 0;
 }
 
 //================================================================================================================================
@@ -350,6 +352,36 @@ void GameConfigSettings::set_unit_terrain_damage_factor (u16 v) {
     }
     ensure_ovr();
     assign_u16(&m_cfg->m_unit_terrain_damage_factor, v);
+}
+
+u16 GameConfigSettings::get_static_army_general_limit () const {
+    return cur().m_static_army_general_limit;
+}
+
+void GameConfigSettings::set_static_army_general_limit (u16 v) {
+    if (eq_u16(v, m_defaults.m_static_army_general_limit)) {
+        if (!m_is_default) {
+            assign_u16(&m_cfg->m_static_army_general_limit, v);
+        }
+        return;
+    }
+    ensure_ovr();
+    assign_u16(&m_cfg->m_static_army_general_limit, v);
+}
+
+u16 GameConfigSettings::get_static_civic_limit () const {
+    return cur().m_static_civic_limit;
+}
+
+void GameConfigSettings::set_static_civic_limit (u16 v) {
+    if (eq_u16(v, m_defaults.m_static_civic_limit)) {
+        if (!m_is_default) {
+            assign_u16(&m_cfg->m_static_civic_limit, v);
+        }
+        return;
+    }
+    ensure_ovr();
+    assign_u16(&m_cfg->m_static_civic_limit, v);
 }
 
 //================================================================================================================================

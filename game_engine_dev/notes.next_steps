@@ -32,3 +32,21 @@ AI procedures:
  - We need a faster worker turn handler regarding roads.
  - AI pathing has been augmented with a more robust peeker in p2p pathing; its too slow.
  - We need an AI procedure class that handled unit encountered when pathing. 
+
+
+
+Chiefdom                   : Authority    : tech(Foundation)
+Barter                     : Economy      : tech(Foundation)
+Communal Labor             : Labor        : tech(Agriculture)
+Gift Exchange              : Diplomacy    : tech(Foundation)
+Ancestor Cult              : Religion     : tech(Foundation)
+Oral Tradition             : Learning     : tech(Alphabet)
+Clan Bonds                 : Citizenship  : tech(Foundation)
+Seasonal Camps             : Expansion    : tech(Agriculture)
+Folk Custom                : Doctrine     : tech(Foundation)
+
+Factory Discipline         : Industry     : tech(Factory System)
+Public Hygiene             : Welfare      : tech(Urban Sanitation)
+Cabinet Secrets            : Espionage    : tech(Espionage)
+National Will              : Ideology     : tech(Nationalism)
+Biosphere Compact          : Futures      : tech(Ecology)

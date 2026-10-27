@@ -179,6 +179,10 @@ bool GameIoCmp::players (const PlayerState* a, u16 a_n, const PlayerState* b, u1
             std::printf("GameIoCmp player %u tech bits mismatch\n", static_cast<u32>(p));
             return false;
         }
+        if (!bit_cl(pa.m_civics_adopted, pb.m_civics_adopted)) {
+            std::printf("GameIoCmp player %u civic bits mismatch\n", static_cast<u32>(p));
+            return false;
+        }
     }
     return true;
 }

@@ -20,6 +20,8 @@ def get_entries ():
         "city_job",
         "civ",
         "civ_trait",
+        "civic_type",
+        "civic",
         "resource",
         "res_dist",
         "res_type",
@@ -61,6 +63,7 @@ def get_req_test_stems ():
         "small_wonder",
         "worker_job",
         "worker_job_imp",
+        "civic",
     ]
 
 def get_map_specs ():

@@ -273,7 +273,8 @@ int main (int argc, char **argv) {
     std::printf ("edge blend  stamp %dx%d  splat=%s  rim thick/delta AA  tex=dat15\n",
                  blit.sw (), blit.sh (), splat_name);
 
-    DiaDat15 bank_desert, bank_plains, bank_grass, bank_tundra, bank_ocean;
+    DiaDat15 bank_desert, bank_plains, bank_grass, bank_blacksoil;
+    DiaDat15 bank_ocean, bank_sea, bank_coast;
     char path[512];
     std::snprintf (path, sizeof (path), "%s/tile_desert.dat15", dat_dir);
     if (!bank_desert.ld (path, TEX_W, TEX_H)) { std::fprintf (stderr, "bad bank %s\n", path); return 1; }
@@ -281,14 +282,18 @@ int main (int argc, char **argv) {
     if (!bank_plains.ld (path, TEX_W, TEX_H)) { std::fprintf (stderr, "bad bank %s\n", path); return 1; }
     std::snprintf (path, sizeof (path), "%s/tile_grassland.dat15", dat_dir);
     if (!bank_grass.ld (path, TEX_W, TEX_H)) { std::fprintf (stderr, "bad bank %s\n", path); return 1; }
-    std::snprintf (path, sizeof (path), "%s/tile_tundra.dat15", dat_dir);
-    if (!bank_tundra.ld (path, TEX_W, TEX_H)) { std::fprintf (stderr, "bad bank %s\n", path); return 1; }
+    std::snprintf (path, sizeof (path), "%s/tile_blacksoil.dat15", dat_dir);
+    if (!bank_blacksoil.ld (path, TEX_W, TEX_H)) { std::fprintf (stderr, "bad bank %s\n", path); return 1; }
     std::snprintf (path, sizeof (path), "%s/tile_ocean.dat15", dat_dir);
     if (!bank_ocean.ld (path, TEX_W, TEX_H)) { std::fprintf (stderr, "bad bank %s\n", path); return 1; }
+    std::snprintf (path, sizeof (path), "%s/tile_sea.dat15", dat_dir);
+    if (!bank_sea.ld (path, TEX_W, TEX_H)) { std::fprintf (stderr, "bad bank %s\n", path); return 1; }
+    std::snprintf (path, sizeof (path), "%s/tile_coast.dat15", dat_dir);
+    if (!bank_coast.ld (path, TEX_W, TEX_H)) { std::fprintf (stderr, "bad bank %s\n", path); return 1; }
 
     const DiaDat15 *banks[TERRAIN_N] = {
-        &bank_desert, &bank_plains, &bank_grass, &bank_tundra,
-        &bank_ocean, &bank_ocean, &bank_ocean, &bank_ocean, &bank_ocean
+        &bank_desert, &bank_plains, &bank_grass, &bank_blacksoil,
+        &bank_ocean, &bank_sea, &bank_coast, &bank_sea, &bank_coast
     };
 
     PatSet pats;

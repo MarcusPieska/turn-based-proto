@@ -4,7 +4,7 @@ Hanging Gardens                :  300 : tech(Mathematics)         : building(Tem
 Colossus                       :  200 : tech(Bronze Working)      : resource(Iron)
 Great Lighthouse               :  200 : tech(Navigation)          : building(Harbor, 3) : flag(IS_COASTAL, CITY)
 Oracle                         :  300 : tech(Philosophy)
-Great Wall                     :  300 : tech(Masonry)
+Great Wall                     :  300 : tech(Massive Stone Works)
 Basilica Cistern               :  300 : tech(Engineering)         : flag(HAS_FRESH_WATER, CITY)
 Statue of Zeus                 :  300 : tech(Mathematics)         : resource(Ivory)
 Sun Tzu's Art of War           :  400 : tech(Feudalism)

@@ -37,6 +37,8 @@ const DataParserBase* g_toggle_global_name_parser = nullptr;
 const DataParserBase* g_city_job_name_parser = nullptr;
 const DataParserBase* g_civ_name_parser = nullptr;
 const DataParserBase* g_civ_trait_name_parser = nullptr;
+const DataParserBase* g_civic_type_name_parser = nullptr;
+const DataParserBase* g_civic_name_parser = nullptr;
 const DataParserBase* g_resource_name_parser = nullptr;
 const DataParserBase* g_res_dist_name_parser = nullptr;
 const DataParserBase* g_res_type_name_parser = nullptr;
@@ -88,6 +90,14 @@ u16 cb_civ_name_to_idx (cstr name) {
 
 u16 cb_civ_trait_name_to_idx (cstr name) {
     return g_civ_trait_name_parser->name_to_idx(name);
+}
+
+u16 cb_civic_type_name_to_idx (cstr name) {
+    return g_civic_type_name_parser->name_to_idx(name);
+}
+
+u16 cb_civic_name_to_idx (cstr name) {
+    return g_civic_name_parser->name_to_idx(name);
 }
 
 u16 cb_resource_name_to_idx (cstr name) {
@@ -203,6 +213,8 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_city_job_items(),
     m_civ_items(),
     m_civ_trait_items(),
+    m_civic_type_items(),
+    m_civic_items(),
     m_resource_items(),
     m_res_dist_items(),
     m_res_type_items(),
@@ -235,6 +247,8 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_city_job_name_parser(nullptr),
     m_civ_name_parser(nullptr),
     m_civ_trait_name_parser(nullptr),
+    m_civic_type_name_parser(nullptr),
+    m_civic_name_parser(nullptr),
     m_resource_name_parser(nullptr),
     m_res_dist_name_parser(nullptr),
     m_res_type_name_parser(nullptr),
@@ -273,6 +287,8 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_city_job_data(nullptr),
     m_civ_data(nullptr),
     m_civ_trait_data(nullptr),
+    m_civic_type_data(nullptr),
+    m_civic_data(nullptr),
     m_resource_data(nullptr),
     m_res_dist_data(nullptr),
     m_res_type_data(nullptr),
@@ -322,6 +338,12 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_civ_trait_items.load_file_content(m_paths.get_path_to_civ_traits());
     m_civ_trait_items.split_string_by_char(0, '\n');
     DataParserBase::normalize_lines(m_civ_trait_items);
+    m_civic_type_items.load_file_content(m_paths.get_path_to_civic_types());
+    m_civic_type_items.split_string_by_char(0, '\n');
+    DataParserBase::normalize_lines(m_civic_type_items);
+    m_civic_items.load_file_content(m_paths.get_path_to_civics());
+    m_civic_items.split_string_by_char(0, '\n');
+    DataParserBase::normalize_lines(m_civic_items);
     m_resource_items.load_file_content(m_paths.get_path_to_resources());
     m_resource_items.split_string_by_char(0, '\n');
     DataParserBase::normalize_lines(m_resource_items);
@@ -404,6 +426,8 @@ StaticParsingManager::StaticParsingManager (cstr path_offset) :
     m_city_job_name_parser = new DataParserBase(m_city_job_items, NameToIdxCbs());
     m_civ_name_parser = new DataParserBase(m_civ_items, NameToIdxCbs());
     m_civ_trait_name_parser = new DataParserBase(m_civ_trait_items, NameToIdxCbs());
+    m_civic_type_name_parser = new DataParserBase(m_civic_type_items, NameToIdxCbs());
+    m_civic_name_parser = new DataParserBase(m_civic_items, NameToIdxCbs());
     m_resource_name_parser = new DataParserBase(m_resource_items, NameToIdxCbs());
     m_res_dist_name_parser = new DataParserBase(m_res_dist_items, NameToIdxCbs());
     m_res_type_name_parser = new DataParserBase(m_res_type_items, NameToIdxCbs());
@@ -442,6 +466,8 @@ StaticParsingManager::~StaticParsingManager () {
     delete m_city_job_name_parser;
     delete m_civ_name_parser;
     delete m_civ_trait_name_parser;
+    delete m_civic_type_name_parser;
+    delete m_civic_name_parser;
     delete m_resource_name_parser;
     delete m_res_dist_name_parser;
     delete m_res_type_name_parser;
@@ -522,6 +548,22 @@ const CivTraitStaticDataStruct* StaticParsingManager::get_civ_trait_data () cons
 
 u16 StaticParsingManager::get_civ_trait_count () const {
     return safe_size_to_u16(m_civ_trait_items.get_string_count());
+}
+
+const CivicTypeStaticDataStruct* StaticParsingManager::get_civic_type_data () const {
+    return m_civic_type_data;
+}
+
+u16 StaticParsingManager::get_civic_type_count () const {
+    return safe_size_to_u16(m_civic_type_items.get_string_count());
+}
+
+const CivicStaticDataStruct* StaticParsingManager::get_civic_data () const {
+    return m_civic_data;
+}
+
+u16 StaticParsingManager::get_civic_count () const {
+    return safe_size_to_u16(m_civic_items.get_string_count());
 }
 
 const ResourceStaticDataStruct* StaticParsingManager::get_resource_data () const {
@@ -743,6 +785,14 @@ const DataParserBase& StaticParsingManager::get_civ_trait_name_parser () const {
     return *m_civ_trait_name_parser;
 }
 
+const DataParserBase& StaticParsingManager::get_civic_type_name_parser () const {
+    return *m_civic_type_name_parser;
+}
+
+const DataParserBase& StaticParsingManager::get_civic_name_parser () const {
+    return *m_civic_name_parser;
+}
+
 const DataParserBase& StaticParsingManager::get_resource_name_parser () const {
     return *m_resource_name_parser;
 }
@@ -879,6 +929,8 @@ void StaticParsingManager::build_name_to_idx_callbacks () {
     g_city_job_name_parser = m_city_job_name_parser;
     g_civ_name_parser = m_civ_name_parser;
     g_civ_trait_name_parser = m_civ_trait_name_parser;
+    g_civic_type_name_parser = m_civic_type_name_parser;
+    g_civic_name_parser = m_civic_name_parser;
     g_resource_name_parser = m_resource_name_parser;
     g_res_dist_name_parser = m_res_dist_name_parser;
     g_res_type_name_parser = m_res_type_name_parser;
@@ -911,6 +963,8 @@ void StaticParsingManager::build_name_to_idx_callbacks () {
     m_name_to_idx_cbs.city_job_name_to_idx = cb_city_job_name_to_idx;
     m_name_to_idx_cbs.civ_name_to_idx = cb_civ_name_to_idx;
     m_name_to_idx_cbs.civ_trait_name_to_idx = cb_civ_trait_name_to_idx;
+    m_name_to_idx_cbs.civic_type_name_to_idx = cb_civic_type_name_to_idx;
+    m_name_to_idx_cbs.civic_name_to_idx = cb_civic_name_to_idx;
     m_name_to_idx_cbs.resource_name_to_idx = cb_resource_name_to_idx;
     m_name_to_idx_cbs.res_dist_name_to_idx = cb_res_dist_name_to_idx;
     m_name_to_idx_cbs.res_type_name_to_idx = cb_res_type_name_to_idx;
@@ -936,7 +990,7 @@ void StaticParsingManager::build_name_to_idx_callbacks () {
     m_name_to_idx_cbs.tile_yield_type_name_to_idx = cb_tile_yield_type_name_to_idx;
     m_name_to_idx_cbs.improvement_yield_name_to_idx = cb_improvement_yield_name_to_idx;
 
-    m_callback_count = 31;
+    m_callback_count = 33;
     DataParserBase::set_item_effect_handler(&m_name_to_idx_cbs, &m_effect_items);
 }
 
@@ -948,6 +1002,8 @@ void StaticParsingManager::parse_supported_data () {
     CityJobParser city_job_parser(m_city_job_items, m_name_to_idx_cbs);
     CivParser civ_parser(m_civ_items, m_name_to_idx_cbs);
     CivTraitParser civ_trait_parser(m_civ_trait_items, m_name_to_idx_cbs);
+    CivicTypeParser civic_type_parser(m_civic_type_items, m_name_to_idx_cbs);
+    CivicParser civic_parser(m_civic_items, m_name_to_idx_cbs);
     ResourceParser resource_parser(m_resource_items, m_name_to_idx_cbs);
     ResDistParser res_dist_parser(m_res_dist_items, m_name_to_idx_cbs);
     ResTypeParser res_type_parser(m_res_type_items, m_name_to_idx_cbs);
@@ -980,6 +1036,8 @@ void StaticParsingManager::parse_supported_data () {
     m_city_job_data = city_job_parser.parse_data_dependencies();
     m_civ_data = civ_parser.parse_data_dependencies();
     m_civ_trait_data = civ_trait_parser.parse_data_dependencies();
+    m_civic_type_data = civic_type_parser.parse_data_dependencies();
+    m_civic_data = civic_parser.parse_data_dependencies();
     m_resource_data = resource_parser.parse_data_dependencies();
     m_res_dist_data = res_dist_parser.parse_data_dependencies();
     m_res_type_data = res_type_parser.parse_data_dependencies();
