@@ -60,12 +60,34 @@ def draw_label(draw: ImageDraw.ImageDraw, x: int, y: int, text: str, font, fill,
         draw.text((tx, ty), line, font=font, fill=fill)
         ty += th + gap
 
-def annotate(img_path: Path, anno_path: Path, out_path: Path, font_size: int):
+def heat_rgb(n: int, lo: int = 0, hi: int = 20):
+    if hi <= lo:
+        t = 0.0
+    else:
+        t = (max(lo, min(hi, n)) - lo) / float(hi - lo)
+    return (int(255 * t), 0, int(255 * (1.0 - t)))
+
+def parse_dot(text: str):
+    if text == "@":
+        return 0
+    if text.startswith("@") and text[1:].isdigit():
+        return int(text[1:])
+    return None
+
+def draw_dot(draw: ImageDraw.ImageDraw, x: int, y: int, r_in: int, r_out: int, fill):
+    draw.ellipse((x - r_out, y - r_out, x + r_out, y + r_out), fill=(0, 0, 0))
+    draw.ellipse((x - r_in, y - r_in, x + r_in, y + r_in), fill=fill)
+
+def annotate(img_path: Path, anno_path: Path, out_path: Path, font_size: int, r_in: int, r_out: int):
     img = Image.open(img_path).convert("RGB")
     draw = ImageDraw.Draw(img)
     font = pick_font(font_size)
     for x, y, text in load_anno(anno_path):
-        draw_label(draw, x, y, text, font, fill=(255, 255, 40), outline=(0, 0, 0))
+        n = parse_dot(text)
+        if n is not None:
+            draw_dot(draw, x, y, r_in, r_out, heat_rgb(n))
+        else:
+            draw_label(draw, x, y, text, font, fill=(255, 255, 40), outline=(0, 0, 0))
     out_path.parent.mkdir(parents=True, exist_ok=True)
     img.save(out_path)
     print(f"wrote {out_path}")
@@ -81,6 +103,8 @@ def main():
     ap.add_argument("anno", type=Path, help="annotation text file")
     ap.add_argument("out", type=Path, help="output annotated image path")
     ap.add_argument("--font-size", type=int, default=18, help="label font size (default 18)")
+    ap.add_argument("--dot-r-in", type=int, default=4, help="inner heat-dot radius for @N markers")
+    ap.add_argument("--dot-r-out", type=int, default=6, help="outer black dot radius for @N markers")
     args = ap.parse_args()
     if not args.image.is_file():
         print(f"missing image: {args.image}")
@@ -88,7 +112,7 @@ def main():
     if not args.anno.is_file():
         print(f"missing anno: {args.anno}")
         return 1
-    annotate(args.image, args.anno, args.out, args.font_size)
+    annotate(args.image, args.anno, args.out, args.font_size, args.dot_r_in, args.dot_r_out)
     return 0
 
 if __name__ == "__main__":
