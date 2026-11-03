@@ -208,7 +208,7 @@ bool UnitGroupManagement::muster_collect_depart (
         if (u == nullptr) {
             break;
         }
-        if (u->m_player_idx == player_idx && !ug_is_tail(*u)) {
+        if (u->m_player_idx == player_idx && !ug_is_tail(*u) && u->m_in_army == 0u) {
             keys[n++] = k;
         }
         cur = u->m_next_unit_on_tile;

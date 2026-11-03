@@ -84,6 +84,7 @@ public:
     static bool form_group_chain (GameState& s, const UnitAddKey* keys, u16 n, UnitAddKey* out_head);
     static bool flatten_groups (GameState& s, const UnitAddKey* heads, u16 n, UnitAddKey* out_head);
     static void set_grp_campaign (GameState& s, UnitAddKey head, u8 on);
+    static void set_grp_army (GameState& s, UnitAddKey head, u8 on);
 
     // Thin wrappers -> UnitGroupManagement (group selection policy)
     static bool muster_collect_depart (

@@ -2,36 +2,40 @@
 //=> - Include guards -
 //================================================================================================================================
 
-#ifndef TARGET_SECTOR_INTEGRAL_H
-#define TARGET_SECTOR_INTEGRAL_H
+#ifndef CITY_SELECT_GREEDY_H
+#define CITY_SELECT_GREEDY_H
 
 #include "game_primitives.h"
 
+class GameState;
+
 //================================================================================================================================
-//=> - TargetSector_Integral -
+//=> - CitySelect_Greedy -
 //================================================================================================================================
 //
-//  Picks a land sector and enemy seat for war declaration. Prefers any shared sector; otherwise the
-//  best integral neighbor. Fills the caller's city-index queue with that enemy's cities in the
-//  sector (same buffer shape as WarTurnHandler::m_tgts). Requires SectorSupport::bind.
+//  In-sector enemy city order for war plans. Gathers via SectorSupport, then nearest-next chain
+//  from (ax,ay) with Manhattan + lower index ties. Stack scratch only; cap is k_cap.
 //
 //================================================================================================================================
 
-class TargetSector_Integral {
+class CitySelect_Greedy {
 public:
-    static bool pick (
-        u16 player,
-        u16* tgts,
-        u16 cap,
-        u16* out_n,
-        u16* out_sector,
-        u16* out_enemy);
+    static const u16 k_cap = 20u;
+
+    static u16 fill (
+        GameState& st,
+        u16 sector,
+        u16 enemy,
+        u16 ax,
+        u16 ay,
+        u16* out,
+        u16 cap);
 
 private:
-    TargetSector_Integral () = delete;
+    CitySelect_Greedy () = delete;
 };
 
-#endif // TARGET_SECTOR_INTEGRAL_H
+#endif // CITY_SELECT_GREEDY_H
 
 //================================================================================================================================
 //=> - End of file -

@@ -11,7 +11,8 @@
 //=> - Sector/flood orchestrator -
 //================================================================================================================================
 //
-//  Current targeting path: TargetSector_Defensible, else nearest non-lucky / enemy-tile flood.
+//  SectorFlood targeting path: SectSelectKind (default Defensible) picks a sector; CitySelect_Greedy
+//  orders enemy cities in that sector; else nearest non-lucky / enemy-tile flood.
 //  Called only from war_target_pick; not a class hierarchy.
 //
 //================================================================================================================================

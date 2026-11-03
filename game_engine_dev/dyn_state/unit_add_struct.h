@@ -53,9 +53,10 @@ struct UnitAddStruct {
     u64 m_level : 8; // Nerf or boost to damage dealt and taken; green, regular, elite, etc'
     u64 m_misc : 8; // Only used by worker helper
     u64 m_unit_size : 6; // The size of the unit formation
-    u64 m_in_campaign : 1; // Will be moved up to bit array once we refactor to use a U12_KEY_NULL sentinel
+    u64 m_in_campaign : 1; // True if unit is in an army that is actively at war
     u64 m_being_extended : 1; // True if m_unit_size is being extended; will freeze unit in place until extension completes
-    u64 m_unused : 8; // Extra padding to align to 16 bytes, keep these
+    u64 m_in_army : 1; // True if assigned to a standing front army; never mustered
+    u64 m_unused : 7; // Extra padding to align to 16 bytes, keep these
 
     i8 m_delta_x_dest; // Work tile dx from m_x; UNIT_DELTA_DEST_NONE or UNIT_DELTA_DEST_ARRIVED
     i8 m_delta_y_dest; // Work tile dy from m_y; UNIT_DELTA_DEST_NONE or UNIT_DELTA_DEST_ARRIVED

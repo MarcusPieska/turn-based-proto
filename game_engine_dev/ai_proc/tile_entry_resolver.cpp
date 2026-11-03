@@ -43,6 +43,7 @@ static void flip_unit (UnitAddStruct* u, u16 self_seat) {
     }
     u->m_player_idx = self_seat;
     u->m_in_campaign = 0u;
+    u->m_in_army = 0u;
 }
 
 static void flip_group (GameState& s, UnitAddKey head, u16 self_seat) {

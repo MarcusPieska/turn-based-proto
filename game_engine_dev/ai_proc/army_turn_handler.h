@@ -62,6 +62,7 @@ struct WarArmy {
     u16 m_ty; // Active target city y
     u16 m_idx; // Slot index for logs
     u16 m_path_i; // Index into m_paths
+    u16 m_front; // BorderFront index; U16_KEY_NULL if unbound
     PathGradients* m_paths; // Non-owning path bank; null if unset
     ArmyPhase m_phase; // Self-drive phase for handle
     bool m_stall; // True when last assault returned Stall

@@ -793,6 +793,21 @@ void UnitMovementMng::set_grp_campaign (GameState& s, UnitAddKey head, u8 on) {
     }
 }
 
+void UnitMovementMng::set_grp_army (GameState& s, UnitAddKey head, u8 on) {
+    UnitAddKey cur = head;
+    while (cur.is_valid()) {
+        UnitAddStruct* u = u_get(s, cur);
+        if (u == nullptr) {
+            break;
+        }
+        u->m_in_army = (on != 0u) ? 1u : 0u;
+        if (u->m_next_unit_in_group == U16_KEY_NULL) {
+            break;
+        }
+        cur = UnitAddKey::from_raw(u->m_next_unit_in_group);
+    }
+}
+
 bool UnitMovementMng::unlink_group (GameState& s, UnitAddKey tail) {
     UnitAddStruct* tu = u_get(s, tail);
     if (tu == nullptr || !is_grp_tail(*tu)) {

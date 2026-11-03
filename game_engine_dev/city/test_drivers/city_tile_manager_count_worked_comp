@@ -86,7 +86,9 @@ g++ $CXXFLAGS $INC -c ../../ai_proc/gen_land_sectors.cpp -o gen_land_sectors.o
 g++ $CXXFLAGS $INC -c ../../ai_proc/land_sector_network.cpp -o land_sector_network.o
 g++ $CXXFLAGS $INC -c ../../ai_proc/gen_land_sector_network.cpp -o gen_land_sector_network.o
 g++ $CXXFLAGS $INC -c ../../ai_proc/sector_support.cpp -o sector_support.o
-g++ $CXXFLAGS $INC -c ../../ai_proc/target_sector_defensible.cpp -o target_sector_defensible.o
+g++ $CXXFLAGS $INC -c ../../ai_proc/sect_select_defensible.cpp -o sect_select_defensible.o
+g++ $CXXFLAGS $INC -c ../../ai_proc/sect_select.cpp -o sect_select.o
+g++ $CXXFLAGS $INC -c ../../ai_proc/sect_select_walk.cpp -o sect_select_walk.o
 g++ $CXXFLAGS $INC -c ../../ai_proc/mock_muster_siege.cpp -o mock_muster_siege.o
 g++ $CXXFLAGS $INC -c ../../game/tile_yields.cpp -o tile_yields.o
 g++ $CXXFLAGS $INC -c ../../game/tile_working.cpp -o tile_working.o
@@ -234,7 +236,9 @@ g++ $CXXFLAGS -o city_tile_manager_count_worked_tester \
     land_sector_network.o \
     gen_land_sector_network.o \
     sector_support.o \
-    target_sector_defensible.o \
+    sect_select_defensible.o \
+    sect_select.o \
+    sect_select_walk.o \
     mock_muster_siege.o \
     tile_yields.o \
     tile_working.o \
@@ -361,6 +365,6 @@ rm -f runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_load
     worker_city_jobs.o gen_road_network.o linear_bld.o city_tracer.o \
     ai_unit_production_default.o ai_unit_production_aggressive.o \
     target_ordering_manhattan.o target_ordering_flood.o gen_land_sectors.o land_sector_network.o \
-    gen_land_sector_network.o sector_support.o target_sector_defensible.o mock_muster_siege.o \
+    gen_land_sector_network.o sector_support.o sect_select_defensible.o mock_muster_siege.o \
     city_tile_manager_count_worked_tester.o game_io.o city_job_trait_attribution.o city_job_trait_orderings.o
 exit $RC
