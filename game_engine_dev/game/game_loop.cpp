@@ -14,6 +14,7 @@
 #include "city_turn_handler.h"
 #include "combat_mng.h"
 #include "defensive_unit_turn_handler.h"
+#include "derived_statics_io.h"
 #include "game_array_simple.h"
 #include "game_map_defs.h"
 #include "game_state.h"
@@ -446,6 +447,28 @@ bool GameLoop::begin (GameState* state, cstr trace_path) {
     arm_settling(*state);
     ResearchTurnHandler::begin(*state);
     claim_city_borders(*state);
+    {
+        char der_path[512];
+        der_path[0] = '.';
+        der_path[1] = '/';
+        der_path[2] = 0;
+        const char* slash = std::strrchr(trace_path, '/');
+        if (slash != nullptr && slash > trace_path) {
+            const u32 n = static_cast<u32>(slash - trace_path);
+            if (n + 1u + 19u < sizeof(der_path)) {
+                std::memcpy(der_path, trace_path, n);
+                der_path[n] = '/';
+                std::memcpy(der_path + n + 1u, "derived_statics.bin", 20u);
+            }
+        } else {
+            std::memcpy(der_path, "derived_statics.bin", 20u);
+        }
+        const Whiteboard_2B* wb = WarTurnHandler::sec_wb();
+        const u16 sec_n = WarTurnHandler::sec_n();
+        if (wb != nullptr && wb->ok() && sec_n != 0u && wb->get_iter_ptr() != nullptr) {
+            (void)DerivedStaticsIO::write(der_path, wb->get_iter_ptr(), wb->w(), wb->h(), sec_n);
+        }
+    }
     m_state = state;
     return true;
 }

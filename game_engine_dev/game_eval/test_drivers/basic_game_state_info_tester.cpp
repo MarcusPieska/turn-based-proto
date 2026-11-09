@@ -9,6 +9,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include "city.h"
+#include "city_array.h"
 #include "civ_static_key.h"
 #include "civ_trait_static_key.h"
 #include "eval_driver.h"
@@ -204,6 +206,28 @@ static void fmt_traits (const RuntimeStatics& st, u16 civ_idx, char* out, u32 ou
     }
 }
 
+static void fill_city_xy (const CityArray& cities, u16* cx, u16* cy, u8* have) {
+    for (u16 i = 0; i < k_seat_cap; ++i) {
+        cx[i] = 0u;
+        cy[i] = 0u;
+        have[i] = 0u;
+    }
+    const u16 cn = cities.get_city_count();
+    for (u16 i = 0; i < cn; ++i) {
+        const City* c = cities.get_city(i);
+        if (c == nullptr) {
+            continue;
+        }
+        const u16 seat = c->get_owner();
+        if (seat >= k_seat_cap || have[seat] != 0u) {
+            continue;
+        }
+        cx[seat] = c->get_x();
+        cy[seat] = c->get_y();
+        have[seat] = 1u;
+    }
+}
+
 static bool wr_lucky_anno (
     cstr path,
     u32 turn,
@@ -211,9 +235,13 @@ static bool wr_lucky_anno (
     u16 seat_n,
     const u16* cx,
     const u16* cy,
+    const u8* have,
+    const u16* fall_x,
+    const u16* fall_y,
     const u32* sn,
     const RuntimeStatics& st) {
-    if (path == nullptr || seats == nullptr || cx == nullptr || cy == nullptr || sn == nullptr) {
+    if (path == nullptr || seats == nullptr || cx == nullptr || cy == nullptr || have == nullptr
+        || fall_x == nullptr || fall_y == nullptr || sn == nullptr) {
         return false;
     }
     std::FILE* fp = std::fopen(path, "w");
@@ -225,17 +253,28 @@ static bool wr_lucky_anno (
     u16 wrote = 0u;
     const u16 n = (seat_n < k_seat_cap) ? seat_n : k_seat_cap;
     for (u16 seat = 0; seat < n; ++seat) {
-        if (seats[seat].m_lucky == 0u || sn[seat] == 0u) {
+        if (seats[seat].m_lucky == 0u) {
+            continue;
+        }
+        u16 x = 0u;
+        u16 y = 0u;
+        if (have[seat] != 0u) {
+            x = cx[seat];
+            y = cy[seat];
+        } else if (sn[seat] != 0u) {
+            x = fall_x[seat];
+            y = fall_y[seat];
+        } else {
             continue;
         }
         char traits[32];
         fmt_traits(st, seats[seat].m_civ_index, traits, sizeof(traits));
         if (traits[0] != 0) {
-            std::fprintf(fp, "%u %u Lucky: %u\\n%s\n", static_cast<u32>(cx[seat]),
-                static_cast<u32>(cy[seat]), static_cast<u32>(seat), traits);
+            std::fprintf(fp, "%u %u Lucky: %u\\n%s\n", static_cast<u32>(x), static_cast<u32>(y),
+                static_cast<u32>(seat), traits);
         } else {
-            std::fprintf(fp, "%u %u Lucky: %u\n", static_cast<u32>(cx[seat]),
-                static_cast<u32>(cy[seat]), static_cast<u32>(seat));
+            std::fprintf(fp, "%u %u Lucky: %u\n", static_cast<u32>(x), static_cast<u32>(y),
+                static_cast<u32>(seat));
         }
         wrote = static_cast<u16>(wrote + 1u);
     }
@@ -281,6 +320,7 @@ int BasicGameStateInfoTester::run () {
         return 1;
     }
     const u32 turn = paths().save_turn_at(static_cast<u16>(save_n - 1u));
+    const u32 turn0 = paths().save_turn_at(0);
     RuntimeStaticLoader loader;
     if (!loader.load(G_RT_LIB, G_RT_DATA)) {
         std::printf("basic_game_state_info: cannot load runtime statics\n");
@@ -305,9 +345,12 @@ int BasicGameStateInfoTester::run () {
     }
     char map_p[512];
     char players_p[512];
+    char cities_p[512];
     if (!paths().map_path(turn, map_p, sizeof(map_p))
-        || !paths().players_path(turn, players_p, sizeof(players_p))) {
-        std::printf("basic_game_state_info: bad map/players path turn=%u\n", turn);
+        || !paths().players_path(turn0, players_p, sizeof(players_p))
+        || !paths().cities_path(turn0, cities_p, sizeof(cities_p))) {
+        std::printf("basic_game_state_info: bad map/players/cities path turn=%u turn0=%u\n",
+            turn, turn0);
         TechAgeMng::clear();
         return 1;
     }
@@ -355,7 +398,19 @@ int BasicGameStateInfoTester::run () {
         TechAgeMng::clear();
         return 1;
     }
-    if (!wr_lucky_anno(anno_lucky, turn, seats, seat_n, cx, cy, sn, loader.statics())) {
+    CityArray cities;
+    if (!GameIo::load_cities(cities_p, cities)) {
+        std::printf("basic_game_state_info: load_cities failed %s\n", cities_p);
+        free_seats(seats, seat_n);
+        TechAgeMng::clear();
+        return 1;
+    }
+    u16 city_x[k_seat_cap];
+    u16 city_y[k_seat_cap];
+    u8 city_have[k_seat_cap];
+    fill_city_xy(cities, city_x, city_y, city_have);
+    if (!wr_lucky_anno(anno_lucky, turn, seats, seat_n, city_x, city_y, city_have, cx, cy, sn,
+            loader.statics())) {
         std::printf("basic_game_state_info: lucky anno write failed\n");
         free_seats(seats, seat_n);
         TechAgeMng::clear();

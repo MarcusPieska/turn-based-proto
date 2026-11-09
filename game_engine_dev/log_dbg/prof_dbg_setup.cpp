@@ -9,6 +9,8 @@
 //=> - Includes -
 //================================================================================================================================
 
+#define LOG_DBG_SO_BUILD
+
 #include "prof_dbg_setup.h"
 #include "prof_game_loop.h"
 #include "prof_th_war.h"

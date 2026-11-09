@@ -37,6 +37,11 @@ static bool ug_is_tail (const UnitAddStruct& u) {
     return u.m_x == U16_KEY_NULL && u.m_y == U16_KEY_NULL;
 }
 
+static void ug_clr_war (GameState& s, UnitAddKey k) {
+    UnitMovementMng::set_grp_army(s, k, 0u);
+    UnitMovementMng::set_grp_campaign(s, k, 0u);
+}
+
 static bool ug_is_defense (const GameState& s, u16 typ_idx) {
     if (s.m_statics == nullptr) {
         return false;
@@ -255,6 +260,7 @@ bool UnitGroupManagement::campaign_collect_depart (
         if (u != nullptr && ug_is_defense(s, u->m_unit_typ_idx)) {
             leave[i] = true;
             left++;
+            ug_clr_war(s, in_keys[i]);
         }
     }
     for (u16 i = 0; i < in_n; ++i) {
@@ -285,11 +291,37 @@ bool UnitGroupManagement::muster_leave_one_defense (
     if (!muster_collect_depart(s, x, y, player_idx, keys, k_cap, &n) || n == 0u) {
         return false;
     }
-    UnitAddKey head = keys[0];
-    for (u16 i = 1; i < n; ++i) {
+    u16 leave_i = U16_KEY_NULL;
+    for (u16 i = 0; i < n; ++i) {
+        const UnitAddStruct* u = ug_get(s, keys[i]);
+        if (u != nullptr && ug_is_defense(s, u->m_unit_typ_idx)) {
+            leave_i = i;
+            break;
+        }
+    }
+    if (n == 1u) {
+        *out_head = keys[0];
+        return true;
+    }
+    if (leave_i == U16_KEY_NULL) {
+        leave_i = 0u;
+    }
+    ug_clr_war(s, keys[leave_i]);
+    UnitAddKey head = UnitAddKey::None();
+    for (u16 i = 0; i < n; ++i) {
+        if (i == leave_i) {
+            continue;
+        }
+        if (!head.is_valid()) {
+            head = keys[i];
+            continue;
+        }
         if (!UnitMovementMng::link_group(s, head, keys[i])) {
             return false;
         }
+    }
+    if (!head.is_valid()) {
+        return false;
     }
     *out_head = head;
     return true;
@@ -414,6 +446,7 @@ bool UnitGroupManagement::campaign_form_land_army (
         if (u != nullptr && ug_is_defense(s, u->m_unit_typ_idx)) {
             leave[i] = true;
             left++;
+            ug_clr_war(s, keys[i]);
         }
     }
     UnitAddKey army[k_cap];

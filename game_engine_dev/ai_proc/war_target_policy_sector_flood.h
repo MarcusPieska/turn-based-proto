@@ -11,9 +11,9 @@
 //=> - Sector/flood orchestrator -
 //================================================================================================================================
 //
-//  SectorFlood targeting path: SectSelectKind (default Defensible) picks a sector; CitySelect_Greedy
-//  orders enemy cities in that sector; else nearest non-lucky / enemy-tile flood.
-//  Called only from war_target_pick; not a class hierarchy.
+//  SectorFlood: only sectors you control or that border them. Reach T via own city in T, or a
+//  two-sector probe from controlled neighbor S (own/free/non-lucky steps) that hits a non-lucky
+//  foe city in T; then flood T only for order. No deep look-ahead. Fallback: nearest non-lucky.
 //
 //================================================================================================================================
 

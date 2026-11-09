@@ -82,6 +82,8 @@ static char kind_ch (LuckyWarEv k) {
         return 'U';
     case LuckyWarEv::Groups:
         return 'G';
+    case LuckyWarEv::BuildUp:
+        return 'B';
     default:
         return '?';
     }
@@ -147,6 +149,9 @@ static void wr_ev_line (std::FILE* fp, const LuckyWarEvt& e) {
     case LuckyWarEv::Groups:
         std::fprintf(fp, "  t%-4u groups n=%u\n", t, a);
         break;
+    case LuckyWarEv::BuildUp:
+        std::fprintf(fp, "  t%-4u buildup city=(%u,%u)\n", t, a, b);
+        break;
     default:
         std::fprintf(fp, "  t%-4u ? a=%u b=%u\n", t, a, b);
         break;
@@ -198,6 +203,7 @@ static EvalNeed make_need () {
     n.logs().m_war_declare_fail = 1;
     n.logs().m_war_assault_fail_stop = 1;
     n.logs().m_war_army_upgrade = 1;
+    n.logs().m_war_siege_fail_buildup = 1;
     return n;
 }
 

@@ -23,7 +23,8 @@ enum class LuckyWarEv : u8 {
     DeclFail = 8,
     AssaultFail = 9,
     Upgrade = 10,
-    Groups = 11
+    Groups = 11,
+    BuildUp = 12
 };
 
 //================================================================================================================================
@@ -32,7 +33,8 @@ enum class LuckyWarEv : u8 {
 //
 //  One war-log event for a seat. m_a/m_b meaning depends on kind: Start/End enemy; Muster/Army
 //  unit_n + size_sum; Loss size; Capture city (x,y); Targets remaining n; FormFail enemy;
-//  DeclFail reason; AssaultFail city (x,y); Upgrade count on that turn; Groups grp_n.
+//  DeclFail reason; AssaultFail city (x,y); Upgrade count on that turn; Groups grp_n;
+//  BuildUp city (x,y) after siege-fail remuster.
 //
 //================================================================================================================================
 

@@ -571,15 +571,13 @@ static void print_player0_rels (const GameState& s) {
     if (s.m_player_states == nullptr || s.m_player_n == 0) {
         return;
     }
-    const u16 self_civ = s.m_player_states[0].m_civ_index;
-    const CivStaticDataKey sk0 = CivStaticDataKey::from_raw(self_civ);
-    std::printf("player 0 civ=%u relations:\n", (u32)self_civ);
+    const CivStaticDataKey sk0 = CivStaticDataKey::from_raw(0);
+    std::printf("player 0 relations:\n");
     for (u16 p = 1; p < s.m_player_n; ++p) {
-        const u16 oth = s.m_player_states[p].m_civ_index;
-        const CivRel rel = s.m_civ_relations.get(sk0, CivStaticDataKey::from_raw(oth));
+        const CivRel rel = s.m_civ_relations.get(sk0, CivStaticDataKey::from_raw(p));
         const bool open = rel != CivRel::CIV_REL_PEACE;
-        std::printf("  -> player %u civ=%u rel=%s access=%u\n",
-            (u32)p, (u32)oth, rel_name(rel), open ? 1u : 0u);
+        std::printf("  -> player %u rel=%s access=%u\n",
+            (u32)p, rel_name(rel), open ? 1u : 0u);
     }
 }
 
@@ -603,7 +601,12 @@ static bool init_seats_and_rels (GameState* state, u16 seat_n) {
     state->m_player_states = seats;
     state->m_player_n = seat_n;
     state->m_players_remaining = seat_n;
-    state->m_civ_relations.reset(civ_n);
+    state->m_civ_relations.reset(seat_n);
+    for (u16 i = 0; i < seat_n; ++i) {
+        if (!state->m_civ_relations.add_civ(i)) {
+            return false;
+        }
+    }
     const CivStaticDataKey sk0 = CivStaticDataKey::from_raw(0);
     const u8 rel_mod = static_cast<u8>(CivRel::CIV_REL_SUBJECT);
     for (u16 i = 1; i < seat_n; ++i) {

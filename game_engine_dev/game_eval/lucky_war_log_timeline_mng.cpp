@@ -16,6 +16,7 @@
 #include "log_dbg/log_war_muster.h"
 #include "log_dbg/log_war_peace.h"
 #include "log_dbg/log_war_peace_mock.h"
+#include "log_dbg/log_war_siege_fail_buildup.h"
 #include "log_dbg/log_war_targets.h"
 
 //================================================================================================================================
@@ -231,6 +232,16 @@ bool LuckyWarLogTimelineMng::fill (const EvalLog& log) {
             }
             const u16 turn = static_cast<u16>(a3);
             note_turn(&m_max_turn, turn);
+            continue;
+        }
+        if (LOG_WAR_SIEGE_FAIL_BUILDUP::PARSE(s, &a0, &a1, &a2, &a3, &a4)) {
+            u16 idx = 0;
+            if (!ensure(static_cast<u16>(a0), &idx)) {
+                continue;
+            }
+            const u16 turn = static_cast<u16>(a4);
+            note_turn(&m_max_turn, turn);
+            (void)m_tl[idx].add(turn, LuckyWarEv::BuildUp, static_cast<u16>(a2), static_cast<u16>(a3));
             continue;
         }
     }

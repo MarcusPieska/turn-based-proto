@@ -37,7 +37,9 @@ enum class ArmyPhase : u8 {
     Idle = 0,
     March = 1,
     Assault = 2,
-    Rejoin = 3
+    Rejoin = 3,
+    Park = 4,
+    Rally = 5
 };
 
 enum class ArmyTurnRslt : u8 {

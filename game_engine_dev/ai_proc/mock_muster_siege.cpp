@@ -7,6 +7,7 @@
 #include <chrono>
 #include <cstring>
 
+#include "ai_proc_toggles.h"
 #include "build_adds_array.h"
 #include "city.h"
 #include "city_array.h"
@@ -403,6 +404,21 @@ bool MockMusterSiege::siege (GameState& s, u16 city_x, u16 city_y, MockSiegeRslt
         return false;
     }
     std::memset(out, 0, sizeof(*out));
+#if defined(LUCKY_SEAT_INSTANT_COMBAT_WIN)
+    if (s.m_player_states != nullptr
+        && m_seat < s.m_player_n
+        && s.m_player_states[m_seat].m_lucky != 0u) {
+        out->m_taken = true;
+        out->m_army_n0 = m_army_n;
+        out->m_army_live = army_live();
+        out->m_def_n0 = 0u;
+        out->m_def_live = 0u;
+        out->m_us = 0u;
+        (void)city_x;
+        (void)city_y;
+        return true;
+    }
+#endif
     UnitAddStruct defs[k_cap];
     u16 dn = 0u;
     if (!copy_tile_foes(s, city_x, city_y, m_seat, defs, k_cap, &dn)) {

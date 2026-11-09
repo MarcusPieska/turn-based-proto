@@ -4,6 +4,7 @@
 
 #include "army_turn_handler.h"
 
+#include "ai_proc_toggles.h"
 #include "city.h"
 #include "city_attack_manager.h"
 #include "game_state.h"
@@ -119,6 +120,15 @@ WarAssault ArmyTurnHandler::assault (GameState& s, u16 seat, WarArmy& army, u16 
         LOG_WAR_ASSAULT_CITY_FAIL::LOG(SC_U32(seat), SC_U32(city_x), SC_U32(city_y), SC_U32(army.m_idx), SC_U32(s.m_current_turn));
         return army.m_assault;
     }
+#if defined(LUCKY_SEAT_INSTANT_COMBAT_WIN)
+    if (s.m_player_states != nullptr
+        && seat < s.m_player_n
+        && s.m_player_states[seat].m_lucky != 0u) {
+        claim_city(s, seat, city_x, city_y);
+        army.m_assault = WarAssault::Ok;
+        return army.m_assault;
+    }
+#endif
     UnitAddKey head = UnitAddKey::from_raw(army.m_hd);
     const CityAttackResult ar = CityAttackManager::assault(s, &head, city_x, city_y);
     army.m_br_tot = ar.m_br_tot;
@@ -454,6 +464,18 @@ ArmyTurnRslt ArmyTurnHandler::handle (GameState& s, u16 seat, u16 enemy, WarArmy
         army.m_phase = ArmyPhase::Idle;
         return ArmyTurnRslt::NeedTarget;
     }
+    case ArmyPhase::Park:
+        if (walk(s, army)) {
+            return ArmyTurnRslt::Busy;
+        }
+        army.m_phase = ArmyPhase::Idle;
+        return ArmyTurnRslt::NeedTarget;
+    case ArmyPhase::Rally:
+        if (walk(s, army)) {
+            return ArmyTurnRslt::Busy;
+        }
+        army.m_phase = ArmyPhase::Idle;
+        return ArmyTurnRslt::NeedTarget;
     case ArmyPhase::Idle:
     default:
         return ArmyTurnRslt::Stop;

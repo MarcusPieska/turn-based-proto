@@ -15,6 +15,7 @@ class EvalPaths;
 //
 //  Compares consecutive map saves; writes xfer_tXXXX.ppm for each save after the first (skip first),
 //  plus xfer_all.ppm. Also writes the all-transfer summary to share_dir as tile_own_xfer.ppm.
+//  After fill, prints aggressor ownership + net+ land-transfer % of land tiles for seats with net > 0.
 //
 //================================================================================================================================
 

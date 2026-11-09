@@ -9,7 +9,111 @@
 #include "eval_paths.h"
 #include "game_array_simple.h"
 #include "game_io.h"
+#include "game_map_defs.h"
 #include "map_own_xfer_save_snap.h"
+
+//================================================================================================================================
+//=> - Locals -
+//================================================================================================================================
+
+static const u16 k_seat_cap = 256u;
+static const char* k_grn = "\033[92m";
+static const char* k_rst = "\033[0m";
+
+static bool is_land_tile (u8 terr) {
+    if (terr == TERR_OCEAN[0] || terr == TERR_SEA[0] || terr == TERR_COASTAL[0]) {
+        return false;
+    }
+    if (terr == TERR_INLAND_SEA[0] || terr == TERR_INLAND_LAKE[0]) {
+        return false;
+    }
+    return true;
+}
+
+static u32 count_land_tiles (const GameArraySimple& map) {
+    const u16 w = map.width();
+    const u16 h = map.height();
+    u32 n = 0u;
+    for (u16 y = 0; y < h; ++y) {
+        for (u16 x = 0; x < w; ++x) {
+            if (is_land_tile(map.get_terrain(x, y))) {
+                ++n;
+            }
+        }
+    }
+    return n;
+}
+
+static u32 count_agg_own (const GameArraySimple& map, const u16* seats, u16 n) {
+    if (seats == nullptr || n == 0u) {
+        return 0u;
+    }
+    bool agg[k_seat_cap];
+    for (u16 s = 0; s < k_seat_cap; ++s) {
+        agg[s] = false;
+    }
+    for (u16 i = 0; i < n; ++i) {
+        if (seats[i] < k_seat_cap) {
+            agg[seats[i]] = true;
+        }
+    }
+    const u16 w = map.width();
+    const u16 h = map.height();
+    u32 own = 0u;
+    for (u16 y = 0; y < h; ++y) {
+        for (u16 x = 0; x < w; ++x) {
+            if (!is_land_tile(map.get_terrain(x, y))) {
+                continue;
+            }
+            const u8 o = map.get_civ_owner(x, y);
+            if (o < k_seat_cap && agg[o]) {
+                ++own;
+            }
+        }
+    }
+    return own;
+}
+
+static void print_net_pos (const i32* net, u32 land_n, const GameArraySimple& map) {
+    if (net == nullptr || land_n == 0u) {
+        return;
+    }
+    u16 seats[k_seat_cap];
+    u16 n = 0u;
+    i32 tot = 0;
+    for (u16 s = 0; s < k_seat_cap; ++s) {
+        if (net[s] <= 0) {
+            continue;
+        }
+        seats[n++] = s;
+        tot += net[s];
+    }
+    for (u16 i = 1; i < n; ++i) {
+        const u16 s = seats[i];
+        u16 j = i;
+        while (j > 0u) {
+            const u16 p = seats[j - 1u];
+            if (net[p] > net[s] || (net[p] == net[s] && p < s)) {
+                break;
+            }
+            seats[j] = p;
+            --j;
+        }
+        seats[j] = s;
+    }
+    const u32 agg_own = count_agg_own(map, seats, n);
+    const double agg_pct = 100.0 * static_cast<double>(agg_own) / static_cast<double>(land_n);
+    const double tot_pct = 100.0 * static_cast<double>(tot) / static_cast<double>(land_n);
+    std::printf("======================================\n");
+    std::printf("Aggressor ownership: %s%.1f %%%s\n", k_grn, agg_pct, k_rst);
+    std::printf("Total transfer: %s%.1f %%%s\n", k_grn, tot_pct, k_rst);
+    for (u16 i = 0; i < n; ++i) {
+        const u16 s = seats[i];
+        const double pct = 100.0 * static_cast<double>(net[s]) / static_cast<double>(land_n);
+        std::printf("  - Seat %u: %s%.1f %%%s\n", static_cast<u32>(s), k_grn, pct, k_rst);
+    }
+    std::printf("======================================\n");
+}
 
 //================================================================================================================================
 //=> - MapOwnXferSaveTimelineMng -
@@ -58,12 +162,17 @@ bool MapOwnXferSaveTimelineMng::fill (const EvalPaths& paths, cstr out_dir, cstr
         return false;
     }
     const u32 tile_n = static_cast<u32>(w) * static_cast<u32>(h);
+    const u32 land_n = count_land_tiles(buf_a);
     u8* acc = new u8[tile_n];
     if (acc == nullptr) {
         return false;
     }
     for (u32 i = 0; i < tile_n; ++i) {
         acc[i] = U8_KEY_NULL;
+    }
+    i32 net[k_seat_cap];
+    for (u16 s = 0; s < k_seat_cap; ++s) {
+        net[s] = 0;
     }
     GameArraySimple* prev = &buf_a;
     GameArraySimple* cur = &buf_b;
@@ -96,6 +205,15 @@ bool MapOwnXferSaveTimelineMng::fill (const EvalPaths& paths, cstr out_dir, cstr
                 }
                 const u32 i = static_cast<u32>(y) * static_cast<u32>(w) + static_cast<u32>(x);
                 acc[i] = now;
+                if (!is_land_tile(cur->get_terrain(x, y))) {
+                    continue;
+                }
+                if (now < k_seat_cap) {
+                    net[now] += 1;
+                }
+                if (was < k_seat_cap) {
+                    net[was] -= 1;
+                }
             }
         }
         if (!MapOwnXferSaveSnap::write(out_p, *cur, *prev)) {
@@ -130,6 +248,7 @@ bool MapOwnXferSaveTimelineMng::fill (const EvalPaths& paths, cstr out_dir, cstr
         }
         std::printf("wrote %s\n", share_p);
     }
+    print_net_pos(net, land_n, *prev);
     delete[] acc;
     return true;
 }

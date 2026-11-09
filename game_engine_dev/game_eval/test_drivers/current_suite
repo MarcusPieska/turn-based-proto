@@ -1,5 +1,7 @@
 ./map_own_save_timeline_tester  
 ./map_own_xfer_save_timeline_tester 
+./map_own_lucky_end_tester
+./lucky_sect_order_tester
 
 ./lucky_war_log_timeline_tester  
 ./lucky_commerce_save_timeline_tester

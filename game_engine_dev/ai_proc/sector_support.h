@@ -33,8 +33,8 @@ struct SectorPresence {
 //
 //  Static helpers over GenLandSectors paint + LandSectorNetwork + city pool. bind wires non-owning
 //  pointers; clr clears them. Full own means >=1 city and m_other == 0. Empty sectors are never full.
-//  Hot-path scratch uses whiteboards (sector-indexed prefix of map-sized sheets); seat tallies stay on
-//  the stack (k_seat_cap).
+//  find_own_seed: own city in T, else two-sector probe from a controlled neighbor S into T that must
+//  touch a non-lucky foe city in T (step: own / free / non-lucky). flood_foreign walks T only.
 //
 //================================================================================================================================
 
@@ -54,12 +54,16 @@ public:
     static u16 best_defensible_sector (u16 player);
     static u16 get_shared_sector (u16 player);
     static u16 enemy_cities (u16 sector, u16 enemy, u16* tgts, u16 cap);
+    static bool has_own_city (u16 seat, u16 sector);
+    static bool find_own_seed (u16 seat, u16 sector, u16* ox, u16* oy);
+    static u16 flood_foreign (u16 seat, u16 sector, u16 sx, u16 sy, u16* out, u16 cap);
 
 private:
     SectorSupport () = delete;
 
     static bool ready ();
     static bool tally_all (u16 player, u16* own, u16* oth);
+    static bool probe_adj (u16 seat, u16 src, u16 tgt, u16* ox, u16* oy);
 
     static const GameState* m_st; // Bound match state
     static const Whiteboard_2B* m_sec; // Sector id + 1 paint

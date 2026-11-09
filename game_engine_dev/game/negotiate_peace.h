@@ -13,8 +13,7 @@ class GameState;
 //=> - NegotiatePeace -
 //================================================================================================================================
 //
-//  Ends a war between two seats. Today only clears the aggressor's sticky m_at_war; later may
-//  trade cities, gold, or tech when the weaker side buys peace.
+//  Ends a war between two seats: clears aggressor m_at_war and sets CivRelations PEACE both ways.
 //
 //================================================================================================================================
 

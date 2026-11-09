@@ -136,23 +136,15 @@ static bool has_grp_followers (const UnitAddStruct& u) {
     return u.m_next_unit_in_group != U16_KEY_NULL;
 }
 
-static CivStaticDataKey seat_civ (const GameState& s, u16 seat) {
-    if (s.m_player_states == nullptr || seat >= s.m_player_n) {
-        return CivStaticDataKey::None();
-    }
-    return CivStaticDataKey::from_raw(s.m_player_states[seat].m_civ_index);
-}
-
 static bool seats_ally (const GameState& s, u16 seat_a, u16 seat_b) {
     if (seat_a == seat_b) {
         return true;
     }
-    const CivStaticDataKey ca = seat_civ(s, seat_a);
-    const CivStaticDataKey cb = seat_civ(s, seat_b);
-    if (!ca.is_valid() || !cb.is_valid()) {
+    if (seat_a >= s.m_civ_relations.civ_n() || seat_b >= s.m_civ_relations.civ_n()) {
         return false;
     }
-    const CivRel rel = s.m_civ_relations.get(ca, cb);
+    const CivRel rel = s.m_civ_relations.get(
+        CivStaticDataKey::from_raw(seat_a), CivStaticDataKey::from_raw(seat_b));
     return rel == CivRel::CIV_REL_ALLY || rel == CivRel::CIV_REL_SUBJECT;
 }
 

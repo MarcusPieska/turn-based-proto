@@ -24,7 +24,7 @@
 //
 //================================================================================================================================
 
-static const u16 LOG_NEED_N = 60u;
+static const u16 LOG_NEED_N = 72u;
 
 struct LogNeedMask {
     u8 m_new_turn;
@@ -71,6 +71,18 @@ struct LogNeedMask {
     u8 m_war_rejoin_link_fail;
     u8 m_war_army_cant_fight;
     u8 m_war_retarget_fail;
+    u8 m_war_flag_set;
+    u8 m_war_muster_pull;
+    u8 m_war_park;
+    u8 m_war_rally;
+    u8 m_war_merge_flag;
+    u8 m_war_sect_begin;
+    u8 m_war_sect_select;
+    u8 m_war_sect_skip;
+    u8 m_war_sect_exhaust;
+    u8 m_war_sect_fallback;
+    u8 m_war_sect_done;
+    u8 m_war_siege_fail_buildup;
     u8 m_city_job_food;
     u8 m_city_job_production;
     u8 m_city_job_commerce;
@@ -142,6 +154,18 @@ inline LogNeedMask::LogNeedMask ()
       m_war_rejoin_link_fail(0),
       m_war_army_cant_fight(0),
       m_war_retarget_fail(0),
+      m_war_flag_set(0),
+      m_war_muster_pull(0),
+      m_war_park(0),
+      m_war_rally(0),
+      m_war_merge_flag(0),
+      m_war_sect_begin(0),
+      m_war_sect_select(0),
+      m_war_sect_skip(0),
+      m_war_sect_exhaust(0),
+      m_war_sect_fallback(0),
+      m_war_sect_done(0),
+      m_war_siege_fail_buildup(0),
       m_city_job_food(0),
       m_city_job_production(0),
       m_city_job_commerce(0),
@@ -228,6 +252,18 @@ inline cstr LogNeedMask::nm (u16 i) {
         "WarRejoinLinkFail",
         "WarArmyCantFight",
         "WarRetargetFail",
+        "WarFlagSet",
+        "WarMusterPull",
+        "WarPark",
+        "WarRally",
+        "WarMergeFlag",
+        "WarSectBegin",
+        "WarSectSelect",
+        "WarSectSkip",
+        "WarSectExhaust",
+        "WarSectFallback",
+        "WarSectDone",
+        "WarSiegeFailBuildup",
         "CityJobFood",
         "CityJobProduction",
         "CityJobCommerce",
@@ -469,6 +505,66 @@ inline bool LogNeedMask::on (u16 i) {
         0u,
 #endif
 #if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_RETARGET_FAIL))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_FLAG_SET))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_MUSTER_PULL))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_PARK))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_RALLY))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_MERGE_FLAG))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_SECT_BEGIN))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_SECT_SELECT))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_SECT_SKIP))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_SECT_EXHAUST))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_SECT_FALLBACK))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_SECT_DONE))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_SIEGE_FAIL_BUILDUP))
         1u,
 #else
         0u,

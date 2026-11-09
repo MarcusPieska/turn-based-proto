@@ -143,6 +143,7 @@ WarTurnHandler::WarTurnHandler (GameState& s, u16 seat) :
     m_mob(),
     m_grp_n(0),
     m_atk_n(0),
+    m_flag_i(U16_KEY_NULL),
     m_tgt_n(0),
     m_tgt_i(0),
     m_sx(0),
@@ -153,6 +154,8 @@ WarTurnHandler::WarTurnHandler (GameState& s, u16 seat) :
     m_hold_sx(0),
     m_hold_sy(0),
     m_enemy(U8_KEY_NULL),
+    m_sector(U16_KEY_NULL),
+    m_assign_busy(false),
     m_ready(false),
     m_mob_ok(false) {
     for (u16 i = 0; i < k_atk_cap; ++i) {
@@ -279,6 +282,7 @@ u16 WarTurnHandler::do_total_muster () {
     if (!ok() || !m_mob_ok) {
         return 0;
     }
+    muster_pull_city_armies();
     const u16 cn = m_st.m_cities.get_city_count();
     for (u16 i = 0; i < cn && m_grp_n < k_grp_cap; ++i) {
         const City* c = m_st.m_cities.get_city(i);
@@ -317,7 +321,10 @@ bool WarTurnHandler::determine_exposure (u16 enemy) {
     Whiteboard_1B board("WarTurnHandler", "exp", 0u);
     if (!GenerateExposure::generate(m_st, m_seat, enemy, board)) {
         LOG_WAR_EXPOSURE_FAIL::LOG(SC_U32(m_seat), SC_U32(enemy), SC_U32(m_st.m_current_turn));
-        return false;
+        for (u16 i = 0; i < m_grp_n; ++i) {
+            m_grp[i].m_exp = GenerateExposure::k_none;
+        }
+        return true;
     }
     for (u16 i = 0; i < m_grp_n; ++i) {
         const UnitAddKey key = UnitAddKey::from_raw(m_grp[i].m_hd);
@@ -353,13 +360,52 @@ void WarTurnHandler::refill_grp (u16 head_idx) {
     GeneralMoveBoost::on_grp_refilled(m_st, UnitAddKey::from_raw(head_idx));
 }
 
+bool WarTurnHandler::army_in_own_city (u16 army_i) const {
+    if (army_i >= k_atk_cap || m_atk[army_i].m_hd == U16_KEY_NULL) {
+        return false;
+    }
+    const UnitAddStruct* u = m_st.m_units.get_unit_add(UnitAddKey::from_raw(m_atk[army_i].m_hd));
+    if (u == nullptr || u->m_x == U16_KEY_NULL) {
+        return false;
+    }
+    const u16 cn = m_st.m_cities.get_city_count();
+    for (u16 i = 0; i < cn; ++i) {
+        const City* c = m_st.m_cities.get_city(i);
+        if (c == nullptr || c->get_owner() != m_seat) {
+            continue;
+        }
+        if (c->get_x() == u->m_x && c->get_y() == u->m_y) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void WarTurnHandler::muster_pull_city_armies () {
+    PROF_TH_WAR_ENTER(__func__);
+    for (u16 i = 0; i < grp_use_n(); ++i) {
+        if (i == m_flag_i || m_atk[i].m_hd == U16_KEY_NULL) {
+            continue;
+        }
+        if (!army_in_own_city(i)) {
+            continue;
+        }
+        const UnitAddStruct* u = m_st.m_units.get_unit_add(UnitAddKey::from_raw(m_atk[i].m_hd));
+        if (u != nullptr && u->m_x == m_sx && u->m_y == m_sy) {
+            (void)merge_into_flag(i);
+            continue;
+        }
+        (void)park_army(i);
+    }
+}
+
 bool WarTurnHandler::walk_muster () {
     PROF_TH_WAR_ENTER(__func__);
-    if (!ok() || !m_mob_ok || m_grp_n == 0u) {
+    bool any = false;
+    if (!ok() || !m_mob_ok) {
         LOG_WAR_WALK_MUSTER_FAIL::LOG(SC_U32(m_seat), SC_U32(m_st.m_current_turn));
         return false;
     }
-    bool any = false;
     for (u16 i = 0; i < m_grp_n; ++i) {
         if (m_grp[i].m_hd == U16_KEY_NULL) {
             continue;
@@ -456,6 +502,17 @@ bool WarTurnHandler::walk_muster () {
             break;
         }
     }
+    for (u16 i = 0; i < grp_use_n(); ++i) {
+        if (i == m_flag_i || m_atk[i].m_hd == U16_KEY_NULL) {
+            continue;
+        }
+        if (m_atk[i].m_phase != ArmyPhase::Park && m_atk[i].m_phase != ArmyPhase::Rally) {
+            continue;
+        }
+        if (army_handle(i) == ArmyTurnRslt::Busy) {
+            any = true;
+        }
+    }
     return any;
 }
 
@@ -507,6 +564,7 @@ bool WarTurnHandler::form_army () {
     }
     m_grp_n = 0;
     m_atk_n = 0u;
+    m_flag_i = U16_KEY_NULL;
     u32 army_n = 0u;
     u32 size_sum = 0u;
     for (u16 i = 0; i < k_atk_cap; ++i) {
@@ -531,6 +589,10 @@ bool WarTurnHandler::form_army () {
         UnitMovementMng::set_grp_army(m_st, parts[i], 1u);
         UnitMovementMng::set_grp_campaign(m_st, parts[i], 1u);
         m_atk[i].m_hd = parts[i].value();
+        if (m_flag_i == U16_KEY_NULL) {
+            m_flag_i = i;
+            LOG_WAR_FLAG_SET::LOG(SC_U32(m_seat), SC_U32(m_flag_i), SC_U32(m_st.m_current_turn));
+        }
         m_atk_n = static_cast<u16>(i + 1u);
         UnitAddKey cur = parts[i];
         while (cur.is_valid()) {
@@ -602,25 +664,62 @@ bool WarTurnHandler::find_enemy_seed (u16 enemy, u16* ox, u16* oy) const {
     return true;
 }
 
-bool WarTurnHandler::refill_targets (u16 enemy) {
-    PROF_TH_WAR_ENTER(__func__);
-    m_tgt_n = 0;
-    m_tgt_i = 0;
-    m_enemy = U8_KEY_NULL;
-    WarTargetPlan plan;
-    plan.m_enemy = enemy;
-    plan.m_n = 0u;
-    if (!war_target_pick(m_st, m_seat, m_sx, m_sy, &plan) || plan.m_n == 0u || plan.m_enemy != enemy) {
-        LOG_WAR_REFILL_TARGETS_FAIL::LOG(SC_U32(m_seat), SC_U32(enemy), SC_U32(m_st.m_current_turn), 1u);
+bool WarTurnHandler::ensure_war (u16 other) {
+    if (other >= m_st.m_player_n || other == m_seat || m_st.m_player_states == nullptr) {
         return false;
     }
+    const CivStaticDataKey a = CivStaticDataKey::from_raw(m_seat);
+    const CivStaticDataKey b = CivStaticDataKey::from_raw(other);
+    if (m_st.m_civ_relations.get(a, b) != CivRel::CIV_REL_WAR) {
+        m_st.m_civ_relations.set(a, b, CivRel::CIV_REL_WAR);
+    }
+    m_st.m_player_states[m_seat].m_at_war = 1u;
+    m_enemy = static_cast<u8>(other);
+    return true;
+}
+
+bool WarTurnHandler::apply_plan (const WarTargetPlan& plan) {
     const u16 n = (plan.m_n < k_tgt_cap) ? plan.m_n : k_tgt_cap;
     for (u16 i = 0; i < n; ++i) {
         m_tgts[i] = plan.m_cities[i];
     }
     m_tgt_n = n;
-    m_enemy = static_cast<u8>(enemy);
-    return true;
+    m_tgt_i = 0u;
+    m_sector = plan.m_sector;
+    if (plan.m_enemy < m_st.m_player_n) {
+        m_enemy = static_cast<u8>(plan.m_enemy);
+    } else {
+        m_enemy = U8_KEY_NULL;
+    }
+    return m_tgt_n > 0u;
+}
+
+bool WarTurnHandler::refill_targets (u16 enemy) {
+    PROF_TH_WAR_ENTER(__func__);
+    (void)enemy;
+    m_tgt_n = 0;
+    m_tgt_i = 0;
+    m_enemy = U8_KEY_NULL;
+    if (m_sector != U16_KEY_NULL) {
+        WarTargetPlan cur;
+        cur.m_enemy = U16_KEY_NULL;
+        cur.m_sector = m_sector;
+        cur.m_n = 0u;
+        if (war_target_flood_sector(m_st, m_seat, m_sector, &cur) && cur.m_n > 0u) {
+            return apply_plan(cur);
+        }
+        LOG_WAR_SECT_DONE::LOG(SC_U32(m_seat), SC_U32(m_sector), SC_U32(m_st.m_current_turn));
+        m_sector = U16_KEY_NULL;
+    }
+    WarTargetPlan plan;
+    plan.m_enemy = U16_KEY_NULL;
+    plan.m_sector = U16_KEY_NULL;
+    plan.m_n = 0u;
+    if (!war_target_pick(m_st, m_seat, m_sx, m_sy, &plan) || plan.m_n == 0u) {
+        LOG_WAR_REFILL_TARGETS_FAIL::LOG(SC_U32(m_seat), SC_U32(enemy), SC_U32(m_st.m_current_turn), 1u);
+        return false;
+    }
+    return apply_plan(plan);
 }
 
 bool WarTurnHandler::city_in_use (u16 x, u16 y, u16 skip_army) const {
@@ -643,7 +742,7 @@ bool WarTurnHandler::next_enemy_city (u16 enemy, u16* ox, u16* oy) {
     if (ox == nullptr || oy == nullptr) {
         return false;
     }
-    if (m_enemy != static_cast<u8>(enemy) || m_tgt_n == 0u) {
+    if (m_tgt_n == 0u || m_tgt_i >= m_tgt_n) {
         if (!refill_targets(enemy)) {
             return false;
         }
@@ -651,12 +750,231 @@ bool WarTurnHandler::next_enemy_city (u16 enemy, u16* ox, u16* oy) {
     while (m_tgt_i < m_tgt_n) {
         const u16 cidx = m_tgts[m_tgt_i++];
         City* c = m_st.m_cities.get_city(cidx);
-        if (c == nullptr || c->get_owner() != enemy) {
+        if (c == nullptr) {
+            continue;
+        }
+        const u16 own = c->get_owner();
+        if (own == m_seat || own >= m_st.m_player_n) {
+            continue;
+        }
+        if (m_st.m_player_states != nullptr
+            && (m_st.m_player_states[own].m_is_active == 0u
+                || m_st.m_player_states[own].m_lucky != 0u)) {
             continue;
         }
         *ox = c->get_x();
         *oy = c->get_y();
         return true;
+    }
+    return false;
+}
+
+bool WarTurnHandler::assign_army_city (u16 army_i, u16 enemy, u16* ox, u16* oy) {
+    PROF_TH_WAR_ENTER(__func__);
+    m_assign_busy = false;
+    if (army_i >= grp_use_n() || m_atk[army_i].m_hd == U16_KEY_NULL) {
+        return false;
+    }
+    if (m_tgt_i >= m_tgt_n) {
+        if (!refill_targets(enemy)) {
+            return false;
+        }
+    }
+    bool saw_busy = false;
+    bool saw_path = false;
+    const u16 budget = (m_tgt_n > 0u) ? m_tgt_n : k_tgt_cap;
+    for (u16 tries = 0; tries < budget; ++tries) {
+        u16 tx = 0u;
+        u16 ty = 0u;
+        if (!next_enemy_city(enemy, &tx, &ty)) {
+            if (m_tgt_n == 0u) {
+                return false;
+            }
+            if (!refill_targets(enemy)) {
+                return false;
+            }
+            continue;
+        }
+        if (city_in_use(tx, ty, army_i)) {
+            saw_busy = true;
+            continue;
+        }
+        if (!set_goal_army(army_i, tx, ty)) {
+            saw_path = true;
+            continue;
+        }
+        const u8 own = m_st.m_map.get_civ_owner(tx, ty);
+        if (own != U8_KEY_NULL) {
+            (void)ensure_war(static_cast<u16>(own));
+        }
+        m_atk[army_i].m_phase = ArmyPhase::March;
+        m_atk[army_i].m_assault = WarAssault::Fail;
+        m_atk[army_i].m_stall = false;
+        m_tx = tx;
+        m_ty = ty;
+        if (ox != nullptr) {
+            *ox = tx;
+        }
+        if (oy != nullptr) {
+            *oy = ty;
+        }
+        return true;
+    }
+    m_assign_busy = saw_busy && !saw_path;
+    return false;
+}
+
+bool WarTurnHandler::park_army (u16 army_i) {
+    PROF_TH_WAR_ENTER(__func__);
+    if (army_i >= grp_use_n() || m_atk[army_i].m_hd == U16_KEY_NULL) {
+        return false;
+    }
+    const UnitAddStruct* u = m_st.m_units.get_unit_add(UnitAddKey::from_raw(m_atk[army_i].m_hd));
+    if (u != nullptr && u->m_x == m_sx && u->m_y == m_sy) {
+        m_atk[army_i].m_tx = m_sx;
+        m_atk[army_i].m_ty = m_sy;
+        m_atk[army_i].m_phase = ArmyPhase::Idle;
+        m_atk[army_i].m_assault = WarAssault::Fail;
+        m_atk[army_i].m_stall = false;
+        LOG_WAR_PARK::LOG(SC_U32(m_seat), SC_U32(army_i), SC_U32(m_sx), SC_U32(m_sy), SC_U32(m_st.m_current_turn));
+        return true;
+    }
+    if (!set_goal_army(army_i, m_sx, m_sy)) {
+        return false;
+    }
+    m_atk[army_i].m_phase = ArmyPhase::Park;
+    m_atk[army_i].m_assault = WarAssault::Fail;
+    m_atk[army_i].m_stall = false;
+    LOG_WAR_PARK::LOG(SC_U32(m_seat), SC_U32(army_i), SC_U32(m_sx), SC_U32(m_sy), SC_U32(m_st.m_current_turn));
+    return true;
+}
+
+bool WarTurnHandler::flag_xy (u16* ox, u16* oy) const {
+    if (ox == nullptr || oy == nullptr) {
+        return false;
+    }
+    if (m_flag_i != U16_KEY_NULL && m_flag_i < k_atk_cap && m_atk[m_flag_i].m_hd != U16_KEY_NULL) {
+        const UnitAddStruct* u = m_st.m_units.get_unit_add(UnitAddKey::from_raw(m_atk[m_flag_i].m_hd));
+        if (u != nullptr && u->m_x != U16_KEY_NULL) {
+            *ox = u->m_x;
+            *oy = u->m_y;
+            return true;
+        }
+    }
+    *ox = m_sx;
+    *oy = m_sy;
+    return true;
+}
+
+bool WarTurnHandler::merge_into_flag (u16 army_i) {
+    PROF_TH_WAR_ENTER(__func__);
+    if (m_flag_i == U16_KEY_NULL || army_i == m_flag_i || army_i >= k_atk_cap) {
+        return false;
+    }
+    if (m_atk[m_flag_i].m_hd == U16_KEY_NULL || m_atk[army_i].m_hd == U16_KEY_NULL) {
+        return false;
+    }
+    u16 fx = 0u;
+    u16 fy = 0u;
+    if (!flag_xy(&fx, &fy)) {
+        return false;
+    }
+    const UnitAddStruct* ou = m_st.m_units.get_unit_add(UnitAddKey::from_raw(m_atk[army_i].m_hd));
+    if (ou == nullptr || ou->m_x != fx || ou->m_y != fy) {
+        return rejoin_flag(army_i);
+    }
+    UnitAddKey heads[2];
+    heads[0] = UnitAddKey::from_raw(m_atk[m_flag_i].m_hd);
+    heads[1] = UnitAddKey::from_raw(m_atk[army_i].m_hd);
+    UnitAddKey flat = UnitAddKey::None();
+    if (!UnitMovementMng::flatten_groups(m_st, heads, 2u, &flat) || !flat.is_valid()) {
+        return false;
+    }
+    UnitMovementMng::set_grp_army(m_st, flat, 1u);
+    UnitMovementMng::set_grp_campaign(m_st, flat, 1u);
+    m_atk[m_flag_i].m_hd = flat.value();
+    m_atk[m_flag_i].m_split = U16_KEY_NULL;
+    m_atk[army_i].m_hd = U16_KEY_NULL;
+    m_atk[army_i].m_split = U16_KEY_NULL;
+    m_atk[army_i].m_phase = ArmyPhase::Idle;
+    m_atk[army_i].m_front = U16_KEY_NULL;
+    LOG_WAR_MERGE_FLAG::LOG(
+        SC_U32(m_seat), SC_U32(army_i), SC_U32(m_flag_i), SC_U32(m_st.m_current_turn));
+    return true;
+}
+
+bool WarTurnHandler::rejoin_flag (u16 army_i) {
+    PROF_TH_WAR_ENTER(__func__);
+    if (army_i >= grp_use_n() || m_atk[army_i].m_hd == U16_KEY_NULL) {
+        return false;
+    }
+    if (m_flag_i == U16_KEY_NULL || army_i == m_flag_i || m_atk[m_flag_i].m_hd == U16_KEY_NULL) {
+        return park_army(army_i);
+    }
+    u16 fx = 0u;
+    u16 fy = 0u;
+    if (!flag_xy(&fx, &fy)) {
+        return park_army(army_i);
+    }
+    const UnitAddStruct* u = m_st.m_units.get_unit_add(UnitAddKey::from_raw(m_atk[army_i].m_hd));
+    if (u != nullptr && u->m_x == fx && u->m_y == fy) {
+        return merge_into_flag(army_i);
+    }
+    if (!set_goal_army(army_i, fx, fy)) {
+        return park_army(army_i);
+    }
+    m_atk[army_i].m_phase = ArmyPhase::Rally;
+    m_atk[army_i].m_assault = WarAssault::Fail;
+    m_atk[army_i].m_stall = false;
+    LOG_WAR_RALLY::LOG(SC_U32(m_seat), SC_U32(army_i), SC_U32(fx), SC_U32(fy), SC_U32(m_st.m_current_turn));
+    return true;
+}
+
+bool WarTurnHandler::absorb_muster_to_flag () {
+    PROF_TH_WAR_ENTER(__func__);
+    if (m_flag_i == U16_KEY_NULL || m_flag_i >= k_atk_cap || m_atk[m_flag_i].m_hd == U16_KEY_NULL) {
+        return false;
+    }
+    UnitAddKey heads[k_grp_cap];
+    u16 hn = 0u;
+    heads[hn++] = UnitAddKey::from_raw(m_atk[m_flag_i].m_hd);
+    for (u16 i = 0; i < m_grp_n && hn < k_grp_cap; ++i) {
+        if (m_grp[i].m_hd == U16_KEY_NULL) {
+            continue;
+        }
+        const UnitAddKey key = UnitAddKey::from_raw(m_grp[i].m_hd);
+        const UnitAddStruct* u = m_st.m_units.get_unit_add(key);
+        if (u == nullptr || u->m_x != m_sx || u->m_y != m_sy) {
+            UnitMovementMng::set_grp_campaign(m_st, key, 0u);
+            continue;
+        }
+        heads[hn++] = key;
+    }
+    if (hn <= 1u) {
+        m_grp_n = 0u;
+        return hn == 1u;
+    }
+    UnitAddKey flat = UnitAddKey::None();
+    if (!UnitMovementMng::flatten_groups(m_st, heads, hn, &flat) || !flat.is_valid()) {
+        m_grp_n = 0u;
+        return false;
+    }
+    UnitMovementMng::set_grp_army(m_st, flat, 1u);
+    UnitMovementMng::set_grp_campaign(m_st, flat, 1u);
+    m_atk[m_flag_i].m_hd = flat.value();
+    m_atk[m_flag_i].m_split = U16_KEY_NULL;
+    m_grp_n = 0u;
+    return true;
+}
+
+bool WarTurnHandler::queue_pending () const {
+    for (u16 i = 0; i < grp_use_n(); ++i) {
+        if (m_atk[i].m_hd == U16_KEY_NULL) {
+            continue;
+        }
+        if (m_atk[i].m_phase == ArmyPhase::Park || m_atk[i].m_phase == ArmyPhase::Rally) {
+            return true;
+        }
     }
     return false;
 }
@@ -668,56 +986,36 @@ bool WarTurnHandler::set_target_city (u16 enemy, u16* ox, u16* oy) {
         LOG_WAR_SET_TARGET_FAIL::LOG(SC_U32(m_seat), SC_U32(enemy), SC_U32(m_st.m_current_turn), 0u);
         return false;
     }
-    const u16 self_civ = m_st.m_player_states[m_seat].m_civ_index;
-    const u16 enemy_civ = m_st.m_player_states[enemy].m_civ_index;
-    m_st.m_civ_relations.set(
-        CivStaticDataKey::from_raw(self_civ),
-        CivStaticDataKey::from_raw(enemy_civ),
-        CivRel::CIV_REL_WAR);
     bool any = false;
     u16 first_tx = 0u;
     u16 first_ty = 0u;
+    if (m_flag_i != U16_KEY_NULL && m_flag_i < grp_use_n() && m_atk[m_flag_i].m_hd != U16_KEY_NULL) {
+        u16 tx = 0u;
+        u16 ty = 0u;
+        if (assign_army_city(m_flag_i, enemy, &tx, &ty)) {
+            first_tx = tx;
+            first_ty = ty;
+            any = true;
+        } else {
+            LOG_WAR_SET_TARGET_FAIL::LOG(SC_U32(m_seat), SC_U32(enemy), SC_U32(m_st.m_current_turn), 2u);
+            return false;
+        }
+    }
     for (u16 i = 0; i < grp_use_n(); ++i) {
-        if (m_atk[i].m_hd == U16_KEY_NULL) {
+        if (i == m_flag_i || m_atk[i].m_hd == U16_KEY_NULL) {
             continue;
         }
-        if (m_enemy != static_cast<u8>(enemy) || m_tgt_i >= m_tgt_n) {
-            if (!refill_targets(enemy)) {
-                if (!any) {
-                    LOG_WAR_SET_TARGET_FAIL::LOG(SC_U32(m_seat), SC_U32(enemy), SC_U32(m_st.m_current_turn), 2u);
-                    return false;
-                }
-                break;
-            }
-        }
-        bool assigned = false;
-        const u16 budget = m_tgt_n;
-        for (u16 tries = 0; tries < budget; ++tries) {
-            u16 tx = 0u;
-            u16 ty = 0u;
-            if (!next_enemy_city(enemy, &tx, &ty)) {
-                break;
-            }
-            if (city_in_use(tx, ty, i)) {
-                continue;
-            }
-            if (!set_goal_army(i, tx, ty)) {
-                continue;
-            }
-            m_atk[i].m_phase = ArmyPhase::March;
-            m_atk[i].m_assault = WarAssault::Fail;
-            m_atk[i].m_stall = false;
+        u16 tx = 0u;
+        u16 ty = 0u;
+        if (assign_army_city(i, enemy, &tx, &ty)) {
             if (!any) {
                 first_tx = tx;
                 first_ty = ty;
+                any = true;
             }
-            m_tx = tx;
-            m_ty = ty;
-            any = true;
-            assigned = true;
-            break;
+            continue;
         }
-        if (!assigned && !any) {
+        if (!rejoin_flag(i) && !any) {
             LOG_WAR_SET_TARGET_FAIL::LOG(SC_U32(m_seat), SC_U32(enemy), SC_U32(m_st.m_current_turn), 2u);
             return false;
         }
@@ -744,56 +1042,79 @@ bool WarTurnHandler::retarget_idle (u16 enemy, u16* ox, u16* oy) {
         return false;
     }
     bool any = false;
+    bool got_enemy = false;
     u16 first_tx = 0u;
     u16 first_ty = 0u;
-    for (u16 i = 0; i < grp_use_n(); ++i) {
+    auto drop = [this] (u16 i) {
+        UnitMovementMng::set_grp_campaign(m_st, UnitAddKey::from_raw(m_atk[i].m_hd), 0u);
+        UnitMovementMng::set_grp_army(m_st, UnitAddKey::from_raw(m_atk[i].m_hd), 0u);
+        drop_army(i);
+    };
+    auto try_one = [&] (u16 i) {
         if (m_atk[i].m_hd == U16_KEY_NULL || m_atk[i].m_phase != ArmyPhase::Idle) {
-            continue;
+            return;
         }
-        if (m_enemy != static_cast<u8>(enemy) || m_tgt_i >= m_tgt_n) {
-            if (!refill_targets(enemy)) {
-                UnitMovementMng::set_grp_campaign(m_st, UnitAddKey::from_raw(m_atk[i].m_hd), 0u);
-                UnitMovementMng::set_grp_army(m_st, UnitAddKey::from_raw(m_atk[i].m_hd), 0u);
-                m_atk[i].m_hd = U16_KEY_NULL;
-                m_atk[i].m_split = U16_KEY_NULL;
-                continue;
-            }
-        }
-        bool assigned = false;
-        const u16 budget = m_tgt_n;
-        for (u16 tries = 0; tries < budget; ++tries) {
-            u16 tx = 0u;
-            u16 ty = 0u;
-            if (!next_enemy_city(enemy, &tx, &ty)) {
-                break;
-            }
-            if (city_in_use(tx, ty, i)) {
-                continue;
-            }
-            if (!set_goal_army(i, tx, ty)) {
-                continue;
-            }
-            m_atk[i].m_phase = ArmyPhase::March;
-            m_atk[i].m_assault = WarAssault::Fail;
-            m_atk[i].m_stall = false;
+        u16 tx = 0u;
+        u16 ty = 0u;
+        if (assign_army_city(i, enemy, &tx, &ty)) {
             if (!any) {
                 first_tx = tx;
                 first_ty = ty;
             }
-            m_tx = tx;
-            m_ty = ty;
             any = true;
-            assigned = true;
-            break;
+            got_enemy = true;
+            return;
         }
-        if (!assigned) {
-            UnitMovementMng::set_grp_campaign(m_st, UnitAddKey::from_raw(m_atk[i].m_hd), 0u);
-            UnitMovementMng::set_grp_army(m_st, UnitAddKey::from_raw(m_atk[i].m_hd), 0u);
-            m_atk[i].m_hd = U16_KEY_NULL;
-            m_atk[i].m_split = U16_KEY_NULL;
+        if (m_assign_busy) {
+            any = true;
+            return;
+        }
+        if (i != m_flag_i) {
+            if (rejoin_flag(i)) {
+                any = true;
+                return;
+            }
+        }
+        drop(i);
+    };
+    if (m_flag_i != U16_KEY_NULL && m_flag_i < grp_use_n()) {
+        try_one(m_flag_i);
+    }
+    for (u16 i = 0; i < grp_use_n(); ++i) {
+        if (i == m_flag_i) {
+            continue;
+        }
+        try_one(i);
+    }
+    if (m_flag_i == U16_KEY_NULL) {
+        for (u16 i = 0; i < grp_use_n(); ++i) {
+            if (m_atk[i].m_hd != U16_KEY_NULL) {
+                m_flag_i = i;
+                break;
+            }
         }
     }
-    if (!any) {
+    if (!got_enemy && queue_pending()) {
+        m_ready = true;
+        if (ox != nullptr) {
+            *ox = m_tx;
+        }
+        if (oy != nullptr) {
+            *oy = m_ty;
+        }
+        return true;
+    }
+    if (!got_enemy && m_assign_busy && any) {
+        m_ready = true;
+        if (ox != nullptr) {
+            *ox = m_tx;
+        }
+        if (oy != nullptr) {
+            *oy = m_ty;
+        }
+        return true;
+    }
+    if (!any || !got_enemy) {
         LOG_WAR_SET_TARGET_FAIL::LOG(SC_U32(m_seat), SC_U32(enemy), SC_U32(m_st.m_current_turn), 2u);
         return false;
     }
@@ -812,7 +1133,17 @@ ArmyTurnRslt WarTurnHandler::army_handle (u16 army_i) {
     if (!ok() || army_i >= grp_use_n() || m_atk[army_i].m_hd == U16_KEY_NULL) {
         return ArmyTurnRslt::Stop;
     }
+    const bool rallying = (m_atk[army_i].m_phase == ArmyPhase::Rally);
+    const bool parking = (m_atk[army_i].m_phase == ArmyPhase::Park);
     const ArmyTurnRslt r = ArmyTurnHandler::handle(m_st, m_seat, m_enemy, m_atk[army_i]);
+    if ((rallying || parking) && r == ArmyTurnRslt::NeedTarget) {
+        if (merge_into_flag(army_i)) {
+            return ArmyTurnRslt::Busy;
+        }
+        if (rejoin_flag(army_i)) {
+            return ArmyTurnRslt::Busy;
+        }
+    }
     if (m_atk[army_i].m_phase == ArmyPhase::Rejoin || r == ArmyTurnRslt::NeedTarget) {
         sync_from_army(army_i);
     }
@@ -823,10 +1154,17 @@ void WarTurnHandler::sync_from_army (u16 army_i) {
     if (army_i >= k_atk_cap) {
         return;
     }
-    m_sx = m_atk[army_i].m_tx;
-    m_sy = m_atk[army_i].m_ty;
     m_tx = m_atk[army_i].m_tx;
     m_ty = m_atk[army_i].m_ty;
+    if (army_i != m_flag_i) {
+        return;
+    }
+    if (m_sx == m_atk[army_i].m_tx && m_sy == m_atk[army_i].m_ty) {
+        return;
+    }
+    m_sx = m_atk[army_i].m_tx;
+    m_sy = m_atk[army_i].m_ty;
+    LOG_WAR_MUSTER_PULL::LOG(SC_U32(m_seat), SC_U32(m_sx), SC_U32(m_sy), SC_U32(m_st.m_current_turn));
 }
 
 bool WarTurnHandler::stalled () const {
@@ -896,6 +1234,10 @@ u16 WarTurnHandler::split_hd (u16 i) const {
 }
 
 void WarTurnHandler::clr_campaign () {
+    m_tgt_n = 0u;
+    m_tgt_i = 0u;
+    m_sector = U16_KEY_NULL;
+    m_assign_busy = false;
     for (u16 i = 0; i < m_grp_n; ++i) {
         if (m_grp[i].m_hd != U16_KEY_NULL) {
             EVAL_ARMY_STATE_PEACE::EVAL(m_st, m_grp[i].m_hd);
@@ -990,7 +1332,35 @@ bool WarTurnHandler::bind_standing (u16 i, u16 hd, u16 front) {
     if (static_cast<u16>(i + 1u) > m_atk_n) {
         m_atk_n = static_cast<u16>(i + 1u);
     }
+    if (m_flag_i == U16_KEY_NULL) {
+        m_flag_i = i;
+        LOG_WAR_FLAG_SET::LOG(SC_U32(m_seat), SC_U32(m_flag_i), SC_U32(m_st.m_current_turn));
+    }
     return true;
+}
+
+u16 WarTurnHandler::flag_i () const {
+    return m_flag_i;
+}
+
+void WarTurnHandler::drop_army (u16 army_i) {
+    if (army_i >= k_atk_cap) {
+        return;
+    }
+    m_atk[army_i].m_hd = U16_KEY_NULL;
+    m_atk[army_i].m_split = U16_KEY_NULL;
+    m_atk[army_i].m_phase = ArmyPhase::Idle;
+    m_atk[army_i].m_front = U16_KEY_NULL;
+    if (m_flag_i != army_i) {
+        return;
+    }
+    m_flag_i = U16_KEY_NULL;
+    for (u16 i = 0; i < grp_use_n(); ++i) {
+        if (m_atk[i].m_hd != U16_KEY_NULL) {
+            m_flag_i = i;
+            break;
+        }
+    }
 }
 
 bool WarTurnHandler::has_armies () const {
@@ -1043,70 +1413,9 @@ bool WarTurnHandler::tick_reassemble (BorderFront* fronts, u16 n) {
 }
 
 bool WarTurnHandler::try_peel_fronts (BorderFront* fronts, u16 n) {
-    if (fronts == nullptr || n == 0u || n > k_front_use) {
-        return false;
-    }
-    bool any = false;
-    for (;;) {
-        u16 crowded = U16_KEY_NULL;
-        u16 on_n = 0u;
-        for (u16 f = 0; f < n; ++f) {
-            if (!BorderTurnHandler::slot_city(fronts[f].m_city)) {
-                continue;
-            }
-            u16 c = 0u;
-            for (u16 i = 0; i < grp_use_n(); ++i) {
-                if (m_atk[i].m_hd != U16_KEY_NULL && m_atk[i].m_front == f) {
-                    c = static_cast<u16>(c + 1u);
-                }
-            }
-            if (c > 1u && c > on_n) {
-                on_n = c;
-                crowded = f;
-            }
-        }
-        if (crowded == U16_KEY_NULL) {
-            break;
-        }
-        u16 idle = U16_KEY_NULL;
-        for (u16 f = 0; f < n; ++f) {
-            if (BorderTurnHandler::slot_idle(fronts[f].m_city)) {
-                idle = f;
-                break;
-            }
-        }
-        if (idle == U16_KEY_NULL) {
-            break;
-        }
-        fronts[idle].m_city = BorderTurnHandler::k_front_need;
-        fronts[idle].m_pl = U16_KEY_NULL;
-        BorderTurnHandler bth;
-        if (!bth.begin(m_st.m_map, m_st.m_cities) || !bth.handle(m_seat, fronts, n)
-            || !BorderTurnHandler::slot_city(fronts[idle].m_city)) {
-            fronts[idle].m_city = BorderTurnHandler::k_front_idle;
-            fronts[idle].m_pl = U16_KEY_NULL;
-            break;
-        }
-        if (fronts[idle].m_pl == U16_KEY_NULL) {
-            fronts[idle].m_pl = m_enemy;
-        }
-        u16 moved = U16_KEY_NULL;
-        for (u16 i = grp_use_n(); i > 0u;) {
-            --i;
-            if (m_atk[i].m_hd != U16_KEY_NULL && m_atk[i].m_front == crowded) {
-                moved = i;
-                break;
-            }
-        }
-        if (moved == U16_KEY_NULL) {
-            fronts[idle].m_city = BorderTurnHandler::k_front_idle;
-            fronts[idle].m_pl = U16_KEY_NULL;
-            break;
-        }
-        m_atk[moved].m_front = idle;
-        any = true;
-    }
-    return any;
+    (void)fronts;
+    (void)n;
+    return false;
 }
 
 bool WarTurnHandler::start_reinforce (BorderFront* fronts, u16 n) {
@@ -1252,7 +1561,8 @@ enum class WarPhase : u8 {
     Form = 2,
     Army = 3,
     Retarget = 4,
-    Reassemble = 5
+    Reassemble = 5,
+    BuildUp = 6
 };
 
 struct WarSlot {
@@ -1553,6 +1863,7 @@ static bool war_sec_begin (GameState& st) {
             war_sec_clr();
             return false;
         }
+        LOG_WAR_SECT_BEGIN::LOG(SC_U32(s), SC_U32(g_exp[s].start()), SC_U32(st.m_current_turn));
     }
     war_target_set_kind(WarTargetKind::SectorFlood);
     return true;
@@ -1571,6 +1882,17 @@ const LandSectorAdj* WarTurnHandler::sec_adj () {
 
 const LandSectorSeedPt* WarTurnHandler::sec_pts () {
     return (g_seeds.m_pts != nullptr && g_seeds.m_n > 0u) ? g_seeds.m_pts : nullptr;
+}
+
+const Whiteboard_2B* WarTurnHandler::sec_wb () {
+    if (g_gls == nullptr || !g_gls->ok()) {
+        return nullptr;
+    }
+    return &g_gls->sectors();
+}
+
+u16 WarTurnHandler::sec_n () {
+    return (g_gls != nullptr && g_gls->ok()) ? g_gls->sector_n() : 0u;
 }
 
 static void war_slot_reset (WarSlot* s) {
@@ -1594,7 +1916,26 @@ static void war_finish (GameState& st, u16 seat, WarSlot* s, bool no_tgts) {
         return;
     }
     const u16 enemy = s->m_enemy;
-    (void)NegotiatePeace::deal(st, seat, enemy);
+    for (u16 i = 0; i < st.m_player_n; ++i) {
+        if (i == seat) {
+            continue;
+        }
+        if (st.m_civ_relations.get(CivStaticDataKey::from_raw(seat), CivStaticDataKey::from_raw(i))
+            != CivRel::CIV_REL_WAR) {
+            continue;
+        }
+        if (i == enemy) {
+            (void)NegotiatePeace::deal(st, seat, i);
+        } else {
+            st.m_civ_relations.set(
+                CivStaticDataKey::from_raw(seat),
+                CivStaticDataKey::from_raw(i),
+                CivRel::CIV_REL_PEACE);
+        }
+    }
+    if (st.m_player_states != nullptr && seat < st.m_player_n) {
+        st.m_player_states[seat].m_at_war = 0u;
+    }
     if (no_tgts) {
         if (s->m_camp != nullptr) {
             for (u16 i = 0; i < WarTurnHandler::k_grp_use; ++i) {
@@ -1619,18 +1960,99 @@ static void war_peace_mock (GameState& st, u16 seat, WarSlot* s, u16 tx, u16 ty)
     war_finish(st, seat, s, false);
 }
 
-static bool war_mock_next (GameState& st, u16 seat, WarSlot* s, u16 tx, u16 ty) {
+static bool war_begin_buildup (GameState& st, u16 seat, WarSlot* s, u16 tx, u16 ty) {
+    PROF_TH_WAR_ENTER(__func__);
+    if (s == nullptr || s->m_camp == nullptr) {
+        return false;
+    }
+    WarTurnHandler& camp = *s->m_camp;
+    LOG_WAR_SIEGE_FAIL_BUILDUP::LOG(
+        SC_U32(seat), SC_U32(s->m_enemy), SC_U32(tx), SC_U32(ty), SC_U32(st.m_current_turn));
+    const u16 sx = camp.staging_x();
+    const u16 sy = camp.staging_y();
+    if (!camp.make_muster_gradient(sx, sy)) {
+        return false;
+    }
+    (void)camp.do_total_muster();
+    s->m_phase = WarPhase::BuildUp;
+    return true;
+}
+
+static bool war_try_mocks (GameState& st, u16 seat, WarSlot* s, WarTurnHandler& camp) {
     PROF_TH_WAR_ENTER(__func__);
     if (s == nullptr || s->m_mock == nullptr || !s->m_mock->ok()) {
-        war_peace_mock(st, seat, s, tx, ty);
+        war_peace_mock(st, seat, s, camp.target_x(), camp.target_y());
         return false;
     }
-    MockSiegeRslt r = {};
-    if (!s->m_mock->siege(st, tx, ty, &r) || !r.m_taken) {
+    if (camp.prep_mocks(*s->m_mock)) {
+        return true;
+    }
+    u16 tx = camp.target_x();
+    u16 ty = camp.target_y();
+    if (camp.flag_i() != U16_KEY_NULL) {
+        WarArmy* fl = camp.army(camp.flag_i());
+        if (fl != nullptr && fl->m_hd != U16_KEY_NULL) {
+            tx = fl->m_tx;
+            ty = fl->m_ty;
+        }
+    }
+    if (!war_begin_buildup(st, seat, s, tx, ty)) {
         war_peace_mock(st, seat, s, tx, ty);
+    }
+    return false;
+}
+
+bool WarTurnHandler::prep_mocks (MockMusterSiege& mock) {
+    PROF_TH_WAR_ENTER(__func__);
+    if (!ok() || !mock.ok()) {
         return false;
     }
-    return true;
+    static const u16 k_min_barrage = 10u;
+    if (mock.barrage_n(m_st) > k_min_barrage) {
+        if (m_flag_i == U16_KEY_NULL) {
+            return has_armies();
+        }
+        return m_flag_i < k_atk_cap && m_atk[m_flag_i].m_hd != U16_KEY_NULL;
+    }
+    bool flag_ok = (m_flag_i == U16_KEY_NULL);
+    const u16 enemy = static_cast<u16>(m_enemy);
+    for (u16 i = 0; i < grp_use_n(); ++i) {
+        if (m_atk[i].m_hd == U16_KEY_NULL) {
+            continue;
+        }
+        MockSiegeRslt r = {};
+        if (mock.siege(m_st, m_atk[i].m_tx, m_atk[i].m_ty, &r) && r.m_taken) {
+            if (i == m_flag_i) {
+                flag_ok = true;
+            }
+            continue;
+        }
+        bool got = false;
+        const u16 budget = (m_tgt_n > 0u) ? m_tgt_n : k_tgt_cap;
+        for (u16 t = 0; t < budget; ++t) {
+            u16 tx = 0u;
+            u16 ty = 0u;
+            if (!assign_army_city(i, enemy, &tx, &ty)) {
+                break;
+            }
+            r = {};
+            if (mock.siege(m_st, tx, ty, &r) && r.m_taken) {
+                got = true;
+                if (i == m_flag_i) {
+                    flag_ok = true;
+                }
+                break;
+            }
+        }
+        if (got) {
+            continue;
+        }
+        if (i == m_flag_i) {
+            continue;
+        }
+        (void)rejoin_flag(i);
+    }
+    return flag_ok;
 }
 
 static bool war_start_camp (GameState& st, u16 seat, u16 enemy, WarSlot* s) {
@@ -1773,18 +2195,10 @@ static void war_advance (GameState& st, u16 seat, WarSlot* s) {
             war_stop(st, seat, s, true);
             break;
         }
-        bool mock_ok = true;
-        for (u16 i = 0; i < WarTurnHandler::k_grp_use; ++i) {
-            WarArmy* slot = camp.army(i);
-            if (slot == nullptr || slot->m_hd == U16_KEY_NULL) {
-                continue;
-            }
-            if (!war_mock_next(st, seat, s, slot->m_tx, slot->m_ty)) {
-                mock_ok = false;
-                break;
-            }
+        if (camp.enemy() != U8_KEY_NULL) {
+            s->m_enemy = camp.enemy();
         }
-        if (!mock_ok) {
+        if (!war_try_mocks(st, seat, s, camp)) {
             break;
         }
         s->m_phase = WarPhase::Army;
@@ -1811,7 +2225,6 @@ static void war_advance (GameState& st, u16 seat, WarSlot* s) {
             slot->m_front = s->m_front_i;
             (void)ArmyUpgradeMng::upgrade_all(st, seat, slot->m_hd, camp.staging_x(), camp.staging_y());
         }
-        (void)camp.try_peel_fronts(g_fronts[seat], WarTurnHandler::k_front_use);
         {
             u16 tx = 0u;
             u16 ty = 0u;
@@ -1819,26 +2232,41 @@ static void war_advance (GameState& st, u16 seat, WarSlot* s) {
                 war_stop(st, seat, s, true);
                 break;
             }
-            bool mock_ok = true;
-            for (u16 i = 0; i < WarTurnHandler::k_grp_use; ++i) {
-                WarArmy* slot = camp.army(i);
-                if (slot == nullptr || slot->m_hd == U16_KEY_NULL) {
-                    continue;
-                }
-                if (!war_mock_next(st, seat, s, slot->m_tx, slot->m_ty)) {
-                    mock_ok = false;
-                    break;
-                }
+            if (camp.enemy() != U8_KEY_NULL) {
+                s->m_enemy = camp.enemy();
             }
-            if (!mock_ok) {
+            if (!war_try_mocks(st, seat, s, camp)) {
                 break;
             }
         }
         s->m_phase = WarPhase::Army;
         break;
+    case WarPhase::BuildUp: {
+        if (camp.walk_muster()) {
+            break;
+        }
+        prep_eval_muster_grps(camp);
+        (void)camp.flatten_muster();
+        (void)camp.absorb_muster_to_flag();
+        for (u16 i = 0; i < WarTurnHandler::k_grp_use; ++i) {
+            WarArmy* slot = camp.army(i);
+            if (slot == nullptr || slot->m_hd == U16_KEY_NULL) {
+                continue;
+            }
+            (void)ArmyUpgradeMng::upgrade_all(st, seat, slot->m_hd, camp.staging_x(), camp.staging_y());
+        }
+        if (s->m_mock == nullptr || !s->m_mock->collect(st, seat)) {
+            war_stop(st, seat, s, false);
+            break;
+        }
+        if (!war_try_mocks(st, seat, s, camp)) {
+            break;
+        }
+        s->m_phase = WarPhase::Army;
+        break;
+    }
     case WarPhase::Army: {
         (void)camp.tick_reinforce(g_fronts[seat], WarTurnHandler::k_front_use);
-        (void)camp.try_peel_fronts(g_fronts[seat], WarTurnHandler::k_front_use);
         bool busy = false;
         bool need = false;
         u16 live = 0u;
@@ -1863,9 +2291,7 @@ static void war_advance (GameState& st, u16 seat, WarSlot* s) {
             }
             UnitMovementMng::set_grp_campaign(st, UnitAddKey::from_raw(slot->m_hd), 0u);
             UnitMovementMng::set_grp_army(st, UnitAddKey::from_raw(slot->m_hd), 0u);
-            slot->m_hd = U16_KEY_NULL;
-            slot->m_split = U16_KEY_NULL;
-            slot->m_phase = ArmyPhase::Idle;
+            camp.drop_army(i);
             --live;
         }
         if (busy) {
@@ -1881,11 +2307,6 @@ static void war_advance (GameState& st, u16 seat, WarSlot* s) {
         break;
     }
     case WarPhase::Retarget: {
-        bool was_idle[WarTurnHandler::k_grp_use];
-        for (u16 i = 0; i < WarTurnHandler::k_grp_use; ++i) {
-            WarArmy* slot = camp.army(i);
-            was_idle[i] = (slot != nullptr && slot->m_hd != U16_KEY_NULL && slot->m_phase == ArmyPhase::Idle);
-        }
         u16 tx = 0u;
         u16 ty = 0u;
         if (!camp.retarget_idle(s->m_enemy, &tx, &ty)) {
@@ -1893,21 +2314,10 @@ static void war_advance (GameState& st, u16 seat, WarSlot* s) {
             war_stop(st, seat, s, true);
             break;
         }
-        bool mock_ok = true;
-        for (u16 i = 0; i < WarTurnHandler::k_grp_use; ++i) {
-            if (!was_idle[i]) {
-                continue;
-            }
-            WarArmy* slot = camp.army(i);
-            if (slot == nullptr || slot->m_hd == U16_KEY_NULL) {
-                continue;
-            }
-            if (!war_mock_next(st, seat, s, slot->m_tx, slot->m_ty)) {
-                mock_ok = false;
-                break;
-            }
+        if (camp.enemy() != U8_KEY_NULL) {
+            s->m_enemy = camp.enemy();
         }
-        if (!mock_ok) {
+        if (!war_try_mocks(st, seat, s, camp)) {
             break;
         }
         s->m_phase = WarPhase::Army;

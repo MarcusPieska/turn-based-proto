@@ -28,6 +28,9 @@ WarTargetKind war_target_get_kind () {
 }
 
 bool war_target_pick (GameState& st, u16 seat, u16 from_x, u16 from_y, WarTargetPlan* io) {
+    if (io != nullptr) {
+        io->m_sector = U16_KEY_NULL;
+    }
     bool ok = false;
     switch (g_kind) {
     case WarTargetKind::SectorFlood:

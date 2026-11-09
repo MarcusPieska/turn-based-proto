@@ -445,6 +445,124 @@
         break;
     }
     case 44u: {
+        unsigned seat = 0;
+        unsigned flag_i = 0;
+        unsigned turn = 0;
+        if (LOG_WAR_FLAG_SET::PARSE(s, &seat, &flag_i, &turn)) {
+            cnt = cnt + 1u;
+        }
+        break;
+    }
+    case 45u: {
+        unsigned seat = 0;
+        unsigned sx = 0;
+        unsigned sy = 0;
+        unsigned turn = 0;
+        if (LOG_WAR_MUSTER_PULL::PARSE(s, &seat, &sx, &sy, &turn)) {
+            cnt = cnt + 1u;
+        }
+        break;
+    }
+    case 46u: {
+        unsigned seat = 0;
+        unsigned army_i = 0;
+        unsigned sx = 0;
+        unsigned sy = 0;
+        unsigned turn = 0;
+        if (LOG_WAR_PARK::PARSE(s, &seat, &army_i, &sx, &sy, &turn)) {
+            cnt = cnt + 1u;
+        }
+        break;
+    }
+    case 47u: {
+        unsigned seat = 0;
+        unsigned army_i = 0;
+        unsigned fx = 0;
+        unsigned fy = 0;
+        unsigned turn = 0;
+        if (LOG_WAR_RALLY::PARSE(s, &seat, &army_i, &fx, &fy, &turn)) {
+            cnt = cnt + 1u;
+        }
+        break;
+    }
+    case 48u: {
+        unsigned seat = 0;
+        unsigned army_i = 0;
+        unsigned flag_i = 0;
+        unsigned turn = 0;
+        if (LOG_WAR_MERGE_FLAG::PARSE(s, &seat, &army_i, &flag_i, &turn)) {
+            cnt = cnt + 1u;
+        }
+        break;
+    }
+    case 49u: {
+        unsigned seat = 0;
+        unsigned sector = 0;
+        unsigned turn = 0;
+        if (LOG_WAR_SECT_BEGIN::PARSE(s, &seat, &sector, &turn)) {
+            cnt = cnt + 1u;
+        }
+        break;
+    }
+    case 50u: {
+        unsigned seat = 0;
+        unsigned sector = 0;
+        unsigned turn = 0;
+        if (LOG_WAR_SECT_SELECT::PARSE(s, &seat, &sector, &turn)) {
+            cnt = cnt + 1u;
+        }
+        break;
+    }
+    case 51u: {
+        unsigned seat = 0;
+        unsigned sector = 0;
+        unsigned turn = 0;
+        unsigned reason = 0;
+        if (LOG_WAR_SECT_SKIP::PARSE(s, &seat, &sector, &turn, &reason)) {
+            cnt = cnt + 1u;
+        }
+        break;
+    }
+    case 52u: {
+        unsigned seat = 0;
+        unsigned turn = 0;
+        unsigned skip_n = 0;
+        if (LOG_WAR_SECT_EXHAUST::PARSE(s, &seat, &turn, &skip_n)) {
+            cnt = cnt + 1u;
+        }
+        break;
+    }
+    case 53u: {
+        unsigned seat = 0;
+        unsigned enemy = 0;
+        unsigned turn = 0;
+        unsigned skip_n = 0;
+        if (LOG_WAR_SECT_FALLBACK::PARSE(s, &seat, &enemy, &turn, &skip_n)) {
+            cnt = cnt + 1u;
+        }
+        break;
+    }
+    case 54u: {
+        unsigned seat = 0;
+        unsigned sector = 0;
+        unsigned turn = 0;
+        if (LOG_WAR_SECT_DONE::PARSE(s, &seat, &sector, &turn)) {
+            cnt = cnt + 1u;
+        }
+        break;
+    }
+    case 55u: {
+        unsigned seat = 0;
+        unsigned enemy = 0;
+        unsigned tx = 0;
+        unsigned ty = 0;
+        unsigned turn = 0;
+        if (LOG_WAR_SIEGE_FAIL_BUILDUP::PARSE(s, &seat, &enemy, &tx, &ty, &turn)) {
+            cnt = cnt + 1u;
+        }
+        break;
+    }
+    case 56u: {
         u16 jobs = 0;
         u16 yield = 0;
         if (LOG_CITY_JOB_FOOD::PARSE(s, &jobs, &yield)) {
@@ -452,7 +570,7 @@
         }
         break;
     }
-    case 45u: {
+    case 57u: {
         u16 jobs = 0;
         u16 yield = 0;
         if (LOG_CITY_JOB_PRODUCTION::PARSE(s, &jobs, &yield)) {
@@ -460,7 +578,7 @@
         }
         break;
     }
-    case 46u: {
+    case 58u: {
         u16 jobs = 0;
         u16 yield = 0;
         if (LOG_CITY_JOB_COMMERCE::PARSE(s, &jobs, &yield)) {
@@ -468,7 +586,7 @@
         }
         break;
     }
-    case 47u: {
+    case 59u: {
         u16 jobs = 0;
         u16 yield = 0;
         if (LOG_CITY_JOB_CULTURE::PARSE(s, &jobs, &yield)) {
@@ -476,7 +594,7 @@
         }
         break;
     }
-    case 48u: {
+    case 60u: {
         u16 jobs = 0;
         u16 yield = 0;
         if (LOG_CITY_JOB_SCIENCE::PARSE(s, &jobs, &yield)) {
@@ -484,7 +602,7 @@
         }
         break;
     }
-    case 49u: {
+    case 61u: {
         u16 jobs = 0;
         u16 yield = 0;
         if (LOG_CITY_JOB_RELIGION::PARSE(s, &jobs, &yield)) {
@@ -492,7 +610,7 @@
         }
         break;
     }
-    case 50u: {
+    case 62u: {
         u16 n = 0;
         i32 food = 0;
         i32 production = 0;
@@ -505,7 +623,7 @@
         }
         break;
     }
-    case 51u: {
+    case 63u: {
         u16 player = 0;
         u32 amount = 0;
         if (LOG_PLAYER_COMMERCE::PARSE(s, &player, &amount)) {
@@ -513,7 +631,7 @@
         }
         break;
     }
-    case 52u: {
+    case 64u: {
         u16 player = 0;
         u32 amount = 0;
         if (LOG_PLAYER_COMMERCE_RAW::PARSE(s, &player, &amount)) {
@@ -521,7 +639,7 @@
         }
         break;
     }
-    case 53u: {
+    case 65u: {
         u16 player = 0;
         u32 amount = 0;
         if (LOG_PLAYER_SCIENCE::PARSE(s, &player, &amount)) {
@@ -529,7 +647,7 @@
         }
         break;
     }
-    case 54u: {
+    case 66u: {
         u16 player = 0;
         u16 perc = 0;
         if (LOG_PLAYER_RESEARCH_PERC::PARSE(s, &player, &perc)) {
@@ -537,7 +655,7 @@
         }
         break;
     }
-    case 55u: {
+    case 67u: {
         u16 player = 0;
         u16 tech = 0;
         if (LOG_PLAYER_TECH_DISCOVER::PARSE(s, &player, &tech)) {
@@ -545,7 +663,7 @@
         }
         break;
     }
-    case 56u: {
+    case 68u: {
         u16 seat = 0;
         u16 limit = 0;
         u16 civic = 0;
@@ -554,7 +672,7 @@
         }
         break;
     }
-    case 57u: {
+    case 69u: {
         u16 owner = 0;
         u16 unit = 0;
         u16 x = 0;
@@ -564,7 +682,7 @@
         }
         break;
     }
-    case 58u: {
+    case 70u: {
         char tag[128];
         tag[0] = 0;
         if (LOG_ARMY_INFO::PARSE(s, tag, 128u)) {
@@ -572,7 +690,7 @@
         }
         break;
     }
-    case 59u: {
+    case 71u: {
         u16 player = 0;
         char info[128];
         info[0] = 0;

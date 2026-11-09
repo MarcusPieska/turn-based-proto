@@ -4,6 +4,8 @@
 
 #include "negotiate_peace.h"
 
+#include "civ_relations.h"
+#include "civ_static_key.h"
 #include "game_state.h"
 #include "log_dbg.h"
 
@@ -16,6 +18,12 @@ bool NegotiatePeace::deal (GameState& st, u16 a, u16 b) {
         return false;
     }
     st.m_player_states[a].m_at_war = 0u;
+    if (b < st.m_player_n) {
+        st.m_civ_relations.set(
+            CivStaticDataKey::from_raw(a),
+            CivStaticDataKey::from_raw(b),
+            CivRel::CIV_REL_PEACE);
+    }
     LOG_WAR_PEACE::LOG(SC_U32(a), SC_U32(b), SC_U32(st.m_current_turn));
     return true;
 }

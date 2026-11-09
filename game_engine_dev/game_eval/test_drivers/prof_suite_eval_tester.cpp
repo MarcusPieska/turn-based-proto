@@ -168,6 +168,18 @@ static u8 pick_unit (f64 avg_ns) {
     return 3u;
 }
 
+static cstr unit_color (u8 u) {
+    if (u == 0u) {
+        return "\033[91m";
+    }
+    if (u == 1u) {
+        return "\033[93m";
+    }
+    return "\033[92m";
+}
+
+static const char* k_rst = "\033[0m";
+
 static int cmp_tag (const void* a, const void* b) {
     const TagAgg* ta = static_cast<const TagAgg*>(a);
     const TagAgg* tb = static_cast<const TagAgg*>(b);
@@ -287,8 +299,18 @@ static void print_avgs (cstr stem, const TagAgg* tags, u16 n) {
         const u8 us = pick_unit(sum_ns);
         const f64 avg = avg_ns / unit_div(ua);
         const f64 sum = sum_ns / unit_div(us);
-        std::printf("  %-28s calls=%-8u avg=%.2f %s  tot=%.2f %s\n",
-            t.m_nm, static_cast<u32>(t.m_n), avg, unit_name(ua), sum, unit_name(us));
+        std::printf(
+            "  %-28s calls=%-8u avg=%s%.2f %s%s  tot=%s%.2f %s%s\n",
+            t.m_nm,
+            static_cast<u32>(t.m_n),
+            unit_color(ua),
+            avg,
+            unit_name(ua),
+            k_rst,
+            unit_color(us),
+            sum,
+            unit_name(us),
+            k_rst);
     }
 }
 

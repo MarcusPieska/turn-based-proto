@@ -22,6 +22,7 @@ struct WarTargetPlan {
     static const u16 k_city_cap = 20u;
 
     u16 m_enemy; // Target seat; U16_KEY_NULL = unlocked on entry / fail on exit
+    u16 m_sector; // SectorFlood sector; U16_KEY_NULL if none
     u16 m_cities[k_city_cap]; // City indices in attack order
     u16 m_n; // Valid entries in m_cities
 };
@@ -50,6 +51,7 @@ enum class WarTargetKind : u8 {
 void war_target_set_kind (WarTargetKind k);
 WarTargetKind war_target_get_kind ();
 bool war_target_pick (GameState& st, u16 seat, u16 from_x, u16 from_y, WarTargetPlan* io);
+bool war_target_flood_sector (GameState& st, u16 seat, u16 sector, WarTargetPlan* io);
 
 #endif // WAR_TARGET_POLICY_H
 

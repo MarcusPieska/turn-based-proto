@@ -48,7 +48,12 @@ bool TestHlpCivSpawning::init_seats (GameState& s, u16 seat_n, u16 view, u16 ene
     s.m_player_states = seats;
     s.m_player_n = seat_n;
     s.m_players_remaining = seat_n;
-    s.m_civ_relations.reset(civ_n);
+    s.m_civ_relations.reset(seat_n);
+    for (u16 i = 0; i < seat_n; ++i) {
+        if (!s.m_civ_relations.add_civ(i)) {
+            return false;
+        }
+    }
     const CivStaticDataKey skv = CivStaticDataKey::from_raw(view);
     for (u16 i = 0; i < seat_n; ++i) {
         if (i == view) {

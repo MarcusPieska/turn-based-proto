@@ -545,6 +545,13 @@ bool GameSetup::finish_with_starts (GameState* state, const SpgPickCoords& start
         state->clear();
         return false;
     }
+    state->m_civ_relations.reset(player_n);
+    for (u16 i = 0; i < player_n; ++i) {
+        if (!state->m_civ_relations.add_civ(i)) {
+            state->clear();
+            return false;
+        }
+    }
     mark_lucky_seats(state, lucky_seats, lucky_n);
     City::bind_player_states(state->m_player_states, state->m_player_n);
     CityConnector::set_plan_spines(false);
@@ -593,7 +600,6 @@ bool GameSetup::setup_from_cache (GameState* state, cstr map_path, cstr starts_p
     }
     state->clear();
     state->m_statics = g_rt_statics;
-    state->m_civ_relations.reset(g_rt_statics->civ().get_item_count());
     if (!state->m_combat_mods.setup(*g_rt_statics)) {
         return false;
     }
@@ -623,7 +629,6 @@ bool GameSetup::setup_new_game (GameState* state, const MapGenReq& req, u16 play
     }
     state->clear();
     state->m_statics = g_rt_statics;
-    state->m_civ_relations.reset(g_rt_statics->civ().get_item_count());
     if (!state->m_combat_mods.setup(*g_rt_statics)) {
         return false;
     }
@@ -658,7 +663,6 @@ bool GameSetup::setup_new_game (GameState* state, const MapPpmPaths& paths, u16 
     }
     state->clear();
     state->m_statics = g_rt_statics;
-    state->m_civ_relations.reset(g_rt_statics->civ().get_item_count());
     if (!state->m_combat_mods.setup(*g_rt_statics)) {
         return false;
     }

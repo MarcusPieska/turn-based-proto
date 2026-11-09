@@ -28,9 +28,8 @@ enum class CivRel : u8 {
 //=> - CivRelations -
 //================================================================================================================================
 //
-//  civ_n x civ_n directed relation matrix (full static civ roster).
-//  Backed by MapBitArrayOverlay with 3 bits per cell; CivStaticDataKey indexes
-//  rows/cols directly. Valid keys are always in range for a sized matrix.
+//  Per-seat relation row (MapBitArrayOverlay of length civ_n, 4 bits/cell). Keys are seat indices
+//  via CivStaticDataKey::from_raw. set() writes both seats' rows. remove_civ frees a destroyed seat.
 //
 //================================================================================================================================
 
@@ -40,6 +39,8 @@ public:
     ~CivRelations ();
 
     void reset (u16 civ_n);
+    bool add_civ (u16 i);
+    void remove_civ (u16 i);
 
     CivRel get (CivStaticDataKey c1, CivStaticDataKey c2) const;
     void set (CivStaticDataKey c1, CivStaticDataKey c2, CivRel rel);
@@ -50,7 +51,10 @@ private:
     CivRelations (const CivRelations& o) = delete;
     CivRelations& operator= (const CivRelations& o) = delete;
 
-    MapBitArrayOverlay* m_grid;
+    void clr_rows ();
+
+    MapBitArrayOverlay** m_row; // One row per seat; nullptr if not added / removed
+    u16 m_n; // Capacity (seat count)
 };
 
 #endif // CIV_RELATIONS_H
