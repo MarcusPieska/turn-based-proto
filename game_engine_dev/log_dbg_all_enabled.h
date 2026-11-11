@@ -15,6 +15,9 @@
 
 #define LOG_DBG_FORCE_ALL
 #include "log_dbg/log_new_turn.h"
+#include "log_dbg/log_wb_mng.h"
+#include "log_dbg/log_sector_path_grads.h"
+#include "log_dbg/log_spg_fail.h"
 #include "log_dbg/log_city_foundation.h"
 #include "log_dbg/log_civ_spawn_pt.h"
 #include "log_dbg/log_unit_spawn.h"
@@ -86,6 +89,8 @@
 #include "log_dbg/log_unit_state.h"
 #include "log_dbg/log_army_info.h"
 #include "log_dbg/log_unit_type_count.h"
+#include "log_dbg/log_wb_inv.h"
+#include "log_dbg/log_wb_inv_item.h"
 #include "log_dbg/assert_combat_ready.h"
 #include "log_dbg/assert_sector_support_bound.h"
 #include "log_dbg/assert_war_army_can_fight.h"
@@ -97,6 +102,7 @@
 #include "log_dbg/eval_army_state_peace.h"
 #include "log_dbg/eval_army_state_muster_group.h"
 #include "log_dbg/eval_count_artillery.h"
+#include "log_dbg/eval_wb_checkout.h"
 #include "log_dbg/prof_game_loop.h"
 #include "log_dbg/prof_th_war.h"
 #include "log_dbg/prof_dbg_setup.h"

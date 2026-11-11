@@ -13,9 +13,9 @@ class GameArraySimple;
 //=> - MapOwnXferSaveSnap -
 //================================================================================================================================
 //
-//  Bleached climate (+ rivers/mountains) base with roads/cities as in MapOwnSaveSnap.
-//  write() shades someone→someone changes between prev and cur (none→someone ignored).
-//  write_seats() shades from a dense seat row (U8_KEY_NULL = no shade); used for the all-xfer composite.
+//  Bleached climate (+ rivers) base, ownership shade, roads/cities, then mountains last with a
+//  slight alpha so ranges sit on top of transfer stripes. write() shades someone→someone changes
+//  between prev and cur (none→someone ignored). write_seats() is the all-xfer composite path.
 //
 //================================================================================================================================
 

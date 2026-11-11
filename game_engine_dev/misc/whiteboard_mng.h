@@ -251,6 +251,8 @@ public:
     static u8* slot_allocator ();
     static u16 allocated_max ();
     static void dump_inv ();
+    typedef void (*ChkoutFn) (u8 sz_b, u8 blk, u8 sub, u32 turn, cstr cls, cstr fn, void* ctx);
+    static void each_chkout (ChkoutFn fn, void* ctx);
     static u8 i8_cmd_sz (i8 cmd);
     static bool i8_cmd_co (i8 cmd);
     static void seq_reset ();

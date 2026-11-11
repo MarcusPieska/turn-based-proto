@@ -16,6 +16,10 @@
 //================================================================================================================================
 
 static const u8 k_road_gray = 64u;
+static const u8 k_mtn_a = 230u; // Mountain overlay opacity; leftover is underdraw
+static const u8 k_mtn_r = 42u;
+static const u8 k_mtn_g = 24u;
+static const u8 k_mtn_b = 12u;
 
 static void set_px (u8* rgb, u16 w, u16 h, u16 x, u16 y, u8 r, u8 g, u8 b) {
     if (x >= w || y >= h) {
@@ -91,11 +95,6 @@ static bool paint_base (u8* rgb, const GameArraySimple& map) {
                 g = 100;
                 b = 220;
             }
-            if (terr == TERR_MOUNTAINS[0]) {
-                r = 120;
-                g = 72;
-                b = 40;
-            }
             bleach(&r, &g, &b);
             set_px(rgb, w, h, x, y, r, g, b);
         }
@@ -117,6 +116,50 @@ static void paint_roads_cities (u8* rgb, const GameArraySimple& map) {
     for (u16 y = 0; y < h; ++y) {
         for (u16 x = 0; x < w; ++x) {
             if (map.get_add_typ(x, y) != static_cast<u8>(BUILD_ADD_CITY)) {
+                continue;
+            }
+            set_px(rgb, w, h, x, y, 0, 0, 0);
+        }
+    }
+}
+
+static bool mtn_rim (const GameArraySimple& map, u16 x, u16 y) {
+    static const i32 dx[4] = {1, -1, 0, 0};
+    static const i32 dy[4] = {0, 0, 1, -1};
+    const u16 w = map.width();
+    const u16 h = map.height();
+    for (u8 k = 0; k < 4u; ++k) {
+        const i32 nx = static_cast<i32>(x) + dx[k];
+        const i32 ny = static_cast<i32>(y) + dy[k];
+        if (nx < 0 || ny < 0 || nx >= static_cast<i32>(w) || ny >= static_cast<i32>(h)) {
+            return true;
+        }
+        if (map.get_terrain(static_cast<u16>(nx), static_cast<u16>(ny)) != TERR_MOUNTAINS[0]) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static void paint_mountains (u8* rgb, const GameArraySimple& map) {
+    const u16 w = map.width();
+    const u16 h = map.height();
+    const u8 a = k_mtn_a;
+    const u8 ia = static_cast<u8>(255u - a);
+    for (u16 y = 0; y < h; ++y) {
+        for (u16 x = 0; x < w; ++x) {
+            if (map.get_terrain(x, y) != TERR_MOUNTAINS[0]) {
+                continue;
+            }
+            const u32 i = (static_cast<u32>(y) * static_cast<u32>(w) + static_cast<u32>(x)) * 3u;
+            rgb[i + 0] = static_cast<u8>((static_cast<u16>(k_mtn_r) * a + static_cast<u16>(rgb[i + 0]) * ia) / 255u);
+            rgb[i + 1] = static_cast<u8>((static_cast<u16>(k_mtn_g) * a + static_cast<u16>(rgb[i + 1]) * ia) / 255u);
+            rgb[i + 2] = static_cast<u8>((static_cast<u16>(k_mtn_b) * a + static_cast<u16>(rgb[i + 2]) * ia) / 255u);
+        }
+    }
+    for (u16 y = 0; y < h; ++y) {
+        for (u16 x = 0; x < w; ++x) {
+            if (map.get_terrain(x, y) != TERR_MOUNTAINS[0] || !mtn_rim(map, x, y)) {
                 continue;
             }
             set_px(rgb, w, h, x, y, 0, 0, 0);
@@ -184,6 +227,7 @@ bool MapOwnXferSaveSnap::write_seats (cstr path, const GameArraySimple& base, co
     }
     delete[] own;
     paint_roads_cities(rgb, base);
+    paint_mountains(rgb, base);
     const bool ok = wr_ppm(path, rgb, w, h);
     delete[] rgb;
     return ok;

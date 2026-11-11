@@ -502,6 +502,28 @@ bool GameLoop::step () {
     { PROF_GAME_LOOP_ENTER("run_unit_turns"); run_unit_turns(*m_state); }
     { PROF_GAME_LOOP_ENTER("ArmyGeneralTurnHandler"); ArmyGeneralTurnHandler::handle(*m_state); }
     { PROF_GAME_LOOP_ENTER("WarTurnHandler"); WarTurnHandler::handle(*m_state); }
+    {
+        const u32 tn = WhiteboardMng::tile_n();
+        const u32 alloc_kb = (tn == 0u)
+            ? 0u
+            : static_cast<u32>((static_cast<u64>(WhiteboardMng::slab_n()) * static_cast<u64>(tn) * 8ull) / 1024ull);
+        const u32 chkout_kb = (tn == 0u)
+            ? 0u
+            : static_cast<u32>((static_cast<u64>(WhiteboardMng::slot_use()) * static_cast<u64>(tn)) / 1024ull);
+        LOG_WB_MNG::LOG(m_state->m_current_turn, alloc_kb, chkout_kb);
+        for (u16 i = 0u; i < SectorPathGradients::k_pool_n; ++i) {
+            const SectorPathGradients* spg = WarTurnHandler::path_grads(i);
+            if (spg == nullptr) {
+                continue;
+            }
+            LOG_SECTOR_PATH_GRADS::LOG(
+                m_state->m_current_turn,
+                SC_U32(i),
+                SC_U32(spg->chunk_n()),
+                SC_U32(spg->wb_n()));
+        }
+        EVAL_WB_CHECKOUT::EVAL(m_state->m_current_turn);
+    }
     return true;
 }
 

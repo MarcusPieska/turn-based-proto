@@ -46,6 +46,11 @@ Form / march / assault:
       reason: 0=no defensible+no seed  1=flood empty
   LOG_WAR_FIND_ENEMY_SEED_FAIL — find_enemy_seed
   LOG_WAR_SET_GOAL_FAIL   — set_goal access/distance
+  LOG_SPG_FAIL            — SectorPathGradients lease/fill refuse (no full fallback)
+      reason: 0=bad_sec  1=empty_aabb  2=dual_too_big  3=no_chunk
+              4=outside_window  5=dial_fail  6=bad_args  7=not_ready
+  EVAL_WB_CHECKOUT / LOG_WB_INV / LOG_WB_INV_ITEM — end-of-turn live WB inventory
+      (begin … item lines … end); needs -DWB_TRACE_DB on whiteboard_mng.o
   LOG_WAR_ASSAULT_STALL_STOP — Assault Stall and !can_cont → war_stop
   LOG_WAR_ASSAULT_FAIL_STOP  — Assault Fail → war_stop
   LOG_WAR_ASSAULT_CITY_FAIL  — assault_city hard Fail (bad army / CityAssault≠Ok)

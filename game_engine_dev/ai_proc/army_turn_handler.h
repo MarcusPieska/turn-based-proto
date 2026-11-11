@@ -8,7 +8,7 @@
 #include "game_primitives.h"
 
 class GameState;
-class PathGradients;
+class SectorPathGradients;
 
 //================================================================================================================================
 //=> - WarAssault -
@@ -65,7 +65,7 @@ struct WarArmy {
     u16 m_idx; // Slot index for logs
     u16 m_path_i; // Index into m_paths
     u16 m_front; // BorderFront index; U16_KEY_NULL if unbound
-    PathGradients* m_paths; // Non-owning path bank; null if unset
+    SectorPathGradients* m_paths; // Non-owning path bank; null if unset
     ArmyPhase m_phase; // Self-drive phase for handle
     bool m_stall; // True when last assault returned Stall
     u32 m_br_tot; // Last barrage pass total HP removed

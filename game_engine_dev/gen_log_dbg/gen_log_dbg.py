@@ -15,6 +15,9 @@ import sys
 
 LOGS = [
     ("NewTurn", "u16 turn", "NEW_TURN:%u\n"),
+    ("WbMng", "unsigned turn, unsigned alloc_kb, unsigned chkout_kb", "wb mng turn=%u alloc_kb=%u chkout_kb=%u\n"),
+    ("SectorPathGrads", "unsigned turn, unsigned seat, unsigned chunks, unsigned wb", "spg turn=%u seat=%u chunks=%u wb=%u\n"),
+    ("SpgFail", "unsigned turn, unsigned slot, unsigned reason, unsigned a, unsigned b", "spg fail turn=%u slot=%u reason=%u a=%u b=%u\n"),
     ("CityFoundation", "u16 x, u16 y, u16 player", "city founded at=(%u,%u) civ=%u\n"),
     ("CivSpawnPt", "u16 x, u16 y, u16 civ_idx", "civ spawned at=(%u,%u) civ=%u\n"),
     ("UnitSpawn", "u16 typ_idx, u16 civ_idx, u16 x, u16 y", "unit spawned typ=%u civ=%u at=(%u,%u)\n"),
@@ -86,6 +89,8 @@ LOGS = [
     ("UnitState", "u16 owner, u16 unit, u16 x, u16 y", "unit state owner=%u unit=%u at=(%u,%u)\n"),
     ("ArmyInfo", "cstr tag", "army state=%s\n"),
     ("UnitTypeCount", "u16 player, cstr info, u16 count, u16 total", "unit type count player=%u info=%s count=%u/%u\n"),
+    ("WbInv", "unsigned turn, cstr tag", "wb inv turn=%u tag=%s\n"),
+    ("WbInvItem", "unsigned turn, unsigned sz_b, unsigned blk, unsigned sub, unsigned wb_turn, cstr cls, cstr fn", "wb inv item turn=%u sz=%u blk=%u sub=%u wb_turn=%u cls=%s fn=%s\n"),
 ]
 
 ASSERTS = [
@@ -103,6 +108,7 @@ VALIDATES = [
     ("ArmyStatePeace", "GameState& state, u16 head"),
     ("ArmyStateMusterGroup", "GameState& state, u16 sx, u16 sy, const u16* heads, u16 n"),
     ("CountArtillery", "GameState& state, u16 player"),
+    ("WbCheckout", "unsigned turn"),
 ]
 
 PROFS = [

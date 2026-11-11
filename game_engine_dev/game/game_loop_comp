@@ -132,7 +132,7 @@ g++ $CXXFLAGS $INC -c ../city/city_blocking_mask.cpp -o city_blocking_mask.o
 g++ $CXXFLAGS $INC -c ../city/city_border.cpp -o city_border.o
 g++ $CXXFLAGS $INC -c ../simple_map_gen/perlin_noise.cpp -o perlin_noise.o
 g++ $CXXFLAGS $INC -c ../simple_map_gen/generator_constants.cpp -o generator_constants.o
-g++ $CXXFLAGS $INC -c ../misc/whiteboard_mng.cpp -o whiteboard_mng.o
+g++ $CXXFLAGS $INC -DWB_TRACE_DB -c ../misc/whiteboard_mng.cpp -o whiteboard_mng.o
 g++ $CXXFLAGS $INC -c ../misc/profile_time_opt.cpp -o profile_time_opt.o
 g++ $CXXFLAGS $INC -c city_turn_handler.cpp -o city_turn_handler.o
 g++ $CXXFLAGS $INC -c ../ai_proc/city_turn_handler_core.cpp -o city_turn_handler_core.o
@@ -207,6 +207,7 @@ g++ $CXXFLAGS $INC -c ../ai_pathing/walk_target/generate_access_mask.cpp -o gene
 g++ $CXXFLAGS $INC -c ../ai_pathing/walk_target/generate_distance_p2p.cpp -o generate_distance_p2p.o
 g++ $CXXFLAGS $INC -c ../ai_pathing/walk_target/walk_p2p.cpp -o walk_p2p.o
 g++ $CXXFLAGS $INC -c ../ai_pathing/walk_target/path_gradients.cpp -o path_gradients.o
+g++ $CXXFLAGS $INC -c ../ai_proc/sector_path_gradients.cpp -o sector_path_gradients.o
 g++ $CXXFLAGS $INC -c ../ai_proc/generate_exposure.cpp -o generate_exposure.o
 g++ $CXXFLAGS $INC -c ../ai_proc/generate_staging_landmass.cpp -o generate_staging_landmass.o
 g++ $CXXFLAGS $INC -c ../ai_proc/war_staging_selector.cpp -o war_staging_selector.o
@@ -371,6 +372,7 @@ g++ $CXXFLAGS -o game_loop_tester \
     generate_distance_p2p.o \
     walk_p2p.o \
     path_gradients.o \
+    sector_path_gradients.o \
     generate_exposure.o \
     generate_staging_landmass.o \
     war_staging_selector.o \
@@ -432,7 +434,7 @@ rm -f runtime_static_loader.o map_terrain_validate.o map_terrain_data.o map_load
     ledger_balance_turn_handler.o \
     tile_transfer.o target_ordering_manhattan.o target_ordering_flood.o \
     gen_land_sectors.o land_sector_network.o gen_land_sector_network.o land_sector_adj.o sector_support.o sect_select_defensible.o sect_select_walk.o sect_select.o expansion_state.o city_select_greedy.o war_target_policy.o war_target_policy_sector_flood.o war_target_secure_capital.o mock_muster_siege.o \
-    wb_que_xy.o generate_access_mask.o generate_distance_p2p.o walk_p2p.o path_gradients.o \
+    wb_que_xy.o generate_access_mask.o generate_distance_p2p.o walk_p2p.o path_gradients.o sector_path_gradients.o \
     generate_exposure.o generate_staging_landmass.o war_staging_selector.o army_general.o army_general_turn_handler.o general_move_boost.o city_attack_manager.o combat_mng.o city_defense_booster_register.o army_turn_handler.o army_reassembler.o border_turn_handler.o war_turn_handler.o \
     tile_entry_resolver.o game_loop_tester.o
 

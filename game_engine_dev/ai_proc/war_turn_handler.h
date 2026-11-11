@@ -7,7 +7,7 @@
 
 #include "army_turn_handler.h"
 #include "game_primitives.h"
-#include "path_gradients.h"
+#include "sector_path_gradients.h"
 #include "walk_p2p.h"
 
 class ExpansionState;
@@ -68,6 +68,7 @@ public:
     static const LandSectorSeedPt* sec_pts ();
     static const Whiteboard_2B* sec_wb ();
     static u16 sec_n ();
+    static const SectorPathGradients* path_grads (u16 pool_i);
 
     bool ok () const;
     bool make_muster_gradient (u16 x, u16 y);
@@ -141,10 +142,10 @@ private:
     u16 weakest_army () const;
     bool start_reinforce (BorderFront* fronts, u16 n);
     bool finish_reinforce ();
+    void path_drop (u16 army_i);
 
     GameState& m_st;
     u16 m_seat;
-    PathGradients m_paths; // Per-group march gradients; slot i for m_atk[i]
     WalkP2P m_mob; // Muster gradient to staging / reinforce city
     MusterCity m_grp[k_grp_cap];
     u16 m_grp_n;

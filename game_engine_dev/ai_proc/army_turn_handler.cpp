@@ -21,7 +21,7 @@
 #include "unit_static_key.h"
 #include "unit_turn_handler.h"
 #include "unit_type_action_map.h"
-#include "path_gradients.h"
+#include "sector_path_gradients.h"
 
 //================================================================================================================================
 //=> - Helpers -
@@ -94,7 +94,7 @@ bool ArmyTurnHandler::walk (GameState& s, WarArmy& army) {
         if (u->m_x == army.m_tx && u->m_y == army.m_ty) {
             break;
         }
-        const PathGradients::StepRes step = army.m_paths->peek(army.m_path_i, s, u->m_x, u->m_y);
+        const SectorPathGradients::StepRes step = army.m_paths->peek(army.m_path_i, s, u->m_x, u->m_y);
         if (!step.have) {
             break;
         }

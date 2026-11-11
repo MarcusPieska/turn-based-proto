@@ -139,7 +139,6 @@ static bool mob_hit (const WalkP2P& mob, u16 x, u16 y) {
 WarTurnHandler::WarTurnHandler (GameState& s, u16 seat) :
     m_st(s),
     m_seat(seat),
-    m_paths(),
     m_mob(),
     m_grp_n(0),
     m_atk_n(0),
@@ -164,9 +163,9 @@ WarTurnHandler::WarTurnHandler (GameState& s, u16 seat) :
         m_atk[i].m_tx = 0u;
         m_atk[i].m_ty = 0u;
         m_atk[i].m_idx = i;
-        m_atk[i].m_path_i = i;
+        m_atk[i].m_path_i = U16_KEY_NULL;
         m_atk[i].m_front = U16_KEY_NULL;
-        m_atk[i].m_paths = &m_paths;
+        m_atk[i].m_paths = nullptr;
         m_atk[i].m_phase = ArmyPhase::Idle;
         m_atk[i].m_stall = false;
         m_atk[i].m_br_tot = 0u;
@@ -176,6 +175,20 @@ WarTurnHandler::WarTurnHandler (GameState& s, u16 seat) :
 }
 
 WarTurnHandler::~WarTurnHandler () {
+    for (u16 i = 0; i < k_atk_cap; ++i) {
+        path_drop(i);
+    }
+}
+
+void WarTurnHandler::path_drop (u16 army_i) {
+    if (army_i >= k_atk_cap) {
+        return;
+    }
+    if (m_atk[army_i].m_paths != nullptr && m_atk[army_i].m_path_i != U16_KEY_NULL) {
+        m_atk[army_i].m_paths->release(m_atk[army_i].m_path_i);
+    }
+    m_atk[army_i].m_paths = nullptr;
+    m_atk[army_i].m_path_i = U16_KEY_NULL;
 }
 
 bool WarTurnHandler::ok () const {
@@ -187,6 +200,34 @@ bool WarTurnHandler::ok () const {
 
 u16 WarTurnHandler::grp_use_n () const {
     return (m_atk_n < k_grp_use) ? m_atk_n : k_grp_use;
+}
+
+static u16 wth_sec_at (const Whiteboard_2B* wb, u16 x, u16 y) {
+    if (wb == nullptr || !wb->ok() || x >= wb->w() || y >= wb->h()) {
+        return U16_KEY_NULL;
+    }
+    const u16 tag = wb->rd(x, y);
+    return (tag == 0u) ? U16_KEY_NULL : static_cast<u16>(tag - 1u);
+}
+
+static u16 wth_own_seed_sec (u16 seat, u16 tgt) {
+    if (tgt == U16_KEY_NULL) {
+        return U16_KEY_NULL;
+    }
+    if (SectorSupport::has_own_city(seat, tgt)) {
+        return tgt;
+    }
+    const LandSectorAdj* adj = WarTurnHandler::sec_adj();
+    if (adj == nullptr || !adj->ok()) {
+        return U16_KEY_NULL;
+    }
+    for (u16 e = adj->hd(tgt); e != U16_KEY_NULL; e = adj->nx(e)) {
+        const u16 n = adj->to(e);
+        if (SectorSupport::has_own_city(seat, n)) {
+            return n;
+        }
+    }
+    return U16_KEY_NULL;
 }
 
 bool WarTurnHandler::set_goal_army (u16 army_i, u16 x2, u16 y2) {
@@ -207,17 +248,48 @@ bool WarTurnHandler::set_goal_army (u16 army_i, u16 x2, u16 y2) {
         ax = u->m_x;
         ay = u->m_y;
     }
-    u16 dmax = 0;
-    if (!GenerateDistanceP2P::generate(m_st, *m_st.m_statics, ax, ay, x2, y2, m_paths.at(army_i), &acc, &dmax)) {
+    const Whiteboard_2B* wb = sec_wb();
+    u16 to = m_sector;
+    if (to == U16_KEY_NULL) {
+        to = wth_sec_at(wb, x2, y2);
+    }
+    const u16 from = wth_own_seed_sec(m_seat, to);
+    u16 secs[2];
+    u16 sn = 0u;
+    if (from != U16_KEY_NULL) {
+        secs[sn++] = from;
+    }
+    if (to != U16_KEY_NULL && (sn == 0u || secs[0] != to)) {
+        secs[sn++] = to;
+    }
+    path_drop(army_i);
+    u16 slot = U16_KEY_NULL;
+    SectorPathGradients* spg = SectorPathGradients::pool_acq(&slot);
+    if (spg == nullptr || slot == U16_KEY_NULL) {
         LOG_WAR_SET_GOAL_FAIL::LOG(SC_U32(m_seat), SC_U32(x2), SC_U32(y2), SC_U32(m_st.m_current_turn));
         return false;
     }
-    if (!m_paths.ok(army_i)) {
+    bool ok = false;
+    if (sn == 1u) {
+        ok = spg->lease(slot, secs[0])
+            && spg->fill(slot, m_st, *m_st.m_statics, ax, ay, x2, y2, &acc)
+            && spg->ok(slot);
+    } else if (sn == 2u) {
+        ok = spg->lease_multi(slot, secs, sn)
+            && spg->fill(slot, m_st, *m_st.m_statics, ax, ay, x2, y2, &acc)
+            && spg->ok(slot);
+    }
+    if (!ok) {
+        spg->release(slot);
+        ok = spg->pack_path(slot, m_st, *m_st.m_statics, ax, ay, x2, y2, &acc) && spg->ok(slot);
+    }
+    if (!ok) {
+        spg->release(slot);
         LOG_WAR_SET_GOAL_FAIL::LOG(SC_U32(m_seat), SC_U32(x2), SC_U32(y2), SC_U32(m_st.m_current_turn));
         return false;
     }
-    m_atk[army_i].m_path_i = army_i;
-    m_atk[army_i].m_paths = &m_paths;
+    m_atk[army_i].m_path_i = slot;
+    m_atk[army_i].m_paths = spg;
     m_atk[army_i].m_tx = x2;
     m_atk[army_i].m_ty = y2;
     return true;
@@ -568,14 +640,13 @@ bool WarTurnHandler::form_army () {
     u32 army_n = 0u;
     u32 size_sum = 0u;
     for (u16 i = 0; i < k_atk_cap; ++i) {
+        path_drop(i);
         m_atk[i].m_hd = U16_KEY_NULL;
         m_atk[i].m_split = U16_KEY_NULL;
         m_atk[i].m_tx = m_tx;
         m_atk[i].m_ty = m_ty;
         m_atk[i].m_idx = i;
-        m_atk[i].m_path_i = i;
         m_atk[i].m_front = U16_KEY_NULL;
-        m_atk[i].m_paths = &m_paths;
         m_atk[i].m_phase = ArmyPhase::Idle;
         m_atk[i].m_stall = false;
         m_atk[i].m_br_tot = 0u;
@@ -1253,6 +1324,7 @@ void WarTurnHandler::clr_campaign () {
             EVAL_ARMY_STATE_PEACE::EVAL(m_st, m_atk[i].m_split);
             UnitMovementMng::set_grp_campaign(m_st, UnitAddKey::from_raw(m_atk[i].m_split), 0u);
         }
+        path_drop(i);
     }
 }
 
@@ -1316,12 +1388,11 @@ bool WarTurnHandler::bind_standing (u16 i, u16 hd, u16 front) {
     if (u == nullptr) {
         return false;
     }
+    path_drop(i);
     m_atk[i].m_hd = hd;
     m_atk[i].m_split = U16_KEY_NULL;
     m_atk[i].m_front = front;
     m_atk[i].m_idx = i;
-    m_atk[i].m_path_i = i;
-    m_atk[i].m_paths = &m_paths;
     m_atk[i].m_phase = ArmyPhase::Idle;
     m_atk[i].m_stall = false;
     m_atk[i].m_br_tot = 0u;
@@ -1347,6 +1418,7 @@ void WarTurnHandler::drop_army (u16 army_i) {
     if (army_i >= k_atk_cap) {
         return;
     }
+    path_drop(army_i);
     m_atk[army_i].m_hd = U16_KEY_NULL;
     m_atk[army_i].m_split = U16_KEY_NULL;
     m_atk[army_i].m_phase = ArmyPhase::Idle;
@@ -1789,6 +1861,7 @@ static void front_clear (u16 seat, u16 fi) {
 }
 
 static void war_sec_clr () {
+    SectorPathGradients::pool_teardown();
     SectorSupport::clr();
     for (u16 i = 0; i < WarTurnHandler::k_seat_cap; ++i) {
         g_exp[i].clr();
@@ -1844,6 +1917,11 @@ static bool war_sec_begin (GameState& st) {
         return false;
     }
     if (!SectorSupport::bind(&st, &g_gls->sectors(), &g_seeds, g_net)) {
+        LOG_WAR_SEC_BEGIN_FAIL::LOG(SC_U32(st.m_current_turn), 4u);
+        war_sec_clr();
+        return false;
+    }
+    if (!SectorPathGradients::pool_setup(g_gls->sectors(), g_gls->sector_n())) {
         LOG_WAR_SEC_BEGIN_FAIL::LOG(SC_U32(st.m_current_turn), 4u);
         war_sec_clr();
         return false;
@@ -2426,6 +2504,10 @@ bool WarTurnHandler::engage (GameState& state, u16 seat, u16 enemy) {
 
 bool WarTurnHandler::is_engaged (u16 seat) {
     return seat < g_war_n && g_war[seat].m_enemy != U16_KEY_NULL;
+}
+
+const SectorPathGradients* WarTurnHandler::path_grads (u16 pool_i) {
+    return SectorPathGradients::pool_bank(pool_i);
 }
 
 void WarTurnHandler::handle (GameState& state) {

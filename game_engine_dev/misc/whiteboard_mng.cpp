@@ -694,6 +694,19 @@ void WhiteboardMngTestUtil::dump_inv () {
 #endif
 }
 
+void WhiteboardMngTestUtil::each_chkout (ChkoutFn fn, void* ctx) {
+    if (fn == nullptr) {
+        return;
+    }
+#ifdef WB_TRACE_DB
+    for (WbTraceNd* nd = g_wb_trace; nd != nullptr; nd = nd->next) {
+        fn(nd->sz_b, nd->blk, nd->sub, nd->turn, nd->cls, nd->fn, ctx);
+    }
+#else
+    (void)ctx;
+#endif
+}
+
 struct WbHeld {
     u8 sz_b;
     u8 blk;

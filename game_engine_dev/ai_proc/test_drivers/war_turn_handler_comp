@@ -149,7 +149,7 @@ g++ $CXXFLAGS $INC -c ../../city/city_blocking_mask.cpp -o city_blocking_mask.o
 g++ $CXXFLAGS $INC -c ../../city/city_border.cpp -o city_border.o
 g++ $CXXFLAGS $INC -c ../../simple_map_gen/perlin_noise.cpp -o perlin_noise.o
 g++ $CXXFLAGS $INC -c ../../simple_map_gen/generator_constants.cpp -o generator_constants.o
-g++ $CXXFLAGS $INC -c ../../misc/whiteboard_mng.cpp -o whiteboard_mng.o
+g++ $CXXFLAGS $INC -DWB_TRACE_DB -c ../../misc/whiteboard_mng.cpp -o whiteboard_mng.o
 g++ $CXXFLAGS $INC -c ../sense_settling_pts_opt.cpp -o sense_settling_pts_opt.o
 g++ $CXXFLAGS $INC -c ../settler_mission_manager.cpp -o settler_mission_manager.o
 g++ $CXXFLAGS $INC -c ../gen_settlement_order.cpp -o gen_settlement_order.o
@@ -189,6 +189,7 @@ g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_target/generate_access_mask.cpp -o g
 g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_target/generate_distance_p2p.cpp -o generate_distance_p2p.o
 g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_target/walk_p2p.cpp -o walk_p2p.o
 g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_target/path_gradients.cpp -o path_gradients.o
+g++ $CXXFLAGS $INC -c ../../ai_proc/sector_path_gradients.cpp -o sector_path_gradients.o
 g++ $CXXFLAGS $INC -c ../generate_exposure.cpp -o generate_exposure.o
 g++ $CXXFLAGS $INC -c ../generate_staging_landmass.cpp -o generate_staging_landmass.o
 g++ $CXXFLAGS $INC -c ../war_staging_selector.cpp -o war_staging_selector.o
@@ -344,6 +345,7 @@ g++ $CXXFLAGS -o war_turn_handler_tester \
     generate_distance_p2p.o \
     walk_p2p.o \
     path_gradients.o \
+    sector_path_gradients.o \
     generate_exposure.o \
     generate_staging_landmass.o \
     war_staging_selector.o \

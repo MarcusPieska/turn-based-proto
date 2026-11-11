@@ -16,6 +16,10 @@
 //================================================================================================================================
 
 static const u8 k_road_gray = 64u;
+static const u8 k_mtn_a = 230u;
+static const u8 k_mtn_r = 42u;
+static const u8 k_mtn_g = 24u;
+static const u8 k_mtn_b = 12u;
 
 static void set_px (u8* rgb, u16 w, u16 h, u16 x, u16 y, u8 r, u8 g, u8 b) {
     if (x >= w || y >= h) {
@@ -25,6 +29,35 @@ static void set_px (u8* rgb, u16 w, u16 h, u16 x, u16 y, u8 r, u8 g, u8 b) {
     rgb[i + 0] = r;
     rgb[i + 1] = g;
     rgb[i + 2] = b;
+}
+
+static void blend_px (u8* rgb, u16 w, u16 h, u16 x, u16 y, u8 r, u8 g, u8 b, u8 a) {
+    if (x >= w || y >= h) {
+        return;
+    }
+    const u32 i = (static_cast<u32>(y) * static_cast<u32>(w) + static_cast<u32>(x)) * 3u;
+    const u8 ia = static_cast<u8>(255u - a);
+    rgb[i + 0] = static_cast<u8>((static_cast<u16>(r) * a + static_cast<u16>(rgb[i + 0]) * ia) / 255u);
+    rgb[i + 1] = static_cast<u8>((static_cast<u16>(g) * a + static_cast<u16>(rgb[i + 1]) * ia) / 255u);
+    rgb[i + 2] = static_cast<u8>((static_cast<u16>(b) * a + static_cast<u16>(rgb[i + 2]) * ia) / 255u);
+}
+
+static bool mtn_rim (const GameArraySimple& map, u16 x, u16 y) {
+    static const i32 dx[4] = {1, -1, 0, 0};
+    static const i32 dy[4] = {0, 0, 1, -1};
+    const u16 w = map.width();
+    const u16 h = map.height();
+    for (u8 k = 0; k < 4u; ++k) {
+        const i32 nx = static_cast<i32>(x) + dx[k];
+        const i32 ny = static_cast<i32>(y) + dy[k];
+        if (nx < 0 || ny < 0 || nx >= static_cast<i32>(w) || ny >= static_cast<i32>(h)) {
+            return true;
+        }
+        if (map.get_terrain(static_cast<u16>(nx), static_cast<u16>(ny)) != TERR_MOUNTAINS[0]) {
+            return true;
+        }
+    }
+    return false;
 }
 
 static void terr_rgb (u8 cls, u8* r, u8* g, u8* b) {
@@ -92,11 +125,6 @@ bool MapOwnSaveSnap::write (cstr path, const GameArraySimple& map) {
                 g = 100;
                 b = 220;
             }
-            if (terr == TERR_MOUNTAINS[0]) {
-                r = 120;
-                g = 72;
-                b = 40;
-            }
             set_px(rgb, w, h, x, y, r, g, b);
         }
     }
@@ -136,6 +164,22 @@ bool MapOwnSaveSnap::write (cstr path, const GameArraySimple& map) {
     for (u16 y = 0; y < h; ++y) {
         for (u16 x = 0; x < w; ++x) {
             if (map.get_add_typ(x, y) != static_cast<u8>(BUILD_ADD_CITY)) {
+                continue;
+            }
+            set_px(rgb, w, h, x, y, 0, 0, 0);
+        }
+    }
+    for (u16 y = 0; y < h; ++y) {
+        for (u16 x = 0; x < w; ++x) {
+            if (map.get_terrain(x, y) != TERR_MOUNTAINS[0]) {
+                continue;
+            }
+            blend_px(rgb, w, h, x, y, k_mtn_r, k_mtn_g, k_mtn_b, k_mtn_a);
+        }
+    }
+    for (u16 y = 0; y < h; ++y) {
+        for (u16 x = 0; x < w; ++x) {
+            if (map.get_terrain(x, y) != TERR_MOUNTAINS[0] || !mtn_rim(map, x, y)) {
                 continue;
             }
             set_px(rgb, w, h, x, y, 0, 0, 0);

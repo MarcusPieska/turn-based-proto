@@ -206,6 +206,7 @@ g++ $CXXFLAGS $INC -c ../war_target_secure_capital.cpp -o war_target_secure_capi
 g++ $CXXFLAGS $INC -c ../mock_muster_siege.cpp -o mock_muster_siege.o
 g++ $CXXFLAGS $INC -c ../tile_entry_resolver.cpp -o tile_entry_resolver.o
 g++ $CXXFLAGS $INC -c ../../ai_pathing/walk_target/path_gradients.cpp -o path_gradients.o
+g++ $CXXFLAGS $INC -c ../../ai_proc/sector_path_gradients.cpp -o sector_path_gradients.o
 g++ $CXXFLAGS $INC -c ../generate_staging_landmass.cpp -o generate_staging_landmass.o
 g++ $CXXFLAGS $INC -c ../war_staging_selector.cpp -o war_staging_selector.o
 g++ $CXXFLAGS $INC -c ../../game/unit_roster_mng.cpp -o unit_roster_mng.o
@@ -366,6 +367,7 @@ g++ $CXXFLAGS -o sect_select_defensible_tester \
     mock_muster_siege.o \
     tile_entry_resolver.o \
     path_gradients.o \
+    sector_path_gradients.o \
     generate_staging_landmass.o \
     war_staging_selector.o \
     unit_roster_mng.o \

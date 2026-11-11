@@ -24,10 +24,13 @@
 //
 //================================================================================================================================
 
-static const u16 LOG_NEED_N = 72u;
+static const u16 LOG_NEED_N = 77u;
 
 struct LogNeedMask {
     u8 m_new_turn;
+    u8 m_wb_mng;
+    u8 m_sector_path_grads;
+    u8 m_spg_fail;
     u8 m_city_foundation;
     u8 m_civ_spawn_pt;
     u8 m_unit_spawn;
@@ -99,6 +102,8 @@ struct LogNeedMask {
     u8 m_unit_state;
     u8 m_army_info;
     u8 m_unit_type_count;
+    u8 m_wb_inv;
+    u8 m_wb_inv_item;
 
     LogNeedMask ();
     bool any () const;
@@ -111,6 +116,9 @@ struct LogNeedMask {
 
 inline LogNeedMask::LogNeedMask ()
     : m_new_turn(0),
+      m_wb_mng(0),
+      m_sector_path_grads(0),
+      m_spg_fail(0),
       m_city_foundation(0),
       m_civ_spawn_pt(0),
       m_unit_spawn(0),
@@ -181,7 +189,9 @@ inline LogNeedMask::LogNeedMask ()
       m_player_civic_adopt(0),
       m_unit_state(0),
       m_army_info(0),
-      m_unit_type_count(0) {
+      m_unit_type_count(0),
+      m_wb_inv(0),
+      m_wb_inv_item(0) {
 }
 
 inline bool LogNeedMask::any () const {
@@ -209,6 +219,9 @@ inline u16 LogNeedMask::n () {
 inline cstr LogNeedMask::nm (u16 i) {
     static const cstr k_nm[LOG_NEED_N] = {
         "NewTurn",
+        "WbMng",
+        "SectorPathGrads",
+        "SpgFail",
         "CityFoundation",
         "CivSpawnPt",
         "UnitSpawn",
@@ -280,6 +293,8 @@ inline cstr LogNeedMask::nm (u16 i) {
         "UnitState",
         "ArmyInfo",
         "UnitTypeCount",
+        "WbInv",
+        "WbInvItem",
     };
     if (i >= LOG_NEED_N) {
         return "";
@@ -290,6 +305,21 @@ inline cstr LogNeedMask::nm (u16 i) {
 inline bool LogNeedMask::on (u16 i) {
     static const u8 k_on[LOG_NEED_N] = {
 #if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_NEW_TURN))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WB_MNG))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_SECTOR_PATH_GRADS))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_SPG_FAIL))
         1u,
 #else
         0u,
@@ -645,6 +675,16 @@ inline bool LogNeedMask::on (u16 i) {
         0u,
 #endif
 #if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_UNIT_TYPE_COUNT))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WB_INV))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WB_INV_ITEM))
         1u,
 #else
         0u,

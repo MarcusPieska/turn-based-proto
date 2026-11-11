@@ -13,7 +13,8 @@ class GameArraySimple;
 //=> - MapOwnSaveSnap -
 //================================================================================================================================
 //
-//  One ownership PPM from a loaded map: climate (+ rivers/mountains), seat shade, dark-gray roads,
+//  One ownership PPM from a loaded map: climate (+ rivers), seat shade, roads/cities, then dark
+//  brown mountains with a black rim on top.
 //  black city pixels. Open water (coastal/sea/ocean) is not seat-shaded; inland sea/lake is.
 //
 //================================================================================================================================

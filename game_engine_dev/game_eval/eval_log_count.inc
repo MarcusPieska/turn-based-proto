@@ -7,6 +7,36 @@
         break;
     }
     case 1u: {
+        unsigned turn = 0;
+        unsigned alloc_kb = 0;
+        unsigned chkout_kb = 0;
+        if (LOG_WB_MNG::PARSE(s, &turn, &alloc_kb, &chkout_kb)) {
+            cnt = cnt + 1u;
+        }
+        break;
+    }
+    case 2u: {
+        unsigned turn = 0;
+        unsigned seat = 0;
+        unsigned chunks = 0;
+        unsigned wb = 0;
+        if (LOG_SECTOR_PATH_GRADS::PARSE(s, &turn, &seat, &chunks, &wb)) {
+            cnt = cnt + 1u;
+        }
+        break;
+    }
+    case 3u: {
+        unsigned turn = 0;
+        unsigned slot = 0;
+        unsigned reason = 0;
+        unsigned a = 0;
+        unsigned b = 0;
+        if (LOG_SPG_FAIL::PARSE(s, &turn, &slot, &reason, &a, &b)) {
+            cnt = cnt + 1u;
+        }
+        break;
+    }
+    case 4u: {
         u16 x = 0;
         u16 y = 0;
         u16 player = 0;
@@ -15,7 +45,7 @@
         }
         break;
     }
-    case 2u: {
+    case 5u: {
         u16 x = 0;
         u16 y = 0;
         u16 civ_idx = 0;
@@ -24,7 +54,7 @@
         }
         break;
     }
-    case 3u: {
+    case 6u: {
         u16 typ_idx = 0;
         u16 civ_idx = 0;
         u16 x = 0;
@@ -34,7 +64,7 @@
         }
         break;
     }
-    case 4u: {
+    case 7u: {
         u16 seat = 0;
         u16 unit = 0;
         u16 level = 0;
@@ -43,7 +73,7 @@
         }
         break;
     }
-    case 5u: {
+    case 8u: {
         u16 seat = 0;
         u16 avg = 0;
         u16 bonus = 0;
@@ -52,7 +82,7 @@
         }
         break;
     }
-    case 6u: {
+    case 9u: {
         unsigned seat = 0;
         unsigned enemy = 0;
         unsigned sx = 0;
@@ -66,7 +96,7 @@
         }
         break;
     }
-    case 7u: {
+    case 10u: {
         unsigned seat = 0;
         unsigned x = 0;
         unsigned y = 0;
@@ -76,7 +106,7 @@
         }
         break;
     }
-    case 8u: {
+    case 11u: {
         unsigned seat = 0;
         unsigned enemy = 0;
         unsigned turn = 0;
@@ -85,7 +115,7 @@
         }
         break;
     }
-    case 9u: {
+    case 12u: {
         unsigned seat = 0;
         unsigned enemy = 0;
         unsigned tn = 0;
@@ -95,7 +125,7 @@
         }
         break;
     }
-    case 10u: {
+    case 13u: {
         unsigned seat = 0;
         unsigned unit_n = 0;
         unsigned size_sum = 0;
@@ -107,7 +137,7 @@
         }
         break;
     }
-    case 11u: {
+    case 14u: {
         unsigned seat = 0;
         unsigned grp_n = 0;
         unsigned turn = 0;
@@ -116,7 +146,7 @@
         }
         break;
     }
-    case 12u: {
+    case 15u: {
         unsigned seat = 0;
         unsigned from = 0;
         unsigned x = 0;
@@ -127,7 +157,7 @@
         }
         break;
     }
-    case 13u: {
+    case 16u: {
         unsigned seat_n = 0;
         unsigned turn = 0;
         if (LOG_WAR_BEGIN_FAIL::PARSE(s, &seat_n, &turn)) {
@@ -135,7 +165,7 @@
         }
         break;
     }
-    case 14u: {
+    case 17u: {
         unsigned turn = 0;
         unsigned reason = 0;
         if (LOG_WAR_SEC_BEGIN_FAIL::PARSE(s, &turn, &reason)) {
@@ -143,40 +173,11 @@
         }
         break;
     }
-    case 15u: {
+    case 18u: {
         unsigned seat = 0;
         unsigned turn = 0;
         unsigned reason = 0;
         if (LOG_WAR_PICK_ENEMY_FAIL::PARSE(s, &seat, &turn, &reason)) {
-            cnt = cnt + 1u;
-        }
-        break;
-    }
-    case 16u: {
-        unsigned seat = 0;
-        unsigned enemy = 0;
-        unsigned turn = 0;
-        unsigned reason = 0;
-        if (LOG_WAR_ENGAGE_FAIL::PARSE(s, &seat, &enemy, &turn, &reason)) {
-            cnt = cnt + 1u;
-        }
-        break;
-    }
-    case 17u: {
-        unsigned seat = 0;
-        unsigned enemy = 0;
-        unsigned turn = 0;
-        if (LOG_WAR_HANDLE_CAMP_FAIL::PARSE(s, &seat, &enemy, &turn)) {
-            cnt = cnt + 1u;
-        }
-        break;
-    }
-    case 18u: {
-        unsigned seat = 0;
-        unsigned enemy = 0;
-        unsigned turn = 0;
-        unsigned reason = 0;
-        if (LOG_WAR_START_CAMP_FAIL::PARSE(s, &seat, &enemy, &turn, &reason)) {
             cnt = cnt + 1u;
         }
         break;
@@ -186,12 +187,41 @@
         unsigned enemy = 0;
         unsigned turn = 0;
         unsigned reason = 0;
-        if (LOG_WAR_DECLARE_FAIL::PARSE(s, &seat, &enemy, &turn, &reason)) {
+        if (LOG_WAR_ENGAGE_FAIL::PARSE(s, &seat, &enemy, &turn, &reason)) {
             cnt = cnt + 1u;
         }
         break;
     }
     case 20u: {
+        unsigned seat = 0;
+        unsigned enemy = 0;
+        unsigned turn = 0;
+        if (LOG_WAR_HANDLE_CAMP_FAIL::PARSE(s, &seat, &enemy, &turn)) {
+            cnt = cnt + 1u;
+        }
+        break;
+    }
+    case 21u: {
+        unsigned seat = 0;
+        unsigned enemy = 0;
+        unsigned turn = 0;
+        unsigned reason = 0;
+        if (LOG_WAR_START_CAMP_FAIL::PARSE(s, &seat, &enemy, &turn, &reason)) {
+            cnt = cnt + 1u;
+        }
+        break;
+    }
+    case 22u: {
+        unsigned seat = 0;
+        unsigned enemy = 0;
+        unsigned turn = 0;
+        unsigned reason = 0;
+        if (LOG_WAR_DECLARE_FAIL::PARSE(s, &seat, &enemy, &turn, &reason)) {
+            cnt = cnt + 1u;
+        }
+        break;
+    }
+    case 23u: {
         unsigned seat = 0;
         unsigned enemy = 0;
         unsigned turn = 0;
@@ -201,7 +231,7 @@
         }
         break;
     }
-    case 21u: {
+    case 24u: {
         unsigned seat = 0;
         unsigned turn = 0;
         unsigned reason = 0;
@@ -210,7 +240,7 @@
         }
         break;
     }
-    case 22u: {
+    case 25u: {
         unsigned seat = 0;
         unsigned sx = 0;
         unsigned sy = 0;
@@ -220,7 +250,7 @@
         }
         break;
     }
-    case 23u: {
+    case 26u: {
         unsigned seat = 0;
         unsigned enemy = 0;
         unsigned turn = 0;
@@ -229,7 +259,7 @@
         }
         break;
     }
-    case 24u: {
+    case 27u: {
         unsigned seat = 0;
         unsigned turn = 0;
         if (LOG_WAR_WALK_MUSTER_FAIL::PARSE(s, &seat, &turn)) {
@@ -237,7 +267,7 @@
         }
         break;
     }
-    case 25u: {
+    case 28u: {
         unsigned seat = 0;
         unsigned unit = 0;
         unsigned reason = 0;
@@ -251,7 +281,7 @@
         }
         break;
     }
-    case 26u: {
+    case 29u: {
         unsigned seat = 0;
         unsigned unit = 0;
         unsigned reason = 0;
@@ -263,7 +293,7 @@
         }
         break;
     }
-    case 27u: {
+    case 30u: {
         unsigned seat = 0;
         unsigned unit = 0;
         unsigned x = 0;
@@ -276,7 +306,7 @@
         }
         break;
     }
-    case 28u: {
+    case 31u: {
         unsigned seat = 0;
         unsigned enemy = 0;
         unsigned turn = 0;
@@ -285,7 +315,7 @@
         }
         break;
     }
-    case 29u: {
+    case 32u: {
         unsigned seat = 0;
         unsigned civ = 0;
         unsigned from_u = 0;
@@ -296,7 +326,7 @@
         }
         break;
     }
-    case 30u: {
+    case 33u: {
         unsigned seat = 0;
         unsigned enemy = 0;
         unsigned turn = 0;
@@ -306,7 +336,7 @@
         }
         break;
     }
-    case 31u: {
+    case 34u: {
         unsigned seat = 0;
         unsigned enemy = 0;
         unsigned turn = 0;
@@ -316,7 +346,7 @@
         }
         break;
     }
-    case 32u: {
+    case 35u: {
         unsigned seat = 0;
         unsigned enemy = 0;
         unsigned turn = 0;
@@ -325,7 +355,7 @@
         }
         break;
     }
-    case 33u: {
+    case 36u: {
         unsigned seat = 0;
         unsigned tx = 0;
         unsigned ty = 0;
@@ -335,7 +365,7 @@
         }
         break;
     }
-    case 34u: {
+    case 37u: {
         unsigned seat = 0;
         unsigned enemy = 0;
         unsigned tx = 0;
@@ -346,7 +376,7 @@
         }
         break;
     }
-    case 35u: {
+    case 38u: {
         unsigned seat = 0;
         unsigned enemy = 0;
         unsigned tx = 0;
@@ -357,7 +387,7 @@
         }
         break;
     }
-    case 36u: {
+    case 39u: {
         unsigned seat = 0;
         unsigned tx = 0;
         unsigned ty = 0;
@@ -368,7 +398,7 @@
         }
         break;
     }
-    case 37u: {
+    case 40u: {
         unsigned seat = 0;
         unsigned tx = 0;
         unsigned ty = 0;
@@ -379,7 +409,7 @@
         }
         break;
     }
-    case 38u: {
+    case 41u: {
         unsigned seat = 0;
         unsigned tx = 0;
         unsigned ty = 0;
@@ -390,7 +420,7 @@
         }
         break;
     }
-    case 39u: {
+    case 42u: {
         unsigned seat = 0;
         unsigned x = 0;
         unsigned y = 0;
@@ -400,7 +430,7 @@
         }
         break;
     }
-    case 40u: {
+    case 43u: {
         unsigned seat = 0;
         unsigned enemy = 0;
         unsigned army_i = 0;
@@ -415,7 +445,7 @@
         }
         break;
     }
-    case 41u: {
+    case 44u: {
         unsigned seat = 0;
         unsigned enemy = 0;
         unsigned army_i = 0;
@@ -425,7 +455,7 @@
         }
         break;
     }
-    case 42u: {
+    case 45u: {
         unsigned seat = 0;
         unsigned enemy = 0;
         unsigned army_i = 0;
@@ -435,7 +465,7 @@
         }
         break;
     }
-    case 43u: {
+    case 46u: {
         unsigned seat = 0;
         unsigned enemy = 0;
         unsigned turn = 0;
@@ -444,7 +474,7 @@
         }
         break;
     }
-    case 44u: {
+    case 47u: {
         unsigned seat = 0;
         unsigned flag_i = 0;
         unsigned turn = 0;
@@ -453,7 +483,7 @@
         }
         break;
     }
-    case 45u: {
+    case 48u: {
         unsigned seat = 0;
         unsigned sx = 0;
         unsigned sy = 0;
@@ -463,7 +493,7 @@
         }
         break;
     }
-    case 46u: {
+    case 49u: {
         unsigned seat = 0;
         unsigned army_i = 0;
         unsigned sx = 0;
@@ -474,7 +504,7 @@
         }
         break;
     }
-    case 47u: {
+    case 50u: {
         unsigned seat = 0;
         unsigned army_i = 0;
         unsigned fx = 0;
@@ -485,7 +515,7 @@
         }
         break;
     }
-    case 48u: {
+    case 51u: {
         unsigned seat = 0;
         unsigned army_i = 0;
         unsigned flag_i = 0;
@@ -495,7 +525,7 @@
         }
         break;
     }
-    case 49u: {
+    case 52u: {
         unsigned seat = 0;
         unsigned sector = 0;
         unsigned turn = 0;
@@ -504,7 +534,7 @@
         }
         break;
     }
-    case 50u: {
+    case 53u: {
         unsigned seat = 0;
         unsigned sector = 0;
         unsigned turn = 0;
@@ -513,7 +543,7 @@
         }
         break;
     }
-    case 51u: {
+    case 54u: {
         unsigned seat = 0;
         unsigned sector = 0;
         unsigned turn = 0;
@@ -523,7 +553,7 @@
         }
         break;
     }
-    case 52u: {
+    case 55u: {
         unsigned seat = 0;
         unsigned turn = 0;
         unsigned skip_n = 0;
@@ -532,7 +562,7 @@
         }
         break;
     }
-    case 53u: {
+    case 56u: {
         unsigned seat = 0;
         unsigned enemy = 0;
         unsigned turn = 0;
@@ -542,7 +572,7 @@
         }
         break;
     }
-    case 54u: {
+    case 57u: {
         unsigned seat = 0;
         unsigned sector = 0;
         unsigned turn = 0;
@@ -551,7 +581,7 @@
         }
         break;
     }
-    case 55u: {
+    case 58u: {
         unsigned seat = 0;
         unsigned enemy = 0;
         unsigned tx = 0;
@@ -562,7 +592,7 @@
         }
         break;
     }
-    case 56u: {
+    case 59u: {
         u16 jobs = 0;
         u16 yield = 0;
         if (LOG_CITY_JOB_FOOD::PARSE(s, &jobs, &yield)) {
@@ -570,7 +600,7 @@
         }
         break;
     }
-    case 57u: {
+    case 60u: {
         u16 jobs = 0;
         u16 yield = 0;
         if (LOG_CITY_JOB_PRODUCTION::PARSE(s, &jobs, &yield)) {
@@ -578,7 +608,7 @@
         }
         break;
     }
-    case 58u: {
+    case 61u: {
         u16 jobs = 0;
         u16 yield = 0;
         if (LOG_CITY_JOB_COMMERCE::PARSE(s, &jobs, &yield)) {
@@ -586,7 +616,7 @@
         }
         break;
     }
-    case 59u: {
+    case 62u: {
         u16 jobs = 0;
         u16 yield = 0;
         if (LOG_CITY_JOB_CULTURE::PARSE(s, &jobs, &yield)) {
@@ -594,7 +624,7 @@
         }
         break;
     }
-    case 60u: {
+    case 63u: {
         u16 jobs = 0;
         u16 yield = 0;
         if (LOG_CITY_JOB_SCIENCE::PARSE(s, &jobs, &yield)) {
@@ -602,7 +632,7 @@
         }
         break;
     }
-    case 61u: {
+    case 64u: {
         u16 jobs = 0;
         u16 yield = 0;
         if (LOG_CITY_JOB_RELIGION::PARSE(s, &jobs, &yield)) {
@@ -610,7 +640,7 @@
         }
         break;
     }
-    case 62u: {
+    case 65u: {
         u16 n = 0;
         i32 food = 0;
         i32 production = 0;
@@ -623,7 +653,7 @@
         }
         break;
     }
-    case 63u: {
+    case 66u: {
         u16 player = 0;
         u32 amount = 0;
         if (LOG_PLAYER_COMMERCE::PARSE(s, &player, &amount)) {
@@ -631,7 +661,7 @@
         }
         break;
     }
-    case 64u: {
+    case 67u: {
         u16 player = 0;
         u32 amount = 0;
         if (LOG_PLAYER_COMMERCE_RAW::PARSE(s, &player, &amount)) {
@@ -639,7 +669,7 @@
         }
         break;
     }
-    case 65u: {
+    case 68u: {
         u16 player = 0;
         u32 amount = 0;
         if (LOG_PLAYER_SCIENCE::PARSE(s, &player, &amount)) {
@@ -647,7 +677,7 @@
         }
         break;
     }
-    case 66u: {
+    case 69u: {
         u16 player = 0;
         u16 perc = 0;
         if (LOG_PLAYER_RESEARCH_PERC::PARSE(s, &player, &perc)) {
@@ -655,7 +685,7 @@
         }
         break;
     }
-    case 67u: {
+    case 70u: {
         u16 player = 0;
         u16 tech = 0;
         if (LOG_PLAYER_TECH_DISCOVER::PARSE(s, &player, &tech)) {
@@ -663,7 +693,7 @@
         }
         break;
     }
-    case 68u: {
+    case 71u: {
         u16 seat = 0;
         u16 limit = 0;
         u16 civic = 0;
@@ -672,7 +702,7 @@
         }
         break;
     }
-    case 69u: {
+    case 72u: {
         u16 owner = 0;
         u16 unit = 0;
         u16 x = 0;
@@ -682,7 +712,7 @@
         }
         break;
     }
-    case 70u: {
+    case 73u: {
         char tag[128];
         tag[0] = 0;
         if (LOG_ARMY_INFO::PARSE(s, tag, 128u)) {
@@ -690,13 +720,37 @@
         }
         break;
     }
-    case 71u: {
+    case 74u: {
         u16 player = 0;
         char info[128];
         info[0] = 0;
         u16 count = 0;
         u16 total = 0;
         if (LOG_UNIT_TYPE_COUNT::PARSE(s, &player, info, 128u, &count, &total)) {
+            cnt = cnt + 1u;
+        }
+        break;
+    }
+    case 75u: {
+        unsigned turn = 0;
+        char tag[128];
+        tag[0] = 0;
+        if (LOG_WB_INV::PARSE(s, &turn, tag, 128u)) {
+            cnt = cnt + 1u;
+        }
+        break;
+    }
+    case 76u: {
+        unsigned turn = 0;
+        unsigned sz_b = 0;
+        unsigned blk = 0;
+        unsigned sub = 0;
+        unsigned wb_turn = 0;
+        char cls[128];
+        cls[0] = 0;
+        char fn[128];
+        fn[0] = 0;
+        if (LOG_WB_INV_ITEM::PARSE(s, &turn, &sz_b, &blk, &sub, &wb_turn, cls, 128u, fn, 128u)) {
             cnt = cnt + 1u;
         }
         break;

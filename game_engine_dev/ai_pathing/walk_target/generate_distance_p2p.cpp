@@ -462,6 +462,13 @@ static bool run_gen (
     BktQ b;
     bkt_init(b, heads, nxt, prv, in_q, q_turn, q_rem, tile_n);
     for (u32 i = 0; i < tile_n; ++i) {
+        if (mask != nullptr) {
+            const u16 mx = static_cast<u16>(i % static_cast<u32>(w));
+            const u16 my = static_cast<u16>(i / static_cast<u32>(w));
+            if (mask->rd(mx, my) == 0u) {
+                continue;
+            }
+        }
         turn[i] = k_turn_sent;
         rem[i] = rem_enc(0);
         fin_turn[i] = k_turn_sent;
@@ -478,6 +485,13 @@ static bool run_gen (
         s, w, h, src_i, have_src, k_mp, k_min, turn, rem, b, fin_turn, fin_rem, mask, out_max);
     if (!ok) {
         for (u32 i = 0; i < tile_n; ++i) {
+            if (mask != nullptr) {
+                const u16 mx = static_cast<u16>(i % static_cast<u32>(w));
+                const u16 my = static_cast<u16>(i / static_cast<u32>(w));
+                if (mask->rd(mx, my) == 0u) {
+                    continue;
+                }
+            }
             turn[i] = k_turn_sent;
             rem[i] = rem_enc(0);
         }
@@ -515,5 +529,323 @@ bool GenerateDistanceP2P::generate (
 }
 
 //================================================================================================================================
+//=> - Window helpers -
+//================================================================================================================================
+
+static bool in_win (u16 x, u16 y, u16 ox, u16 oy, u16 cw, u16 ch) {
+    return x >= ox && y >= oy
+        && x < static_cast<u16>(ox + cw)
+        && y < static_cast<u16>(oy + ch);
+}
+
+static u32 lidx (u16 ox, u16 oy, u16 cw, u16 x, u16 y) {
+    return static_cast<u32>(y - oy) * static_cast<u32>(cw) + static_cast<u32>(x - ox);
+}
+
+static bool sec_ok (const Whiteboard_2B* sec, u16 x, u16 y, u16 sec_a, u16 sec_b) {
+    if (sec == nullptr) {
+        return true;
+    }
+    if (!sec->ok() || x >= sec->w() || y >= sec->h()) {
+        return false;
+    }
+    const u16 tag = sec->rd(x, y);
+    if (tag == 0u) {
+        return false;
+    }
+    const u16 si = static_cast<u16>(tag - 1u);
+    if (si == sec_a) {
+        return true;
+    }
+    return sec_b != U16_KEY_NULL && si == sec_b;
+}
+
+static bool can_win (
+    const GameState& s,
+    u16 x,
+    u16 y,
+    u16 ox,
+    u16 oy,
+    u16 cw,
+    u16 ch,
+    const Whiteboard_1B* mask,
+    const Whiteboard_2B* sec,
+    u16 sec_a,
+    u16 sec_b) {
+    if (!in_win(x, y, ox, oy, cw, ch)) {
+        return false;
+    }
+    if (!can_tile(s, x, y, mask)) {
+        return false;
+    }
+    return sec_ok(sec, x, y, sec_a, sec_b);
+}
+
+static u32 gather_nbrs_win (
+    const GameState& s,
+    u16 mw,
+    u16 mh,
+    u16 ux,
+    u16 uy,
+    u16 ox,
+    u16 oy,
+    u16 cw,
+    u16 ch,
+    const Whiteboard_1B* mask,
+    const Whiteboard_2B* sec,
+    u16 sec_a,
+    u16 sec_b,
+    Nbr* out) {
+    u32 n = 0u;
+    for (u32 k = 0u; k < MAP_NBR8_N; ++k) {
+        const i32 nx = static_cast<i32>(ux) + MAP_NBR8_DX[k];
+        const i32 ny = static_cast<i32>(uy) + MAP_NBR8_DY[k];
+        if (nx < 0 || ny < 0) {
+            continue;
+        }
+        const u16 vx = static_cast<u16>(nx);
+        const u16 vy = static_cast<u16>(ny);
+        if (vx >= mw || vy >= mh) {
+            continue;
+        }
+        if (!can_win(s, vx, vy, ox, oy, cw, ch, mask, sec, sec_a, sec_b)) {
+            continue;
+        }
+        const i16 cost = UnitMovementMng::tile_cost(s, ux, uy, vx, vy);
+        if (cost <= 0) {
+            continue;
+        }
+        out[n].x = vx;
+        out[n].y = vy;
+        out[n].i = lidx(ox, oy, cw, vx, vy);
+        out[n].c = static_cast<i32>(cost);
+        n++;
+    }
+    return n;
+}
+
+static void process_tile_win (
+    const GameState& s,
+    u16 mw,
+    u16 mh,
+    u16 ux,
+    u16 uy,
+    u16 ox,
+    u16 oy,
+    u16 cw,
+    u16 ch,
+    i32 k_mp,
+    i32 k_min,
+    BktQ& b,
+    u16* turn,
+    u16* rem,
+    u16* fin_turn,
+    u16* fin_rem,
+    const Whiteboard_1B* mask,
+    const Whiteboard_2B* sec,
+    u16 sec_a,
+    u16 sec_b,
+    u16* out_max) {
+    const u32 ui = lidx(ox, oy, cw, ux, uy);
+    const u16 ut = turn[ui];
+    const u16 uraw = rem[ui];
+    const i32 ur = rem_dec(uraw);
+    if (ut >= k_turn_sent) {
+        return;
+    }
+    if (fin_turn[ui] == ut && fin_rem[ui] == uraw) {
+        return;
+    }
+    Nbr nbrs[8];
+    const u32 nn = gather_nbrs_win(
+        s, mw, mh, ux, uy, ox, oy, cw, ch, mask, sec, sec_a, sec_b, nbrs);
+    if (nn == 0u || !any_offer_possible(ut, nbrs, nn, turn)) {
+        fin_turn[ui] = ut;
+        fin_rem[ui] = uraw;
+        return;
+    }
+    i32 bud = ur;
+    u16 at = ut;
+    if (bud < k_min) {
+        at = static_cast<u16>(ut + 1u);
+        bud = k_mp;
+    }
+    for (u16 guard = 0u; guard <= 64u; ++guard) {
+        const i32 jump = expand_pass(nbrs, nn, bud, at, k_mp, b, turn, rem, out_max);
+        if (jump <= 0) {
+            break;
+        }
+        at = static_cast<u16>(at + static_cast<u16>(jump));
+        bud += jump * k_mp;
+    }
+    fin_turn[ui] = turn[ui];
+    fin_rem[ui] = rem[ui];
+}
+
+static bool flood_win (
+    const GameState& s,
+    u16 mw,
+    u16 mh,
+    u16 ox,
+    u16 oy,
+    u16 cw,
+    u16 ch,
+    u32 src_i,
+    bool have_src,
+    i32 k_mp,
+    i32 k_min,
+    u16* turn,
+    u16* rem,
+    BktQ& b,
+    u16* fin_turn,
+    u16* fin_rem,
+    const Whiteboard_1B* mask,
+    const Whiteboard_2B* sec,
+    u16 sec_a,
+    u16 sec_b,
+    u16* out_max) {
+    *out_max = 0;
+    while (b.open_n > 0u) {
+        while (b.min_t < k_bkt_n && b.heads[b.min_t] == k_nil) {
+            b.min_t++;
+        }
+        if (have_src
+            && turn[src_i] != k_turn_sent
+            && fin_turn[src_i] == turn[src_i]
+            && fin_rem[src_i] == rem[src_i]
+            && b.min_t > turn[src_i]) {
+            return true;
+        }
+        const u32 si = bkt_pop(b);
+        if (si == k_nil) {
+            break;
+        }
+        if (have_src
+            && turn[src_i] != k_turn_sent
+            && fin_turn[src_i] == turn[src_i]
+            && fin_rem[src_i] == rem[src_i]
+            && turn[si] > turn[src_i]) {
+            continue;
+        }
+        const u16 lx = static_cast<u16>(si % static_cast<u32>(cw));
+        const u16 ly = static_cast<u16>(si / static_cast<u32>(cw));
+        process_tile_win(
+            s, mw, mh, static_cast<u16>(ox + lx), static_cast<u16>(oy + ly), ox, oy, cw, ch, k_mp,
+            k_min, b, turn, rem, fin_turn, fin_rem, mask, sec, sec_a, sec_b, out_max);
+    }
+    if (!have_src) {
+        return true;
+    }
+    return turn[src_i] != k_turn_sent;
+}
+
+bool GenerateDistanceP2P::generate (
+    const GameState& s,
+    const RuntimeStatics& st,
+    u16 src_x,
+    u16 src_y,
+    u16 dst_x,
+    u16 dst_y,
+    u16* turn,
+    u16* rem,
+    u16 ox,
+    u16 oy,
+    u16 cw,
+    u16 ch,
+    const Whiteboard_1B* mask,
+    const Whiteboard_2B* sec,
+    u16 sec_a,
+    u16 sec_b,
+    u16* out_max) {
+    if (out_max == nullptr || turn == nullptr || rem == nullptr || !UnitMovementMng::mvt_ready()) {
+        return false;
+    }
+    if (cw == 0u || ch == 0u) {
+        return false;
+    }
+    const u16 mw = s.m_map.width();
+    const u16 mh = s.m_map.height();
+    if (mw == 0u || mh == 0u) {
+        return false;
+    }
+    if (!in_win(dst_x, dst_y, ox, oy, cw, ch) || !in_win(src_x, src_y, ox, oy, cw, ch)) {
+        return false;
+    }
+    if (mask != nullptr && (!mask->ok() || mask->w() != mw || mask->h() != mh)) {
+        return false;
+    }
+    if (sec != nullptr && (!sec->ok() || sec->w() != mw || sec->h() != mh)) {
+        return false;
+    }
+    if (!can_win(s, dst_x, dst_y, ox, oy, cw, ch, mask, sec, sec_a, sec_b)) {
+        return false;
+    }
+    if (!can_win(s, src_x, src_y, ox, oy, cw, ch, mask, sec, sec_a, sec_b)) {
+        return false;
+    }
+    const i32 k_mp = static_cast<i32>(st.config().get_mov_pt_per_turn());
+    const i32 k_min = min_edge();
+    if (k_mp <= 0 || k_min <= 0) {
+        return false;
+    }
+    const u32 cells = static_cast<u32>(cw) * static_cast<u32>(ch);
+    const u32 src_i = lidx(ox, oy, cw, src_x, src_y);
+    const u32 dst_i = lidx(ox, oy, cw, dst_x, dst_y);
+    u8* in_q = new u8[cells];
+    u16* q_turn = new u16[cells];
+    u16* q_rem = new u16[cells];
+    u16* fin_turn = new u16[cells];
+    u16* fin_rem = new u16[cells];
+    u32* nxt = new u32[cells];
+    u32* prv = new u32[cells];
+    u32 heads[k_bkt_n];
+    if (in_q == nullptr || q_turn == nullptr || q_rem == nullptr || fin_turn == nullptr
+        || fin_rem == nullptr || nxt == nullptr || prv == nullptr) {
+        delete[] in_q;
+        delete[] q_turn;
+        delete[] q_rem;
+        delete[] fin_turn;
+        delete[] fin_rem;
+        delete[] nxt;
+        delete[] prv;
+        return false;
+    }
+    BktQ b;
+    bkt_init(b, heads, nxt, prv, in_q, q_turn, q_rem, cells);
+    for (u32 i = 0; i < cells; ++i) {
+        turn[i] = k_turn_sent;
+        rem[i] = rem_enc(0);
+        fin_turn[i] = k_turn_sent;
+        fin_rem[i] = 0u;
+    }
+    turn[dst_i] = 0u;
+    rem[dst_i] = rem_enc(k_mp);
+    bkt_push(b, dst_i, 0u, rem[dst_i]);
+    *out_max = 0;
+    bool ok = true;
+    if (src_i != dst_i) {
+        ok = flood_win(
+            s, mw, mh, ox, oy, cw, ch, src_i, true, k_mp, k_min, turn, rem, b, fin_turn, fin_rem,
+            mask, sec, sec_a, sec_b, out_max);
+        if (!ok) {
+            for (u32 i = 0; i < cells; ++i) {
+                turn[i] = k_turn_sent;
+                rem[i] = rem_enc(0);
+            }
+            *out_max = 0;
+        }
+    }
+    delete[] in_q;
+    delete[] q_turn;
+    delete[] q_rem;
+    delete[] fin_turn;
+    delete[] fin_rem;
+    delete[] nxt;
+    delete[] prv;
+    return ok;
+}
+
+//================================================================================================================================
 //=> - End of file -
 //================================================================================================================================
+
