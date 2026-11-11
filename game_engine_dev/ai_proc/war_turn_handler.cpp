@@ -17,7 +17,6 @@
 #include "effect_ctx.h"
 #include "civ_static_key.h"
 #include "game_array_simple.h"
-#include "generate_access_mask.h"
 #include "generate_distance_p2p.h"
 #include "generate_exposure.h"
 #include "gen_land_sector_network.h"
@@ -236,11 +235,6 @@ bool WarTurnHandler::set_goal_army (u16 army_i, u16 x2, u16 y2) {
         LOG_WAR_SET_GOAL_FAIL::LOG(SC_U32(m_seat), SC_U32(x2), SC_U32(y2), SC_U32(m_st.m_current_turn));
         return false;
     }
-    Whiteboard_1B acc("WarTurnHandler", "acc", 0u);
-    if (!GenerateAccessMask::generate(m_st, m_seat, acc)) {
-        LOG_WAR_SET_GOAL_FAIL::LOG(SC_U32(m_seat), SC_U32(x2), SC_U32(y2), SC_U32(m_st.m_current_turn));
-        return false;
-    }
     u16 ax = m_sx;
     u16 ay = m_sy;
     const UnitAddStruct* u = m_st.m_units.get_unit_add(UnitAddKey::from_raw(m_atk[army_i].m_hd));
@@ -269,19 +263,20 @@ bool WarTurnHandler::set_goal_army (u16 army_i, u16 x2, u16 y2) {
         LOG_WAR_SET_GOAL_FAIL::LOG(SC_U32(m_seat), SC_U32(x2), SC_U32(y2), SC_U32(m_st.m_current_turn));
         return false;
     }
+    const u8 acc = GenerateDistanceP2P::k_acc_non_peace;
     bool ok = false;
     if (sn == 1u) {
         ok = spg->lease(slot, secs[0])
-            && spg->fill(slot, m_st, *m_st.m_statics, ax, ay, x2, y2, &acc)
+            && spg->fill(slot, m_st, *m_st.m_statics, ax, ay, x2, y2, m_seat, acc)
             && spg->ok(slot);
     } else if (sn == 2u) {
         ok = spg->lease_multi(slot, secs, sn)
-            && spg->fill(slot, m_st, *m_st.m_statics, ax, ay, x2, y2, &acc)
+            && spg->fill(slot, m_st, *m_st.m_statics, ax, ay, x2, y2, m_seat, acc)
             && spg->ok(slot);
     }
     if (!ok) {
         spg->release(slot);
-        ok = spg->pack_path(slot, m_st, *m_st.m_statics, ax, ay, x2, y2, &acc) && spg->ok(slot);
+        ok = spg->pack_path(slot, m_st, *m_st.m_statics, ax, ay, x2, y2, m_seat, acc) && spg->ok(slot);
     }
     if (!ok) {
         spg->release(slot);
@@ -332,13 +327,9 @@ bool WarTurnHandler::make_muster_gradient (u16 x, u16 y) {
         LOG_WAR_MUSTER_GRAD_FAIL::LOG(SC_U32(m_seat), SC_U32(x), SC_U32(y), SC_U32(m_st.m_current_turn));
         return false;
     }
-    Whiteboard_1B acc("WarTurnHandler", "muster_acc", 0u);
-    if (!GenerateAccessMask::generate_own_free(m_st, m_seat, acc)) {
-        LOG_WAR_MUSTER_GRAD_FAIL::LOG(SC_U32(m_seat), SC_U32(x), SC_U32(y), SC_U32(m_st.m_current_turn));
-        return false;
-    }
     u16 dmax = 0;
-    if (!GenerateDistanceP2P::generate(m_st, *m_st.m_statics, x, y, m_mob, &acc, &dmax)) {
+    if (!GenerateDistanceP2P::generate(
+            m_st, *m_st.m_statics, x, y, m_mob, m_seat, GenerateDistanceP2P::k_acc_own_free, &dmax)) {
         LOG_WAR_MUSTER_GRAD_FAIL::LOG(SC_U32(m_seat), SC_U32(x), SC_U32(y), SC_U32(m_st.m_current_turn));
         return false;
     }

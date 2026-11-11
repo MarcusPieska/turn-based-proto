@@ -4,6 +4,8 @@
 
 #include "generate_distance_p2p.h"
 
+#include "civ_relations.h"
+#include "civ_static_key.h"
 #include "game_array_simple.h"
 #include "game_map_defs.h"
 #include "game_map_grid_defs.h"
@@ -49,15 +51,86 @@ static u16 idx_y (u32 i, u16 w) {
     return static_cast<u16>(i / static_cast<u32>(w));
 }
 
-static bool can_tile (const GameState& s, u16 x, u16 y, const Whiteboard_1B* mask) {
+struct AccCtx {
+    u16 seat; // Seat for ownership clip; ignored when mode is k_acc_none
+    u8 mode; // k_acc_* from GenerateDistanceP2P
+    const u8* seat_open; // 256-entry open table for k_acc_non_peace; else null
+};
+
+static bool acc_open (const GameState& s, u16 x, u16 y, const AccCtx& acc) {
+    if (acc.mode == GenerateDistanceP2P::k_acc_none) {
+        return true;
+    }
+    const u8 own = s.m_map.get_civ_owner(x, y);
+    if (acc.mode == GenerateDistanceP2P::k_acc_own) {
+        return own == static_cast<u8>(acc.seat);
+    }
+    if (acc.mode == GenerateDistanceP2P::k_acc_own_free) {
+        return own == U8_KEY_NULL || own == static_cast<u8>(acc.seat);
+    }
+    if (own == U8_KEY_NULL) {
+        return true;
+    }
+    return acc.seat_open != nullptr && acc.seat_open[own] != 0u;
+}
+
+static bool fill_non_peace (const GameState& s, u16 seat, u8* seat_open) {
+    if (seat_open == nullptr || s.m_player_states == nullptr || s.m_player_n == 0u || seat >= s.m_player_n) {
+        return false;
+    }
+    const u16 rel_n = s.m_civ_relations.civ_n();
+    if (rel_n == 0u || seat >= rel_n) {
+        return false;
+    }
+    for (u16 i = 0; i < 256u; ++i) {
+        seat_open[i] = 0u;
+    }
+    const CivStaticDataKey sk_self = CivStaticDataKey::from_raw(seat);
+    for (u16 p = 0; p < s.m_player_n; ++p) {
+        if (p == seat) {
+            seat_open[p] = 1u;
+            continue;
+        }
+        if (p >= rel_n) {
+            continue;
+        }
+        const CivRel rel = s.m_civ_relations.get(sk_self, CivStaticDataKey::from_raw(p));
+        if (rel != CivRel::CIV_REL_PEACE) {
+            seat_open[p] = 1u;
+        }
+    }
+    return true;
+}
+
+static bool make_acc (const GameState& s, u16 seat, u8 mode, u8* seat_open, AccCtx* out) {
+    if (out == nullptr) {
+        return false;
+    }
+    out->seat = seat;
+    out->mode = mode;
+    out->seat_open = nullptr;
+    if (mode == GenerateDistanceP2P::k_acc_none) {
+        return true;
+    }
+    if (s.m_player_states == nullptr || s.m_player_n == 0u || seat >= s.m_player_n) {
+        return false;
+    }
+    if (mode == GenerateDistanceP2P::k_acc_own || mode == GenerateDistanceP2P::k_acc_own_free) {
+        return true;
+    }
+    if (mode != GenerateDistanceP2P::k_acc_non_peace || !fill_non_peace(s, seat, seat_open)) {
+        return false;
+    }
+    out->seat_open = seat_open;
+    return true;
+}
+
+static bool can_tile (const GameState& s, u16 x, u16 y, const AccCtx& acc) {
     const u8 t = s.m_map.get_terrain(x, y);
     if (!is_land(t) || TileAttrTables::terr(t).mvt_cost == 0u) {
         return false;
     }
-    if (mask != nullptr && mask->rd(x, y) == 0u) {
-        return false;
-    }
-    return true;
+    return acc_open(s, x, y, acc);
 }
 
 static i32 rem_dec (u16 v) {
@@ -119,7 +192,7 @@ struct BktQ {
     u32 open_n;
 };
 
-static void bkt_init (BktQ& b, u32* heads, u32* nxt, u32* prv, u8* in_q, u16* q_turn, u16* q_rem, u32 tile_n) {
+static void bkt_bind (BktQ& b, u32* heads, u32* nxt, u32* prv, u8* in_q, u16* q_turn, u16* q_rem) {
     b.heads = heads;
     b.nxt = nxt;
     b.prv = prv;
@@ -131,10 +204,85 @@ static void bkt_init (BktQ& b, u32* heads, u32* nxt, u32* prv, u8* in_q, u16* q_
     for (u32 t = 0; t < k_bkt_n; ++t) {
         heads[t] = k_nil;
     }
+}
+
+static void bkt_init (BktQ& b, u32* heads, u32* nxt, u32* prv, u8* in_q, u16* q_turn, u16* q_rem, u32 tile_n) {
+    bkt_bind(b, heads, nxt, prv, in_q, q_turn, q_rem);
     for (u32 i = 0; i < tile_n; ++i) {
         nxt[i] = k_nil;
         prv[i] = k_nil;
         in_q[i] = 0u;
+    }
+}
+
+static bool use_own_reach (u8 mode) {
+    return mode == GenerateDistanceP2P::k_acc_own || mode == GenerateDistanceP2P::k_acc_own_free;
+}
+
+static u32 own_reach (
+    const GameState& s,
+    u16 w,
+    u16 h,
+    u16 sx,
+    u16 sy,
+    const AccCtx& acc,
+    u8* vis,
+    u32* q) {
+    if (vis == nullptr || q == nullptr || !can_tile(s, sx, sy, acc)) {
+        return 0u;
+    }
+    const u32 tile_n = static_cast<u32>(w) * static_cast<u32>(h);
+    std::memset(vis, 0, static_cast<size_t>(tile_n));
+    const u32 s_i = tidx(w, sx, sy);
+    vis[s_i] = 1u;
+    q[0] = s_i;
+    u32 n = 1u;
+    u32 head = 0u;
+    while (head < n) {
+        const u32 ui = q[head++];
+        const u16 ux = idx_x(ui, w);
+        const u16 uy = idx_y(ui, w);
+        for (u32 k = 0u; k < MAP_NBR8_N; ++k) {
+            const i32 nx = static_cast<i32>(ux) + MAP_NBR8_DX[k];
+            const i32 ny = static_cast<i32>(uy) + MAP_NBR8_DY[k];
+            if (nx < 0 || ny < 0) {
+                continue;
+            }
+            const u16 vx = static_cast<u16>(nx);
+            const u16 vy = static_cast<u16>(ny);
+            if (vx >= w || vy >= h) {
+                continue;
+            }
+            const u32 vi = tidx(w, vx, vy);
+            if (vis[vi] != 0u) {
+                continue;
+            }
+            if (!can_tile(s, vx, vy, acc)) {
+                continue;
+            }
+            vis[vi] = 1u;
+            q[n++] = vi;
+        }
+    }
+    return n;
+}
+
+static void bkt_init_own_reach (
+    BktQ& b,
+    u32* heads,
+    u32* nxt,
+    u32* prv,
+    u8* in_q,
+    u16* q_turn,
+    u16* q_rem,
+    const u32* reach,
+    u32 reach_n) {
+    bkt_bind(b, heads, nxt, prv, in_q, q_turn, q_rem);
+    for (u32 i = 0; i < reach_n; ++i) {
+        const u32 vi = reach[i];
+        nxt[vi] = k_nil;
+        prv[vi] = k_nil;
+        in_q[vi] = 0u;
     }
 }
 
@@ -207,7 +355,7 @@ static u32 gather_nbrs (
     u16 h,
     u16 ux,
     u16 uy,
-    const Whiteboard_1B* mask,
+    const AccCtx& acc,
     Nbr* out) {
     u32 n = 0u;
     for (u32 k = 0u; k < MAP_NBR8_N; ++k) {
@@ -221,7 +369,7 @@ static u32 gather_nbrs (
         if (vx >= w || vy >= h) {
             continue;
         }
-        if (!can_tile(s, vx, vy, mask)) {
+        if (!can_tile(s, vx, vy, acc)) {
             continue;
         }
         const i16 cost = UnitMovementMng::tile_cost(s, ux, uy, vx, vy);
@@ -311,7 +459,7 @@ static void process_tile (
     u16* rem,
     u16* fin_turn,
     u16* fin_rem,
-    const Whiteboard_1B* mask,
+    const AccCtx& acc,
     u16* out_max) {
     const u32 ui = tidx(w, ux, uy);
     const u16 ut = turn[ui];
@@ -324,7 +472,7 @@ static void process_tile (
         return;
     }
     Nbr nbrs[8];
-    const u32 nn = gather_nbrs(s, w, h, ux, uy, mask, nbrs);
+    const u32 nn = gather_nbrs(s, w, h, ux, uy, acc, nbrs);
     if (nn == 0u || !any_offer_possible(ut, nbrs, nn, turn)) {
         fin_turn[ui] = ut;
         fin_rem[ui] = uraw;
@@ -361,7 +509,7 @@ static bool flood (
     BktQ& b,
     u16* fin_turn,
     u16* fin_rem,
-    const Whiteboard_1B* mask,
+    const AccCtx& acc,
     u16* out_max) {
     *out_max = 0;
     while (b.open_n > 0u) {
@@ -387,7 +535,7 @@ static bool flood (
             continue;
         }
         process_tile(
-            s, w, h, idx_x(si, w), idx_y(si, w), k_mp, k_min, b, turn, rem, fin_turn, fin_rem, mask,
+            s, w, h, idx_x(si, w), idx_y(si, w), k_mp, k_min, b, turn, rem, fin_turn, fin_rem, acc,
             out_max);
     }
     if (!have_src) {
@@ -405,7 +553,7 @@ static bool run_gen (
     u16 dst_x,
     u16 dst_y,
     WalkP2P& walk,
-    const Whiteboard_1B* mask,
+    const AccCtx& acc,
     u16* out_max) {
     if (out_max == nullptr || !walk.ok() || !UnitMovementMng::mvt_ready()) {
         return false;
@@ -421,13 +569,10 @@ static bool run_gen (
     if (have_src && (src_x >= w || src_y >= h)) {
         return false;
     }
-    if (mask != nullptr && (!mask->ok() || mask->w() != w || mask->h() != h)) {
+    if (!can_tile(s, dst_x, dst_y, acc)) {
         return false;
     }
-    if (!can_tile(s, dst_x, dst_y, mask)) {
-        return false;
-    }
-    if (have_src && !can_tile(s, src_x, src_y, mask)) {
+    if (have_src && !can_tile(s, src_x, src_y, acc)) {
         return false;
     }
     const i32 k_mp = static_cast<i32>(st.config().get_mov_pt_per_turn());
@@ -460,43 +605,71 @@ static bool run_gen (
     u32* nxt = nxt_wb.get_iter_ptr();
     u32* prv = prv_wb.get_iter_ptr();
     BktQ b;
-    bkt_init(b, heads, nxt, prv, in_q, q_turn, q_rem, tile_n);
-    for (u32 i = 0; i < tile_n; ++i) {
-        if (mask != nullptr) {
+    u32* reach = nullptr;
+    u32 reach_n = 0u;
+    if (use_own_reach(acc.mode)) {
+        reach = new u32[tile_n];
+        if (reach == nullptr) {
+            return false;
+        }
+        reach_n = own_reach(s, w, h, dst_x, dst_y, acc, in_q, reach);
+        if (reach_n == 0u) {
+            delete[] reach;
+            return false;
+        }
+        bkt_init_own_reach(b, heads, nxt, prv, in_q, q_turn, q_rem, reach, reach_n);
+        for (u32 i = 0; i < reach_n; ++i) {
+            const u32 vi = reach[i];
+            turn[vi] = k_turn_sent;
+            rem[vi] = rem_enc(0);
+            fin_turn[vi] = k_turn_sent;
+            fin_rem[vi] = 0u;
+        }
+    } else {
+        bkt_init(b, heads, nxt, prv, in_q, q_turn, q_rem, tile_n);
+        for (u32 i = 0; i < tile_n; ++i) {
             const u16 mx = static_cast<u16>(i % static_cast<u32>(w));
             const u16 my = static_cast<u16>(i / static_cast<u32>(w));
-            if (mask->rd(mx, my) == 0u) {
+            if (!acc_open(s, mx, my, acc)) {
                 continue;
             }
+            turn[i] = k_turn_sent;
+            rem[i] = rem_enc(0);
+            fin_turn[i] = k_turn_sent;
+            fin_rem[i] = 0u;
         }
-        turn[i] = k_turn_sent;
-        rem[i] = rem_enc(0);
-        fin_turn[i] = k_turn_sent;
-        fin_rem[i] = 0u;
     }
     turn[dst_i] = 0u;
     rem[dst_i] = rem_enc(k_mp);
     bkt_push(b, dst_i, 0u, rem[dst_i]);
     *out_max = 0;
     if (have_src && src_i == dst_i) {
+        delete[] reach;
         return true;
     }
     const bool ok = flood(
-        s, w, h, src_i, have_src, k_mp, k_min, turn, rem, b, fin_turn, fin_rem, mask, out_max);
+        s, w, h, src_i, have_src, k_mp, k_min, turn, rem, b, fin_turn, fin_rem, acc, out_max);
     if (!ok) {
-        for (u32 i = 0; i < tile_n; ++i) {
-            if (mask != nullptr) {
+        if (reach != nullptr) {
+            for (u32 i = 0; i < reach_n; ++i) {
+                const u32 vi = reach[i];
+                turn[vi] = k_turn_sent;
+                rem[vi] = rem_enc(0);
+            }
+        } else {
+            for (u32 i = 0; i < tile_n; ++i) {
                 const u16 mx = static_cast<u16>(i % static_cast<u32>(w));
                 const u16 my = static_cast<u16>(i / static_cast<u32>(w));
-                if (mask->rd(mx, my) == 0u) {
+                if (!acc_open(s, mx, my, acc)) {
                     continue;
                 }
+                turn[i] = k_turn_sent;
+                rem[i] = rem_enc(0);
             }
-            turn[i] = k_turn_sent;
-            rem[i] = rem_enc(0);
         }
         *out_max = 0;
     }
+    delete[] reach;
     return ok;
 }
 
@@ -512,9 +685,15 @@ bool GenerateDistanceP2P::generate (
     u16 dst_x,
     u16 dst_y,
     WalkP2P& walk,
-    const Whiteboard_1B* mask,
+    u16 seat,
+    u8 acc_mode,
     u16* out_max) {
-    return run_gen(s, st, true, src_x, src_y, dst_x, dst_y, walk, mask, out_max);
+    u8 seat_open[256];
+    AccCtx acc;
+    if (!make_acc(s, seat, acc_mode, seat_open, &acc)) {
+        return false;
+    }
+    return run_gen(s, st, true, src_x, src_y, dst_x, dst_y, walk, acc, out_max);
 }
 
 bool GenerateDistanceP2P::generate (
@@ -523,9 +702,15 @@ bool GenerateDistanceP2P::generate (
     u16 dst_x,
     u16 dst_y,
     WalkP2P& walk,
-    const Whiteboard_1B* mask,
+    u16 seat,
+    u8 acc_mode,
     u16* out_max) {
-    return run_gen(s, st, false, 0u, 0u, dst_x, dst_y, walk, mask, out_max);
+    u8 seat_open[256];
+    AccCtx acc;
+    if (!make_acc(s, seat, acc_mode, seat_open, &acc)) {
+        return false;
+    }
+    return run_gen(s, st, false, 0u, 0u, dst_x, dst_y, walk, acc, out_max);
 }
 
 //================================================================================================================================
@@ -568,14 +753,14 @@ static bool can_win (
     u16 oy,
     u16 cw,
     u16 ch,
-    const Whiteboard_1B* mask,
+    const AccCtx& acc,
     const Whiteboard_2B* sec,
     u16 sec_a,
     u16 sec_b) {
     if (!in_win(x, y, ox, oy, cw, ch)) {
         return false;
     }
-    if (!can_tile(s, x, y, mask)) {
+    if (!can_tile(s, x, y, acc)) {
         return false;
     }
     return sec_ok(sec, x, y, sec_a, sec_b);
@@ -591,7 +776,7 @@ static u32 gather_nbrs_win (
     u16 oy,
     u16 cw,
     u16 ch,
-    const Whiteboard_1B* mask,
+    const AccCtx& acc,
     const Whiteboard_2B* sec,
     u16 sec_a,
     u16 sec_b,
@@ -608,7 +793,7 @@ static u32 gather_nbrs_win (
         if (vx >= mw || vy >= mh) {
             continue;
         }
-        if (!can_win(s, vx, vy, ox, oy, cw, ch, mask, sec, sec_a, sec_b)) {
+        if (!can_win(s, vx, vy, ox, oy, cw, ch, acc, sec, sec_a, sec_b)) {
             continue;
         }
         const i16 cost = UnitMovementMng::tile_cost(s, ux, uy, vx, vy);
@@ -641,7 +826,7 @@ static void process_tile_win (
     u16* rem,
     u16* fin_turn,
     u16* fin_rem,
-    const Whiteboard_1B* mask,
+    const AccCtx& acc,
     const Whiteboard_2B* sec,
     u16 sec_a,
     u16 sec_b,
@@ -658,7 +843,7 @@ static void process_tile_win (
     }
     Nbr nbrs[8];
     const u32 nn = gather_nbrs_win(
-        s, mw, mh, ux, uy, ox, oy, cw, ch, mask, sec, sec_a, sec_b, nbrs);
+        s, mw, mh, ux, uy, ox, oy, cw, ch, acc, sec, sec_a, sec_b, nbrs);
     if (nn == 0u || !any_offer_possible(ut, nbrs, nn, turn)) {
         fin_turn[ui] = ut;
         fin_rem[ui] = uraw;
@@ -699,7 +884,7 @@ static bool flood_win (
     BktQ& b,
     u16* fin_turn,
     u16* fin_rem,
-    const Whiteboard_1B* mask,
+    const AccCtx& acc,
     const Whiteboard_2B* sec,
     u16 sec_a,
     u16 sec_b,
@@ -731,7 +916,7 @@ static bool flood_win (
         const u16 ly = static_cast<u16>(si / static_cast<u32>(cw));
         process_tile_win(
             s, mw, mh, static_cast<u16>(ox + lx), static_cast<u16>(oy + ly), ox, oy, cw, ch, k_mp,
-            k_min, b, turn, rem, fin_turn, fin_rem, mask, sec, sec_a, sec_b, out_max);
+            k_min, b, turn, rem, fin_turn, fin_rem, acc, sec, sec_a, sec_b, out_max);
     }
     if (!have_src) {
         return true;
@@ -752,7 +937,8 @@ bool GenerateDistanceP2P::generate (
     u16 oy,
     u16 cw,
     u16 ch,
-    const Whiteboard_1B* mask,
+    u16 seat,
+    u8 acc_mode,
     const Whiteboard_2B* sec,
     u16 sec_a,
     u16 sec_b,
@@ -771,16 +957,18 @@ bool GenerateDistanceP2P::generate (
     if (!in_win(dst_x, dst_y, ox, oy, cw, ch) || !in_win(src_x, src_y, ox, oy, cw, ch)) {
         return false;
     }
-    if (mask != nullptr && (!mask->ok() || mask->w() != mw || mask->h() != mh)) {
+    u8 seat_open[256];
+    AccCtx acc;
+    if (!make_acc(s, seat, acc_mode, seat_open, &acc)) {
         return false;
     }
     if (sec != nullptr && (!sec->ok() || sec->w() != mw || sec->h() != mh)) {
         return false;
     }
-    if (!can_win(s, dst_x, dst_y, ox, oy, cw, ch, mask, sec, sec_a, sec_b)) {
+    if (!can_win(s, dst_x, dst_y, ox, oy, cw, ch, acc, sec, sec_a, sec_b)) {
         return false;
     }
-    if (!can_win(s, src_x, src_y, ox, oy, cw, ch, mask, sec, sec_a, sec_b)) {
+    if (!can_win(s, src_x, src_y, ox, oy, cw, ch, acc, sec, sec_a, sec_b)) {
         return false;
     }
     const i32 k_mp = static_cast<i32>(st.config().get_mov_pt_per_turn());
@@ -826,7 +1014,7 @@ bool GenerateDistanceP2P::generate (
     if (src_i != dst_i) {
         ok = flood_win(
             s, mw, mh, ox, oy, cw, ch, src_i, true, k_mp, k_min, turn, rem, b, fin_turn, fin_rem,
-            mask, sec, sec_a, sec_b, out_max);
+            acc, sec, sec_a, sec_b, out_max);
         if (!ok) {
             for (u32 i = 0; i < cells; ++i) {
                 turn[i] = k_turn_sent;

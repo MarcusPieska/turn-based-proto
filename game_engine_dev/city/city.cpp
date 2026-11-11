@@ -343,6 +343,8 @@ void City::init (u16 owner, u16 x, u16 y) {
     m_misc.m_tile_imp_count = 0;
     m_misc.m_target_unit_size = 0;
     m_misc.m_unit_is_being_extended = 0;
+    m_misc.m_new_muster_flood = 0;
+    m_misc.m_in_muster_reach = 0;
 }
 
 void City::bind_statics (const RuntimeStatics& st) {
@@ -847,6 +849,22 @@ void City::city_no_longer_frontier () {
 
 bool City::city_has_worker () const {
     return m_misc.m_city_has_worker != 0;
+}
+
+bool City::new_muster_flood () const {
+    return m_misc.m_new_muster_flood != 0;
+}
+
+void City::set_new_muster_flood (bool v) {
+    m_misc.m_new_muster_flood = v ? 1u : 0u;
+}
+
+bool City::in_muster_reach () const {
+    return m_misc.m_in_muster_reach != 0;
+}
+
+void City::set_in_muster_reach (bool v) {
+    m_misc.m_in_muster_reach = v ? 1u : 0u;
 }
 
 u8 City::get_tile_imp_count () const {

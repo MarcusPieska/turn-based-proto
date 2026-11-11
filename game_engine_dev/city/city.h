@@ -32,7 +32,9 @@ typedef struct MiscCityData {
     u64 m_city_has_worker : 1; // 1 = city has queued/built a worker; 0 = not yet
     u64 m_target_unit_size : 6; // The size of the unit formation that the city is targeting
     u64 m_unit_is_being_extended : 1; // True if the unit is being extended
-    u64 m_unused : 18;
+    u64 m_new_muster_flood : 1; // 1 = seat muster flood since last reach verify
+    u64 m_in_muster_reach : 1; // 1 = city walks to seat muster city on shared board
+    u64 m_unused : 16;
 } MiscCityData;
 
 class alignas(8) City {
@@ -87,6 +89,10 @@ public:
     void city_no_longer_frontier ();
 
     bool city_has_worker () const;
+    bool new_muster_flood () const;
+    void set_new_muster_flood (bool v);
+    bool in_muster_reach () const;
+    void set_in_muster_reach (bool v);
     static void refresh_city_worker_flags (GameState& state, u16 player);
     u8 get_tile_imp_count () const;
     void set_tile_imp_count (u8 n);

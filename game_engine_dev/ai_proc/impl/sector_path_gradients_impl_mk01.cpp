@@ -90,12 +90,13 @@ bool SectorPathGradients::fill (
     u16 sy,
     u16 dx,
     u16 dy,
-    const Whiteboard_1B* mask) {
+    u16 seat,
+    u8 acc) {
     if (!slot_ok(slot) || m_full[slot] == nullptr) {
         return false;
     }
     u16 dmax = 0u;
-    return GenerateDistanceP2P::generate(st, rst, sx, sy, dx, dy, *m_full[slot], mask, &dmax);
+    return GenerateDistanceP2P::generate(st, rst, sx, sy, dx, dy, *m_full[slot], seat, acc, &dmax);
 }
 
 //================================================================================================================================

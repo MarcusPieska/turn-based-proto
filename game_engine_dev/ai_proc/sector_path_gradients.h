@@ -62,7 +62,8 @@ public:
         u16 sy,
         u16 dx,
         u16 dy,
-        const Whiteboard_1B* mask);
+        u16 seat,
+        u8 acc);
     bool pack_path (
         u16 slot,
         GameState& st,
@@ -71,7 +72,8 @@ public:
         u16 sy,
         u16 dx,
         u16 dy,
-        const Whiteboard_1B* mask);
+        u16 seat,
+        u8 acc);
 
     bool covers (u16 slot, u16 x, u16 y) const;
     bool clip_mask (u16 slot, Whiteboard_1B& mask) const;

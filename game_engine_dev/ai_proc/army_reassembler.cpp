@@ -6,7 +6,6 @@
 
 #include "army_general.h"
 #include "game_state.h"
-#include "generate_access_mask.h"
 #include "generate_distance_p2p.h"
 #include "tile_entry_resolver.h"
 #include "unit_add_struct.h"
@@ -50,12 +49,9 @@ bool ArmyReassembler::begin (GameState& st, u16 seat, u16 tx, u16 ty) {
     if (st.m_statics == nullptr || seat >= st.m_player_n) {
         return false;
     }
-    Whiteboard_1B acc("ArmyReassembler", "acc", 0u);
-    if (!GenerateAccessMask::generate_own_free(st, seat, acc)) {
-        return false;
-    }
     u16 dmax = 0u;
-    if (!GenerateDistanceP2P::generate(st, *st.m_statics, tx, ty, m_mob, &acc, &dmax)) {
+    if (!GenerateDistanceP2P::generate(
+            st, *st.m_statics, tx, ty, m_mob, seat, GenerateDistanceP2P::k_acc_own_free, &dmax)) {
         return false;
     }
     m_tx = tx;

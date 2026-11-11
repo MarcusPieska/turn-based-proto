@@ -371,7 +371,8 @@ bool SectorPathGradients::fill (
     u16 sy,
     u16 dx,
     u16 dy,
-    const Whiteboard_1B* mask) {
+    u16 seat,
+    u8 acc) {
     const u32 turn = st.m_current_turn;
     if (!slot_ok(slot) || st.m_statics == nullptr) {
         spg_fail(turn, slot, k_fail_ready, sx, sy);
@@ -405,7 +406,8 @@ bool SectorPathGradients::fill (
             m_oy[slot],
             m_cw[slot],
             m_ch[slot],
-            mask,
+            seat,
+            acc,
             m_sec,
             m_sa[slot],
             m_sb[slot],
@@ -424,7 +426,8 @@ bool SectorPathGradients::pack_path (
     u16 sy,
     u16 dx,
     u16 dy,
-    const Whiteboard_1B* mask) {
+    u16 seat,
+    u8 acc) {
     const u32 turn = st.m_current_turn;
     if (slot >= k_cap || !s_ok || st.m_statics == nullptr) {
         spg_fail(turn, slot, k_fail_ready, sx, sy);
@@ -432,7 +435,7 @@ bool SectorPathGradients::pack_path (
     }
     WalkP2P walk;
     u16 dmax = 0u;
-    if (!GenerateDistanceP2P::generate(st, rst, sx, sy, dx, dy, walk, mask, &dmax)) {
+    if (!GenerateDistanceP2P::generate(st, rst, sx, sy, dx, dy, walk, seat, acc, &dmax)) {
         spg_fail(turn, slot, k_fail_dial, sx, dx);
         return false;
     }

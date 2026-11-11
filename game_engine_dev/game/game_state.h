@@ -132,6 +132,7 @@ public:
     u8 m_at_war = 0; // Sticky: set when this seat starts a war; blocks another declare
     AiUnits m_ai_units = AiUnits::AI_UNITS_DEFAULT; // Unit production policy; Default for all seats for now
     u8 m_ai_units_tog = 0; // Aggressive army role counter; %3 -> def/atk/arty
+    u16 m_muster_city = U16_KEY_NULL; // Shared muster city index; capital for now
     ResourceLedger m_res_ledger; // Per-seat resource stockpile; length matches resource catalog
 };
 
