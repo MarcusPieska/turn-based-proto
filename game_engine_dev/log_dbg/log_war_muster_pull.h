@@ -24,16 +24,17 @@
 class LOG_WAR_MUSTER_PULL {
 public:
 #if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_MUSTER_PULL))
-    static void LOG (unsigned seat, unsigned sx, unsigned sy, unsigned turn);
+    static void LOG (unsigned seat, unsigned sx, unsigned sy, unsigned kind, unsigned turn);
 #else
-    static void LOG (unsigned seat, unsigned sx, unsigned sy, unsigned turn) {
+    static void LOG (unsigned seat, unsigned sx, unsigned sy, unsigned kind, unsigned turn) {
         (void)seat;
         (void)sx;
         (void)sy;
+        (void)kind;
         (void)turn;
     }
 #endif
-    static bool PARSE (const char* line, unsigned* seat, unsigned* sx, unsigned* sy, unsigned* turn);
+    static bool PARSE (const char* line, unsigned* seat, unsigned* sx, unsigned* sy, unsigned* kind, unsigned* turn);
 
 private:
     LOG_WAR_MUSTER_PULL () = delete;

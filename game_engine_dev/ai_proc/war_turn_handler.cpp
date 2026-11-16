@@ -53,6 +53,15 @@
 #include "whiteboard_mng.h"
 
 //================================================================================================================================
+//=> - Muster pull kinds (LOG_WAR_MUSTER_PULL) -
+//================================================================================================================================
+
+static const unsigned k_mpull_staging = 0u;
+static const unsigned k_mpull_pack_ok = 3u;
+static const unsigned k_mpull_arr_front = 4u;
+static const unsigned k_mpull_busy = 5u;
+
+//================================================================================================================================
 //=> - Helpers -
 //================================================================================================================================
 
@@ -349,6 +358,8 @@ bool WarTurnHandler::make_muster_gradient (u16 x, u16 y) {
         return false;
     }
     if (feed_busy()) {
+        LOG_WAR_MUSTER_PULL::LOG(
+            SC_U32(m_seat), SC_U32(x), SC_U32(y), k_mpull_busy, SC_U32(m_st.m_current_turn));
         LOG_WAR_MUSTER_GRAD_FAIL::LOG(SC_U32(m_seat), SC_U32(x), SC_U32(y), SC_U32(m_st.m_current_turn));
         return false;
     }
@@ -366,17 +377,24 @@ bool WarTurnHandler::make_muster_gradient (u16 x, u16 y) {
         LOG_WAR_MUSTER_GRAD_FAIL::LOG(SC_U32(m_seat), SC_U32(x), SC_U32(y), SC_U32(m_st.m_current_turn));
         return false;
     }
-    const u8 acc = GenerateDistanceP2P::k_acc_own_free;
+    u8 acc = GenerateDistanceP2P::k_acc_own_free;
     if (!spg->pack_path(slot, m_st, *m_st.m_statics, cx, cy, x, y, m_seat, acc) || !spg->ok(slot)) {
-        spg->release(slot);
-        LOG_WAR_MUSTER_GRAD_FAIL::LOG(SC_U32(m_seat), SC_U32(x), SC_U32(y), SC_U32(m_st.m_current_turn));
-        return false;
+        acc = GenerateDistanceP2P::k_acc_non_peace;
+        if (!spg->pack_path(slot, m_st, *m_st.m_statics, cx, cy, x, y, m_seat, acc) || !spg->ok(slot)) {
+            spg->release(slot);
+            LOG_WAR_MUSTER_GRAD_FAIL::LOG(SC_U32(m_seat), SC_U32(x), SC_U32(y), SC_U32(m_st.m_current_turn));
+            return false;
+        }
     }
     m_feed = spg;
     m_feed_i = slot;
     m_sx = x;
     m_sy = y;
     m_feed_ok = true;
+    LOG_WAR_MUSTER_PULL::LOG(
+        SC_U32(m_seat), SC_U32(x), SC_U32(y), k_mpull_pack_ok, SC_U32(m_st.m_current_turn));
+    LOG_SECTOR_PATH_GRADS::LOG(
+        SC_U32(m_st.m_current_turn), SC_U32(m_seat), SC_U32(slot), SC_U32(0u));
     return true;
 }
 
@@ -409,6 +427,12 @@ u16 WarTurnHandler::do_total_muster () {
     m_grp[m_grp_n].m_hd = head.value();
     m_grp[m_grp_n].m_exp = GenerateExposure::k_none;
     m_grp_n++;
+    u32 unit_n = 0u;
+    u32 size_sum = 0u;
+    muster_units(&unit_n, &size_sum);
+    LOG_WAR_MUSTER::LOG(
+        SC_U32(m_seat), SC_U32(m_enemy), SC_U32(c->get_x()), SC_U32(c->get_y()),
+        SC_U32(unit_n), SC_U32(size_sum), SC_U32(m_grp_n), SC_U32(m_st.m_current_turn));
     return m_grp_n;
 }
 
@@ -450,7 +474,16 @@ void WarTurnHandler::refill_grp (u16 head_idx) {
             break;
         }
         if (u->m_unit_typ_idx < typ_n) {
+            const int before = static_cast<int>(u->m_mvt_points);
+            const int budget = static_cast<int>(MvtPtsBoostMng::budget(m_st, *u));
             MvtPtsBoostMng::fill(m_st, u);
+            LOG_WAR_MUSTER_REFILL_MP::LOG(
+                SC_U32(m_seat),
+                SC_U32(cur.value()),
+                before,
+                budget,
+                static_cast<int>(u->m_mvt_points),
+                SC_U32(m_st.m_current_turn));
         }
         if (u->m_next_unit_in_group == U16_KEY_NULL) {
             break;
@@ -458,6 +491,18 @@ void WarTurnHandler::refill_grp (u16 head_idx) {
         cur = UnitAddKey::from_raw(u->m_next_unit_in_group);
     }
     GeneralMoveBoost::on_grp_refilled(m_st, UnitAddKey::from_raw(head_idx));
+    {
+        UnitAddStruct* hu = m_st.m_units.get_unit_add(UnitAddKey::from_raw(head_idx));
+        if (hu != nullptr) {
+            LOG_WAR_MUSTER_REFILL_MP::LOG(
+                SC_U32(m_seat),
+                SC_U32(head_idx),
+                static_cast<int>(hu->m_mvt_points),
+                static_cast<int>(MvtPtsBoostMng::budget(m_st, *hu)),
+                static_cast<int>(hu->m_mvt_points),
+                SC_U32(m_st.m_current_turn));
+        }
+    }
 }
 
 bool WarTurnHandler::army_in_own_city (u16 army_i) const {
@@ -511,8 +556,9 @@ bool WarTurnHandler::walk_muster () {
         if (m_grp[i].m_hd == U16_KEY_NULL) {
             continue;
         }
-        refill_grp(m_grp[i].m_hd);
         const UnitAddKey key = UnitAddKey::from_raw(m_grp[i].m_hd);
+        UnitMovementMng::set_grp_campaign(m_st, key, 1u);
+        refill_grp(m_grp[i].m_hd);
         UnitAddStruct* u = m_st.m_units.get_unit_add(key);
         if (u == nullptr || u->m_x == U16_KEY_NULL) {
             continue;
@@ -538,7 +584,8 @@ bool WarTurnHandler::walk_muster () {
                     SC_U32(ux), SC_U32(uy), SC_U32(m_st.m_current_turn));
                 break;
             }
-            const CanStepFail csr = UnitMovementMng::can_step_reason(m_st, key, step.nx, step.ny, nullptr);
+            i16 step_cost = 0;
+            const CanStepFail csr = UnitMovementMng::can_step_reason(m_st, key, step.nx, step.ny, &step_cost);
             if (csr == CanStepFail::Ok) {
                 if (!UnitMovementMng::apply_step(m_st, key, step.nx, step.ny)) {
                     break;
@@ -547,10 +594,20 @@ bool WarTurnHandler::walk_muster () {
                 continue;
             }
             if (csr != CanStepFail::Entry) {
+                const i16 mp_now = (u != nullptr) ? u->m_mvt_points : static_cast<i16>(0);
+                const i16 gmin = UnitMovementMng::grp_min_mvt(m_st, key);
+                const i16 cost_now = UnitMovementMng::tile_cost(m_st, ux, uy, step.nx, step.ny);
+                const u16 nxt = (u != nullptr) ? static_cast<u16>(u->m_next_unit_in_group) : U16_KEY_NULL;
                 LOG_WAR_MUSTER_CAN_STEP_FAIL::LOG(
                     SC_U32(m_seat), SC_U32(key.value()), SC_U32(static_cast<u8>(csr)),
                     SC_U32(ux), SC_U32(uy), SC_U32(step.nx), SC_U32(step.ny),
                     SC_U32(m_st.m_current_turn));
+                LOG_WAR_MUSTER_CAN_STEP_DIAG::LOG(
+                    SC_U32(m_seat), SC_U32(key.value()), SC_U32(static_cast<u8>(csr)),
+                    static_cast<int>(mp_now), static_cast<int>(gmin), static_cast<int>(cost_now),
+                    SC_U32(nxt), SC_U32(ux), SC_U32(uy), SC_U32(step.nx), SC_U32(step.ny),
+                    SC_U32(m_st.m_current_turn));
+                (void)step_cost;
                 break;
             }
             if (TileEntryResolver::resolve(key.value(), step.nx, step.ny) != TileEntryRes::BlockRemains) {
@@ -570,6 +627,8 @@ bool WarTurnHandler::walk_muster () {
     if (pending) {
         return true;
     }
+    LOG_WAR_MUSTER_PULL::LOG(
+        SC_U32(m_seat), SC_U32(m_sx), SC_U32(m_sy), k_mpull_arr_front, SC_U32(m_st.m_current_turn));
     feed_drop();
     return false;
 }
@@ -612,7 +671,23 @@ bool WarTurnHandler::form_army () {
     }
     UnitAddKey head = UnitAddKey::None();
     if (!UnitGroupManagement::campaign_form_land_army(m_st, m_sx, m_sy, m_seat, &head)) {
-        return false;
+        UnitAddKey from_grp[k_grp_cap];
+        u16 gn = 0u;
+        for (u16 i = 0; i < m_grp_n && gn < k_grp_cap; ++i) {
+            if (m_grp[i].m_hd == U16_KEY_NULL) {
+                continue;
+            }
+            const UnitAddKey gk = UnitAddKey::from_raw(m_grp[i].m_hd);
+            const UnitAddStruct* gu = m_st.m_units.get_unit_add(gk);
+            if (gu == nullptr || gu->m_x != m_sx || gu->m_y != m_sy) {
+                continue;
+            }
+            from_grp[gn++] = gk;
+        }
+        if (gn == 0u || !UnitMovementMng::flatten_groups(m_st, from_grp, gn, &head) || !head.is_valid()) {
+            return false;
+        }
+        UnitMovementMng::set_grp_campaign(m_st, head, 1u);
     }
     UnitAddKey parts[k_grp_use];
     u16 part_n = 0u;
@@ -1221,7 +1296,8 @@ void WarTurnHandler::sync_from_army (u16 army_i) {
     }
     m_sx = m_atk[army_i].m_tx;
     m_sy = m_atk[army_i].m_ty;
-    LOG_WAR_MUSTER_PULL::LOG(SC_U32(m_seat), SC_U32(m_sx), SC_U32(m_sy), SC_U32(m_st.m_current_turn));
+    LOG_WAR_MUSTER_PULL::LOG(
+        SC_U32(m_seat), SC_U32(m_sx), SC_U32(m_sy), k_mpull_staging, SC_U32(m_st.m_current_turn));
 }
 
 bool WarTurnHandler::stalled () const {
@@ -2185,6 +2261,13 @@ static bool war_start_camp (GameState& st, u16 seat, u16 enemy, WarSlot* s) {
         LOG_WAR_START_CAMP_FAIL::LOG(SC_U32(seat), SC_U32(enemy), SC_U32(st.m_current_turn), 1u);
         return false;
     }
+    if (s->m_camp != nullptr) {
+        s->m_camp->clr_campaign();
+    }
+    delete s->m_camp;
+    s->m_camp = nullptr;
+    delete s->m_mock;
+    s->m_mock = nullptr;
     WarTurnHandler* camp = new WarTurnHandler(st, seat);
     if (camp == nullptr || !camp->ok()) {
         LOG_WAR_START_CAMP_FAIL::LOG(SC_U32(seat), SC_U32(enemy), SC_U32(st.m_current_turn), 2u);
@@ -2215,8 +2298,6 @@ static bool war_start_camp (GameState& st, u16 seat, u16 enemy, WarSlot* s) {
         delete camp;
         return false;
     }
-    delete s->m_camp;
-    delete s->m_mock;
     s->m_camp = camp;
     s->m_mock = mock;
     s->m_enemy = enemy;

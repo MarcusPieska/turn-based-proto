@@ -9,6 +9,7 @@
 #include "city_array.h"
 #include "generate_distance_p2p.h"
 #include "game_state.h"
+#include "log_dbg.h"
 #include "runtime_statics.h"
 #include "unit_movement_mng.h"
 #include "unit_static_key.h"
@@ -20,6 +21,9 @@
 //================================================================================================================================
 
 static CityMusterGrad* g_cm = nullptr;
+
+static const unsigned k_mpull_feed_peel = 1u;
+static const unsigned k_mpull_feed_arr_cap = 2u;
 
 //================================================================================================================================
 //=> - CityMusterGrad -
@@ -313,6 +317,13 @@ bool CityMusterGrad::step_one (UnitAddKey key) {
             break;
         }
         any = true;
+        u = m_st->m_units.get_unit_add(key);
+        if (u != nullptr && u->m_x == m->get_x() && u->m_y == m->get_y()) {
+            LOG_WAR_MUSTER_PULL::LOG(
+                SC_U32(seat), SC_U32(m->get_x()), SC_U32(m->get_y()),
+                k_mpull_feed_arr_cap, SC_U32(m_st->m_current_turn));
+            break;
+        }
     }
     return any;
 }
@@ -346,6 +357,9 @@ void CityMusterGrad::pull_cities () {
         if (hu == nullptr || !feed_unit(*hu)) {
             continue;
         }
+        LOG_WAR_MUSTER_PULL::LOG(
+            SC_U32(seat), SC_U32(c->get_x()), SC_U32(c->get_y()),
+            k_mpull_feed_peel, SC_U32(m_st->m_current_turn));
         (void)step_one(head);
     }
 }

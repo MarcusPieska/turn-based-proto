@@ -21,25 +21,27 @@
 //=> - LOG_WAR_MUSTER_PULL -
 //================================================================================================================================
 
-void LOG_WAR_MUSTER_PULL::LOG (unsigned seat, unsigned sx, unsigned sy, unsigned turn) {
-    TraceSink::printf("war muster pull seat=%u staging=(%u,%u) turn=%u\n", seat, sx, sy, turn);
+void LOG_WAR_MUSTER_PULL::LOG (unsigned seat, unsigned sx, unsigned sy, unsigned kind, unsigned turn) {
+    TraceSink::printf("war muster pull seat=%u staging=(%u,%u) kind=%u turn=%u\n", seat, sx, sy, kind, turn);
 }
 
-bool LOG_WAR_MUSTER_PULL::PARSE (const char* line, unsigned* seat, unsigned* sx, unsigned* sy, unsigned* turn) {
-    if (line == nullptr || seat == nullptr || sx == nullptr || sy == nullptr || turn == nullptr) {
+bool LOG_WAR_MUSTER_PULL::PARSE (const char* line, unsigned* seat, unsigned* sx, unsigned* sy, unsigned* kind, unsigned* turn) {
+    if (line == nullptr || seat == nullptr || sx == nullptr || sy == nullptr || kind == nullptr || turn == nullptr) {
         return false;
     }
     unsigned t0 = 0;
     unsigned t1 = 0;
     unsigned t2 = 0;
     unsigned t3 = 0;
-    if (std::sscanf(line, "war muster pull seat=%u staging=(%u,%u) turn=%u", &t0, &t1, &t2, &t3) != 4) {
+    unsigned t4 = 0;
+    if (std::sscanf(line, "war muster pull seat=%u staging=(%u,%u) kind=%u turn=%u", &t0, &t1, &t2, &t3, &t4) != 5) {
         return false;
     }
     *seat = t0;
     *sx = t1;
     *sy = t2;
-    *turn = t3;
+    *kind = t3;
+    *turn = t4;
     return true;
 }
 

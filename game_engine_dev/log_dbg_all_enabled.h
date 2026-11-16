@@ -43,6 +43,8 @@
 #include "log_dbg/log_war_exposure_fail.h"
 #include "log_dbg/log_war_walk_muster_fail.h"
 #include "log_dbg/log_war_muster_can_step_fail.h"
+#include "log_dbg/log_war_muster_refill_mp.h"
+#include "log_dbg/log_war_muster_can_step_diag.h"
 #include "log_dbg/log_war_muster_peek_fail.h"
 #include "log_dbg/log_war_tile_entry_resolve.h"
 #include "log_dbg/log_war_form_army_fail.h"

@@ -24,7 +24,7 @@
 //
 //================================================================================================================================
 
-static const u16 LOG_NEED_N = 77u;
+static const u16 LOG_NEED_N = 79u;
 
 struct LogNeedMask {
     u8 m_new_turn;
@@ -56,6 +56,8 @@ struct LogNeedMask {
     u8 m_war_exposure_fail;
     u8 m_war_walk_muster_fail;
     u8 m_war_muster_can_step_fail;
+    u8 m_war_muster_refill_mp;
+    u8 m_war_muster_can_step_diag;
     u8 m_war_muster_peek_fail;
     u8 m_war_tile_entry_resolve;
     u8 m_war_form_army_fail;
@@ -144,6 +146,8 @@ inline LogNeedMask::LogNeedMask ()
       m_war_exposure_fail(0),
       m_war_walk_muster_fail(0),
       m_war_muster_can_step_fail(0),
+      m_war_muster_refill_mp(0),
+      m_war_muster_can_step_diag(0),
       m_war_muster_peek_fail(0),
       m_war_tile_entry_resolve(0),
       m_war_form_army_fail(0),
@@ -247,6 +251,8 @@ inline cstr LogNeedMask::nm (u16 i) {
         "WarExposureFail",
         "WarWalkMusterFail",
         "WarMusterCanStepFail",
+        "WarMusterRefillMp",
+        "WarMusterCanStepDiag",
         "WarMusterPeekFail",
         "WarTileEntryResolve",
         "WarFormArmyFail",
@@ -445,6 +451,16 @@ inline bool LogNeedMask::on (u16 i) {
         0u,
 #endif
 #if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_MUSTER_CAN_STEP_FAIL))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_MUSTER_REFILL_MP))
+        1u,
+#else
+        0u,
+#endif
+#if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_MUSTER_CAN_STEP_DIAG))
         1u,
 #else
         0u,

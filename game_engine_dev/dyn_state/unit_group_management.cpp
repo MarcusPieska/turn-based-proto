@@ -433,7 +433,7 @@ bool UnitGroupManagement::campaign_form_land_army (
             nxt = UnitAddKey::from_raw(tu->m_next_unit_in_group);
         }
     }
-    if (n < 2u) {
+    if (n == 0u) {
         return false;
     }
     bool leave[k_cap];
@@ -460,6 +460,18 @@ bool UnitGroupManagement::campaign_form_land_army (
             continue;
         }
         army[an++] = keys[i];
+    }
+    if (an == 0u) {
+        for (u16 i = 0; i < n; ++i) {
+            if (leave[i]) {
+                continue;
+            }
+            const UnitAddStruct* u = ug_get(s, keys[i]);
+            if (u == nullptr || u->m_in_campaign == 0u) {
+                continue;
+            }
+            army[an++] = keys[i];
+        }
     }
     if (an == 0u) {
         return false;
