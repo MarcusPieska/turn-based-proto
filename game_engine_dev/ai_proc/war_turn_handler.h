@@ -8,7 +8,6 @@
 #include "army_turn_handler.h"
 #include "game_primitives.h"
 #include "sector_path_gradients.h"
-#include "walk_p2p.h"
 
 class ExpansionState;
 class GameState;
@@ -40,7 +39,8 @@ struct MusterCity {
 //  Per-seat war campaign: muster, form, sector-selector target pick, staging, reinforce. Owns WarArmy
 //  group slots (k_grp_use). One sticky BorderFront slot per seat; k_front_use is retained but
 //  multi-front peel is defunct. m_flag_i is the main army that carries the advance and updates
-//  muster/staging on captures. Wars stay sequential (one WarSlot).
+//  muster/staging on captures. Capital-to-front uses one SPG pack_path at a time (m_feed); the
+//  forward army stays free while the joining group walks that tape. Wars stay sequential (one WarSlot).
 //
 //================================================================================================================================
 
@@ -143,10 +143,14 @@ private:
     bool start_reinforce (BorderFront* fronts, u16 n);
     bool finish_reinforce ();
     void path_drop (u16 army_i);
+    void feed_drop ();
+    bool feed_busy () const;
+    bool cap_xy (u16* ox, u16* oy) const;
 
     GameState& m_st;
     u16 m_seat;
-    WalkP2P m_mob; // Muster gradient to staging / reinforce city
+    SectorPathGradients* m_feed; // Non-owning SPG bank for capital-to-front tape
+    u16 m_feed_i; // Slot in m_feed; U16_KEY_NULL if none
     MusterCity m_grp[k_grp_cap];
     u16 m_grp_n;
     WarArmy m_atk[k_atk_cap]; // Partitioned groups; active count limited by k_grp_use
@@ -166,7 +170,7 @@ private:
     u16 m_sector; // Active SectorFlood sector; U16_KEY_NULL if none
     bool m_assign_busy; // Last assign failed only because cities were in use
     bool m_ready;
-    bool m_mob_ok;
+    bool m_feed_ok; // True while capital-to-front pack_path is leased
 };
 
 #endif // WAR_TURN_HANDLER_H

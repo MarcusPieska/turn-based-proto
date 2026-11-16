@@ -13,3 +13,5 @@
 ./player_land_size_save_timeline_tester
 ./player_unit_save_timeline_tester
 
+./wb_mng_log_timeline_tester
+./spg_log_timeline_tester

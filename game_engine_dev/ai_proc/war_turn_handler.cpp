@@ -123,14 +123,6 @@ static bool filt_land_army_grp (GameState& s, UnitAddKey* head_io) {
     return UnitMovementMng::form_group_chain(s, keep, kn, head_io);
 }
 
-static bool mob_hit (const WalkP2P& mob, u16 x, u16 y) {
-    if (!mob.ok() || x >= mob.w() || y >= mob.h()) {
-        return false;
-    }
-    const u32 i = static_cast<u32>(y) * static_cast<u32>(mob.w()) + static_cast<u32>(x);
-    return mob.turn()[i] != GenerateDistanceP2P::k_turn_sent;
-}
-
 //================================================================================================================================
 //=> - WarTurnHandler -
 //================================================================================================================================
@@ -138,7 +130,8 @@ static bool mob_hit (const WalkP2P& mob, u16 x, u16 y) {
 WarTurnHandler::WarTurnHandler (GameState& s, u16 seat) :
     m_st(s),
     m_seat(seat),
-    m_mob(),
+    m_feed(nullptr),
+    m_feed_i(U16_KEY_NULL),
     m_grp_n(0),
     m_atk_n(0),
     m_flag_i(U16_KEY_NULL),
@@ -155,7 +148,7 @@ WarTurnHandler::WarTurnHandler (GameState& s, u16 seat) :
     m_sector(U16_KEY_NULL),
     m_assign_busy(false),
     m_ready(false),
-    m_mob_ok(false) {
+    m_feed_ok(false) {
     for (u16 i = 0; i < k_atk_cap; ++i) {
         m_atk[i].m_hd = U16_KEY_NULL;
         m_atk[i].m_split = U16_KEY_NULL;
@@ -174,6 +167,7 @@ WarTurnHandler::WarTurnHandler (GameState& s, u16 seat) :
 }
 
 WarTurnHandler::~WarTurnHandler () {
+    feed_drop();
     for (u16 i = 0; i < k_atk_cap; ++i) {
         path_drop(i);
     }
@@ -190,11 +184,40 @@ void WarTurnHandler::path_drop (u16 army_i) {
     m_atk[army_i].m_path_i = U16_KEY_NULL;
 }
 
+void WarTurnHandler::feed_drop () {
+    if (m_feed != nullptr && m_feed_i != U16_KEY_NULL) {
+        m_feed->release(m_feed_i);
+    }
+    m_feed = nullptr;
+    m_feed_i = U16_KEY_NULL;
+    m_feed_ok = false;
+}
+
+bool WarTurnHandler::feed_busy () const {
+    return m_feed_ok && m_grp_n > 0u;
+}
+
+bool WarTurnHandler::cap_xy (u16* ox, u16* oy) const {
+    if (ox == nullptr || oy == nullptr || m_st.m_player_states == nullptr || m_seat >= m_st.m_player_n) {
+        return false;
+    }
+    const u16 ci = m_st.m_player_states[m_seat].m_muster_city;
+    if (ci == U16_KEY_NULL) {
+        return false;
+    }
+    const City* c = m_st.m_cities.get_city(ci);
+    if (c == nullptr || c->get_owner() != m_seat) {
+        return false;
+    }
+    *ox = c->get_x();
+    *oy = c->get_y();
+    return true;
+}
+
 bool WarTurnHandler::ok () const {
     return m_st.m_statics != nullptr
         && m_st.m_player_states != nullptr
-        && m_seat < m_st.m_player_n
-        && m_mob.ok();
+        && m_seat < m_st.m_player_n;
 }
 
 u16 WarTurnHandler::grp_use_n () const {
@@ -321,57 +344,71 @@ bool WarTurnHandler::set_goal (u16 x1, u16 y1, u16 x2, u16 y2) {
 
 bool WarTurnHandler::make_muster_gradient (u16 x, u16 y) {
     PROF_TH_WAR_ENTER(__func__);
-    m_mob_ok = false;
-    m_grp_n = 0;
     if (!ok()) {
         LOG_WAR_MUSTER_GRAD_FAIL::LOG(SC_U32(m_seat), SC_U32(x), SC_U32(y), SC_U32(m_st.m_current_turn));
         return false;
     }
-    u16 dmax = 0;
-    if (!GenerateDistanceP2P::generate(
-            m_st, *m_st.m_statics, x, y, m_mob, m_seat, GenerateDistanceP2P::k_acc_own_free, &dmax)) {
+    if (feed_busy()) {
         LOG_WAR_MUSTER_GRAD_FAIL::LOG(SC_U32(m_seat), SC_U32(x), SC_U32(y), SC_U32(m_st.m_current_turn));
         return false;
     }
+    feed_drop();
+    m_grp_n = 0;
+    u16 cx = 0u;
+    u16 cy = 0u;
+    if (!cap_xy(&cx, &cy)) {
+        LOG_WAR_MUSTER_GRAD_FAIL::LOG(SC_U32(m_seat), SC_U32(x), SC_U32(y), SC_U32(m_st.m_current_turn));
+        return false;
+    }
+    u16 slot = U16_KEY_NULL;
+    SectorPathGradients* spg = SectorPathGradients::pool_acq(&slot);
+    if (spg == nullptr || slot == U16_KEY_NULL) {
+        LOG_WAR_MUSTER_GRAD_FAIL::LOG(SC_U32(m_seat), SC_U32(x), SC_U32(y), SC_U32(m_st.m_current_turn));
+        return false;
+    }
+    const u8 acc = GenerateDistanceP2P::k_acc_own_free;
+    if (!spg->pack_path(slot, m_st, *m_st.m_statics, cx, cy, x, y, m_seat, acc) || !spg->ok(slot)) {
+        spg->release(slot);
+        LOG_WAR_MUSTER_GRAD_FAIL::LOG(SC_U32(m_seat), SC_U32(x), SC_U32(y), SC_U32(m_st.m_current_turn));
+        return false;
+    }
+    m_feed = spg;
+    m_feed_i = slot;
     m_sx = x;
     m_sy = y;
-    m_mob_ok = true;
+    m_feed_ok = true;
     return true;
 }
 
 u16 WarTurnHandler::do_total_muster () {
     PROF_TH_WAR_ENTER(__func__);
     m_grp_n = 0;
-    if (!ok() || !m_mob_ok) {
+    if (!ok() || !m_feed_ok) {
         return 0;
     }
     muster_pull_city_armies();
-    const u16 cn = m_st.m_cities.get_city_count();
-    for (u16 i = 0; i < cn && m_grp_n < k_grp_cap; ++i) {
-        const City* c = m_st.m_cities.get_city(i);
-        if (c == nullptr || c->get_owner() != m_seat) {
-            continue;
-        }
-        const u16 cx = c->get_x();
-        const u16 cy = c->get_y();
-        if (!mob_hit(m_mob, cx, cy)) {
-            continue;
-        }
-        if (cx == m_sx && cy == m_sy) {
-            continue;
-        }
-        UnitAddKey head = UnitAddKey::None();
-        if (!UnitMovementMng::muster_leave_one_defense(m_st, cx, cy, m_seat, &head)) {
-            continue;
-        }
-        if (!filt_land_army_grp(m_st, &head)) {
-            continue;
-        }
-        UnitMovementMng::set_grp_campaign(m_st, head, 1u);
-        m_grp[m_grp_n].m_hd = head.value();
-        m_grp[m_grp_n].m_exp = GenerateExposure::k_none;
-        m_grp_n++;
+    if (m_st.m_player_states == nullptr || m_seat >= m_st.m_player_n) {
+        return m_grp_n;
     }
+    const u16 ci = m_st.m_player_states[m_seat].m_muster_city;
+    if (ci == U16_KEY_NULL || m_grp_n >= k_grp_cap) {
+        return m_grp_n;
+    }
+    const City* c = m_st.m_cities.get_city(ci);
+    if (c == nullptr || c->get_owner() != m_seat) {
+        return m_grp_n;
+    }
+    UnitAddKey head = UnitAddKey::None();
+    if (!UnitMovementMng::muster_leave_one_defense(m_st, c->get_x(), c->get_y(), m_seat, &head)) {
+        return m_grp_n;
+    }
+    if (!filt_land_army_grp(m_st, &head)) {
+        return m_grp_n;
+    }
+    UnitMovementMng::set_grp_campaign(m_st, head, 1u);
+    m_grp[m_grp_n].m_hd = head.value();
+    m_grp[m_grp_n].m_exp = GenerateExposure::k_none;
+    m_grp_n++;
     return m_grp_n;
 }
 
@@ -464,11 +501,12 @@ void WarTurnHandler::muster_pull_city_armies () {
 
 bool WarTurnHandler::walk_muster () {
     PROF_TH_WAR_ENTER(__func__);
-    bool any = false;
-    if (!ok() || !m_mob_ok) {
+    if (!ok() || !m_feed_ok || m_feed == nullptr || m_feed_i == U16_KEY_NULL) {
         LOG_WAR_WALK_MUSTER_FAIL::LOG(SC_U32(m_seat), SC_U32(m_st.m_current_turn));
+        feed_drop();
         return false;
     }
+    bool pending = false;
     for (u16 i = 0; i < m_grp_n; ++i) {
         if (m_grp[i].m_hd == U16_KEY_NULL) {
             continue;
@@ -482,6 +520,7 @@ bool WarTurnHandler::walk_muster () {
         if (u->m_x == m_sx && u->m_y == m_sy) {
             continue;
         }
+        pending = true;
         for (;;) {
             u = m_st.m_units.get_unit_add(key);
             if (u == nullptr || u->m_x == U16_KEY_NULL) {
@@ -492,7 +531,7 @@ bool WarTurnHandler::walk_muster () {
             }
             const u16 ux = u->m_x;
             const u16 uy = u->m_y;
-            const WalkP2P::StepRes step = m_mob.peek(m_st, ux, uy);
+            const SectorPathGradients::StepRes step = m_feed->peek(m_feed_i, m_st, ux, uy);
             if (!step.have) {
                 LOG_WAR_MUSTER_PEEK_FAIL::LOG(
                     SC_U32(m_seat), SC_U32(key.value()), SC_U32(static_cast<u8>(step.reason)),
@@ -505,7 +544,6 @@ bool WarTurnHandler::walk_muster () {
                     break;
                 }
                 ArmyGeneral::stamp_moved(m_st, m_seat, m_grp[i].m_hd);
-                any = true;
                 continue;
             }
             if (csr != CanStepFail::Entry) {
@@ -519,64 +557,21 @@ bool WarTurnHandler::walk_muster () {
                 if (UnitMovementMng::can_step(m_st, key, step.nx, step.ny, nullptr)
                     && UnitMovementMng::apply_step(m_st, key, step.nx, step.ny)) {
                     ArmyGeneral::stamp_moved(m_st, m_seat, m_grp[i].m_hd);
-                    any = true;
                     continue;
                 }
-            }
-            u16 ox[WalkP2P::k_opt_n];
-            u16 oy[WalkP2P::k_opt_n];
-            // TODO: peek_opts fallback slowed execution a lot; optimize heavily or remove once Entry resolver exists.
-            m_mob.peek_opts(m_st, ux, uy, ox, oy);
-            bool moved = false;
-            CanStepFail last = csr;
-            u16 lnx = step.nx;
-            u16 lny = step.ny;
-            for (u16 k = 0u; k < WalkP2P::k_opt_n; ++k) {
-                if (ox[k] == U16_KEY_NULL) {
-                    break;
-                }
-                if (ox[k] == step.nx && oy[k] == step.ny) {
-                    continue;
-                }
-                const CanStepFail alt = UnitMovementMng::can_step_reason(m_st, key, ox[k], oy[k], nullptr);
-                if (alt != CanStepFail::Ok) {
-                    last = alt;
-                    lnx = ox[k];
-                    lny = oy[k];
-                    continue;
-                }
-                if (!UnitMovementMng::apply_step(m_st, key, ox[k], oy[k])) {
-                    last = CanStepFail::BadUnit;
-                    lnx = ox[k];
-                    lny = oy[k];
-                    continue;
-                }
-                moved = true;
-                break;
-            }
-            if (moved) {
-                ArmyGeneral::stamp_moved(m_st, m_seat, m_grp[i].m_hd);
-                any = true;
-                continue;
             }
             LOG_WAR_MUSTER_CAN_STEP_FAIL::LOG(
-                SC_U32(m_seat), SC_U32(key.value()), SC_U32(static_cast<u8>(last)),
-                SC_U32(ux), SC_U32(uy), SC_U32(lnx), SC_U32(lny), SC_U32(m_st.m_current_turn));
+                SC_U32(m_seat), SC_U32(key.value()), SC_U32(static_cast<u8>(csr)),
+                SC_U32(ux), SC_U32(uy), SC_U32(step.nx), SC_U32(step.ny),
+                SC_U32(m_st.m_current_turn));
             break;
         }
     }
-    for (u16 i = 0; i < grp_use_n(); ++i) {
-        if (i == m_flag_i || m_atk[i].m_hd == U16_KEY_NULL) {
-            continue;
-        }
-        if (m_atk[i].m_phase != ArmyPhase::Park && m_atk[i].m_phase != ArmyPhase::Rally) {
-            continue;
-        }
-        if (army_handle(i) == ArmyTurnRslt::Busy) {
-            any = true;
-        }
+    if (pending) {
+        return true;
     }
-    return any;
+    feed_drop();
+    return false;
 }
 
 bool WarTurnHandler::flatten_muster () {
@@ -612,7 +607,7 @@ bool WarTurnHandler::flatten_muster () {
 
 bool WarTurnHandler::form_army () {
     PROF_TH_WAR_ENTER(__func__);
-    if (!ok() || !m_mob_ok) {
+    if (!ok()) {
         return false;
     }
     UnitAddKey head = UnitAddKey::None();
@@ -1296,6 +1291,7 @@ u16 WarTurnHandler::split_hd (u16 i) const {
 }
 
 void WarTurnHandler::clr_campaign () {
+    feed_drop();
     m_tgt_n = 0u;
     m_tgt_i = 0u;
     m_sector = U16_KEY_NULL;
@@ -1482,7 +1478,7 @@ bool WarTurnHandler::try_peel_fronts (BorderFront* fronts, u16 n) {
 }
 
 bool WarTurnHandler::start_reinforce (BorderFront* fronts, u16 n) {
-    if (fronts == nullptr || n == 0u || m_re_i != U16_KEY_NULL) {
+    if (fronts == nullptr || n == 0u || m_re_i != U16_KEY_NULL || feed_busy()) {
         return false;
     }
     const u16 wi = weakest_army();
@@ -1497,17 +1493,25 @@ bool WarTurnHandler::start_reinforce (BorderFront* fronts, u16 n) {
     if (c == nullptr || c->get_owner() != m_seat) {
         return false;
     }
+    u16 dx = c->get_x();
+    u16 dy = c->get_y();
+    u16 fx = 0u;
+    u16 fy = 0u;
+    if (flag_xy(&fx, &fy)) {
+        dx = fx;
+        dy = fy;
+    }
     m_hold_sx = m_sx;
     m_hold_sy = m_sy;
-    if (!make_muster_gradient(c->get_x(), c->get_y())) {
+    if (!make_muster_gradient(dx, dy)) {
         m_sx = m_hold_sx;
         m_sy = m_hold_sy;
         return false;
     }
     if (do_total_muster() == 0u) {
+        feed_drop();
         m_sx = m_hold_sx;
         m_sy = m_hold_sy;
-        m_mob_ok = false;
         return false;
     }
     m_re_i = wi;
@@ -1515,6 +1519,7 @@ bool WarTurnHandler::start_reinforce (BorderFront* fronts, u16 n) {
 }
 
 bool WarTurnHandler::finish_reinforce () {
+    feed_drop();
     if (m_re_i == U16_KEY_NULL || m_re_i >= k_atk_cap || m_atk[m_re_i].m_hd == U16_KEY_NULL) {
         for (u16 i = 0; i < m_grp_n; ++i) {
             if (m_grp[i].m_hd != U16_KEY_NULL) {
@@ -1527,27 +1532,64 @@ bool WarTurnHandler::finish_reinforce () {
         m_sy = m_hold_sy;
         return false;
     }
-    UnitAddKey heads[k_grp_cap];
-    u16 hn = 0u;
-    heads[hn++] = UnitAddKey::from_raw(m_atk[m_re_i].m_hd);
-    for (u16 i = 0; i < m_grp_n && hn < k_grp_cap; ++i) {
-        if (m_grp[i].m_hd == U16_KEY_NULL) {
-            continue;
+    u16 fx = 0u;
+    u16 fy = 0u;
+    const bool flag_here = flag_xy(&fx, &fy) && fx == m_sx && fy == m_sy;
+    if (flag_here) {
+        UnitAddKey heads[k_grp_cap];
+        u16 hn = 0u;
+        heads[hn++] = UnitAddKey::from_raw(m_atk[m_re_i].m_hd);
+        for (u16 i = 0; i < m_grp_n && hn < k_grp_cap; ++i) {
+            if (m_grp[i].m_hd == U16_KEY_NULL) {
+                continue;
+            }
+            const UnitAddKey key = UnitAddKey::from_raw(m_grp[i].m_hd);
+            const UnitAddStruct* u = m_st.m_units.get_unit_add(key);
+            if (u == nullptr || u->m_x != m_sx || u->m_y != m_sy) {
+                UnitMovementMng::set_grp_campaign(m_st, key, 0u);
+                continue;
+            }
+            heads[hn++] = key;
         }
-        const UnitAddKey key = UnitAddKey::from_raw(m_grp[i].m_hd);
-        const UnitAddStruct* u = m_st.m_units.get_unit_add(key);
-        if (u == nullptr || u->m_x != m_sx || u->m_y != m_sy) {
-            UnitMovementMng::set_grp_campaign(m_st, key, 0u);
-            continue;
+        if (hn > 1u) {
+            UnitAddKey flat = UnitAddKey::None();
+            if (UnitMovementMng::flatten_groups(m_st, heads, hn, &flat) && flat.is_valid()) {
+                UnitMovementMng::set_grp_army(m_st, flat, 1u);
+                UnitMovementMng::set_grp_campaign(m_st, flat, 1u);
+                m_atk[m_re_i].m_hd = flat.value();
+            }
         }
-        heads[hn++] = key;
-    }
-    if (hn > 1u) {
-        UnitAddKey flat = UnitAddKey::None();
-        if (UnitMovementMng::flatten_groups(m_st, heads, hn, &flat) && flat.is_valid()) {
-            UnitMovementMng::set_grp_army(m_st, flat, 1u);
-            UnitMovementMng::set_grp_campaign(m_st, flat, 1u);
-            m_atk[m_re_i].m_hd = flat.value();
+    } else {
+        for (u16 i = 0; i < m_grp_n; ++i) {
+            if (m_grp[i].m_hd == U16_KEY_NULL) {
+                continue;
+            }
+            const UnitAddKey key = UnitAddKey::from_raw(m_grp[i].m_hd);
+            const UnitAddStruct* u = m_st.m_units.get_unit_add(key);
+            if (u == nullptr || u->m_x != m_sx || u->m_y != m_sy) {
+                UnitMovementMng::set_grp_campaign(m_st, key, 0u);
+                continue;
+            }
+            u16 slot = U16_KEY_NULL;
+            for (u16 a = 0; a < k_grp_use; ++a) {
+                if (m_atk[a].m_hd == U16_KEY_NULL) {
+                    slot = a;
+                    break;
+                }
+            }
+            if (slot == U16_KEY_NULL) {
+                UnitMovementMng::set_grp_campaign(m_st, key, 0u);
+                continue;
+            }
+            UnitMovementMng::set_grp_army(m_st, key, 1u);
+            UnitMovementMng::set_grp_campaign(m_st, key, 1u);
+            m_atk[slot].m_hd = key.value();
+            m_atk[slot].m_split = U16_KEY_NULL;
+            m_atk[slot].m_front = m_atk[m_re_i].m_front;
+            if (slot >= m_atk_n) {
+                m_atk_n = static_cast<u16>(slot + 1u);
+            }
+            (void)rejoin_flag(slot);
         }
     }
     m_grp_n = 0u;

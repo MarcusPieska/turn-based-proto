@@ -6,6 +6,8 @@
 #define CITY_MUSTER_GRAD_H
 
 #include "game_primitives.h"
+#include "unit_add_struct.h"
+#include "unit_add_vector_key.h"
 #include "walk_p2p.h"
 
 class GameState;
@@ -20,6 +22,7 @@ class GameState;
 //  city index (capital). flood(seat) refreshes one seat and dirties that seat's city reach flags;
 //  build() clears the board then floods all active seats. walk_muster() follows the gradient
 //  downhill to that seat's muster city. city_reach() verify-walks when new_muster_flood is set.
+//  begin/handle/clear drive the ongoing capital feed from the game loop.
 //
 //================================================================================================================================
 
@@ -27,6 +30,10 @@ class CityMusterGrad {
 public:
     CityMusterGrad ();
     ~CityMusterGrad ();
+
+    static bool begin (GameState& st);
+    static void clear ();
+    static void handle (GameState& st);
 
     bool bind (GameState* st);
     void clr ();
@@ -46,6 +53,10 @@ private:
     bool flood_seat (u16 seat);
     void mark_flood (u16 seat);
     void init_sent ();
+    void pull_cities ();
+    void step_heads ();
+    bool step_one (UnitAddKey key);
+    bool feed_unit (const UnitAddStruct& u) const;
 
     GameState* m_st; // Bound match state
     WalkP2P m_board; // Shared turn/rem muster field

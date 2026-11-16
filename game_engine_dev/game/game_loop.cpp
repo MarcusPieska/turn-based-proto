@@ -10,6 +10,7 @@
 #include "build_adds_array.h"
 #include "city.h"
 #include "city_border.h"
+#include "city_muster_grad.h"
 #include "city_tracer.h"
 #include "city_turn_handler.h"
 #include "combat_mng.h"
@@ -444,6 +445,15 @@ bool GameLoop::begin (GameState* state, cstr trace_path) {
         WhiteboardMng::terminate();
         return false;
     }
+    if (!CityMusterGrad::begin(*state)) {
+        WarTurnHandler::clear();
+        SettlerTurnHandler::clear();
+        UnitUtilityHelper::clear();
+        UnitRosterMng::clear();
+        CombatMng::clear();
+        WhiteboardMng::terminate();
+        return false;
+    }
     arm_settling(*state);
     ResearchTurnHandler::begin(*state);
     claim_city_borders(*state);
@@ -477,6 +487,7 @@ void GameLoop::end () {
     if (m_state == nullptr) {
         return;
     }
+    CityMusterGrad::clear();
     WarTurnHandler::clear();
     SettlerTurnHandler::clear();
     UnitUtilityHelper::clear();
@@ -500,6 +511,7 @@ bool GameLoop::step () {
     { PROF_GAME_LOOP_ENTER("run_city_turns"); run_city_turns(*m_state); }
     { PROF_GAME_LOOP_ENTER("ResourceTurnHandler"); ResourceTurnHandler::handle(*m_state); }
     { PROF_GAME_LOOP_ENTER("run_unit_turns"); run_unit_turns(*m_state); }
+    { PROF_GAME_LOOP_ENTER("CityMusterGrad"); CityMusterGrad::handle(*m_state); }
     { PROF_GAME_LOOP_ENTER("ArmyGeneralTurnHandler"); ArmyGeneralTurnHandler::handle(*m_state); }
     { PROF_GAME_LOOP_ENTER("WarTurnHandler"); WarTurnHandler::handle(*m_state); }
     {
