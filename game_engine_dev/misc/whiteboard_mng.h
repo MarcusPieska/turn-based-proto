@@ -19,7 +19,8 @@ class WhiteboardMngTestUtil;
 //
 //  Buddy allocator over u64-aligned wh8 slabs (w*h*8 bytes). Slab count capped at init; each u8 in m_slot tracks 8 wh1 sub-slots.
 //  Checkout prefers the fullest slab that still fits; returns null ptr on exhaustion (wrappers expose ok()).
-//  chkout() counts live RAII handles; slot_use() counts wh1 sub-slots set in m_slot (ones in the slot bitmap).
+//  At most one fully empty slab stays allocated (m_spare); further empties are freed. chkout() counts live RAII
+//  handles; slot_use() counts wh1 sub-slots set in m_slot (ones in the slot bitmap).
 //
 //================================================================================================================================
 
@@ -66,6 +67,8 @@ private:
     static u8 fill (u8 slot);
     static u8 msk (u8 sz_b, u8 sub);
     static u8* new_blk (u8 blk);
+    static void free_blk (u8 blk);
+    static void trim_trail ();
 
     static const u16 k_blk_n = 100u;
 
@@ -77,6 +80,7 @@ private:
     static u8* m_mem[k_blk_n];
     static u8 m_slot[k_blk_n];
     static u16 m_alloc_n;
+    static u16 m_spare; // Empty allocated slab kept as spare; U16_KEY_NULL if none
     static u16 m_slab_lim;
     static u32 m_chkout;
     static bool m_inited;
@@ -133,6 +137,7 @@ public:
     ~Whiteboard_2B ();
     Whiteboard_2B (const Whiteboard_2B& o) = delete;
     Whiteboard_2B& operator= (const Whiteboard_2B& o) = delete;
+    void ret ();
     bool ok () const;
     u16 w () const;
     u16 h () const;

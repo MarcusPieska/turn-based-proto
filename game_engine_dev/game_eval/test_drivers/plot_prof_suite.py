@@ -67,6 +67,7 @@ def main():
     ax.set_title(src.stem)
     ax.legend(loc="upper right", fontsize=7, ncol=2)
     ax.grid(True, alpha=0.3)
+    ax.set_ylim(bottom=0)
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.tight_layout()
     fig.savefig(out, dpi=140)

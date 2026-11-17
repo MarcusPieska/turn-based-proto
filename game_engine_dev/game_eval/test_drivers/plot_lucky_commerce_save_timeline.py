@@ -57,6 +57,7 @@ def main():
     ax.set_ylabel("commerce")
     ax.set_title("Lucky seat commerce treasury (save timeline)")
     ax.grid(True, alpha=0.3)
+    ax.set_ylim(bottom=0)
     ax.legend(fontsize=8)
     fig.tight_layout()
     eval_dir.mkdir(parents=True, exist_ok=True)

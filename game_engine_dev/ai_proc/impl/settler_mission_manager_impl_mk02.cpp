@@ -19,16 +19,6 @@ static const u32 k_none = 0xFFFFFFFFu;
 static const u8* g_terr = nullptr;
 static u16 g_w = 0;
 static u16 g_h = 0;
-static Whiteboard_4B* g_par_wb = nullptr;
-static Whiteboard_4B* g_que_wb = nullptr;
-
-static Whiteboard_4B& par () {
-    return *g_par_wb;
-}
-
-static Whiteboard_4B& que () {
-    return *g_que_wb;
-}
 
 static bool land_ok (u8 terr) {
     if (overlay_is_water_terr(terr)) {
@@ -68,10 +58,8 @@ static bool pack (u8* ps, u16* pn, u16* pi, u16 x, u16 y, u16 tx, u16 ty) {
     if (x == tx && y == ty) {
         return true;
     }
-    GAME_EXPECT(g_par_wb != nullptr, "SMM mk02 pack parent wb missing");
-    GAME_EXPECT(g_que_wb != nullptr, "SMM mk02 pack queue wb missing");
-    Whiteboard_4B& p = par();
-    Whiteboard_4B& q = que();
+    Whiteboard_4B p("SettlerMissionManager", "par", 0);
+    Whiteboard_4B q("SettlerMissionManager", "que", 0);
     if (!p.ok() || !q.ok()) {
         return false;
     }
@@ -171,13 +159,7 @@ bool SettlerMissionManager::wbeg (
     g_terr = terr;
     g_w = w;
     g_h = h;
-    delete g_par_wb;
-    delete g_que_wb;
-    g_par_wb = new Whiteboard_4B("SettlerMissionManager", "par", 0);
-    g_que_wb = new Whiteboard_4B("SettlerMissionManager", "que", 0);
-    GAME_EXPECT(g_par_wb != nullptr, "SMM mk02 wbeg parent wb alloc failed");
-    GAME_EXPECT(g_que_wb != nullptr, "SMM mk02 queue wb alloc failed");
-    return g_par_wb->ok() && g_que_wb->ok();
+    return true;
 }
 
 bool SettlerMissionManager::aim (u16 s, u16 x0, u16 y0, u16 tx, u16 ty) {

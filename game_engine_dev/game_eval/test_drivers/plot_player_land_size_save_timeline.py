@@ -60,6 +60,7 @@ def main():
     ax.set_ylabel("size (1 + raw)")
     ax.set_title("Player land unit size: avg (solid) vs max (dashed)")
     ax.grid(True, alpha=0.3)
+    ax.set_ylim(bottom=0)
     ax.legend(fontsize=8)
     fig.tight_layout()
     eval_dir.mkdir(parents=True, exist_ok=True)

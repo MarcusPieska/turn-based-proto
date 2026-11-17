@@ -9,6 +9,7 @@
 #include "assert_log.h"
 #include "game_array_simple.h"
 #include "game_map_defs.h"
+#include "whiteboard_mng.h"
 
 //================================================================================================================================
 //=> - Local -
@@ -40,23 +41,16 @@ static u32 spot_n (const GameArraySimple& map) {
     return n;
 }
 
-static void add_pt (
-    Whiteboard_2B& xs,
-    Whiteboard_2B& ys,
-    u32* wr,
-    const u32* cap,
-    u16 p,
-    u16 x,
-    u16 y)
-{
+static void add_pt (SpgCoordPair** pts, u32* wr, const u32* cap, u16 p, u16 x, u16 y) {
+    GAME_EXPECT(pts != nullptr, "GenSettlementOrder add_pt got nullptr pts");
     GAME_EXPECT(wr != nullptr, "GenSettlementOrder add_pt got nullptr wr");
     GAME_EXPECT(cap != nullptr, "GenSettlementOrder add_pt got nullptr cap");
-    if (wr[p] >= cap[p]) {
+    if (pts[p] == nullptr || wr[p] >= cap[p]) {
         return;
     }
     const u32 k = wr[p];
-    xs.wr_i(k, x);
-    ys.wr_i(k, y);
+    pts[p][k].x = x;
+    pts[p][k].y = y;
     wr[p] = k + 1u;
 }
 
@@ -66,12 +60,12 @@ static bool flood (
     u32 start_n,
     Whiteboard_2B& own,
     Whiteboard_4B& que,
-    Whiteboard_2B& xs,
-    Whiteboard_2B& ys,
+    SpgCoordPair** pts,
     u32* wr,
     const u32* cap)
 {
     GAME_EXPECT(starts != nullptr, "GenSettlementOrder flood got nullptr starts");
+    GAME_EXPECT(pts != nullptr, "GenSettlementOrder flood got nullptr pts");
     GAME_EXPECT(wr != nullptr, "GenSettlementOrder flood got nullptr wr");
     GAME_EXPECT(cap != nullptr, "GenSettlementOrder flood got nullptr cap");
     const u16 w = map.width();
@@ -80,7 +74,7 @@ static bool flood (
     if (w == 0 || h == 0 || tn == 0 || starts == nullptr || start_n == 0u) {
         return false;
     }
-    if (!own.ok() || !que.ok() || !xs.ok() || !ys.ok() || wr == nullptr || cap == nullptr) {
+    if (!own.ok() || !que.ok() || wr == nullptr || cap == nullptr) {
         return false;
     }
     std::memset(own.raw(), 0xFF, static_cast<size_t>(tn) * sizeof(u16));
@@ -104,7 +98,7 @@ static bool flood (
         if (map.get_planned_city(x, y) == 0u) {
             continue;
         }
-        add_pt(xs, ys, wr, cap, static_cast<u16>(p), x, y);
+        add_pt(pts, wr, cap, static_cast<u16>(p), x, y);
     }
     u32 qh = 0;
     while (qh < qt) {
@@ -134,7 +128,7 @@ static bool flood (
             if (map.get_planned_city(ux, uy) == 0u) {
                 continue;
             }
-            add_pt(xs, ys, wr, cap, p, ux, uy);
+            add_pt(pts, wr, cap, p, ux, uy);
         }
     }
     return true;
@@ -144,32 +138,32 @@ static bool flood (
 //=> - GenSettlementOrder -
 //================================================================================================================================
 
-GenSettlementOrder::GenSettlementOrder () :
-    m_xs("GenSettlementOrder", "xs", 0u),
-    m_ys("GenSettlementOrder", "ys", 0u),
-    m_pn(0),
-    m_ptn(0) {
+GenSettlementOrder::GenSettlementOrder () : m_pn(0), m_ok(true) {
     for (u16 i = 0; i < GSO_MAX_PN; ++i) {
-        m_st[i] = 0;
-        m_en[i] = 0;
+        m_pts[i] = nullptr;
+        m_n[i] = 0;
         m_hd[i] = 0;
         m_tl[i] = 0;
     }
+}
+
+GenSettlementOrder::~GenSettlementOrder () {
+    clr();
 }
 
 void GenSettlementOrder::clr () {
-    m_pn = 0;
-    m_ptn = 0;
     for (u16 i = 0; i < GSO_MAX_PN; ++i) {
-        m_st[i] = 0;
-        m_en[i] = 0;
+        delete[] m_pts[i];
+        m_pts[i] = nullptr;
+        m_n[i] = 0;
         m_hd[i] = 0;
         m_tl[i] = 0;
     }
+    m_pn = 0;
 }
 
 bool GenSettlementOrder::ok () const {
-    return m_xs.ok() && m_ys.ok();
+    return m_ok;
 }
 
 u16 GenSettlementOrder::pn () const {
@@ -180,21 +174,16 @@ u32 GenSettlementOrder::n (u16 p) const {
     if (p >= m_pn) {
         return 0;
     }
-    return m_en[p] - m_st[p];
+    return m_n[p];
 }
 
 u32 GenSettlementOrder::st (u16 p) const {
-    if (p >= m_pn) {
-        return 0;
-    }
-    return m_st[p];
+    (void)p;
+    return 0;
 }
 
 u32 GenSettlementOrder::en (u16 p) const {
-    if (p >= m_pn) {
-        return 0;
-    }
-    return m_en[p];
+    return n(p);
 }
 
 u32 GenSettlementOrder::hd (u16 p) const {
@@ -211,18 +200,20 @@ u32 GenSettlementOrder::tl (u16 p) const {
     return m_tl[p];
 }
 
+u32 GenSettlementOrder::bytes () const {
+    u32 b = 0;
+    for (u16 p = 0; p < m_pn; ++p) {
+        b += m_n[p] * static_cast<u32>(sizeof(SpgCoordPair));
+    }
+    return b;
+}
+
 SpgCoordPair GenSettlementOrder::at (u16 p, u32 i) const {
     SpgCoordPair z = {0, 0};
-    if (p >= m_pn || !ok()) {
+    if (p >= m_pn || !ok() || m_pts[p] == nullptr || i >= m_n[p]) {
         return z;
     }
-    if (i >= n(p)) {
-        return z;
-    }
-    const u32 k = m_st[p] + i;
-    z.x = m_xs.rd_i(k);
-    z.y = m_ys.rd_i(k);
-    return z;
+    return m_pts[p][i];
 }
 
 bool GenSettlementOrder::gen_excl (const GameArraySimple& map, const SpgCoordPair* starts, u32 start_n) {
@@ -234,42 +225,45 @@ bool GenSettlementOrder::gen_excl (const GameArraySimple& map, const SpgCoordPai
         return false;
     }
     const u32 spots = spot_n(map);
-    const u32 tn = map.tile_n();
+    const u32 cap_n = spots > 0u ? spots : 1u;
     m_pn = static_cast<u16>(start_n);
-    const bool fit = spots == 0u || start_n <= tn / spots;
-    u32 last = 0;
-    if (fit) {
-        m_ptn = start_n * spots;
-        last = m_ptn;
-        for (u16 p = 0; p < m_pn; ++p) {
-            m_st[p] = static_cast<u32>(p) * spots;
-        }
-    } else {
-        m_ptn = tn;
-        last = tn;
-        for (u16 p = 0; p < m_pn; ++p) {
-            m_st[p] = static_cast<u32>((static_cast<u64>(p) * tn) / start_n);
-        }
-    }
+    SpgCoordPair* tmp[GSO_MAX_PN];
     u32 wr[GSO_MAX_PN];
     u32 cap[GSO_MAX_PN];
     for (u16 p = 0; p < m_pn; ++p) {
-        cap[p] = (p + 1u < m_pn) ? m_st[p + 1u] : last;
-        wr[p] = m_st[p];
-        m_en[p] = m_st[p];
-        m_hd[p] = m_st[p];
-        m_tl[p] = m_st[p];
+        tmp[p] = new SpgCoordPair[cap_n];
+        wr[p] = 0;
+        cap[p] = cap_n;
+        m_hd[p] = 0;
+        m_tl[p] = 0;
+        m_n[p] = 0;
+        m_pts[p] = nullptr;
     }
-    Whiteboard_2B own("GenSettlementOrder", "own", 0u);
-    Whiteboard_4B que("GenSettlementOrder", "que", 0u);
-    if (!flood(map, starts, start_n, own, que, m_xs, m_ys, wr, cap)) {
-        clr();
-        return false;
+    {
+        Whiteboard_2B own("GenSettlementOrder", "own", 0u);
+        Whiteboard_4B que("GenSettlementOrder", "que", 0u);
+        if (!flood(map, starts, start_n, own, que, tmp, wr, cap)) {
+            for (u16 p = 0; p < m_pn; ++p) {
+                delete[] tmp[p];
+            }
+            clr();
+            return false;
+        }
     }
     for (u16 p = 0; p < m_pn; ++p) {
-        m_en[p] = wr[p];
-        m_hd[p] = m_st[p];
-        m_tl[p] = m_en[p];
+        const u32 n = wr[p];
+        m_n[p] = n;
+        m_hd[p] = 0;
+        m_tl[p] = n;
+        if (n == 0u) {
+            delete[] tmp[p];
+            m_pts[p] = nullptr;
+            continue;
+        }
+        SpgCoordPair* dst = new SpgCoordPair[n];
+        std::memcpy(dst, tmp[p], static_cast<size_t>(n) * sizeof(SpgCoordPair));
+        delete[] tmp[p];
+        m_pts[p] = dst;
     }
     return true;
 }

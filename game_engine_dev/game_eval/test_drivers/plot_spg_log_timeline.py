@@ -61,6 +61,7 @@ def main():
         ax.set_title(title)
         ax.set_ylabel(col)
         ax.grid(True, alpha=0.3)
+        ax.set_ylim(bottom=0)
     axes[1][0].set_xlabel("turn")
     axes[1][1].set_xlabel("turn")
     fig.suptitle("SectorPathGradients checkout")

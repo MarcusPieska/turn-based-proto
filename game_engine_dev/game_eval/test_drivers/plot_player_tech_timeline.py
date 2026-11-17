@@ -57,6 +57,7 @@ def main():
     ax.set_ylabel("techs unlocked")
     ax.set_title("Player tech unlock timelines")
     ax.grid(True, alpha=0.3)
+    ax.set_ylim(bottom=0)
     ax.legend(fontsize=8)
     fig.tight_layout()
     eval_dir.mkdir(parents=True, exist_ok=True)

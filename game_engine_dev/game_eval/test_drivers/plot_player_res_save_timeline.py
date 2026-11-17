@@ -61,6 +61,7 @@ def main():
     ax.set_ylabel(res_name)
     ax.set_title(f"Player {res_name} ledger (save timeline)")
     ax.grid(True, alpha=0.3)
+    ax.set_ylim(bottom=0)
     ax.legend(fontsize=8)
     fig.tight_layout()
     eval_dir.mkdir(parents=True, exist_ok=True)

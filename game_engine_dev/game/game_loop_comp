@@ -112,6 +112,7 @@ g++ $CXXFLAGS $INC -c game_io.cpp -o game_io.o
 g++ $CXXFLAGS $INC -c simple_dyn_state_io.cpp -o simple_dyn_state_io.o
 g++ $CXXFLAGS $INC -c derived_statics_io.cpp -o derived_statics_io.o
 g++ $CXXFLAGS $INC -c mvt_pts_boost_mng.cpp -o mvt_pts_boost_mng.o
+g++ $CXXFLAGS $INC -c lucky_seat_turn.cpp -o lucky_seat_turn.o
 g++ $CXXFLAGS $INC -c game_loop.cpp -o game_loop.o
 g++ $CXXFLAGS $INC -c unit_turn_handler.cpp -o unit_turn_handler.o
 g++ $CXXFLAGS $INC -c game_setup.cpp -o game_setup.o
@@ -299,6 +300,7 @@ g++ $CXXFLAGS -o game_loop_tester \
     simple_dyn_state_io.o \
     derived_statics_io.o \
     mvt_pts_boost_mng.o \
+    lucky_seat_turn.o \
     game_loop.o \
     unit_turn_handler.o \
     game_setup.o building_trait_attribution.o civ_trait_affinity.o building_trait_orderings.o city_job_trait_attribution.o city_job_trait_orderings.o tech_trait_attribution.o tech_trait_orderings.o civic_trait_attribution.o civic_trait_orderings.o civic_adopt_helper.o tech_age_mng.o \

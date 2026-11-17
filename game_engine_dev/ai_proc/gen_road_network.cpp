@@ -25,7 +25,13 @@ GenRoadNetwork::~GenRoadNetwork () {
     clr();
 }
 
+void GenRoadNetwork::ret () {
+    m_road.ret();
+    m_foll.ret();
+}
+
 void GenRoadNetwork::clr () {
+    ret();
     m_term_n = 0;
     m_road_n = 0;
     m_seg_n = 0;

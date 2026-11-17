@@ -22,6 +22,7 @@ void* WhiteboardMng::m_raw[WhiteboardMng::k_blk_n] = {};
 u8* WhiteboardMng::m_mem[WhiteboardMng::k_blk_n] = {};
 u8 WhiteboardMng::m_slot[WhiteboardMng::k_blk_n] = {};
 u16 WhiteboardMng::m_alloc_n = 0;
+u16 WhiteboardMng::m_spare = U16_KEY_NULL;
 u16 WhiteboardMng::m_slab_lim = 100u;
 u32 WhiteboardMng::m_chkout = 0u;
 bool WhiteboardMng::m_inited = false;
@@ -72,6 +73,7 @@ void WhiteboardMng::init (u16 w, u16 h, u16 slab_lim) {
     m_wh8_sz = m_tile_n * 8u;
     m_slab_lim = slab_lim;
     m_alloc_n = 0;
+    m_spare = U16_KEY_NULL;
     m_chkout = 0u;
     for (u16 i = 0; i < k_blk_n; ++i) {
         m_raw[i] = nullptr;
@@ -94,6 +96,7 @@ void WhiteboardMng::terminate () {
         m_slot[i] = 0;
     }
     m_alloc_n = 0;
+    m_spare = U16_KEY_NULL;
     m_w = 0;
     m_h = 0;
     m_tile_n = 0;
@@ -116,7 +119,13 @@ u16 WhiteboardMng::slot_use () {
 }
 
 u16 WhiteboardMng::slab_n () {
-    return m_alloc_n;
+    u16 n = 0u;
+    for (u16 i = 0; i < m_alloc_n; ++i) {
+        if (m_mem[i] != nullptr) {
+            n = static_cast<u16>(n + 1u);
+        }
+    }
+    return n;
 }
 
 u16 WhiteboardMng::slab_lim () {
@@ -214,6 +223,27 @@ u8* WhiteboardMng::new_blk (u8 blk) {
     return m_mem[blk];
 }
 
+void WhiteboardMng::free_blk (u8 blk) {
+    if (blk >= k_blk_n) {
+        return;
+    }
+    if (m_raw[blk] != nullptr) {
+        std::free(m_raw[blk]);
+        m_raw[blk] = nullptr;
+        m_mem[blk] = nullptr;
+    }
+    m_slot[blk] = 0;
+    if (m_spare == blk) {
+        m_spare = U16_KEY_NULL;
+    }
+}
+
+void WhiteboardMng::trim_trail () {
+    while (m_alloc_n > 0u && m_mem[m_alloc_n - 1u] == nullptr) {
+        m_alloc_n = static_cast<u16>(m_alloc_n - 1u);
+    }
+}
+
 WhiteboardMng::WbOut WhiteboardMng::co (u8 sz_b) {
     if (!m_inited) {
         wb_fatal("checkout before init");
@@ -222,6 +252,9 @@ WhiteboardMng::WbOut WhiteboardMng::co (u8 sz_b) {
     u8 best_sub = 0;
     u8 best_fill = 0;
     for (u16 i = 0; i < m_alloc_n; ++i) {
+        if (m_mem[i] == nullptr) {
+            continue;
+        }
         u8 sub = 0;
         if (fit(m_slot[i], sz_b, &sub)) {
             u8 f = fill(m_slot[i]);
@@ -233,10 +266,18 @@ WhiteboardMng::WbOut WhiteboardMng::co (u8 sz_b) {
         }
     }
     if (best_blk == k_blk_n) {
-        if (m_alloc_n >= m_slab_lim) {
-            return fail_out();
+        for (u16 i = 0; i < m_alloc_n; ++i) {
+            if (m_mem[i] == nullptr) {
+                best_blk = i;
+                break;
+            }
         }
-        best_blk = m_alloc_n;
+        if (best_blk == k_blk_n) {
+            if (m_alloc_n >= m_slab_lim) {
+                return fail_out();
+            }
+            best_blk = m_alloc_n;
+        }
         best_sub = 0;
         if (sz_b < 8u) {
             u8 sub = 0;
@@ -248,6 +289,9 @@ WhiteboardMng::WbOut WhiteboardMng::co (u8 sz_b) {
         if (new_blk((u8)best_blk) == nullptr) {
             return fail_out();
         }
+    }
+    if (m_spare == best_blk) {
+        m_spare = U16_KEY_NULL;
     }
     m_slot[best_blk] |= msk(sz_b, best_sub);
     WbOut o;
@@ -282,6 +326,18 @@ void WhiteboardMng::release (u8 sz_b, u8 blk, u8 sub) {
     if (m_chkout > 0u) {
         --m_chkout;
     }
+    if (m_slot[blk] != 0u || m_mem[blk] == nullptr) {
+        return;
+    }
+    if (m_spare == U16_KEY_NULL) {
+        m_spare = blk;
+        return;
+    }
+    if (m_spare == blk) {
+        return;
+    }
+    free_blk(blk);
+    trim_trail();
 }
 
 u8* WhiteboardMng::get_slot_allocator () {
@@ -361,10 +417,19 @@ Whiteboard_2B::Whiteboard_2B (cstr cls, cstr fn, u32 turn)
 }
 
 Whiteboard_2B::~Whiteboard_2B () {
-    WB_TRACE_UNLINK_2B(this);
-    if (m_ok) {
-        WhiteboardMng::release(2u, m_blk, m_sub);
+    ret();
+}
+
+void Whiteboard_2B::ret () {
+    if (!m_ok) {
+        return;
     }
+    WB_TRACE_UNLINK_2B(this);
+    WhiteboardMng::release(2u, m_blk, m_sub);
+    m_p = nullptr;
+    m_blk = 0;
+    m_sub = 0;
+    m_ok = false;
 }
 
 void whiteboard_2b_swap (Whiteboard_2B& a, Whiteboard_2B& b) noexcept {

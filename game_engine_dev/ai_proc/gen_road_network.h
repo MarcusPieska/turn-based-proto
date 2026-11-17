@@ -18,6 +18,7 @@ class GameArraySimple;
 //  Pre-compute AI road plan. mk03: assume CITY intents (and starts) are cities; CityNetwork-style
 //  nearest neighbor per NE/NW/SE/SW quadrant (flood, range 25); CityConnector spines on each unique
 //  link. m_road = segment id; m_foll reused as city-index scratch. Stamps ROAD_VIRTUAL. Default impl.
+//  Call ret() after build when only the map stamp is needed (releases both whiteboards).
 //
 //================================================================================================================================
 
@@ -28,6 +29,7 @@ public:
 
     bool begin (GameArraySimple& map);
     bool build (const SpgCoordPair* starts, u32 start_n);
+    void ret ();
     void clr ();
 
     bool ok () const;

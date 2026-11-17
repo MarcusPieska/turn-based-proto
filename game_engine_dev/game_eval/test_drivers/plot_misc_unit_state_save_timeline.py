@@ -101,6 +101,7 @@ def plot_series(data_dir: Path, eval_dir: Path, lucky: dict, key: str, cfg: dict
     ax.set_ylabel(cfg["ylabel"])
     ax.set_title(cfg["title"])
     ax.grid(True, alpha=0.3)
+    ax.set_ylim(bottom=0)
     if shown <= 24:
         ax.legend(fontsize=7, ncol=2)
     else:

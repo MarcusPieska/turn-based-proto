@@ -10,6 +10,7 @@
 #include "generate_distance_p2p.h"
 #include "game_state.h"
 #include "log_dbg.h"
+#include "lucky_seat_turn.h"
 #include "runtime_statics.h"
 #include "unit_movement_mng.h"
 #include "unit_static_key.h"
@@ -238,13 +239,9 @@ bool CityMusterGrad::build () {
         return false;
     }
     init_sent();
-    for (u16 s = 0; s < m_st->m_player_n; ++s) {
-        if (m_st->m_player_states[s].m_is_active == 0u) {
-            continue;
-        }
-        if (!flood_seat(s)) {
-            return false;
-        }
+    const u16 seat = LuckySeatTurn::at(*m_st, m_st->m_current_turn);
+    if (seat != U16_KEY_NULL && !flood_seat(seat)) {
+        return false;
     }
     m_ok = true;
     return true;

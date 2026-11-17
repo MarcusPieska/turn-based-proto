@@ -7,7 +7,6 @@
 
 #include "game_primitives.h"
 #include "starting_point_generator.h"
-#include "whiteboard_mng.h"
 
 class GameArraySimple;
 
@@ -23,16 +22,15 @@ class GameArraySimple;
 //
 //  Suggested settle order from AI_TILE_OV_INTENT_CITY stamps. Land floods from starts; a site is appended when first covered.
 //  gen_excl: floods block, each site in at most one list. gen_all: one start, every reachable planned site.
-//  Packed x/y sit on two Whiteboard_2B slabs held until destruction. Sloppy pack: st = p * spot_n; if that
-//  overruns tile_n, the board is split as st = p * tile_n / pn. Writes stop at the next list's st.
-//  Per-player [st, en) and live [hd, tl) are stack arrays, cap GSO_MAX_PN. Needs WhiteboardMng::init first.
+//  Per-player results are tight heap SpgCoordPair arrays. Flood scratch whiteboards are local to gen and released after.
+//  Live [hd, tl) are indices into that player's array (st is always 0, en == n). Cap GSO_MAX_PN players.
 //
 //================================================================================================================================
 
 class GenSettlementOrder {
 public:
     GenSettlementOrder ();
-    ~GenSettlementOrder () = default;
+    ~GenSettlementOrder ();
     bool gen_excl (const GameArraySimple& map, const SpgCoordPair* starts, u32 start_n);
     bool gen_all (const GameArraySimple& map, u16 sx, u16 sy);
     void clr ();
@@ -43,6 +41,7 @@ public:
     u32 en (u16 p) const;
     u32 hd (u16 p) const;
     u32 tl (u16 p) const;
+    u32 bytes () const;
     SpgCoordPair at (u16 p, u32 i) const;
 
 private:
@@ -51,14 +50,12 @@ private:
     GenSettlementOrder (GenSettlementOrder&& other) = delete;
     GenSettlementOrder& operator= (GenSettlementOrder&& other) = delete;
 
-    Whiteboard_2B m_xs; // Packed suggestion x
-    Whiteboard_2B m_ys; // Packed suggestion y
-    u16 m_pn; // Player list count
-    u32 m_ptn; // Total packed suggestion pts
-    u32 m_st[GSO_MAX_PN]; // Per-player packed start
-    u32 m_en[GSO_MAX_PN]; // Per-player packed stop (one-past)
+    SpgCoordPair* m_pts[GSO_MAX_PN]; // Per-player tight site list
+    u32 m_n[GSO_MAX_PN]; // Per-player site count
     u32 m_hd[GSO_MAX_PN]; // Per-player live head
     u32 m_tl[GSO_MAX_PN]; // Per-player live tail (one-past)
+    u16 m_pn; // Player list count
+    bool m_ok; // True when ready for gen / query
 };
 
 #endif // GEN_SETTLEMENT_ORDER_H

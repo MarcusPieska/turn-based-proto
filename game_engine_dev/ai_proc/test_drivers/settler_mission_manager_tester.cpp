@@ -442,6 +442,7 @@ int main (int argc, char* argv[]) {
     WhiteboardMng::init(mw, mh);
     GenSettlementOrder ord;
     note_result(ord.gen_excl(map, starts.pts, starts.n), "GenSettlementOrder::gen_excl");
+    std::printf("order arrays: %.3f KB\n", static_cast<double>(ord.bytes()) / 1024.0);
     note_result(write_start(map, ord), "wrote start image");
     pr_list_n(ord);
     if (g_loc) {

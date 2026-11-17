@@ -294,6 +294,7 @@ bool GenAiHelpers::build (const SpgCoordPair* starts, u32 start_n, GenAiHelpersR
     }
     r->m_road_term_n = m_roads->term_n();
     r->m_road_n = m_roads->road_n();
+    m_roads->ret();
     return true;
 }
 

@@ -47,6 +47,7 @@ def main():
     ax.set_ylabel("MB")
     ax.set_title("WhiteboardMng memory")
     ax.grid(True, alpha=0.3)
+    ax.set_ylim(bottom=0)
     ax.legend()
     fig.tight_layout()
     out = eval_dir / "wb_mng_log_timeline.png"

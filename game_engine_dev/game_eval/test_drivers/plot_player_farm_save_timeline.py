@@ -57,6 +57,7 @@ def main():
     ax.set_ylabel("farms")
     ax.set_title("Player farm count (save timeline)")
     ax.grid(True, alpha=0.3)
+    ax.set_ylim(bottom=0)
     ax.legend(fontsize=8)
     fig.tight_layout()
     eval_dir.mkdir(parents=True, exist_ok=True)

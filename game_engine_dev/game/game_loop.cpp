@@ -24,6 +24,7 @@
 #include "mvt_pts_boost_mng.h"
 #include "profile_time_opt.h"
 #include "ledger_balance_turn_handler.h"
+#include "lucky_seat_turn.h"
 #include "research_turn_handler.h"
 #include "resource_turn_handler.h"
 #include "runtime_statics.h"
@@ -262,28 +263,14 @@ static void check_start_wars (GameState& state) {
     if (state.m_player_states == nullptr || state.m_player_n == 0u) {
         return;
     }
-    static const u16 k_lucky_cap = 256u;
-    u16 lucky[k_lucky_cap];
-    u16 n_lucky = 0u;
-    for (u16 p = 0; p < state.m_player_n; ++p) {
-        const PlayerState& ps = state.m_player_states[p];
-        if (ps.m_lucky == 0u || ps.m_is_active == 0u) {
-            continue;
-        }
-        if (n_lucky >= k_lucky_cap) {
-            break;
-        }
-        lucky[n_lucky++] = p;
-    }
-    if (n_lucky == 0u) {
-        return;
-    }
     const u32 turn = state.m_current_turn;
     if (turn == 0u) {
         return;
     }
-    const u16 li = static_cast<u16>(turn % static_cast<u32>(n_lucky));
-    const u16 seat = lucky[li];
+    const u16 seat = LuckySeatTurn::at(state, turn);
+    if (seat == U16_KEY_NULL) {
+        return;
+    }
     PlayerState& ps = state.m_player_states[seat];
     if (ps.m_at_war != 0u || WarTurnHandler::is_engaged(seat)) {
         LOG_WAR_DECLARE_FAIL::LOG(SC_U32(seat), SC_U32(U16_KEY_NULL), SC_U32(turn), 0u); 

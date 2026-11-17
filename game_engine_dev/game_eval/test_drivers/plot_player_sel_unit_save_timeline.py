@@ -66,6 +66,7 @@ def main():
         title = f"Player selected-unit count typ={unit_typ} (save timeline)"
     ax.set_title(title)
     ax.grid(True, alpha=0.3)
+    ax.set_ylim(bottom=0)
     ax.legend(fontsize=8)
     fig.tight_layout()
     eval_dir.mkdir(parents=True, exist_ok=True)

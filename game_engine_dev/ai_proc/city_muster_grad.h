@@ -20,9 +20,9 @@ class GameState;
 //  clips each capital flood to own land and selects which seat owns a cell. Peripheral cities off
 //  the capital component do not receive a gradient. m_muster_city on PlayerState holds the muster
 //  city index (capital). flood(seat) refreshes one seat and dirties that seat's city reach flags;
-//  build() clears the board then floods all active seats. walk_muster() follows the gradient
-//  downhill to that seat's muster city. city_reach() verify-walks when new_muster_flood is set.
-//  begin/handle/clear drive the ongoing capital feed from the game loop.
+//  build() clears the board then floods the lucky seat for the current turn (LuckySeatTurn).
+//  walk_muster() follows the gradient downhill to that seat's muster city. city_reach() verify-walks
+//  when new_muster_flood is set. begin/handle/clear drive the ongoing capital feed from the game loop.
 //
 //================================================================================================================================
 
