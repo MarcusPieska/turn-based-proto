@@ -24,14 +24,30 @@
 class LOG_WAR_SIEGE_FAIL_BUILDUP {
 public:
 #if defined(LOG_DBG_SO_BUILD) || defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_LOG_WAR_SIEGE_FAIL_BUILDUP))
-    static void LOG (unsigned seat, unsigned enemy, unsigned tx, unsigned ty, unsigned turn);
+    static void LOG (
+        unsigned seat,
+        unsigned enemy,
+        unsigned tx,
+        unsigned ty,
+        unsigned turn,
+        unsigned army_n,
+        unsigned barrage_n);
 #else
-    static void LOG (unsigned seat, unsigned enemy, unsigned tx, unsigned ty, unsigned turn) {
+    static void LOG (
+        unsigned seat,
+        unsigned enemy,
+        unsigned tx,
+        unsigned ty,
+        unsigned turn,
+        unsigned army_n,
+        unsigned barrage_n) {
         (void)seat;
         (void)enemy;
         (void)tx;
         (void)ty;
         (void)turn;
+        (void)army_n;
+        (void)barrage_n;
     }
 #endif
     static bool PARSE (const char* line, unsigned* seat, unsigned* enemy, unsigned* tx, unsigned* ty, unsigned* turn);

@@ -5,6 +5,7 @@
 #include <cmath>
 #include <ctime>
 
+#include "ai_proc_toggles.h"
 #include "build_adds_array.h"
 #include "city.h"
 #include "city_array.h"
@@ -41,6 +42,20 @@ static u32 s_pwr_pts (i32 pts, u8 health) {
         score = 1;
     }
     return static_cast<u32>(score) * static_cast<u32>(health);
+}
+
+static i32 s_lucky_atk (const GameState& st, const UnitAddStruct& atk) {
+#if defined(LUCKY_SEAT_COMBAT_BONUS) && !defined(LUCKY_SEAT_INSTANT_COMBAT_WIN)
+    if (st.m_player_states != nullptr
+        && atk.m_player_idx < st.m_player_n
+        && st.m_player_states[atk.m_player_idx].m_lucky != 0u) {
+        return static_cast<i32>(LUCKY_SEAT_COMBAT_BONUS);
+    }
+#else
+    (void)st;
+    (void)atk;
+#endif
+    return 0;
 }
 
 //================================================================================================================================
@@ -347,7 +362,7 @@ double CombatMng::odds_split (const UnitAddStruct& atk, const UnitAddStruct& def
     u32 ap = 0u;
     u32 dp = 0u;
     s_fight_pwr(*m_st, as, ds, atk, def, atk_mod(st, x, y), def_mod(st, x, y),
-        static_cast<i32>(roles.m_atk), static_cast<i32>(roles.m_def),
+        static_cast<i32>(roles.m_atk) + s_lucky_atk(st, atk), static_cast<i32>(roles.m_def),
         static_cast<i32>(city_def_pts(st, x, y)), &ap, &dp);
     return odds_raw(ap, dp);
 }
@@ -372,7 +387,7 @@ void CombatMng::resolve_attack (UnitAddStruct& atk, UnitAddStruct& def, const Ga
     u32 ap = 0u;
     u32 dp = 0u;
     s_fight_pwr(*m_st, as, ds, atk, def, atk_mod(st, x, y), def_mod(st, x, y),
-        static_cast<i32>(roles.m_atk), static_cast<i32>(roles.m_def),
+        static_cast<i32>(roles.m_atk) + s_lucky_atk(st, atk), static_cast<i32>(roles.m_def),
         static_cast<i32>(city_def_pts(st, x, y)), &ap, &dp);
     apply_odds(atk, def, ap, dp);
 }
@@ -397,7 +412,7 @@ void CombatMng::resolve_atk_city (UnitAddStruct& atk, UnitAddStruct& def, const 
     u32 ap = 0u;
     u32 dp = 0u;
     s_fight_pwr(*m_st, as, ds, atk, def, 0, 0,
-        static_cast<i32>(roles.m_atk), static_cast<i32>(roles.m_def), 0, &ap, &dp);
+        static_cast<i32>(roles.m_atk) + s_lucky_atk(st, atk), static_cast<i32>(roles.m_def), 0, &ap, &dp);
     apply_odds(atk, def, ap, dp);
 }
 

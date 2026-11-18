@@ -43,7 +43,8 @@ INC="-I../.. \
      -I../../adv_map_gen \
      -I../../ai_pathing/walk_general \
      -I../../ai_pathing/walk_cities \
-     -I../../ai_pathing/walk_target"
+     -I../../ai_pathing/walk_target \
+     -I../../log_dbg"
 CXXFLAGS="-std=c++17 -Wall -Wextra -g -DGAME_ASSERT_ENABLE -DCITY_TRACER_ENABLE"
 
 g++ $CXXFLAGS $INC -c ../../data_io/runtime_static_loader.cpp -o runtime_static_loader.o
@@ -198,10 +199,32 @@ g++ $CXXFLAGS $INC -c ../../game/unit_upgrades.cpp -o unit_upgrades.o
 g++ $CXXFLAGS $INC -c ../army_upgrade_mng.cpp -o army_upgrade_mng.o
 g++ $CXXFLAGS $INC -c ../general_move_boost.cpp -o general_move_boost.o
 g++ $CXXFLAGS $INC -c ../army_turn_handler.cpp -o army_turn_handler.o
+g++ $CXXFLAGS $INC -c ../army_reassembler.cpp -o army_reassembler.o
+g++ $CXXFLAGS $INC -DBORDER_TURN_HANDLER_IMPL='"impl/border_turn_handler_impl_mk06.cpp"' \
+    -c ../border_turn_handler.cpp -o border_turn_handler.o
 g++ $CXXFLAGS $INC -c ../war_turn_handler.cpp -o war_turn_handler.o
 g++ $CXXFLAGS $INC -c ../city_attack_manager.cpp -o city_attack_manager.o
 g++ $CXXFLAGS $INC -c ../../game/combat_mng.cpp -o combat_mng.o
 g++ $CXXFLAGS $INC -c ../../dyn_state/unit_chain_validation.cpp -o unit_chain_validation.o
+g++ $CXXFLAGS $INC -c ../../game/lucky_seat_turn.cpp -o lucky_seat_turn.o
+g++ $CXXFLAGS $INC -c ../../game/mvt_pts_boost_mng.cpp -o mvt_pts_boost_mng.o
+g++ $CXXFLAGS $INC -c ../../game/army_general.cpp -o army_general.o
+g++ $CXXFLAGS $INC -c ../../game/army_general_turn_handler.cpp -o army_general_turn_handler.o
+g++ $CXXFLAGS $INC -c ../../game/unit_utility_helper.cpp -o unit_utility_helper.o
+g++ $CXXFLAGS $INC -c ../../game/tech_age_mng.cpp -o tech_age_mng.o
+g++ $CXXFLAGS $INC -c ../../city/job_count_array.cpp -o job_count_array.o
+g++ $CXXFLAGS $INC -c ../city_muster_grad.cpp -o city_muster_grad.o
+g++ $CXXFLAGS $INC -c ../ledger_balance_turn_handler.cpp -o ledger_balance_turn_handler.o
+g++ $CXXFLAGS $INC -c ../../game/derived_statics_io.cpp -o derived_statics_io.o
+g++ $CXXFLAGS $INC -c ../../city/job_assigner.cpp -o job_assigner.o
+g++ $CXXFLAGS $INC -c ../../city/job_effect_realizer.cpp -o job_effect_realizer.o
+g++ $CXXFLAGS $INC -c ../../game/civic_adopt_helper.cpp -o civic_adopt_helper.o
+g++ $CXXFLAGS $INC -c ../../game/city_job_trait_attribution.cpp -o city_job_trait_attribution.o
+g++ $CXXFLAGS $INC -c ../../game/civic_trait_attribution.cpp -o civic_trait_attribution.o
+g++ $CXXFLAGS $INC -c ../../game/city_job_trait_orderings.cpp -o city_job_trait_orderings.o
+g++ $CXXFLAGS $INC -c ../../game/civic_trait_orderings.cpp -o civic_trait_orderings.o
+g++ $CXXFLAGS $INC -c ../worker_turn_handler_mk2.cpp -o worker_turn_handler_mk2.o
+g++ $CXXFLAGS $INC -c ../../log_dbg/prof_dbg_setup.cpp -o prof_dbg_setup.o
 g++ $CXXFLAGS $INC -c siege_snapshot.cpp -o siege_snapshot.o
 g++ $CXXFLAGS $INC -c test_hlp_unit_spawning.cpp -o test_hlp_unit_spawning.o
 g++ $CXXFLAGS $INC -c test_hlp_unit_validate.cpp -o test_hlp_unit_validate.o
@@ -354,10 +377,31 @@ g++ $CXXFLAGS -o war_turn_handler_tester \
     army_upgrade_mng.o \
     general_move_boost.o \
     army_turn_handler.o \
+    army_reassembler.o \
+    border_turn_handler.o \
     war_turn_handler.o \
     city_attack_manager.o \
     combat_mng.o \
     unit_chain_validation.o \
+    lucky_seat_turn.o \
+    mvt_pts_boost_mng.o \
+    army_general.o \
+    army_general_turn_handler.o \
+    unit_utility_helper.o \
+    tech_age_mng.o \
+    job_count_array.o \
+    city_muster_grad.o \
+    ledger_balance_turn_handler.o \
+    derived_statics_io.o \
+    job_assigner.o \
+    job_effect_realizer.o \
+    civic_adopt_helper.o \
+    city_job_trait_attribution.o \
+    civic_trait_attribution.o \
+    city_job_trait_orderings.o \
+    civic_trait_orderings.o \
+    worker_turn_handler_mk2.o \
+    prof_dbg_setup.o \
     siege_snapshot.o \
     test_hlp_unit_spawning.o \
     test_hlp_unit_validate.o \

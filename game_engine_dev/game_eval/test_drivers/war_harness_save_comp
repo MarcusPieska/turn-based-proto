@@ -1,0 +1,315 @@
+#!/bin/bash
+set -e
+cd "$(dirname "$0")"
+ROOT="../.."
+AP="$ROOT/ai_proc"
+GE="$ROOT/game_eval"
+
+LIB_SO="$ROOT/data_io/runtime_static_loader_lib.so"
+MAP_SO="$ROOT/adv_map_gen/map_gen.so"
+LUCKY_SO="$ROOT/game/lucky_seats/lucky_seats.so"
+LOG_SO="$ROOT/log_dbg/log_dbg.so"
+for f in "$LIB_SO" "$MAP_SO" "$LUCKY_SO" "$LOG_SO"; do
+  if [ ! -f "$f" ]; then echo "missing $f"; exit 1; fi
+done
+
+INC="-I$ROOT -I$ROOT/game -I$ROOT/game/lucky_seats -I$ROOT/misc -I$ROOT/map_loader \
+     -I$ROOT/simple_map_gen -I$ROOT/dyn_state -I$ROOT/data_io -I$ROOT/static_state \
+     -I$ROOT/city -I$ROOT/city/assessor -I$ROOT/city/effector -I$ROOT/gen_bit_banks \
+     -I$ROOT/gen_effector -I$ROOT/adv_map_gen -I$ROOT/ai_pathing/walk_general \
+     -I$ROOT/ai_pathing/walk_cities -I$ROOT/ai_pathing/walk_target -I$ROOT/ai_proc -I$GE \
+     -I$ROOT/log_dbg"
+CXXFLAGS="-std=c++17 -Wall -Wextra -g -DGAME_ASSERT_ENABLE"
+
+g++ $CXXFLAGS $INC -c $ROOT/data_io/runtime_static_loader.cpp -o runtime_static_loader.o
+g++ $CXXFLAGS $INC -c $ROOT/map_loader/map_terrain_validate.cpp -o map_terrain_validate.o
+g++ $CXXFLAGS $INC -c $ROOT/map_loader/map_terrain_data.cpp -o map_terrain_data.o
+g++ $CXXFLAGS $INC -c $ROOT/map_loader/map_loader.cpp -o map_loader.o
+g++ $CXXFLAGS $INC -c $ROOT/game/runtime_trace_dbg.cpp -o runtime_trace_dbg.o
+g++ $CXXFLAGS $INC -c $ROOT/misc/map_bit_overlay.cpp -o map_bit_overlay.o
+g++ $CXXFLAGS $INC -c $ROOT/misc/map_bit_array_overlay.cpp -o map_bit_array_overlay.o
+g++ $CXXFLAGS $INC -c $ROOT/misc/bit_array.cpp -o bit_array.o
+g++ $CXXFLAGS $INC -c $ROOT/misc/assert_log.cpp -o assert_log.o
+g++ $CXXFLAGS $INC -c $ROOT/dyn_state/fort_add_vector.cpp -o fort_add_vector.o
+g++ $CXXFLAGS $INC -c $ROOT/dyn_state/mine_add_vector.cpp -o mine_add_vector.o
+g++ $CXXFLAGS $INC -c $ROOT/dyn_state/monastery_add_vector.cpp -o monastery_add_vector.o
+g++ $CXXFLAGS $INC -c $ROOT/dyn_state/outpost_add_vector.cpp -o outpost_add_vector.o
+g++ $CXXFLAGS $INC -c $ROOT/dyn_state/plantation_add_vector.cpp -o plantation_add_vector.o
+g++ $CXXFLAGS $INC -c $ROOT/dyn_state/shipyard_add_vector.cpp -o shipyard_add_vector.o
+g++ $CXXFLAGS $INC -c $ROOT/dyn_state/trade_post_add_vector.cpp -o trade_post_add_vector.o
+g++ $CXXFLAGS $INC -c $ROOT/dyn_state/unit_add_vector.cpp -o unit_add_vector.o
+g++ $CXXFLAGS $INC -c $ROOT/dyn_state/unit_movement_mng.cpp -o unit_movement_mng.o
+g++ $CXXFLAGS $INC -c $ROOT/dyn_state/unit_group_management.cpp -o unit_group_management.o
+g++ $CXXFLAGS $INC -c $ROOT/game/tile_attr_tables.cpp -o tile_attr_tables.o
+g++ $CXXFLAGS $INC -c $ROOT/game/overlay_yields.cpp -o overlay_yields.o
+g++ $CXXFLAGS $INC -c $ROOT/ai_pathing/walk_general/sector_network.cpp -o sector_network.o
+g++ $CXXFLAGS $INC -c $ROOT/ai_pathing/walk_general/sector_network_router.cpp -o sector_network_router.o
+g++ $CXXFLAGS $INC -c $ROOT/game/settle_rules.cpp -o settle_rules.o
+g++ $CXXFLAGS $INC -c $ROOT/game/game_array_simple.cpp -o game_array_simple.o
+g++ $CXXFLAGS $INC -c $ROOT/game/factory_game_array_simple.cpp -o factory_game_array_simple.o
+g++ $CXXFLAGS $INC -c $ROOT/game/game_state.cpp -o game_state.o
+g++ $CXXFLAGS $INC -c $ROOT/game/player_ledger.cpp -o player_ledger.o
+g++ $CXXFLAGS $INC -c $ROOT/game/resource_ledger.cpp -o resource_ledger.o
+g++ $CXXFLAGS $INC -c $ROOT/game/resource_turn_handler.cpp -o resource_turn_handler.o
+g++ $CXXFLAGS $INC -c $ROOT/game/tile_transfer.cpp -o tile_transfer.o
+g++ $CXXFLAGS $INC -c $AP/target_ordering_manhattan.cpp -o target_ordering_manhattan.o
+g++ $CXXFLAGS $INC -c $AP/target_ordering_flood.cpp -o target_ordering_flood.o
+g++ $CXXFLAGS $INC -c $AP/gen_land_sectors.cpp -o gen_land_sectors.o
+g++ $CXXFLAGS $INC -c $AP/land_sector_network.cpp -o land_sector_network.o
+g++ $CXXFLAGS $INC -c $AP/gen_land_sector_network.cpp -o gen_land_sector_network.o
+g++ $CXXFLAGS $INC -c $AP/land_sector_adj.cpp -o land_sector_adj.o
+g++ $CXXFLAGS $INC -c $AP/sector_support.cpp -o sector_support.o
+g++ $CXXFLAGS $INC -c $AP/sect_select_defensible.cpp -o sect_select_defensible.o
+g++ $CXXFLAGS $INC -c $AP/sect_select_walk.cpp -o sect_select_walk.o
+g++ $CXXFLAGS $INC -c $AP/sect_select.cpp -o sect_select.o
+g++ $CXXFLAGS $INC -c $AP/expansion_state.cpp -o expansion_state.o
+g++ $CXXFLAGS $INC -c $AP/city_select_greedy.cpp -o city_select_greedy.o
+g++ $CXXFLAGS $INC -c $ROOT/game/tile_yields.cpp -o tile_yields.o
+g++ $CXXFLAGS $INC -c $ROOT/game/tile_working.cpp -o tile_working.o
+g++ $CXXFLAGS $INC -c $ROOT/game/tile_work_assessor.cpp -o tile_work_assessor.o
+g++ $CXXFLAGS $INC -c $ROOT/game/worker_imp_select.cpp -o worker_imp_select.o
+g++ $CXXFLAGS $INC -c $ROOT/game/tile_imp_helper.cpp -o tile_imp_helper.o
+g++ $CXXFLAGS $INC -c $ROOT/game/worker_build_progress.cpp -o worker_build_progress.o
+g++ $CXXFLAGS $INC -c $ROOT/game/worker_guidance.cpp -o worker_guidance.o
+g++ $CXXFLAGS $INC -c $ROOT/game/worker_helper.cpp -o worker_helper.o
+g++ $CXXFLAGS $INC -c $ROOT/game/std_add_helper.cpp -o std_add_helper.o
+g++ $CXXFLAGS $INC -c $ROOT/game/civ_relations.cpp -o civ_relations.o
+g++ $CXXFLAGS $INC -c $ROOT/game/negotiate_peace.cpp -o negotiate_peace.o
+g++ $CXXFLAGS $INC -c $AP/war_target_policy.cpp -o war_target_policy.o
+g++ $CXXFLAGS $INC -c $AP/war_target_policy_sector_flood.cpp -o war_target_policy_sector_flood.o
+g++ $CXXFLAGS $INC -c $AP/war_target_secure_capital.cpp -o war_target_secure_capital.o
+g++ $CXXFLAGS $INC -c $AP/mock_muster_siege.cpp -o mock_muster_siege.o
+g++ $CXXFLAGS $INC -c $AP/tile_entry_resolver.cpp -o tile_entry_resolver.o
+g++ $CXXFLAGS $INC -c $ROOT/gen_bit_banks/general_bit_bank.cpp -o general_bit_bank.o
+g++ $CXXFLAGS $INC -c $ROOT/city/assessor/general_assessor.cpp -o general_assessor.o
+g++ $CXXFLAGS $INC -c $ROOT/city/assessor/resource_assessor.cpp -o resource_assessor.o
+g++ $CXXFLAGS $INC -c $ROOT/city/effector/resource_effector.cpp -o resource_effector.o
+g++ $CXXFLAGS $INC -c $ROOT/city/effect_ctx.cpp -o effect_ctx.o
+g++ $CXXFLAGS $INC -c $ROOT/city/effector/effect_enabler.cpp -o effect_enabler.o
+g++ $CXXFLAGS $INC -c $ROOT/city/effector/booster_effect_register.cpp -o booster_effect_register.o
+g++ $CXXFLAGS $INC -c $ROOT/city/effector/local_unit_exp_booster_register.cpp -o local_unit_exp_booster_register.o
+g++ $CXXFLAGS $INC -c $ROOT/city/effector/civ_ship_training_booster_register.cpp -o civ_ship_training_booster_register.o
+g++ $CXXFLAGS $INC -c $ROOT/city/effector/city_commerce_booster_register.cpp -o city_commerce_booster_register.o
+g++ $CXXFLAGS $INC -c $ROOT/city/effector/city_production_booster_register.cpp -o city_production_booster_register.o
+g++ $CXXFLAGS $INC -c $ROOT/city/effector/local_production_booster_register.cpp -o local_production_booster_register.o
+g++ $CXXFLAGS $INC -c $ROOT/city/effector/local_pop_growth_booster_register.cpp -o local_pop_growth_booster_register.o
+g++ $CXXFLAGS $INC -c $ROOT/city/effector/local_commerce_booster_register.cpp -o local_commerce_booster_register.o
+g++ $CXXFLAGS $INC -c $ROOT/city/effector/city_pop_growth_booster_register.cpp -o city_pop_growth_booster_register.o
+g++ $CXXFLAGS $INC -c $ROOT/city/effector/civ_pop_growth_booster_register.cpp -o civ_pop_growth_booster_register.o
+g++ $CXXFLAGS $INC -c $ROOT/city/effector/city_culture_booster_register.cpp -o city_culture_booster_register.o
+g++ $CXXFLAGS $INC -c $ROOT/city/effector/local_sanitation_booster_register.cpp -o local_sanitation_booster_register.o
+g++ $CXXFLAGS $INC -c $ROOT/city/effector/city_sanitation_booster_register.cpp -o city_sanitation_booster_register.o
+g++ $CXXFLAGS $INC -c $ROOT/city/effector/civ_sanitation_booster_register.cpp -o civ_sanitation_booster_register.o
+g++ $CXXFLAGS $INC -c $ROOT/city/city.cpp -o city.o
+g++ $CXXFLAGS $INC -c $ROOT/game/city_array.cpp -o city_array.o
+g++ $CXXFLAGS $INC -c $ROOT/city/city_tile_manager.cpp -o city_tile_manager.o
+g++ $CXXFLAGS $INC -c $ROOT/game/unit_turn_handler.cpp -o unit_turn_handler.o
+g++ $CXXFLAGS $INC -c $ROOT/game/combat_mods.cpp -o combat_mods.o
+g++ $CXXFLAGS $INC -c $ROOT/city/circular_tile_areas.cpp -o circular_tile_areas.o
+g++ $CXXFLAGS $INC -c $ROOT/city/city_blocking_mask.cpp -o city_blocking_mask.o
+g++ $CXXFLAGS $INC -c $ROOT/city/city_border.cpp -o city_border.o
+g++ $CXXFLAGS $INC -c $ROOT/ai_pathing/walk_cities/city_network.cpp -o city_network.o
+g++ $CXXFLAGS $INC -c $AP/city_connector.cpp -o city_connector.o
+g++ $CXXFLAGS $INC -c $ROOT/adv_map_gen/wb_que_xy.cpp -o wb_que_xy.o
+g++ $CXXFLAGS $INC -c $ROOT/city/effector/city_defense_booster_register.cpp -o city_defense_booster_register.o
+g++ $CXXFLAGS $INC -c $ROOT/city/effector/local_culture_booster_register.cpp -o local_culture_booster_register.o
+g++ $CXXFLAGS $INC -c $ROOT/ai_pathing/walk_target/generate_access_mask.cpp -o generate_access_mask.o
+g++ $CXXFLAGS $INC -c $ROOT/ai_pathing/walk_target/generate_distance_p2p.cpp -o generate_distance_p2p.o
+g++ $CXXFLAGS $INC -c $ROOT/ai_pathing/walk_target/walk_p2p.cpp -o walk_p2p.o
+g++ $CXXFLAGS $INC -c $ROOT/ai_pathing/walk_target/path_gradients.cpp -o path_gradients.o
+g++ $CXXFLAGS $INC -c $ROOT/ai_proc/sector_path_gradients.cpp -o sector_path_gradients.o
+g++ $CXXFLAGS $INC -c $AP/generate_exposure.cpp -o generate_exposure.o
+g++ $CXXFLAGS $INC -c $AP/generate_staging_landmass.cpp -o generate_staging_landmass.o
+g++ $CXXFLAGS $INC -c $AP/war_staging_selector.cpp -o war_staging_selector.o
+g++ $CXXFLAGS $INC -c $ROOT/game/unit_roster_mng.cpp -o unit_roster_mng.o
+g++ $CXXFLAGS $INC -c $ROOT/game/unit_upgrades.cpp -o unit_upgrades.o
+g++ $CXXFLAGS $INC -c $AP/army_upgrade_mng.cpp -o army_upgrade_mng.o
+g++ $CXXFLAGS $INC -c $AP/general_move_boost.cpp -o general_move_boost.o
+g++ $CXXFLAGS $INC -c $AP/army_turn_handler.cpp -o army_turn_handler.o
+g++ $CXXFLAGS $INC -c $AP/army_reassembler.cpp -o army_reassembler.o
+g++ $CXXFLAGS $INC -DBORDER_TURN_HANDLER_IMPL='"impl/border_turn_handler_impl_mk06.cpp"' \
+    -c $AP/border_turn_handler.cpp -o border_turn_handler.o
+g++ $CXXFLAGS $INC -c $AP/war_turn_handler.cpp -o war_turn_handler.o
+g++ $CXXFLAGS $INC -c $AP/city_attack_manager.cpp -o city_attack_manager.o
+g++ $CXXFLAGS $INC -c $ROOT/game/combat_mng.cpp -o combat_mng.o
+g++ $CXXFLAGS $INC -c $ROOT/dyn_state/unit_chain_validation.cpp -o unit_chain_validation.o
+g++ $CXXFLAGS $INC -c $ROOT/game/game_io.cpp -o game_io.o
+g++ $CXXFLAGS $INC -c $ROOT/game/simple_dyn_state_io.cpp -o simple_dyn_state_io.o
+g++ $CXXFLAGS $INC -c $ROOT/game/lucky_seat_turn.cpp -o lucky_seat_turn.o
+g++ $CXXFLAGS $INC -c $ROOT/game/mvt_pts_boost_mng.cpp -o mvt_pts_boost_mng.o
+g++ $CXXFLAGS $INC -c $ROOT/game/army_general.cpp -o army_general.o
+g++ $CXXFLAGS $INC -c $ROOT/game/unit_utility_helper.cpp -o unit_utility_helper.o
+g++ $CXXFLAGS $INC -c $ROOT/game/tech_age_mng.cpp -o tech_age_mng.o
+g++ $CXXFLAGS $INC -c $ROOT/city/job_count_array.cpp -o job_count_array.o
+g++ $CXXFLAGS $INC -c $AP/city_muster_grad.cpp -o city_muster_grad.o
+g++ $CXXFLAGS $INC -c $GE/eval_paths.cpp -o eval_paths.o
+g++ $CXXFLAGS $INC -c $GE/map_own_save_snap.cpp -o map_own_save_snap.o
+g++ $CXXFLAGS $INC -c $GE/draw_map_tile_ownership.cpp -o draw_map_tile_ownership.o
+g++ $CXXFLAGS $INC -DWB_TRACE_DB -c $ROOT/misc/whiteboard_mng.cpp -o whiteboard_mng.o
+g++ $CXXFLAGS $INC -c $AP/gen_settlement_order.cpp -o gen_settlement_order.o
+g++ $CXXFLAGS $INC -c $AP/gen_settlement_targets.cpp -o gen_settlement_targets.o
+g++ $CXXFLAGS $INC -c $AP/gen_mtn_passes.cpp -o gen_mtn_passes.o
+g++ $CXXFLAGS $INC -c $AP/gen_walkable_sectors.cpp -o gen_walkable_sectors.o
+g++ $CXXFLAGS $INC -c $AP/gen_bottleneck_markers.cpp -o gen_bottleneck_markers.o
+g++ $CXXFLAGS $INC -c $AP/gen_bottleneck_forts.cpp -o gen_bottleneck_forts.o
+g++ $CXXFLAGS $INC -c $AP/gen_ai_helpers.cpp -o gen_ai_helpers.o
+g++ $CXXFLAGS $INC -c $AP/worker_city_jobs.cpp -o worker_city_jobs.o
+g++ $CXXFLAGS $INC -c $AP/gen_road_network.cpp -o gen_road_network.o
+g++ $CXXFLAGS $INC -c $AP/linear_bld.cpp -o linear_bld.o
+g++ $CXXFLAGS $INC -c $ROOT/city/effector/dyn_booster_register.cpp -o dyn_booster_register.o
+g++ $CXXFLAGS $INC -c $ROOT/city/effector/dyn_job_slot_register.cpp -o dyn_job_slot_register.o
+g++ $CXXFLAGS $INC -c war_harness_save_tester.cpp -o war_harness_save_tester.o
+
+g++ $CXXFLAGS -o war_harness_save_tester -Wl,--no-as-needed \
+    runtime_static_loader.o \
+    map_terrain_validate.o \
+    map_terrain_data.o \
+    map_loader.o \
+    runtime_trace_dbg.o \
+    map_bit_overlay.o \
+    map_bit_array_overlay.o \
+    bit_array.o \
+    assert_log.o \
+    fort_add_vector.o \
+    mine_add_vector.o \
+    monastery_add_vector.o \
+    outpost_add_vector.o \
+    plantation_add_vector.o \
+    shipyard_add_vector.o \
+    trade_post_add_vector.o \
+    unit_add_vector.o \
+    unit_movement_mng.o \
+    unit_group_management.o \
+    tile_attr_tables.o \
+    overlay_yields.o \
+    sector_network.o \
+    sector_network_router.o \
+    settle_rules.o \
+    game_array_simple.o \
+    factory_game_array_simple.o \
+    game_state.o \
+    player_ledger.o \
+    resource_ledger.o \
+    resource_turn_handler.o \
+    tile_transfer.o \
+    target_ordering_manhattan.o \
+    target_ordering_flood.o \
+    gen_land_sectors.o \
+    land_sector_network.o \
+    gen_land_sector_network.o \
+    land_sector_adj.o \
+    sector_support.o \
+    sect_select_defensible.o \
+    sect_select_walk.o \
+    sect_select.o \
+    expansion_state.o \
+    city_select_greedy.o \
+    tile_yields.o \
+    tile_working.o \
+    tile_work_assessor.o \
+    worker_imp_select.o \
+    tile_imp_helper.o \
+    worker_build_progress.o \
+    worker_guidance.o \
+    worker_helper.o \
+    std_add_helper.o \
+    civ_relations.o \
+    negotiate_peace.o \
+    war_target_policy.o \
+    war_target_policy_sector_flood.o \
+    war_target_secure_capital.o \
+    mock_muster_siege.o \
+    tile_entry_resolver.o \
+    general_bit_bank.o \
+    general_assessor.o \
+    resource_assessor.o \
+    resource_effector.o \
+    effect_ctx.o \
+    effect_enabler.o \
+    booster_effect_register.o \
+    local_unit_exp_booster_register.o \
+    civ_ship_training_booster_register.o \
+    city_commerce_booster_register.o \
+    city_production_booster_register.o \
+    local_production_booster_register.o \
+    local_pop_growth_booster_register.o \
+    local_commerce_booster_register.o \
+    city_pop_growth_booster_register.o \
+    civ_pop_growth_booster_register.o \
+    city_culture_booster_register.o \
+    local_sanitation_booster_register.o \
+    city_sanitation_booster_register.o \
+    civ_sanitation_booster_register.o \
+    city.o \
+    city_array.o \
+    city_tile_manager.o \
+    unit_turn_handler.o \
+    combat_mods.o \
+    circular_tile_areas.o \
+    city_blocking_mask.o \
+    city_border.o \
+    city_network.o \
+    city_connector.o \
+    wb_que_xy.o \
+    city_defense_booster_register.o \
+    local_culture_booster_register.o \
+    generate_access_mask.o \
+    generate_distance_p2p.o \
+    walk_p2p.o \
+    path_gradients.o \
+    sector_path_gradients.o \
+    generate_exposure.o \
+    generate_staging_landmass.o \
+    war_staging_selector.o \
+    unit_roster_mng.o \
+    unit_upgrades.o \
+    army_upgrade_mng.o \
+    general_move_boost.o \
+    army_turn_handler.o \
+    army_reassembler.o \
+    border_turn_handler.o \
+    war_turn_handler.o \
+    city_attack_manager.o \
+    combat_mng.o \
+    unit_chain_validation.o \
+    game_io.o \
+    simple_dyn_state_io.o \
+    lucky_seat_turn.o \
+    mvt_pts_boost_mng.o \
+    army_general.o \
+    unit_utility_helper.o \
+    tech_age_mng.o \
+    job_count_array.o \
+    city_muster_grad.o \
+    eval_paths.o \
+    map_own_save_snap.o \
+    draw_map_tile_ownership.o \
+    whiteboard_mng.o \
+    gen_settlement_order.o \
+    gen_settlement_targets.o \
+    gen_mtn_passes.o \
+    gen_walkable_sectors.o \
+    gen_bottleneck_markers.o \
+    gen_bottleneck_forts.o \
+    gen_ai_helpers.o \
+    worker_city_jobs.o \
+    gen_road_network.o \
+    linear_bld.o \
+    dyn_booster_register.o \
+    dyn_job_slot_register.o \
+    war_harness_save_tester.o \
+    -ldl \
+    $LIB_SO \
+    $LOG_SO \
+    -Wl,-rpath,'$ORIGIN/../../data_io' \
+    -Wl,-rpath,'$ORIGIN/../../log_dbg' \
+    -Wl,--allow-shlib-undefined \
+    -lm
+
+echo "--- running war_harness_save_tester ---"
+./war_harness_save_tester "$@"
+RC=$?
+if [ -z "${KEEP_OBJS:-}" ]; then
+  rm -f war_harness_save_tester *.o
+fi
+exit $RC

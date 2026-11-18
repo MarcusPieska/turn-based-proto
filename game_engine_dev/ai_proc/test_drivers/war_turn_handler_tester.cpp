@@ -3,6 +3,7 @@
 //================================================================================================================================
 
 #include <cerrno>
+#include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -19,8 +20,11 @@
 #include "game_map_defs.h"
 #include "game_setup.h"
 #include "game_state.h"
+#include "generate_distance_p2p.h"
+#include "prof_dbg_setup.h"
 #include "runtime_statics.h"
 #include "army_turn_test_hlp.h"
+#include "sector_path_gradients.h"
 #include "siege_snapshot.h"
 #include "test_hlp_city_attack.h"
 #include "tile_attr_tables.h"
@@ -974,16 +978,164 @@ static void print_conquest (
 }
 
 //================================================================================================================================
-//=> - Main -
+//= Path bench (capital-to-front options) =
+//================================================================================================================================
+
+static u16 seat_city_xy (const GameState& st, u16 seat, u16* ox, u16* oy) {
+    if (ox == nullptr || oy == nullptr || st.m_player_states == nullptr || seat >= st.m_player_n) {
+        return U16_KEY_NULL;
+    }
+    const u16 ci = st.m_player_states[seat].m_muster_city;
+    if (ci != U16_KEY_NULL) {
+        const City* c = st.m_cities.get_city(ci);
+        if (c != nullptr && c->get_owner() == seat) {
+            *ox = c->get_x();
+            *oy = c->get_y();
+            return ci;
+        }
+    }
+    const u16 cn = st.m_cities.get_city_count();
+    for (u16 i = 0u; i < cn; ++i) {
+        const City* c = st.m_cities.get_city(i);
+        if (c == nullptr || c->get_owner() != seat) {
+            continue;
+        }
+        *ox = c->get_x();
+        *oy = c->get_y();
+        return i;
+    }
+    return U16_KEY_NULL;
+}
+
+static u16 bench_sec_at (const Whiteboard_2B* wb, u16 x, u16 y) {
+    if (wb == nullptr || !wb->ok() || x >= wb->w() || y >= wb->h()) {
+        return U16_KEY_NULL;
+    }
+    const u16 tag = wb->rd(x, y);
+    return (tag == 0u) ? U16_KEY_NULL : static_cast<u16>(tag - 1u);
+}
+
+static bool bench_lease_fill (
+    GameState& st,
+    u16 seat,
+    u16 sx,
+    u16 sy,
+    u16 dx,
+    u16 dy) {
+    u16 slot = U16_KEY_NULL;
+    SectorPathGradients* spg = SectorPathGradients::pool_acq(&slot);
+    if (spg == nullptr || slot == U16_KEY_NULL || st.m_statics == nullptr) {
+        return false;
+    }
+    const Whiteboard_2B* wb = WarTurnHandler::sec_wb();
+    const u16 to = bench_sec_at(wb, dx, dy);
+    const u16 from = bench_sec_at(wb, sx, sy);
+    u16 secs[2];
+    u16 sn = 0u;
+    if (from != U16_KEY_NULL) {
+        secs[sn++] = from;
+    }
+    if (to != U16_KEY_NULL && (sn == 0u || secs[0] != to)) {
+        secs[sn++] = to;
+    }
+    const u8 acc = GenerateDistanceP2P::k_acc_non_peace;
+    bool ok = false;
+    if (sn == 1u) {
+        ok = spg->lease(slot, secs[0])
+            && spg->fill(slot, st, *st.m_statics, sx, sy, dx, dy, seat, acc)
+            && spg->ok(slot);
+    } else if (sn == 2u) {
+        ok = spg->lease_multi(slot, secs, sn)
+            && spg->fill(slot, st, *st.m_statics, sx, sy, dx, dy, seat, acc)
+            && spg->ok(slot);
+    }
+    spg->release(slot);
+    return ok;
+}
+
+static bool bench_pack (
+    GameState& st,
+    u16 seat,
+    u16 sx,
+    u16 sy,
+    u16 dx,
+    u16 dy,
+    u8 acc) {
+    u16 slot = U16_KEY_NULL;
+    SectorPathGradients* spg = SectorPathGradients::pool_acq(&slot);
+    if (spg == nullptr || slot == U16_KEY_NULL || st.m_statics == nullptr) {
+        return false;
+    }
+    const bool ok = spg->pack_path(slot, st, *st.m_statics, sx, sy, dx, dy, seat, acc) && spg->ok(slot);
+    spg->release(slot);
+    return ok;
+}
+
+static void path_bench_run (GameState& st, u16 seat, u16 sx, u16 sy, u16 dx, u16 dy, u32 reps) {
+    static const char* k_names[3] = {
+        "lease_fill_non_peace",
+        "pack_own_free",
+        "pack_non_peace"
+    };
+    double ms[3] = {0.0, 0.0, 0.0};
+    u32 ok_n[3] = {0u, 0u, 0u};
+    for (u32 r = 0u; r < reps; ++r) {
+        {
+            const auto t0 = std::chrono::steady_clock::now();
+            if (bench_lease_fill(st, seat, sx, sy, dx, dy)) {
+                ++ok_n[0];
+            }
+            const auto t1 = std::chrono::steady_clock::now();
+            ms[0] += std::chrono::duration<double, std::milli>(t1 - t0).count();
+        }
+        {
+            const auto t0 = std::chrono::steady_clock::now();
+            if (bench_pack(st, seat, sx, sy, dx, dy, GenerateDistanceP2P::k_acc_own_free)) {
+                ++ok_n[1];
+            }
+            const auto t1 = std::chrono::steady_clock::now();
+            ms[1] += std::chrono::duration<double, std::milli>(t1 - t0).count();
+        }
+        {
+            const auto t0 = std::chrono::steady_clock::now();
+            if (bench_pack(st, seat, sx, sy, dx, dy, GenerateDistanceP2P::k_acc_non_peace)) {
+                ++ok_n[2];
+            }
+            const auto t1 = std::chrono::steady_clock::now();
+            ms[2] += std::chrono::duration<double, std::milli>(t1 - t0).count();
+        }
+    }
+    std::printf(
+        "path_bench seat=%u from=(%u,%u) to=(%u,%u) reps=%u\n",
+        static_cast<unsigned>(seat),
+        static_cast<unsigned>(sx), static_cast<unsigned>(sy),
+        static_cast<unsigned>(dx), static_cast<unsigned>(dy),
+        static_cast<unsigned>(reps));
+    for (u16 i = 0u; i < 3u; ++i) {
+        const double avg = (reps > 0u) ? (ms[i] / static_cast<double>(reps)) : 0.0;
+        std::printf(
+            "  %-22s ok=%u/%u avg_ms=%.3f total_ms=%.3f\n",
+            k_names[i],
+            static_cast<unsigned>(ok_n[i]),
+            static_cast<unsigned>(reps),
+            avg,
+            ms[i]);
+    }
+}
+
+//================================================================================================================================
+//= Main =
 //================================================================================================================================
 
 int main (int argc, char** argv) {
     const bool c_check = arg_has(argc, argv, "--chain-check");
     const bool c_print_all = arg_has(argc, argv, "--chain-print-all");
+    const bool path_bench = arg_has(argc, argv, "--path-bench");
     if (!build_paths() || !ensure_out_dir()) {
         std::printf("*** FAILED path/out\n");
         return 1;
     }
+    ProfDbgSetup::setup(G_OUT_DIR);
     if (!SiegeSnapshot::ensure_dir(G_SIEGE_DIR)) {
         std::printf("*** FAILED siege dir\n");
         return 1;
@@ -1090,6 +1242,34 @@ int main (int argc, char** argv) {
         static_cast<unsigned>(stx), static_cast<unsigned>(sty),
         static_cast<unsigned>(count_owner_cities(state, pa)),
         static_cast<unsigned>(count_owner_cities(state, pb)));
+    if (path_bench) {
+        WhiteboardMng::init(state.m_map.width(), state.m_map.height());
+        if (!WarTurnHandler::begin(state)) {
+            std::printf("*** FAILED WarTurnHandler::begin (path-bench)\n");
+            WhiteboardMng::terminate();
+            state.clear();
+            return 1;
+        }
+        u16 cx = 0u;
+        u16 cy = 0u;
+        if (seat_city_xy(state, pa, &cx, &cy) == U16_KEY_NULL) {
+            std::printf("*** FAILED seat capital for path-bench\n");
+            WarTurnHandler::clear();
+            WhiteboardMng::terminate();
+            state.clear();
+            return 1;
+        }
+        path_bench_run(state, pa, cx, cy, stx, sty, 20u);
+        u16 ex = 0u;
+        u16 ey = 0u;
+        if (seat_city_xy(state, pb, &ex, &ey) != U16_KEY_NULL) {
+            path_bench_run(state, pa, stx, sty, ex, ey, 20u);
+        }
+        WarTurnHandler::clear();
+        WhiteboardMng::terminate();
+        state.clear();
+        return 0;
+    }
     print_seat_units("pre_units attacker", state, pa);
     print_seat_units("pre_units defender", state, pb);
 

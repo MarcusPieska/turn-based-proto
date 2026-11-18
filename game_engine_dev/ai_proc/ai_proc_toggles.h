@@ -13,7 +13,8 @@
 //
 //================================================================================================================================
 
-#define LUCKY_SEAT_INSTANT_COMBAT_WIN
+//#define LUCKY_SEAT_INSTANT_COMBAT_WIN
+//#define LUCKY_SEAT_COMBAT_BONUS 6
 
 #endif // AI_PROC_TOGGLES_H
 

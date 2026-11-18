@@ -45,6 +45,7 @@ public:
     MockMusterSiege ();
 
     bool collect (GameState& s, u16 seat); // Scan own cities; leave-one then leave-five; fill army copies
+    bool collect_grps (GameState& s, u16 seat, const UnitAddKey* heads, u16 hn); // Copy live units from formed army heads
     u16 army_n () const;
     u16 army_live () const;
     u16 barrage_n (GameState& s) const; // Count canBarrage units; caches by type for this call

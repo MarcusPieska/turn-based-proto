@@ -158,6 +158,39 @@ bool MockMusterSiege::collect (GameState& s, u16 seat) {
     return m_ok;
 }
 
+bool MockMusterSiege::collect_grps (GameState& s, u16 seat, const UnitAddKey* heads, u16 hn) {
+    m_ok = false;
+    m_army_n = 0u;
+    m_seat = seat;
+    if (heads == nullptr || hn == 0u || s.m_statics == nullptr || seat >= s.m_player_n) {
+        return false;
+    }
+    for (u16 i = 0; i < hn; ++i) {
+        UnitAddKey cur = heads[i];
+        while (cur.is_valid()) {
+            const UnitAddStruct* u = s.m_units.get_unit_add(cur);
+            if (u == nullptr) {
+                break;
+            }
+            if (u->m_player_idx == seat && u->m_health > 0u && u->m_x != U16_KEY_NULL) {
+                if (m_army_n >= k_cap) {
+                    return false;
+                }
+                m_army[m_army_n] = *u;
+                m_army[m_army_n].m_next_unit_on_tile = U16_KEY_NULL;
+                m_army[m_army_n].m_next_unit_in_group = U16_KEY_NULL;
+                ++m_army_n;
+            }
+            if (u->m_next_unit_in_group == U16_KEY_NULL) {
+                break;
+            }
+            cur = UnitAddKey::from_raw(u->m_next_unit_in_group);
+        }
+    }
+    m_ok = m_army_n > 0u;
+    return m_ok;
+}
+
 bool MockMusterSiege::copy_tile_foes (
     GameState& s,
     u16 x,

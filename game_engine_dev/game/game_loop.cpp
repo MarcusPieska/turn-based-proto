@@ -58,6 +58,56 @@
 
 static const u16 k_claim_cult = 25u;
 
+static bool unit_is_land_army (GameState& s, const UnitAddStruct& u) {
+    if (s.m_statics == nullptr) {
+        return false;
+    }
+    const u16 typ_n = s.m_statics->unit().get_item_count();
+    if (u.m_unit_typ_idx >= typ_n) {
+        return false;
+    }
+    const u16 ut = s.m_statics->unit().get_item(UnitStaticDataKey::from_raw(u.m_unit_typ_idx)).type;
+    return UnitUtilityHelper::is_type_for_land_army(ut);
+}
+
+static u16 muster_city_army_n (GameState& s, u16 seat) {
+    if (s.m_player_states == nullptr || seat >= s.m_player_n) {
+        return 0u;
+    }
+    const u16 ci = s.m_player_states[seat].m_muster_city;
+    if (ci == U16_KEY_NULL) {
+        return 0u;
+    }
+    const City* c = s.m_cities.get_city(ci);
+    if (c == nullptr || c->get_owner() != seat) {
+        return 0u;
+    }
+    static const u16 k_cap = 64u;
+    UnitAddKey keys[k_cap];
+    u16 n = 0u;
+    if (!UnitMovementMng::muster_collect_depart(s, c->get_x(), c->get_y(), seat, keys, k_cap, &n) || n == 0u) {
+        return 0u;
+    }
+    u16 units = 0u;
+    for (u16 i = 0u; i < n; ++i) {
+        UnitAddKey cur = keys[i];
+        while (cur.is_valid()) {
+            const UnitAddStruct* u = s.m_units.get_unit_add(cur);
+            if (u == nullptr) {
+                break;
+            }
+            if (unit_is_land_army(s, *u)) {
+                ++units;
+            }
+            if (u->m_next_unit_in_group == U16_KEY_NULL) {
+                break;
+            }
+            cur = UnitAddKey::from_raw(u->m_next_unit_in_group);
+        }
+    }
+    return units;
+}
+
 static void arm_settling (GameState& state) {
     GAME_EXPECT(state.m_player_states != nullptr, "GameLoop arm_settling got nullptr player states");
     for (u16 p = 0; p < state.m_player_n; ++p) {
@@ -288,7 +338,7 @@ static void check_start_wars (GameState& state) {
         LOG_WAR_DECLARE_FAIL::LOG(SC_U32(seat), SC_U32(enemy), SC_U32(turn), 2u);
         return;
     }
-    if (mock.army_n() < WAR_DECLARE_MIN_ARMY) {
+    if (muster_city_army_n(state, seat) < WAR_DECLARE_MIN_ARMY) {
         LOG_WAR_DECLARE_FAIL::LOG(SC_U32(seat), SC_U32(enemy), SC_U32(turn), 5u);
         return;
     }

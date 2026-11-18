@@ -21,8 +21,17 @@
 //=> - LOG_WAR_SIEGE_FAIL_BUILDUP -
 //================================================================================================================================
 
-void LOG_WAR_SIEGE_FAIL_BUILDUP::LOG (unsigned seat, unsigned enemy, unsigned tx, unsigned ty, unsigned turn) {
-    TraceSink::printf("war siege fail buildup seat=%u enemy=%u city=(%u,%u) turn=%u\n", seat, enemy, tx, ty, turn);
+void LOG_WAR_SIEGE_FAIL_BUILDUP::LOG (
+    unsigned seat,
+    unsigned enemy,
+    unsigned tx,
+    unsigned ty,
+    unsigned turn,
+    unsigned army_n,
+    unsigned barrage_n) {
+    TraceSink::printf(
+        "war siege fail buildup seat=%u enemy=%u city=(%u,%u) turn=%u army=%u barrage=%u\n",
+        seat, enemy, tx, ty, turn, army_n, barrage_n);
 }
 
 bool LOG_WAR_SIEGE_FAIL_BUILDUP::PARSE (const char* line, unsigned* seat, unsigned* enemy, unsigned* tx, unsigned* ty, unsigned* turn) {

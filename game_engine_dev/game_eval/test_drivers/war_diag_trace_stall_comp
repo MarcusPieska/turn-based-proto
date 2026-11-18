@@ -1,0 +1,11 @@
+#!/bin/bash
+set -e
+cd "$(dirname "$0")"
+CXXFLAGS="-std=c++17 -Wall -Wextra"
+g++ $CXXFLAGS -c war_diag_trace_stall_tester.cpp -o war_diag_trace_stall_tester.o
+g++ $CXXFLAGS -o war_diag_trace_stall_tester war_diag_trace_stall_tester.o
+echo "--- running war_diag_trace_stall_tester ---"
+./war_diag_trace_stall_tester "$@"
+RC=$?
+rm -f war_diag_trace_stall_tester war_diag_trace_stall_tester.o
+exit $RC

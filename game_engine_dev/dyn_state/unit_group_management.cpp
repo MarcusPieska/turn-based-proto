@@ -138,8 +138,19 @@ static bool ug_tile_prepend (GameState& s, UnitAddKey key, u16 x, u16 y) {
     if (u == nullptr || !ug_in_bounds(s, x, y)) {
         return false;
     }
-    u->m_x = x;
-    u->m_y = y;
+    UnitAddKey cur = key;
+    while (cur.is_valid()) {
+        UnitAddStruct* gu = ug_get(s, cur);
+        if (gu == nullptr) {
+            return false;
+        }
+        gu->m_x = x;
+        gu->m_y = y;
+        if (gu->m_next_unit_in_group == U16_KEY_NULL) {
+            break;
+        }
+        cur = UnitAddKey::from_raw(gu->m_next_unit_in_group);
+    }
     u->m_next_unit_on_tile = s.m_map.get_unit_hd(x, y);
     return s.m_map.set_unit_hd(x, y, key.value());
 }

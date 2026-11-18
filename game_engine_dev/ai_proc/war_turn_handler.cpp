@@ -132,6 +132,48 @@ static bool filt_land_army_grp (GameState& s, UnitAddKey* head_io) {
     return UnitMovementMng::form_group_chain(s, keep, kn, head_io);
 }
 
+static bool pack_path_acc (
+    SectorPathGradients* spg,
+    u16 slot,
+    GameState& st,
+    u16 seat,
+    u16 sx,
+    u16 sy,
+    u16 dx,
+    u16 dy,
+    u8 acc) {
+    if (spg == nullptr || st.m_statics == nullptr) {
+        return false;
+    }
+    if (spg->pack_path(slot, st, *st.m_statics, sx, sy, dx, dy, seat, acc) && spg->ok(slot)) {
+        return true;
+    }
+    spg->release(slot);
+    return false;
+}
+
+static bool pack_path_fallbacks (
+    SectorPathGradients* spg,
+    u16 slot,
+    GameState& st,
+    u16 seat,
+    u16 sx,
+    u16 sy,
+    u16 dx,
+    u16 dy) {
+    static const u8 k_acc[3] = {
+        GenerateDistanceP2P::k_acc_own_free,
+        GenerateDistanceP2P::k_acc_non_peace,
+        GenerateDistanceP2P::k_acc_none
+    };
+    for (u16 i = 0u; i < 3u; ++i) {
+        if (pack_path_acc(spg, slot, st, seat, sx, sy, dx, dy, k_acc[i])) {
+            return true;
+        }
+    }
+    return false;
+}
+
 //================================================================================================================================
 //=> - WarTurnHandler -
 //================================================================================================================================
@@ -308,7 +350,10 @@ bool WarTurnHandler::set_goal_army (u16 army_i, u16 x2, u16 y2) {
     }
     if (!ok) {
         spg->release(slot);
-        ok = spg->pack_path(slot, m_st, *m_st.m_statics, ax, ay, x2, y2, m_seat, acc) && spg->ok(slot);
+        ok = pack_path_acc(spg, slot, m_st, m_seat, ax, ay, x2, y2, acc);
+    }
+    if (!ok) {
+        ok = pack_path_acc(spg, slot, m_st, m_seat, ax, ay, x2, y2, GenerateDistanceP2P::k_acc_none);
     }
     if (!ok) {
         spg->release(slot);
@@ -377,14 +422,10 @@ bool WarTurnHandler::make_muster_gradient (u16 x, u16 y) {
         LOG_WAR_MUSTER_GRAD_FAIL::LOG(SC_U32(m_seat), SC_U32(x), SC_U32(y), SC_U32(m_st.m_current_turn));
         return false;
     }
-    u8 acc = GenerateDistanceP2P::k_acc_own_free;
-    if (!spg->pack_path(slot, m_st, *m_st.m_statics, cx, cy, x, y, m_seat, acc) || !spg->ok(slot)) {
-        acc = GenerateDistanceP2P::k_acc_non_peace;
-        if (!spg->pack_path(slot, m_st, *m_st.m_statics, cx, cy, x, y, m_seat, acc) || !spg->ok(slot)) {
-            spg->release(slot);
-            LOG_WAR_MUSTER_GRAD_FAIL::LOG(SC_U32(m_seat), SC_U32(x), SC_U32(y), SC_U32(m_st.m_current_turn));
-            return false;
-        }
+    if (!pack_path_fallbacks(spg, slot, m_st, m_seat, cx, cy, x, y)) {
+        spg->release(slot);
+        LOG_WAR_MUSTER_GRAD_FAIL::LOG(SC_U32(m_seat), SC_U32(x), SC_U32(y), SC_U32(m_st.m_current_turn));
+        return false;
     }
     m_feed = spg;
     m_feed_i = slot;
@@ -2147,18 +2188,30 @@ static void war_peace_mock (GameState& st, u16 seat, WarSlot* s, u16 tx, u16 ty)
     war_finish(st, seat, s, false);
 }
 
-static bool war_begin_buildup (GameState& st, u16 seat, WarSlot* s, u16 tx, u16 ty) {
+static bool war_begin_buildup (
+    GameState& st,
+    u16 seat,
+    WarSlot* s,
+    u16 tx,
+    u16 ty,
+    u16 army_n,
+    u16 barrage_n) {
     PROF_TH_WAR_ENTER(__func__);
     if (s == nullptr || s->m_camp == nullptr) {
         return false;
     }
     WarTurnHandler& camp = *s->m_camp;
     LOG_WAR_SIEGE_FAIL_BUILDUP::LOG(
-        SC_U32(seat), SC_U32(s->m_enemy), SC_U32(tx), SC_U32(ty), SC_U32(st.m_current_turn));
+        SC_U32(seat), SC_U32(s->m_enemy), SC_U32(tx), SC_U32(ty), SC_U32(st.m_current_turn),
+        SC_U32(army_n), SC_U32(barrage_n));
     const u16 sx = camp.staging_x();
     const u16 sy = camp.staging_y();
     if (!camp.make_muster_gradient(sx, sy)) {
-        return false;
+        if (!camp.has_armies()) {
+            return false;
+        }
+        s->m_phase = WarPhase::Army;
+        return true;
     }
     (void)camp.do_total_muster();
     s->m_phase = WarPhase::BuildUp;
@@ -2167,9 +2220,24 @@ static bool war_begin_buildup (GameState& st, u16 seat, WarSlot* s, u16 tx, u16 
 
 static bool war_try_mocks (GameState& st, u16 seat, WarSlot* s, WarTurnHandler& camp) {
     PROF_TH_WAR_ENTER(__func__);
-    if (s == nullptr || s->m_mock == nullptr || !s->m_mock->ok()) {
+    if (s == nullptr || s->m_mock == nullptr) {
         war_peace_mock(st, seat, s, camp.target_x(), camp.target_y());
         return false;
+    }
+    {
+        UnitAddKey heads[WarTurnHandler::k_grp_use];
+        u16 hn = 0u;
+        for (u16 i = 0; i < WarTurnHandler::k_grp_use; ++i) {
+            const u16 hd = camp.atk_hd(i);
+            if (hd == U16_KEY_NULL) {
+                continue;
+            }
+            heads[hn++] = UnitAddKey::from_raw(hd);
+        }
+        if (hn == 0u || !s->m_mock->collect_grps(st, seat, heads, hn) || !s->m_mock->ok()) {
+            war_peace_mock(st, seat, s, camp.target_x(), camp.target_y());
+            return false;
+        }
     }
     if (camp.prep_mocks(*s->m_mock)) {
         return true;
@@ -2183,7 +2251,9 @@ static bool war_try_mocks (GameState& st, u16 seat, WarSlot* s, WarTurnHandler& 
             ty = fl->m_ty;
         }
     }
-    if (!war_begin_buildup(st, seat, s, tx, ty)) {
+    const u16 army_n = s->m_mock->army_n();
+    const u16 barrage_n = s->m_mock->barrage_n(st);
+    if (!war_begin_buildup(st, seat, s, tx, ty, army_n, barrage_n)) {
         war_peace_mock(st, seat, s, tx, ty);
     }
     return false;
@@ -2284,7 +2354,11 @@ static bool war_start_camp (GameState& st, u16 seat, u16 enemy, WarSlot* s) {
             delete camp;
             return false;
         }
-        (void)camp->do_total_muster();
+        if (camp->do_total_muster() == 0u) {
+            LOG_WAR_START_CAMP_FAIL::LOG(SC_U32(seat), SC_U32(enemy), SC_U32(st.m_current_turn), 5u);
+            delete camp;
+            return false;
+        }
         if (!camp->determine_exposure(enemy)) {
             LOG_WAR_START_CAMP_FAIL::LOG(SC_U32(seat), SC_U32(enemy), SC_U32(st.m_current_turn), 4u);
             delete camp;
