@@ -64,6 +64,7 @@ public:
     void build_small_wonder (u16 small_wonder_idx);
     void build_unit (u16 unit_idx);
     void extend_unit (UnitAddStruct* unit);
+    bool try_city_def_up (u16 city_idx);
     void accumulate_commerce ();
 
     i16 add_food (u16 city_idx, u16 amount, i16 net_sanitation);

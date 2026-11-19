@@ -16,6 +16,7 @@
 #include "city.h"
 #include "city_array.h"
 #include "city_muster_grad.h"
+#include "empire_muster.h"
 #include "combat_mng.h"
 #include "eval_paths.h"
 #include "game_array_simple.h"
@@ -672,6 +673,7 @@ int main (int argc, char** argv) {
                 static_cast<unsigned>(unit_n_seat(st, lucky)));
         }
         CityMusterGrad::handle(st);
+        EmpireMuster::handle(st);
         WarTurnHandler::handle(st);
         const bool eng1 = WarTurnHandler::is_engaged(lucky);
         if (eng0 && !eng1) {
@@ -731,6 +733,7 @@ int main (int argc, char** argv) {
         static_cast<unsigned>(gain_events));
     std::printf("maps: %s\n      %s\ntrace: %s\n", img0, img1, trace_p);
     CityMusterGrad::clear();
+    EmpireMuster::clear();
     WarTurnHandler::clear();
     UnitUtilityHelper::clear();
     UnitRosterMng::clear();

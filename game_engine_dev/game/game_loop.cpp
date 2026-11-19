@@ -11,6 +11,7 @@
 #include "city.h"
 #include "city_border.h"
 #include "city_muster_grad.h"
+#include "empire_muster.h"
 #include "city_tracer.h"
 #include "city_turn_handler.h"
 #include "combat_mng.h"
@@ -549,6 +550,7 @@ bool GameLoop::step () {
     { PROF_GAME_LOOP_ENTER("ResourceTurnHandler"); ResourceTurnHandler::handle(*m_state); }
     { PROF_GAME_LOOP_ENTER("run_unit_turns"); run_unit_turns(*m_state); }
     { PROF_GAME_LOOP_ENTER("CityMusterGrad"); CityMusterGrad::handle(*m_state); }
+    { PROF_GAME_LOOP_ENTER("EmpireMuster"); EmpireMuster::handle(*m_state); }
     { PROF_GAME_LOOP_ENTER("ArmyGeneralTurnHandler"); ArmyGeneralTurnHandler::handle(*m_state); }
     { PROF_GAME_LOOP_ENTER("WarTurnHandler"); WarTurnHandler::handle(*m_state); }
     {

@@ -142,6 +142,8 @@ g++ $CXXFLAGS $INC -c $ROOT/game/unit_utility_helper.cpp -o unit_utility_helper.
 g++ $CXXFLAGS $INC -c $ROOT/game/tech_age_mng.cpp -o tech_age_mng.o
 g++ $CXXFLAGS $INC -c $ROOT/city/job_count_array.cpp -o job_count_array.o
 g++ $CXXFLAGS $INC -c $AP/city_muster_grad.cpp -o city_muster_grad.o
+g++ $CXXFLAGS $INC -c $AP/muster_dispatch.cpp -o muster_dispatch.o
+g++ $CXXFLAGS $INC -c $AP/empire_muster.cpp -o empire_muster.o
 g++ $CXXFLAGS $INC -c $GE/eval_paths.cpp -o eval_paths.o
 g++ $CXXFLAGS $INC -c $GE/map_own_save_snap.cpp -o map_own_save_snap.o
 g++ $CXXFLAGS $INC -c $GE/draw_map_tile_ownership.cpp -o draw_map_tile_ownership.o
@@ -281,6 +283,8 @@ g++ $CXXFLAGS -o war_harness_save_tester -Wl,--no-as-needed \
     tech_age_mng.o \
     job_count_array.o \
     city_muster_grad.o \
+    muster_dispatch.o \
+    empire_muster.o \
     eval_paths.o \
     map_own_save_snap.o \
     draw_map_tile_ownership.o \

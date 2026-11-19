@@ -14,7 +14,8 @@ class GameState;
 //=> - AiUnitProductionAggressive -
 //================================================================================================================================
 //
-//  Aggressive AI unit production policy. Boilerplate only for now.
+//  Aggressive land builds: upgrade/flag one local city defender from free support, then balance
+//  def/atk/brg with each role capped at floor(free_land_unit_support * k_land_army_sup_fac / 3).
 //
 //================================================================================================================================
 

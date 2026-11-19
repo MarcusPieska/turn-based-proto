@@ -949,6 +949,9 @@ bool UnitMovementMng::destroy_unit (GameState& s, UnitAddKey key) {
     if (u == nullptr) {
         return false;
     }
+    const u16 player = static_cast<u16>(u->m_player_idx);
+    const u16 typ = static_cast<u16>(u->m_unit_typ_idx);
+    const bool city_def = u->m_is_city_defense != 0u;
     if (is_grp_tail(*u)) {
         const UnitAddKey prev = grp_find_prev(s, key);
         if (!prev.is_valid()) {
@@ -1000,6 +1003,20 @@ bool UnitMovementMng::destroy_unit (GameState& s, UnitAddKey key) {
         }
         u->m_x = U16_KEY_NULL;
         u->m_y = U16_KEY_NULL;
+    }
+    if (!city_def && s.m_statics != nullptr && s.m_player_states != nullptr && player < s.m_player_n) {
+        const u16 un = s.m_statics->unit().get_item_count();
+        if (typ < un) {
+            const u16 ut = s.m_statics->unit().get_item(UnitStaticDataKey::from_raw(typ)).type;
+            PlayerState& ps = s.m_player_states[player];
+            if (ut == s.m_land_defense_type_idx) {
+                ps.m_army_roles.add_def(-1);
+            } else if (ut == s.m_land_attack_type_idx) {
+                ps.m_army_roles.add_atk(-1);
+            } else if (ut == s.m_land_artillery_type_idx) {
+                ps.m_army_roles.add_brg(-1);
+            }
+        }
     }
     s.m_units.return_unit_add(key);
     return true;

@@ -29,6 +29,7 @@
 #include "land_sector_adj.h"
 #include "land_sector_network.h"
 #include "log_dbg.h"
+#include "empire_muster.h"
 #include "mock_muster_siege.h"
 #include "negotiate_peace.h"
 #include "runtime_statics.h"
@@ -152,28 +153,6 @@ static bool pack_path_acc (
     return false;
 }
 
-static bool pack_path_fallbacks (
-    SectorPathGradients* spg,
-    u16 slot,
-    GameState& st,
-    u16 seat,
-    u16 sx,
-    u16 sy,
-    u16 dx,
-    u16 dy) {
-    static const u8 k_acc[3] = {
-        GenerateDistanceP2P::k_acc_own_free,
-        GenerateDistanceP2P::k_acc_non_peace,
-        GenerateDistanceP2P::k_acc_none
-    };
-    for (u16 i = 0u; i < 3u; ++i) {
-        if (pack_path_acc(spg, slot, st, seat, sx, sy, dx, dy, k_acc[i])) {
-            return true;
-        }
-    }
-    return false;
-}
-
 //================================================================================================================================
 //=> - WarTurnHandler -
 //================================================================================================================================
@@ -236,7 +215,10 @@ void WarTurnHandler::path_drop (u16 army_i) {
 }
 
 void WarTurnHandler::feed_drop () {
-    if (m_feed != nullptr && m_feed_i != U16_KEY_NULL) {
+    EmpireMuster* emp = EmpireMuster::at(m_seat);
+    if (emp != nullptr) {
+        emp->disp().drop();
+    } else if (m_feed != nullptr && m_feed_i != U16_KEY_NULL) {
         m_feed->release(m_feed_i);
     }
     m_feed = nullptr;
@@ -410,32 +392,20 @@ bool WarTurnHandler::make_muster_gradient (u16 x, u16 y) {
     }
     feed_drop();
     m_grp_n = 0;
-    u16 cx = 0u;
-    u16 cy = 0u;
-    if (!cap_xy(&cx, &cy)) {
+    EmpireMuster* emp = EmpireMuster::at(m_seat);
+    if (emp == nullptr || !emp->set_front_dest(x, y) || !emp->disp().ok()) {
         LOG_WAR_MUSTER_GRAD_FAIL::LOG(SC_U32(m_seat), SC_U32(x), SC_U32(y), SC_U32(m_st.m_current_turn));
         return false;
     }
-    u16 slot = U16_KEY_NULL;
-    SectorPathGradients* spg = SectorPathGradients::pool_acq(&slot);
-    if (spg == nullptr || slot == U16_KEY_NULL) {
-        LOG_WAR_MUSTER_GRAD_FAIL::LOG(SC_U32(m_seat), SC_U32(x), SC_U32(y), SC_U32(m_st.m_current_turn));
-        return false;
-    }
-    if (!pack_path_fallbacks(spg, slot, m_st, m_seat, cx, cy, x, y)) {
-        spg->release(slot);
-        LOG_WAR_MUSTER_GRAD_FAIL::LOG(SC_U32(m_seat), SC_U32(x), SC_U32(y), SC_U32(m_st.m_current_turn));
-        return false;
-    }
-    m_feed = spg;
-    m_feed_i = slot;
+    m_feed = emp->disp().feed();
+    m_feed_i = emp->disp().feed_i();
     m_sx = x;
     m_sy = y;
     m_feed_ok = true;
     LOG_WAR_MUSTER_PULL::LOG(
         SC_U32(m_seat), SC_U32(x), SC_U32(y), k_mpull_pack_ok, SC_U32(m_st.m_current_turn));
     LOG_SECTOR_PATH_GRADS::LOG(
-        SC_U32(m_st.m_current_turn), SC_U32(m_seat), SC_U32(slot), SC_U32(0u));
+        SC_U32(m_st.m_current_turn), SC_U32(m_seat), SC_U32(m_feed_i), SC_U32(0u));
     return true;
 }
 
@@ -1752,7 +1722,7 @@ u16 WarTurnHandler::target_y () const {
 }
 
 //================================================================================================================================
-//= Eval prep =
+//=> - Eval prep -
 //================================================================================================================================
 
 #if defined(LOG_DBG_FORCE_ALL) || (defined(LOG_DBG_ENABLE) && defined(ENABLED_EVAL_ARMY_STATE_MUSTER_GROUP))
@@ -2213,7 +2183,13 @@ static bool war_begin_buildup (
         s->m_phase = WarPhase::Army;
         return true;
     }
-    (void)camp.do_total_muster();
+    if (camp.do_total_muster() == 0u) {
+        if (camp.has_armies()) {
+            s->m_phase = WarPhase::Army;
+            return true;
+        }
+        return false;
+    }
     s->m_phase = WarPhase::BuildUp;
     return true;
 }
@@ -2614,6 +2590,12 @@ bool WarTurnHandler::begin (GameState& state) {
         g_war[i].m_phase = WarPhase::Idle;
     }
     (void)war_sec_begin(state);
+    (void)EmpireMuster::setup(10u);
+    if (!EmpireMuster::begin(state)) {
+        LOG_WAR_BEGIN_FAIL::LOG(SC_U32(state.m_player_n), SC_U32(state.m_current_turn));
+        clear();
+        return false;
+    }
     return true;
 }
 
@@ -2625,6 +2607,7 @@ void WarTurnHandler::clear () {
     stand_idle_all(g_war_n);
     g_war_st = nullptr;
     g_war_n = 0u;
+    EmpireMuster::clear();
     war_sec_clr();
 }
 

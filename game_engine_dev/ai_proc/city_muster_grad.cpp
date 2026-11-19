@@ -412,6 +412,21 @@ void CityMusterGrad::handle (GameState& st) {
     g_cm->step_heads();
 }
 
+bool CityMusterGrad::refresh_seat (u16 seat) {
+    if (g_cm == nullptr || !g_cm->m_ok) {
+        return false;
+    }
+    return g_cm->flood(seat);
+}
+
+bool CityMusterGrad::flood_multi (u16 seat, const u16* sx, const u16* sy, u16 n) {
+    (void)seat;
+    (void)sx;
+    (void)sy;
+    (void)n;
+    return false;
+}
+
 //================================================================================================================================
 //=> - End of file -
 //================================================================================================================================

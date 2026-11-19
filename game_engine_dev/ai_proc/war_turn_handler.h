@@ -39,9 +39,10 @@ struct MusterCity {
 //  Per-seat war campaign: muster, form, sector-selector target pick, staging, reinforce. Owns WarArmy
 //  group slots (k_grp_use). One sticky BorderFront slot per seat; k_front_use is retained but
 //  multi-front peel is defunct. m_flag_i is the main army that carries the advance and updates
-//  muster/staging on captures. Capital-to-front prefers sector lease/fill; pack_path Dial
-//  (own|free|enemy) is the backup (stack WalkP2P released after tape pack). Own-land CityMusterGrad
-//  covers empire-to-capital only. Wars stay sequential (one WarSlot).
+//  muster/staging on captures. Capital-to-front pathing goes through EmpireMuster::MusterDispatch
+//  (sector lease/fill primary in army goals; pack Dial own|free|enemy as backup). Own-land
+//  CityMusterGrad covers empire-to-capital; EmpireMuster gates dispatch (min assembly) and owns
+//  the front feed. Wars stay sequential (one WarSlot).
 //
 //================================================================================================================================
 

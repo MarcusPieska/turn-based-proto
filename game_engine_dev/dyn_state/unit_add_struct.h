@@ -56,7 +56,8 @@ struct UnitAddStruct {
     u64 m_in_campaign : 1; // True if unit is in an army that is actively at war
     u64 m_being_extended : 1; // True if m_unit_size is being extended; will freeze unit in place until extension completes
     u64 m_in_army : 1; // True if assigned to a standing front army; never mustered
-    u64 m_unused : 7; // Extra padding to align to 16 bytes, keep these
+    u64 m_is_city_defense : 1; // 1 = sole local city defender; muster leaves this; death skips army role dec
+    u64 m_unused : 6; // Extra padding to align to 16 bytes, keep these
 
     i8 m_delta_x_dest; // Work tile dx from m_x; UNIT_DELTA_DEST_NONE or UNIT_DELTA_DEST_ARRIVED
     i8 m_delta_y_dest; // Work tile dy from m_y; UNIT_DELTA_DEST_NONE or UNIT_DELTA_DEST_ARRIVED

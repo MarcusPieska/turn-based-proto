@@ -223,6 +223,38 @@ static bool unit_is_worker (u16 unit_idx) {
     return nm != nullptr && std::strcmp(nm, "LAND_WORKER") == 0;
 }
 
+static bool unit_is_land_defense (u16 unit_idx) {
+    if (s_statics == nullptr || unit_idx == U16_KEY_NULL) {
+        return false;
+    }
+    const UnitStaticDataStruct& u = s_statics->unit().get_item(UnitStaticDataKey::from_raw(unit_idx));
+    cstr nm = s_statics->unit_type().get_name(UnitTypeStaticDataKey::from_raw(u.type));
+    return nm != nullptr && std::strcmp(nm, "LAND_DEFENSE") == 0;
+}
+
+static UnitAddStruct* find_city_def_unit (City& city) {
+    if (s_units == nullptr) {
+        return nullptr;
+    }
+    GameArraySimple* map = CityBorder::map();
+    if (map == nullptr) {
+        return nullptr;
+    }
+    u16 hd = map->get_unit_hd(city.get_x(), city.get_y());
+    while (hd != U16_KEY_NULL) {
+        UnitAddStruct* u = s_units->get_unit_add(UnitAddKey::from_raw(hd));
+        if (u == nullptr) {
+            break;
+        }
+        const u16 nxt = static_cast<u16>(u->m_next_unit_on_tile);
+        if (u->m_player_idx == city.get_owner() && u->m_is_city_defense != 0u) {
+            return u;
+        }
+        hd = nxt;
+    }
+    return nullptr;
+}
+
 static u8 spawn_unit_level (const City& city, u16 city_idx, u16 unit_idx) {
     GAME_EXPECT(s_statics != nullptr, "spawn_unit_level null statics");
     const u8 def_lv = static_cast<u8>(s_statics->config().get_default_unit_level());
@@ -568,13 +600,31 @@ void City::extend_unit (UnitAddStruct* unit) {
     LOG_CITY_BUILD((cur_bld_name(m_build_type, m_bld_idx), 1, 0));
 }
 
+bool City::try_city_def_up (u16 city_idx) {
+    if (!need_prod_pick()) {
+        return false;
+    }
+    UnitAddStruct* u = find_city_def_unit(*this);
+    if (u == nullptr || u->m_being_extended != 0u) {
+        return false;
+    }
+    if (u->m_in_campaign != 0u || u->m_in_army != 0u) {
+        return false;
+    }
+    const u8 max_sz = land_max_unit_size(*this, city_idx);
+    if (static_cast<u8>(u->m_unit_size) >= max_sz) {
+        return false;
+    }
+    const u16 cost = static_cast<u16>(1u + static_cast<u16>(u->m_unit_size));
+    if (get_free_land_unit_support() <= cost) {
+        return false;
+    }
+    extend_unit(u);
+    return true;
+}
+
 void City::build_unit (u16 unit_idx) {
     const u8 max_sz = land_max_unit_size(*this, 0);
-    UnitAddStruct* und = find_tile_unit_flagged(*this, false, max_sz);
-    if (und != nullptr) {
-        extend_unit(und);
-        return;
-    }
     unfreeze_extending_unit(*this);
     m_build_type = BUILD_TYPE_UNIT;
     m_bld_idx = unit_idx;
@@ -1129,6 +1179,13 @@ bool City::finish_if_ready (u16 city_idx) {
             unit->m_health = UNIT_HEALTH;
             unit->m_level = spawn_unit_level(*this, city_idx, typ);
             unit->m_unit_size = static_cast<u8>(m_misc.m_target_unit_size);
+            unit->m_in_campaign = 0;
+            unit->m_being_extended = 0;
+            unit->m_in_army = 0;
+            unit->m_is_city_defense = 0;
+            if (unit_is_land_defense(typ) && find_city_def_unit(*this) == nullptr) {
+                unit->m_is_city_defense = 1;
+            }
             m_accumulated_production = static_cast<u16>(m_accumulated_production - m_build_cost);
             m_build_type = BUILD_TYPE_NONE;
             m_bld_idx = U16_KEY_NULL;

@@ -23,6 +23,8 @@ class GameState;
 //  build() clears the board then floods the lucky seat for the current turn (LuckySeatTurn).
 //  walk_muster() follows the gradient downhill to that seat's muster city. city_reach() verify-walks
 //  when new_muster_flood is set. begin/handle/clear drive the ongoing capital feed from the game loop.
+//  Planned: flood_multi(seat, sx[], sy[], n) for EmpireMuster parallel muster points (multi-source
+//  Dial into the same board); refresh_seat() lets EmpireMuster::update_pathing own the re-flood when.
 //
 //================================================================================================================================
 
@@ -34,6 +36,8 @@ public:
     static bool begin (GameState& st);
     static void clear ();
     static void handle (GameState& st);
+    static bool refresh_seat (u16 seat);
+    static bool flood_multi (u16 seat, const u16* sx, const u16* sy, u16 n);
 
     bool bind (GameState* st);
     void clr ();

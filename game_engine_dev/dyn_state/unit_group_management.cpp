@@ -305,12 +305,27 @@ bool UnitGroupManagement::muster_leave_one_defense (
     u16 leave_i = U16_KEY_NULL;
     for (u16 i = 0; i < n; ++i) {
         const UnitAddStruct* u = ug_get(s, keys[i]);
-        if (u != nullptr && ug_is_defense(s, u->m_unit_typ_idx)) {
+        if (u != nullptr && u->m_is_city_defense != 0u) {
             leave_i = i;
             break;
         }
     }
+    if (leave_i == U16_KEY_NULL) {
+        for (u16 i = 0; i < n; ++i) {
+            const UnitAddStruct* u = ug_get(s, keys[i]);
+            if (u != nullptr && ug_is_defense(s, u->m_unit_typ_idx)) {
+                leave_i = i;
+                break;
+            }
+        }
+    }
     if (n == 1u) {
+        if (leave_i != U16_KEY_NULL) {
+            const UnitAddStruct* u = ug_get(s, keys[0]);
+            if (u != nullptr && u->m_is_city_defense != 0u) {
+                return false;
+            }
+        }
         *out_head = keys[0];
         return true;
     }

@@ -31,6 +31,7 @@
 #include "city_network.h"
 
 #include "army_general.h"
+#include "army_role_count.h"
 #include "game_primitives.h"
 #include "gen_ai_helpers.h"
 #include "resource_ledger.h"
@@ -63,6 +64,8 @@ enum class AiUnits : u8 {
 
 class PlayerState {
 public:
+    static constexpr float k_land_army_sup_fac = 1.0f; // Global free-support multiplier for army role builds
+
     PlayerState () {
         for (u16 i = 0; i < static_cast<u16>(SETTLER_MISSION_SLOTS); ++i) {
             m_settler_idx[i] = U16_KEY_NULL;
@@ -133,6 +136,7 @@ public:
     AiUnits m_ai_units = AiUnits::AI_UNITS_DEFAULT; // Unit production policy; Default for all seats for now
     u8 m_ai_units_tog = 0; // Aggressive army role counter; %3 -> def/atk/arty
     u16 m_muster_city = U16_KEY_NULL; // Shared muster city index; capital for now
+    ArmyRoleCount m_army_roles; // Built+building defend/attack/barrage counts for production balance
     ResourceLedger m_res_ledger; // Per-seat resource stockpile; length matches resource catalog
 };
 
